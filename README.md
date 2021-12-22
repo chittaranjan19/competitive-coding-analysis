@@ -45,14 +45,14 @@ The directory structure:
 			- username_cleaned.csv : csv file containing all submissions in all languages but cleaned after fixing some minor errors.
 			
 			
-	+CSV files
+	+ CSV files
 		- features_time.csv : csv file containing all the timed attributes for all the users.
 		- features_non_time.csv : csv file containing all the skilled attributes for all the users.
 		- questions-complexity.csv : csv file containing all the questions, with their tags, their accepted submissions, and their complexity.
 		- questions.csv : csv file containing all the scraped questions and their tags and number of accepted submissions.
 		
 
-+Scripts
++ Scripts
 	+ Computation
 		- questions.py : Generates the hash table of each question ID and its complexity, and which class. Writes this in questions-complexity.csv
 	
