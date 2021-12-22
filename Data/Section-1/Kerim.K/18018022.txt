@@ -1,0 +1,199 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+/*Gives TLE :(
+struct query{
+	int f1,f2;
+	int cost,ind;
+	void create(int x,int y,int z,int t){
+		f1=x;f2=y;cost=z;ind=t;
+	}
+	bool operator <(query tin) const{
+		if(cost!=tin.cost)
+			return (cost>tin.cost);	
+		return (ind<tin.ind);	
+	}
+}Q[MAXN];
+struct edge{
+	int m1,m2;
+	int val;
+	void create(int x,int y,int z){
+		m1=x;m2=y;val=z;
+	}
+	bool operator <(edge fup) const{
+		return (val>fup.val);	
+	}
+}E[MAXN];*/
+struct node{
+	int pre,suf,cnt,patch;
+	void yasa(int x,int y,int z,int t){
+		pre=x;suf=y;cnt=z;patch=t;
+	}
+}s[MAXN<<2],bos;int arr[MAXN];
+pair<PII,PII>Q[MAXN];
+pair<int,PII>E[MAXN];
+node merge(node x,node y){
+	node z;z.yasa(x.pre,y.suf,x.cnt+y.cnt,x.patch+y.patch);
+	if(x.pre==x.cnt)
+		z.pre+=y.pre;
+	if(y.suf==y.cnt)
+		z.suf+=x.suf;
+	z.patch-=arr[x.suf]+arr[y.pre];
+	z.patch+=arr[x.suf+y.pre];
+	return z;
+}
+vector<int>adj[MAXN];
+int n,q,c=1,lvl[MAXN],sub[MAXN];
+int P[MAXN][24],no=1,TIM,ata[MAXN];
+int chain[MAXN],pos[MAXN],ans[MAXN];
+void dfs(int nd,int pr){
+	P[nd][0]=pr;lvl[nd]=(pr==-1?1:lvl[pr]+1);
+	tr(it,adj[nd])
+		if(*it!=pr){
+			dfs(*it,nd);
+			sub[nd]+=sub[*it];
+		}
+}
+void HLD(int nd,int pr){
+	if(ata[no]==-1)
+		ata[no]=nd;
+	pos[nd]=++TIM;	
+	chain[nd]=no;
+	int mx=0,y=-1;
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to!=pr and umax(mx,sub[to]))
+			y=i;
+	}
+	if(~y)
+		HLD(adj[nd][y],nd);
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to!=pr and i!=y)
+			no++,HLD(to,nd);
+	}
+}
+void upd(int p,int nd,int x,int y){
+	if(x==y){
+		s[nd].pre=s[nd].suf=1;
+		s[nd].patch=arr[1];
+		return;
+	}int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,nd<<1,x,mid);
+	else
+		upd(p,nd<<1|1,mid+1,y);
+	s[nd]=merge(s[nd<<1],s[nd<<1|1]);		
+}
+void add(int x,int y){
+	if(P[x][0]==y)
+		upd(pos[x],1,1,TIM);
+	else
+		upd(pos[y],1,1,TIM);	
+}
+int LCA(int x,int y){
+	if(lvl[x]<lvl[y])
+		swap(x,y);
+	for(int i=17;i>=0;i--)
+		if(lvl[x]-(1<<i)>=lvl[y])
+			x=P[x][i];
+	if(x==y)
+		return x;
+	for(int i=17;i>=0;i--)
+		if(P[x][i]!=-1 and P[x][i]!=P[y][i])
+			x=P[x][i],y=P[y][i];
+	return P[x][0];						
+}
+void build_LCA(){
+	for(int j=1;j<18;j++)
+		for(int i=1;i<=n;i++)
+			if(P[i][j-1]!=-1)
+				P[i][j]=P[P[i][j-1]][j-1];
+}
+void build(int nd,int x,int y){
+	if(x==y){
+		s[nd].cnt=1;
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+	s[nd]=merge(s[nd<<1],s[nd<<1|1]);
+}
+node tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return bos;
+	if(l<=x and y<=r)
+		return s[nd];
+	int mid=(x+y)>>1;
+	return merge(tap(l,r,nd<<1,x,mid),tap(l,r,nd<<1|1,mid+1,y));		
+}
+ll atla(int u,int v){
+	int r=LCA(u,v),rch=chain[r];
+	node sag;sag.yasa(0,0,0,0);
+	node cep;cep.yasa(0,0,0,0);
+	while(u!=r){
+		if(rch==chain[u]){
+			sag=merge(sag,tap(pos[r]+1,pos[u],1,1,TIM));
+			break;
+		}
+		sag=merge(sag,tap(pos[ata[chain[u]]],pos[u],1,1,TIM));
+		u=ata[chain[u]];
+		u=P[u][0];
+	}
+	while(v!=r){
+		if(rch==chain[v]){
+			cep=merge(cep,tap(pos[r]+1,pos[v],1,1,TIM));
+			break;
+		}
+		cep=merge(cep,tap(pos[ata[chain[v]]],pos[v],1,1,TIM));
+		v=ata[chain[v]];
+		v=P[v][0];
+	}
+	swap(cep.pre,cep.suf);
+	return merge(sag,cep).patch;
+}
+int main(){
+	memset(P,-1,sizeof(P));
+	memset(ata,-1,sizeof(ata));bos.yasa(0,0,0,0);
+	scanf("%d%d",&n,&q);
+	for(int i=1;i<n;i++)
+		scanf("%d",arr+i);
+	for(int i=1;i<n;i++){
+		int u,v,w;
+		scanf("%d%d%d",&u,&v,&w);
+		adj[u].pb(v);adj[v].pb(u);
+		E[i]=mp(w,mp(u,v));
+	}
+	for(int i=1;i<=q;i++){
+		int u,v,l;
+		scanf("%d%d%d",&u,&v,&l);
+		Q[i]=mp(mp(l,i),mp(u,v));
+	}
+	dfs(1,-1);HLD(1,-1);build_LCA();build(1,1,TIM);
+	sort(E+1,E+n);sort(Q+1,Q+q+1);
+	reverse(E+1,E+n);reverse(Q+1,Q+q+1);
+	for(int i=1;i<=q;i++){
+		int u=Q[i].ss.ff,v=Q[i].ss.ss,l=Q[i].ff.ff;
+		while(c<n and l<=E[c].ff)
+			add(E[c].ss.ff,E[c].ss.ss),c++;
+		ans[Q[i].ff.ss]=atla(u,v);
+	}
+	for(int i=1;i<=q;i++)
+		printf("%d\n",ans[i]);
+	return 0;
+}

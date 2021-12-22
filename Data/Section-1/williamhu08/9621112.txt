@@ -1,0 +1,98 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXV = 10010;
+
+void kill() {
+	cout << "NO";
+	exit(0);
+}
+
+int N;
+vector<int> adj[MAXV];
+map<string, int> mp; int V;
+string str[MAXV];
+int in[MAXV], out[MAXV];
+int indadj[MAXV];
+stack<int> ans;
+
+int getind (string s) {
+	if (mp.count(s)) {
+		return mp[s];
+	}
+	str[++V] = s;
+	return mp[s] = V;
+}
+
+//union find
+int par[MAXV];
+
+int find (int x) {
+	return x == par[x] ? x : par[x] = find(par[x]);
+}
+
+void dfs (int x) {
+	while (indadj[x] < adj[x].size()) {
+		dfs(adj[x][indadj[x]++]);
+	}
+	ans.push(x);
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	for (int i = 1; i < MAXV; i++) {
+		par[i] = i;
+	}
+	cin >> N;
+	for (int i = 0; i < N; i++) {
+		string s;
+		cin >> s;
+		string t = s.substr(1);
+		s.pop_back();
+		int inds = getind(s), indt = getind(t);
+		// cout << inds << ' ' << indt << '\n';
+		adj[inds].push_back(indt);
+		out[inds]++;
+		in[indt]++;
+		par[find(inds)] = find(indt);
+	}
+	for (int i = 1; i <= V; i++) {
+		if (find(i) != find(1)) {
+			kill();
+		}
+	}
+	int df = 0;
+	for (int i = 1; i <= V; i++) {
+		df += abs(in[i] - out[i]);
+	}
+	if (df > 2) {
+		kill();
+	}
+	if (df == 2) {
+		for (int i = 1; i <= V; i++) {
+			if (out[i] > in[i]) {
+				dfs(i);
+				break;
+			}
+		}
+	} else {
+		dfs(1);
+	}
+	for (cout << "YES\n" << str[ans.top()][0]; !ans.empty(); ) {
+		cout << str[ans.top()][1];
+		ans.pop();
+	}
+}

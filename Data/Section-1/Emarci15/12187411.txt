@@ -1,0 +1,77 @@
+#include <iostream>
+#include <algorithm>
+
+#define x first
+#define y second
+#define mod 1000000007ll
+
+using namespace std;
+
+long long h,w;
+long long bf[2000],ja[2000];
+int db[2000];
+int n;
+
+bool kis(pair<int,int> a, pair<int,int> b) {
+    return ((a.x < b.x) || ((a.x == b.x) && (a.y < b.y)));
+}
+bool tart(pair<int,int> a, pair<int,int> b) {
+    return ((a.x <= b.x) && (a.y <= b.y));
+}
+
+pair<int,int> b[2000];
+
+long long pow(long long b, long long p) {
+    if(p == 0) return 1;
+    if(p&1) return (b*pow(b,p-1)) % mod;
+    long long r = pow(b,p>>1);
+    return (r*r) % mod;
+}
+
+long long fact[200001];
+long long nchoosek(long long n, long long k) {
+    return (((fact[n] * pow(fact[k],mod-2)) % mod) * pow(fact[n-k],mod-2)) % mod;
+}
+
+int main()
+{
+    fact[0] = 1ll;
+    for(int i=1; i<=200000; i++) fact[i] = (fact[i-1]*((long long)i)) % mod;
+
+    cin >> h >> w >> n;
+
+    for(int i=0; i<n; i++) {
+        cin >> b[i].x >> b[i].y;
+        b[i].x--; b[i].y--;
+    }
+    sort(b,b+n,kis);
+
+    long long ans = nchoosek((h-1ll)+(w-1ll),h-1ll);
+
+    for(int i=0; i<n; i++) {
+        bf[i] = nchoosek((0ll+b[i].x)+(0ll+b[i].y),0ll+b[i].x);
+
+        int miny = -1;
+        for(int j=i-1; j>=0; j--) {
+            if(!tart(b[j],b[i])) continue;
+            if(b[j].y <= miny) continue;
+            long long minusz = ( nchoosek((0ll+b[j].x)+(0ll+b[j].y),0ll+b[j].x)
+                *nchoosek((0ll+(b[i].x-b[j].x))+(0ll+(b[i].y-b[j].y)),0ll+(b[i].x-b[j].x)) ) % mod;
+            bf[i] = (bf[i]+mod-minusz) % mod;
+            miny = b[j].y;
+        }
+    }
+
+
+    for(int i=n-1; i>=0; i--) {
+        ja[i] = nchoosek(((h-1ll)-b[i].x)+((w-1ll)-b[i].y),(h-1ll)-b[i].x);
+    }
+
+    for(int i=0; i<n; i++) {
+        ans = (ans + mod - ((bf[i]*ja[i])%mod)) % mod;
+    }
+
+    cout << ans << endl;
+
+    return 0;
+}

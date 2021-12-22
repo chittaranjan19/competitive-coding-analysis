@@ -1,0 +1,134 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int grid[1000][1000];
+int dp[1000][1000];
+
+char v[1000][1000];
+
+#define gc getchar_unlocked
+
+void scanint(int &x)
+{
+    register int c = gc();
+    x = 0;
+    bool neg=false;
+    if(c=='-')
+        neg=true;
+    for(;(c<48 || c>57);c = gc());
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg)
+        x=-x;
+}
+
+int factorcnt(int n, int d)
+{
+    int x=0;
+    while(n%d==0){
+        x++;
+        n/=d;
+    }
+    return x;
+}
+
+int main()
+{
+    int i, j, n, x, y;
+    scanint(n);
+    string s;
+    for(i=0; i<n; i++){
+        for(j=0; j<n; j++)
+            scanint(grid[i][j]);
+    }
+    dp[0][0] = factorcnt(grid[0][0], 2);
+    for(i=0; i<n; i++){
+        for(j=0; j<n; j++){
+            if(i==0 && j==0)
+                continue;
+            else if(i==0){
+                dp[i][j] = dp[i][j-1]+factorcnt(grid[i][j],2);
+                v[i][j] = 'R';
+            }
+            else if(j==0){
+                dp[i][j] = dp[i-1][j]+factorcnt(grid[i][j], 2);
+                v[i][j] = 'D';
+            }
+            else{
+                x = dp[i-1][j]+factorcnt(grid[i][j], 2);
+                y = dp[i][j-1]+factorcnt(grid[i][j], 2);
+                if(x<y){
+                    v[i][j] = 'D';
+                    dp[i][j] = x;
+                }
+                else{
+                    v[i][j] = 'R';
+                    dp[i][j] = y;
+                }
+            }
+        }
+    }
+    s = "";
+    int f2 = dp[n-1][n-1];
+    i=j=n-1;
+    while(true){
+        if(i==0 && j==0)
+            break;
+        s+=v[i][j];
+        if(v[i][j]=='D')
+            i--;
+        else
+            j--;
+    }
+    dp[0][0] = factorcnt(grid[0][0], 5);
+    for(i=0; i<n; i++){
+        for(j=0; j<n; j++){
+            if(i==0 && j==0)
+                continue;
+            else if(i==0){
+                dp[i][j] = dp[i][j-1]+factorcnt(grid[i][j], 5);
+                v[i][j] = 'R';
+            }
+            else if(j==0){
+                dp[i][j] = dp[i-1][j]+factorcnt(grid[i][j], 5);
+                v[i][j] = 'D';
+            }
+            else{
+                x = dp[i-1][j]+factorcnt(grid[i][j], 5);
+                y = dp[i][j-1]+factorcnt(grid[i][j], 5);
+                if(x<y){
+                    v[i][j] = 'D';
+                    dp[i][j] = x;
+                }
+                else{
+                    v[i][j] = 'R';
+                    dp[i][j] = y;
+                }
+            }
+        }
+    }
+    int ans = min(dp[n-1][n-1], f2);
+    printf("%d\n", ans);
+    if(dp[n-1][n-1]<f2){
+        s = "";
+        i=j=n-1;
+        while(true){
+            if(i==0 && j==0)
+                break;
+            s+=v[i][j];
+            if(v[i][j]=='D')
+                i--;
+            else
+                j--;
+        }
+        for(i=s.size()-1; i>=0; i--)
+            cout << s[i];
+        cout << endl;
+    }
+    else{
+        for(i=s.size()-1; i>=0; i--)
+            cout << s[i];
+        cout << endl;
+    }
+    return 0;
+}

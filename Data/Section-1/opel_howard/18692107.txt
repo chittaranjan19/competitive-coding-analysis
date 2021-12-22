@@ -1,0 +1,130 @@
+#define DEBUG
+
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <climits>
+#include <ctime>
+#include <cassert>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector<int>
+#define vl vector<long long>
+#define vb vector<bool>
+#define vs vector<string>
+#define ii pair<int, int>
+#define a first
+#define b second
+#define vii vector<ii>
+#define mii map<ii>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define loop(i, n) for(int i = 0; i < n; ++i)
+#define loop1(i, n) for(int i = 1; i <= n; ++i)
+#define reverse_iterate(a, b) for(__typeof((b).rend()) a = (b).rbegin(); a != (b).rend(); ++a)
+#define iterate(a, b) for(__typeof((b).begin()) a = (b).begin(); a != (b).end(); ++a)
+#define all(i) (i).begin(), (i).end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const double PI = acos(-1);
+
+#ifdef DEBUG
+	#define debug(...) printf(__VA_ARGS__)
+	#define GetTime() fprintf(stderr,"Running time: %.3lf second\n",((double)clock())/CLOCKS_PER_SEC)
+#else
+	#define debug(...) 
+	#define GetTime() 
+#endif
+
+// end of template
+
+int get_digit_req(int val) {
+	int ret = 0;
+	while (val) {
+		ret++;
+		val /= 7;
+	}
+	return ret;
+}
+
+vector<vector<int> > combine(int n, int k) {
+    vector<vector<int> > ans;
+    if (k == 0) {
+        ans.push_back(vector<int>());
+        return ans;
+    }
+    for (int val = k; val <= n; ++val) {
+        vector<vector<int> > sub_ans = combine(val-1, k-1);
+        for (int it = 0; it < sub_ans.size(); ++it)
+            sub_ans[it].push_back(val);
+        ans.insert(ans.end(), sub_ans.begin(), sub_ans.end());
+    }
+    return ans;
+}
+
+int main() {
+    // freopen("686C.in", "r", stdin);
+    
+    int n, m;
+    scanf("%d %d", &n, &m);
+    --n, --m;
+    int num_digit_n = min(get_digit_req(n), 1), num_digit_m = min(get_digit_req(m), 1);
+
+    if (num_digit_n+num_digit_m > 7) {
+    	puts("0");
+    	return 0;
+    }
+
+    vector<vi> combs = combine(7, num_digit_n+num_digit_m);
+    iterate(comb_p, combs) {
+    	iterate(val_p, *comb_p) {
+    		*val_p -= 1;
+    	}
+    }
+
+    int ans = 0;
+    iterate(comb_p, combs) {
+    	vi &comb = *comb_p;
+    	do {
+	    	ll day = 0, hour = 0;
+	    	int idx = 0;
+	    	for (; idx < num_digit_n; ++idx) {
+	    		day = (day*7)+comb[idx];
+	    	}
+	    	for (; idx < comb.size(); ++idx) {
+	    		hour = (hour*7)+comb[idx];
+	    	}
+	    	if ((day <= n) and (hour <= m)) {
+	    		ans++;
+	    	}
+    	} while (next_permutation(all(comb)));
+    }
+    printf("%d\n", ans);
+
+    return 0;
+}

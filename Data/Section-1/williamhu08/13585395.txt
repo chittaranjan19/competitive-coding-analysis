@@ -1,0 +1,66 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 4010;
+
+int N, M;
+int A[MAXN], B[MAXN];
+int deg[MAXN];
+bool adj[MAXN][MAXN];
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 1; i <= M; i++) {
+		cin >> A[i] >> B[i];
+		deg[A[i]]++;
+		deg[B[i]]++;
+		adj[A[i]][B[i]] = adj[B[i]][A[i]] = true;
+	}
+	int ans = 1e9;
+	for (int i = 1; i <= M; i++) {
+		for (int j = i + 1; j <= M; j++) {
+			multiset<int> mst = {A[i], A[j], B[i], B[j]};
+			set<int> st = {A[i], A[j], B[i], B[j]};
+			if (st.size() == 4) {
+				continue;
+			}
+			assert(st.size() == 3);
+			int vert;
+			for (int i : mst) {
+				if (mst.count(i) == 2) {
+					vert = i;
+				}
+			}
+			vector<int> v;
+			for (int i : st) {
+				if (i != vert) {
+					v.push_back(i);
+				}
+			}
+			assert(v.size() == 2);
+			if (adj[v[0]][v[1]]) {
+				//then they're adjacent
+				int tot = deg[v[0]] + deg[v[1]] + deg[vert];
+				ans = min(ans, tot);
+			}
+		}
+	}
+	if (ans == 1e9) {
+		ans = -1;
+	} else {
+		ans -= 6;
+	}
+	cout << ans << endl;
+}

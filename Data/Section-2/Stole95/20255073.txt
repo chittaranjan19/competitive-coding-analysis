@@ -1,0 +1,154 @@
+import java.io.*;
+import java.util.*;
+
+public class Main{
+	static int N, M, K;
+	static int[] trees;
+	static int[][] colors;
+	static long memo[][][];
+	
+	public static void main(String[] args) throws IOException {
+		BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
+	
+		String[] tmp = bf.readLine().split(" ");
+		
+		N = Integer.parseInt(tmp[0]);
+		M = Integer.parseInt(tmp[1]);
+		K = Integer.parseInt(tmp[2]);
+	
+		tmp = bf.readLine().split(" ");
+		trees = new int[N];
+		colors = new int[N][M];
+		memo = new long[N][K+1][M+1];
+		
+		for(int i = 0 ; i < N ; i++){
+			for(int j = 0 ; j <=K ; j++){
+				Arrays.fill(memo[i][j], -1);
+			}
+		}
+		
+		int currBeauty = 0;
+		int uncolored = 0;
+		
+		for(int i = 0 ; i < N ; i++){
+			trees[i] = Integer.parseInt(tmp[i]);
+			if(trees[i] == 0) uncolored++;
+			if(i!= 0 && trees[i] != 0 && trees[i-1] !=0 && trees[i]!= trees[i-1]){
+				currBeauty++;
+			}
+			if(i!=0 && i == N-1 && trees[i] != 0)
+				currBeauty++;
+			if(i!=0 && trees[i] == 0 && trees[i-1] !=0)
+				currBeauty++;
+		}
+		
+		for(int i = 0 ; i < N ; i++){
+			tmp = bf.readLine().split(" ");
+			
+			for(int j = 0 ; j < M ; j++){
+				colors[i][j] = Integer.parseInt(tmp[j]);
+			}
+		}
+
+		if(currBeauty > K){
+			System.out.println(-1);
+			System.exit(0);
+		}
+		else if(currBeauty == K && uncolored==0){
+			System.out.println(0);
+			System.exit(0);
+		}
+		
+		System.out.println(minValue(0, 0, -1));
+	}
+	
+	static long minValue(int idx, int currBeauty, int prevColor){
+		long value = Long.MAX_VALUE;
+		
+		if(currBeauty > K) return 100000000;
+		if(idx >= N){
+			if(currBeauty == K) return 0;
+			return 100000000;
+		}
+		
+		if(prevColor != -1 && memo[idx][currBeauty][prevColor] != -1){
+			return 
+				memo[idx][currBeauty][prevColor];
+		}
+		
+		if(trees[idx] != 0){
+			if(prevColor != (trees[idx]-1)){ 
+				return 
+					minValue(idx+1, currBeauty+1, trees[idx]-1);
+			}
+			return 
+				minValue(idx+1, currBeauty, trees[idx]-1);
+		}
+		
+		if(idx == 0){
+			int minColor = Integer.MAX_VALUE;
+			int minColorId = -1;
+			int rightIdx = -1;
+			
+			for(int i = 1 ; i < N ; i++){
+				if(trees[i] !=0){
+					rightIdx = trees[i]-1;
+					break;
+				}
+			}
+			
+			for(int i = 0 ; i < M ; i++){
+				if(i!= rightIdx){
+					if(minColor > colors[idx][i]){
+						minColor = colors[idx][i];
+						minColorId = i;
+					}
+				}
+			}
+//			System.out.println(idx + " " + minColorId + " " + minColor + " " + rightIdx);
+			if(minColorId != -1) 
+				value = Math.min(value, minColor + minValue(idx+1, 1 + currBeauty, minColorId));
+			if(rightIdx!=-1) 
+				value = Math.min(value, colors[idx][rightIdx] + minValue(idx+1,1 + currBeauty, rightIdx));
+		}
+		else{
+			int minColor = Integer.MAX_VALUE;
+			int minColorId = -1;
+			int rightIdx = -1;
+			
+			for(int i = idx+1 ; i < N ; i++){
+				if(trees[i] !=0){
+					rightIdx = trees[i]-1;
+					break;
+				}
+			}
+			
+			for(int i = 0 ; i < M ; i++){
+				if(i!= rightIdx && i!= prevColor){
+//					System.out.println(colors[idx][i] + " minColor = " + minColor);
+					if(minColor > colors[idx][i]){
+						minColor = colors[idx][i];
+						minColorId = i;
+					}
+				}
+			}
+//			System.out.println(idx + " " + minColorId + " " + minColor + " " + rightIdx + " prevColor = " + prevColor);
+			
+			value = colors[idx][prevColor] + minValue(idx+1, currBeauty, prevColor);
+			
+			if(rightIdx != -1) 
+				value = Math.min(value, colors[idx][rightIdx] + minValue(idx+1, 1+ currBeauty, rightIdx));
+			if(minColorId != -1) 
+				value = Math.min(value, minColor + minValue(idx+1,1 + currBeauty, minColorId));
+			
+			if(value == Long.MAX_VALUE) value = 1000000000;
+		}
+		
+		if(prevColor == -1) 
+			return value;
+		return 
+			memo[idx][currBeauty][prevColor] = value;
+	}
+	
+	
+}

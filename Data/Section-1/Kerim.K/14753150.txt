@@ -1,0 +1,87 @@
+#include<bits/stdc++.h>
+#define MAXN 200009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define lg(x) ceil(log2(x))
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN],s[MAXN*4],timer=1,lvl[MAXN],in[MAXN],out[MAXN];
+vector<int>adj[MAXN];
+void upd(int p,int v,int nd,int x,int y){
+	if(x==y){
+		s[nd]+=v;
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,v,nd*2,x,mid);
+	else
+		upd(p,v,nd*2+1,mid+1,y);
+	s[nd]=s[nd*2]+s[nd*2+1];		
+}
+int tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return s[nd];
+	int mid=(x+y)>>1;
+	return tap(l,r,nd*2,x,mid)+tap(l,r,nd*2+1,mid+1,y);		
+}
+void dfs(int nd,int pr){
+//	cout<<nd<<" "<<pr<<endl;
+	lvl[nd]=lvl[pr]+1;
+	in[nd]=timer++;
+	tr(i,adj[nd])
+		if(*i!=pr)
+			dfs(*i,nd);
+	out[nd]=timer++;	
+}
+int main(){
+	int n,m,u,v;
+	cin>>n>>m;
+	for(int i=1;i<=n;i++)
+		scanf("%d",arr+i);
+	for(int i=0;i<n-1;i++){
+		cin>>u>>v;
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	lvl[0]=false-1;
+	dfs(1,0);
+//	wr
+	while(m--){
+		int type,x,val;
+		scanf("%d%d",&type,&x);
+		if(type==1){
+			scanf("%d",&val);
+			if(lvl[x]%2==0){
+				upd(in[x],val,1,1,n*2);
+				upd(out[x],-val,1,1,n*2);
+			}
+			else{
+				upd(in[x],-val,1,1,n*2);
+				upd(out[x],val,1,1,n*2);
+			}
+		}
+		else{
+			if(lvl[x]%2==0)
+				cout<<arr[x]+tap(1,in[x],1,1,n*2)<<endl;
+			else
+				cout<<arr[x]-tap(1,in[x],1,1,n*2)<<endl;	
+		}
+	}
+	return 0;
+}

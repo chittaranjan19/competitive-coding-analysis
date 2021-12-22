@@ -1,0 +1,107 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 6100;
+
+struct edge{
+    int dest, l, r;
+};
+
+//map<int, int> m1, m2;
+//map<int, int> :: iterator it;
+int a, b, t1, t2, n;
+vector<edge> adj[maxn];
+int dp[50][maxn], vis[1010], ht[1010], m1[1001000], m2[1001000];
+
+int solve(int cur, int k)
+{
+    //cout << cur << " " << m2[k] << "\n";
+    if(cur==n)
+        return m2[k];
+    if(dp[cur][k]!=-1)
+        return dp[cur][k];
+    int i, x, y, z, ret = 0;
+    //cout << cur << "\n";
+    for(i=0; i<adj[cur].size(); i++){
+        //cout << adj[cur][i].dest << " " << cur << " boo\n";
+        if(adj[cur][i].l>m2[k])
+            continue;
+        //cout << adj[cur][i].dest << " " << cur << " " << ht[adj[cur][i].dest] << " " << ht[cur] << " boo\n";
+        if(ht[adj[cur][i].dest]<ht[cur])
+            continue;
+        //cout << adj[cur][i].dest << " " << cur << " boo\n";
+        x = min(m2[k], adj[cur][i].r);
+        z = adj[cur][i].l-1;
+        y = solve(adj[cur][i].dest, m1[x]) - solve(adj[cur][i].dest, m1[z]);
+        //cout << "b " << x << " " << adj[cur][i].dest << " " << z << " " << m1[x] << " " << m1[z] << " " << y << " " << cur << "\n";
+        ret = max(ret, y);
+    }
+    return dp[cur][k] = ret;
+}
+
+void comp_ht()
+{
+    int cur, h, i;
+    queue<pair<int, int> > q;
+    q.push(make_pair(1, 0));
+    vis[1] = 1;
+    while(!q.empty()){
+        cur = q.front().first;
+        h = q.front().second;
+        q.pop();
+        ht[cur] = h;
+        for(i=0; i<adj[cur].size(); i++){
+            if(!vis[adj[cur][i].dest]){
+                q.push(make_pair(adj[cur][i].dest, h+1));
+                vis[adj[cur][i].dest] = 1;
+            }
+        }
+    }
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    int m, i, j;
+    scanf("%d%d", &n, &m);
+    for(i=0; i<m; i++){
+        scanf("%d%d%d%d", &a, &b, &t1, &t2);
+        if(!m1[t1]){
+            //temp.push_back(t1);
+            m1[t1] = 1;
+        }
+        if(!m1[t1-1]){
+            //temp.push_back(t1-1);
+            m1[t1-1] = 1;
+        }
+        if(!m1[t2]){
+            //temp.push_back(t2);
+            m1[t2] = 1;
+        }
+        if(!m1[t2-1]){
+            //temp.push_back(t2-1);
+            m1[t2-1] = 1;
+        }
+        adj[a].push_back(((edge){b, t1, t2}));
+        adj[b].push_back(((edge){a, t1, t2}));
+    }
+    m1[1000002] = 1;
+    j = 1;
+    for(i=0; i<1001000; ++i){
+        if(!m1[i])
+            continue;
+        m1[i] = j;
+        //it->second = j;
+        m2[j] = i;
+        j++; 
+    }
+    comp_ht();
+    memset(dp, -1, sizeof(dp));
+    int ans = solve(1, m1[1000002]);
+    if(ans==0)
+        printf("Nice work, Dima!\n");
+    else
+        printf("%d\n", ans);
+    return 0;   
+}

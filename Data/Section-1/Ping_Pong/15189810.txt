@@ -1,0 +1,76 @@
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+#include <algorithm>
+#include <vector>
+#include <set>
+#include <map>
+#include <queue>
+#include <string>
+#include <math.h>
+
+using namespace std;
+int n;
+vector<pair<int, int> > divis;
+vector<vector<pair<int, int> > > graph;
+vector<bool> used;
+vector<map<int, int> > mest;
+
+void dfs(int x, int last, int c)
+{
+    used[x] = true;
+    if (last != -1)
+    {
+        int cnt = mest[x].size();
+        pair<int, int> p;
+        for (int i = 0; i < min(cnt, c); i++)
+        {
+            p = make_pair(mest[x].begin()->first, mest[x].begin()->second);
+            mest[x].erase(mest[x].begin());
+            divis[p.second].second++;
+            mest[last].insert(p);
+        }
+        for (map<int, int>::iterator it = mest[x].begin(); it != mest[x].end(); it++)
+            divis[it->second].second++;
+    }
+    for (int i = 0; i < graph[x].size(); i++)
+        if (!used[graph[x][i].first])
+            dfs(graph[x][i].first, x, graph[x][i].second);
+}
+
+int main()
+{
+    int q, s, f;
+    scanf_s("%d", &n);
+    for (int i = 0; i < n; i++)
+    {
+        scanf_s("%d", &q);
+        divis.push_back(make_pair(q, 0));
+    }
+    vector<pair<int, int> > v;
+    map<int, int> m;
+    for (int i = 0; i < n; i++)
+        graph.push_back(v);
+    for (int i = 0; i < n - 1; i++)
+    {
+        scanf_s("%d %d %d", &s, &f, &q);
+        graph[s - 1].push_back(make_pair(f - 1, q));
+        graph[f - 1].push_back(make_pair(s - 1, q));
+    }
+    for (int i = 0; i < n; i++)
+    {
+        mest.push_back(m);
+        mest[i][divis[i].first] = i;
+    }
+    for (int i = 0; i < n; i++)
+        used.push_back(false);
+    while (mest[0].size() < n)
+    {
+        for (int i = 0; i < n; i++)
+        used[i] = false;
+        dfs(0, -1, 0);
+    }
+    for (int i = 0; i < n; i++)
+        printf("%d ", divis[i].second);
+    return 0;
+}

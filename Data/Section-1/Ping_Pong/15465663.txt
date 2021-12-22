@@ -1,0 +1,115 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int MAX_N = 1000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+int n, m;
+char graph[MAX_N][MAX_N];
+bool used[MAX_N][MAX_N], used1[MAX_N][MAX_N];
+pair<int, int> komp[MAX_N][MAX_N];
+
+int dfs(int x, int y)
+{
+	used[x][y] = true;
+	int ans = 1;
+	if (x > 0 && graph[x - 1][y] == '.' && !used[x - 1][y])
+		ans += dfs(x - 1, y);
+	if (y > 0 && graph[x][y - 1] == '.' && !used[x][y - 1])
+		ans += dfs(x, y - 1);
+	if (x < n - 1 && graph[x + 1][y] == '.' && !used[x + 1][y])
+		ans += dfs(x + 1, y);
+	if (y < m - 1 && graph[x][y + 1] == '.' && !used[x][y + 1])
+		ans += dfs(x, y + 1);
+	return ans;
+}
+
+void dfs1(int x, int y, int num, int cnt)
+{
+	used1[x][y] = true;
+	komp[x][y] = make_pair(num, cnt);
+	if (x > 0 && graph[x - 1][y] == '.' && !used1[x - 1][y])
+		dfs1(x - 1, y, num, cnt);
+	if (y > 0 && graph[x][y - 1] == '.' && !used1[x][y - 1])
+		dfs1(x, y - 1, num, cnt);
+	if (x < n - 1 && graph[x + 1][y] == '.' && !used1[x + 1][y])
+		dfs1(x + 1, y, num, cnt);
+	if (y < m - 1 && graph[x][y + 1] == '.' && !used1[x][y + 1])
+		dfs1(x, y + 1, num, cnt);
+}
+
+int main()
+{
+	//ifstream ifs("input.in");
+	//ofstream ofs("output.out");
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+	scanf_s("%d %d", &n, &m);
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < m; j++)
+			scanf_s(" %c", &graph[i][j]);
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < m; j++)
+			used[i][j] = false;
+	int cnt, num = 1;
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < m; j++)
+			if (graph[i][j] == '.' && !used[i][j])
+			{
+				cnt = dfs(i, j);
+				dfs1(i, j, num, cnt);
+				num++;
+			}
+	set<int> s;
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < m; j++)
+			if (graph[i][j] == '.')
+				printf("%c", '.');
+			else
+			{
+				cnt = 0;
+				s.clear();
+				if (i > 0 && graph[i - 1][j] == '.' && s.find(komp[i - 1][j].first) == s.end())
+				{
+					cnt += komp[i - 1][j].second;
+					s.insert(komp[i - 1][j].first);
+				}
+				if (j > 0 && graph[i][j - 1] == '.' && s.find(komp[i][j - 1].first) == s.end())
+				{
+					cnt += komp[i][j - 1].second;
+					s.insert(komp[i][j - 1].first);
+				}
+				if (i < n - 1 && graph[i + 1][j] == '.' && s.find(komp[i + 1][j].first) == s.end())
+				{
+					cnt += komp[i + 1][j].second;
+					s.insert(komp[i + 1][j].first);
+				}
+				if (j < m - 1 && graph[i][j + 1] == '.' && s.find(komp[i][j + 1].first) == s.end())
+				{
+					cnt += komp[i][j + 1].second;
+					s.insert(komp[i][j + 1].first);
+				}
+				printf("%d", (cnt + 1) % 10);
+			}
+		printf("\n");
+	}
+	return 0;
+}

@@ -1,0 +1,171 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <climits>
+#ifdef DEBUG
+	#include <ctime>
+#endif
+using namespace std;
+
+// template
+
+// abbreviations
+#define vi vector<int>
+#define vl vector<long long>
+#define vb vector<bool>
+#define vs vector<string>
+#define ii pair<int, int>
+#define a first
+#define b second
+#define vii vector<ii>
+#define mii map<ii>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define rep(it, n) for(int it = 0; it < n; ++it)
+#define rep1(it, n) for(int it = 1; it <= n; ++it)
+#define loop(it, from, to) for(int it = (from); it <= (to); ++it)
+#define reverse_iterate(it, cont) for(__typeof((cont).rend()) it = (cont).rbegin(); it != (cont).rend(); ++it)
+#define iterate(it, cont) for(__typeof((cont).begin()) it = (cont).begin(); it != (cont).end(); ++it)
+#define all(cont) (cont).begin(), (cont).end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const int INF = INT_MAX;
+const int NINF = INT_MIN;
+const ll INF_LL = LLONG_MAX;
+const ll NINF_LL = LLONG_MIN;
+const double PI = acos(-1);
+
+#ifdef DEBUG
+	#define debug(fmt, args...) printf("Line %d, in %s\t: " fmt, __LINE__, __FUNCTION__, ##args)
+	#define rep_rt() printf("[Run time: %.3fs]\n",((double)clock())/CLOCKS_PER_SEC)
+#else
+	#define debug(...)
+#endif
+
+// end of template
+
+#define MOD (int)(1e9+7)
+inline bool is_valid(ll &u, ll &v) {
+    ll xor_res = u ^ v;
+    if (__builtin_popcountll(xor_res) % 3 == 0) {
+        return true;
+    }
+    return false;
+}
+
+inline ll mult_mod(ll &u, ll &v) {
+    return (u*v)%MOD;
+}
+
+inline ll add_mod(ll &u, ll v) {
+    return (u+v)%MOD;
+}
+
+int main() {
+#ifdef DEBUG
+	freopen("691E.in", "r", stdin);
+#endif
+
+	int n;
+	ll length;
+    scanf("%d %I64d", &n, &length);
+    ll n_edges = length-1;
+
+    if (n_edges == 0) { // special case
+        printf("%d\n", n);
+        return 0;
+    }
+
+    ll arr[n];
+    rep(idx, n) {
+        scanf("%I64d\n", arr+idx);
+    }
+
+    // initialization
+    ll matx[n][n][64] = {0};
+    memset(matx, 0, n*n*64*sizeof(ll));
+    rep(i, n) {
+        rep(j, n) {
+            if (is_valid(arr[i], arr[j])) {
+                matx[i][j][0] = 1;
+            }
+        }
+    }
+
+    // compute the dp
+    rep1(length_log2, 60) {
+        rep(i, n) {
+            rep(j, n) {
+                rep(k, n) {
+                    matx[i][j][length_log2] = add_mod(matx[i][j][length_log2], mult_mod(matx[i][k][length_log2-1], matx[k][j][length_log2-1]));
+                }
+            }
+	    }
+    }
+
+    // use the dp to get the ans
+    ll matx_ans[n][n];
+
+    bool first_time = true;
+    ll matx_temp[n][n]; // temp var
+    for (int log2 = 0; n_edges >= (1LL << log2); log2++) {
+    	if (n_edges & (1LL << log2)) {
+    		if (first_time) {
+    			rep(i, n) {
+    				rep(j, n) {
+    					matx_ans[i][j] = matx[i][j][log2];
+    				}
+    			}
+    			first_time = false;
+    		} else {
+                // remember to reset the temp var
+                memset(matx_temp, 0, n*n*sizeof(ll));
+                rep(i, n) {
+                    rep(j, n) {
+                        rep(k, n) {
+                            matx_temp[i][j] = add_mod(matx_temp[i][j], mult_mod(matx_ans[i][k], matx[k][j][log2]));
+                        }
+                    }
+                }
+    			rep(i, n) {
+    				rep(j, n) {
+    					matx_ans[i][j] = matx_temp[i][j];
+    				}
+    			}
+    		}
+    	}
+    }
+    ll ans = 0;
+    rep(i, n) {
+    	rep(j, n) {
+    		ans = add_mod(ans, matx_ans[i][j]);
+    	}
+    }
+    printf("%I64d\n", ans);
+
+#ifdef DEBUG
+    rep_rt();
+#endif
+    return 0;
+}

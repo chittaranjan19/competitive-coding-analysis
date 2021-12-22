@@ -1,0 +1,84 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define mp make_pair
+#define pb push_back
+
+const int limit = 2010;
+bool v0[limit];
+bool v1[limit];
+
+vector< pair<int,int> > t0;
+vector< pair<int,int> > t1;
+
+void setvisited(){
+	for(int i=0;i<limit;i++){
+		v0[i]=false;
+		v1[i]=false;
+	}
+}
+
+int solve(int type , int cm , int ans){
+	int newtype = 1-type;
+	if(type==0){
+		int toeat = -1;
+		int pos = -1;
+		for(int i=0;i<t0.size();i++){
+			if(!v0[i] && t0[i].first <= cm){
+				if(t0[i].second >= toeat){
+					toeat = t0[i].second;
+					pos = i;
+				}
+			}
+		}
+		if(toeat == -1) return ans;
+		v0[pos]=true;
+		ans++;
+		cm += toeat;
+	}
+	else{
+		int toeat = -1;
+		int pos = -1;
+		for(int i=0;i<t1.size();i++){
+			if(!v1[i] && t1[i].first <= cm){
+				if(t1[i].second >= toeat){
+					toeat = t1[i].second;
+					pos = i;
+				}
+			}
+		}
+		if(toeat == -1) return ans;
+		v1[pos]=true;
+		ans++;
+		cm += toeat;
+	}
+	ans = solve(newtype,cm,ans);
+	return ans;
+}
+
+int main(){
+	int n,x;
+	int t,he,ma;
+	scanf("%d %d",&n,&x);
+	for(int i=0;i<n;i++){
+		scanf("%d %d %d",&t,&he,&ma);
+		if(t==0)
+			t0.pb({he,ma});
+		else
+			t1.pb({he,ma});
+	}
+	sort(t0.begin(),t0.end());
+	sort(t1.begin(),t1.end());
+	int ans = 0;
+	if(t0.size() >= 1 && t0[0].first <= x){
+		setvisited();
+		ans = max(ans,solve(0,x,0)); //type,cur mass , curans
+	}  
+	if(t1.size() >= 1 && t1[0].first <= x){
+		setvisited();
+		ans = max(ans,solve(1,x,0)); //type,cur mass , curans
+	}  
+	cout<<ans<<"\n";
+}
+

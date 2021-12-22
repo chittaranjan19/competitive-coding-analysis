@@ -1,0 +1,74 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 5005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, m, t, low[mn][mn], trace[mn][mn], ans = 0;
+vector< pair<int, int> > g[mn];
+priority_queue< pair< int , pair<int, int> > > p;
+vector<int> path;
+
+void setup()
+{
+    cin >> n >> m >> t;
+    int u, v, w;
+    FOR(i, 1, m)
+    {
+        cin >> u >> v >> w;
+        g[u].pb(mp(v, w));
+    }
+}
+
+void xuly()
+{
+    memset(low, 60, sizeof(low));
+    low[1][1] = 0;
+    p.push(mp(0, mp(1, 1)));
+    while(!p.empty())
+    {
+        int u = p.top().S.F;
+        int num = p.top().S.S;
+        int w = - p.top().F;
+        p.pop();
+        if (w != low[u][num])
+            continue;
+        if (u == n)
+            ans = max(ans, num);
+        FOR(i, 0, int(g[u].size()) - 1)
+        {
+            int v = g[u][i].F;
+            int c = g[u][i].S;
+            if (low[v][num + 1] <= w + c || t < w + c)
+                continue;
+            low[v][num + 1] = w + c;
+            trace[v][num + 1] = u;
+            p.push(mp(- w - c, mp(v, num + 1)));
+        }
+    }
+    cout << ans << '\n';
+    int u = n;
+    while(u)
+    {
+        path.pb(u);
+        u = trace[u][ans --];
+    }
+    FORD(i, int(path.size()) - 1, 0)
+        cout << path[i] << ' ';
+}
+
+int main()
+{
+    //
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

@@ -1,0 +1,59 @@
+#include <iostream>
+
+using namespace std;
+
+int n;
+long long k;
+
+long long dp[100000][34];
+int anc[100000][34];
+
+long long ans[100000][2];
+
+int main()
+{
+    ios::sync_with_stdio(0);
+    cin.tie(NULL);
+
+    cin >> n >> k;
+    for(int i=0; i<n; i++) cin >> anc[i][0];
+    for(int i=0; i<n; i++) cin >> dp[i][0];
+
+    for(int j=1; j<=33; j++) {
+        for(int i=0; i<n; i++) {
+            anc[i][j] = anc[anc[i][j-1]][j-1];
+            dp[i][j] = dp[i][j-1] + dp[anc[i][j-1]][j-1];
+        }
+    }
+
+    for(int i=0; i<n; i++) {
+        int p = i;
+        for(int j=33; j>=0; j--) {
+            if(k&(1ll<<j)) {
+                ans[i][0] += dp[p][j];
+                p = anc[p][j];
+            }
+        }
+    }
+
+    for(int j=1; j<=33; j++) {
+        for(int i=0; i<n; i++) {
+            dp[i][j] = min(dp[i][j-1],dp[anc[i][j-1]][j-1]);
+        }
+    }
+
+    for(int i=0; i<n; i++) {
+        int p = i;
+        ans[i][1] = dp[i][0];
+        for(int j=33; j>=0; j--) {
+            if(k&(1ll<<j)) {
+                ans[i][1] = min(ans[i][1],dp[p][j]);
+                p = anc[p][j];
+            }
+        }
+    }
+
+    for(int i=0; i<n; i++) cout << ans[i][0] << ' ' << ans[i][1] << endl;
+
+    return 0;
+}

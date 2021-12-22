@@ -1,0 +1,46 @@
+using namespace std;
+#include<bits/stdc++.h>
+#define FOR(i, a, b) for (int i = a; i < b; i++)
+#define FORE(i, a, b) for (int i = a; i <= b; i++)
+#define FORD(i, a, b) for (int i = a; i >= b; i--)
+const int MAXN = 20;
+const int INF  = 1e9 + 7;
+
+long long ans = -INF , f[MAXN][1 << MAXN];
+int adj[MAXN][MAXN], cs, n, a[MAXN], m, k;
+int main()
+{
+    ios::sync_with_stdio(false); cin.tie(0);
+
+    //freopen("580D.inp", "r", stdin);
+    //freopen("580D.out", "w", stdout);
+    cin >> n >> m >> k;
+    //cout<<n<<m<<k<<endl;
+    FORE(i, 0, n - 1) cin >> a[i];
+    FORE(i, 1, k) {
+        int u, v, w;
+        cin >> u >> v >> w;
+        adj[u - 1][v - 1] = w;
+    }
+    //cout<<"wtf"<<endl;
+    FORE(i, 0, n - 1) f[i][1 << i] = a[i];
+    FOR(x, 1, 1 << n) {
+        if (__builtin_popcount(x) < m){
+            for(int i = 0; i < n; i++)
+            if ( (x >> i) & 1 ) {
+                for(int k = 0; k < n; k++)
+                if (! ((x >> k) & 1) ){
+                    cs = x | (1 << k );
+                    f[k][cs] = max(f[k][cs], f[i][x] + 1LL * a[k] + 1LL*adj[i][k]);
+                }
+            }
+        }
+    }
+    //ans = -INF;
+    for(int x = 1; x < (1 << n); x++)
+    if (__builtin_popcount(x) == m){
+        FOR(i, 0, n) ans = max(ans , f[i][x]);
+    }
+    cout<<ans;
+    return 0;
+}

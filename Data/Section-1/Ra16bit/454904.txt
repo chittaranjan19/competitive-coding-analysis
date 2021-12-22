@@ -1,0 +1,42 @@
+#include <cmath>
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+struct quad { double a,b,c,d; } a[1010];
+int n,h,f,i,j,m,lx,lz,rx,rz,l[505],r[505];
+double ah,bh,sh,s,eps=1e-8;
+bool cmp(quad x, quad y) {
+  if (fabs(x.a-y.a)>eps) return x.a<y.a;
+  return x.c<y.c;
+}
+int main() {
+  scanf("%d%d%d",&n,&h,&f);
+  for (i=0; i<n; i++) scanf("%d%d",&l[i],&r[i]);
+  ah=0; bh=sh=0.00025*h;
+  while (bh<h+eps) {
+    for (m=i=0; i<n; i++) {
+      a[m].a=l[i]*(-f-ah)/double(h-f);
+      a[m].b=r[i]*(-f-ah)/double(h-f);
+      a[m].c=l[i]*(-f-bh)/double(h-f);
+      a[m++].d=r[i]*(-f-bh)/double(h-f);
+      a[m].a=l[i]*(f-ah)/double(f-h);
+      a[m].b=r[i]*(f-ah)/double(f-h);
+      a[m].c=l[i]*(f-bh)/double(f-h);
+      a[m++].d=r[i]*(f-bh)/double(f-h);
+    }
+    sort(a,a+m,cmp);
+    for (i=0; i<m; i=j) {
+      lx=lz=rx=rz=i;
+      for (j=i+1; j<m; j++) if (a[j].a<a[rx].b+eps && a[j].c<a[rz].d+eps) {
+        if (a[j].a<a[lx].a) lx=j;
+        if (a[j].b>a[rx].b) rx=j;
+        if (a[j].c<a[lz].c) lz=j;
+        if (a[j].d>a[rz].d) rz=j;
+      } else break;
+      s+=sh*(a[rx].b-a[lx].a+a[rz].d-a[lz].c);
+    }
+    ah=bh; bh+=sh;
+  }
+  printf("%.10lf\n",s);
+  return 0;
+}

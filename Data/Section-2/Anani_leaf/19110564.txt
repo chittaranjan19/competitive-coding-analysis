@@ -1,0 +1,62 @@
+#include<iostream>
+#include<cstdio>
+#include<cstring>
+#include<algorithm>
+#include<string>
+#include<queue>
+#include<vector>
+#include<map>
+#include<cmath>
+#define Max(a,b) (a>b?a:b)
+#define Min(a,b) (a>b?b:a)
+using namespace std;
+#define MAX_N 19
+typedef __int64 ll;
+
+ll edge[19][19] = {0};
+ll cost[19] = {0};
+ll dp[1 << MAX_N][19] = {0};
+int m,n,k;
+
+
+int main()
+{
+	cin >> n >> m >> k;
+	for (int i = 0; i < n; i++) scanf("%I64d",cost+i);
+
+	for (int i = 0 ;  i < k; i++)
+	{
+		int u,v;
+		ll cs;
+		scanf("%d %d %I64d",&u,&v,&cs);
+		edge[u-1][v-1] = cs;
+	}
+
+	//memset(dp,-1,sizeof(dp));
+	ll res = 0;
+	for (int i = 0; i < n; i++) dp[1<<i][i] = cost[i],res = Max(res,cost[i]);;
+	//dp[1<<n-1][0] = 0;
+	for (int S = 0; S < 1<<n; S++)
+	{
+		int cnt = 0;
+		for(int i = 0; i <n; i++) if(S&(1<<i)) cnt++;
+		if(cnt >= m) continue;
+		for (int u = 0; u < n; u++)
+		{
+			if(S&(1<<u))
+			{
+				for(int v = 0 ; v < n ; v++)
+				{
+					if(!(S&(1<<v)))
+					{
+						dp[S|(1<<v)][v] = Max(dp[S][u] + edge[u][v] + cost[v],dp[S|(1<<v)][v]);
+						if(cnt == m-1) res = Max(res,dp[S|(1<<v)][v]);
+					}
+				}
+			}
+		}
+	}
+	printf("%I64d",res);
+	return 0;
+}
+//dp[S|1<<u][v] = dp[S][u] + edge[u]p[v] + cost, dp>.;

@@ -1,0 +1,113 @@
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.PrintWriter;
+import java.util.Scanner;
+
+/**
+ * Created by leen on 06/10/2016.
+ */
+public class _723E {
+
+    static final int MAX_CITIES = 200;
+    static int[][] roads = new int[MAX_CITIES][MAX_CITIES];
+    static int n, m;
+    static int[] cnts1 = new int[MAX_CITIES];
+    static int[] cnts2 = new int[MAX_CITIES];
+    static int[] cnts = new int[MAX_CITIES];
+
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024 * 64));
+        int t = scan.nextInt();
+
+        PrintWriter pw = new PrintWriter(new BufferedOutputStream(System.out, 1024 * 64));
+
+        for(int i = 0; i < t; i++) {
+            n = scan.nextInt();
+            m = scan.nextInt();
+            for(int j = 0; j < n; j++) {
+                cnts[j] = 0;
+                cnts1[j] = 0;
+                cnts2[j] = 0;
+                for (int k = 0; k < n; k++)
+                    roads[j][k] = 0;
+            }
+
+            for(int j = 0; j < m; j++) {
+                int u = scan.nextInt()-1, v = scan.nextInt()-1;
+                cnts[u]++;
+                cnts[v]++;
+                roads[u][v] = 1;
+                roads[v][u] = 1;
+            }
+
+            int ans = 0;
+
+            for(int j = 0; j < n; j++) {
+                if(cnts[j] % 2 == 1)
+                    continue;
+
+                ans++;
+
+                while(cnts1[j] + cnts2[j] < cnts[j]) {
+                    if(cnts1[j] < cnts2[j])
+                        dfs(j, 2, j, true);
+                    else
+                        dfs(j, -2, j, true);
+                }
+            }
+
+            for(int j = 0; j < n; j++) {
+                if(cnts1[j] + cnts2[j] < cnts[j]) {
+                  for(int k = 0; k < n; k++) {
+                      if(roads[j][k] == 1) {
+                          roads[j][k] = 2;
+                          roads[k][j] = -2;
+                          cnts1[j]++;
+                          cnts2[k]++;
+                      }
+                  }
+                }
+            }
+
+            pw.println(ans);
+            for(int j = 0; j < n; j++) {
+                for(int k = 0; k < n; k++) {
+                    if(roads[j][k] == 2)
+                        pw.println((j+1) + " " + (k+1));
+                }
+            }
+        }
+
+        pw.flush();
+
+    }
+
+    static void dfs(int city, int direction, int startCity, boolean isStart) {
+//        if(!isStart && city == startCity)
+//            return;
+//        if(cnts[city] % 2 == 1)
+//            return;
+
+        for(int nextCity = 0; nextCity < n; nextCity++) {
+            if(roads[city][nextCity] == 1) {
+
+                roads[city][nextCity] = direction;
+                roads[nextCity][city] = -direction;
+
+                if(direction > 0) {
+                    cnts1[city]++;
+                    cnts2[nextCity]++;
+                }
+                else {
+                    cnts2[city]++;
+                    cnts1[nextCity]++;
+                }
+
+                dfs(nextCity, direction, startCity, false);
+
+                break;
+            }
+        }
+    }
+
+}

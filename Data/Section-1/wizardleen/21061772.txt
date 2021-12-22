@@ -1,0 +1,109 @@
+import java.io.BufferedInputStream;
+import java.util.*;
+
+public class _721C {
+
+    static final int inf = Integer.MAX_VALUE;
+
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024 * 64));
+
+        int n = scan.nextInt(), m = scan.nextInt(), T = scan.nextInt();
+
+        Node[] nodes = new Node[n];
+        for(short  i = 0; i < n; i++)
+            nodes[i] = new Node(i);
+
+        for(int i = 0; i < m; i++) {
+            int u = scan.nextInt()-1 , v = scan.nextInt()-1, t = scan.nextInt();
+            nodes[u].edges.add(new Edge(nodes[v], t));
+        }
+
+        List<Node> output = new ArrayList<Node>();
+        dfs(nodes[0], output);
+        Collections.reverse(output);
+
+        int[][] dp = new int[n][n+1];
+        short[][] prev = new short[n][n+1];
+
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < n+1; j++)
+                dp[i][j] = inf;
+        }
+
+        dp[0][1] = 0;
+
+        for(Node node : output) {
+            for(Edge edge : node.edges) {
+                for(int c = 1; c < n; c++) {
+                    if(dp[node.num][c] >= T)
+                        continue;
+
+                    Node next = edge.to;
+                    int time = edge.weight + dp[node.num][c];
+                    if(time < dp[next.num][c+1]) {
+                        dp[next.num][c + 1] = time;
+                        prev[next.num][c + 1] = node.num;
+                    }
+                }
+            }
+        }
+
+        for(int i = n; i >= 1; i--) {
+            if(dp[n-1][i] <= T) {
+                System.out.println(i);
+
+                LinkedList<Integer> stack = new LinkedList<Integer>();
+                int currentNum = n-1;
+                for(int c = i; c >= 1; c--) {
+                    stack.push(currentNum);
+                    currentNum = prev[currentNum][c];
+                }
+
+                StringBuilder buf = new StringBuilder();
+                boolean first = true;
+                while(!stack.isEmpty()) {
+                    if(first)
+                        first = false;
+                    else
+                        buf.append(' ');
+                    buf.append(stack.pop()+1);
+                }
+                System.out.println(buf.toString());
+                break;
+            }
+        }
+
+    }
+
+    static void dfs(Node node, List<Node> output) {
+        node.visited = true;
+
+        for(Edge edge : node.edges) {
+            if(!edge.to.visited)
+                dfs(edge.to, output);
+        }
+        output.add(node);
+    }
+
+    static class Node {
+        boolean visited;
+        short num;
+        List<Edge> edges = new ArrayList<Edge>();
+
+        Node(short num) {
+            this.num = num;
+        }
+    }
+
+    static class Edge {
+        Node to;
+        int weight;
+
+        Edge(Node to, int weight) {
+            this.to = to;
+            this.weight = weight;
+        }
+    }
+
+}

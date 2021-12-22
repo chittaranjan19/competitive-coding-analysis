@@ -1,0 +1,152 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define ll __int64
+
+const int MAXN=1010; 
+const int N=1e5+10;
+const ll INF=1e18; 
+struct node 
+{  
+	int v;
+	ll cost;  
+	node(int vi=0,ll ci=0):v(vi),cost(ci) {} 
+}; 
+vector<node>vec[2][MAXN]; 
+void addedge(int id, int u,int v,ll w) 
+{  
+	vec[id][u].push_back(node(v,w));
+} 
+int vis[MAXN];
+ll dist[MAXN]; 
+int L[N], R[N];
+ll V[MAXN][MAXN];
+int fa[N];
+
+bool spfa(int id, int start,int n) 
+{  
+	memset(vis, 0, sizeof(vis));  
+	for(int i=0; i<n; i++) dist[i]=INF, fa[i] = i;  
+	vis[start]=1, dist[start]=0;  
+	queue<int>que;  
+	while(!que.empty()) que.pop();  
+	que.push(start);    
+	while(!que.empty())  
+	{   
+		int u=que.front();   
+		que.pop();   
+		vis[u]=0;   
+		for(int i=0; i<vec[id][u].size(); i++)   
+		{    
+			int v = vec[id][u][i].v; 
+			ll w = V[u][v];
+			if(dist[v]>dist[u]+abs(w))    
+			{     
+			    dist[v]=dist[u]+abs(w);  
+			    fa[v] = u;   
+				if(!vis[v])     
+				{      
+					vis[v]=1;      
+					que.push(v);      
+				}    
+			}   
+		}  
+	}  
+} 
+
+void FUZHI(int n, int m, int s, int t, int l){
+	int x = t, flag = 0;
+	while(1){
+		int y = fa[x];
+		if(V[x][y] == -1){
+			V[x][y] = V[y][x] = -2;
+		}
+		if(y == fa[y]) break; 
+		x = y;
+	}
+	for(int i=0; i<n; i++){
+		for(int j=0; j<n; j++){
+			if(V[i][j] == -1) V[i][j] = INF;
+		}
+	}
+	x = t;
+	while(1){
+		int y = fa[x];
+		if(V[x][y] == -2){
+			V[x][y] = V[y][x] = -1;
+		}
+		if(y == fa[y]) break; 
+		x = y;
+	}
+}
+
+bool solve(int n, int s, int t, int l){
+	spfa(0, s, n);
+	int x = t, flag=0;
+	if(dist[t] == l) return true;
+	while(1){
+		int y = fa[x];
+		if(!flag && V[x][y]<0){
+			ll w = abs(V[x][y]);
+			V[x][y] = V[y][x] = w+l-dist[t];
+			flag=1;
+		}
+		if(y == fa[y]) break;
+		x = y;
+	}
+	
+	return false;
+}
+
+int main(){
+	int n, m, l, s, t;
+	scanf("%d%d%d%d%d", &n, &m, &l, &s, &t);
+	for(int i=0; i<m; i++){
+		int u, v;
+		ll w;
+		scanf("%d%d%I64d", &u, &v, &w);
+		if(w){
+			addedge(1, u, v, w);
+			addedge(1, v, u, w);
+		}
+		if(w==0) w=-1;
+		addedge(0, u, v, w);
+		addedge(0, v, u, w);
+		L[i] = u, R[i] = v;
+		V[u][v] = V[v][u] = w;
+	}
+	
+	spfa(1, s, n);
+	if(dist[t]<l){
+		printf("NO\n");
+		return 0;
+	}
+	if(dist[t] == l){
+		printf("YES\n");
+		for(int i=0; i<m; i++){
+			int u = L[i], v = R[i];
+			ll w = V[u][v];
+			if(w==-1) w = INF;
+			printf("%d %d %I64d\n", u, v, w);
+		}
+		return 0;
+	}
+	
+	spfa(0, s, n);
+	FUZHI(n, m, s, t, l);
+	if(dist[t]>l){
+		printf("NO\n");
+		return 0;
+	}
+	
+	solve(n, s, t, l);
+	while(!solve(n, s, t, l)) solve(n, s, t, l);
+	
+	printf("YES\n");
+	for(int i=0; i<m; i++){
+		int u = L[i], v = R[i];
+		ll w = V[u][v];
+		if(w<0) w = -w;
+		printf("%d %d %I64d\n", u, v, w);
+	}
+	return 0;
+} 

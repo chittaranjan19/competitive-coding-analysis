@@ -1,0 +1,136 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD {
+    BufferedReader rd;
+
+    ProblemD() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int n = a[0];
+        int k = a[2];
+        char[][] c = new char[n][];
+        for(int i=0;i<n;i++) {
+            c[i] = rd.readLine().toCharArray();
+        }
+        int[] res = new int[1000010];
+        final int[][] dirs = new int[][] { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
+        Queue<Integer> q = new ArrayDeque<>();
+        StringBuilder buf = new StringBuilder();
+        for(int i=0;i<k;i++) {
+            int[] xy = intarr();
+            int x = xy[0]-1;
+            int y = xy[1]-1;
+            int startPair = pr(x,y);
+            if(res[startPair] == 0) {
+                Set<Integer> s = new HashSet<>();
+                q.add(startPair);
+                s.add(startPair);
+                int pict = 0;
+                while (!q.isEmpty()) {
+                    Integer cur = q.poll();
+                    for (int j=0;j<4;j++) {
+                        int nx = cur/1000 + dirs[j][0];
+                        int ny = cur%1000 + dirs[j][1];
+                        if (c[nx][ny] == '*') {
+                            pict++;
+                        } else {
+                            int p2 = pr(nx, ny);
+                            if (!s.contains(p2)) {
+                                q.add(p2);
+                                s.add(p2);
+                            }
+                        }
+                    }
+                }
+                for (Integer p3 : s) {
+                    res[p3] = pict;
+                }
+            }
+            buf.append(res[startPair]);
+            buf.append('\n');
+        }
+        out(buf);
+    }
+
+    private int pr(int x, int y) {
+        return x * 1000 + y;
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

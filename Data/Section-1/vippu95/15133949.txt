@@ -1,0 +1,99 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+#define llu unsigned long long
+const int lmt = 5005;
+lli dp[lmt][lmt];
+lli sum[lmt][lmt];
+int len;
+llu apo[lmt];
+llu ahash[lmt];
+llu magic1 = 173LL;
+string s;
+
+void inithash(){
+    int n = len;
+    apo[0]=1;
+    ahash[0]=0;
+    for(int i=1;i<=n;i++){
+        apo[i] = (apo[i-1]*magic1);
+        ahash[i] = (ahash[i-1]*magic1 + s[i-1]);
+    }
+    return;
+}
+
+inline llu getHash(int i,int j){
+    llu h1 = (ahash[j] - (ahash[i-1]*apo[j-i+1]));
+    return h1;
+}
+
+bool ok(int x,int y,int a,int b){
+    if(a<1) return false;
+    int len = y-x+1;
+    int st=1,en=len,md;
+    while(st<en){
+        md = (st+en)/2;
+        if(getHash(x,x+md-1)!=getHash(a,a+md-1))
+            en = md;
+        else
+            st = md+1;
+    }
+    if(s[x+st-2]>s[a+st-2]) return true;
+    return false;
+}
+
+int  main(){
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    int n;
+    cin>>n;
+    len = n;
+    cin>>s;
+    inithash();
+    for(int i=0;i<lmt;i++){
+        sum[1][i] = 1;
+        dp[1][i] = 1;
+    }
+    for(int i=2;i<=n;i++){
+        for(int j=i;j<=n;j++){
+            int len  = j-i+1;
+            dp[i][j] = sum[i-1][i-1];
+            if(i-len>=1)
+                dp[i][j] -= sum[i-len][i-1];
+            if(ok(i,j,i-len,i-1))
+                dp[i][j] += dp[i-len][i-1];
+            if(s[i-1]=='0') dp[i][j] = 0;
+            dp[i][j] = ((dp[i][j]%mod)+mod)%mod;
+            sum[i][j] = sum[i-1][j] + dp[i][j];
+            sum[i][j] %= mod;
+        }
+    }
+//    for(int i=1;i<=n;i++){
+//        for(int j=1;j<=n;j++)
+//            cout<<dp[i][j]<<" ";
+//        cout<<endl;
+//    }
+//    cout<<endl;
+//    for(int i=1;i<=n;i++){
+//        for(int j=1;j<=n;j++)
+//            cout<<sum[i][j]<<" ";
+//        cout<<endl;
+//    }
+//    cout<<endl;
+    lli ans = 0;
+    for(int i=1;i<=n;i++){
+        ans += dp[i][n];
+        ans %= mod;
+    }
+    cout<<ans;
+    return 0;
+}

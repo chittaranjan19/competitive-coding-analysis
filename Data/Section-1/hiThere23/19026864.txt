@@ -1,0 +1,232 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int n, q, f[mn], h[mn], p[mn][18], sz[mn], spe[mn];
+int pos[mn], beg[mn], belong[mn], num = 0, rig = 0;
+vector<int> g[mn];
+pair<int, pair< pair<int, int>, int > > que[mn];
+pair<int, pair<int, int> > e[mn];
+long long ans[mn];
+
+struct node
+{
+    long long sum;
+    int lef, rig, sz;
+
+    node()
+    {
+        sum = lef = rig = sz = 0;
+    }
+
+    node(long long _sum, int _lef, int _rig, int _sz)
+    {
+        sum = _sum;
+        lef = _lef;
+        rig = _rig;
+        sz = _sz;
+    }
+};
+
+node com(node a, node b)
+{
+    node re;
+    re.sz = a.sz + b.sz;
+    if (a.lef == a.sz)
+        re.lef = a.lef + b.lef;
+    else
+        re.lef = a.lef;
+    if (b.rig == b.sz)
+        re.rig = b.rig + a.rig;
+    else
+        re.rig = b.rig;
+    re.sum = a.sum + b.sum - f[a.rig] - f[b.lef] + f[a.rig + b.lef];
+    return re;
+}
+
+struct interval
+{
+    node tree[mn << 2];
+
+    void build(int l, int r, int id)
+    {
+        if (l == r)
+        {
+            tree[id] = node(0, 0, 0, 1);
+            return;
+        }
+        int g = ((l + r) >> 1);
+        build(l, g, id << 1);
+        build(g + 1, r, (id << 1) + 1);
+        tree[id] = com(tree[id << 1], tree[(id << 1) + 1]);
+    }
+
+    void update(int l, int r, int id, int x)
+    {
+        if (l > x || r < x)
+            return;
+        if (l == r)
+        {
+            tree[id] = node(f[1], 1, 1, 1);
+            return;
+        }
+        int g = ((l + r) >> 1);
+        update(l, g, id << 1, x);
+        update(g + 1, r, (id << 1) + 1, x);
+        tree[id] = com(tree[id << 1], tree[(id << 1) + 1]);
+    }
+
+    node get(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return node();
+        if (x <= l && r <= y)
+            return tree[id];
+        int g = ((l + r) >> 1);
+        node a = get(l, g, id << 1, x, y);
+        node b = get(g + 1, r, (id << 1) + 1, x, y);
+        return com(a, b);
+    }
+} t;
+
+void setup()
+{
+    cin >> n >> q;
+    FOR(i, 1, n - 1)
+        cin >> f[i];
+    FOR(i, 1, n - 1)
+    {
+        cin >> e[i].S.F >> e[i].S.S >> e[i].F;
+        g[e[i].S.F].pb(e[i].S.S);
+        g[e[i].S.S].pb(e[i].S.F);
+    }
+    FOR(i, 1, q)
+    {
+        cin >> que[i].S.F.F >> que[i].S.F.S >> que[i].F;
+        que[i].S.S = i;
+    }
+    sort(e + 1, e + n);
+    sort(que + 1, que + q + 1);
+    t.build(2, n, 1);
+}
+
+void dfs(int u)
+{
+    sz[u] = 1;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        if (v == p[u][0])
+            continue;
+        p[v][0] = u;
+        FOR(i, 1, 17)
+            p[v][i] = p[p[v][i - 1]][i - 1];
+        h[v] = h[u] + 1;
+        dfs(v);
+        if (sz[v] > sz[spe[u]])
+            spe[u] = v;
+        sz[u] += sz[v];
+    }
+}
+
+void hld(int u)
+{
+    if (beg[num] == 0)
+        beg[num] = u;
+    belong[u] = num;
+    pos[u] = ++ rig;
+    if (spe[u])
+    {
+        hld(spe[u]);
+        FOR(i, 0, int(g[u].size()) - 1)
+        {
+            int v = g[u][i];
+            if (v == p[u][0] || v == spe[u])
+                continue;
+            num ++;
+            hld(v);
+        }
+    }
+}
+
+int lca(int a, int b)
+{
+    if (h[a] > h[b])
+        swap(a, b);
+    int dif = h[b] - h[a];
+    FOR(i, 0, 17)
+    if ((dif >> i) & 1)
+        b = p[b][i];
+    if (a == b)
+        return a;
+    FORD(i, 17, 0)
+    if (p[a][i] != p[b][i])
+    {
+        a = p[a][i];
+        b = p[b][i];
+    }
+    return p[a][0];
+}
+
+node get(int a, int b)
+{
+    node re = node();
+    while(belong[a] != belong[b])
+    {
+        re = com(t.get(2, n, 1, pos[beg[belong[a]]], pos[a]), re);
+        a = p[beg[belong[a]]][0];
+    }
+    re = com(t.get(2, n, 1, pos[b] + 1, pos[a]), re);
+    return re;
+}
+
+void xuly()
+{
+    dfs(1);
+    hld(1);
+    int top = n;
+    FORD(i, q, 1)
+    {
+        int u = que[i].S.F.F;
+        int v = que[i].S.F.S;
+        int l = lca(u, v);
+        while(top > 1 && e[top - 1].F >= que[i].F)
+        {
+            top --;
+            if (h[e[top].S.F] > h[e[top].S.S])
+                swap(e[top].S.F, e[top].S.S);
+            t.update(2, n, 1, pos[e[top].S.S]);
+        }
+        node a, b, c;
+        if (h[u] > h[l])
+            a = get(u, l);
+        else
+            a = node();
+        if (h[v] > h[l])
+            b = get(v, l);
+        else
+            b = node();
+        swap(a.lef, a.rig);
+        c = com(a, b);
+        ans[que[i].S.S] = c.sum;
+    }
+    FOR(i, 1, q)
+        cout << ans[i] << '\n';
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

@@ -1,0 +1,82 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+#include <queue>
+#include <map>
+
+using namespace std;
+
+int n;
+pair<int, int> to[] = { { 1, 0 },{ 0, 1 },{ -1, 0 },{ 0, -1 },{ 1, 1 },{ -1, -1 },{ -1, 1 },{ 1, -1 } };
+vector<vector<int>>minn;
+map<pair<int, int>, pair<int, int>>pp;
+void bfs(pair<int, int>v) {
+	minn[v.first][v.second] = 0;
+	queue<pair<int, int>>q;
+	pp[v] = { -1,-1 };
+	q.push(v);
+	while (!q.empty()) {
+		pair<int, int> temp = q.front();
+		q.pop();
+		for (int i = 0; i<8; ++i)
+		{
+			if ((temp.first - to[i].first >= 0 && (temp.first - to[i].first<n) && (temp.second - to[i].second >= 0 && temp.second - to[i].second<n)))
+				if (minn[temp.first - to[i].first][temp.second - to[i].second]>minn[temp.first][temp.second] + 1) {
+					q.push({ temp.first - to[i].first,temp.second - to[i].second });
+					minn[temp.first - to[i].first][temp.second - to[i].second] = minn[temp.first][temp.second] + 1;
+					pp[{temp.first - to[i].first, temp.second - to[i].second}] = temp;
+				}
+		}
+	}
+}
+
+int main()
+{
+	n = 8;
+	minn.resize(n, vector<int>(n, 1e8));
+	int x, y, x1, y1;
+	string dd, xx;
+	cin >> dd >> xx;
+	y = dd[0] - 'a'+1;
+	x = dd[1] - '1'+1;
+	y1 = xx[0] - 'a'+1;
+	x1 = xx[1] - '1'+1;
+	bfs({ x - 1,y - 1 });
+	cout << minn[x1 - 1][y1 - 1] << endl;
+	pair<int, int>i = { x1 - 1,y1 - 1 };
+	vector<pair<int, int>>answ;
+	//cout<<x<<" "<<y<<endl;
+	while (i != make_pair(-1, -1)) {
+		answ.push_back({ i.first + 1,i.second + 1 });
+		i = pp[i];
+	}
+	for (int i = answ.size() - 2; i >= 0; --i) {
+		int b = answ[i].first, d = answ[i].second, bb = answ[i + 1].first, dd = answ[i + 1].second;
+		if (b == bb && d+1 == dd) {
+			cout << "L" << endl;
+		}
+		else if (b == bb && d - 1 == dd) {
+			cout << "R" << endl;
+		}
+		else if (b+1 == bb && d == dd) {
+			cout << "D" << endl;
+		}
+		if (b-1 == bb && d == dd) {
+			cout << "U" << endl;
+		}
+		if (b + 1 == bb && d + 1== dd) {
+			cout << "LU" << endl;
+		}
+		if (b - 1 == bb && d - 1 == dd) {
+			cout << "RU" << endl;
+		}
+		if (b + 1 == bb && d - 1 == dd) {
+			cout << "RD" << endl;
+		}
+		if (b - 1 == bb && d + 1 == dd) {
+			cout << "LU" << endl;
+		}
+	}
+}

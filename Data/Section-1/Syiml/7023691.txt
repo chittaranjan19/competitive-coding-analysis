@@ -1,0 +1,56 @@
+#include<stdio.h>
+#define MAXLEN 1000
+/*查找根,并压缩，非递归*/
+int Find(int fa[],int p)
+{
+    int r=p,q;
+    while(r!=fa[r]) r=fa[r];
+    while(p!=r)/*若不需要压缩 删除此段*/
+    {
+        q=fa[p];
+        fa[p]=r;
+        p=q;
+    }
+    return r;
+}
+/*合并u和v所在的集合，uv属于同一集合返回0*/
+int Union(int fa[],int u,int v)
+{
+    int s1=Find(fa,u),s2=Find(fa,v);
+    if(s1!=s2)
+    {
+        fa[s1]=s2;
+        return 1;
+    }
+    return 0;
+}
+/*返回0-n当前集合数*/
+int set_n(int fa[],int n)
+{
+    int x=0;
+    while(n>=0)/*要返回1~n的集合数为n>0*/
+    {
+        if(fa[n]==n) x++;
+        n--;
+    }
+    return x;
+}
+/*测试用例*/
+int main()
+{
+    int i,m,n,x,y,fa[MAXLEN];
+    scanf("%d",&n);
+    {
+        for(i=0;i<n;i++) fa[i]=i;/*0~n-1的初始化*/
+        scanf("%d",&m);/*m条边*/
+        while(m--)
+        {
+            scanf("%d%d",&x,&y);
+            x--,y--;
+            Union(fa,x,y);
+        }
+        long long a=1LL<<(n-set_n(fa,n-1));
+        printf("%I64d\n",a);
+    }
+    return 0;
+}

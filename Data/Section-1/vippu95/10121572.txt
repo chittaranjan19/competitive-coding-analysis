@@ -1,0 +1,109 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define mod 1000000009
+
+
+struct node{
+    int idx;
+    int x;
+    int y;
+};
+
+
+class Comparator{
+    public:
+    bool operator()(struct node p1,struct node p2){
+        return p1.idx < p2.idx;
+    }   
+};
+
+int dx[]={-1,0,1};
+int dy[]={-1,-1,-1};
+
+pair<int,int> p;
+struct node par,child;
+map< pair<int,int> , int > value;
+map< pair<int,int> , int > out;
+map< pair<int,int> , int >::iterator it,it2; 
+
+void solve(int m){
+    priority_queue< struct node , vector<struct node> , Comparator > pq;
+    
+    it = out.begin();
+    while(it != out.end()){
+        p=it->first;
+        if(it->second == 0){
+            struct node temp;
+            temp.idx = value[p];
+            temp.x = p.first;
+            temp.y = p.second;
+            pq.push(temp);
+        }
+        it++;
+    }
+    
+    vector<int> ans;
+    while(!pq.empty()){
+        par = pq.top();
+        pq.pop();
+        ans.push_back(par.idx);
+        
+        int x = par.x;
+        int y = par.y;
+        
+        for(int  i=0;i<3;i++){
+            int tx = x+dx[i];
+            int ty = y+dy[i];
+            if(out.find(mp(tx,ty)) != out.end()){
+                out[mp(tx,ty)]--;
+                if(out[mp(tx,ty)]==0){
+                    struct node temp ;
+                    temp.idx = value[mp(tx,ty)];
+                    temp.x = tx;
+                    temp.y = ty;
+                    pq.push(temp);
+                }
+            }
+        }   
+    }
+    
+    lli res = 0;
+    int sz = ans.size();
+    lli t1 = 1;
+    for(int i=sz-1;i>=0;i--){
+        lli tmp = ( (ans[i]%mod)*(t1%mod) )%mod;
+        res = ( (res%mod)+(tmp%mod) )%mod;
+        t1 = ( (t1%mod)*(m%mod) )%mod;
+    }
+    cout<<res<<"\n";
+}
+
+int main(){
+    int m,a,b;
+    scanf("%d",&m);
+    for(int i=0;i<m;i++){
+        scanf("%d %d",&a,&b);
+        value[mp(a,b)]=i;
+        out[mp(a,b)] = 0;
+    }
+    it = value.begin();
+    while(it != value.end()){
+        p=it->first;
+        int x = p.first;
+        int y = p.second;
+        for(int  i=0;i<3;i++){
+            int tx = x+dx[i];
+            int ty = y+dy[i];
+            if(out.find(mp(tx,ty)) != out.end()){
+                out[mp(tx,ty)]++;
+            }
+        }
+        it++;
+    }
+    
+    solve(m);
+}

@@ -1,0 +1,117 @@
+#include<bits/stdc++.h>
+#define MAXN 400009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define f first
+#define s second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+pair<PII,PII>rr[MAXN];
+int s[MAXN<<2];
+map<int,int>px,py;
+vector<int>st[MAXN],en[MAXN];
+vector<PII>up[MAXN];
+void upd(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		s[nd]++;
+		return;
+	}
+	int mid=(x+y)>>1;
+	upd(l,r,nd<<1,x,mid);		
+	upd(l,r,nd<<1|1,mid+1,y);	
+}
+int tap(int p,int nd,int x,int y){
+	if(x==y)
+		return s[nd];
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		return tap(p,nd<<1,x,mid)+s[nd];
+	else
+		return tap(p,nd<<1|1,mid+1,y)+s[nd];		
+}
+int main(){
+	int n,c=0,c1=0,c2=0;
+	scanf("%d",&n);
+	int dx=0,dy=0;
+	vector<pair<int,PII> >ox,oy;
+	for(int i=1;i<=n;i++){
+		int x,y,z,t;
+		scanf("%d%d%d%d",&x,&y,&z,&t);
+		if(x==z)
+			ox.pb(mp(x,mp(min(y,t),max(y,t)))),dx=1;
+		else
+			oy.pb(mp(y,mp(min(x,z),max(x,z)))),dy=1;
+	}
+	sort(all(ox));sort(all(oy));
+	if(dx){
+		int xx=ox[0].s.f;
+		int yy=ox[0].s.s;
+		for(int i=0;i<ox.size()-1;i++){
+			if(ox[i].f!=ox[i+1].f or yy<ox[i+1].s.f){
+				rr[++c]=mp(mp(ox[i].f,xx),mp(ox[i].f,yy));
+				xx=ox[i+1].s.f;
+				yy=ox[i+1].s.s;
+				continue;
+			}
+			umax(yy,ox[i+1].s.s);
+		}
+		rr[++c]=mp(mp(ox[ox.size()-1].f,xx),mp(ox[ox.size()-1].f,yy));
+	}
+	if(dy){
+		int xx=oy[0].s.f;
+		int yy=oy[0].s.s;
+		for(int i=0;i<oy.size()-1;i++){
+			if(oy[i].f!=oy[i+1].f or yy<oy[i+1].s.f){
+				rr[++c]=mp(mp(xx,oy[i].f),mp(yy,oy[i].f));
+				xx=oy[i+1].s.f;
+				yy=oy[i+1].s.s;
+				continue;
+			}
+			umax(yy,oy[i+1].s.s);
+		}
+		rr[++c]=mp(mp(xx,oy[oy.size()-1].f),mp(yy,oy[oy.size()-1].f));
+	}
+	ll ans=0;
+	for(int i=1;i<=c;i++){
+		ans+=(rr[i].s.f-rr[i].f.f+1)+(rr[i].s.s-rr[i].f.s+1)-1;
+		px[rr[i].f.f]=px[rr[i].s.f]=1;
+		py[rr[i].f.s]=py[rr[i].s.s]=1;
+	}
+	tr(it,px)
+		it->s=++c1;
+	tr(it,py)
+		it->s=++c2;	
+	for(int i=1;i<=c;i++){		
+		if(rr[i].f.f==rr[i].s.f)
+			up[px[rr[i].f.f]].pb(mp(py[rr[i].f.s],py[rr[i].s.s]));
+		else{
+			st[px[rr[i].f.f]].pb(py[rr[i].f.s]);
+			en[px[rr[i].s.f]].pb(py[rr[i].f.s]);
+		}
+	}
+	for(int i=1;i<=c1;i++){
+		for(int j=0;j<st[i].size();j++)
+			ans+=tap(st[i][j],1,1,c2);
+		for(int j=0;j<up[i].size();j++)
+			upd(up[i][j].f,up[i][j].s,1,1,c2);
+		for(int j=0;j<en[i].size();j++)
+			ans-=tap(en[i][j],1,1,c2);	
+	}
+	printf("%lld\n",ans);
+	return 0;
+}
+

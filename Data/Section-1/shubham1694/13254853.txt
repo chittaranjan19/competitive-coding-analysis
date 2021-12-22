@@ -1,0 +1,61 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 1001;
+
+struct edge{
+    int a, b, l, r;
+};  
+vector<edge> v;
+vector<int> adj[maxn];
+int vis[maxn], n;
+
+int dfs(int cur)
+{
+    if(cur==n)
+        return 1;
+    vis[cur] = 1;
+    int i, ret = 0;
+    for(i=0; i<adj[cur].size(); i++){
+        if(!vis[adj[cur][i]])
+            ret = max(ret, dfs(adj[cur][i]));
+    }
+    return ret;
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    int i, j, m, lo, mid, hi, ans, st;
+    scanf("%d%d", &n, &m);
+    v.resize(m);
+    for(i=0; i<m; i++)
+        scanf("%d%d%d%d", &v[i].a, &v[i].b, &v[i].l, &v[i].r);
+    ans = 0;
+    for(i=0; i<m; i++){
+        st = v[i].l;
+        lo = st-1, hi = v[i].r;
+        while(lo<hi){
+            mid = (lo+hi)>>1;
+            if((hi-lo)%2)
+                mid++;
+            for(j=0; j<=n; j++)
+                adj[j].clear(), vis[j] = 0;
+            for(j=0; j<m; j++){
+                if(st>=v[j].l && mid<=v[j].r)
+                    adj[v[j].a].push_back(v[j].b), adj[v[j].b].push_back(v[j].a);
+            }
+            if(dfs(1))
+                lo = mid;
+            else
+                hi = mid-1;
+        }
+        ans = max(ans, (lo-st+1));
+    }
+    if(!ans)
+        printf("Nice work, Dima!\n");
+    else
+        printf("%d\n", ans);
+    return 0;
+}

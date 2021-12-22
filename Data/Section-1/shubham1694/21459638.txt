@@ -1,0 +1,100 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = (1e9) + 696969;
+const int inf = 50000000;
+const int maxn = 2000010;
+const int a = 131;
+
+int mul(int a, int b) {
+	ll res = a;
+	res *= b;
+	res %= mod;
+	a = res;
+	return a;
+}
+
+int sub(int a, int b) {
+	int res = (a - b + mod) % mod;
+	return res;
+}
+
+int modpow(int a, int b) {
+	int x = 1, y = a;
+	while (b) {
+		if (b & 1)
+			x = mul(x, y);
+		y = mul(y, y);
+		b >>= 1;
+	}
+	return x;
+}
+
+int n, k;
+map <int, int> hashes; 
+set <int> bashes[maxn];
+int power[maxn], invPower[maxn], prefHash[maxn];
+char str[maxn], temp[maxn];
+
+int main() {
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	power[0] = invPower[0] = 1;
+	for (int i = 1; i < maxn; i++) {
+		power[i] = mul(power[i-1], a);
+		invPower[i] = modpow(power[i], mod - 2);
+	}
+	scanf("%d %d %s", &n, &k, str);
+	int len = strlen(str);
+	for (int i = len, j = 0; j < len; i++, j++) {
+		str[i] = str[j];
+	}
+	len *= 2;
+	str[len] = '\0';
+	int g;
+	scanf("%d", &g);
+	for (int i = 1; i <= g; i++) {
+		scanf("%s", temp);
+		int curHash = 0;
+		int p = strlen(temp);
+		for (int j = 0; j < p; j++) {
+			curHash = (curHash + mul(power[j], temp[j] - 'a' + 1)) % mod;
+		}
+		hashes[curHash] = i;
+	}
+	for (int i = 0; i < len; i++) {
+		prefHash[i] = ((i == 0) ? mul(power[i], str[i] - 'a' + 1) : (prefHash[i-1] + mul(power[i], str[i] - 'a' + 1)) % mod );
+		if (i + 1 >= k) {
+			int h = ((i - k >= 0) ? sub(prefHash[i], prefHash[i - k]) : prefHash[i]);
+			h = mul(h, invPower[i - k + 1]);
+			if (hashes.find(h) != hashes.end())
+				bashes[(i - k + 1) % k].insert(hashes[h]);
+		}
+	}
+	for (int i = 0; i < k; i++) {
+		if (bashes[i].size() == n) {
+			printf("YES\n");
+			for (int j = i + k - 1, c = 0; c < n; j += k, c += 1) {
+				int h = ((j - k >= 0) ? sub(prefHash[j], prefHash[j - k]) : prefHash[j]);
+				h = mul(h, invPower[j - k + 1]); 
+				printf("%d ", hashes[h]);
+			}
+			return 0;
+		}
+	}
+	printf("NO\n");
+	return 0;
+}

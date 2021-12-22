@@ -1,0 +1,197 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.TreeSet;
+
+/**
+ * Created by leen on 6/22/16.
+ */
+public class _676D {
+
+    static char[][] mat;
+    static Node[][][] nodeMats;
+    static int n;
+    static int m;
+    static int xt;
+    static int yt;
+    static int xm;
+    static int ym;
+
+    public static void main(String[] args) {
+
+        Scanner scan = new Scanner(System.in);
+        n = scan.nextInt();
+        m = scan.nextInt();
+        scan.nextLine();
+
+        mat = new char[n][m];
+
+        for(int i = 0; i < n; i++) {
+            String line = scan.nextLine();
+            for(int j = 0; j < m; j++)
+                mat[i][j] = line.charAt(j);
+        }
+
+        xt = scan.nextInt() - 1;
+        yt = scan.nextInt() - 1;
+        scan.nextLine();
+        xm = scan.nextInt() - 1;
+        ym = scan.nextInt() - 1;
+
+        nodeMats = new Node[4][n][m];
+        for(int r = 0; r < 4; r++)
+            for(int i = 0; i < n; i++)
+                for(int j = 0; j < m; j++)
+                    nodeMats[r][i][j] = new Node(i, j);
+
+        buildNodeMat(0);
+        for(int i = 1; i < 4; i++) {
+            rotateMat();
+            buildNodeMat(i);
+        }
+
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                Node node1 = nodeMats[0][i][j];
+                Node node2 = nodeMats[1][i][j];
+                Node node3 = nodeMats[2][i][j];
+                Node node4 = nodeMats[3][i][j];
+
+                node1.connectSingleWay(node2);
+                node2.connectSingleWay(node3);
+                node3.connectSingleWay(node4);
+                node4.connectSingleWay(node1);
+            }
+        }
+
+        Node start = nodeMats[0][xt][yt];
+        start.distance = 0;
+        TreeSet<Node> set = new TreeSet<Node>();
+        set.add(start);
+
+        int totalDistance = -1;
+
+        while(!set.isEmpty()) {
+            Node head = set.pollFirst();
+            if(head.isEnd) {
+                totalDistance = head.distance;
+                break;
+            }
+
+            head.visited = true;
+
+            int nextDist = head.distance + 1;
+            for(Node node : head.neighbours) {
+                if(node.visited)
+                    continue;
+                if(nextDist < node.distance) {
+                    if(node.enteredSet)
+                        set.remove(node);
+                    else
+                        node.enteredSet = true;
+                    node.distance = nextDist;
+                    set.add(node);
+                }
+            }
+        }
+
+        System.out.println(totalDistance);
+
+    }
+
+    static void rotateMat() {
+        for(int i = 0; i < n; i++)
+            for(int j = 0; j < m; j++)
+                mat[i][j] = rotate(mat[i][j]);
+    }
+
+    static void buildNodeMat(int index) {
+        Node[][] nodeMat = nodeMats[index];
+        for(int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                Node node = nodeMat[i][j];
+                if(j < m - 1 && isRightOpen(mat[i][j]) && isLeftOpen(mat[i][j+1]))
+                    node.connect(nodeMat[i][j + 1]);
+                if(i < n - 1 && isBottomOpen(mat[i][j]) && isTopOpen(mat[i+1][j]))
+                    node.connect(nodeMat[i + 1][j]);
+            }
+        }
+    }
+
+    static char rotate(char c) {
+        if(c == '-')
+            return '|';
+        if(c == '|')
+            return '-';
+        if(c == '<')
+            return '^';
+        if(c == '^')
+            return '>';
+        if(c == '>')
+            return 'V';
+        if(c == 'V')
+            return '<';
+        if(c == 'L')
+            return 'U';
+        if(c == 'U')
+            return 'R';
+        if(c == 'R')
+            return 'D';
+        if(c == 'D')
+            return 'L';
+        return c;
+    }
+
+    static boolean isLeftOpen(char c) {
+        return c == '+' || c == '-' || c == '<' || c == 'R' || c == 'U' || c == 'D';
+    }
+
+    static boolean isRightOpen(char c) {
+        return c == '+' || c == '-' || c == '>' || c == 'L' || c == 'U' || c == 'D';
+    }
+
+    static boolean isTopOpen(char c) {
+        return c == '+' || c == '|' || c == '^' || c == 'L' || c == 'R' || c == 'D';
+    }
+
+    static boolean isBottomOpen(char c) {
+        return c == '+' || c == '|' || c == 'V' || c == 'L' || c == 'R' || c == 'U';
+    }
+
+    static class Node implements Comparable<Node> {
+        final int x;
+        final int y;
+        boolean visited;
+        boolean enteredSet;
+        final boolean isEnd;
+        final List<Node> neighbours = new ArrayList<Node>();
+        int distance = Integer.MAX_VALUE;
+
+        Node(int x, int y) {
+            this.x = x;
+            this.y = y;
+            this.isEnd = x == xm && y == ym;
+        }
+
+        void connectSingleWay(Node node) {
+            neighbours.add(node);
+        }
+
+        void connect(Node node) {
+            neighbours.add(node);
+            node.neighbours.add(this);
+        }
+
+        @Override
+        public int compareTo(Node o) {
+            if(distance != o.distance)
+                return distance - o.distance;
+            if(x != o.x)
+                return x - o.x;
+            if(y != o.y)
+                return x - o.y;
+            return 0;
+        }
+    }
+
+}

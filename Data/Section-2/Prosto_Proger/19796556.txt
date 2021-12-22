@@ -1,0 +1,53 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+const long long inf = 1e16;
+const int max_n = 1e5 + 100;
+long long dp[2][max_n];
+
+int main()
+{
+    int n;
+    cin >> n;
+    vector <int> c(n);
+    for (int i = 0; i < n; ++i)
+        cin >> c[i];
+
+    vector <string> v[2];
+    v[0].resize(n), v[1].resize(n);
+    for (int i = 0; i < n; ++i)
+    {
+        cin >> v[0][i];
+        v[1][i] = "";
+        for (int j = v[0][i].size() - 1; j >= 0; --j)
+            v[1][i] += v[0][i][j];
+    }
+
+    dp[0][0] = 0;
+    dp[1][0] = c[0];
+    for (int i = 1; i < n; ++i)
+    {
+        dp[0][i] = dp[1][i] = inf;
+        if (v[0][i] >= v[0][i - 1] and dp[0][i - 1] != inf)
+            dp[0][i] = dp[0][i - 1];
+        if (v[0][i] >= v[1][i - 1] and dp[1][i - 1] != inf)
+            dp[0][i] = min(dp[0][i], dp[1][i - 1]);
+
+        if (v[1][i] >= v[0][i - 1] and dp[0][i - 1] != inf)
+            dp[1][i] = dp[0][i - 1] + c[i];
+        if (v[1][i] >= v[1][i - 1] and dp[1][i - 1] != inf)
+            dp[1][i] = min(dp[1][i], dp[1][i - 1] + c[i]);
+
+        if (dp[1][i] == dp[0][i] and dp[0][i] == inf)
+        {
+            cout << -1 << endl;
+            return 0;
+        }
+    }
+
+    cout << min(dp[0][n - 1], dp[1][n - 1]) << endl;
+    return 0;
+}

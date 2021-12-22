@@ -1,0 +1,114 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<ll, ll> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+const int SQ = 317;
+
+int n;
+ll w;
+pii h[N];
+
+pii maxi[SQ][SQ];
+ll m[N];
+ll t[N];
+
+vector <pii> tmp;
+vector <pii> tmP;
+
+void build(int x){
+	tmp.clear(); tmP.clear();
+	for(int i = x * SQ; i < min(N, x * SQ + SQ); ++i)
+		tmp.PB(MP(m[i], i));
+	sort(tmp.begin(), tmp.end());
+	reverse(tmp.begin(), tmp.end());
+	int t = -1;
+	for(int i = 0; i < SZ(tmp); ++i)
+		if(!i || (tmp[t].X > tmp[i].X && tmp[i].Y > tmp[t].Y))
+			tmP.PB(tmp[i]), t = i;
+	tmp.clear();
+	for(int i = 0; i < SZ(tmP); ++i){
+		while(SZ(tmp) > 1){
+			pii a = tmp.back();
+			pii b = tmp[SZ(tmp) - 2];
+			pii c = tmP[i];
+			if((a.X - c.X) * (c.Y - b.Y) <= (b.X - c.X) * (c.Y - a.Y))
+				tmp.pop_back();
+			else
+				break;
+		}
+		tmp.PB(tmP[i]);
+	}
+	int k = 0;
+	for(int i = 0; i < SQ; ++i){
+		while(k + 1 < SZ(tmp) && tmp[k].Y * i + tmp[k].X < tmp[k + 1].Y * i + tmp[k + 1].X)
+			k ++;
+		maxi[x][i].X = tmp[k].Y * i + tmp[k].X;
+		maxi[x][i].Y = tmp[k].Y;
+	}
+}
+
+void add(int x){
+	int y = 0;
+	while(y * SQ < x - x % SQ){
+		t[y] ++;
+		if(t[y] == SQ){
+			for(int i = y * SQ; i < y * SQ + SQ; ++i)
+				m[i] += (i * t[y]);
+			build(y);
+			t[y] = 0;
+		}
+		y ++;
+	}
+	for(int i = y * SQ; i <= x; ++i)
+		m[i] += i;
+	build(y);
+}
+
+pii get(){
+	pii ans = MP(0, 0);
+	for(int i = 0; i * SQ < N; ++i)
+		ans = max(ans, maxi[i][t[i]]);
+	return ans;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> w;
+	for(int i = 0; i < n; ++i)
+		cin >> h[i].Y >> h[i].X;
+	sort(h, h + n);
+	ll k = 0;
+	for(int i = 0; i <= h[n - 1].X + 1; ++i){
+		while(k < n && h[k].X < i){
+			add(h[k].Y);
+			k ++;
+		}
+		pii ans = get();
+		cout << (n - k) * i * w + ans.X << " " << ans.Y << '\n';
+	}
+	return 0;
+}

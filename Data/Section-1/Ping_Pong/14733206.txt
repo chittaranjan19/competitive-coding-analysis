@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdio>
+#include <stdlib.h>
+#include <cmath>
+#include <algorithm>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+
+using namespace std;
+
+int main()
+{
+    long long n, m;
+    scanf("%I64d %I64d", &n, &m);
+    long long graph[m][2];
+    for (long long i = 0; i < m; i++)
+        scanf("%I64d %I64d", &graph[i][0], &graph[i][1]);
+    long long ans[m][2];
+    vector<pair<long long, long long> > v(n - 1);
+    vector<pair<long long, long long> > w(m - n + 1);
+    long long curr = 2, curr1 = 0;
+    for (long long i = 0; i < m; i++)
+        if (graph[i][1] == 1)
+        {
+            ans[i][0] = 1;
+            ans[i][1] = curr;
+            v[curr - 2].first = graph[i][0];
+            v[curr - 2].second = curr;
+            curr++;
+        }
+        else
+        {
+            w[curr1].first = graph[i][0];
+            w[curr1].second = i;
+            curr1++;
+        }
+    sort(v.begin(), v.end());
+    sort(w.begin(), w.end());
+    reverse(v.begin(), v.end());
+    reverse(w.begin(), w.end());
+    /*for (long longi = 0; i < n - 1; i++)
+        printf("%I64d %I64d\n", v[i].first, v[i].second);
+    printf("\n");
+    for (long longi = 0; i < w.size(); i++)
+        printf("%I64d %I64d\n", w[i].first, w[i].second);
+    printf("\n");*/
+    long long currx = 0, curry = 1;
+    for (long long i = 0; i < w.size(); i++)
+    {
+        if (currx == n - 1)
+        {
+            printf("%d", -1);
+            return 0;
+        }
+        while ((w[i].first < v[currx].first) && (currx < n - 1))
+        {
+            currx++;
+            curry = currx + 1;
+        }
+        if (currx == n - 1)
+        {
+            printf("%d", -1);
+            return 0;
+        }
+        ans[w[i].second][0] = v[currx].second;
+        ans[w[i].second][1] = v[curry].second;
+        curry++;
+        if (curry >= n)
+        {
+            currx++;
+            curry = currx + 1;
+        }
+    }
+    for (long long i = 0; i < m; i++)
+        printf("%I64d %I64d\n", ans[i][0], ans[i][1]);
+    return 0;
+}

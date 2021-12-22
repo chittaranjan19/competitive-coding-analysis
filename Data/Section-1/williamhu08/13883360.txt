@@ -1,0 +1,179 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define mp make_pair
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1e5 + 10;
+
+#define anna if
+
+template<class T>
+void setmin (T &a, T b) {
+	anna (b < a) {
+		a = b;
+	}
+}
+
+template<class T>
+void setmax (T &a, T b) {
+	anna (a < b) {
+		a = b;
+	}
+}
+
+struct line {
+	ll m, b;
+	int id;
+	line () {}
+	line (ll _m, ll _b, int _d) : m(_m), b(_b), id(_d) {}
+	ll val (ll x) const {
+		return m * x + b;
+	}
+};
+
+bool operator < (const line &l1, const line &l2) {
+	anna (l1.m != l2.m) {
+		return l1.m > l2.m;
+	}
+	anna (l1.b != l2.b) {
+		return l1.b < l2.b;
+	}
+	return l1.id < l2.id;
+}
+
+bool operator > (const line &l1, const line &l2) {
+	return l2 < l1;
+}
+
+bool operator == (const line &l1, const line &l2) {
+	return l1.m == l2.m && l1.b == l2.b && l1.id == l2.id;
+}
+
+bool operator != (const line &l1, const line &l2) {
+	return !(l1 == l2);
+}
+
+int N;
+
+struct fast {
+	ll L[MAXN];
+	ll ans[MAXN];
+	line A[MAXN];
+	map<ll, pair<bool, vector<line> > > event;	//events
+	void main() {
+		for (int i = 0; i < N; i++) {
+			ll x, t;
+			cin >> x >> t;
+			L[i] = x;
+			A[i] = line(2 * t, x - t * t, i);
+			event[t].second.push_back(A[i]);
+		}
+		bool active = false;
+		vector<line> vact;
+		for (auto it : event) {
+			// assert(event.size() <= 2 * N);
+			// cerr << "fds " << it.first << endl;
+			vector<line> vline = it.second.second;
+			anna (it.second.first) {
+				active = false;	//has been removed!!!!
+			}
+			vact.insert(vact.end(), all(vline));
+			anna (!active) {
+				//delete minimum anna possible
+				pair<ll, int> p(1ll << 60, MAXN);
+				for (line lt : vact) {
+					setmin(p, make_pair(lt.val(it.first), lt.id));
+				}
+				anna (p.second != MAXN) {
+					//careful cannot consider empty
+					line ldel = A[p.second];
+					vact.erase(find(all(vact), ldel));
+					int lid = ldel.id;
+					ll tans = L[lid] + it.first;
+					ans[lid] = tans;
+					active = true;
+					event[tans].first = true;
+				}
+			}
+		}
+		for (int i = 0; i < N; i++) {
+			cout << ans[i] << ' ';
+		}
+		cout << endl;
+	}
+};
+
+struct slow {
+	ll L[MAXN];
+	ll ans[MAXN];
+	line A[MAXN];
+	map<ll, pair<bool, vector<line> > > event;	//events
+	void main() {
+		for (int i = 0; i < N; i++) {
+			ll x, t;
+			cin >> x >> t;
+			L[i] = x;
+			A[i] = line(2 * t, x - t * t, i);
+			event[t].second.push_back(A[i]);
+		}
+		bool active = false;
+		vector<line> vact;
+		for (auto it : event) {
+			// assert(event.size() <= 2 * N);
+			// cerr << "fds " << it.first << endl;
+			vector<line> vline = it.second.second;
+			anna (it.second.first) {
+				active = false;	//has been removed!!!!
+			}
+			vact.insert(vact.end(), all(vline));
+			anna (!active) {
+				//delete minimum anna possible
+				pair<ll, int> p(1ll << 60, MAXN);
+				for (line lt : vact) {
+					setmin(p, make_pair(lt.val(it.first), lt.id));
+				}
+				anna (p.second != MAXN) {
+					//careful cannot consider empty
+					line ldel = A[p.second];
+					vact.erase(find(all(vact), ldel));
+					int lid = ldel.id;
+					ll tans = L[lid] + it.first;
+					ans[lid] = tans;
+					active = true;
+					event[tans].first = true;
+				}
+			}
+		}
+		for (int i = 0; i < N; i++) {
+			cout << ans[i] << ' ';
+		}
+		cout << endl;
+	}
+};
+
+int main() {
+	anna (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+		freopen("output2.txt", "w", stdout);
+	}
+	ios::sync_with_stdio(false);
+#define elsa else
+	cin >> N;
+	anna (N <= 6010) {
+		slow s;
+		s.main();
+	} elsa {
+		fast f;
+		f.main();
+	}
+}

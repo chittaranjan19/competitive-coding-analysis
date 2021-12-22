@@ -1,0 +1,107 @@
+//
+// Created by noonan on 8/30/2016.
+//
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+typedef long long ll;
+#define mp make_pair
+#define pb push_back
+#define max(x, y)              ((x)>(y))?(x):(y)
+#define min(x, y)              ((x)<(y))?(x):(y)
+
+int main() {
+    int n, m, k;
+    cin >> n >> m >> k;
+
+    int c[n + 1];
+    for (int i = 1; i <= n; i++) {
+        int temp;
+        cin >> temp;
+        c[i] = temp;
+    }
+
+    // cost to paint tree i color j
+    ll p[n + 1][m + 1];
+
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= m; j++) {
+            ll temp;
+            cin >> temp;
+            p[i][j] = temp;
+        }
+    }
+
+    ll dp[n + 1][k + 1][m + 1];
+
+    for (int i = 0; i <= n; i++) {
+        for (int j = 0; j <= k; j++) {
+            for (int l = 0; l <= m; l++) {
+                dp[i][j][l] = 1000000000000; //LLONG_MAX;
+            }
+        }
+    }
+
+    for (int l = 1; l <= m; l++) {
+        if (c[1] == 0) {
+            dp[1][1][l] = p[1][l];
+        } else {
+            if (c[1] == l)
+                dp[1][1][l] = 0;
+        }
+    }
+    // [] up to tree i;
+    // [] # of clusters; beauty value
+    // [] color of last tree. color of tree i
+    for (int i = 2; i <= n; i++) {
+        for (int j = 1; j <= k; j++) {
+            if (c[i] != 0) { // if the tree is colored
+                ll mi = LLONG_MAX;
+                for (int paint = 1; paint <= m; paint++) {
+                    if (paint != c[i]) {
+                        mi = min(mi, dp[i - 1][j - 1][paint]);
+                    }
+                }
+                dp[i][j][c[i]] = min(mi, dp[i - 1][j][c[i]]);
+            } else { // tree needs to be painted
+                for (int l = 1; l <= m; l++) {
+                    ll mi = LLONG_MAX;
+                    for (int paint = 1; paint <= m; paint++) {
+                        if (paint == l) {
+                            mi = min(mi, dp[i - 1][j][l] + p[i][l]);
+                        } else {
+                            mi = min(mi, dp[i - 1][j - 1][paint] + p[i][l]);
+                        }
+                    }
+                    dp[i][j][l] = mi;
+                }
+                //cout << i << " " << j << " " << l << "   " << dp[i][j][l] << endl;
+            }
+        }
+    }
+//
+//    cout << "Final:" << endl;
+//    for (int i = 1; i <= n; i++) {
+//        for (int j = 1; j <= k; j++) {
+//            for (int l = 1; l <= m; l++) {
+//                cout << i << " " << j << " " << l << "   " << dp[i][j][l] << endl;
+//            }
+//        }
+//    }
+
+
+    ll ans = 1000000000000;
+    for (int l = 1; l <= m; l++) {
+        ans = min(dp[n][k][l], ans);
+    }
+
+
+    // cout << endl << "Answer: " << endl;
+    if (ans >= 1000000000000)
+        cout << -1 << endl;
+    else
+        cout << ans << endl;
+
+}

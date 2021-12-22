@@ -1,0 +1,79 @@
+#include <cstring>
+
+#include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <vector>
+using namespace std;
+const int MAX_N = 505;
+int a[MAX_N][MAX_N];
+int edges[MAX_N];
+int vis[MAX_N];
+int mleft[MAX_N];
+vector<int> graph[MAX_N];
+int pair_up(int node, int c) {
+    if(vis[c]) {
+        return 0;
+    }
+    vis[c] = true;
+    for(vector<int> :: iterator it = graph[node].begin(); it != graph[node].end(); ++ it) {
+        if(*it != c && (!mleft[*it] || pair_up(mleft[*it], c))) {
+            mleft[*it] = node;
+            return 1;
+        }
+    }
+    return 0;
+}
+int match(int c, int n, int m) {
+    int max_match = 0;
+    memset(mleft, 0, sizeof mleft);
+    for(int i = 1; i <= n; ++ i) {
+        if(i != c) {
+            memset(vis, 0, sizeof vis);
+            max_match += pair_up(i, c);
+        }
+    }
+    //cout << max_match << " ";
+    return m - max_match + n - 1 - max_match;
+}
+int main() {
+    //ifstream cin("f.in");
+    int n, m;
+    cin >> n >> m;
+    for(int i = 1; i <= m; ++ i) {
+        int x, y;
+        cin >> x >> y;
+        ++ edges[y];
+        if(x != y) {
+            ++ edges[x];
+        }
+        a[x][y] = 1;
+        graph[x].push_back(y);
+    }
+    for(int i = 1; i <= n; ++ i) {
+        edges[i] = m - edges[i];
+    }
+    int answer = m + 3 * n - 3;
+    for(int i = 1; i <= n; ++ i) {
+        //the center is vertex i:
+        int num = 0;
+        for(int j = 1; j <= n; ++ j) {
+            if(i != j) {
+                if(!a[i][j]) {
+                    ++ num;
+                }
+                if(!a[j][i]) {
+                    ++ num;
+                }
+            }
+        }
+        if(!a[i][i]) {
+            ++ num;
+        }
+        //cout << i << " -> ";
+        answer = min(answer, num + match(i, n, edges[i]));
+        //cout << "\n";
+    }
+    cout << answer << "\n";
+    return 0;
+}

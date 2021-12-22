@@ -1,0 +1,138 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemA2 {
+    BufferedReader rd;
+
+    private ProblemA2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int n = pint();
+        int[] xr = new int[n];
+        int[] dg = new int[n];
+        for(int i=0;i<n;i++) {
+            int[] a = intarr();
+            if(a[0] != 0) {
+                dg[i] = a[0];
+                xr[i] = a[1];
+            }
+        }
+        SetMultiMap<Integer, Integer> edgeMap = new HashSetHashMultiMap<>();
+        Queue<Integer> q = new LinkedList<>();
+        for(int i=0;i<n;i++) {
+            if(dg[i] == 1) {
+                q.add(i);
+            }
+        }
+        while(!q.isEmpty()) {
+            int v = q.poll();
+            if(dg[v] == 1) {
+                int next = xr[v];
+                if(v != next) {
+                    edgeMap.getOrCreate(Math.min(v, next)).add(Math.max(v, next));
+                    dg[v]--;
+                    dg[next]--;
+                    xr[next] ^= v;
+                    xr[v] ^= next;
+                    if(dg[v] == 1) {
+                        q.add(v);
+                    }
+                    if(dg[next] == 1) {
+                        q.add(next);
+                    }
+                }
+            }
+        }
+
+        int size = 0;
+        for(Map.Entry<Integer, Set<Integer>> e: edgeMap.entrySet()) {
+            size += e.getValue().size();
+        }
+
+        out(size);
+        for(Map.Entry<Integer, Set<Integer>> e: edgeMap.entrySet()) {
+            for(Integer s: e.getValue()) {
+                out(e.getKey()+" "+s);
+            }
+        }
+    }
+
+
+    private interface MultiMap<K, V, C> extends Map<K, C> {
+        C getOrCreate(K key);
+    }
+
+    private interface SetMultiMap<K, V> extends MultiMap<K, V, Set<V>> {
+    }
+
+    private static class HashSetHashMultiMap<K, V> extends HashMap<K, Set<V>> implements SetMultiMap<K, V> {
+
+        @Override
+        public Set<V> getOrCreate(K key) {
+            Set<V> container = get(key);
+            if(container == null) {
+                container = new HashSet<>();
+                put(key, container);
+            }
+            return container;
+        }
+    }
+
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private String[] split(String s) {
+        int n = s.length();
+        int sp = 0;
+        for(int i=0;i<n;i++) {
+            if(s.charAt(i)==' ') {
+                sp++;
+            }
+        }
+        String[] res = new String[sp+1];
+        int last = 0;
+        int x = 0;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(c == ' ') {
+                res[x++] = s.substring(last,i);
+                last = i+1;
+            }
+        }
+        res[x] = s.substring(last,n);
+        return res;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemA2();
+    }
+}

@@ -1,0 +1,81 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+char arr[MAXN][12],c[4];
+char kar[]={'>','<','^'};
+int dx[]={0,0,-1};
+int dy[]={+1,-1,0};
+PII cost[MAXN][12];
+int vis[MAXN][12],n,m,q,sq;
+PII dfs(int x,int y,int z,int prx,int pry){
+	if(x<1 or y<1 or x>n or y>m or x/sq==z-1)
+		return mp(x,y);		
+	if (cost[x][y]!=mp(0,0))
+		return cost[x][y];
+	cost[x][y] = mp(-1, -1);
+	int tox=x,toy=y;
+	for(int i=0;i<3;i++)
+		if(kar[i]==arr[x][y])
+			tox+=dx[i],toy+=dy[i];	
+	//if(tox==prx and toy==pry)
+	//	return mp(-1,-1);		
+	return cost[x][y]=dfs(tox,toy,z,x,y);		
+}
+int main(){
+	scanf("%d%d%d",&n,&m,&q);
+	sq=sqrt(n);
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++)
+			scanf(" %c",&arr[i][j]);
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++)
+			if (cost[i][j] == mp(0, 0))
+				dfs(i,j,i/sq,-1,-1);
+	while(q--){
+		int a,b;
+		scanf(" %c%d%d",&c[0],&a,&b);
+		if(c[0]=='A'){
+			while(1){
+				if(a<1 or b<1 or b>m)
+					break;
+				PII kj=cost[a][b];
+				a=kj.ff,b=kj.ss;	
+			}
+			printf("%d %d\n",a,b);
+		}
+		else{
+			scanf(" %c",&c[1]);
+			arr[a][b]=c[1];
+			int mn=a/sq;
+			int mx=(mn+1)*sq-1;
+			mn*=sq;
+			for(int i=mn;i<=mx;i++)
+				for(int j=1;j<=m;j++)
+					cost[i][j]=mp(0, 0);
+			for(int i=mn;i<=mx;i++)
+				for(int j=1;j<=m;j++)
+					if (cost[i][j] == mp(0, 0))
+					dfs(i,j,i/sq,-1,-1);
+		}
+	}
+	return 0;
+}
+
+ 

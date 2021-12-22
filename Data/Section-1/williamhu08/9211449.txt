@@ -1,0 +1,123 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 100100, SQRT = 320, MAXM = 13;
+
+int N, M, Q;
+pii up[MAXN][MAXM];	//not computed = -2, infinite loop = -1
+pii jump[MAXN][MAXM];	//get to a point where either x % SQRT == 0 or ...
+char grid[MAXN][MAXM];
+
+bool bounded (int x, int y) {
+	return 1 <= x && x <= N && 1 <= y && y <= M;
+}
+
+bool bounded (pii p) {
+	return bounded(p.first, p.second);
+}
+
+pii getup (int x, int y) {
+	pii &ref = up[x][y];
+	if (ref.first != -2) {
+		return ref;
+	}
+	if (!bounded(x, y)) {
+		return ref = pii(x, y);
+	}
+	if (grid[x][y] == '^') {
+		return ref = pii(x - 1, y);
+	} else if (grid[x][y] == '<') {
+		return ref = (grid[x][y - 1] == '>' ? pii(-1, -1) : getup(x, y - 1));
+	} else {
+		return ref = (grid[x][y + 1] == '<' ? pii(-1, -1) : getup(x, y + 1));
+	}
+}
+
+void calcjump (int i) {
+	if (i % SQRT == 1) {
+		copy_n(up[i] + 1, M, jump[i] + 1);
+	} else {
+		for (int j = 1; j <= M; j++) {
+			pii p = up[i][j];
+			jump[i][j] = bounded(p) ? jump[p.first][p.second] : p;
+		}
+	}
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	scanf("%d %d %d\n", &N, &M, &Q);
+	for (int i = 1; i <= N; i++) {
+		gets(grid[i] + 1);
+		fill_n(up[i], M + 2, pii(-2, -2));
+	}
+	for (int i = 0; i <= N; i++) {
+		for (int j = 0; j <= M + 1; j++) {
+			getup(i, j);
+		}
+	}
+	for (int i = 1; i <= N; i++) {
+		calcjump(i);
+	}
+	char ch;
+	for (int x, y; Q--; ) {
+		scanf("%c %d %d", &ch, &x, &y);
+		if (ch == 'A') {
+			pii p(x, y);
+			while (bounded(p)) {
+				p = jump[p.first][p.second];
+			}
+			printf("%d %d\n", p.first, p.second);
+		} else {
+			scanf(" %c", &ch);
+			grid[x][y] = ch;
+			//ok let's redo these things
+			fill_n(up[x] + 1, M, pii(-2, -2));
+			for (int j = 1; j <= M; j++) {
+				getup(x, j);
+			}
+			for (calcjump(x++); x <= N && x % SQRT != 1; x++) {
+				calcjump(x);
+			}
+		}
+		getchar();
+	}
+}

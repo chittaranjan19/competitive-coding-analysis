@@ -1,0 +1,102 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+const int MAX_length = 100;
+
+const int MAX_n = MAX_length + 1;
+const int SGM = 'Z' - 'A' + 1,leastChar = 'A';
+int sa[MAX_n],_rank[MAX_n*2],lcp[MAX_length];
+bool lexcomp(int a1,int a2,int b1,int b2)
+{   return a1 < b1 || a1 == b1 && a2 < b2;}
+void radix_sort(int a[],int keys[],int n,int K)
+{
+    int * cnt = new int [K+1], * ret = new int [n];
+    memset(cnt, 0, (K+1)*sizeof(int));
+    for(int i = 0; i < n; ++i)  ++cnt[keys[a[i]]];
+    for(int i = 0, sum = 0; i <= K; ++i)
+    {
+        int t = cnt[i];
+        cnt[i] = sum,sum += t;
+    }
+    for(int i = 0; i < n; ++i)  ret[cnt[keys[a[i]]]++] = a[i];
+    memcpy(a, ret, n * sizeof(int));
+    delete [] cnt;
+    delete [] ret;
+}
+int rerank(int n,int k)
+{
+    int * ret = new int [n];
+    ret[sa[0]] = 0;
+    for (int i = 1; i < n; ++i) {
+        ret[sa[i]] = ret[sa[i-1]] +
+        lexcomp(_rank[sa[i-1]], _rank[sa[i-1]+k], _rank[sa[i]], _rank[sa[i]+k]);
+    }
+    memcpy(_rank, ret, n * sizeof(int));
+    delete [] ret;
+    return _rank[sa[n-1]];
+}
+void construct_sa(char str[],int length)
+{
+    int n = length + 1;
+    for (int i = 0; i < n; ++i)
+        sa[i] = length - i, _rank[i] = str[i] - leastChar + 1;
+    for (int i = length; i < 2*n; ++i)
+        _rank[i] = 0;
+    radix_sort(sa, _rank, n, SGM);
+    for (int k = 1, K = rerank(n, 0); k < n && K < n;K = rerank(n, k),k <<= 1) {
+        radix_sort(sa, _rank + k, n, K);
+        radix_sort(sa, _rank, n, K);
+    }
+}
+
+void construct_lcp(char str[],int length)
+{
+    int h = 0;
+    lcp[0] = 0;
+    for(int i = 0; i < length; ++i)
+    {
+        int j = sa[_rank[i] - 1];
+        
+        if(h > 0)   --h;
+        for (; j + h < length && i + h < length; ++h)
+            if(str[j+h] != str[i+h])
+                break;
+        
+        lcp[_rank[i] - 1] = h;
+    }
+}
+
+char str[MAX_length + 1];
+int least[MAX_length];
+int ans[MAX_length+1];
+int main()
+{
+    scanf(" %s",str);
+    int length = strlen(str);
+    construct_sa(str, length);
+    construct_lcp(str, length);
+    int p = _rank[0];
+    least[p] = length;
+    for(int i = p; i + 1 < length; ++i)
+        least[i + 1] = min(least[i],lcp[i]);
+    for(int i = p; i >0; --i)
+        least[i - 1] = min(least[i], lcp[i - 1]);
+    
+    int l = 0,r = length,cnt = 0;;
+    for (int len = 1; len <= length; ++len)
+    {
+        int s = _rank[length - len];
+        if (least[s] >= len) {
+            while (least[l] < len)  ++l;
+            while (least[r] < len)  --r;
+            ans[len] = r - l + 1;
+            ++cnt;
+        }
+    }
+    printf("%d\n",cnt);
+    for(int i = 1; i <= length; ++i)
+        if (ans[i])
+            printf("%d %d\n",i,ans[i]);
+    
+}

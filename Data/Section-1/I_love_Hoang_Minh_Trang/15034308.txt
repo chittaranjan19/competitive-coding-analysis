@@ -1,0 +1,83 @@
+#include <bits/stdc++.h>
+#define FORE(i, a, b) for(int i = a; i <= b; i++)
+#define FORD(i, a, b) for(int i = a; i >= b; i--)
+#define FOR(i, a, b) for(int i = a; i < b; i++)
+const int MAXN = 777;
+const int INF = 1e9 + 7;
+
+using namespace std;
+string s;
+int n;
+int dp[MAXN][MAXN][3][3];
+void add(int &a, int b)
+{
+    a += b;
+    if (a >= INF) a-= INF;
+}
+
+bool match(int x, int y)
+{
+    if (x == 0 && y == 1) return 1;
+    if (x == 0 && y == 2) return 1;
+    if (x == 1 && y == 0) return 1;
+    if (x == 2 && y == 0) return 1;
+    return 0;
+}
+
+
+int To[MAXN];
+
+int calc(int l, int r, int c1, int c2)
+{
+    //cout <<l<<" "<<r<<" "<<c1<<" "<<c2<<"??"<<dp[1][4][1][0]<<endl;
+    //if (l == 1 && r == 4 && c1 == 1 && c2 == 0) cout <<"wtf"<<dp[l][r][c1][c2]<<endl;
+    if (dp[l][r][c1][c2] > -1) return dp[l][r][c1][c2];
+    if (l + 1 == r){
+        dp[l][r][c1][c2] = match(c1, c2);
+        return match(c1, c2);
+    }
+
+    int ans = 0;
+    if (To[l] == r && match(c1, c2))
+        FORE(x, 0, 2) FORE(y, 0, 2){
+            if ((c1 && c1 == x) || (c2 && c2 == y)) continue;
+            add(ans, calc(l + 1, r - 1, x, y));
+        }
+    else{
+        int mid = To[l];
+        FORE(x, 0, 2) FORE(y, 0, 2){
+            if (x > 0 && y > 0 && x == y) continue;
+            add(ans, (1LL * calc(l, mid, c1, x) * calc(mid + 1, r, y, c2)) % INF);
+        }
+    }
+    dp[l][r][c1][c2] = ans;
+    return ans;
+}
+
+int main()
+{
+    ios::sync_with_stdio(0); cin.tie(0);
+    #ifndef ONLINE_JUDGE
+    freopen("149D.inp", "r", stdin);
+    freopen("149D.out", "w", stdout);
+    #endif //MIKELHPDATKE
+    a[1].first = 0; a[1].second = 1;
+    a[2].first = 0; a[2].second = 2;
+    a[3].first = 1; a[3].second = 0;
+    a[4].first = 2; a[4].second = 0;
+    cin >> s; n = s.size(); s = '(' + s + ')';
+    stack< int > S;
+    FORE(i, 1, n) if (s[i] == '(') S.push(i);
+    else {
+        int x = S.top();
+        int y = i;
+        To[x] = y;
+        To[y] = x;
+    }
+    //FORE(i, 1, n) cout << To[i]<<" ";cout<<endl;
+    memset(dp, -1, sizeof(dp));
+    int ans = 0;
+    FORE(x, 0, 2) FORE(y, 0, 2) add(ans, calc(1, n, x, y));
+    cout << ans;
+    return 0;
+}

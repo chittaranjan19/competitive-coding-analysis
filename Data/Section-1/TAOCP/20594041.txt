@@ -1,0 +1,128 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <queue>
+#include <cstring>
+#include <string>
+#include <cmath>
+#include <vector>
+#include <climits>
+using namespace std;
+#define pb push_back
+#define ALL(x) x.begin(),x.end()
+#define PII pair<int,int>
+#define MP(x,y) make_pair((x),(y))
+#define ll long long
+#define ull unsigned ll
+#define Max(a,b) a=max(a,b)
+#define Min(a,b) a=min(a,b)
+#define fuck(x) cout<<#x<<" "<<x<<endl
+
+int getnum(int x1, int y1, int x2, int y2){
+    printf("? %d %d %d %d\n", x1, y1, x2, y2);
+    fflush(stdout);
+    int x;
+    scanf("%d", &x);
+    return x;
+}
+bool check(int a, int b, int x1, int y1, int x2, int y2){
+    if(x1 <= a && a <= x2 && y1 <= b && b <= y2) return true;
+    return false;
+}
+int n;
+int X[4];
+int Y[4];
+void proce(int lb,int ub ,int limit, int id, int type){
+    while(lb + 1 < ub)
+    {
+        int mid = lb + ub >> 1;
+        if(type == 1){
+            if(getnum(1, mid, n, n) >= limit) lb = mid;
+            else ub = mid;
+        }else{
+            if(getnum(1, 1, n, mid) >= limit) ub = mid;
+            else lb = mid;
+        }
+    }
+    Y[id] = lb;
+}
+
+int main(){
+    scanf("%d", &n);
+    int lb = 0, ub = n+1;
+
+    proce(lb,ub,2,0,1);
+
+    lb = Y[0], ub = n+1;
+    proce(lb,ub,1,1,1);
+
+
+
+    lb = 0, ub = n+1;
+    proce(lb,ub,2,2,2);
+
+    lb = 0, ub = Y[2];
+    proce(lb,ub,1,3,2);
+
+    ///////////////////////////
+
+    lb = 0, ub = n+1;
+    while(lb + 1 < ub)
+    {
+        int mid = lb + ub >> 1;
+        if(getnum(mid, 1, n, n) >= 2) lb = mid;
+        else ub = mid;
+    }
+    X[0] = lb;
+
+    lb = X[0], ub = n+1;
+    while(lb + 1 < ub)
+    {
+        int mid = lb + ub >> 1;
+        if(getnum(mid, 1, n, n) >= 1) lb = mid;
+        else ub = mid;
+    }
+    X[1] = lb;
+
+    lb = 0, ub = n+1;
+    while(lb + 1 < ub)
+    {
+        int mid = lb + ub >> 1;
+        if(getnum(1, 1, mid, n) >= 2) ub = mid;
+        else lb = mid;
+    }
+    X[2] = ub;
+
+    lb = 0, ub = X[2];
+    while(lb + 1 < ub)
+    {
+        int mid = lb + ub >> 1;
+        if(getnum(1, 1, mid, n) >= 1) ub = mid;
+        else lb = mid;
+    }
+    X[3] = ub;
+    int i,j,k,l;
+    for(i = 0; i < 2; i++)
+        for(j = 0; j < 2; j++)
+            for(k = 2; k < 4; k++)
+                for(l = 2; l < 4; l++)
+                {
+                    int x11 = X[i], y11 = Y[j], x12 = X[k], y12 = Y[l];
+                    int x21 = X[i^1], y21 = Y[j^1], x22 = X[k^1], y22 = Y[l^1];
+                    if(x11 > x12||y11 > y12||x21 > x22||y21 > y22) continue;
+                    if(check(x21, y21, x11, y11, x12, y12)) continue;
+                    if(check(x21, y22, x11, y11, x12, y12)) continue;
+                    if(check(x22, y21, x11, y11, x12, y12)) continue;
+                    if(check(x22, y22, x11, y11, x12, y12)) continue;
+
+                    if(check(x11, y11, x21, y21, x22, y22) || check(x11, y12, x21, y21, x22, y22) ||
+                    check(x12, y11, x21, y21, x22, y22) ||
+                    check(x12, y12, x21, y21, x22, y22)) continue;
+
+                    if(getnum(x11, y11, x12, y12) == 1 && getnum(x21, y21, x22, y22) == 1){
+                        printf("! %d %d %d %d %d %d %d %d\n", x11, y11, x12, y12, x21, y21, x22, y22);
+                        return 0;
+                    }
+                }
+    return 0;
+}

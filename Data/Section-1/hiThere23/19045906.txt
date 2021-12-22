@@ -1,0 +1,89 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 200005
+#define maxC 1000000007ll
+#define base 100007
+#define line pair<long long, long long>
+#define A first
+#define B second
+
+using namespace std;
+int n, a[mn], r1, r2;
+line st1[mn], st2[mn], l1[mn], l2[mn];
+double rLim1[mn], rLim2[mn], lowest = maxC;
+
+void setup()
+{
+    cin >> n;
+    FOR(i, 1, n)
+    {
+        cin >> a[i];
+        a[i] += a[i - 1];
+    }
+    FOR(i, 0, n)
+    {
+        l1[i].A = (n - i);
+        l1[i].B = a[n - i];
+        l2[i].A = - i;
+        l2[i].B = - a[i];
+    }
+}
+
+double inter(line a, line b)
+{
+    return (1.0 * (b.B - a.B)) / (a.A - b.A);
+}
+
+int convex(line* st, line* l, double* rLim)
+{
+    int r = 1;
+    rLim[0] = -maxC;
+    rLim[1] = maxC;
+    st[1] = l[0];
+    FOR(i, 1, n)
+    {
+        double xx = inter(st[r], l[i]);
+        while(xx <= rLim[r - 1])
+            xx = inter(st[-- r], l[i]);
+        st[++ r] = l[i];
+        rLim[r - 1] = xx;
+        rLim[r] = maxC;
+    }
+    return r;
+}
+
+void xuly()
+{
+    r1 = convex(st1, l1, rLim1);
+    r2 = convex(st2, l2, rLim2);
+    int id1 = 1;
+    int id2 = 1;
+    while(true)
+    {
+        double low = max(rLim1[id1 - 1], rLim2[id2 - 1]);
+        double hig = min(rLim1[id1], rLim2[id2]);
+        long long aa = - st1[id1].A - st2[id2].A;
+        long long bb = - st1[id1].B - st2[id2].B;
+        double xx = (aa < 0? hig : low);
+        double val = aa * xx + bb;
+        lowest = min(lowest, val);
+        if (id1 == r1 && id2 == r2)
+            break;
+        if (rLim1[id1] < rLim2[id2])
+            id1 ++;
+        else
+            id2 ++;
+    }
+    cout << fixed << setprecision(8) << lowest;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

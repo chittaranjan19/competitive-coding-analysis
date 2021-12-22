@@ -1,0 +1,103 @@
+#include "bits/stdc++.h"
+#define MAXN 5009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int dis[MAXN][MAXN];
+vector<int>adj[MAXN];
+vector<PII>shop[MAXN];
+int n,m,w,q;
+void bfs(int x){
+	queue<int>q;
+	q.push(x);
+	dis[x][x]=0;
+	while(!q.empty()){
+		int nd=q.front();
+		q.pop();
+		for(int i=0;i<int(adj[nd].size());i++){
+			int to=adj[nd][i];
+			if(dis[x][to]>dis[x][nd]+1){
+				dis[x][to]=dis[x][nd]+1;
+				q.push(to);
+			}
+		}
+	}
+}
+ll ok(int g,int mid,int r){
+	vector<PII>v;
+	for(int i=1;i<=n;i++)
+		if(dis[g][i]<=mid){
+			tr(it,shop[i])
+				v.pb(*it);
+		}
+	sort(all(v));ll money=0;
+	for(int i=0;i<int(v.size());i++){
+		if(v[i].ss<=r){
+			r-=v[i].ss;
+			money+=v[i].ff*v[i].ss;
+			if(money>INF)
+				return INF;
+		}
+		else{
+			money+=r*v[i].ff;r=0;
+			break;
+		}
+	}
+	if(r)
+		return INF;
+	return money;	
+}
+int main(){
+	memset(dis,127,sizeof dis);
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=m;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	for(int i=1;i<=n;i++)
+		bfs(i);
+	scanf("%d",&w);
+	for(int i=0;i<w;i++){
+		int c,k,p;
+		scanf("%d%d%d",&c,&k,&p);
+		shop[c].pb(mp(p,k));
+	}
+	scanf("%d",&q);
+	while(q--){
+		int g,r,a;
+		scanf("%d%d%d",&g,&r,&a);
+		int st=0,en=m;
+		while(st+1<en){
+			int mid=(st+en)>>1;
+			if(ok(g,mid,r)<=a)
+				en=mid;
+			else
+				st=mid;
+		}
+		if(ok(g,st,r)<=a)
+			printf("%d\n",st);
+		else if(ok(g,en,r)<=a)
+			printf("%d\n",en);
+		else
+			printf("-1\n");
+	}
+	return 0;
+}

@@ -1,0 +1,62 @@
+#include <bits/stdc++.h>
+
+#define X first
+#define Y second
+#define MP make_pair
+
+using namespace std;
+
+typedef pair<int, int> pii;
+typedef long long ll;
+const int N = 1000 * 1000 + 100;
+
+int n, q;
+pii p[N];
+int seg[20][N];
+
+void build(int d, int s, int e){
+    if(e - s == 1){
+        seg[d][s] = p[s].Y;
+        return;
+    }
+    int mid = (s + e) / 2;
+    build(d + 1, s, mid);
+    build(d + 1, mid, e);
+    merge(seg[d + 1] + s, seg[d + 1] + mid,
+          seg[d + 1] + mid, seg[d + 1] + e, seg[d] +s);
+}
+
+int get(int d, int s, int e, int l, int r, int y){
+    if(r <= s || e <= l) return 0;
+    if(l <= s && e <= r){
+     //   cerr << "bug bad : " << e - s - (upper_bound(seg[d] + s, seg[d] + e, y - 1) - (seg[d] + s)) << " " << s << " "<< e << "\n";
+        return e - s - (upper_bound(seg[d] + s, seg[d] + e, y - 1) - (seg[d] + s));
+    }
+    int mid = (s + e) / 2;
+    return get(d + 1, s, mid, l, r, y) + get(d + 1, mid, e, l, r, y);
+}
+
+int main(){
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n >> q;
+    for(int i = 0; i < n; ++i)
+        cin >> p[i].X >> p[i].Y;
+    sort(p, p + n);
+    build(0, 0, n);
+    for(int i = 0; i < q; ++i){
+        int ans = 0;
+        int ox = 0;
+        int t, x;
+        cin >> t;
+        for(int i = 0; i < t; ++i){
+            cin >> x;
+            ans += get(0, 0, n, ox
+                       , lower_bound(p, p + n, MP(x + 1,0) ) - p, x);
+            ox = lower_bound(p, p + n, MP(x + 1,0) ) - p;
+          //  cerr << "bug : " << ox << " " << ans << "\n";
+        }
+        cout << ans << "\n";
+    }
+    return 0;
+}

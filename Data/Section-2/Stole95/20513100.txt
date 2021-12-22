@@ -1,0 +1,84 @@
+
+import java.util.*;
+
+public class Main {
+	static int mod = 1000000007;
+	static int k;
+	static long[][] memo;
+	
+	public static void main(String[] args) {
+		Scanner sc = new Scanner(System.in);
+		
+		int a = sc.nextInt();
+		int b = sc.nextInt();
+		
+		k = sc.nextInt();
+		
+		int t = sc.nextInt();
+		
+		sc.close();
+		
+		memo = new long[200000][t+1];
+		
+		for(int i = 0 ; i < 200000 ; i++){
+			Arrays.fill(memo[i], -1);
+		}
+		
+		System.out.println(recursion(a, b, t));
+	}
+	
+	static long recursion(int a, int b, int t){
+//		System.out.println("A = " + a + " B = " + b + " t = " + t);
+		
+		if(memo[a - b + 100000][t] >= 0){
+//			System.out.println("Returning " + memo[Math.abs(a - b)][t]);
+			if(a > b)	return memo[a - b + 100000][t];
+			return 0;
+		}
+			
+		
+		if(t == 0){
+			if(a > b) return memo[a - b + 100000][t] = 1;
+			else if(a==b) return memo[a - b + 100000][t] = 0;
+			return 0;
+		}
+		if(Math.abs(a - b) > 2*k*t){
+//			System.out.println(a + " " + b + " " + t);
+			memo[a - b + 100000][t] = calculateWithMod(t);
+			if(a > b) return memo[a - b + 100000][t];
+			return 0;
+		}
+		
+		long value = 0;
+		
+		for(int i = -k ; i <= k ; i++){
+			
+			for(int j = -k ; j <= k ; j++){
+				long tmp = recursion(a + i, b + j, t-1);
+				tmp%=mod;
+//				tmp*=2;
+//				tmp%=mod;
+				value += tmp;
+				value %= mod;
+			}
+			
+			
+		}
+//		System.out.println("For a = " + a + " and b = " + b + " returning " + value);
+		return memo[a - b + 100000][t] = value;
+	}
+	
+	public static long calculateWithMod(int t){
+		int tmp = 2*k + 1;
+		tmp%= mod;
+		
+		long num = 1;
+		
+		for(int i = 0 ; i < 2*t ; i++){
+			num*=tmp;
+			num%=mod;
+		}
+		
+		return num;
+	}
+}

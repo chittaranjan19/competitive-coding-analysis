@@ -1,0 +1,91 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 18;
+
+struct node {
+	ll lmax, rmax;
+	ll ans;
+	node() {
+		lmax = rmax = ans = -1e18;
+	}
+	node (ll a, ll b, ll c) {
+		lmax = a;
+		rmax = b;
+		ans = c;
+	}
+	node operator + (const node &n) const {
+		//this is actually pretty key
+		return node(max(lmax, n.lmax), max(rmax, n.rmax), max(max(ans, n.ans), lmax + n.rmax));
+	}
+} zero;
+
+int N, M;
+ll D[MAXN], H[MAXN], pd[MAXN];
+ll L[MAXN], R[MAXN];
+node tree[2 * MAXN];
+
+node query (int a, int b, int cur = 1, int l = 0, int r = MAXN) {
+	if (r <= a || b <= l) {
+		return zero;
+	}
+	if (a <= l && r <= b) {
+		return tree[cur];
+	} 
+	int mid = (l + r) / 2;
+	return query(a, b, 2 * cur, l, mid) + query(a, b, 2 * cur + 1, mid, r);
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 1; i <= N; i++) {
+		cin >> D[i];
+	}
+	for (int i = 1; i <= N; i++) {
+		cin >> H[i];
+	}
+	copy_n(D + 1, N, D + N + 1);
+	copy_n(H + 1, N, H + N + 1);
+	for (int i = 1; i <= 2 * N; i++) {
+		pd[i] = pd[i - 1] + D[i];
+		L[i] = 2 * H[i] - pd[i - 1];
+		R[i] = 2 * H[i] + pd[i - 1];
+		// cerr << "L[" << i << "] = " << L[i] << ", R[" << i << "] = " << R[i] << endl;
+	}
+	for (int i = 1; i <= 2 * N; i++) {
+		node &ref = tree[i + MAXN];
+		ref.lmax = L[i];
+		ref.rmax = R[i];
+		ref.ans = 0;	//undefined, basically
+	}
+	for (int i = MAXN - 1; i; i--) {
+		tree[i] = tree[2 * i] + tree[2 * i + 1];
+	}
+	while (M--) {
+		int a, b;
+		cin >> a >> b;
+		if (a > b) {
+			//from the range [b + 1, a - 1].
+			cout << query(b + 1, a).ans;
+		} else {
+			//from the range [b + 1, a - 1 + N].
+			cout << query(b + 1, a + N).ans;
+		}
+		cout << '\n';
+	}
+}

@@ -1,0 +1,88 @@
+#include <iostream>
+#include<cstdio>
+#include<cmath>
+#include<cstring>
+using namespace std;
+#define N 100000
+#define eps 1e-7
+struct Point
+{
+    double x,y;
+    int id;
+}pot[N],po;
+int n;
+double cross(Point p,Point p1,Point p2)
+{///向量pp1 * pp2
+    double x1=p1.x-p.x,y1=p1.y-p.y;
+    double x2=p2.x-p.x,y2=p2.y-p.y;
+    return x1*y2-x2*y1;
+}
+double dis2(Point p1,Point p2)
+{
+    return sqrt( pow(p1.x-p2.x,2.0) +pow(p1.y-p2.y,2.0) );
+}
+
+double disptoseg(Point p,Point p1,Point p2)
+{///返回点到线段的距离
+    if(dis2(p1,p2)==0)return dis2(p,p1);
+    Point t=po;///注意这里的构建,这里是构建一个点t是的pt与p1p2垂直
+    t.y+=p1.x-p2.x;
+    t.x+=p2.y-p1.y;
+
+    if( cross(t,p,p1)*cross(t,p,p2)>=0 )
+    {///如果是钝角
+        return min( dis2( p,p1),dis2(p,p2) );
+    }
+
+    ///如果是锐角三角形，那么就用等面积法求解
+    return fabs( cross(p,p1,p2) )/ dis2(p1,p2) ;
+
+}
+
+
+/*double disptosegment(Point p1, Point p2, Point p3)
+{///点到线段距，p1为点，p2-p3为线段 这是另外一种构建方法
+    ///如果点和点a或者点b重合
+   double a = dis2(p1, p2);
+   double b = dis2(p1, p3);
+   if(a < eps || b < eps) return 0;
+
+   ///如果a,b重合，线段是一个点的情况
+   double c = dis2(p2, p3);
+   if(c < eps) return a;
+
+   ///垂足不在线段上，即三角形是钝角三角形
+   if(a*a >= b*b+c*c) return b;
+   if(b*b >= a*a+c*c) return a;
+
+   ///一般情况下就是利用等面积法
+   double l = (a+b+c)/2.0;
+   double s = sqrt(l*(l-a)*(l-b)*(l-c));
+   return 2.0*s/c;
+}*/
+int main()
+{
+    cin>>n>>po.x>>po.y;
+    {
+        for(int i=0;i<n;++i)
+        {
+            cin>>pot[i].x>>pot[i].y;
+        }
+
+            pot[n]=pot[0];
+            double ans=1e30;
+            double mmax=0;
+            double tmp;
+            for(int i=0;i<n;++i)
+            {
+                tmp=disptoseg(po,pot[i],pot[i+1]);
+                if(tmp<ans)ans=tmp;
+                tmp=dis2(po,pot[i]);
+                if(tmp>mmax)
+                mmax=tmp;
+            }
+            printf("%.20f\n",((mmax*mmax)-(ans*ans))*3.141592653589793238462643383279502884);
+
+    }
+    return 0;
+}

@@ -1,0 +1,189 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <vector>
+
+using namespace std;
+
+const int MAXN = 200 + 5;
+const int INF = 1 << 30;
+
+struct edge
+{
+    int to, cap, next;
+    edge(int to = 0, int cap = 0, int next = 0) : to(to), cap(cap), next(next) {}
+} G[MAXN * MAXN * 4];
+int head[MAXN], tot, cnt, d[MAXN], cur[MAXN], que[MAXN], o[MAXN], e[MAXN], id[MAXN];
+vector<int> ans[MAXN];
+bool vis[MAXN];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    memset(vis, 0, sizeof(vis));
+    tot = cnt = 0;
+}
+
+void addedge(int u, int v, int cap)
+{
+    G[tot] = edge(v, cap, head[u]);
+    head[u] = tot++;
+    G[tot] = edge(u, 0, head[v]);
+    head[v] = tot++;
+}
+
+bool bfs(int s, int t)
+{
+    memset(d, -1, sizeof(d));
+    d[s] = 0;
+    int front = 0, rear = 0;
+    que[rear++] = s;
+    while(front < rear)
+    {
+        int u = que[front++];
+        for(int i = head[u]; ~i; i = G[i].next)
+        {
+            edge e = G[i];
+            if(e.cap > 0 && d[e.to] == -1)
+            {
+                que[rear++] = e.to;
+                d[e.to] = d[u] + 1;
+            }
+        }
+    }
+    return ~d[t];
+}
+
+int dfs(int u, int t, int f)
+{
+    if(u == t) return f;
+    int ret = 0;
+    for(int &i = cur[u]; ~i; i = G[i].next)
+    {
+        edge &e = G[i];
+        if(e.cap > 0 && d[e.to] == d[u] + 1)
+        {
+            int tmp = dfs(e.to, t, min(f, e.cap));
+            if(tmp > 0)
+            {
+                e.cap -= tmp;
+                G[i ^ 1].cap += tmp;
+                ret += tmp;
+                f -= tmp;
+                if(!f) break;
+            }
+        }
+    }
+    return ret;
+}
+
+int Dinic(int s, int t)
+{
+    int ret = 0;
+    while(bfs(s, t))
+    {
+        memcpy(cur, head, sizeof(head));
+        ret += dfs(s, t, INF);
+    }
+    return ret;
+}
+
+bool isprime(int x)
+{
+    if(x < 2 || x > 2 && !(x & 1)) return false;
+    for(int i = 3; i * i <= x; i += 2)
+    {
+        if(x % i == 0) return false;
+    }
+    return true;
+}
+
+void solve(int u, int n)
+{
+    vis[u] = true;
+    ans[cnt].push_back(id[u]);
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        edge e = G[i];
+        if(!vis[e.to] && (u <= n && e.cap == 0 || u > n && e.cap == 1))
+        {
+            solve(e.to, n);
+            break;
+        }
+    }
+}
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        int s = 0, t = 2 * n + 1;
+        int ocnt = 0, ecnt = 0;
+        for(int i = 1; i <= n; ++i)
+        {
+            int x;
+            scanf("%d", &x);
+            if(x & 1)
+            {
+                o[++ocnt] = x;
+                id[ocnt] = i;
+            }
+            else
+            {
+                e[++ecnt] = x;
+                id[ecnt + n / 2] = i;
+            }
+        }
+        if(ocnt != ecnt)
+        {
+            puts("Impossible");
+        }
+        else
+        {
+            init();
+            for(int i = 1; i <= ocnt; ++i)
+            {
+                addedge(s, i, 2);
+                for(int j = 1; j <= ecnt; ++j)
+                {
+                    if(isprime(o[i] + e[j]))
+                    {
+                        addedge(i, j + ocnt, 1);
+                    }
+                }
+            }
+            for(int i = 1; i <= ecnt; ++i)
+            {
+                addedge(i + ocnt, t, 2);
+            }
+            if(Dinic(s, t) != n)
+            {
+                puts("Impossible");
+            }
+            else
+            {
+                cnt = 0;
+                for(int i = 1; i <= ocnt; ++i)
+                {
+                    if(!vis[i])
+                    {
+                        ans[cnt].clear();
+                        solve(i, ocnt);
+                        ++cnt;
+                    }
+                }
+                printf("%d\n", cnt);
+                for(int i = 0; i < cnt; ++i)
+                {
+                    printf("%d ", ans[i].size());
+                    for(int j = 0; j < ans[i].size(); ++j)
+                    {
+                        printf("%d%c", ans[i][j], " \n"[j == ans[i].size() - 1]);
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}

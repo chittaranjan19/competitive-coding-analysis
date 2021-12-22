@@ -1,0 +1,145 @@
+#include <bits/stdc++.h>
+#define ls rt << 1
+#define rs rt << 1 | 1
+#define lson ls, l, m
+#define rson rs, m + 1, r
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 1e6 + 5;
+const int mod = 1e9 + 7;
+
+ll dp[maxn][2];
+int a[maxn], b[maxn];
+
+struct segtree
+{
+    int node[maxn << 2], add[maxn << 2], change[maxn << 2], num[maxn << 2];
+
+    void modifyadd(int rt, int c)
+    {
+        add[rt] = (add[rt] + c) % mod;
+        node[rt] = (node[rt] + 1LL * c * num[rt]) % mod;
+    }
+
+    void modifychange(int rt, int c)
+    {
+        add[rt] = 0;
+        change[rt] = c;
+        node[rt] = 1LL * c * node[rt] % mod;
+    }
+
+    void pushup(int rt)
+    {
+        node[rt] = (node[ls] + node[rs]) % mod;
+    }
+
+    void pushdown(int rt)
+    {
+        if(~change[rt])
+        {
+            modifychange(ls, change[rt]);
+            modifychange(rs, change[rt]);
+            change[rt] = -1;
+        }
+        if(add[rt])
+        {
+            modifyadd(ls, add[rt]);
+            modifyadd(rs, add[rt]);
+            add[rt] = 0;
+        }
+    }
+
+    void build(int rt, int l, int r)
+    {
+        add[rt] = 0;
+        change[rt] = -1;
+        node[rt] = 0;
+        if(l == r)
+        {
+            num[rt] = b[l] - b[l - 1];
+            return;
+        }
+        int m = (l + r) >> 1;
+        build(lson);
+        build(rson);
+        num[rt] = num[ls] + num[rs];
+    }
+
+    void updatechange(int rt, int l, int r, int x, int y, int c)
+    {
+        if(x <= l && r <= y)
+        {
+            modifychange(rt, c);
+            return;
+        }
+        pushdown(rt);
+        int m = (l + r) >> 1;
+        if(x <= m) updatechange(lson, x, y, c);
+        if(m < y) updatechange(rson, x, y, c);
+        pushup(rt);
+    }
+
+    void updateadd(int rt, int l, int r, int x, int y, int c)
+    {
+        if(x <= l && r <= y)
+        {
+            modifyadd(rt, c);
+            return;
+        }
+        pushdown(rt);
+        int m = (l + r) >> 1;
+        if(x <= m) updateadd(lson, x, y, c);
+        if(m < y) updateadd(rson, x, y, c);
+        pushup(rt);
+    }
+
+    int query(int rt, int l, int r, int x, int y)
+    {
+        if(x <= l && r <= y) return node[rt];
+        pushdown(rt);
+        int m = (l + r) >> 1, ret = 0;
+        if(x <= m) ret += query(lson, x, y);
+        if(m < y) ret += query(rson, x, y);
+        return ret % mod;
+    }
+} tree[2];
+
+int main()
+{
+    int n;
+    scanf("%d", &n);
+    for(int i = 1; i <= n; ++i)
+    {
+        scanf("%d", &a[i]);
+        if(a[i] != 1) b[i] = a[i];
+    }
+    a[0] = 1;
+    sort(b + 1, b + n + 1);
+    b[0] = 1;
+    int t = unique(b + 1, b + n + 1) - b - 1;
+    tree[0].build(1, 1, t), tree[1].build(1, 1, t);
+    int ans = 0, now = 0, nxt = 1;
+    for(int i = 1; i <= n; ++i)
+    {
+        tree[nxt].updatechange(1, 1, t, 1, t, 0);
+        if(a[i] != 1)
+        {
+            int k = lower_bound(b + 1, b + t + 1, a[i]) - b;
+            tree[nxt].updateadd(1, 1, t, 1, k, 1);
+            int mn = min(a[i], a[i - 1]);
+            if(mn != 1)
+            {
+                int p = lower_bound(b + 1, b + t + 1, mn) - b;
+                int tmp = tree[now].query(1, 1, t, 1, p);
+                tree[nxt].updateadd(1, 1, t, 1, p, tmp);
+            }
+            ans = (ans + tree[nxt].query(1, 1, t, 1, k)) % mod;
+        }
+        swap(now, nxt);
+    }
+    printf("%d\n", ans);
+    return 0;
+}

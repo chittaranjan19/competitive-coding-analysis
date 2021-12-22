@@ -1,0 +1,182 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+char s[15];
+int MaxVal = 100005;
+LL tree[100005], arr[100005];
+
+void update(LL idx, int val)
+{
+  if(idx <= 0) return;
+  while (idx <= MaxVal && idx > 0){
+    tree[idx] = tree[idx] + val;
+    idx = idx + (idx & -idx);
+  }
+}
+
+LL read(LL idx)
+{
+  if(idx <= 0) return 0;
+  LL sum = 0;
+  while (idx > 0 && idx <= MaxVal){
+    sum = sum + tree[idx];
+    idx = idx - (idx & -idx);
+  }
+  return sum;
+}
+
+int main()
+{
+  int n, k;
+  scanf("%d %d", &n, &k);
+  for(int i=0;i<n;i++)
+  {
+    scanf("%s", s);
+    if(s[0] == '?')
+      arr[i] = mod;
+    else arr[i] = atoi(s);
+  }
+  int cnt = 0, ch = -1;
+  LL tmp = 0;
+  for(int i=0;i<k;i++)
+  {
+    if(arr[i] != mod)
+      tmp+=arr[i];
+    else cnt++;
+  }
+  update(k - 1, tmp);
+  update(k, -tmp);
+  if(cnt == 0) ch = k - 1;
+  for(int i=k;i<n;i++)
+  {
+    if(arr[i] != mod)
+      tmp += arr[i];
+    else cnt++;
+    if(arr[i - k] != mod)
+      tmp -= arr[i - k];
+    else cnt--;
+    if(cnt == 0 && ch == -1)
+      ch = i;
+    update(i, tmp);
+    update(i + 1, -tmp);
+  }
+  if(ch == -1)
+  {
+    ch = (n - k) / 2 + k - 1;
+    for(int i=ch;i>=ch-k+1;i--)
+      if(arr[i] == mod)
+        arr[i] = 0;
+  }
+  for(int i=ch;i<n;i++)
+  {
+    if(arr[i] != mod) continue;
+    bool done = false;
+    if(i - k >= 0)
+    {
+      if(read(i - 1) >= read(i))
+      {
+        arr[i] = read(i - 1) - read(i) + 1;
+        update(i, arr[i]);
+        update(i + k, -arr[i]);
+        done = true;
+      }
+    }
+    if(done) continue;
+    if(i + k < n)
+    {
+      if(read(i + k - 1) >= read(i + k))
+      {
+        arr[i] = read(i + k) - read(i + k - 1) - 1;
+        update(i, arr[i]);
+        update(i + k, -arr[i]);
+        done = true;
+      }
+    }
+    if(!done) arr[i] = 0;
+  }
+  for(int i=ch;i>=0;i--)
+  {
+    if(arr[i] != mod) continue;
+    bool done = false;
+    if(i + k < n)
+    {
+      if(read(i + k - 1) >= read(i + k))
+      {
+        arr[i] = read(i + k) - read(i + k - 1) - 1;
+        update(i, arr[i]);
+        update(i + k, -arr[i]);
+        done = true;
+      }
+    }
+    if(done) continue;
+    if(i - k >= 0)
+    {
+      if(read(i - 1) >= read(i))
+      {
+        arr[i] = read(i - 1) - read(i) + 1;
+        update(i, arr[i]);
+        update(i + k, -arr[i]);
+        done = true;
+      }
+    }
+    if(!done) arr[i] = 0;
+  }
+  bool test = true;
+  LL last = 0;
+  tmp = 0;
+  for(int i=0;i<k;i++)
+    tmp+=arr[i];
+  last = tmp;
+  for(int i=k;i<n && test;i++)
+  {
+    tmp += arr[i] - arr[i - k];
+    if(last >= tmp)
+      test = false;
+    last = tmp;
+  }
+  if(test)
+  {
+    for(int i=0;i<n;i++)
+    {
+      if(i) printf(" ");
+      printf("%I64d", arr[i]);
+    }
+  }
+  else printf("Incorrect sequence");
+  return 0;
+}

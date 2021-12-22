@@ -1,0 +1,94 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mp make_pair
+#define F first
+#define S second
+#define maxC 2000000000
+#define mn 2000
+#define pb push_back
+
+using namespace std;
+int m, n, mark[mn][mn], dem = 0, dp[mn][mn], ans = 0,
+addX[] = {0, 0, -1, 1},
+addY[] = {-1, 1, 0, 0};
+char g[mn][mn];
+vector< pair<int, int> > d;
+
+void setup ()
+{
+    cin >> n >> m;
+    FOR(i, 1, n)
+    FOR(j, 1, m)
+    {
+        cin >> g[i][j];
+        if (g[i][j] == 'D')
+            d.pb(mp(i, j));
+    }
+}
+
+void dfs(int x, int y, char c, int cou, int u, int v)
+{
+    char check;
+    if (c == 'D') check = 'I';
+    if (c == 'I') check = 'M';
+    if (c == 'M') check = 'A';
+    if (c == 'A')
+    {
+        check = 'D';
+        cou ++;
+        ans = max(ans, cou);
+        dp[u][v] = max(dp[u][v], cou);
+    }
+    mark[x][y] = dem;
+    FOR(i, 0, 3)
+    {
+        int _x = x + addX[i];
+        int _y = y + addY[i];
+        if (g[_x][_y] != check)
+            continue;
+        if (mark[_x][_y])
+        {
+            if (c == 'A')
+            {
+                if (mark[_x][_y] == dem)
+                {
+                    cout << "Poor Inna!";
+                    exit(0);
+                }
+                ans = max(ans, cou + dp[_x][_y]);
+                dp[u][v] = max(dp[u][v], cou + dp[_x][_y]);
+                continue;
+            }
+            if (mark[_x][_y] != dem)
+            continue;
+        }
+        dfs(_x, _y, check, cou, u, v);
+    }
+}
+
+void xuly ()
+{
+    memset(mark, 0, sizeof(mark));
+    FOR(i, 0, int(d.size()) - 1)
+    {
+        dem ++;
+        int u = d[i].F;
+        int v = d[i].S;
+        dfs(u, v, 'D', 0, u, v);
+    }
+    if (ans)
+        cout << ans;
+    else
+        cout << "Poor Dima!";
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

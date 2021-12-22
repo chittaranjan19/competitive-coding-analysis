@@ -1,0 +1,70 @@
+#include "bits/stdc++.h"
+#define MAXN 200009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+const ll B=1e18;
+ll arr[MAXN],cof[MAXN],par[MAXN];
+struct CHT{
+	vector<ll>m,b;
+	CHT(){
+		m.clear();
+		b.clear();
+	}
+	ll intersection(ll l1,ll l2){
+		return (b[l2]-b[l1])/(m[l1]-m[l2]);
+	}
+	void upd(ll x,ll y){
+		m.pb(x);b.pb(y);
+		while(m.size()>=3 and intersection(m.size()-2,m.size()-3)>=intersection(m.size()-3,m.size()-1)){
+			m.erase(m.end()-2);
+			b.erase(b.end()-2);
+		}
+	}
+	ll tap(ll x){
+		ll st=0,en=m.size()-1;
+		while(st<en){
+			ll mid=(st+en)>>1;
+			if(intersection(mid,mid+1)<=x)
+				st=mid+1;
+			else
+				en=mid;
+		}
+		return m[st]*x+b[st];
+	}
+}S;
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	ll a;
+	scanf("%lld",&a);
+	for(ll i=1;i<=a;i++){
+		scanf("%lld",arr+i);
+		par[i]=par[i-1]+arr[i];
+		cof[i]=cof[i-1]+arr[i]*i;	
+	}	ll ans=0;
+	//~ vector<PII>v;
+	for(ll i=1;i<=a;i++){
+		//~ ll mn=B;
+		S.upd(i-1,-(cof[i-1]-(i-1)*par[i-1]));		
+		//~ for(ll j=0;j<ll(v.size());j++)
+			//~ umin(mn,ll(par[i]*v[j].ff)+v[j].ss);
+		umax(ans,cof[i]+S.tap(-par[i]));	
+	}	
+	printf("%lld\n",ans);
+	return 0;
+}

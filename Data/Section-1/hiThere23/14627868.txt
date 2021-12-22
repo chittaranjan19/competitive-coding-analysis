@@ -1,0 +1,74 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 105
+#define maxC 1000000007
+#define base 100007
+#define addBit(i) (1 << (i))
+
+using namespace std;
+int n, a[mn], p[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59};
+int dp[mn][addBit(17)], fact[61], trace[mn][addBit(17)], bestVal[mn][addBit(17)], b[mn];
+
+void setup()
+{
+    FOR(i, 2, 60)
+    FOR(j, 0, 16)
+    if ((i % p[j]) == 0)
+        fact[i] |= addBit(j);
+    cin >> n;
+    FOR(i, 1, n)
+        cin >> a[i];
+}
+
+void xuly ()
+{
+    memset(dp, 61, sizeof(dp));
+    FOR(i, 1, 60)
+    if (dp[1][fact[i]] > abs(a[1] - i))
+    {
+        dp[1][fact[i]] = abs(a[1] - i);
+        bestVal[1][fact[i]] = i;
+    }
+    FOR(i, 2, n)
+    {
+        FOR(j, 1, 60)
+        {
+            FOR(state, 0, addBit(17) - 1)
+            {
+                if (state & fact[j])
+                    continue;
+                if (dp[i - 1][state] + abs(a[i] - j) < dp[i][state | fact[j]])
+                {
+                    dp[i][state | fact[j]] = dp[i - 1][state] + abs(a[i] - j);
+                    bestVal[i][state | fact[j]] = j;
+                    trace[i][state | fact[j]] = state;
+                }
+            }
+        }
+    }
+    int best = maxC, id;
+    FOR(i, 0, addBit(17) - 1)
+    if (best > dp[n][i])
+    {
+        best = dp[n][i];
+        id = i;
+    }
+    FORD(i, n, 1)
+    {
+        b[i] = bestVal[i][id];
+        id = trace[i][id];
+    }
+    FOR(i, 1, n)
+        cout << b[i] << ' ';
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

@@ -1,0 +1,214 @@
+{$inline on}
+program birthday;
+
+const
+  tfi = '';
+  tfo = '';
+  base = 1000000007;
+  nmax = 100000;
+
+var
+  n,q,cnt,top : longint;
+  d,ans : array [1..nmax] of longint;
+  val,valsqr,rem : array [1..4*nmax] of longint;
+  uu,vv,pp,node,pa,head,child,left,right,ft,lt : array [1..nmax] of longint;
+  adj,c,next : array [-nmax..nmax] of longint;
+  fi,fo : text;
+
+procedure input;
+  var i,j,u,v,w : longint;
+  begin
+    assign(fi,tfi);
+    reset(fi);
+    read(fi,n);
+    for j := 1 to n-1 do
+      begin
+        read(fi,u,v,w);
+        adj[ j] := v;
+        c[ j] := w;
+        next[ j] := head[u];
+        head[u] :=  j;
+        adj[-j] := u;
+        c[-j] := w;
+        next[-j] := head[v];
+        head[v] := -j;
+      end;
+    read(fi,q);
+    for i := 1 to q do
+      begin
+        read(fi,uu[i],vv[i]);
+        pp[i] := i;
+      end;
+    close(fi);
+  end;
+
+procedure swap(var x,y : longint);
+  var z : longint;
+  begin
+    z := x;
+    x := y;
+    y := z;
+  end;
+
+procedure sort(l,h : longint);
+  var i,j,x : longint;
+  begin
+    i := l;
+    j := h;
+    x := uu[random(h - l + 1) + l];
+    repeat
+      while uu[i] < x do inc(i);
+      while uu[j] > x do dec(j);
+      if i <= j then
+        begin
+          swap(uu[i],uu[j]);
+          swap(vv[i],vv[j]);
+          swap(pp[i],pp[j]);
+          inc(i);
+          dec(j);
+        end;
+    until i > j;
+    if l < j then sort(l,j);
+    if i < h then sort(i,h);
+  end;
+
+procedure plus(var x : longint; y : int64);
+  begin
+    x := (x + y) mod base;
+  end;
+
+function sqr(x : longint) : longint;
+  begin
+    exit(int64(x)*x mod base);
+  end;
+
+procedure trans(s,l,r : longint);
+  var cntl,cntr,x : int64;
+  begin
+    if (rem[s] = 0) or (l = r) then exit;
+    x := rem[s];
+    cntl := (l + r) div 2 - l + 1;
+    cntr := r - l + 1 - cntl;
+    plus(rem[2*s],x);
+    plus(rem[2*s+1],x);
+    plus(valsqr[2*s],cntl*sqr(x) + int64(x)*val[2*s]*2);
+    plus(valsqr[2*s+1],cntr*sqr(x) + int64(x)*val[2*s+1]*2);
+    plus(val[2*s],cntl*x);
+    plus(val[2*s+1],cntr*x);
+    rem[s] := 0;
+  end;
+
+procedure update(s,l,r,u,v,x : longint);
+  var cnt : int64;
+  begin
+    if u > v then exit;
+    trans(s,l,r);
+    if (r < u) or (v < l) then exit;
+    if (u <= l) and (r <= v) then
+      begin
+        cnt := r - l + 1;
+        plus(valsqr[s],cnt*sqr(x) + int64(x)*val[s]*2);
+        plus(val[s],cnt*x);
+        rem[s] := x;
+        exit;
+      end;
+    update(2*s,l,(l + r) div 2,u,v,x);
+    update(2*s + 1,(l + r) div 2 + 1,r,u,v,x);
+    valsqr[s] := (valsqr[2*s] + valsqr[2*s+1]) mod base;
+    val[s] := (val[2*s] + val[2*s+1]) mod base;
+  end;
+
+function get(s,l,r,u,v : longint) : longint;
+  begin
+    trans(s,l,r);
+    if (r < u) or (v < l) then exit(0);
+    if (u <= l) and (r <= v) then exit(valsqr[s]);
+    exit((get(2*s,l,(l + r) div 2,u,v) + get(2*s + 1,(l + r) div 2 + 1,r,u,v)) mod base);
+  end;
+
+procedure dfs(u : longint);
+  var j,v : longint;
+  begin
+    inc(top);
+    node[top] := u;
+    child[u] := 1;
+    left[u] := top;
+    j := head[u];
+    while j <> 0 do
+      begin
+        v := adj[j];
+        if v <> pa[u] then
+          begin
+            d[v] := (d[u] + c[j]) mod base;
+            pa[v] := u;
+            dfs(v);
+            child[u] := child[u] + child[v];
+          end;
+        j := next[j];
+      end;
+  end;
+
+procedure init;
+  var i,j : longint;
+  begin
+    sort(1,q);
+    ft[uu[1]] := 1;
+    for i := 1 to q-1 do
+      if uu[i] <> uu[i+1] then
+        begin
+          lt[uu[i]] := i;
+          ft[uu[i+1]] := i+1;
+        end;
+    lt[uu[q]] := q;
+    pa[1] := 1;
+    dfs(1);
+    for i := 1 to n do
+      begin
+        right[i] := left[i] + child[i] - 1;
+        update(1,1,n,left[i],left[i],d[i]);
+      end;
+  end;
+
+procedure answer(u : longint);
+  var i,j,v,tmp1,tmp2 : longint;
+  begin
+    tmp1 := (d[u] - d[pa[u]] + base) mod base;
+    tmp2 := base - tmp1;
+    update(1,1,n,left[u],right[u],tmp2);
+    update(1,1,n,1,left[u]-1,tmp1);
+    update(1,1,n,right[u]+1,n,tmp1);
+    if ft[u] <> 0 then
+      for i := ft[u] to lt[u] do
+        ans[pp[i]] := (get(1,1,n,left[vv[i]],right[vv[i]])*2 - valsqr[1] + base) mod base;
+    j := head[u];
+    while j <> 0 do
+      begin
+        v := adj[j];
+        if v <> pa[u] then answer(v);
+        j := next[j];
+      end;
+    update(1,1,n,left[u],right[u],tmp1);
+    update(1,1,n,1,left[u]-1,tmp2);
+    update(1,1,n,right[u]+1,n,tmp2);
+  end;
+
+procedure process;
+  begin
+    answer(1);
+  end;
+
+procedure output;
+  var i : longint;
+  begin
+    assign(fo,tfo);
+    rewrite(fo);
+    for i := 1 to q do writeln(fo,ans[i]);
+    close(fo);
+  end;
+
+begin
+  input;
+  init;
+  process;
+  output;
+end.

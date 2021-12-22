@@ -1,0 +1,103 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+#include <cstring>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+
+using namespace std;
+int n, k;
+
+string ss[100010], t;
+bool win[100010], lose[100010];
+
+struct ch
+{
+    int next[30];
+};
+
+ch m[200010];
+int cnt = 1;
+
+ch add_vrtx()
+{
+    ch temp;
+    memset(temp.next, -1, sizeof(temp.next));
+    return temp;
+}
+
+void add_str(string str)
+{
+    int num = 0;
+    for (int i = 0; i < str.length(); i++)
+    {
+        if (m[num].next[str[i] - 'a'] != -1)
+        {
+            num = m[num].next[str[i] - 'a'];
+        }
+        else
+        {
+            m[num].next[str[i] - 'a'] = cnt;
+            m[cnt] = add_vrtx();
+            num = cnt;
+            cnt += 1;
+        }
+    }
+}
+
+bool list(int num)
+{
+    bool is = true;
+    for (int i = 0; i < 30; i++)
+    if (m[num].next[i] != -1)
+        is = false;
+    return is;
+}
+
+void dfs(int num)
+{
+    win[num] = false;
+    lose[num] = false;
+    if (list(num))
+    {
+        lose[num] = true;
+        return;
+    }
+    else
+    {
+        for (int i = 0; i < 30; i++)
+        {
+            if (m[num].next[i] != -1)
+            {
+                dfs(m[num].next[i]);
+                win[num] = win[num] | !win[m[num].next[i]];
+                lose[num] = lose[num] | !lose[m[num].next[i]];
+            }
+        }
+    }
+
+}
+
+int main()
+{
+    string s1, s2;
+    cin >> n;
+    cin >> s1 >> s2;
+    int ans = 0;
+    for (int i = 0; i < n; i++)
+    {
+        ans += min(abs(s2[i] - s1[i]), min(s1[i] + 10 - s2[i], s2[i] + 10 - s1[i]));
+    }
+    cout << ans;
+    return 0;
+
+}

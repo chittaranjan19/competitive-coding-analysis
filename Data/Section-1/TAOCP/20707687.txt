@@ -1,0 +1,103 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <queue>
+#include <cstring>
+#include <string>
+#include <cmath>
+#include <set>
+#include <map>
+#include <vector>
+#include <climits>
+using namespace std;
+#define pb push_back
+#define ALL(x) x.begin(),x.end()
+#define PII pair<int,int>
+#define MP(x,y) make_pair((x),(y))
+#define ll long long
+#define ull unsigned ll
+#define Max(a,b) a=max(a,b)
+#define Min(a,b) a=min(a,b)
+#define F first
+#define S second
+using namespace std;
+const ll INF=0x3f3f3f3f3f3f3f3fLL;
+const ll MX = 1110;
+struct edge{
+    ll u, v, w, te, id;
+}e[MX*22];
+vector<ll> g[MX];
+PII d[MX];
+ll pre[MX];
+ll n, m, L, s, t;
+priority_queue<PII, vector<PII >, greater<PII > > q;
+ll dij(ll s, ll t){
+    while(!q.empty()) q.pop();
+    for(ll i = 0; i < n; i++){
+        d[i] = PII(INF, 1);
+    }
+    d[s] = PII(0, 1);
+    q.push(PII(d[s].first, s));
+    while(!q.empty())
+    {
+        PII cur = q.top();q.pop();
+        ll u = cur.second;
+        if(cur.first > d[u].first) continue;
+        for(ll id : g[u])
+        {
+            ll v = e[id].v;
+            ll w = e[id].w;
+            ll tes = e[id].te;
+            PII tmp = d[u];
+            tmp.first += w;
+            tmp.second &= tes;
+            if(d[v] > tmp)
+            {
+                pre[v] = id;
+                d[v] = tmp;
+                q.push(PII(d[v].first, v));
+            }
+        }
+    }
+    if(d[t].second || d[t].first == L) return 0;
+    ll res = L - d[t].first;
+    if(res < 0) return -1;
+    while(t != s)
+    {
+        ll id = pre[t];
+        if(e[id].te==0)
+        {
+            e[id].w += res;
+            e[id^1].w += res;
+            break;
+        }
+        t = e[id].u;
+    }
+    return 1;
+}
+int main(){
+    scanf("%I64d%I64d%I64d%I64d%I64d", &n, &m, &L, &s, &t);
+    for(ll i = 0; i < m;i++)
+    {
+        ll u, v, w;
+        scanf("%I64d%I64d%I64d", &u, &v, &w);
+        e[i*2] = (edge){u, v, max(w, 1LL), w!=0, i*2};
+        e[i*2+1] = (edge){v, u, max(w, 1LL), w!=0, i*2+1};
+        if(w == 0)e[i*2].w = e[i*2+1].w = 1;
+
+        g[u].push_back(i*2);
+        g[v].push_back(i*2+1);
+    }
+    while(true){
+        if(dij(s, t) == -1 || dij(s, t) == 0) break;
+    }
+    if(d[t].first != L){
+        puts("NO");
+        return 0;
+    }
+    puts("YES");
+    for(ll i= 0; i < 2*m; i+=2){
+        printf("%I64d %I64d %I64d\n", e[i].u, e[i].v, e[i].w);
+    }
+    return 0;
+}

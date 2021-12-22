@@ -1,0 +1,64 @@
+# include <iostream>
+# include <cstdlib>
+# include <cstdio>
+
+using namespace std;
+
+const int N = 2000000;
+int n, m, x, y, a[N], d[N];
+
+void build (int v, int L, int R, int step)
+{
+	if (L == R)
+	{
+		d[v] = a[R];
+		return;
+	}
+	int m = (L + R) / 2;
+	build (v * 2, L, m, step - 1);
+	build (v * 2 + 1, m + 1, R, step - 1);
+	if (step & 1)
+		d[v] = d[v * 2] | d[v * 2 + 1];
+	else
+		d[v] = d[v * 2] ^ d[v * 2 + 1];
+}
+
+void update (int v, int L, int R, int x, int y, int step)
+{
+	if (L == R && R == x)
+	{
+		d[v] = y;
+		return;
+	}
+	int m = (L + R) / 2;
+	if (x <= m)
+		update (v * 2, L, m, x, y, step - 1);
+	else
+		update (v * 2 + 1, m + 1, R, x, y, step - 1);
+	if (step & 1)
+		d[v] = d[v * 2] | d[v * 2 + 1];
+	else
+		d[v] = d[v * 2] ^ d[v * 2 + 1];
+}
+
+int main ()
+{
+    cin >> n >> m;
+    
+    for (int i = 1; i <= (1 << n); ++i)
+        cin >> a[i];
+    
+    build (1, 1, (1 << n), n);
+    
+    for (int i = 1; i <= m; ++i)
+    {
+        cin >> x >> y;
+        update (1, 1, (1 << n), x, y, n);
+        cout << d[1] << "\n";
+    }
+    
+    system ("pause");
+    return 0;
+}
+
+

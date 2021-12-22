@@ -1,0 +1,80 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef long long LL;
+
+const int mod = 1e9 + 7;
+
+LL a[110][110], b[110][110], cnt[110][110];
+LL num[110];
+
+LL Pow (LL p, int n) {
+    for (int i = 1; i <= n; i++)    a[i][i] = 1;
+    while (p) {
+        if (p & 1) {
+            for (int i = 1; i <= n; i++) {
+                for (int j = 1; j <= n; j++) {
+                    cnt[i][j] = 0;
+                    for (int k = 1; k <= n; k++) {
+                        cnt[i][j] = (cnt[i][j] + a[i][k] * b[k][j] % mod) % mod;
+                    }
+                }
+            }
+            for (int i = 1; i <= n; i++) {
+                for (int j = 1; j <= n; j++) {
+                    a[i][j] = cnt[i][j];
+                }
+            }
+        }
+        p >>= 1;
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= n; j++) {
+                cnt[i][j] = 0;
+                for (int k = 1; k <= n; k++) {
+                    cnt[i][j] = (cnt[i][j] + b[i][k] * b[k][j] % mod) % mod;
+                }
+            }
+        }
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= n; j++) {
+                b[i][j] = cnt[i][j];
+            }
+        }
+    }
+    LL ans = 0;
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= n; j++) {
+            ans = (ans + a[i][j]) % mod;
+        }
+    }
+    return ans;
+}
+
+bool check (LL a, LL b) {
+    LL x = (a ^ b);
+    LL res = 0;
+    while (x) {
+        if (x & 1)  res++;
+        x >>= 1;
+    }
+    return (res % 3 == 0);
+}
+
+int main () {
+    LL n, m;
+    cin >> n >> m;
+    for (int i = 1; i <= n; i++)
+        cin >> num[i];
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= n; j++) {
+            if (check (num[i], num[j])) {
+                b[i][j] = b[j][i] = 1;
+            } else {
+                b[i][j] = b[j][i] = 0;
+            }
+            a[i][j] = a[j][i] = 0;
+        }
+    }
+    cout << Pow (m - 1, n) << endl;
+    return 0;
+}

@@ -1,0 +1,133 @@
+#include <iostream>
+#include <algorithm>
+#include <map>
+#include <vector>
+
+using namespace std;
+typedef long long ll;
+
+const ll mod = 1000000007LL;
+const int N = 1000005;
+
+ll arr[N];
+ll sorted[N];
+ll counts[N];
+ll countLeftover[N];
+map<ll, ll> condenseMap;
+
+ll dp1[N];
+ll cum[N];
+ll dp2[N];
+
+ll rec(int i, int z, int k, int maxK, int n, int len, vector<int> &vec) {
+	ll ans = 0;
+	if (k > 0) ans++;
+
+	if (k < maxK) {
+		int brrr = i/n;
+		for (int j = (brrr+1)*n; j < len && j < (brrr+2)*n; j++) {
+			if (vec[j] >= z) {
+				ans += rec(j, vec[j], k+1, maxK, n, len, vec);
+			}
+		}
+	}
+
+	return ans;
+}
+
+ll bruteForce(int len, int n, int maxK) {
+	vector<int> vec;
+	for (int i = 0; i < len; i++) {
+		vec.push_back((int)arr[i%n]);
+	}
+	ll ans = 0;
+	for (int i = -n; i < len; i += n) {
+		ans += rec(i, -1, 0, maxK, n, len, vec);
+	}
+	return ans;
+}
+
+ll safeModMul(ll a, ll b) {
+	return (((a * (b & ((1LL<<30)-1))) % mod) + 
+			((((a * (b >> 30)) % mod) << 30) % mod))
+		% mod;
+}
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	// read input
+	int n; ll lInput; int kInput;
+	cin >> n >> lInput >> kInput;
+	for (int i = 0; i < n; i++) cin >> arr[i];
+	ll numFullBlocks = lInput/n;
+
+	// condense input sequence
+	for (int i = 0; i < n; i++) sorted[i] = arr[i];
+	sort(&sorted[0], &sorted[n]);
+
+	int curr = 0;
+	counts[curr] = 0;
+	condenseMap[sorted[0]] = curr;
+	counts[curr]++;
+	for (int i = 1; i < n; i++) {
+		if (sorted[i] != sorted[i-1]) {
+			curr++;
+			counts[curr] = 0;
+			condenseMap[sorted[i]] = curr;
+		}
+		counts[curr]++;
+	}
+	int numUniq = curr+1;
+
+	// max length of sequence with full choice
+	int maxk = (int)min((ll)kInput, numFullBlocks);
+
+	// count of "leftovers"
+	for (int i = 0; i < numUniq; i++) countLeftover[i] = 0;
+	if (lInput/n < kInput && (lInput % n) > 0) {
+		int x = (int)(lInput % n);
+		for (int i = 0; i < x; i++) {
+			countLeftover[condenseMap[arr[i]]]++;
+		}
+	}
+
+	// compute dp and add ans for 1 <= k <= maxk
+	ll ans = 0;
+	for (int i = 0; i < numUniq; i++) {
+		dp1[i] = 0;
+		cum[i] = 1;
+	}
+	for (int k = 1; k <= maxk; k++) {
+		for (int i = 0; i < numUniq; i++) {
+			dp2[i] = (cum[i] * counts[i]) % mod;
+
+			// we can "shift" this sequence multiples of n to the right
+			ans = (ans + safeModMul(dp2[i], numFullBlocks+1-k)) % mod;
+
+			// special case: shift to last part
+			ans = (ans + cum[i] * countLeftover[i]) % mod;
+		}
+
+		for (int i = 0; i < numUniq; i++) dp1[i] = dp2[i];
+		cum[0] = dp1[0];
+		for (int i = 1; i < numUniq; i++) {
+			cum[i] = (cum[i-1] + dp1[i]) % mod;
+		}
+
+		//cerr << "dp[" << k << "] = "; for (int i = 0; i < numUniq; i++) cerr << dp1[i] << " "; cerr << endl;
+	}
+
+	// the last number may have limited choice
+	if (lInput/n < kInput && (lInput % n) > 0) {
+		int x = (int)(lInput % n);
+		for (int i = 0; i < x; i++) {
+			ans = (ans + cum[condenseMap[arr[i]]]) % mod;
+		}
+	}
+
+	cout << ans << endl;
+	//cerr << bruteForce((int)lInput, (int)n, (int)kInput) << endl;
+	
+}

@@ -1,0 +1,162 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+import static java.util.Collections.singletonList;
+
+public class ProblemD {
+    BufferedReader rd;
+
+    ProblemD() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] q = intarr();
+        int n = q[0];
+        int m = q[1];
+        int p = q[2];
+
+        int[][] z = new int[n][];
+        for(int i=0;i<n;i++) {
+            z[i] = intarr();
+        }
+        NavigableMap<Integer, List<int[]>> ed = new TreeMap<>();
+        for(int i=0;i<n;i++) {
+            for(int j=0;j<m;j++) {
+                ed.computeIfAbsent(z[i][j], u -> new ArrayList<>()).add(new int[] { i, j });
+            }
+        }
+
+        NavigableMap<Long, int[]> byLen = new TreeMap<>();
+        byLen.put(0L, new int[] { 0, 0 });
+        long best = Long.MAX_VALUE;
+        int maxFree = 15000000;
+        int[] ro = new int[maxFree];
+        int[] co = new int[maxFree];
+        int[] le = new int[maxFree];
+        int[] ne = new int[maxFree];
+        for(int i=0;i<maxFree;i++) {
+            ne[i] = (i+1)%maxFree;
+        }
+        ne[0] = 0;
+        int free = 1;
+        while(!byLen.isEmpty()) {
+            Map.Entry<Long, int[]> e = byLen.firstEntry();
+            long curLen = e.getKey();
+            int[] val = e.getValue();
+            int here = val[0];
+            if(ne[here] == 0) {
+                byLen.remove(curLen);
+            } else {
+                val[0] = ne[here];
+            }
+            int row = ro[here];
+            int col = co[here];
+            int level = le[here];
+            if(level < p) {
+                Map.Entry<Integer, List<int[]>> nextLevel = ed.higherEntry(level);
+                int nextLevelV = nextLevel.getKey();
+                for(int[] y: nextLevel.getValue()) {
+                    long len = curLen + dist(row, col, y[0], y[1]);
+                    ro[free] = y[0];
+                    co[free] = y[1];
+                    le[free] = nextLevelV;
+                    int next = ne[free];
+                    ne[free] = 0;
+                    int[] t = byLen.get(len);
+                    if(t == null) {
+                        byLen.put(len, new int[] { free, free });
+                    } else {
+                        ne[t[1]] = free;
+                    }
+                    free = next;
+                }
+            } else {
+                best = Math.min(best, curLen);
+                break;
+            }
+            int f = free;
+            free = here;
+            ne[free] = f;
+        }
+        out(best);
+    }
+
+    private long dist(int r1, int c1, int r2, int c2) {
+        return Math.abs(r1-r2) + Math.abs(c1 - c2);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

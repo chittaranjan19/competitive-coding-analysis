@@ -1,0 +1,93 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class ProblemA {
+    BufferedReader rd;
+
+    private ProblemA() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] y = intarr();
+        int[] m = intarr();
+        int[] c = intarr();
+        int[] x = new int[3];
+
+        int maxK = Math.max(0, m[1] - y[2]);
+
+        int minCost = Integer.MAX_VALUE;
+        for(int i=0;i<=200;i++) {
+            for(int j=0;j<=200;j++) {
+                for(int k=0;k<=maxK;k++) {
+                    int cost = i*c[0] + j*c[1] + k*c[2];
+                    x[0] = y[0]+i;
+                    x[1] = y[1]+j;
+                    x[2] = y[2]+k;
+                    if(yangWins(x,m) && cost < minCost) {
+                        minCost = cost;
+                    }
+                }
+            }
+        }
+        out(minCost);
+    }
+
+    private boolean yangWins(int[] x, int[] m) {
+        int decM = Math.max(0, x[1] - m[2]);
+        int decY = Math.max(0, m[1] - x[2]);
+        if(decY == 0) {
+            return decM > 0;
+        }
+        if(decM == 0) {
+            return false;
+        }
+        int stepsY = x[0] / decY;
+        for(int i=-2;i<=2;i++) {
+            int steps = stepsY + i;
+            if(steps >= 0) {
+                int hY = x[0] - steps*decY;
+                int hM = m[0] - steps*decM;
+                if(hY > 0 && hM <= 0) {
+                    return true;
+                }
+            }
+        }
+        int stepsM = m[0] / decM;
+        for(int i=-2;i<=2;i++) {
+            int steps = stepsM + i;
+            if(steps >= 0) {
+                int hY = x[0] - steps*decY;
+                int hM = m[0] - steps*decM;
+                if(hY > 0 && hM <= 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = s.split(" ");
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemA();
+    }
+}

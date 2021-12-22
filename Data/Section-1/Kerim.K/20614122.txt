@@ -1,0 +1,83 @@
+#include "bits/stdc++.h"
+#define MAXN 1009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+#define left pis
+#define y1 operim
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int n,m,arr[MAXN][MAXN];
+int up[MAXN][MAXN],left[MAXN][MAXN];
+int dp[MAXN][MAXN],M[MAXN][MAXN][11][11];
+int LOG[MAXN];
+int get(int x,int y,int x1,int y1){
+	if(x>x1 or y>y1)
+		return -1;
+	int xsz=LOG[x1-x+1];int ysz=LOG[y1-y+1];
+	int xx=max(M[x][y][xsz][ysz],M[x][y1-(1<<ysz)+1][xsz][ysz]);
+	int yy=max(M[x1-(1<<xsz)+1][y][xsz][ysz],M[x1-(1<<xsz)+1][y1-(1<<ysz)+1][xsz][ysz]);
+	return max(xx,yy);
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++){
+			scanf("%d",&arr[i][j]);
+			if(arr[i][j]){
+				up[i][j]=up[i-1][j]+1;
+				left[i][j]=left[i][j-1]+1;
+			}
+		}
+	for(int i=1;i<=max(n,m);i++)
+		LOG[i]=log2(i);
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++)
+			if(arr[i][j]){
+				dp[i][j]=min(dp[i-1][j-1],min(up[i-1][j],left[i][j-1]))+1;
+				M[i][j][0][0]=dp[i][j];
+			}
+	
+	for(int k=1;k<=LOG[m];k++)
+		for(int i=1;i<=n;i++)
+			for(int j=1;j<=m;j++){
+				M[i][j][0][k]=max(M[i][j][0][k-1],(j+(1<<(k-1))<=m?M[i][j+(1<<(k-1))][0][k-1]:0));		
+			}	
+	for(int l=1;l<=LOG[n];l++)
+		for(int k=0;k<=LOG[m];k++)
+			for(int i=1;i<=n;i++)
+				for(int j=1;j<=m;j++)
+					M[i][j][l][k]=max(M[i][j][l-1][k],(i+(1<<(l-1))<=n?M[i+(1<<(l-1))][j][l-1][k]:0));				
+	int q;
+	scanf("%d",&q);
+	while(q--){
+		int x,y,x1,y1;
+		scanf("%d%d%d%d",&x,&y,&x1,&y1);
+		int st=0,en=n;
+		while(st+1<en){
+			int mid=(st+en)>>1;
+			if(get(x+mid-1,y+mid-1,x1,y1)>=mid)
+				st=mid;
+			else
+				en=mid-1;
+		}
+		if(get(x+en-1,y+en-1,x1,y1)>=en)
+			printf("%d\n",en);
+		else
+			printf("%d\n",st);
+	}
+	return 0;
+}

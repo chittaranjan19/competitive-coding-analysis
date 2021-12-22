@@ -1,0 +1,171 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+
+void kill() {
+	cout << "Game cheated!\n";
+	exit(0);
+}
+
+void nosuff() {
+	cout << "Data not sufficient!\n";
+	exit(0);
+}
+
+void checkp (pll p) {
+	if (p.first == p.second) {
+		cout << p.first << endl;
+		exit(0);
+	} else {
+		nosuff();
+	}
+}
+
+int N, M;
+vector<pll> yes, no;
+
+pll getrng (int d) {
+	//at depth d
+	return pll(1ll << d, (1ll << (d + 1)) - 1);
+}
+
+pll operator + (pll a, int b) {
+	a.second++;
+	return pll(a.first << b, (a.second << b) - 1);
+}
+
+bool intersect (pll a, pll b) {
+	//inclusive segments
+	return !(b.second < a.first || a.second < b.first);
+}
+
+pll inter (pll a, pll b) {
+	if (a.first < b.first) {
+		swap(a, b);
+	}
+	return pll(a.first, min(a.second, b.second));
+}
+
+map<ll, int> mp;
+
+vector<pll> uni (vector<pll> v) {
+	mp.clear();
+	for (pll p : v) {
+		mp[p.first]++;
+		mp[p.second + 1]--;
+	}
+	int cnt = 0, last;
+	vector<pll> res;
+	rep(it, mp) {
+		if (cnt == 0) {
+			last = it->first;
+		}
+		cnt += it->second;
+		if (cnt == 0) {
+			res.push_back(pll(last, it->first - 1));
+		}
+	}
+	return res;
+}
+
+void testuni() {
+	vector<pll> v = {pll(0, 1), pll(1, 3)};
+	v = uni(v);
+	for (pll p : v) {
+		cout << p.first << ' ' << p.second << endl;
+	}
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	// testuni();
+	cin >> N >> M;
+	int h, ai;
+	ll li, ri;
+	for (int i = 0; i < M; i++) {
+		cin >> h >> li >> ri >> ai;
+		h--;
+		pll p(li, ri);
+		if (ai) {
+			//yes
+			p = p + (N - h - 1);
+			yes.push_back(p);
+			// cerr << "yes " << p.first << ' ' << p.second << endl;
+		} else {
+			//no
+			if (li == (1ll << h) && ri + 1 == (1ll << (h + 1))) {
+				if (N == 37) cout << "BAAAD\n";
+				kill();
+			}
+			//then there's something
+			p = p + (N - h - 1);
+			no.push_back(p);
+			// cerr << "no " << p.first << ' ' << p.second << endl;
+		}
+	}
+	//ok now done with preprocessing
+	pll pyes = getrng(N - 1);
+	for (pll p : yes) {
+		if (!intersect(p, pyes)) {
+			if (N == 37) {
+				cout << "bad\n";
+			}
+			kill();
+		}
+		pyes = inter(p, pyes);
+	}
+	if (no.empty()) {
+		checkp(pyes);
+	}
+	//checking no is annoying
+	no = uni(no);
+	vector<pll> noint;
+	for (pll p : no) {
+		//then it's a no
+		if (p.first <= pyes.first && pyes.second <= p.second) {
+			if (N == 37) {
+				cout << "badnoint\n";
+			}
+			kill();
+		}
+		if (intersect(p, pyes)) {
+			noint.push_back(inter(p, pyes));
+		}
+	}
+	vector<pll> ok;
+	if (!noint.empty()) {
+		if (noint[0].first > pyes.first) {
+			ok.push_back(pll(pyes.first, noint[0].first - 1));
+		}
+		if (pyes.second > noint.back().second) {
+			ok.push_back(pll(noint.back().second + 1, pyes.second));
+		}
+		for (int i = 0, sz = noint.size(); i + 1 < sz; i++) {
+			ok.push_back(pll(noint[i].second + 1, noint[i + 1].first - 1));
+		}
+	} else {
+		ok.push_back(pyes);
+	}
+	if (ok.size() > 1) {
+		nosuff();
+	} else if (ok.size() == 1) {
+		checkp(ok[0]);
+	} else {
+		if (N == 37) {
+			cout << "badok\n";
+		}
+		kill();
+	}
+}

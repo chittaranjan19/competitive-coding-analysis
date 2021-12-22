@@ -1,0 +1,108 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+#define all(x) x.begin(), x.end()
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 3e5 + 10, lg = 31, MAXN = 1111;
+ll mod = 1e9 + 7;
+
+ll gcd(ll a, ll b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll _gcd(ll a, ll b, ll & x, ll & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	ll _x1, _y1;
+	ll d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+ll binpow(ll a, ll n) {
+	ll res = 1;
+	while (n) {
+		if (n & 1)
+			res *= a;
+		a *= a;
+		n >>= 1;
+		a %= mod;
+		res %= mod;
+	}
+	return res;
+}
+
+
+void term_res(string res){
+	cout << res;
+	exit(0);
+}
+
+vector<pair<int, int> > g[5555];
+ll T;
+ll visited[5555], timet[5555];
+vector<int> prv, prv_ans;
+int mx_visited = 0;
+int n, m;
+
+void dfs(int v, int tm = 0, int visited = 0){
+	prv.push_back(v);
+	visited += 1;
+	if(v == n){
+		if(mx_visited < visited){
+			mx_visited = visited;
+			prv_ans = prv;
+		}
+		prv.pop_back();
+		return;
+	}
+	for(int i = 0; i < g[v].size(); i++){
+		pair<int, int> tmp = g[v][i];
+		int to = tmp.fs, dt = tmp.sc;
+		if(tm+dt <= T){
+			dfs(to, tm+dt, visited);
+		}
+	}
+	prv.pop_back();
+}
+
+int main()
+{
+	cin >> n >> m >> T;
+	for(int i = 0; i < m; i++){
+		int u, v, tt;
+		cin >> u >> v >> tt;
+		g[u].push_back(mp(v, tt));
+	}
+	dfs(1);
+	cout << mx_visited << endl;
+	for(int i = 0; i < mx_visited; i++)
+		cout << prv_ans[i] << ' ';
+	return 0;
+}

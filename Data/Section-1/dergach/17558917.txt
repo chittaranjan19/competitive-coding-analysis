@@ -1,0 +1,215 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+#include <stack>
+using namespace std;
+
+typedef long long ll;
+#define mod 1000000007
+#define INF mod
+#define pi acos(-1.0)
+#define LINF 1000000000000000000LL
+#define eps 1e-10
+
+const int SIMULTANEOUS_SOLUTION_COUNT = 30;
+const int SOLUTION_NUMBER_FOR_SORTING = 100;
+
+int t, p;
+char s[105];
+int solutionCnt;
+int curTime;
+
+struct problem
+{
+	int TL;
+	int testCnt;
+}problems[10005];
+
+struct solution
+{
+	int problemId;
+	int solutionId;
+	vector <int> checked; //0 - not checked, 1 - is checking now, 2 - checked
+	int startTime;
+	int remainedTestCnt; //not checked yet
+
+	solution(int _problemId, int _solutionId, int _startTime) : problemId(_problemId), solutionId(_solutionId), startTime(_startTime)
+	{
+		if(problemId >= 0)
+		{
+			checked.resize(problems[problemId].testCnt);
+			remainedTestCnt = problems[problemId].testCnt;
+		}
+	}
+
+	double rating() const
+	{
+		if(remainedTestCnt == 0)
+			return -1;
+		//return pow((curTime - startTime) * 10.0 + 1.0, 1.25) / 
+		//	(remainedTestCnt * problems[problemId].TL * 0.2); // dividing by 10 means (ms -> ticks)
+		                                                             // most of tests are executed much faster than TL -> 0.2
+
+		//return pow((curTime - startTime) * 10.0 + 1.0, 1) -          //not bad but is approximately the same as above
+		//	pow(remainedTestCnt * problems[problemId].TL * 0.2, 2) + 
+		//	pow(30000 * 1000 * 0.2, 2);
+
+		return ((curTime - startTime) * 10.0 + 1.0) /     //a little bit better
+			(remainedTestCnt * problems[problemId].TL * 0.2) / (remainedTestCnt * problems[problemId].TL * 0.2);
+	}
+
+	const bool operator<(const solution& sol) const
+	{
+		return rating() > sol.rating();	
+	}
+};
+
+bool sortByIndex(const solution& sol1, const solution& sol2)
+{
+	return sol1.solutionId < sol2.solutionId;
+}
+
+bool sortByRating(const solution& sol1, const solution& sol2)
+{
+	return sol1.rating() > sol2.rating();
+}
+
+vector <solution> solutions;
+vector <int> solutionIds;
+int lastTakenSolutionId;
+
+bool sortSolutionIds(const int i, const int j)
+{
+	return solutions[i].rating() > solutions[j].rating();
+}
+
+int findIndexBySolutionId(int solutionId)
+{
+	int L = 0, R = solutions.size() - 1;
+	while(L < R)
+	{
+		int C = (L + R) / 2;
+		if(solutions[C].solutionId < solutionId)
+			L = C + 1;
+		else
+			R = C;
+	}
+	if(solutions[R].solutionId == solutionId)
+		return R;
+	return -1;
+}
+
+int main()
+{
+	scanf("%d", &t);
+	scanf("%d", &p);
+	for(int i = 0; i < p; i++)
+	{
+		scanf("%d %d", &problems[i].TL, &problems[i].testCnt);
+	}
+	int problemId;
+	while(scanf("%d", &problemId) != EOF)
+	{	
+		if(problemId >= 0)
+		{
+			solutions.push_back(solution(problemId, solutionCnt++, curTime));
+			while(scanf("%d", &problemId) != EOF) //read list of new solutions
+			{
+				if(problemId == -1)
+					break;
+				solutions.push_back(solution(problemId, solutionCnt++, curTime));
+			}
+		}
+
+		while(1) //read verdicts
+		{
+			int solutionId, testNumber;
+			scanf("%d %d", &solutionId, &testNumber);
+			if(solutionId == -1 && testNumber == -1)
+				break;
+			t++;
+			scanf("%s", s);
+			int idx = solutionId;
+			if(idx != -1)
+			{
+				if(s[0] == 'O')
+				{
+					solutions[idx].checked[testNumber] = 2;
+				}
+				else
+				{
+					solutions[idx].remainedTestCnt = 0;
+				}
+			}
+		}
+
+		for(int i = 0; i < solutionIds.size(); i++)
+		{
+			if(solutions[solutionIds[i]].rating() < 0)
+				solutionIds.erase(solutionIds.begin() + i--);
+		}
+		while(solutionIds.size() < SOLUTION_NUMBER_FOR_SORTING && lastTakenSolutionId < solutions.size())
+		{
+			if(solutions[lastTakenSolutionId].rating() >= 0)
+				solutionIds.push_back(lastTakenSolutionId);
+			lastTakenSolutionId++;
+		}
+		sort(solutionIds.begin(), solutionIds.end(), sortSolutionIds);
+
+		//assign checking tasks
+		{
+			int simultaneousSolutionCnt = min(SIMULTANEOUS_SOLUTION_COUNT, (int)solutionIds.size());
+			int testSum = 0;
+			for(int i = 0; i < simultaneousSolutionCnt; i++)
+				testSum += solutions[solutionIds[i]].remainedTestCnt;
+			while(simultaneousSolutionCnt < solutionIds.size() && t > testSum)
+			{
+				testSum += solutions[solutionIds[simultaneousSolutionCnt++]].remainedTestCnt;
+			}
+			double ratingSum = 0;
+			for(int i = 0; i < simultaneousSolutionCnt; i++)
+				ratingSum += solutions[solutionIds[i]].rating();
+			int initialT = t;
+			for(int i = 0; i < simultaneousSolutionCnt && t > 0; i++)
+			{
+				int curLimit = min(t, (int)ceil(solutions[solutionIds[i]].rating() / ratingSum * initialT));
+				for(int j = 0; curLimit > 0 && j < solutions[solutionIds[i]].checked.size(); j++)
+					if(solutions[solutionIds[i]].checked[j] == 0)
+					{
+						t--;
+						curLimit--;
+						printf("%d %d\n", solutions[solutionIds[i]].solutionId, j);
+						solutions[solutionIds[i]].checked[j] = 1;
+						solutions[solutionIds[i]].remainedTestCnt--;
+					}
+			}
+			//maybe some curLimits were bigger than needed
+			for(int i = 0; i < simultaneousSolutionCnt && t > 0; i++)
+			{
+				for(int j = 0; t > 0 && j < solutions[solutionIds[i]].checked.size(); j++)
+					if(solutions[solutionIds[i]].checked[j] == 0)
+					{
+						t--;
+						printf("%d %d\n", solutions[solutionIds[i]].solutionId, j);
+						solutions[solutionIds[i]].checked[j] = 1;
+						solutions[solutionIds[i]].remainedTestCnt--;
+					}
+			}
+		}
+		puts("-1 -1");
+		curTime++;
+		fflush(stdout);
+	}
+	return 0;
+}

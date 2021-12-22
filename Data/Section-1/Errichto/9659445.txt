@@ -1,0 +1,119 @@
+#include<cstdio>
+#include<vector>
+#include<algorithm>
+#include<set>
+#include<cstring>
+#include<assert.h>
+using namespace std;
+#define FOR(i,a,b) for(int i = a; i <= b; ++i)
+#define FORD(i,a,b) for(int i = a; i >= b; --i)
+#define RI(i,n) FOR(i,1,n)
+#define REP(i,n) FOR(i,0,(n)-1)
+#define mini(a,b) a=min(a,b)
+#define maxi(a,b) a=max(a,b)
+#define mp make_pair
+#define pb push_back
+#define st first
+#define nd second
+bool debug;
+typedef vector<int> vi;
+typedef long long ll;
+typedef long double ld;
+typedef pair<int,int> pii;
+const int inf = 1e9 + 5;
+const int nax = 1e6 + 5;
+#define PI acos(-1)
+
+ld uspokuj(ld a) { return max(-1.L, min(1.L, a)); }
+struct P {
+	int x, y;
+	P(int _x, int _y) { x = _x; y = _y; }
+	P() { x = y = 0; }
+	void wczytaj() { scanf("%d%d", &x, &y); }
+	ll operator *(P b) const { return (ll) x * b.y - (ll) y * b.x; }
+	P operator -(P b) const { return P(x - b.x, y - b.y); }
+	bool operator ==(P b) const { return x == b.x && y == b.y; }
+	bool operator <(P b) const {
+		if(b == P(0,0)) return false;
+		if(*this == P(0,0)) return true;
+		ll pom = *this * b;
+		if(pom == 0LL)
+			return (*this).Knorm() < b.Knorm();
+		return pom < 0LL;
+	}
+	int dot(P b) { return x * b.x + y * b.y; }
+	ll Knorm() const { return (ll) x * x + y * y; }
+	ld norm() { return sqrtl((ld) Knorm()); }
+	ld angleTo(P b) { // clockwise
+		ld nn = norm() * b.norm();
+		ld alpha = acos(uspokuj(dot(b) / nn));
+		ld a = asin(uspokuj((*this * b) / nn));
+		if(a > 0) alpha = 2 * PI - alpha;
+		return alpha;
+	}
+	void wypisz() { if(debug) printf("(%d,%d) ", x, y); }
+};
+
+void posortuj(vector<P> & w) {
+	sort(w.begin(), w.end());
+	int S = (int) w.size();
+	int j = S - 1;
+	while(j > 0 && w[j-1] * w[j] == 0LL && abs(w[j-1].x) + abs(w[j-1].y) != 0)
+		--j;
+	FOR(k, j, S-1) if(k < j+S-1-k) swap(w[k], w[j+S-1-k]);
+}
+
+P a[nax], b[nax];
+
+int main(int argc, char *argv[])
+{	
+	debug = argc > 1;
+	
+	int n;
+	scanf("%d", &n);
+	REP(i, n) a[i].wczytaj();
+	int m;
+	scanf("%d", &m);
+	debug = (n == 4 && m == 18301);
+	REP(i, m) b[i].wczytaj();
+	vector<P> w;
+	REP(i, n) w.pb(a[i]);
+	REP(j, m) w.pb(b[j]);
+	int _n = n;
+	n = w.size();
+	RI(i, n-1) if(w[i].x < w[0].x || (w[i].x == w[0].x && w[i].y < w[0].y))
+		swap(w[0], w[i]);
+	
+	vector<P> memo;
+	REP(i, _n) if(mp(a[i].x,a[i].y) != mp(w[0].x, w[0].y)) memo.pb(a[i] - w[0]);
+	
+	RI(i, n-1) w[i] = w[i] - w[0];
+	w.erase(w.begin());
+	posortuj(w);
+	vector<P> kol;
+	for(auto & nowy : w) {
+		while((int) kol.size() >= 2 && (nowy - kol[(int)kol.size()-2]) < (kol[(int)kol.size()-1] - kol[(int)kol.size()-2]))
+			kol.pop_back();
+		kol.pb(nowy);
+		//if(debug) for(auto a : kol) a.wypisz();
+		//if(debug) puts("");
+	}
+	
+	posortuj(kol);
+	posortuj(memo);
+	
+	if(debug) {
+		for(auto a : kol) a.wypisz();
+		puts("");
+		for(auto a : memo) a.wypisz();
+		puts("");
+	}
+	bool ok = true;
+	if(kol.size() != memo.size()) {ok = false; if(debug) printf("%d %d\n", (int) kol.size(), (int) memo.size()); }
+	REP(i, (int) kol.size()) if(mp(kol[i].x, kol[i].y) != mp(memo[i].x, memo[i].y)) ok = false;
+	
+	if(ok) puts("YES");
+	else puts("NO");
+	
+	return 0;
+}

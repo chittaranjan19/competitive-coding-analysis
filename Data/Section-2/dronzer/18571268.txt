@@ -1,0 +1,141 @@
+#include <bits/stdc++.h>
+
+#define forn(i, n) for(int i = 0; i < int(n); i++)
+#define form(i,a,b) for(int i=a;i<=b;i++)
+#define lli long long
+#define mp make_pair
+#define pi pair<int,int>
+#define pli pair<lli,lli>
+#define pb push_back
+#define x first
+#define y second
+#define sl(x) scanf("%I64d",&x)
+#define pl(x) printf("%I64d\n",x)
+#define sf(x) sort(x.begin(),x.end(),func)
+#define s(x) sort(x.begin(),x.end())
+#define all(v) v.begin(),v.end()
+#define rs(v) { s(v) ; r(v) ; }
+#define r(v) {reverse(all(v));}
+
+const double EPS = 1e-24;
+const lli mod = 1000000007ll;
+const lli mod1 = 1000000009ll;
+const lli mod2 = 1100000009ll;
+const double PI = 3.14159265359;
+int INF = 2147483645;
+lli INFINF = 9223372036854775807;
+
+template <class T>T Max2(T a,T b){return a<b?b:a;}
+template <class T>T Min2(T a,T b){return a<b?a:b;}
+template <class T>T Max3(T a,T b,T c){return Max2(Max2(a,b),c);}
+template <class T>T Min3(T a,T b,T c){return Min2(Min2(a,b),c);}
+template <class T>T Max4(T a,T b,T c,T d){return Max2(Max2(a,b),Max2(c,d));}
+template <class T>T Min4(T a,T b,T c,T d){return Min2(Min2(a,b),Max2(c,d));}
+
+using namespace std;
+lli bit_count(lli _x){lli _ret=0;while(_x){if(_x%2==1)_ret++;_x/=2;}return _ret;}
+lli bit(lli _mask,lli _i){return (_mask&(1<<_i))==0?0:1;}
+lli powermod(lli _a,lli _b,lli _m){lli _r=1;while(_b){if(_b%2==1)_r=(_r*_a)%_m;_b/=2;_a=(_a*_a)%_m;}return _r;}
+lli add(lli a,lli b,lli m){lli x=a+b;while(x>=m)x-=m;return x;}
+lli sub(lli a,lli b,lli m){lli x=a-b;while(x<0)x+=m;return x;}
+lli mul(lli a,lli b,lli m){lli x=a*b;x%=m;return x;}
+
+//pi operator + (pi A, pi B) { return mp(A.x + B.x, A.y + B.y); }
+lli operator * (pi A,pi B) { return A.x*B.y-A.y*B.x; }
+typedef vector< int > vi;
+typedef vector< vi > vvi;
+int main()
+{
+ios::sync_with_stdio(false);	
+cin.tie(NULL);
+int n;
+stack <int> s;
+cin>>n;
+int a[n];
+forn(i,n) cin>>a[i+1];
+vi gr[n+1];
+int pr[n+1][n+1]={0};
+vi::iterator it;
+vi visit(n+1,0);
+int p,c,curr_node,root;
+forn(i,n-1){
+	cin>>p>>c;
+	gr[p].pb(i+2);
+	gr[i+2].pb(p);
+	//cout<<p<<"*"<<i+2<<endl;
+	pr[p][i+2] = c;
+	pr[i+2][p] = c;
+}
+vi dist(n+1,0);
+root = 1;
+vi leaves;
+s.push(root);
+visit[root]=1;
+while(!s.empty()){
+	curr_node = s.top();
+	s.pop();
+	for(it = gr[curr_node].begin(); it<gr[curr_node].end() ; it++){
+		if(!visit[*it]){
+			visit[*it]=1;
+			dist[*it] = dist[curr_node] + pr[curr_node][*it];
+			s.push(*it);
+		}
+	}
+}
+int ans=0;
+queue <int> q,w;
+bool rem[n+1] = {false};
+root = 1;
+w.push(root);
+q.push(0);
+vi visi(n+1,0);
+visi[root]=1;
+int d=0;
+while(!w.empty()){
+	curr_node = w.front();
+	d = q.front();
+	q.pop();
+	w.pop();
+	for(it = gr[curr_node].begin(); it<gr[curr_node].end() ; it++){
+		if(!visi[*it]){
+			q.push(Max2(d,d+pr[curr_node][*it]));
+			if(Max2(d,d+pr[curr_node][*it]) > a[*it]){
+				rem[*it] = true;
+				//cout<<*it<<endl;
+			}
+			visi[*it]=1;
+			w.push(*it);
+		}
+	}
+}
+stack<int> st,pt;
+vi vis(n+1,0);
+root = 1;
+st.push(root);
+pt.push(0);
+vis[root]=1;
+int ansi=0;
+while(!st.empty()){
+	curr_node = st.top();
+	ansi = pt.top();
+	pt.pop();
+	st.pop();
+	for(it = gr[curr_node].begin(); it<gr[curr_node].end() ; it++){
+		if(!vis[*it]){
+			vis[*it]=1;
+			st.push(*it);
+			if(rem[*it] == false)
+				pt.push(0);
+			else pt.push(ansi+1);
+			if(gr[*it].size() == 1 && vis[gr[*it][0]] == 1){
+				ans += pt.top();
+			//	cout<<*it<<ansi<<endl;
+			}
+			//cout<<curr_node<<*it<<" "<<ansi<<endl;
+		}
+	}
+}
+cout<<ans;
+}
+  
+           

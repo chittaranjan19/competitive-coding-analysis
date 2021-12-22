@@ -1,0 +1,112 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+
+int factorcnt(int n, int d)
+{
+    int x=0;
+    while(n%d==0){
+        x++;
+        n/=d;
+    }
+    return x;
+}
+
+int main()
+{
+    int i, j, n, x, y;
+    scanf("%d", &n);
+    int grid[n][n];
+    int fac[n][n];
+    int mind[n][n];
+    string s;
+    vector<char> v[n][n];
+    for(i=0; i<n; i++){
+        for(j=0; j<n; j++){
+            scanf("%d", &grid[i][j]);
+            fac[i][j] = factorcnt(grid[i][j], 2);
+            grid[i][j] = factorcnt(grid[i][j], 5);
+        }
+    }
+    mind[0][0] = fac[0][0];
+    for(i=0; i<n; i++){
+        for(j=0; j<n; j++){
+            if(i==0 && j==0)
+                continue;
+            else if(i==0){
+                mind[i][j] = mind[i][j-1]+fac[i][j];
+                v[i][j] = v[i][j-1];
+                v[i][j].push_back('R');
+            }
+            else if(j==0){
+                mind[i][j] = mind[i-1][j]+fac[i][j];
+                v[i][j] = v[i-1][j];
+                v[i][j].push_back('D');
+            }
+            else{
+                x = mind[i-1][j]+fac[i][j];
+                y = mind[i][j-1]+fac[i][j];
+                if(x<y){
+                    v[i][j] = v[i-1][j];
+                    v[i][j].push_back('D');
+                    mind[i][j] = x;
+                }
+                else{
+                    v[i][j] = v[i][j-1];
+                    v[i][j].push_back('R');
+                    mind[i][j] = y;
+                }
+            }
+        }
+    }
+    s = "";
+    int f2 = mind[n-1][n-1];
+    for(i=0; i<v[n-1][n-1].size(); i++)
+        s+=v[n-1][n-1][i];
+    for(i=0; i<n; i++){
+        for(j=0; j<n; j++)
+            v[i][j].clear();
+    }
+    mind[0][0] = grid[0][0];
+    for(i=0; i<n; i++){
+        for(j=0; j<n; j++){
+            if(i==0 && j==0)
+                continue;
+            else if(i==0){
+                mind[i][j] = mind[i][j-1]+grid[i][j];
+                v[i][j] = v[i][j-1];
+                v[i][j].push_back('R');
+            }
+            else if(j==0){
+                mind[i][j] = mind[i-1][j]+grid[i][j];
+                v[i][j] = v[i-1][j];
+                v[i][j].push_back('D');
+            }
+            else{
+                x = mind[i-1][j]+grid[i][j];
+                y = mind[i][j-1]+grid[i][j];
+                if(x<y){
+                    v[i][j] = v[i-1][j];
+                    v[i][j].push_back('D');
+                    mind[i][j] = x;
+                }
+                else{
+                    v[i][j] = v[i][j-1];
+                    v[i][j].push_back('R');
+                    mind[i][j] = y;
+                }
+            }
+        }
+    }
+    int ans = min(mind[n-1][n-1], f2);
+    cout << ans << endl;
+    if(mind[n-1][n-1]<f2){
+        for(i=0; i<v[n-1][n-1].size(); i++)
+            cout << v[n-1][n-1][i];
+        cout << endl;
+    }
+    else
+        cout << s << endl;
+    return 0;
+}

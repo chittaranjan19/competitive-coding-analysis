@@ -1,0 +1,103 @@
+import java.io.*;
+import java.math.BigInteger;
+import java.util.*;
+
+public class CodeForces {
+    private final BufferedReader reader;
+    private final PrintWriter writer;
+    private StringTokenizer tokenizer;
+
+    int n, x1, y1, x2, y2;
+    int[][] cords;
+    long[][] dp;
+    long MAX = (long) (10e7 * 2000 + 1000);
+
+    private void solve() {
+        n = nextInt();
+        x1 = nextInt();
+        y1 = nextInt();
+        x2 = nextInt();
+        y2 = nextInt();
+        cords = new int[n][2];
+        for (int i = 0; i < n; i++) {
+            cords[i][0] = nextInt();
+            cords[i][1] = nextInt();
+        }
+        dp = new long[n + 1][2];
+        long r1, r2;
+        for (int i = 0; i < n; i++) {
+            r1 = calculateRadius(dp[i][0], x1, y1, cords[i][0], cords[i][1]);
+            r2 = calculateRadius(dp[i][1], x2, y2, cords[i][0], cords[i][1]);
+            if (r1 <= dp[i][0] || r2 <= dp[i][1]) {
+                dp[i + 1][0] = dp[i][0];
+                dp[i + 1][1] = dp[i][1];
+                continue;
+            }
+            if (r1 + dp[i][1] < r2 + dp[i][0]) {
+                dp[i + 1][0] = r1;
+                dp[i + 1][1] = dp[i][1];
+            } else {
+                dp[i + 1][0] = dp[i][0];
+                dp[i + 1][1] = r2;
+            }
+        }
+        writer.print(dp[n][0] + dp[n][1]);
+    }
+
+    private long calculateRadius(long currentRadius,
+                                 int x1, int y1, int x2, int y2) {
+        long distance = (long)(Math.pow((long) x1 - x2, 2) + Math.pow((long) y1 - y2, 2));
+        return Math.max(currentRadius, distance);
+    }
+
+    public static void main(String[] args) {
+        new CodeForces(System.in, System.out);
+    }
+
+    private CodeForces(InputStream inputStream, OutputStream outputStream) {
+        this.reader = new BufferedReader(new InputStreamReader(inputStream));
+        this.writer = new PrintWriter(outputStream);
+        solve();
+        writer.close();
+    }
+
+    private String next() {
+        while (tokenizer == null || !tokenizer.hasMoreTokens()) {
+            tokenizer = new StringTokenizer(readLine());
+        }
+        return tokenizer.nextToken();
+    }
+
+    private String readLine() {
+        String line;
+        try {
+            line = reader.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return line;
+    }
+
+    private int nextInt() {
+        return Integer.parseInt(next());
+    }
+
+    private long nextLong() {
+        return Long.parseLong(next());
+    }
+
+    private double nextDouble() {
+        return Double.parseDouble(next());
+    }
+
+    private void shuffleArray(int[] a) {
+        Random r = new Random();
+        int tmp;
+        for (int i = 1; i < a.length; i++) {
+            tmp = r.nextInt(i + 1);
+            int val = a[tmp];
+            a[tmp] = a[i];
+            a[i] = val;
+        }
+    }
+}

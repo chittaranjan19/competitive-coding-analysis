@@ -1,0 +1,117 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 50005, MAXK = 505;
+
+int N, K;
+vector<int> adj[MAXN];
+int depth[MAXN], par[MAXN];
+int down[MAXN][MAXK];
+int vsum[MAXN];
+
+int getdown (int x, int p, int k) {
+	int &ref = down[x][k];
+	if (ref != -1) {
+		return ref;
+	}
+	if (k == 0) {
+		return ref = 1;
+	}
+	ref = 0;
+	rep(it, adj[x]) {
+		int t = *it;
+		if (t != p) {
+			ref += getdown(t, x, k - 1);
+		}
+	}
+	return ref;
+}
+
+void getdepthpar (int x, int p, int d) {
+	depth[x] = d++;
+	par[x] = p;
+	rep(it, adj[x]) {
+		int t = *it;
+		if (t != p) {
+			getdepthpar(t, x, d);
+		}
+	}
+}
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces161D.in", "r", stdin);
+#endif
+	cin >> N >> K;
+	if (K == 1) {
+		cout << N - 1 << endl;
+		return 0;
+	}
+	for (int i = 1, a, b; i < N; i++) {
+		cin >> a >> b;
+		adj[a].push_back(b);
+		adj[b].push_back(a);
+	}
+	//root the tree at 1
+	memset(down, -1, sizeof(down));
+	getdepthpar(1, -1, 0);
+	ll ans = 0;
+	for (int i = 1; i <= N; i++) {
+		for (int j = 0; j <= K; j++) {
+			getdown(i, par[i], j);
+		}
+	}
+	//ok now let's do this thing
+	for (int i = 1; i <= N; i++) {
+		ans += down[i][K];
+		ll sum = 0;
+		for (int j = 1; j < K; j++) {
+			//one of them goes down by j, other goes down K - j
+			sum += ll(down[i][j]) * ll(down[i][K - j]);
+			//what about from the same one?
+			rep(it, adj[i]) {
+				int t = *it;
+				if (t == par[i]) {
+					continue;
+				}
+				sum -= ll(down[t][j - 1]) * ll(down[t][K - j - 1]);
+			}
+		}
+		ans += (sum >> 1);
+	}
+	cout << ans << endl;
+}

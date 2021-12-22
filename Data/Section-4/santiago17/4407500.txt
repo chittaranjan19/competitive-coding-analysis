@@ -1,0 +1,138 @@
+#include <iostream>
+#include <queue>
+#include <stack>
+#include <utility>
+
+using namespace std;
+
+
+string indexchk(int n)
+{
+    if(n == 0)
+    return "U";
+    if(n == 1)
+    return "R";
+    if(n == 2)
+    return "D";
+    if(n == 3)
+    return "L";
+    if(n == 4)
+    return "RU";
+    if(n == 5)
+    return "LD";
+    if(n == 6)
+    return "RD";
+    return "LU";
+}
+string direction(pair<int, int> start, pair<int, int> end, pair<int, int> *asd)
+{
+    for(int a = 0; a < 8; a++)
+    {
+    pair<int, int> t = make_pair(end.first + asd[a].first, end.second + asd[a].second);
+    if(t == start)
+    {
+        return indexchk(a);
+    }
+    }
+}
+
+int dist[10][10], shortest;
+pair<int, int> previous[10][10];
+char matrix[10][10]; 
+bool visited[10][10] = {0};
+pair<int, int> asd[8];
+
+
+int main()
+{
+    asd[0] = make_pair(0, 1);
+    asd[1] = make_pair(1, 0);
+    asd[2] = make_pair(0, -1);
+    asd[3] = make_pair(-1, 0);
+    asd[4] = make_pair(1, 1);
+    asd[5] = make_pair(-1, -1);
+    asd[6] = make_pair(1, -1);
+    asd[7] = make_pair(-1, 1);
+    for(int a = 0; a < 10; a++)
+    for(int b = 0; b < 10; b++)
+    {
+        matrix[a][b] = '0';
+        dist[a][b] = -1;
+        previous[a][b] = make_pair(-1, -1);
+    }
+    for(int a = 0; a < 10; a++)
+    matrix[a][0] = matrix[0][a] = matrix[a][9] = matrix[9][a] = '$';
+    string s, e;
+    cin>>s>>e;
+//    for(int a = 0; a < 10; a++)
+//    {
+//  for(int b = 0; b < 10; b++)
+//      cout<<matrix[a][b];
+//  cout<<endl;
+//    }
+    pair<int, int> start;
+    pair<int, int> end;
+    start = make_pair(s[0]-'a'+1, s[1]-'0');    
+    end = make_pair(e[0]-'a'+1, e[1]-'0');
+    matrix[start.first][start.second] = 'S';
+    matrix[end.first][end.second] = 'E';
+    
+//    for(int a = 0; a < 10; a++)
+//    {
+//  for(int b = 0; b < 10; b++)
+//      cout<<matrix[a][b];
+//  cout<<endl;
+//    }
+    //cout<<"__________________"<<endl;
+    queue<pair<int, int> > q;
+    q.push(start);
+    visited[start.first][start.second] = true;
+    dist[start.first][start.second] = 0;
+    while(!q.empty())
+    {
+    pair<int, int> p = q.front();
+    if(matrix[p.first][p.second] == 'E')
+    {
+        shortest = dist[p.first][p.second];
+        break;
+    }
+    q.pop();
+    for(int a = 0; a < 8; a++)
+    {
+        pair<int, int> t = make_pair(p.first + asd[a].first, p.second + asd[a].second);
+        int x = t.first, y = t.second;
+        if(!visited[x][y] && matrix[x][y] != '$')
+        {
+        q.push(t);
+        visited[x][y] = true;
+        previous[x][y] = p;
+        dist[x][y] = dist[p.first][p.second] + 1;
+        }
+    }
+    }
+//    for(int a = 0; a < 10; a++)
+//    {
+//  for(int b = 0; b < 10; b++)
+//      cout<<dist[a][b];
+//  cout<<endl;
+//    }
+    stack<string> moves;
+    int temp = shortest;
+    pair<int, int> p = end;
+    while(temp != 0)
+    {
+    moves.push(direction(p, previous[p.first][p.second], asd));
+    p = previous[p.first][p.second];
+    temp--;
+    }
+    cout<<shortest<<endl;
+    while(!moves.empty())
+    {
+    cout<<moves.top()<<endl;
+    moves.pop();
+    }
+    return 0;
+}
+
+
+

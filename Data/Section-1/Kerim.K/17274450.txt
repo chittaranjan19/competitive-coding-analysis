@@ -1,0 +1,65 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define f(x,y,z) mp(x,mp(y,z))
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int dp[409][409],arr[409][409],cp[409][409];
+short kp[401*401][409];
+vector<pair<int,PII> >v;
+void show(){
+	for(int i=1;i<=5;i++){
+		for(int j=i;j<=5;j++)
+			cout<<cp[i][j]<<" ";
+		cout<<endl;	
+	}
+}
+int main(){
+	int n,m;
+	ll ans=0;
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++)
+			scanf("%d",&arr[i][j]),v.pb(f(arr[i][j],j,i));
+	sort(all(v));
+//	for(int i=0;i<v.size();i++)
+//		printf("%d %d,%d\n",v[i].ff,v[i].ss.ff,v[i].ss.ss);
+	dp[v[0].ss.ss][v[0].ss.ff]=1;
+	for(int i=1;i<v.size();i++)
+		dp[v[i].ss.ss][v[i].ss.ff]=(v[i].ff==v[i-1].ff and v[i].ss.ff==v[i-1].ss.ff?v[i-1].ss.ss+1:1);	
+//	for(int i=1;i<=n;i++){
+//		for(int j=1;j<=m;j++)
+//			printf("%d ",dp[i][j]);
+//		printf("\n");	
+//	}
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=m;j++){
+			umax(cp[j][j],kp[arr[i][j]][j]+1);
+			kp[arr[i][j]][j]=i;
+			umax(ans,i-cp[j][j]+1LL);
+		}
+		for(int k=2;k<=m;k++)
+			for(int l=1;l<=m-k+1;l++){
+				int r=l+k-1;
+				umax(cp[l][r],max(max(cp[l][r-1],cp[l+1][r]),max(kp[arr[i][r]][l]+1,kp[arr[i][l]][r]+1)));
+				umax(ans,(r-l+1)*(i-cp[l][r]+1)*1LL);
+			}
+	}
+	printf("%lld\n",ans);		
+	return 0;
+}

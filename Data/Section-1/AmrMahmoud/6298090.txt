@@ -1,0 +1,108 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+
+vector<LL> primes;
+map<LL,LL> factorco;
+LL factorials[32005];
+
+void get_primes(LL max){
+    char *sieve;
+    sieve = new char[max/8+1];
+    memset(sieve, 0xFF, (max/8+1) * sizeof(char));
+    for(LL x = 2; x <= max; x++)
+        if(sieve[x/8] & (0x01 << (x % 8))){
+            primes.push_back(x);
+            for(LL j = 2*x; j <= max; j += x)
+                sieve[j/8] &= ~(0x01 << (j % 8));
+        }
+    delete[] sieve;
+}
+/*
+LL Com(LL n,LL r) {
+    if (r < 0 || r > n)
+        return 0;
+    LL res = 1,i=0;
+    while (i < r)
+        ++i,res *= n - i + 1,res/=i;
+    return res%mod;
+}*/
+
+LL Power(LL base,LL power)
+{
+    if (power == 0)
+        return 1;
+    if (power % 2 == 1)
+        return base * Power(base, power - 1) % mod;
+    LL temp = Power(base, power / 2) % mod;
+    return temp * temp;
+}
+
+LL solve(LL n,LL r)
+{
+    LL ans=factorials[n+r-1];
+    ans*=Power(factorials[r-1],mod-2);
+    ans%=mod;
+    ans*=Power(factorials[n],mod-2);
+    ans%=mod;
+    return ans;
+}
+
+int main()
+{
+    LL n,x;
+    LL ans = 1;
+    cin >> n;
+    get_primes(32000);
+    int k=0;
+    factorials[0]=1,factorials[1]=1;
+    for(int i=2;i<32000;i++)
+        factorials[i]=i*factorials[i-1],factorials[i]%=mod;
+ //   for(int i=2;i<32000;i++)
+   //     cout << factorials[i] << endl;
+    for(int i=0;i<n;i++)
+    {
+        scanf("%I64d",&x);
+        k=0;
+        while(x > 1 && primes[k] * primes[k] <= x && k < (int)primes.size())
+        {
+            while(x % primes[k] == 0)
+                factorco[primes[k]]++,x/=primes[k];
+            k++;
+        }
+        if(x > 1)
+            factorco[x]++;
+    }
+    ans = 1;
+    for(map<LL,LL>::iterator it=factorco.begin(); it!=factorco.end();it++)
+        ans = (ans * solve(it->second,n))%mod;
+    cout << ans;
+    return 0;
+}

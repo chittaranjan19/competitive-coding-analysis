@@ -1,0 +1,121 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define dis(x,y,xx,yy) dis[(x-1)*m+y][(xx+1)*m+yy]
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define Garden
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int n,m,kk,dp[139][109][109],imp[109][109];
+int arr[109][109],dis[309][309];
+int dx[]={+1,-1,0,0};
+int dy[]={0,0,+1,-1};
+int rec(int msk,int x,int y){
+	int &ret=dp[msk][x][y];	
+	if(~ret)
+		return ret;ret=INF;		
+	return ret;				
+}
+int ok(int x,int y){
+	return (x>=1 and y>=1 and x<=n and y<=m);
+}
+void go(int x,int y){
+	queue<PII>q;
+	dis(x,y,x,y)=arr[x][y];
+	q.push(mp(x,y));
+	while(!q.empty()){
+		int nx=q.front().ff;
+		int ny=q.front().ss;
+		q.pop();
+		for(int i=0;i<4;i++){
+			int tox=dx[i]+nx;	
+			int toy=dy[i]+ny;	
+			if(!ok(tox,toy))
+				continue;	
+			if(umin(dis(x,y,tox,toy),dis(x,y,nx,ny)+arr[tox][toy]))
+				q.push(mp(tox,toy));
+		}
+	}
+}
+void dead(int nx,int ny,int x1,int y1){
+	imp[x1][y1]=1;
+	while(nx!=x1 or ny!=y1){
+		imp[nx][ny]=1;
+		for(int i=0;i<4;i++){
+			int tox=nx+dx[i];
+			int toy=ny+dy[i];
+			if(!ok(tox,toy))
+				continue;	
+			if(dis(nx,ny,x1,y1)==dis(tox,toy,x1,y1)+arr[nx][ny]){
+				nx=tox;ny=toy;
+				break;		
+			}
+		}
+	}
+}
+void doldur(int bits,int x,int y){
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++)
+			for(int k=bits;k;k=((k-1)&bits))
+				if(dp[bits][x][y]==(dp[k][i][j]+dp[k^bits][i][j]-arr[i][j]+dis(x,y,i,j)-arr[i][j]) and mp(bits,mp(x,y))!=mp(k,mp(i,j))){
+					doldur(k,i,j);
+					doldur(k^bits,i,j);
+					dead(x,y,i,j);
+					return;
+				}
+}
+int main(){
+	memset(dp,31,sizeof(dp));
+	memset(dis,31,sizeof(dis));
+	scanf("%d%d%d",&n,&m,&kk);
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++)
+			scanf("%d",&arr[i][j]);
+	for(int i=1;i<=kk;i++){
+		int x,y;
+		scanf("%d%d",&x,&y);
+		imp[x][y]=1;
+		dp[1<<(i-1)][x][y]=arr[x][y];	
+	}int x1,y1,mn=INF,mask=(1<<kk)-1;
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++){
+			dp[0][i][j]=arr[i][j];	
+			go(i,j);
+		}
+	for(int msk=1;msk<=mask;msk++)	
+		for(int x=1;x<=n;x++)
+			for(int y=1;y<=m;y++)
+				for(int i=1;i<=n;i++)
+					for(int j=1;j<=m;j++)
+						for(int k=msk;k;k=((k-1)&msk))//understand
+							umin(dp[msk][x][y],dp[k][i][j]+dp[msk^k][i][j]-arr[i][j]+dis(x,y,i,j)-arr[i][j]);						
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++)
+			if(umin(mn,dp[mask][i][j]))
+				x1=i,y1=j;	
+	doldur(mask,x1,y1);				
+	printf("%d\n",mn);			
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=m;j++){
+			if(imp[i][j])
+				printf("X");
+			else
+				printf(".");
+		}
+		printf("\n");			
+	}
+	return 0;
+}

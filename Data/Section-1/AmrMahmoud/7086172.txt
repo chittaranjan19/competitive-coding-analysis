@@ -1,0 +1,72 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int arr[100005],DP[100005][2][2][2][2],n;
+
+int solve(int i,bool changed,bool last,bool lasttaken,bool second)
+{
+    int &temp = DP[i][changed][last][lasttaken][second];
+    if(temp != -1)
+        return temp;
+    if(i == n)
+        return 0;
+    if(!lasttaken)
+    {
+        temp = max(solve(i+1,0,0,1,1) + 1, temp);
+        temp = max(temp,solve(i+1,1,1,1,1) + 1);
+        return temp;
+    }
+    if(arr[i] <= arr[i-1] && changed && !last)
+        return temp = 0;
+    if(changed && last && arr[i] - arr[i-2] <= 1 && !second)
+        return temp = 0;
+    if(arr[i] > arr[i-1] || (changed && last))
+        temp = max(temp,solve(i+1,changed,0,1,0) + 1);
+    if(!changed)
+        temp = max(temp, solve(i+1,1,1,1,0) + 1);
+    return temp;
+}
+
+int main()
+{
+    cin >> n;
+    for(int i=0;i<n;i++)
+        scanf("%d",&arr[i]);
+    int l = 0;
+    setdp(DP);
+    for(int i=0;i<n;i++)
+        l = max(solve(i,0,0,0,0),l);
+    cout << l;
+    return 0;
+}

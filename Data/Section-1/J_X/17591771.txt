@@ -1,0 +1,129 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int, int> pii;
+
+const int maxn = 3000 + 5;
+const int INF = 1 << 30;
+
+int tot, head[maxn], d[maxn][maxn], n, m;
+bool used[maxn];
+int dd[maxn][5];
+struct edge
+{
+    int to, next;
+
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxn << 1];
+struct node
+{
+    int d, path[5],  dep;
+};
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u]);
+    head[u] = tot++;
+}
+
+void dijsktra(int s)
+{
+    priority_queue<pii, vector<pii>, greater<pii> > pque;
+    fill(d[s], d[s] + n + 1, INF);
+    d[s][s] = 0;
+    pque.push(pii(d[s][s], s));
+    while(!pque.empty())
+    {
+        pii p = pque.top();
+        pque.pop();
+        int u = p.second;
+        if(p.first > d[s][u]) continue;
+        for(int i = head[u]; ~i; i = G[i].next)
+        {
+            int v = G[i].to;
+            if(d[s][v] > d[s][u] + 1)
+            {
+                d[s][v] = d[s][u] + 1;
+                pque.push(pii(d[s][v], v));
+            }
+        }
+    }
+}
+
+//void output(int s, int dep)
+//{
+//    if(!s) return;
+//    output(pre[s][dep], dep - 1);
+//    printf("%d ", s);
+//}
+
+node solve()
+{
+    queue<node> que;
+    node res;
+    res.d = -1;
+    memset(dd, -1, sizeof(dd));
+    for(int i = 1; i <= n; ++i)
+    {
+        node tmp;
+        tmp.d = 0;
+        tmp.path[0] = i;
+        tmp.dep = 0;
+        que.push(tmp);
+        dd[i][0] = 0;
+    }
+    while(!que.empty())
+    {
+        node p = que.front();
+        que.pop();
+        int dep = p.dep, u = p.path[dep];
+        if(p.d < dd[u][dep]) continue;
+        if(p.dep == 3)
+        {
+            if(res.d < p.d) res = p;
+            continue;
+        }
+        for(int i = 0; i <= dep; ++i) used[p.path[i]] = true;
+        for(int v = 1; v <= n; ++v)
+        {
+            if(used[v] || d[u][v] >= INF) continue;
+            if(dd[v][dep + 1] < dd[u][dep] + d[u][v])
+            {
+                dd[v][dep + 1] = dd[u][dep] + d[u][v];
+                node tmp;
+                tmp.d = dd[v][dep + 1] = dd[u][dep] + d[u][v];
+                for(int j = 0; j <= dep; ++j) tmp.path[j] = p.path[j];
+                tmp.path[dep + 1] = v;
+                tmp.dep = dep + 1;
+                que.push(tmp);
+            }
+        }
+        for(int i = 0; i <= dep; ++i) used[p.path[i]] = false;
+    }
+    return res;
+}
+
+int main()
+{
+    scanf("%d%d", &n, &m);
+    init();
+    for(int i = 0; i < m; ++i)
+    {
+        int u, v;
+        scanf("%d%d", &u, &v);
+        addedge(u, v);
+    }
+    for(int i = 1; i <= n; ++i) dijsktra(i);
+    node tmp = solve();
+    for(int i = 0; i <= tmp.dep; ++i) printf("%d ", tmp.path[i]);
+    puts("");
+    return 0;
+}

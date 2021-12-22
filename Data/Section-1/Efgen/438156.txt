@@ -1,0 +1,123 @@
+import java.io.*;
+import java.util.*;
+import java.math.*;
+
+public class Main implements Runnable {
+	class Point {
+		int x, cap;
+		public Point(int xx, int cc) {
+			x = xx; cap = cc;
+		}
+	}
+	class Div implements Comparable<Div> {
+		int x, pr;
+		public Div(int xx, int pp) {
+			x = xx; pr = pp;
+		}
+		public int compareTo(Div o) {
+			return pr-o.pr;
+		}
+	}
+	Vector<Point>[] a;
+	int[] p, pr, cap;
+	boolean[] f;
+	void dfs(int v) {
+		f[v] = true;
+		for (Point u:a[v])
+			if (!f[u.x]) {
+				p[u.x] = v;
+				cap[u.x] = u.cap;
+				dfs(u.x);
+			}
+	}
+	void solve() throws IOException {
+		int n = nextInt();
+		p = new int[n];		
+		pr = new int[n];
+		cap = new int[n];
+		f = new boolean[n];
+		for (int i=0; i<n; i++)
+			pr[i] = nextInt();
+		a = new Vector[n];
+		for (int i=0; i<n; i++)
+			a[i] = new Vector<Point>();
+		for (int i=0; i<n-1; i++) {
+			int x = nextInt()-1;
+			int y = nextInt()-1;
+			int c = nextInt();
+			a[x].add(new Point(y, c));
+			a[y].add(new Point(x, c));
+			
+		}
+		dfs(0);
+		int[] pos = new int[n];
+		int[] res = new int[n];
+		for (int i=0; i<n; i++) pos[i] = i;
+		TreeSet<Div>[] t = new TreeSet[n];
+		for (int i=0; i<n; i++) t[i] = new TreeSet<Div>();
+		for (int i=0; i<n; i++) t[i].add(new Div(i, pr[i]));
+		for (int d=0; d<=n; d++) {
+			for (Div div:t[0]) {
+				res[div.x] = d;
+			}
+			t[0].clear();
+			for (int i=1; i<n; i++)
+				if (t[i].size()>0) {
+					for (int k=0; k<cap[i] && !t[i].isEmpty(); k++) {
+						t[p[i]].add(t[i].pollFirst());
+					}
+				}			
+		}
+		for (int i=0; i<n; i++) out.print(res[i]+" ");
+		
+		
+		
+	}
+
+	BufferedReader br;
+	StringTokenizer st;
+	PrintWriter out;
+
+	public void run() {
+		try {
+			// br = new BufferedReader(new FileReader(FileName+".in"));
+			// out = new PrintWriter(FileName+".out");
+			br = new BufferedReader(new InputStreamReader(System.in));
+			out = new PrintWriter(System.out);
+			// br = new BufferedReader(new FileReader("input.txt"));
+			// out = new PrintWriter("output.txt");
+			solve();
+			br.close();
+			out.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+	}
+
+	String next() throws IOException {
+		while (st == null || !st.hasMoreTokens()) {
+			String s = br.readLine();
+			if (s == null)
+				return null;
+			st = new StringTokenizer(s);
+		}
+		return st.nextToken();
+	}
+
+	double nextDouble() throws IOException {
+		return Double.parseDouble(next());
+	}
+
+	int nextInt() throws IOException {
+		return Integer.parseInt(next());
+	}
+
+	long nextLong() throws IOException {
+		return Long.parseLong(next());
+	}
+
+	public static void main(String[] args) {
+		new Thread(new Main()).start();
+	}
+}

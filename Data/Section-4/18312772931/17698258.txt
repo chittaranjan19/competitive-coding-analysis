@@ -1,0 +1,69 @@
+#include<iostream>
+#include<algorithm>
+#include<cstring>
+#include<cstdio>
+#include<vector>
+#include<cmath>
+using namespace std;
+#define T 1000000+150
+typedef long long ll;
+
+ll Ans[T],ans;
+int sum[T],num[T*150],k,sz;
+struct node
+{
+	int L,R,id;
+}a[T];
+
+bool cmp(const node& a,const node& b)
+{
+	if((a.L/sz)==(b.L/sz))return a.R<b.R;
+	return a.L<b.L;
+}
+
+void add(int x)
+{
+	num[sum[x]]++;
+	ans += num[sum[x]^k];
+}
+
+void sub(int x)
+{
+	ans -= num[sum[x]^k];
+	num[sum[x]]--;
+}
+
+int main()
+{
+#ifdef zsc
+	freopen("input.txt","r",stdin);
+#endif
+
+	int n,m,i,j;
+	while(~scanf("%d%d%d",&n,&m,&k))
+	{
+		memset(num,0,sizeof(num));
+		sz = sqrt(n*1.0);
+		sum[0] = 0;
+		for(i=1;i<=n;++i)scanf("%d",&sum[i]),sum[i]^=sum[i-1];
+		for(i=1;i<=m;++i){
+			scanf("%d%d",&a[i].L,&a[i].R);
+			a[i].id = i;
+		}
+		sort(a+1,a+m+1,cmp);
+		int L=1,R=0;
+		ans = 0;
+		for(i=1;i<=m;++i){
+			while(R<a[i].R)add(++R);
+			while(R>a[i].R)sub(R--);
+			while(L>a[i].L-1)add(--L);
+			while(L<a[i].L-1)sub(L++);
+			Ans[a[i].id] = ans; 
+		}
+		for(i=1;i<=m;++i){
+			printf("%I64d\n",Ans[i]);
+		}
+	}
+
+	return 0;
+}

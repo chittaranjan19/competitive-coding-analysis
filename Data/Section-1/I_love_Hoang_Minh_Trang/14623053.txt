@@ -1,0 +1,105 @@
+#include <bits/stdc++.h>
+#define FORE(i, a, b) for(int i = a; i <= b; i++)
+#define FORD(i, a, b) for(int i = a; i >= b; i--)
+#define FOR(i, a, b) for(int i = a; i < b; i++)
+const int MAXN = 1e5 * 5;
+const int INF = 1e9 + 7;
+//////////////////////////////////////////
+//////////////////
+using namespace std;
+string a, b, z;
+int m, n, l;
+int f[111][111][111], vet[111][111][111];
+
+int calc(int ans, char x, char y)
+{
+    if (x == y) return ans + 1;
+    else if (x == z[1]) return 1;
+    else return 0;
+}
+
+int duyet(int i, int j, int same)
+{
+
+    //cout<<i<<" "<<j<<" "<<same<<" "<<m<<" "<<n<<endl;
+    if (same >= l) return -INF;
+    if (f[i][j][same] > -2) return f[i][j][same];
+    if (i == m + 1 && j == n + 1){
+        //cout<<len<<" "<<i<<" "<<j<<" "<<same<<endl;
+        if (same < l) return 0;
+        else return -INF;
+    }
+    //if (i > m + 1|| j > n + 1) return 0;
+    int ans = 0;
+    if (i <= m && j <= n && a[i] == b[j] && calc(same, a[i], z[same + 1]) < l) {
+            ans = max(ans,
+                 1 + duyet(i + 1, j + 1, calc(same, a[i], z[same + 1]))
+                                                    );
+    }
+    if (i <= m) ans = max(ans, duyet(i + 1, j, same));
+    if (j <= n) ans = max(ans, duyet(i, j + 1, same));
+    f[i][j][same] = ans;
+
+    if (i <= m && j <= n && a[i] == b[j] && ans ==
+               1 + duyet(i + 1, j + 1, calc(same, a[i], z[same + 1]))
+                                                    ) vet[i][j][same] = 2;
+    else
+    if (i <= m && ans == duyet(i + 1, j, same)) vet[i][j][same] = 0;
+    else
+    if (j <= n && ans == duyet(i, j + 1, same)) vet[i][j][same] = 1;
+
+    return ans;
+}
+
+string res = "";
+void trace(int i, int j, int same)
+{
+     //if (same < 0 )cout<<same<<endl;
+    //cout<<len<<" "<<i<<" "<<j<<" "<<same<<endl;
+    if (i == m + 1 && j == n + 1) return;
+    if (vet[i][j][same] == 2){
+        res += a[i];
+        trace(i + 1, j + 1, calc(same, a[i], z[same + 1]));
+    }
+    else
+    if (vet[i][j][same] == 0){
+        trace(i + 1, j, same);
+    }
+    else
+    if (vet[i][j][same] == 1){
+        trace(i, j + 1, same);
+    }
+}
+
+//int dp[101][101];
+
+int main()
+{
+    ios::sync_with_stdio(0); cin.tie(0);
+    #ifndef ONLINE_JUDGE
+    freopen("346B.inp", "r", stdin);
+    freopen("346B.out", "w", stdout);
+    #endif //MIKELHPDATKE
+    cin >> a >> b >> z;
+    m = a.size(); n = b.size(); l = z.size();
+    a = '=' + a;
+    b = '=' + b;
+    z = '=' + z;
+   // FORE(i, l + 1, 100) z += '+';
+    //cout<<z<<endl;
+    //cout<<a<<endl;
+    //cout<<b<<endl;
+    FORE(u, 0, 100) FORE(v, 0, 100) FORE(k, 0, 100) f[u][v][k] = -2;
+    memset(vet, -1, sizeof(vet));
+    //cout << duyet(0, 1, 1, 0);
+    int ans = duyet(1, 1, 0);
+    if (ans == 0){
+        cout<<0;
+        return 0;
+    }
+    //cout<<ans<<endl;
+
+    trace(1, 1, 0);
+    cout<<res;
+    return 0;
+}

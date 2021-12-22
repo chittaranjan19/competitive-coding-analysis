@@ -1,0 +1,145 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+
+
+void imprimirVector (vector<int> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+int toNumber (string s)
+{
+	int Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (int number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+struct Child
+{
+	Child(int volume, int dismiss, int confidence)
+	{
+		p = confidence;
+		v = volume;
+		d = dismiss;
+		
+	}
+	int p,v,d;
+};
+
+
+int main()
+{
+	int n;
+	cin >> n;
+	vector<Child> fila (n,Child(0,0,0));
+	forn(i,n)
+	{
+		int p,v,d;
+		cin >> v >> d >> p;
+		fila[i] = Child(v,d,p);
+	}
+	vector<bool> afuera (n,false); // arrancan todos en el hall, ninguno esta afuera
+	vector<int> entraron;
+	forn(entra,n)
+	{
+		if (!afuera[entra])
+		{
+			entraron.push_back(entra);
+			bool llorando = false;
+			vector<int> resta (n,0);
+			int cry = fila[entra].v;
+			forsn(i,entra+1, n)
+			{	
+				if (!afuera[i] && cry > 0)
+				{
+					if (fila[i].p >= cry)
+						fila[i].p -= cry;
+					else 
+					{
+						fila[i].p -= cry;
+						afuera[i] = true;
+						llorando = true;
+						resta[i] = fila[i].d;
+					}
+					cry--;
+				}
+				else if (cry == 0)
+					break;
+			}
+			while (llorando)
+			{
+				llorando = false;
+				vector<int> nuevaResta (n,0);
+				int r = 0;
+				forsn(i,entra+1,n)
+				{
+					r += resta[i];
+					if (fila[i].p >= r)
+						fila[i].p -= r;
+					else if (!afuera[i])
+					{
+						fila[i].p -= r;
+						afuera[i] = true;
+						llorando = true;
+						nuevaResta[i] = fila[i].d;
+					}
+				}
+				resta = nuevaResta;
+			}
+		}	
+	}
+	int total = entraron.size();
+	cout << total << endl;
+	forn(i,total)
+		cout << entraron[i] + 1 << " ";
+	cout << endl;
+	return 0;
+}
+
+
+

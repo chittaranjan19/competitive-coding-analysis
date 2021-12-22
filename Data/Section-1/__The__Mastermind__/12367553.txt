@@ -1,0 +1,81 @@
+uses math;
+
+const
+  tfi = '';//'567d.inp';
+  tfo = '';//'567d.out';
+
+var
+  n,k,a,m,i,l,r,x,cnt : longint;
+  f1,f2 : array [1..200000] of longint;
+  ok : boolean;
+
+function upinc(i,x : longint) : longint;
+  begin
+    while i <= n do
+      begin
+        f1[i] := max(f1[i],x);
+        i := i + (i and (-i));
+      end;
+  end;
+
+function updec(i,x : longint) : longint;
+  begin
+    while i > 0 do
+      begin
+        f2[i] := min(f2[i],x);
+        i := i - (i and (-i));
+      end;
+  end;
+
+function getinc(i : longint) : longint;
+  var res : longint;
+  begin
+    res := n+1;
+    while i <= n do
+      begin
+        res := min(res,f2[i]);
+        i := i + (i and (-i));
+      end;
+    exit(res);
+  end;
+
+function getdec(i : longint) : longint;
+  var res : longint;
+  begin
+    res := 0;
+    while i > 0 do
+      begin
+        res := max(res,f1[i]);
+        i := i - (i and (-i));
+      end;
+    exit(res);
+  end;
+
+begin
+  assign(input,tfi); reset(input);
+  assign(output,tfo); rewrite(output);
+  read(n,k,a,m);
+  cnt := n div a;
+  ok := false;
+  for i := 1 to n do f2[i] := n + 1;
+  for i := 1 to m do
+    begin
+      read(x);
+      l := getdec(x) + 1;
+      r := getinc(x) - 1;
+      cnt := cnt - (r - l + 1) div a;
+      cnt := cnt + (x - l) div a;
+      cnt := cnt + (r - x) div a;
+      if cnt < k then
+        begin
+          ok := true;
+          write(i);
+          break;
+        end;
+      upinc(x,x);
+      updec(x,x);
+    end;
+  if not ok then write(-1);
+  close(input);
+  close(output);
+end.

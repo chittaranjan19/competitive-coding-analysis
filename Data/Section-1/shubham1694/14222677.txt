@@ -1,0 +1,75 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct node{
+    int x, y, z;
+    bool operator<(const node&n) const{
+        if(x==n.x){
+            if(y==n.y)
+                return z<n.z;
+            return y<n.y;
+        }
+        return x<n.x;
+    }
+};
+
+node arr[500001];
+int segtree[4000005];
+map<int, int> m1;
+
+void update(int s, int e, int q, int node, int val)
+{
+    if(s>e || q>e || s>q)
+        return;
+    if(s==e){
+        segtree[node] = val;
+        return;
+    }
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*node+1;
+    rc = lc+1;
+    update(s, mid, q, lc, val);
+    update(mid+1, e, q, rc, val);
+    segtree[node] = max(segtree[lc], segtree[rc]);
+}
+
+int query(int s, int e, int qs, int qe, int node)
+{
+    if(s>e || qs>e || s>qe)
+        return 0;
+    if(s>=qs && qe>=e)
+        return segtree[node];
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*node+1;
+    rc = lc+1;
+    return max(query(s, mid, qs, qe, lc), query(mid+1, e, qs, qe, rc));
+}
+
+int main()
+{
+    int n, i, j, l, r, mx, ans=0;
+    scanf("%d", &n);
+    for(i=0; i<n; i++)
+        scanf("%d", &arr[i].x);
+    for(i=0; i<n; i++){
+        scanf("%d", &arr[i].y);
+        m1[arr[i].y];
+    }
+    for(i=0; i<n; i++)
+        scanf("%d", &arr[i].z);
+    j = 1;
+    for(auto it=m1.begin(); it!=m1.end(); ++it)
+        it->second = j++;
+    sort(arr, arr+n);
+    for(i=n-1; i>=0; i--){
+        mx = query(0, n, m1[arr[i].y]+1, n, 0);
+        if(mx>arr[i].z)
+            ans++;
+        update(0, n, m1[arr[i].y], 0, arr[i].z);
+    }
+    printf("%d\n", ans);
+    return 0;
+}

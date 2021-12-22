@@ -1,0 +1,72 @@
+#include <stdio.h>
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+const int N = 100005;
+int n, a, b, q, f[N], dp[N][2], w[N];
+ll m, num[N];
+vector<pair<int, int> > g[N];
+pair<int, int> e[N];
+int bb[N];
+ld ans;
+
+void dfs(int i, int u, int p, bool b) {
+	if (b) bb[i] = u;
+	else bb[i] = p;
+	for (int j = 0; j < (int) g[u].size(); ++j)
+		if (g[u][j].first != p) dfs(g[u][j].second, g[u][j].first, u, b);
+}
+
+int calc(int i, int p, int u) {
+	int &ret = dp[i][p == bb[i]];
+	if (ret != -1) return ret;
+	ret = 1;
+	for (int j = 0; j < (int) g[u].size(); ++j)
+		if (g[u][j].first != p) ret += calc(g[u][j].second, u, g[u][j].first);
+	return ret;
+}
+
+int main() {
+#ifndef ONLINE_JUDGE
+	freopen("a.in", "r", stdin);
+#endif
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for (int i = 1; i < n; ++i) {
+	    cin >> a >> b >> w[i];
+		--a, --b;
+		g[a].emplace_back(b, i);
+		g[b].emplace_back(a, i);
+		if (a > b) swap(a, b);
+		e[i] = make_pair(a, b);
+	}
+	
+	dfs(1, e[1].first, e[1].second, 0);
+	dfs(1, e[1].second, e[1].first, 1);
+	
+	memset(dp, -1, sizeof dp);
+	for (int i = 1; i < n; ++i) {
+		calc(i, e[i].first, e[i].second);
+		calc(i, e[i].second, e[i].first);
+	}
+	
+	m = (n * ll(n - 1) * ll(n - 2)) / 6;
+	
+	for (int i = 1; i < n; ++i) {
+		num[i] = ll(dp[i][0]) * ll(dp[i][1]) * ll(n - 2);
+		ans += ld(num[i]) * w[i];
+	}
+	ans /= m;
+	cin >> q;
+	cout << fixed;
+	cout << setprecision(10);
+	while (q--) {
+	    cin >> a >> b;
+		ans -= ld(w[a] - b) * num[a] / m;
+		w[a] = b;
+		cout << ans << '\n';
+	}
+	return 0;
+}

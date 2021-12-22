@@ -1,0 +1,90 @@
+import java.util.*;
+
+/**
+ * Created by leen on 7/8/16.
+ */
+public class _687CV3 {
+
+    static int[] c;
+    static int n;
+    static int k;
+    static List<Node>[] nodesByK;
+
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+        n = scan.nextInt();
+        k = scan.nextInt();
+
+        c = new int[n + 1];
+        nodesByK = new List[k + 1];
+
+        for(int i =1; i<=n; i++)
+            c[i] = scan.nextInt();
+
+        for(int i = 0; i <= k; i++)
+            nodesByK[i] = new ArrayList<Node>();
+
+        for(int i = 0; i<= n; i++)
+            nodesByK[0].add(new Node(0, i));
+
+        for(int i = 1; i <=k; i++) {
+            for(int j = 1; j <= n; j++) {
+                int lastK = i - c[j];
+                if(lastK >=0 && !nodesByK[lastK].isEmpty() && nodesByK[lastK].get(0).index < j)
+                    nodesByK[i].add(new Node(i, j));
+            }
+        }
+
+        Set<Integer> values = new HashSet<Integer>();
+        values.add(0);
+
+        List<Node> rootNodes = nodesByK[k];
+
+        for(Node rootNode : rootNodes)
+            solve(0, rootNode, values);
+
+        List<Integer> ans = new ArrayList<Integer>(values);
+        Collections.sort(ans);
+
+        StringBuilder buf = new StringBuilder();
+        boolean isFirst = true;
+        for(Integer i : ans) {
+            if(isFirst)
+                isFirst = false;
+            else
+                buf.append(' ');
+            buf.append(i);
+        }
+
+        System.out.println(ans.size());
+        System.out.println(buf.toString());
+    }
+
+    static void solve(int prefix, Node node, Set<Integer> values) {
+
+        if(node.i == 0)
+            return;
+
+        values.add(prefix + c[node.index]);
+
+        List<Node> nodes = nodesByK[node.i - c[node.index]];
+
+        for(Node n : nodes) {
+            if(n.index >= node.index)
+                break;
+            solve(prefix, n, values);
+            solve(prefix + c[node.index], n, values);
+        }
+
+    }
+
+    static class Node {
+        int i;
+        int index;
+
+        Node(int i, int index) {
+            this.i = i;
+            this.index = index;
+        }
+    }
+}

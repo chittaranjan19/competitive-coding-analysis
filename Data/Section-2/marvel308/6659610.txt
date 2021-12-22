@@ -1,0 +1,97 @@
+#include<stdio.h>
+#include<vector>
+#include<stack>
+using namespace std;
+#define pb(ga) push_back(ga)
+#define INF 1000000007
+typedef long long int ll;
+stack<int> stck;
+vector<int> G[100005],T[100005],SCC[100005];
+bool visited[100005]={0};
+int cost[100005]={0};
+int ans[100005]={0};
+void dfs(int u)
+{
+    visited[u]=1;
+    int i,size1=G[u].size();
+    for(i=0;i<size1;i++)
+    {
+        int v=G[u][i];
+        if(!visited[v])
+        {
+            dfs(v);
+        }
+    }
+    stck.push(u);
+}
+void dfs2(int u,int x)
+{
+    visited[u]=0;
+    SCC[x].pb(u);
+    int i,size1=T[u].size();
+    for(i=0;i<size1;i++)
+    {
+        int v=T[u][i];
+        if(visited[v])
+        {
+            dfs2(v,x);
+        }
+    }
+}
+int main()
+{
+    int n,i,j,m;
+    scanf("%d",&n);
+    for(i=1;i<=n;i++)
+        scanf("%d",&cost[i]);
+    scanf("%d",&m);
+    for(i=0;i<m;i++)
+    {
+        int x,y;
+        scanf("%d%d",&x,&y);
+        G[x].pb(y);
+        T[y].pb(x);
+    }
+    for(i=1;i<=n;i++)
+    {
+        if(!visited[i])
+        {
+            dfs(i);
+        }
+    }
+    int x=1;
+    while(!stck.empty())
+    {
+        int u=stck.top();
+        stck.pop();
+        //printf("stck=%d\n",u);
+        if(visited[u])
+        {
+            dfs2(u,x);
+            x++;
+        }
+    }
+    //printf("x=%d\n",x);
+    ll sum=0,ways=1;
+    for(i=1;i<x;i++)
+    {
+        int size1=SCC[i].size(),min=INF,count=0;
+        for(j=0;j<size1;j++)
+        {
+            int v=SCC[i][j];
+            //printf("i=%d v=%d\n",i,v);
+            if(cost[v]<min)
+                min=cost[v];
+        }
+        for(j=0;j<size1;j++)
+        {
+            int v=SCC[i][j];
+            if(cost[v]==min)
+                count++;
+        }
+        sum+=min;
+        ways=(ways*count)%INF;
+    }
+    printf("%I64d %I64d\n",sum,ways);
+    return 0;
+}

@@ -1,0 +1,96 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 100, SIZE = MAXN + 1, MOD = 1e9 + 7;
+
+void add (int &x, int y) {
+	x = (x + y) % MOD;
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+int N, L, cnt[SIZE];
+int dp[SIZE];
+int curpow[SIZE][SIZE], temp[SIZE][SIZE], mat[SIZE][SIZE];
+
+void mult (int a[SIZE][SIZE], int b[SIZE][SIZE]) {
+	fillchar(temp, 0);
+	for (int i = 0; i <= MAXN; i++) {
+		for (int j = 0; j <= MAXN; j++) {
+			for (int k = 0; k <= MAXN; k++) {
+				add(temp[i][j], mult(a[i][k], b[k][j]));
+			}
+		}
+	}
+	for (int i = 0; i <= MAXN; i++) {
+		copy_n(temp[i], SIZE, a[i]);
+	}
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> L;
+	for (int d; N--; ) {
+		cin >> d;
+		cnt[d]++;
+	}
+	dp[0] = 1;
+	for (int i = 1; i <= MAXN; i++) {
+		for (int j = 1; j <= i; j++) {
+			add(dp[i], mult(cnt[j], dp[i - j]));
+		}
+	}
+	if (L <= MAXN) {
+		int ans = 0;
+		for (int i = 0; i <= L; i++) {
+			add(ans, dp[i]);
+		}
+		cout << ans << endl;
+		return 0;
+	}
+	//build transformation matrix
+	for (int i = 0; i < MAXN; i++) {
+		curpow[i][MAXN - 1] = curpow[i][MAXN] = cnt[MAXN - i];
+	}
+	for (int i = 1; i < MAXN; i++) {
+		curpow[i][i - 1] = 1;
+	}
+	curpow[MAXN][MAXN] = 1;
+	for (int i = 0; i <= MAXN; i++) {
+		mat[i][i] = 1;
+	}
+	for (L -= MAXN; L; L >>= 1) {
+		if (L & 1) {
+			mult(mat, curpow);
+		}
+		mult(curpow, curpow);
+	}
+	for (int i = 0; i < MAXN; i++) {
+		dp[i] = dp[i + 1];
+	}
+	dp[MAXN] = 0;
+	for (int i = 0; i < MAXN; i++) {
+		add(dp[MAXN], dp[i]);
+	}
+	int ans = 1;	//zero node
+	for (int i = 0; i <= MAXN; i++) {
+		add(ans, mult(dp[i], mat[i][MAXN]));
+	}
+	cout << ans << endl;
+}

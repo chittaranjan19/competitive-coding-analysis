@@ -1,0 +1,151 @@
+#include <cstdio>
+#include <iostream>
+#include <algorithm>
+
+const int MAXN = 1005;
+
+int N, M, Q;
+bool grid[MAXN][MAXN];
+int up[MAXN][MAXN], left[MAXN][MAXN];
+int down[MAXN][MAXN], right[MAXN][MAXN];	//good!
+
+void setmax (int &a, int b) {
+	if (a < b)
+		a = b;
+}
+
+int arr[MAXN];
+int ord[MAXN];
+int lf[MAXN], rf[MAXN];
+
+int findset (int* p, int x) {
+	int& r = p[x];
+	return (x == r) ? x : r = findset(p, r);
+}
+
+void merge (int* p, int x, int y) {
+	p[findset(p, x)] = findset(p, y);
+}
+
+//left is like a linked list towards the left.
+// right is like a linked list towards the right.
+
+bool cmp (int x, int y) {
+	return arr[x] > arr[y];
+}
+
+int get (int n, int x) {
+	for (int i = 1; i <= n + 1; i++) {
+		ord[i] = lf[i] = rf[i] = i;
+	}
+	std::sort(ord + 1, ord + n + 1, cmp);
+	int res = 0;
+	for (int i = 1; i <= n; i++) {
+		int a = findset(lf, ord[i] - 1) + 1, b = findset(rf, ord[i] + 1) - 1;
+		if (a <= x && x <= b) {
+			setmax(res, (b - a + 1) * arr[ord[i]]);
+		}
+		merge(lf, ord[i], ord[i] - 1);
+		merge(rf, ord[i], ord[i] + 1);
+	}
+	return res;
+}
+
+int main() {
+#ifndef ONLINE_JUDGE
+	freopen("codeforces434B.in", "r", stdin);
+#endif
+	std::ios_base::sync_with_stdio(false);
+	std::cin >> N >> M >> Q;
+	for (int i = 1; i <= N; i++) {
+		for (int j = 1; j <= M; j++) {
+			std::cin >> grid[i][j];
+		}
+	}
+
+	//calc up sums, calc left sums
+	for (int i = 1; i <= N; i++) {
+		for (int j = 1; j <= M; j++) {
+			if (grid[i][j]) {
+				up[i][j] = up[i - 1][j] + 1;
+				left[i][j] = left[i][j - 1] + 1;
+			} else {
+				up[i][j] = left[i][j] = 0;
+			}
+		}
+	}
+
+	//calc down sums, calc right sums
+	for (int i = N; i >= 1; i--) {
+		for (int j = M; j >= 1; j--) {
+			if (grid[i][j]) {
+				down[i][j] = down[i + 1][j] + 1;
+				right[i][j] = right[i][j + 1] + 1;
+			} else {
+				down[i][j] = right[i][j] = 0;
+			}
+		}
+	}
+
+	for (int qnum = 0; qnum < Q; qnum++) {
+		int q, a, b;
+		std::cin >> q >> a >> b;
+		if (q == 1) {
+			grid[a][b] ^= true;
+			//update the "ups" from (a, b) - (a + 1, b) ..
+			for (int i = a; i <= N; i++) {
+				if (grid[i][b]) {
+					up[i][b] = up[i - 1][b] + 1;
+				} else {
+					up[i][b] = 0;
+				}
+			}
+
+			//update the "downs" from (a, b) - (a - 1, b) ..
+			for (int i = a; i >= 1; i--) {
+				if (grid[i][b]) {
+					down[i][b] = down[i + 1][b] + 1;
+				} else {
+					down[i][b] = 0;
+				}
+			}
+
+			//update the "left"
+			for (int j = b; j <= M; j++) {
+				if (grid[a][j]) {
+					left[a][j] = left[a][j - 1] + 1;
+				} else {
+					left[a][j] = 0;
+				}
+			}
+
+			//update the "right"
+			for (int j = b; j >= 1; j--) {
+				if (grid[a][j]) {
+					right[a][j] = right[a][j + 1] + 1;
+				} else {
+					right[a][j] = 0;
+				}
+			}
+		} else {
+			int ans = 0;
+			for (int i = 1; i <= N; i++) {
+				arr[i] = left[i][b];
+			}
+			setmax(ans, get(N, a));
+			for (int i = 1; i <= N; i++) {
+				arr[i] = right[i][b];
+			}
+			setmax(ans, get(N, a));
+			for (int j = 1; j <= M; j++) {
+				arr[j] = up[a][j];
+			}
+			setmax(ans, get(M, b));
+			for (int j = 1; j <= M; j++) {
+				arr[j] = down[a][j];
+			}
+			setmax(ans, get(M, b));
+			std::cout << ans << '\n';
+		}
+	}
+}

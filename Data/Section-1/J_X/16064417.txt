@@ -1,0 +1,54 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 200 + 5;
+const int maxm = 1000 + 5;
+const int mod = 1e9 + 7;
+
+int a[maxn];
+int dp[2][maxn][maxm];
+
+void add(int &a, int b)
+{
+    a += b;
+    if(a >= mod) a-= mod;
+}
+
+int main()
+{
+    int n, m;
+    while(~scanf("%d%d", &n, &m))
+    {
+        for(int i = 1; i <= n; ++i) scanf("%d", a + i);
+        sort(a + 1, a + n + 1);
+        int now = 0, nxt = 1;
+        memset(dp[0], 0, sizeof(dp[0]));
+        dp[0][0][0] = 1;
+        int ans = 0;
+        for(int i = 1; i <= n; ++i)
+        {
+            memset(dp[nxt], 0, sizeof(dp[nxt]));
+            for(int j = 0; j < i; ++j)
+            {
+                for(int k = 0; j * (a[i] - a[i - 1]) + k <= m; ++k)
+                {
+                    ll t = dp[now][j][k];
+                    int l = j * (a[i] - a[i - 1]) + k;
+                    add(dp[nxt][j][l], (j + 1) * t % mod);
+                    add(dp[nxt][j + 1][l], t);
+                    if(j) add(dp[nxt][j - 1][l], j * t % mod);
+                }
+            }
+            swap(now, nxt);
+        }
+        for(int i = 0; i <= m; ++i) add(ans, dp[now][0][i]);
+        printf("%d\n", ans);
+    }
+    return 0;
+}

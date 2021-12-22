@@ -1,0 +1,157 @@
+import java.util.*;
+
+/**
+ * Created by leen on 6/22/16.
+ */
+public class _676D {
+
+    public static void main(String[] args) {
+
+        Scanner scan = new Scanner(System.in);
+        int n = scan.nextInt();
+        int m = scan.nextInt();
+        scan.nextLine();
+
+        Point[][][] cube = new Point[n][m][4];
+
+        for(int i = 0; i < n; i++) {
+            String line = scan.nextLine();
+            for(int j = 0; j < m; j++) {
+                char c = line.charAt(j);
+                for(int r = 0; r < 4; r++) {
+                    cube[i][j][r] = new Point(c, i, j, r);
+                    c = rotate(c);
+                }
+            }
+        }
+
+        int xt = scan.nextInt() - 1;
+        int yt = scan.nextInt() - 1;
+        scan.nextLine();
+        int xm = scan.nextInt() - 1;
+        int ym = scan.nextInt() - 1;
+
+        if(xt == xm && yt == ym) {
+            System.out.println(0);
+            return;
+        }
+
+        Point start = cube[xt][yt][0];
+        start.distance = 0;
+
+        Queue<Point> queue = new LinkedList<Point>();
+        queue.offer(start);
+
+        while(!queue.isEmpty()) {
+            Point p = queue.poll();
+
+            if(p.x == xm && p.y == ym) {
+                System.out.println(p.distance);
+                return;
+            }
+
+            if(p.y < m-1 && p.rightOpen) {
+                Point right = cube[p.x][p.y+1][p.r];
+                if(right.leftOpen && right.distance == -1) {
+                    right.distance = p.distance + 1;
+                    queue.offer(right);
+                }
+            }
+
+            if(p.x < n-1 && p.bottomOpen) {
+                Point bottom = cube[p.x+1][p.y][p.r];
+                if(bottom.topOpen && bottom.distance == -1) {
+                    bottom.distance = p.distance + 1;
+                    queue.offer(bottom);
+                }
+            }
+
+            if(p.y > 0 && p.leftOpen) {
+                Point left = cube[p.x][p.y-1][p.r];
+                if(left.rightOpen && left.distance == -1) {
+                    left.distance = p.distance + 1;
+                    queue.offer(left);
+                }
+            }
+
+            if(p.x > 0 && p.topOpen) {
+                Point top = cube[p.x-1][p.y][p.r];
+                if(top.bottomOpen && top.distance == -1) {
+                    top.distance = p.distance + 1;
+                    queue.offer(top);
+                }
+            }
+
+            Point nextR = cube[p.x][p.y][(p.r + 1) % 4];
+            if(nextR.distance == -1) {
+                nextR.distance = p.distance + 1;
+                queue.offer(nextR);
+            }
+        }
+
+        System.out.println(-1);
+
+    }
+
+    static class Point {
+        final int x;
+        final int y;
+        final int r;
+        final boolean leftOpen;
+        final boolean rightOpen;
+        final boolean topOpen;
+        final boolean bottomOpen;
+        int distance = -1;
+
+        Point(char c, int x, int y, int r) {
+            this.x = x;
+            this.y = y;
+            this.r = r;
+            leftOpen = isLeftOpen(c);
+            rightOpen = isRightOpen(c);
+            topOpen = isTopOpen(c);
+            bottomOpen = isBottomOpen(c);
+        }
+    }
+
+    static char rotate(char c) {
+        if(c == '-')
+            return '|';
+        if(c == '|')
+            return '-';
+        if(c == '<')
+            return '^';
+        if(c == '^')
+            return '>';
+        if(c == '>')
+            return 'v';
+        if(c == 'v')
+            return '<';
+        if(c == 'L')
+            return 'U';
+        if(c == 'U')
+            return 'R';
+        if(c == 'R')
+            return 'D';
+        if(c == 'D')
+            return 'L';
+        return c;
+    }
+
+    static boolean isLeftOpen(char c) {
+        return c == '+' || c == '-' || c == '<' || c == 'R' || c == 'U' || c == 'D';
+    }
+
+    static boolean isRightOpen(char c) {
+        return c == '+' || c == '-' || c == '>' || c == 'L' || c == 'U' || c == 'D';
+    }
+
+    static boolean isTopOpen(char c) {
+        return c == '+' || c == '|' || c == '^' || c == 'L' || c == 'R' || c == 'D';
+    }
+
+    static boolean isBottomOpen(char c) {
+        return c == '+' || c == '|' || c == 'v' || c == 'L' || c == 'R' || c == 'U';
+    }
+
+}

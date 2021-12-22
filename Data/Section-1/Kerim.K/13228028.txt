@@ -1,0 +1,101 @@
+/*
+PROG:kerim
+LANG:C++
+*/
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define mod 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end() 
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,int> PII;
+template<class T> bool checkMin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool checkMax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll arr[MAXN],pw[MAXN],pws[MAXN],p=37,a,k,m,q,lazy[MAXN*4],s[MAXN*4];
+string z;
+void build(int nd,int x,int y){
+	if(x==y){
+		s[nd]=arr[x];
+		return;	
+	}
+	int mid=(x+y)>>1;
+	build(nd*2,x,mid);
+	build(nd*2+1,mid+1,y);
+	s[nd]=(s[nd*2]+(s[nd*2+1]*pw[mid-x+1])%mod)%mod;
+}
+void upd(int nd,int x,int y,int v){
+	lazy[nd]=v;
+	s[nd]=(v*pws[y-x])%mod;
+}
+void shift(int nd,int x,int y){
+	if(lazy[nd]>=0){
+		int mid=(x+y)>>1;
+		upd(nd*2,x,mid,lazy[nd]);
+		upd(nd*2+1,mid+1,y,lazy[nd]);
+		lazy[nd]=-1;
+	}
+}
+void inc(int l,int r,int v,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		upd(nd,x,y,v);
+		return;
+	}
+	shift(nd,x,y);
+	int mid=(x+y)>>1;
+	inc(l,r,v,nd*2,x,mid);
+	inc(l,r,v,nd*2+1,mid+1,y);
+	s[nd]=(s[nd*2]+(s[nd*2+1]*pw[mid-x+1])%mod)%mod;
+}
+int tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return (s[nd]*pw[x-l])%mod;
+	shift(nd,x,y);	
+	int mid=(x+y)>>1;
+	int i1=tap(l,r,nd*2,x,mid);
+	int i2=tap(l,r,nd*2+1,mid+1,y);
+	return (i1+i2)%mod;	
+}
+int main()
+{
+	cin>>a>>k>>m>>z;
+	q=k+m;
+	pw[0]=pws[0]=1;
+	for(int i=1;i<=a;i++)
+		arr[i]=int(z[i-1])-48,pw[i]=(pw[i-1]*p)%mod,pws[i]=(pws[i-1]+pw[i])%mod;
+	build(1,1,a);
+	memset(lazy,-1,sizeof(lazy));
+	while(q--){
+		int type,l,r,v;
+		cin>>type>>l>>r>>v;
+		if(type==1)
+			inc(l,r,v,1,1,a);
+		else{
+			cout<<tap(l,r-v,1,1,a)<<" "<<tap(l+v,r,1,1,a)<<endl;
+			if(tap(l,r-v,1,1,a)==tap(l+v,r,1,1,a))
+				cout<<"YES"<<endl;
+			else
+				cout<<"NO"<<endl;	
+		}
+	}
+	return 0;
+}
+/*
+20 1 2
+34075930750342906718
+2 1 20 20
+1 1 20 6
+2 1 20 1
+*/

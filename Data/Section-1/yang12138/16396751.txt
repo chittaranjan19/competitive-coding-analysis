@@ -1,0 +1,100 @@
+/*
+    ━━━━━┒
+    ┓┏┓┏┓┃让老子先跳！
+    ┛┗┛┗┛┃＼○／
+    ┓┏┓┏┓┃ //
+    ┛┗┛┗┛┃ノ)
+    ┓┏┓┏┓┃
+    ┛┗┛┗┛┃
+    ┓┏┓┏┓┃
+    ┛┗┛┗┛┃
+    ┓┏┓┏┓┃
+    ┛┗┛┗┛┃
+    ┓┏┓┏┓┃
+    ┛┗┛┗┛┃
+    ┓┏┓┏┓┃
+    ┃┃┃┃┃┃
+    ┻┻┻┻┻┻
+*/
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <string>
+#include <algorithm>
+#include <cctype>
+#include <stack>
+#include <map>
+#include <set>
+#include <iomanip>
+#include <cstdlib>
+#include <queue>
+#include <ctime>
+#include <cmath>
+using namespace std;
+const int maxn=1005;
+int a[maxn];
+int now,n;
+set<int>q;
+struct hehe
+{
+    int s,to;
+    hehe(int a=0):s(a){};
+}dp[maxn][maxn];
+void dfs(int i,int j)
+{
+    if(dp[i][j].s)
+    {
+        if(q.count(dp[i][j].to))
+        {
+            int x=a[i]+a[j];
+            int l=lower_bound(a+1,a+n+1,x)-a;
+            int ok=0;
+            for(int k=l+1;k<=n&&!ok;k++)
+            {
+                if(a[k]==x&&!q.count(k)) ok=1,q.insert(k),dfs(j,k);
+                else if(a[k]>x) return ;
+            }
+            if(!ok) return ;
+        }
+        else q.insert(dp[i][j].to),dfs(j,dp[i][j].to);
+    }
+    else return ;
+}
+int main()
+{
+    while(cin>>n)
+    {
+        int num=0;
+        for(int i=1;i<=n;i++)
+        {
+            scanf("%d",&a[i]);
+            if(a[i]==0) num++;
+        }
+        sort(a+1,a+n+1);
+        for(int i=1;i<=n;i++)
+            for(int j=i+1;j<=n;j++)
+            {
+                int x=a[i]+a[j];
+                int l=lower_bound(a+1,a+n+1,x)-a;
+                if(a[l]==x) dp[i][j].s=dp[j][i].s=1,dp[i][j].to=dp[j][i].to=l;
+            }
+        int ans=num;
+        for(int i=1;i<=n;i++)
+        {
+            for(int j=1;j<=n;j++)
+            {
+                if(i==j||!dp[i][j].s||!a[i]&&!a[j]) continue;
+                q.clear();
+                q.insert(i);
+                q.insert(j);
+                dfs(i,j);
+                ans=max(ans,(int)q.size());
+            }
+        }
+        cout<<ans<<endl;
+    }
+}
+
+
+
+

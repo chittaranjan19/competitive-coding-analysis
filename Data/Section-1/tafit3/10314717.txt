@@ -1,0 +1,118 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemA {
+    BufferedReader rd;
+
+    private ProblemA() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int h = a[0];
+        int v = a[1];
+        int n = a[2];
+        Chunk vc = new Chunk();
+        Chunk hc = new Chunk();
+        vc.put(0,v);
+        hc.put(0,h);
+        for(int i=0;i<n;i++) {
+            String p = rd.readLine();
+            Chunk c = p.charAt(0) == 'V'?hc : vc;
+            int cut = pint(p.substring(2));
+            int offset = c.floorOffset(cut);
+            int size = c.remove(offset);
+            int size1 = cut - offset;
+            int size2 = size - size1;
+            c.put(offset, size1);
+            c.put(cut, size2);
+            out(((long)hc.maxSize()) * vc.maxSize());
+        }
+    }
+
+    private class Chunk {
+        NavigableMap<Integer, Integer> byOffset = new TreeMap<Integer, Integer>();
+        NavigableMap<Integer, Set<Integer>> bySize = new TreeMap<Integer, Set<Integer>>();
+
+        private void put(int offset, int size) {
+            byOffset.put(offset, size);
+            Set<Integer> s = bySize.get(size);
+            if(s == null) {
+                s = new HashSet<Integer>();
+                bySize.put(size, s);
+            }
+            s.add(offset);
+        }
+
+        private int floorOffset(int offset) {
+            return byOffset.floorKey(offset);
+        }
+
+        private int remove(int offset) {
+            int size = byOffset.remove(offset);
+            Set<Integer> s = bySize.get(size);
+            if(s.size() == 1) {
+                bySize.remove(size);
+            } else {
+                s.remove(offset);
+            }
+            return size;
+        }
+
+        private int maxSize() {
+            return bySize.lastKey();
+        }
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private String[] split(String s) {
+        int n = s.length();
+        int sp = 0;
+        for(int i=0;i<n;i++) {
+            if(s.charAt(i)==' ') {
+                sp++;
+            }
+        }
+        String[] res = new String[sp+1];
+        int last = 0;
+        int x = 0;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(c == ' ') {
+                res[x++] = s.substring(last,i);
+                last = i+1;
+            }
+        }
+        res[x] = s.substring(last,n);
+        return res;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemA();
+    }
+}

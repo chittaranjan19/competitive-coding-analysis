@@ -1,0 +1,197 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <fstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+#include <stack>
+#include <bitset>
+using namespace std;
+
+typedef long long ll;
+typedef long long ull;
+#define pi acos(-1.0)
+#define eps 1e-7
+#define start 131072
+#define LINF 1000000000000000000LL
+#define pi acos(-1.0)
+/*
+class point
+{
+public:
+    double x, y, z;
+    point(double _x = 0.0, double _y = 0.0, double _z = 0.0) : x(_x), y(_y), z(_z) {}
+    double operator*(const point &p)
+    {
+        return x * p.x + y * p.y + z * p.z;
+    }
+    point operator%(const point &p)
+    {
+        return point(0, 0, x * p.y - y * p.x);
+    }
+    double operator~()
+    {
+        return sqrt(x * x + y * y + z * z);
+    }
+    point operator-(point p2)
+    {
+        return point(x - p2.x, y - p2.y, z - p2.z);
+    }
+};
+
+class segment
+{
+public:
+    point p1, p2;
+    segment(point _p1, point _p2) : p1(_p1), p2(_p2) {}
+    double distToPoint(point p)
+    {
+        if((p - p1) * (p2 - p1) >= 0 && (p - p2) * (p1 - p2) >= 0)
+        {
+            return ~((p - p1) % (p2 - p1)) / ~(p2 - p1);
+        }
+        else
+        {
+            return min(~(p - p1), ~(p - p2));
+        }
+    }
+};
+
+point a[100005];
+
+int main()
+{
+    int n, x, y;
+    cin >> n >> x >> y;
+    point center(x, y);
+    for(int i = 0; i < n; i++)
+    {
+        scanf("%d %d", &x, &y);
+        a[i] = point(x, y);
+    }
+    double minv = 1e99;
+    double maxv = -1e99;
+    for(int i = 0; i < n; i++)
+    {
+        segment s(a[i], a[(i+1)%n]);
+        minv = min(minv, s.distToPoint(center));
+        maxv = max(maxv, s.distToPoint(center));
+        maxv = max(maxv, ~(a[i] - center));
+    }
+    printf("%.9lf\n", acos(-1.0) * (maxv * maxv - minv * minv));
+    return 0;
+}
+*/
+
+pair <int, int> a[100005];
+int res[100005];
+
+int main()
+{
+    ll n, A, cf, cm, m;
+    cin >> n >> A >> cf >> cm >> m;
+    ll m2 = m;
+    for(int i = 0; i < n; i++)
+    {
+        scanf("%d", &a[i].first);
+        a[i].second = i;
+    }
+    sort(a, a + n);
+    ll maxv = 0, maxR = n;
+    ll R = n;
+    while(R > 0 && m >= A - a[R-1].first)
+    {
+        m -= A - a[--R].first;
+    }
+    if(R == 0)
+    {
+        cout << cf * n + cm * A << endl;
+        for(int i = 0; i < n; i++)
+        {
+            if(i) putchar(' ');
+            printf("%d", A);
+        }
+        puts("");
+        return 0;
+    }
+
+    ll L = 0;
+    ll LL = a[0].first, RR = A;
+    while(LL < RR)
+    {
+        ll cc = (LL + RR + 1) / 2;
+        ll mm = m;
+        for(int i = 0; i < R; i++)
+            if(a[i].first < cc)
+                mm -= cc - a[i].first;
+        if(mm >= 0)
+            LL = cc;
+        else
+            RR = cc - 1;
+    }
+    while(L < R && a[L].first <= RR)
+    {
+        m -= RR - a[L].first;
+        L++;
+    }
+    maxv = (n - R) * cf + RR * cm;
+    maxR = R;
+
+    while(R < n)
+    {
+        m += A - a[R++].first;
+        while(L < R && m >= L * (a[L].first - RR))
+        {
+            m -= L * (a[L].first - RR);
+            RR = a[L].first;
+            while(L < R && RR == a[L].first)
+                L++;
+        }
+        if(maxv < (n - R) * cf + (RR + m / L) * cm)
+        {
+            maxv = (n - R) * cf + (RR + m / L) * cm;
+            maxR = R;
+        }
+    }
+
+    for(int i = n - 1; i >= maxR; i--)
+    {
+        m2 -= A - a[i].first;
+        a[i].first = A;
+    }
+    LL = a[0].first, RR = A;
+    while(LL < RR)
+    {
+        ll cc = (LL + RR + 1) / 2;
+        ll mm = m2;
+        for(int i = 0; i < maxR; i++)
+            if(a[i].first < cc)
+                mm -= cc - a[i].first;
+        if(mm >= 0)
+            LL = cc;
+        else
+            RR = cc - 1;
+    }
+    for(int i = 0; i < maxR; i++)
+        a[i].first = RR;
+    for(int i = 0; i < n; i++)
+        res[a[i].second] = a[i].first;
+
+    cout << maxv << endl;
+    for(int i = 0; i < n; i++)
+    {
+        if(i) putchar(' ');
+        printf("%d", res[i]);
+    }
+    puts("");
+    return 0;
+}

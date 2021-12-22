@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 2000000000
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int n, a[mn], ans = 1;
+struct rmq
+{
+    int aftMax[mn][18], froMax[mn][18], aftMin[mn][18], froMin[mn][18], nex[mn][18], pre[mn][18];
+
+    void build()
+    {
+        FOR(i, 1, n)
+        {
+            aftMax[i][0] = froMax[i][0] = aftMin[i][0] = froMin[i][0] = a[i];
+            if (i < n)
+                nex[i][0] = i + 1;
+            if (i > 1)
+                pre[i][0] = i - 1;
+        }
+        FOR(j, 1, 17)
+        FOR(i, 1, n)
+        {
+            nex[i][j] = nex[nex[i][j - 1]][j - 1];
+            pre[i][j] = pre[pre[i][j - 1]][j - 1];
+            aftMax[i][j] = max(aftMax[i][j - 1], aftMax[nex[i][j - 1]][j - 1]);
+            froMax[i][j] = max(froMax[i][j - 1], froMax[pre[i][j - 1]][j - 1]);
+            aftMin[i][j] = min(aftMin[i][j - 1], aftMin[nex[i][j - 1]][j - 1]);
+            froMin[i][j] = min(froMin[i][j - 1], froMin[pre[i][j - 1]][j - 1]);
+        }
+    }
+
+    pair<int, int> get(int l, int r)
+    {
+        int x = log2(r - l + 1);
+        return mp(max(aftMax[l][x], froMax[r][x]), min(aftMin[l][x], froMin[r][x]));
+    }
+} t;
+
+void setup()
+{
+    cin >> n;
+    FOR(i, 1, n)
+        cin >> a[i];
+    t.build();
+    FOR(i, 1, n)
+    {
+        int l = 0, r = i;
+        while(r - l > 1)
+        {
+            int g = (l + r) / 2;
+            pair<int, int> p = t.get(g, i);
+            if (p.F - p.S > 1)
+                l = g;
+            else
+                r = g;
+        }
+        ans = max(ans, i - r + 1);
+    }
+    cout << ans;
+}
+
+void xuly()
+{
+
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

@@ -1,0 +1,109 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 300005
+#define maxC 1000000007
+#define base 100007
+#define pb push_back
+
+using namespace std;
+int n, m, q, d[mn], maxDis[mn], dis[mn], dem = 0, mark[mn];
+vector<int> g[mn];
+queue<int> que;
+
+int root(int u)
+{
+    if (d[u])
+        return (d[u] = root(d[u]));
+    return u;
+}
+
+void setup()
+{
+    int u, v;
+    cin >> n >> m >> q;
+    FOR(i, 1, m)
+    {
+        cin >> u >> v;
+        g[u].pb(v);
+        g[v].pb(u);
+        int r1 = root(u);
+        int r2 = root(v);
+        if (r1 != r2)
+            d[r1] = r2;
+    }
+}
+
+int bfs(int x, bool returnId)
+{
+    dem ++;
+    que.push(x);
+    mark[x] = dem;
+    dis[x] = 0;
+    int re = 0, id = x;
+    while(!que.empty())
+    {
+        int u = que.front();
+        que.pop();
+        if (re < dis[u])
+        {
+            re = dis[u];
+            id = u;
+        }
+        FOR(i, 0, int(g[u].size()) - 1)
+        {
+            int v = g[u][i];
+            if (mark[v] != dem)
+            {
+                dis[v] = dis[u] + 1;
+                mark[v] = dem;
+                que.push(v);
+            }
+        }
+    }
+    return (returnId? id:re);
+}
+
+void xuly ()
+{
+    memset(maxDis, -1, sizeof(maxDis));
+    FOR(i, 1, n)
+    {
+        int r = root(i);
+        if (maxDis[r] == -1)
+        {
+            int u = bfs(i, true);
+            maxDis[r] = bfs(u, false);
+        }
+        g[i].clear();
+    }
+    int t, x, y;
+    FOR(i, 1, q)
+    {
+        cin >> t >> x;
+        if (t == 1)
+            cout << maxDis[root(x)] << '\n';
+        else
+        {
+            cin >> y;
+            int r1 = root(x);
+            int r2 = root(y);
+            if (r1 == r2)
+                continue;
+            int half1 = (maxDis[r1] + 1) / 2;
+            int half2 = (maxDis[r2] + 1) / 2;
+            maxDis[r1] = max(max(maxDis[r1], maxDis[r2]), half1 + half2 + 1);
+            d[r2] = r1;
+        }
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

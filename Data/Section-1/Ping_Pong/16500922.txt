@@ -1,0 +1,163 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+using namespace std;
+
+const long long inf = (long long)2 * 1e9;
+const long long MOD = (long long)1e9 + 7;
+const long long p = 239;
+const long long MAX_N = 1000;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+vector<long long> z_f(string s)
+{
+	long long len = s.size(), l = -1, r = -1;
+	vector<long long> z(len);
+	for (long long i = 0; i < len; i++)
+		z[i] = 0;
+	for (long long i = 1; i < len; i++)
+		if (i > r)
+		{
+			l = i; r = i - 1;
+			for (long long j = 0; j < len - i; j++)
+				if (s[j] == s[i + j])
+				{
+					z[i]++;
+					r++;
+				}
+				else
+					break;
+		}
+		else
+		{
+			z[i] = min(z[i - l], r - i + 1);
+			for (long long j = i + z[i]; j < len; j++)
+				if (s[j] == s[j - i])
+					z[i]++;
+				else
+					break;
+			if (z[i] > z[i - l])
+			{
+				l = i;
+				r = i + z[i] - 1;
+			}
+		}
+	return z;
+}
+
+int main()
+{
+    //ifstream ifs("input.txt");
+    //ofstream ofs("output.txt");
+    //freopen("candies.in", "r", stdin);
+    //freopen("candies.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    long long n, m;
+    scanf("%I64d %I64d", &n, &m);
+    long long a1[n], a2[m];
+    char b1[n], b2[m];
+    char c;
+    long long d;
+    scanf("%c", &c);
+    for (long long i = 0; i < n; i++)
+    {
+        scanf("%I64d", &d);
+        a1[i] = d;
+        scanf("%c", &c);
+        scanf("%c", &c);
+        b1[i] = c;
+        scanf("%c", &c);
+    }
+    for (long long i = 0; i < m; i++)
+    {
+        scanf("%I64d", &d);
+        a2[i] = d;
+        scanf("%c", &c);
+        scanf("%c", &c);
+        b2[i] = c;
+        scanf("%c", &c);
+    }
+    vector<long long> t1, s1;
+    vector<char> t2, s2;
+    t1.push_back(a1[0]);
+    t2.push_back(b1[0]);
+    for (long long i = 1; i < n; i++)
+        if (b1[i] == t2[t2.size() - 1])
+            t1[t1.size() - 1] += a1[i];
+        else
+        {
+            t1.push_back(a1[i]);
+            t2.push_back(b1[i]);
+        }
+    s1.push_back(a2[0]);
+    s2.push_back(b2[0]);
+    for (long long i = 1; i < m; i++)
+        if (b2[i] == s2[s2.size() - 1])
+            s1[s1.size() - 1] += a2[i];
+        else
+        {
+            s1.push_back(a2[i]);
+            s2.push_back(b2[i]);
+        }
+    n = t1.size(), m = s1.size();
+    /*for (long long i = 0; i < n; i++)
+        cout << t1[i] << " ";
+    cout << endl;
+    for (long long i = 0; i < n; i++)
+        cout << t2[i] << " ";
+    cout << endl;
+    for (long long i = 0; i < m; i++)
+        cout << s1[i] << " ";
+    cout << endl;
+    for (long long i = 0; i < m; i++)
+        cout << s2[i] << " ";
+    cout << endl;*/
+    if (m == 1)
+    {
+        long long cnt = 0;
+        for (long long i = 0; i < n; i++)
+            if (s2[0] == t2[i])
+                cnt += max((long long)0, t1[i] - s1[0] + 1);
+        printf("%I64d", cnt);
+        return 0;
+    }
+    if (m == 2)
+    {
+        long long cnt = 0;
+        for (long long i = 0; i < n - 1; i++)
+            if (s2[0] == t2[i] && s2[1] == t2[i + 1] && s1[0] <= t1[i] && s1[1] <= t1[i + 1])
+                cnt++;
+        printf("%I64d", cnt);
+        return 0;
+    }
+    string f1 = "", f2 = "", g1 = "", g2 = "";
+    for (long long i = 0; i < n; i++)
+        f1 += (char)(t1[i] + '0');
+    for (long long i = 1; i < m - 1; i++)
+        f2 += (char)(s1[i] + '0');
+    for (long long i = 0; i < n; i++)
+        g1 += t2[i];
+    for (long long i = 1; i < m - 1; i++)
+        g2 += s2[i];
+    vector<long long> arr1 = z_f(f2 + f1), arr2 = z_f(g2 + g1);
+    long long cnt = 0;
+    for (long long i = 1; i < n - (m - 2); i++)
+        if (arr1[m - 2 + i] >= (m - 2) && arr2[m - 2 + i] >= (m - 2) && s1[0] <= t1[i - 1] && s1[m - 1] <= t1[i + m - 2] && s2[0] == t2[i - 1] && s2[m - 1] == t2[i + m - 2])
+            cnt++;
+    printf("%I64d", cnt);
+    return 0;
+}

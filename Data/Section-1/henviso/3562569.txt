@@ -1,0 +1,132 @@
+#include <iostream>
+#include <cstdio>
+#include <string>
+#include <cstring>
+#include <cstdlib>
+#include <stack>
+#include <algorithm>
+#include <cctype>
+#include <vector>
+#include <queue>
+#include <tr1/unordered_map>
+#include <cmath>
+#include <map>
+#include <bitset>
+using namespace std;
+typedef long long ll;
+typedef vector<int> vi;
+typedef pair<int,int> ii;
+///////////////////////////////UTIL/////////////////////////////////
+#define ALL(x) (x).begin(),x.end()
+#define CLEAR0(v) memset(v, 0, sizeof(v))
+#define CLEAR(v, x) memset(v, x, sizeof(v))
+#define INRANGE0(x, n) ((x) > -1 && (x) < n)
+#define INRANGE(x, a, b) ((x) >= a && (x) <= b)
+#define COPY(a, b) memcpy(a, b, sizeof(a))
+#define REP(i,n) for(int i = 0; i<n; i++)
+#define REPP(i,a,n) for(int i = a; i<n; i++)
+#define REPD(i,n) for(int i = n-1; i>-1; i--)
+#define REPDP(i,a,n) for(int i = a; i>-1; i--)
+#define pb push_back
+#define pf push_front
+#define sz size()
+#define mp make_pair
+/////////////////////////////NUMERICAL//////////////////////////////
+#define INCMOD(a,b,c) (((a)+b)%c)
+#define DECMOD(a,b,c) (((a)+c-b)%c)
+#define ROUNDINT(a) (int)((double)(a) + 0.5)
+#define INF 2000000000
+#define EPS 1e-9
+/////////////////////////////BITWISE////////////////////////////////
+#define CHECK(S, j) (S & (1 << j))
+#define CHECKFIRST(S) (S & (-S))  //PRECISA DE UMA TABELA PARA TRANSFORMAR EM INDICE
+#define SET(S, j) S |= (1 << j)
+#define SETALL(S, j) S = (1 << j)-1  //J PRIMEIROS
+#define UNSET(S, j) S &= ~(1 << j)
+#define TOOGLE(S, j) S ^= (1 << j)
+///////////////////////////////64 BITS//////////////////////////////
+#define LCHECK(S, j) (S & (1ULL << j))
+#define LSET(S, j) S |= (1ULL << j)
+#define LSETALL(S, j) S = (1ULL << j)-1ULL  //J PRIMEIROS
+#define LUNSET(S, j) S &= ~(1ULL << j)
+#define LTOOGLE(S, j) S ^= (1ULL << j)
+//scanf(" %d ", &t);
+#define DFS_WHITE -1
+#define DFS_BLACK 1
+#define DFS_GRAY 2
+ 
+void initSet(vi &pset, vi &psize, int N){
+	pset.assign(N, 0);
+	psize.assign(N, 1);
+	for(int i = 0; i<N; i++) pset[i] = i;
+}
+ 
+int findSet(vi &pset, vi &psize, int i){
+	return (pset[i] == i) ? i : (pset[i] = findSet(pset, psize, pset[i]));
+}
+ 
+bool isSameSet(vi &pset, vi &psize, int i, int j){
+	return findSet(pset, psize, i) == findSet(pset, psize, j);
+}
+ 
+int unionSet(vi &pset, vi &psize, int i, int j){
+	if(isSameSet(pset, psize, i, j)) return psize[findSet(pset, psize, j)];
+	psize[findSet(pset, psize, j)] += psize[findSet(pset, psize, i)];
+	pset[findSet(pset, psize, i)] = findSet(pset, psize, j);
+	return psize[findSet(pset, psize, j)];
+}
+
+int n, m, u, v;
+int li[10100][2];
+vi d[10100], dsz[10100];
+vi re[10100], rsz[10100];
+
+int main(){
+	scanf(" %d %d ", &n, &m);
+	REPP(i, 1, m+1){
+		scanf(" %d %d ", &u, &v);
+		li[i][0] = u; li[i][1] = v;
+	}
+	initSet(d[0], dsz[0], n+1);
+	REPP(i, 1, m+1){
+		d[i] = d[i-1];
+		dsz[i] = dsz[i-1];
+		unionSet(d[i], dsz[i], li[i][0], li[i][1]);
+	}
+	initSet(re[m+1], rsz[m+1], n+1);
+	for(int i = m; i>=1; i--){
+		re[i] = re[i+1];
+		rsz[i] = rsz[i+1];
+		unionSet(re[i], rsz[i], li[i][0], li[i][1]);
+	}
+	
+	int cc, k;
+	int l, r;
+	scanf(" %d ", &k);
+	REP(i, k){
+		scanf(" %d %d ", &l, &r);
+		vi a = d[l-1], as = dsz[l-1];
+		vi b = re[r+1], bs = rsz[r+1];
+		cc = 0;
+		
+		int x, y;
+		int s;
+		bitset<600> vis; vis.reset();
+		REPP(j, 1, n+1){
+			x = findSet(a, as, j);
+			y = findSet(b, bs, j);
+			if(x != y){
+				unionSet(a, as, x, y);
+				unionSet(b, bs, x, y);
+			}
+		}
+		REPP(j, 1, n+1){
+			s = findSet(a, as, j);
+			if(!vis[s]){
+				vis[s] = true;
+				cc++;
+			}
+		}
+		printf("%d\n", cc);
+	}
+}

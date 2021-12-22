@@ -1,0 +1,88 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define MOD 1000000007
+#define inf 1000000000
+#define maxn 1000000
+
+#define ll long long
+#define pii pair<int, int>
+#define pb push_back
+#define sin scanint
+#define bitcount(x) __builtin_popcount(x)
+#define fill(s, p) memset(s, p, sizeof(s));
+#define gc getchar
+
+void scanint(int &x)
+{
+    register int c = gc();
+    x = 0;
+    for(;(c<48 || c>57);c = gc());
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+}
+
+ll wt[110], sw[110];
+
+ll modpow(ll a, ll b)
+{
+    ll x=1ll, y=a;
+    while(b){
+        if(b%2)
+            x=(x*y)%MOD;
+        y=(y*y)%MOD;
+        b/=2;
+    }
+    return x;
+}
+
+bool solve(int cur, ll w)
+{
+    //cout << cur << " " << w << " " << sw[cur] << endl;
+    if(w==0)
+        return true;
+    if(w>sw[cur] || w<(-1ll*sw[cur]))
+        return false;
+    else if(w==sw[cur] || (w==(-1ll*sw[cur])))
+        return true;
+    if(cur==0)
+        return false;
+    bool p1, p2, p3, ret;
+    p1 = solve(cur-1, w-wt[cur]);
+    p2 = solve(cur-1, w);
+    p3 = solve(cur-1, w+wt[cur]);
+    ret = (p1|p2)|p3;
+    return ret;
+}
+
+int main()
+{
+    #ifndef ONLINE_JUDJE
+        //freopen("input.txt", "r", stdin);
+    #endif
+    ll w, cur, n, m, mul, i, j;
+    bool ans;
+    i = 1;
+    scanf("%I64d%I64d", &w, &m);
+    cur = 1;
+    mul = w;
+    //cout << w << endl;
+    while(cur<m){
+        cur = (cur + mul);
+        mul = (mul*w);
+        i++;
+    }
+    wt[0] = sw[0] = 1ll;
+    for(j=1; j<=i+1; j++){
+        wt[j] = wt[j-1]*w;
+        sw[j] = sw[j-1]+wt[j];
+        //cout << wt[j] << " " << sw[j] << endl;
+    }
+    //cout << i << endl;
+    ans = solve(i, m);
+    if(ans)
+        printf("YES\n");
+    else
+        printf("NO\n");
+    return 0;
+}

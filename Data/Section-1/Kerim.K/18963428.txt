@@ -1,0 +1,109 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define y1 cok
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+//freopen("file.in","r",stdin);
+//freopen("file.out","w",stdout);
+ll n,m,a,b;
+ll par[1054][1054];
+ll M[1054][1054][12],arr[1054][1054],LOG[1054];
+void build(int x){
+	for(int i=1;i<=n;i++)
+		M[x][i][0]=arr[i][x];
+	for(int j=1;j<=11;j++)
+		for(int i=1;i<=n;i++)
+			M[x][i][j]=min(M[x][i][j-1],(i+(1<<(j-1))<=n?M[x][i+(1<<(j-1))][j-1]:INF));
+}
+ll sum(int x,int y,int x1,int y1){
+	return par[x1][y1]-par[x1][y-1]-par[x-1][y1]+par[x-1][y-1];
+}
+ll val(int f,int x,int y){
+	return sum(x,y,x+a-1,y+b-1)-ll(a*b*f);
+}
+set<pair<ll,PII> >s;
+multiset<ll>my;
+multiset<ll>sg[1<<12];
+ll get(int k,int l,int r){
+	int z=LOG[r-l+1];
+	return min(M[k][l][z],M[k][r-(1<<z)+1][z]);
+}
+bool tap(int l,int r,int x1,int y1,int nd,int x,int y){
+	if(l>y or x>r)
+		return (0-0);
+	if(l<=x and y<=r){
+		if(sg[nd].size()==0)
+			return (0-0);
+		typeof((sg[nd]).begin()) it=sg[nd].lower_bound(x1);
+		if(it==sg[nd].end())
+			return (0-0);
+		return (*it<=y1);	
+	}
+	int mid=(x+y)>>1;
+	bool i1=tap(l,r,x1,y1,nd<<1,x,mid);
+	bool i2=tap(l,r,x1,y1,nd<<1|1,mid+1,y);
+	return i1|i2;
+}
+void upd(int p,int v,int nd,int x,int y){
+	sg[nd].insert(v);
+	if(x==y)
+		return;
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,v,nd<<1,x,mid);
+	else
+		upd(p,v,nd<<1|1,mid+1,y);	
+}
+int main(){
+	scanf("%lld%lld%lld%lld",&n,&m,&a,&b);
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++){
+			scanf("%lld",&arr[i][j]);
+			par[i][j]=par[i][j-1]+arr[i][j];
+		}
+	for(int i=1;i<=n;i++){
+		LOG[i]=log2(i);
+		for(int j=1;j<=m;j++)
+			par[i][j]+=par[i-1][j];
+	}
+	for(int j=1;j<=m;j++)
+		build(j);	
+	for(int i=1;i+a-1<=n;i++){
+		my.clear();
+		for(int j=1;j<=b;j++)
+			my.insert(get(j,i,i+a-1));
+		for(int j=1;j+b-1<=m;j++){
+			s.insert(mp(val(*(my.begin()),i,j),mp(i,j)));
+			my.insert(get(j+b,i,i+a-1));
+			my.erase(my.find(get(j,i,i+a-1)));
+		}
+	}
+	vector<pair<ll,PII> >ans;
+	tr(it,s){
+		int x=it->ss.ff,y=it->ss.ss;
+		if(tap(x,x+a-1,y,y+b-1,1,1,n))
+			continue;
+		for(int i=x;i<x+a;i++)
+			for(int j=y;j<y+b;j++)
+				upd(i,j,1,1,n);
+		ans.pb(*it);
+	}
+	printf("%lld\n",ll(ans.size()));
+	tr(it,ans)
+		printf("%lld %lld %lld\n",it->ss.ff,it->ss.ss,it->ff);
+	return 0;
+}

@@ -1,0 +1,135 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+int toNumber (string s)
+{
+	int Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (int number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+
+
+
+int main()
+{
+	ios_base::sync_with_stdio(0);
+	tint n;
+	cin >> n;
+	vector<vector<tint> > a (n,vector<tint> (n));
+	forn(i,n)
+		forn(j,n)
+			cin >> a[i][j];
+	
+	vector<tint> upRight(2*n-1);
+	vector<tint> downRight(2*n-1);
+	forn(i,n)
+	{
+		forn(j,n)
+		{
+			upRight[i+j] += a[i][j];
+			downRight[((i-j-n)+(2*n-1)) % (2*n-1)] += a[i][j];
+		}
+	}
+	
+	reverse(downRight.begin(),downRight.end());
+	//imprimirVector(upRight);
+	//imprimirVector(downRight);
+	vector<vector<tint> > m (n, vector<tint> (n));
+	tint maxBlack = 0,x1,y1;
+	tint maxWhite = 0,x2,y2;
+	forn(i,n)
+	{
+		
+		forn(j,n)
+		{
+			m[i][j] = downRight[((n-1+j-i)+(2*n-1)) % (2*n-1)] + upRight[i+j] - a[i][j];
+			if ((i+j) % 2 == 1)
+			{
+				if (maxBlack < m[i][j])
+				{
+					maxBlack = m[i][j];
+					x1 = i + 1;
+					y1 = j + 1;
+				}
+			}
+			else
+			{
+				if (maxWhite < m[i][j])
+				{
+					maxWhite = m[i][j];
+					x2 = i + 1;
+					y2 = j + 1;
+				}
+			}
+		}
+	}
+	/*
+	forn(i,n)
+	{
+		forn(j,n)
+			cout << m[i][j] << " ";
+		cout << endl;
+	}
+	
+	debug(maxWhite);
+	*/ 
+	cout << maxWhite + maxBlack << endl << x1 << " " << y1 << " " << x2 << " " << y2 << endl;
+	
+	
+	return 0;
+}
+
+
+

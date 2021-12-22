@@ -1,0 +1,122 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define MOD 1000000007
+#define inf 1000000000
+#define maxn 1000000
+
+#define ll long long
+#define pii pair<int, int>
+#define pb push_back
+#define sin scanint
+#define bitcount(x) __builtin_popcount(x)
+#define fill(s, p) memset(s, p, sizeof(s));
+#define gc getchar
+
+void scanint(int &x)
+{
+    register int c = gc();
+    x = 0;
+    for(;(c<48 || c>57);c = gc());
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+}
+
+struct node{
+    int pos, val, aval;
+    bool operator<(const node&n) const{
+        return pos<n.pos;
+    }
+};
+
+int ft[maxn][2], arr[maxn];
+map<int, int> m1;
+map<int, int> m2;
+map<int, int> :: iterator it;
+vector<node> v;
+vector<int> fcuk;
+int n = 100100;
+
+void update(int x, int t)
+{
+    while(x<=n){
+        ft[x][t]++;
+        x+=(x&(-x));
+    }
+}
+
+int query(int x, int t)
+{
+    int ret = 0;
+    while(x>0){
+        ret+=ft[x][t];
+        x-=(x&(-x));
+    }
+    return ret;
+}
+
+int range_query(int a, int b, int t)
+{
+    return (query(b, t)-query(a-1, t));
+}
+
+int main()
+{
+    fill(ft, 0);
+    int n, i, j, lnum, rnum;
+    ll x, y, lx, ly;
+    sin(n);
+    for(i=0; i<n; i++){
+        //scanf("%lld%lld", &x, &y);
+        cin >> x >> y;
+        if(m1.find(x)==m1.end()){
+            lnum = x;
+            fcuk.pb(x);
+        }
+        else
+            lnum = m1[x];
+        if(m1.find(y)==m1.end()){
+            rnum = y;
+            fcuk.pb(y);
+        }
+        else
+            rnum = m1[y];
+        m2[lnum] = y;
+        m2[rnum] = x;
+        m1[x] = rnum;
+        m1[y] = lnum;
+    }
+    for(it=m2.begin(), i=1; it!=m2.end(); ++it, ++i){
+        //cout << it->first << " " << it->second << endl;
+        v.pb((node){it->second, i, it->first});
+    }
+    sort(v.begin(), v.end());
+    sort(fcuk.begin(), fcuk.end());
+    //for(i=0; i<fcuk.size(); i++)
+    //  update(fcuk[i], 1);
+    ll ans = 0;
+    //for(i=1; i<=5; i++)
+    //  cout << range_query(0, i, 1) << " ";
+    for(i=0; i<v.size(); i++){
+        ans += range_query(v[i].val+1, 100100, 0);
+        //}
+        //x = min(v[i].pos, v[i].aval);
+        //y = max(v[i].pos, v[i].aval);
+        //cout << ans << " ";
+        //ans += (y-x-1-range_query(x+1, y-1, 1));
+        //lx = upper_bound(fcuk.begin(), fcuk.end(), x)-fcuk.begin();
+        //ly = lower_bound(fcuk.begin(), fcuk.end(), y)-fcuk.begin();
+        //ly--;
+        //ans = (ans+(y-x-1-(ly-lx+1)));
+        update(v[i].val, 0);
+        //cout << ans << endl;
+        //cout << v[i].pos << " " << v[i].aval << " " << m2[v[i].aval] << endl;
+        x = abs(v[i].pos - v[i].aval);
+        x -= abs(i+1 - v[i].val);
+        ans += x;
+    }
+
+    cout << ans << endl;
+    return 0;
+
+}

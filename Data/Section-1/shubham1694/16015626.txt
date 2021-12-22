@@ -1,0 +1,69 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 200010;
+
+int arr[maxn];
+ll pref[maxn], suff[maxn];
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int n, i, j, lo, mid, hi, sz, st, ans_sz;
+	double nmean, cmean, sum, cmed, ans=-1;
+	sd(n);
+	for(i=1; i<=n; i++)
+		scanf("%d", &arr[i]);
+	sort(arr+1, arr+n+1);
+	for(i=1; i<=n; i++)
+		pref[i] = pref[i-1] + arr[i];
+	for(i=n; i>=1; i--)
+		suff[i] = suff[i+1] + arr[i];
+	for(i=1; i<=n; i++){
+		lo = 0, hi = min(n-i, i-1);
+		cmean = cmed = arr[i];
+		sz = 0;
+		while(lo<hi){
+			mid = (lo+hi)>>1;
+			if((lo+hi)&1)
+				mid++;
+			sum = pref[i]-pref[i-1-mid] + suff[n-mid+1];
+			nmean = (double)sum/(2*mid + 1);
+			//cout << i << " " << mid << " " << sum << " " << nmean << "\n";
+			if(nmean > cmean){
+				cmean = nmean;
+				sz = lo = mid;
+			}
+			else
+				hi = mid-1;
+		}
+		//cout << i << " b " << cmean << " " << cmed << " " << cmean-cmed << " " << ans << "\n"; 
+		if(ans < (cmean-cmed)){
+			ans = cmean - cmed;
+			st = i;
+			ans_sz = sz;
+		}
+	}
+	printf("%d\n", 2*ans_sz + 1);
+	printf("%d ", arr[st]);
+	for(i=1; i<=ans_sz; i++)
+		printf("%d ", arr[st-i]);
+	for(i=1; i<=ans_sz; i++)
+		printf("%d ", arr[n-i+1]);
+	return 0;
+}

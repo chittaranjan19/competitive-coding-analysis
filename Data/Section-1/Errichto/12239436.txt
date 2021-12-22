@@ -1,0 +1,80 @@
+#include<cstdio>
+#include<vector>
+#include<algorithm>
+#include<cstring>
+#include<assert.h>
+using namespace std;
+#define FOR(i,a,b) for(int i = a; i <= b; ++i)
+#define FORD(i,a,b) for(int i = a; i >= b; --i)
+#define RI(i,n) FOR(i,1,(n))
+#define REP(i,n) FOR(i,0,(n)-1)
+#define mini(a,b) a=min(a,b)
+#define maxi(a,b) a=max(a,b)
+#define mp make_pair
+#define pb push_back
+#define x first
+#define d second
+#define sz(w) (int) w.size()
+bool debug;
+typedef vector<int> vi;
+typedef long long ll;
+typedef long double ld;
+typedef pair<int,int> pii;
+const int inf = 1e9 + 5;
+const ll INF = (ll) inf * inf;
+const int nax = 105;
+
+pii p[nax];
+int dp[nax];
+
+#define L(i) (p[i].x-p[i].d)
+#define R(i) (p[i].x+p[i].d)
+
+int main(int argc, char *argv[])
+{
+	debug = argc > 1;
+	
+	int n;
+	scanf("%d", &n);
+	REP(i, n) scanf("%d%d", &p[i].x, &p[i].d);
+	sort(p, p + n);
+	
+	int res = 0;
+	
+	REP(starting, n) REP(kind, 2) {
+		// p[i] to the left
+		REP(i, n) dp[i] = -inf;
+		if(kind == 0) {
+			dp[starting] = p[starting].x;
+			REP(i, n) if(p[i].x >= L(starting) && p[i].x <= p[starting].x && i != starting)
+				maxi(dp[starting], R(i));
+		}
+		else dp[starting] = R(starting);
+		
+		REP(i, n) if(dp[i] >= p[i].x) {
+			{
+				int c = dp[i];
+				FOR(k, i+1, n-1) { 
+					if(L(k) <= dp[i]) maxi(dp[k], max(c,p[k].x));
+					maxi(c, R(k));
+				}
+			}
+			if(i+1 < n && L(i+1) <= dp[i]) maxi(dp[i+1], p[i+1].x);
+			FOR(j, i+1, n-1) if(p[j].x <= dp[i]) {
+				maxi(dp[i], R(j));
+				int c = dp[i];
+				FOR(k, j+1, n-1) {
+					if(L(k) <= dp[i]) 
+						maxi(dp[k], c);
+					maxi(c, R(k));
+				}
+			}
+			maxi(res, dp[i] - (kind ? p[starting].x : L(starting)));
+		}
+		if(debug) printf("%d %d\n", starting, res);
+	}
+	
+	printf("%d\n", res);
+	
+	return 0;
+}

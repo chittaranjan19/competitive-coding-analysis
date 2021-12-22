@@ -1,0 +1,141 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.math.BigInteger;
+import java.util.*;
+
+public class ProblemC {
+    BufferedReader rd;
+
+    ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        long k = longarr()[1];
+        long[] a = longarr();
+        int n = a.length;
+        Map<Long, Set<Integer>> m = new HashMap<>();
+        for(int i=0;i<n;i++) {
+            Set<Integer> u = m.get(a[i]);
+            if(u == null) {
+                u = new HashSet<>();
+                m.put(a[i], u);
+            }
+            u.add(i);
+        }
+        Set<Long> processed = new HashSet<>();
+        long res = 0;
+        long k2 = k*k;
+        BigInteger k2b = BigInteger.valueOf(k2);
+        for(long i: a) {
+            if(processed.add(i)) {
+                if(k == 1 || i == 0) {
+                    long s = m.get(i).size();
+                    if(s > 2) {
+                        res += (s-2)*(s-1)*s / 6;
+                    }
+                } else {
+                    long p2 = i*k;
+                    long p3 = i*k2;
+                    if(BigInteger.valueOf(i).multiply(k2b).equals(BigInteger.valueOf(p3))) {
+                        res += count(m.get(i), m.get(p2), m.get(p3));
+                    }
+                }
+            }
+        }
+        out(res);
+    }
+
+    private long count(Set<Integer> p1, Set<Integer> p2, Set<Integer> p3) {
+        long res = 0;
+        if(p1 != null && p2 != null && p3 != null) {
+            Set<Integer> all = new TreeSet<>();
+            all.addAll(p1);
+            all.addAll(p2);
+            all.addAll(p3);
+            long r1 = 0;
+            long r3 = p3.size();
+            for(Integer x: all) {
+                r1 += p1.contains(x)?1:0;
+                r3 -= p3.contains(x)?1:0;
+                if(p2.contains(x)) {
+                    res += r1 * r3;
+                }
+            }
+        }
+        return res;
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

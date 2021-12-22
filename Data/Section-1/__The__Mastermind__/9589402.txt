@@ -1,0 +1,177 @@
+program password;
+
+const
+  tfi = '';//'508d.inp';
+  tfo = '';//'508d.out';
+
+var
+  ok : boolean;
+  str : ansistring;
+  n,key : longint;
+  cd : array [#0..#255] of longint;
+  s : array [1..100000] of string[3];
+  g,f : array [1..100000] of longint;
+  c : array [0..52*52] of longint;
+  mark : array [0..52*52] of boolean;
+  fi,fo : text;
+
+procedure input;
+  var i : longint;
+  begin
+    assign(fi,tfi);
+    reset(fi);
+    readln(fi,n);
+    for i := 1 to n do readln(fi,s[i]);
+    close(fi);
+  end;
+
+procedure swap(var x,y : longint);
+  var z : longint;
+  begin
+    z := x;
+    x := y;
+    y := z;
+  end;
+
+procedure sort(l,h : longint);
+  var
+    stmp : string[3];
+    i,j,x,fx,gx : longint;
+  begin
+    i := l;
+    j := h;
+    x := random(h - l + 1) + l;
+    fx := f[x];
+    gx := g[x];
+    repeat
+      while (f[i] < fx) or ((f[i] = fx) and (c[g[i]] < c[gx])) do inc(i);
+      while (f[j] > fx) or ((f[j] = fx) and (c[g[j]] > c[gx])) do dec(j);
+      if i <= j then
+        begin
+          stmp := s[i];
+          s[i] := s[j];
+          s[j] := stmp;
+          swap(f[i],f[j]);
+          swap(g[i],g[j]);
+          inc(i);
+          dec(j);
+        end;
+    until i > j;
+    if l < j then sort(l,j);
+    if i < h then sort(i,h);
+  end;
+
+procedure init;
+  var
+    ch : char;
+    i,j,tmp,count : longint;
+  begin
+    ok := true;
+    key := -1;
+    count := 0;
+    tmp := -1;
+    for ch := 'a' to 'z' do cd[ch] := ord(ch) - ord('a');
+    for ch := 'A' to 'Z' do cd[ch] := ord(ch) - ord('A') + 26;
+    for i := 1 to n do
+      begin
+        f[i] := cd[s[i,1]]*52 + cd[s[i,2]];
+        g[i] := cd[s[i,2]]*52 + cd[s[i,3]];
+        dec(c[f[i]]);
+        inc(c[g[i]]);
+      end;
+    for i := 1 to n do
+      begin
+        if i > n then break;
+        if (f[i] <> tmp) and (c[f[i]] < 0) then
+          if (c[f[i]] = -1) and (key = -1) then
+            begin
+              str := s[i];
+              tmp := f[i];
+              key := g[i];
+              s[i] := s[n];
+              f[i] := f[n];
+              g[i] := g[n];
+              dec(n);
+            end
+          else
+            begin
+              ok := false;
+              exit;
+            end;
+        if c[g[i]] > 0 then
+          if not mark[g[i]] then
+            begin
+              mark[g[i]] := true;
+              count := count + c[g[i]];
+              if count > 1 then
+                begin
+                  ok := false;
+                  exit;
+                end;
+            end;
+      end;
+    if key = -1 then
+      begin
+        str := s[1];
+        key := g[1];
+        s[1] := s[n];
+      end;
+    sort(1,n);
+  end;
+
+function find(x : longint) : longint;
+  var l,r,mid,key : longint;
+  begin
+    l := 1;
+    r := n;
+    key := 0;
+    while l <= r do
+      begin
+        mid := (l + r) div 2;
+        if f[mid] = x then
+          begin
+            if mark[mid] then l := mid + 1
+            else
+              begin
+                key := mid;
+                r := mid - 1;
+              end;
+          end
+        else
+        if f[mid] < x then l := mid + 1
+        else
+        if f[mid] > x then r := mid - 1;
+      end;
+    exit(key);
+  end;
+
+procedure process;
+  var i,j : longint;
+  begin
+    for i := 1 to n do
+      begin
+        j := find(key);
+        str := str + s[j,3];
+        key := g[j];
+      end;
+  end;
+
+procedure output;
+  begin
+    assign(fo,tfo);
+    rewrite(fo);
+    if ok then
+      begin
+        process;
+        writeln(fo,'YES');
+        writeln(fo,str);
+      end
+    else writeln(fo,'NO');
+    close(fo);
+  end;
+
+begin
+  input;
+  init;
+  output;
+end.

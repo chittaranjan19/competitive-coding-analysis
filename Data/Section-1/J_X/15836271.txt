@@ -1,0 +1,48 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <queue>
+
+using namespace std;
+
+struct node
+{
+    double now, nxt, p;
+
+    node(double now = 0, double nxt = 0, double p = 0) : now(now), nxt(nxt), p(p) {}
+
+    bool operator < (const node &a) const {return nxt / now < a.nxt / a.now;}
+};
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        priority_queue<node> pque;
+        double pro = 1;
+        for(int i = 0; i < n; ++i)
+        {
+            int x;
+            scanf("%d", &x);
+            double p = x / 100.0;
+            pro *= p;
+            pque.push(node(p, 1 - (1 - p) * (1 - p), 1 - p));
+        }
+        double ans = n * pro;
+        for(int i = n + 1; i < 1000000; ++i)
+        {
+            node u = pque.top();
+            pque.pop();
+            double tmp = pro * u.nxt / u.now;
+            ans += i * (tmp - pro);
+            pro = tmp;
+            u.now = u.nxt;
+            u.nxt = 1 - (1 - u.now) * u.p;
+            pque.push(u);
+        }
+        printf("%.10f\n", ans);
+    }
+    return 0;
+}

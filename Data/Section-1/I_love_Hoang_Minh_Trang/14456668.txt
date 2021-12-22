@@ -1,0 +1,72 @@
+using namespace std;
+#include<bits/stdc++.h>
+#define FOR(i, a, b) for (int i = a; i < b; i++)
+#define FORE(i, a, b) for (int i = a; i <= b; i++)
+#define FORD(i, a, b) for (int i = a; i >= b; i--)
+#define MP make_pair
+const int MAXN = 5*1e5;
+const int INF = 1e9 + 7;
+
+int n, q;
+int a[MAXN], x[MAXN];
+int kc[MAXN];
+int cur[MAXN];
+int cuoi[MAXN];
+int m, l[MAXN], r[MAXN];
+typedef pair<int, int> ii;
+ii nen[MAXN];
+
+long long tinh()
+{
+    int tmp, trai, phai;
+    r[m] = m + 1;
+    FORD(i, m - 1, 1){
+        int j = i + 1;
+        while (j <= m && x[j] <= x[i] ) j = r[j];
+        r[i] = j;
+    }
+    long long ans = 0;
+    l[1] = 0;
+    int j;
+    FORE(i, 2, m){
+        j = i - 1;
+        while (j && x[j] <= x[i] ) j = l[j];
+        l[i] = j;
+    }
+    FORE(i, 1, m){
+        tmp = cuoi[x[i]];
+        ans += 1LL * (i - max(l[i], tmp)) * (r[i] - i) * cur[x[i]];
+        cuoi[x[i]] = i;
+    }
+    return ans;
+}
+int main()
+{
+    ios::sync_with_stdio(false); cin.tie(0);
+    #ifndef ONLINE_JUDGE
+    freopen("D.inp", "r", stdin);
+    freopen("D.out", "w", stdout);
+    #endif // ONLINE_JUDGE
+    //MIKELHPDATKE;
+    cin >> n >> q;
+    FORE(i, 1, n) cin >> a[i];
+    FOR(i, 1, n){
+        kc[i] = abs(a[i] - a[i + 1]);
+        nen[i] = MP(kc[i], i);
+    }
+    sort(nen + 1, nen + n + 1);
+    nen[0].first = nen[1].first - 1;
+    FOR(i, 1, n){
+        int temp = 0;
+        if (nen[i].first != nen[i - 1].first) cur[++temp] = nen[i].first;
+        kc[nen[i].second] = temp;
+    }
+    int u, v;
+    while (q--){
+        cin >> u >> v;
+        m = 0;
+        FOR(i, u, v) x[++m] = kc[i], cuoi[kc[i]] = 0;
+        cout<<tinh()<<endl;
+    }
+    return 0;
+}

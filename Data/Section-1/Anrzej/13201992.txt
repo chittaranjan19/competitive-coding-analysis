@@ -1,0 +1,146 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <stdio.h>
+
+using namespace std;
+
+#define ll long long
+#define ull unsigned long long 
+#define sc second
+#define fs first
+#define mp make_pair
+const int N = 1e5 + 100;
+int t[27][4 * N], lz[27][4 * N];
+string s;
+
+void build(int v, int tl, int tr)
+{
+    if (tl == tr)
+        t[s[tl] - 'a'][v] = 1;
+    else
+    {
+        int tm = (tl + tr) >> 1;
+        build(v * 2, tl, tm);
+        build(v * 2 + 1, tm + 1, tr);
+        for (int i = 0; i < 27; i++)
+            t[i][v] = t[i][v * 2] + t[i][v * 2 + 1];
+    }
+}
+
+void push(int v, int tl, int tr, int x)
+{
+    if (lz[x][v] == -1) return;
+    int tm = (tl + tr) >> 1;
+    if (tl != tr){
+        lz[x][v * 2] = lz[x][v * 2 + 1] = lz[x][v];
+        if (lz[x][v] == 1){
+            t[x][v * 2] = (tm - tl + 1);
+            t[x][v * 2 + 1] = (tr - tm);
+        }
+        else
+            t[x][v * 2] = t[x][v * 2 + 1] = 0;
+    }
+    lz[x][v] = -1;
+}
+
+void update(int v, int tl, int tr, int l, int r, int x, int tp)
+{
+    if (l > r) return;
+    push(v, tl, tr, x);
+    if (tl == l && tr == r)
+    {
+        if (tp == 1){
+            lz[x][v] = 1;
+            t[x][v] = r - l + 1;
+        }
+        else
+        {
+            lz[x][v] = 0;
+            t[x][v] = 0;
+        }
+        return;
+    }
+    int tm = (tl + tr) >> 1;
+    update(v * 2, tl, tm, l, min(tm, r), x, tp);
+    update(v * 2 + 1, tm + 1, tr, max(tm + 1, l), r, x, tp);
+    t[x][v] = t[x][v * 2] + t[x][v * 2 + 1];
+}
+
+int get(int v, int tl, int tr, int l, int r, int x)
+{
+    if (l > r) return 0;
+    push(v, tl, tr, x);
+    if (tl == l && tr == r)
+        return t[x][v];
+    int tm = (tl + tr) >> 1;
+    int a = get(v * 2, tl, tm, l, min(tm, r), x);
+    int b = get(v * 2 + 1, tm + 1, tr, max(tm + 1, l), r, x);
+    return a + b;
+}
+
+
+int main()
+{
+    memset(t, 0, sizeof(t));
+    memset(lz, -1, sizeof(lz));
+    int n, q;
+    cin >> n >> q >> s;
+    build(1, 0, n - 1);
+    while (q--)
+    {
+        int l, r, k;
+        cin >> l >> r >> k;
+        l--, r--;
+        int cnt[27];
+        for (int i = 0; i < 27; i++)
+            cnt[i] = get(1, 0, n - 1, l, r, i);
+        for (int i = 0; i < 27; i++)
+            update(1, 0, n - 1, l, r, i, 0);
+        if (k == 0)
+        {
+            int cur = r;
+            for (int i = 0; i < 27; i++){
+                update(1, 0, n - 1, cur - cnt[i] + 1, cur, i, 1);
+                cur -= cnt[i];
+            }
+        }
+        else
+        {
+            int cur = l;
+            for (int i = 0; i < 27; i++){
+                update(1, 0, n - 1, cur, cur + cnt[i] - 1, i, 1);
+                cur += cnt[i];
+            }
+        }
+        /*cout << endl;
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j < 27; j++)
+            {
+                if (get(1, 0, n - 1, i, i, j) != 0){
+                    cout << char('a' + j);
+                    break;
+                }
+            }
+        }
+        cout << endl;*/
+    }
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < 27; j++)
+        {
+            if (get(1, 0, n - 1, i, i, j) != 0){
+                cout << char('a' + j);
+                break;
+            }
+        }
+    }
+    return 0;
+}

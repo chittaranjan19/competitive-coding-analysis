@@ -1,0 +1,78 @@
+#include<cstdio>
+#include<cstring>
+#include<cmath>
+#include<cstdlib>
+#include<queue>
+#include<vector>
+#include<algorithm>
+#include<iostream>
+#include<queue>
+#include <set>
+#include<deque>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+#define in(a) scanf("%d", &a)
+#define out(a) printf("%d ", a)
+#define x first
+#define y second
+#define Foreach(i, c) for(__typeof((c).begin()) i = (c).begin(); i != (c).end(); ++i)
+
+using namespace std;
+
+long long cnt[100100], w[100100];
+double cur = 0.0, N, del;
+vector<pair<int, int> > g[100100];
+
+int dfs(int in, int out)
+{
+    int res = 1;
+    for (int i = 0; i < g[in].size(); i++)
+    {
+        int to = g[in][i].x, e = g[in][i].y;
+        if (to == out) continue;
+        cnt[e] += dfs(to, in);
+        res += cnt[e];
+    }
+    return res;
+}
+
+int main()
+{
+    int n, q;
+    cin >> n;
+    for (int i = 1; i < n; i++)
+    {
+        int a, b, c;
+        cin >> a >> b >> c;
+        g[a].push_back(mp(b, i));
+        g[b].push_back(mp(a, i));
+        w[i] = c;
+    }
+    dfs(1, -1);
+    del = (n)*(n - 1)*(n - 2) / 6;
+    for (int i = 1; i < n; i++)
+    {
+        double a = cnt[i], b = n - cnt[i], c = w[i];
+        cur += c*(a*b*(b - 1.0) / 2.0 + b*a*(a - 1.0) / 2.0);
+    }
+
+    cur /= del;
+
+    cin >> q;
+    while (q--)
+    {
+        int aa, bb;
+        cin >> aa >> bb;
+        cur *= del;
+        double a = cnt[aa], b = n - cnt[aa], c = w[aa];
+        cur -= c*(a*b*(b - 1.0) / 2.0 + b*a*(a - 1.0) / 2.0);
+        w[aa] = bb;
+        a = cnt[aa], b = n - cnt[aa], c = w[aa];
+        cur += c*(a*b*(b - 1.0) / 2.0 + b*a*(a - 1.0) / 2.0);
+        cur /= del;
+        printf("%.8f\n", cur*2.0);
+    }
+    return 0;
+}

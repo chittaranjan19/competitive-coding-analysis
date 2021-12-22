@@ -1,0 +1,103 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 20010
+#define maxC 1000000007
+#define mp make_pair
+#define F first
+#define S second
+#define p2 pair<int, int>
+#define p3 pair<int, p2 >
+#define pb push_back
+
+using namespace std;
+int h, w, n, neH[mn], neW[mn], maxH, maxW;
+int limH[mn], limW[mn], lH = 2, lW = 2;
+priority_queue < p3 > difH, difW;
+
+void setup ()
+{
+    cin >> h >> w >> n;
+    limH[1] = limW[1] = 0;
+    neH[0] = maxH = limH[2] = h;
+    neW[0] = maxW = limW[2] = w;
+    difH.push(mp(h, mp(0, h)));
+    difW.push(mp(w, mp(0, w)));
+}
+
+void que1()
+{
+    int x;
+    cin >> x;
+    int l = lower_bound(limW + 1, limW + lW + 1, x) - limW - 1;
+    l = limW[l];
+    neW[x] = neW[l];
+    neW[l] = x;
+    difW.push(mp(x - l, mp(l, x)));
+    difW.push(mp(neW[x] - x, mp(x, neW[x])));
+    while(!difW.empty())
+    {
+        int u = difW.top().S.F;
+        int v = difW.top().S.S;
+        int w = difW.top().F;
+        difW.pop();
+        if (neW[u] != v)
+            continue;
+        maxW = w;
+        cout << 1ll * maxH * w << "\n";
+        difW.push(mp(w, mp(u, v)));
+        break;
+    }
+    limW[++ lW] = x;
+    sort(limW + 1, limW + lW + 1);
+}
+
+void que2()
+{
+    int x;
+    cin >> x;
+    int l = lower_bound(limH + 1, limH + lH + 1, x) - limH - 1;
+    l = limH[l];
+    neH[x] = neH[l];
+    neH[l] = x;
+    difH.push(mp(x - l, mp(l, x)));
+    difH.push(mp(neH[x] - x, mp(x, neH[x])));
+    while(!difW.empty())
+    {
+        int u = difH.top().S.F;
+        int v = difH.top().S.S;
+        int w = difH.top().F;
+        difH.pop();
+        if (neH[u] != v)
+            continue;
+        maxH = w;
+        cout << 1ll * maxW * w << "\n";
+        difH.push(mp(w, mp(u, v)));
+        break;
+    }
+    limH[++ lH] = x;
+    sort(limH + 1, limH + lH + 1);
+}
+
+void xuly ()
+{
+    char c;
+    FOR (i, 1, n)
+    {
+        cin >> c;
+        if (c == 'H')
+            que1();
+        else
+            que2();
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

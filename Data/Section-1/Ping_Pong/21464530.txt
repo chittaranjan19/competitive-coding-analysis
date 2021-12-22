@@ -1,0 +1,66 @@
+#include <stdio.h>
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const int ABC = 26;
+const ll MAX_N = 100000;
+const ld pi = 3.1415926535897932384626;
+const ld eps = 1e-6;
+
+bool comp(pair<int, int> a, pair<int, int> b)
+{
+    return a.first > b.first;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, m;
+    cin >> n >> m;
+    vector<int> a(n);
+    for (int i = 0; i < n; i++)
+        cin >> a[i];
+    vector<map<int, set<int> > > ma(n);
+    for (int i = n - 1; i >= 0; i--)
+        for (int j = i; j < n; j++)
+            ma[j][a[i]].insert(i);
+    vector<pair<int, int> > b(m);
+    for (int i = 0; i < m; i++)
+    {
+        cin >> b[i].first;
+        b[i].second = i;
+    }
+    sort(b.begin(), b.end(), comp);
+    vector<int> ans(m);
+    int cnt = 0;
+    for (int i = 0; i < m; i++)
+    {
+        ll curr = b[i].first;
+        for (int j = 0; j < n; j++)
+        {
+            curr += a[j];
+            while (curr < 0)
+            {
+                int x = ma[j].begin()->first;
+                int pos = *(ma[j].begin()->second.begin());
+                a[pos] = 0;
+                curr -= x;
+                for (int k = j; k < n; k++)
+                    ma[k][x].erase(pos);
+                cnt++;
+            }
+        }
+        ans[b[i].second] = cnt;
+    }
+    for (int i : ans)
+        cout << i << endl;
+    return 0;
+}

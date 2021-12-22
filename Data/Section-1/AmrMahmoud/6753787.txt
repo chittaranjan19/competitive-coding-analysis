@@ -1,0 +1,171 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+
+int DProw[405][405];
+int DPldg[405][405];
+int DPrdg[405][405];
+string arr[405];
+
+
+bool check(int x1,int y1,int x2,int y2)
+{
+    if(x1 > x2)
+    {
+        if(y2 > y1)
+            return (DPldg[x1][y1] - DPldg[x2][y2] == 0);
+        return (DPrdg[x1][y1] - DPrdg[x2][y2] == 0);
+    }
+    else
+    {
+        if(y1 > y2)
+            return (DPldg[x2][y2] - DPldg[x1][y1] == 0);
+        return (DPrdg[x2][y2] - DPrdg[x1][y1] == 0);
+    }
+}
+
+
+int main()
+{
+    int n,m;
+    cin >> n >> m;
+    for(int i=0;i<n;i++)
+     cin >> arr[i];
+    memset(DPldg,-1,sizeof(DPldg));
+    memset(DPrdg,-1,sizeof(DPrdg));
+    int res=0;
+    for(int i=0;i<n;i++)
+    {
+        for(int j=0;j<m;j++)
+        {
+            if(arr[i][j] == '1')
+                DProw[i][j]++;
+            if(j != 0)
+                DProw[i][j]+=DProw[i][j-1];
+        }
+    }
+    for(int i=0;i<n;i++)
+    {
+        for(int j=0;j<m && DPrdg[i][j] == -1;j++)
+        {
+            if(arr[i][j] == '1')
+                DPrdg[i][j] = 1;
+            else DPrdg[i][j] = 0;
+            int dif=1;
+            while(i+dif < n && j+dif < m)
+            {
+                if(arr[i+dif][j+dif] == '1')
+                    DPrdg[i+dif][j+dif] = 1 + DPrdg[i+dif-1][j+dif-1];
+                else DPrdg[i+dif][j+dif] = DPrdg[i+dif-1][j+dif-1];
+                dif++;
+            }
+        }
+    }
+    for(int i=0;i<n;i++)
+    {
+        for(int j=m-1;j>=0 && DPldg[i][j] == -1;j--)
+        {
+            if(arr[i][j] == '1')
+                DPldg[i][j] = 1;
+            else DPldg[i][j] = 0;
+            int dif=1;
+            while(i+dif < n && j-dif >= 0)
+            {
+                if(arr[i+dif][j-dif] == '1')
+                    DPldg[i+dif][j-dif] = 1 + DPldg[i+dif-1][j-dif+1];
+                else DPldg[i+dif][j-dif] = DPldg[i+dif-1][j-dif+1];
+                dif++;
+            }
+        }
+    }
+    for(int i=0;i<n-1;i++)
+    {
+        for(int j=0;j<m;j++)
+        {
+            if(arr[i][j] == '1')
+                continue;
+            bool bad = false;
+            for(int k=i+1;k<n;k++)
+            {
+                if(arr[k][j] == '1')
+                {
+                    bad = true;
+                    continue;
+                }
+                if(bad)
+                {
+                    int dif = k - i;
+                    if(j+dif >= m || j-dif<0)
+                        break;
+                    if(arr[i][j-dif] != '1' && arr[i][j+dif] != '1' && DProw[i][j] - DProw[i][j-dif] == 0 && DProw[i][j+dif] - DProw[i][j] == 0)
+                    {
+                        if(check(k,j,i,j+dif) && check(k,j,i,j-dif))
+                            res++;
+                    }
+                    if(arr[k][j-dif] != '1' && arr[k][j+dif] != '1' && DProw[k][j] - DProw[k][j-dif] == 0 && DProw[k][j+dif] - DProw[k][j] == 0)
+                    {
+                        if(check(i,j,k,j+dif) && check(i,j,k,j-dif))
+                            res++;
+                    }
+                    continue;
+                }
+                int dif = k - i,t1=0,t2=0;
+                if(j+dif < m)
+                {
+                    if(arr[i][j+dif] == '0' && DProw[i][j+dif] - DProw[i][j] == 0 && check(i,j+dif,k,j))
+                        res++,t1++;
+                    if(arr[k][j+dif] == '0' && DProw[k][j+dif] - DProw[k][j] == 0 && check(i,j,k,j+dif))
+                        res++,t2++;
+                }
+                if(j-dif >= 0)
+                {
+                    if(arr[i][j-dif] == '0' && DProw[i][j] - DProw[i][j-dif] == 0 && check(i,j-dif,k,j))
+                        res++,t1++;
+                    if(arr[k][j-dif] == '0' && DProw[k][j] - DProw[k][j-dif] == 0 && check(i,j,k,j-dif))
+                        res++,t2++;
+                }
+                if(t1 == 2)
+                    res++;
+                if(t2 == 2)
+                    res++;
+                if(dif%2 == 0)
+                {
+                    if(j+dif/2 < m && arr[i+dif/2][j+dif/2] == '0' && check(i+dif/2,j+dif/2,k,j) && check(i,j,i+dif/2,j+dif/2))
+                        res++;
+                    if(j-dif/2 >=0 && arr[i+dif/2][j-dif/2] == '0' && check(i+dif/2,j-dif/2,k,j) && check(i,j,i+dif/2,j-dif/2))
+                        res++;
+                }
+            }
+        }
+    }
+    cout << res;
+    return 0;
+}

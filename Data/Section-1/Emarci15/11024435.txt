@@ -1,0 +1,51 @@
+#include <iostream>
+
+using namespace std;
+
+int n,m,b;
+int a[500];
+
+long long dp[2][500][501];
+long long sz[2][500][501];
+
+long long mod;
+
+int main()
+{
+    cin >> n >> m >> b >> mod;
+    for(int i=0; i<n; i++) {
+        cin >> a[i];
+    }
+
+    for(int i=0; i<n; i++) {
+        sz[1][i][0] = 1ll;
+    }
+    dp[1][0][0] = 1ll;
+    for(int d=0; d<m; d++) {
+        int dd = d%2, ddd=!(d%2);
+        for(int j=0; j<n; j++) {
+            for(int k=0; k<=b; k++) {
+                if(j==0) {
+                    sz[dd][j][k] = 0ll;
+                } else sz[dd][j][k] = sz[dd][j-1][k];
+
+                if(a[j] > k) {
+                    dp[dd][j][k] = 0ll;
+                } else dp[dd][j][k] = sz[ddd][j][k-a[j]];
+
+                sz[dd][j][k] += dp[dd][j][k];
+                sz[dd][j][k] %= mod;
+            }
+        }
+    }
+
+    long long sol = 0ll;
+
+    for(int i=0; i<=b; i++) {
+        sol = (sol + sz[!(m%2)][n-1][i]) % mod;
+    }
+
+    cout << sol << endl;
+
+    return 0;
+}

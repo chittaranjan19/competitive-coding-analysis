@@ -1,0 +1,102 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, ll> pii;
+typedef pair<pii, int> piii;
+
+const int N = 300 * 1000 + 100;
+const int LG = 20;
+const int B = 1000 * 1000 + 3;
+
+int n, m;
+vector <int> g[N];
+char ch[N];
+pii par[N][LG];
+ll pw[N];
+string t;
+int h[N];
+
+void dfs(int v, int p){
+	h[v] = h[p] + 1;
+	par[v][0].X = p;
+	par[v][0].Y = ch[v];
+	for(int i = 1; i < LG; ++i){
+		par[v][i].X = par[par[v][i - 1].X][i - 1].X;
+		par[v][i].Y = par[par[v][i - 1].X][i - 1].Y + par[v][i - 1].Y * pw[1 << (i - 1)];
+	}
+	for(int u : g[v])
+		dfs(u, v);
+}
+
+ll get_par(int v, int k){
+	ll ret = 0;
+	for(int i = LG; i --;){
+		if((k >> i) & 1){
+			ret = ret * pw[1 << i] + par[v][i].Y;
+			v = par[v][i].X;
+		}
+	}
+	return ret;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	pw[0] = 1;
+	for(int i = 1; i < N; ++i)
+		pw[i] = pw[i - 1] * B;
+	cin >> n;
+	m = n;
+	for(int i = 1; i < m; ++i){
+		int p; string s;
+		cin >> p >> s; p --;
+		for(int j = 0; j < SZ(s) - 1; ++j){
+			g[p].PB(n);
+			ch[n] = s[j];
+			p = n;
+			n ++;
+		}
+		ch[i] = s[SZ(s) - 1];
+		g[p].PB(i);
+	}
+	/*
+	for(int i = 0; i < n; ++i){
+		cerr << i << " " << ch[i] << " children : \n";
+		for(int j : g[i])
+			cerr << j << " ";
+		cerr << "\n";
+	}
+	*/
+	dfs(0, 0);
+	cin >> t;
+	ll hash = 0;
+	for(int i = SZ(t); i --;)
+		hash = hash * B + t[i];
+	int ans = 0;
+	for(int i = 1; i < n; ++i){
+		if(h[i] > SZ(t) && get_par(i, SZ(t)) == hash)
+			ans ++;
+	}
+	cout << ans << "\n";
+	return 0;
+}

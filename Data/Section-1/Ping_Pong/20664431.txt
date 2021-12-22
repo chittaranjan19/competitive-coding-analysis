@@ -1,0 +1,141 @@
+#include <stdio.h>
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const ll MAX_N = 100000;
+const ll ABC = 26;
+const ld pi = 3.1415926535897932384626;
+const ld eps = 1e-6;
+
+int t = 0;
+vector<vector<int> > g;
+vector<int> height;
+vector<int> in;
+vector<pair<int, int> > order;
+vector<vector<int> > up;
+vector<int> sz;
+vector<int> enter;
+
+int dfs(int u, int par, int h)
+{
+    in[u] = t++;
+    enter[u] = order.size();
+    order.push_back({in[u], u});
+    height[u] = h;
+    if (h > 0)
+        up[u][0] = par;
+    for (int p = 1; (1 << p) <= h; p++)
+        up[u][p] = up[up[u][p - 1]][p - 1];
+    for (int v : g[u])
+        if (v != par)
+        {
+            sz[u] += dfs(v, u, h + 1);
+            order.push_back({in[u], u});
+        }
+    return sz[u];
+}
+
+vector<int> log_2;
+vector<vector<pair<int, int> > > st;
+
+void build()
+{
+    int n = order.size();
+    log_2.resize(n + 1);
+    log_2[1] = 0;
+    for (int i = 2; i <= n; i++)
+        if (i >= (1 << (log_2[i - 1] + 1)))
+            log_2[i] = log_2[i - 1] + 1;
+        else
+            log_2[i] = log_2[i - 1];
+    int sz = 0;
+    while ((1 << sz) <= n)
+        sz++;
+    st.resize(sz, vector<pair<int, int> > (n));
+    for (int i = 0; i < n; i++)
+        st[0][i] = order[i];
+    for (int j = 1; j < sz; j++)
+        for (int i = 0; i + (1 << j) <= n; j++)
+            st[j][i] = min(st[j - 1][i], st[j - 1][i + (1 << (j - 1))]);
+}
+
+pair<int, int> get_ans(int l, int r)
+{
+    int len = log_2[r - l];
+    return min(st[len][l], st[len][r - (1 << len)]);
+}
+
+int get_lca(int u, int v)
+{
+    u = enter[u];
+    v = enter[v];
+    if (u > v)
+        swap(u, v);
+    return get_ans(u, v + 1).second;
+}
+
+int la(int u, int k)
+{
+    for (int i = 0; i < 17; i++)
+        if ((k >> i) & 1)
+            u = up[u][i];
+    return u;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n;
+    cin >> n;
+    g.resize(n);
+    height.resize(n);
+    in.resize(n);
+    up.resize(n, vector<int> (17));
+    sz.resize(n, 1);
+    enter.resize(n);
+    for (int i = 0; i < n - 1; i++)
+    {
+        int a, b;
+        cin >> a >> b;
+        g[a - 1].push_back(b - 1);
+        g[b - 1].push_back(a - 1);
+    }
+    dfs(0, -1, 0);
+    build();
+    int m;
+    cin >> m;
+    for (int i = 0; i < m; i++)
+    {
+        int u, v;
+        cin >> u >> v;
+        u--; v--;
+        if (u == v)
+        {
+            cout << n << endl;
+            continue;
+        }
+        int lca = get_lca(u, v);
+        int len = height[u] - height[lca] + height[v] - height[lca];
+        if (len % 2)
+        {
+            cout << 0 << endl;
+            continue;
+        }
+        if (height[u] > height[v])
+            swap(u, v);
+        int mid = la(v, len / 2);
+        if (mid == lca)
+            cout << n - sz[la(u, len / 2 - 1)] - sz[la(v, len / 2 - 1)] << endl;
+        else
+            cout << n - sz[la(v, len / 2 - 1)] - (n - sz[la(v, len / 2)]) << endl;
+    }
+    return 0;
+}

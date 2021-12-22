@@ -1,0 +1,58 @@
+#include<cstdio>
+#include<cstring>
+#include<algorithm>
+#include<cmath>
+using namespace std;
+typedef long long LL;
+struct poi
+{
+	LL u,v,w;//u<v
+}op[2010];
+LL deep(LL a)
+{
+	return int(log2(a));
+}
+LL lca(LL a,LL b)//O(64)
+{
+	if(a>b)swap(a,b);
+	b>>=(deep(b)-deep(a));
+	while(a^b)a>>=1,b>>=1;
+	return a;
+}
+int q,o,tot=0;
+LL calc(LL a)
+{
+	LL ans=0;
+	for(int i=0;i<tot;i++)
+	{
+//		LL w1=lca(a,op[i].u);
+		LL w2=lca(a,op[i].v);
+		if(w2==op[i].v)ans+=(deep(op[i].v)-deep(op[i].u))*op[i].w;else 
+		if(lca(w2,op[i].u)==op[i].u&&lca(w2,op[i].v)==w2)ans+=(deep(w2)-deep(op[i].u))*op[i].w;
+	}
+	return ans;
+}
+
+int main()
+{
+	scanf("%d",&q);
+	for(int i=1;i<=q;i++)
+	{
+		scanf("%d",&o);
+		if(o==1)
+		{
+			LL u,v,w;
+			scanf("%I64d%I64d%I64d",&u,&v,&w);
+			LL x=lca(u,v);
+			op[tot++]=(poi){x,u,w};
+			op[tot++]=(poi){x,v,w};
+		}
+		else
+		{
+			LL u,v;
+			scanf("%I64d%I64d",&u,&v);
+			printf("%I64d\n",calc(u)+calc(v)-calc(lca(u,v))*2);
+		}
+		
+	}
+}

@@ -1,0 +1,81 @@
+#include<bits/stdc++.h>
+using namespace std;
+ 
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+ 
+const int lmt = 105;
+long double grid[lmt][lmt];
+long double prob[lmt];
+
+void mul(int siz,long double a[lmt][lmt],long double b[lmt][lmt]){
+	long double c[siz][siz];
+	for(int i=0;i<siz;i++){
+		for(int j=0;j<siz;j++)
+			c[i][j]=0;
+	}
+ 
+	for(int i=0;i<siz;i++){
+		for(int j=0;j<siz;j++){
+			long double sum=0;
+			for(int k=0;k<siz;k++){
+				long double t = a[i][k]*b[k][j];
+				c[i][j] = c[i][j] + t;
+			}
+		}
+	}
+ 
+	for(int i=0;i<siz;i++){
+		for(int j=0;j<siz;j++)
+			a[i][j]=c[i][j];
+	}
+	return;
+}
+ 
+void solve(int n,int x){
+	long double m[lmt][lmt]={0};
+	long double id[lmt][lmt]={0};
+	for(int i=0;i<=x;i++){
+        for(int j=0;j<=x;j++){
+            if(i^j<=x)
+            	m[i][j] = prob[i^j];
+            else
+            	m[i][j] = 0;
+            if(i==j)
+                id[i][j] = 1;
+            else
+           		id[i][j] = 0;
+        }
+	}
+	n -= 1;
+	while(n>0){
+		if(n&1)
+			mul(x+1,id,m);
+		mul(x+1,m,m);
+		n = n>>1;
+	}
+	long double ans = 0;
+	for(int i=0;i<=x;i++)
+		ans += id[0][i]*prob[i];
+	ans = (long double)1-ans;
+	printf("%.7Lf\n",ans);
+}
+ 
+int main(){
+    int n,x;
+    cin>>n>>x;
+    assert(n<=2000);
+    for(int i=0;i<=x;i++)
+    	cin>>prob[i];
+
+    if(n==1)
+    	printf("%.7Lf\n",(long double)1-prob[0]);
+    else
+    	solve(n,x);
+
+    return 0;
+}

@@ -1,0 +1,70 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second
+#define PB push_back
+#define MP make_pair
+
+using namespace std;
+typedef long long ll;
+const int N = 1e6 + 100;
+
+int n;
+ll a[N];
+int cnt[N];
+ll ocnt[N];
+ll dv[N];
+
+ll f(int x){
+    memset(cnt, 0, sizeof cnt);
+    memset(ocnt, 0, sizeof ocnt);
+    memset(dv, 0, sizeof dv);
+    int t = 0;
+    for(ll i = 1; i * i <= a[x]; i++){
+        if(a[x] % i == 0){
+            dv[t ++] = i;
+            if(a[x] == i * i)continue;
+            dv[t ++] = a[x] / i;
+        }
+    }
+    sort(dv, dv + t);
+    for(int i = 0; i < n; ++i){
+        ll g = __gcd(a[i], a[x]);
+        cnt[lower_bound(dv, dv + t, g) - dv] ++;
+    }
+    for(int i = 0; i < t; ++i){
+        for(int j = i; j < t; ++j){
+            if(dv[j] % dv[i] == 0){
+                ocnt[i] += cnt[j];
+            }
+        }
+    }
+    ll ans = 0;
+    //for(int i = 0; i < t; ++i) cerr << dv[i] << "\n";
+    for(int i = 0; i < t; ++i){
+       // cerr << dv[i] << " " << ocnt[i] << "\n";
+        if(2 * ocnt[i] >= n){
+            ans = max(ans, dv[i]);
+        }
+    }
+    return ans;
+}
+
+int main(){
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n;
+    for(int i = 0; i < n; ++i)
+        cin >> a[i];
+    random_shuffle(a, a + n);
+    ll mx = -1;
+    //cout << f(1) << "\n";
+   // return 0;
+    for(int i = 0; i < min(12, n); ++i){
+       // cout << f(i) << " ";
+        mx = max(mx, f(i));
+    }
+    cout << mx << "\n";
+    return 0;
+}

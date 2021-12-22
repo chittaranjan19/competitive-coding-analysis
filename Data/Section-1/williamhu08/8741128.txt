@@ -1,0 +1,90 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1010;
+
+int N, L;
+int X[MAXN], B[MAXN];
+double dp[MAXN];
+int state[MAXN];
+double lo = 0, hi = 1e6 + 1, mid;	//can frustration be < val
+
+bool moo() {
+	for (int i = 1; i <= N; i++) {
+		double &ref = dp[i];
+		ref = 1e99;
+		for (int j = i - 1; j >= 0; j--) {
+			//find minimum of f_i - m * b_i
+			double ndp = dp[j] + (sqrt(abs(L - (X[i] - X[j]))) - mid * B[i]);
+			if (ref > ndp) {
+				ref = ndp;
+				state[i] = j;
+			}
+		}
+		// printf("at mid = %lf, dp[%d] = %lf\n", mid, i, dp[i]);
+	}
+	return dp[N] <= 0;
+}
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces489E.in", "r", stdin);
+#endif
+	scanf("%d %d", &N, &L);
+	for (int i = 1; i <= N; i++) {
+		scanf("%d %d", &X[i], &B[i]);
+	}
+	while (hi - lo > 1e-6) {
+		mid = (lo + hi) / 2;
+		if (moo()) {
+			hi = mid;
+		} else {
+			lo = mid;
+		}
+	}
+	// printf("as %lf\n", lo);
+	mid = lo;
+	moo();
+	vector<int> ans;
+	for (int i = N; i; i = state[i]) {
+		ans.push_back(i);
+	}
+	for (vector<int>::reverse_iterator it = ans.rbegin(); it != ans.rend(); it++) {
+		printf("%d ", *it);
+	}
+}

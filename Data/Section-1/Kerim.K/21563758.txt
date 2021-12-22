@@ -1,0 +1,97 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int cnt=0,ID[MAXN];
+vector<int>adj[MAXN];
+char s[2000009],t[2000009];
+void solve(int k,int x,int y){
+	printf("YES\n");
+	for(int i=x;i<y;i++)
+		printf("%d ",adj[k][i]);
+	printf("\n");
+	exit(0);	
+}
+ll mod(ll x){
+	while(x<0)
+		x+=INF;
+	return (x%INF);
+}
+map<int,int>pm;
+void add(int x){
+	if(!x)
+		return;	
+	if(!ID[x])
+		cnt++;
+	ID[x]++;
+}
+void remove(int x){
+	if(!x)
+		return;
+	ID[x]--;
+	if(!ID[x])
+		cnt--;
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	int n,k;
+	scanf("%d%d",&n,&k);
+	scanf("%s",s+1);
+	int q;
+	scanf("%d",&q);
+	for(int i=1;i<=q;i++){
+		scanf("%s",t+1);
+		ll hesh=0;
+		for(int j=1;j<=k;j++)
+			hesh=mod(hesh*31+(t[j]-'a'+1));
+		pm[hesh]=i;	
+	}int sz=n*k;
+	for(int i=sz+1;i<=sz*2;i++)
+		s[i]=s[i-sz];
+	sz<<=1;
+	ll no=0,BASE=1;
+	for(int i=1;i<k;i++){
+		no=mod(no*31+(s[i]-'a'+1));
+		BASE=mod(BASE*31);
+	}
+	for(int i=1;i<=sz-k;i++){
+		no=mod(mod(no*31)+(s[i+k-1]-'a'+1));
+		adj[i%k].pb(pm[no]);
+		no=mod(no-mod(BASE*(s[i]-'a'+1)));
+	}
+	sz/=k;
+	for(int i=0;i<k;i++){
+		cnt=0;
+		for(int j=0;j<n;j++)
+			add(adj[i][j]);	
+		for(int j=n;j<sz;j++){
+			if(cnt==n)
+				solve(i,j-n,j);	
+			if(j==sz-1){
+				for(int h=n;h<sz-1;h++)		
+					remove(adj[i][h]);
+				break;	
+			}	
+			add(adj[i][j]);
+			remove(adj[i][j-n]);
+		}	
+	}	
+	printf("NO\n");
+	return 0;
+}

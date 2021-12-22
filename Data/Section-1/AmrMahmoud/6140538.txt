@@ -1,0 +1,90 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define PI acos(-1.0)
+#define LL long long
+
+using namespace std;
+
+int paths[105][100005];
+bool visited[105][100005]={false};
+queue<pair<int,int> > bfs;
+
+int main()
+{
+    freopen("input.txt","r",stdin);
+    freopen("output.txt","w",stdout);
+    int n,r1,c1,r2,c2;
+    scanf("%d",&n);
+    int arr[n+2];
+    for(int i=1;i<=n;i++)
+        scanf("%d",&arr[i]);
+    scanf("%d%d%d%d",&r1,&c1,&r2,&c2);
+    bfs.push(make_pair(r1,c1));
+    while(!bfs.empty())
+    {
+        int x = bfs.front().first,y = bfs.front().second;
+        bfs.pop();
+        if(visited[x][y])
+            continue;
+        visited[x][y] = true;
+        if(x == r2 && y == c2)
+            break;
+        if(x!=1 && !visited[x-1][y])
+        {
+            if(arr[x-1] < y)
+            {
+                bfs.push(make_pair(x-1,arr[x-1]+1));
+                paths[x-1][arr[x-1]+1] = paths[x][y] + 1;
+            }
+            else
+            {
+                bfs.push(make_pair(x-1,y));
+                paths[x-1][y] = paths[x][y] + 1;
+            }
+        }
+        if(x!=n && !visited[x+1][y])
+        {
+            if(arr[x+1] < y)
+            {
+                bfs.push(make_pair(x+1,arr[x+1]+1));
+                paths[x+1][arr[x+1]+1] = paths[x][y] + 1;
+            }
+            else
+            {
+                bfs.push(make_pair(x+1,y));
+                paths[x+1][y] = paths[x][y] + 1;
+            }
+        }
+        if(y!=1 && !visited[x][y-1])
+        {
+            bfs.push(make_pair(x,y-1));
+            paths[x][y-1] = paths[x][y] + 1;
+        }
+        if(y!=arr[x]+1 && !visited[x][y+1])
+        {
+            bfs.push(make_pair(x,y+1));
+            paths[x][y+1] = paths[x][y] + 1;
+        }
+    }
+    printf("%d",paths[r2][c2]);
+    return 0;
+}

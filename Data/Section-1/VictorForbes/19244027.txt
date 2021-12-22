@@ -1,0 +1,84 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define INF 0x3f3f3f3f
+#define N 101
+
+bool contest[N];
+bool gym[N];
+int dp[N][2][2];
+int n;
+
+int solve(int x, bool wentSport, bool wentContest){
+	int res = INF;
+
+	if (x >= n){
+		return 0;
+	}
+
+	if (dp[x][wentSport][wentContest] != -1){
+		return dp[x][wentSport][wentContest];
+	}
+
+	if (contest[x] and gym[x]){
+		if (!wentSport){
+			res = min(res, solve(x + 1, true, false));
+		}
+
+		if (!wentContest){
+			res = min(res, solve(x + 1, false, true));
+		}
+	}
+	else if (contest[x]){
+		if (!wentContest){
+			res = min(res, solve(x + 1, false, true));
+		}
+	}
+	else if (gym[x]){
+		if (!wentSport){
+			res = min(res, solve(x + 1, true, false));
+		}
+	}
+
+	res = min(res, solve(x + 1, false, false) + 1);
+
+	return dp[x][wentSport][wentContest] = res;
+}
+
+int main(){
+	int a, i;
+
+	scanf("%d", &n);
+
+	for (i = 0; i < n; i++){
+		scanf("%d", &a);
+
+		switch (a){
+			case 0:
+				contest[i] = false;
+				gym[i] = false;
+				break;
+			case 1:
+				contest[i] = true;
+				gym[i] = false;
+				break;
+			case 2:
+				contest[i] = false;
+				gym[i] = true;
+				break;
+			case 3:
+				contest[i] = true;
+				gym[i] = true;
+				break;
+			default:
+				break;
+		}
+	}
+
+	memset(dp, -1, sizeof(dp));
+
+	printf("%d\n", solve(0, false, false));
+
+	return 0;
+}

@@ -1,0 +1,100 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define fr first
+#define sc second
+#define mkp make_pair
+
+int n, useless, sz;
+string s;
+//pair <bool, bool> ono = mkp(1, 1), znz = mkp(-1, -1), zno = mkp(0, -1), onz = mkp(1, 0);
+
+struct vertex {
+	int next[26];
+} t[int(1e5) + 1];
+
+void add_str(string x){
+	int v = 0;
+	for(int i = 0; i < x.size(); ++ i){
+		if(t[v].next[x[i] - 'a'] == -1){
+			//memset(t[sz + 1].next, -1, 26);
+			for(int i = 0; i < 26; ++ i){
+				t[sz + 1].next[i] = -1;
+			}
+			t[v].next[x[i] - 'a'] = sz + 1;
+			sz ++; 	
+		}
+		v = t[v].next[x[i] - 'a'];
+   	}
+}
+
+pair <int, int> dfs(int x, int lvl){
+	//cerr << x << " ";
+	int cnt = 0;
+	if(lvl % 2 == 0){
+		pair <int, int> cmp, fmp = mkp(0, 0);
+		for(int i = 0; i < 26; ++ i){
+			int to = t[x].next[i];
+			if(to > -1){
+				cnt ++;
+				cmp = dfs(to, lvl + 1);
+				fmp.fr = max(fmp.fr, cmp.fr);
+				fmp.sc = max(fmp.sc, cmp.sc);
+			}
+		}
+		if(lvl == 0){
+			return fmp;
+		}
+		if(cnt == 0){
+			return mkp(0, 1);
+		}
+		return fmp;
+	} else {
+		pair <int, int> cmp, fmp = mkp(1, 1);
+	    for(int i = 0; i < 26; ++ i){
+			int to = t[x].next[i];
+			if(to > -1){
+				cnt ++;
+				cmp = dfs(to, lvl + 1);
+				fmp.fr = min(fmp.fr, cmp.fr);
+				fmp.sc = min(fmp.sc, cmp.sc);
+			}
+		}
+		if(cnt == 0){
+			return mkp(1, 0);
+		}
+		return fmp;
+	}
+}
+
+int main(){
+	pair <int, int> pos;
+	for(int i = 0; i < 26; ++ i){
+		t[0].next[i] = -1;
+	}
+	cin >> n >> useless;
+	//memset(t[0].next, -1, 26);
+	for(int i = 0; i < n; ++ i){
+		cin >> s;
+		add_str(s);
+	}
+	pos = dfs(0, 0);
+	//cerr << pos.fr << ' ' << pos.sc << '\n';
+	if(pos == mkp(1, 0)){
+		if(useless % 2 == 1){
+			cout << "First";
+		} else {
+			cout << "Second";
+		}
+	}
+	if(pos == mkp(0, 0)){
+		cout << "Second";
+	} else
+	if(pos == mkp(1, 1)){
+		cout << "First";
+	} else
+	if(pos == mkp(0, 1)){
+		cout << "Second";
+	}
+	return 0;
+}

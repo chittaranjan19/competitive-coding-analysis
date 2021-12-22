@@ -1,0 +1,115 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define ll long long
+
+const ll mod = 1000000007;
+const int maxn = 1000010;
+
+ll ft[maxn], arr[maxn], temp[maxn], n;
+map<ll, int> m1;
+map<ll, int> :: iterator it;
+
+void update(int x, ll val)
+{
+    while(x<=n){
+        ft[x]+=val;
+        if(ft[x]>=mod)
+            ft[x]%=mod;
+        x+=(x&(-x));
+    }
+}
+
+ll query(int x)
+{   
+    ll ret = 0;
+    while(x>0){
+        ret = (ret+ft[x])%mod;
+        x-=(x&(-x));
+    }
+    return ret;
+}
+
+ll range_query(int a, int b)
+{
+    ll ret = (query(b)-query(a-1))%mod;
+    if(ret<0)
+        ret+=mod;
+    return ret;
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    ll l, k, i, j, p, x, y, z, ans, sz, lz, r;
+    scanf("%I64d%I64d%I64d", &n, &l, &k);
+    sz = l/n;
+    lz = l%n;
+    for(i=1; i<=n; i++){
+        scanf("%I64d", &arr[i]);
+        //arr[i] = rand();
+        m1[arr[i]] = 1;
+        temp[i] = 1;    
+    }
+    r = k;
+    k = min(k, sz);
+    ans = l%mod;
+    j = 1;
+    for(it=m1.begin(); it!=m1.end(); ++it)
+        it->second = j++;
+    //for(i=1; i<=n; i++)
+    //  cout << m1[arr[i]] << " ";
+    //cout << "\n";
+    //cout << sz << " " << ans << "\n";
+    for(i=2; i<=k; i++){
+        for(j=1; j<=n; j++)
+            update(m1[arr[j]], temp[j]);
+        for(j=1; j<=n; j++){
+            x = range_query(m1[arr[j]], n);
+            temp[j] = x;
+            z = (sz-i+1ll)%mod;
+            if(z<0)
+                z+=mod;
+            y = (x*z)%mod;
+            //cout << x << " " << y << "\n";
+            ans = (ans+y)%mod;
+        
+        }
+        //cout << "\n";
+        for(j=1; j<=n; j++){
+            x = range_query(m1[arr[j]], m1[arr[j]]);
+            update(m1[arr[j]], -x);
+        }
+        //for(j=1; j<=n; j++)
+        //  cout << range_query(m1[arr[j]], m1[arr[j]]) << " ";;
+        //cout << "\n";
+    }
+    //cout << ans << "\n";
+    for(i=1; i<=n; i++){
+        if(i<=lz)
+            temp[i] = 1;
+        else
+            temp[i] = 0;
+    }
+    if(lz){
+        sz++;
+        //cout << "1\n";
+        k = min(r, sz);
+        for(i=2; i<=k; i++){
+            for(j=1; j<=n; j++)
+                update(m1[arr[j]], temp[j]);
+            for(j=1; j<=n; j++){
+                x = range_query(m1[arr[j]], n);
+                temp[j] = x;
+                ans = (ans+x)%mod;
+            }
+            for(j=1; j<=n; j++){
+                x = range_query(m1[arr[j]], m1[arr[j]]);
+                update(m1[arr[j]], -x);
+            }
+        }
+    }
+    printf("%I64d\n", ans);
+    return 0;
+}

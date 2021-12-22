@@ -1,0 +1,83 @@
+#include <bits/stdc++.h>
+
+#define PI 3.14159265358979323846
+#define INF_1 0x3f // 0011 1111
+#define INF_2 0x7f // 0111 1111
+
+#define N 65537
+
+using namespace std;
+
+typedef unsigned long long ull;
+typedef unsigned int ui;
+typedef long long ll;
+
+struct Vertex{
+	int index, deg, s;
+
+	bool operator < (Vertex b) const{
+		return deg < b.deg;
+	}
+};
+
+Vertex v[N];
+vector <int> g[N];
+int n, m, counter;
+
+bool ready(){
+	return counter == n;
+}
+
+int main(void){
+	int i, j, deg, s;
+	
+	scanf("%d", &n);
+
+	for (i = 0; i < n; i++){
+		scanf("%d%d", &deg, &s);
+
+		v[i].index = i;
+		v[i].deg = deg;
+		v[i].s = s;
+
+		m += deg;
+	}
+
+	m /= 2;
+
+	sort(v, v + n);
+
+	while (!ready()){
+		counter = 0;
+
+		for (i = 0; i < n; i++){
+			if (v[i].deg - g[v[i].index].size() == 1){
+				for (j = 0; j < (int)g[v[i].index].size(); j++){
+					v[i].s = v[i].s ^ g[v[i].index][j];
+				}
+
+				g[v[i].index].push_back(v[i].s);
+				g[v[i].s].push_back(v[i].index);
+
+				v[i].s = 0;
+			}
+			else if (v[i].deg - g[v[i].index].size() == 0){
+				v[i].s = 0;
+			}
+
+			counter += (v[i].s == 0);
+		}
+	}
+
+	printf("%d\n", m);
+
+	for (i = 0; i < n; i++){
+		for (j = 0; j < (int)g[i].size(); j++){
+			if (i < g[i][j]){
+				printf("%d %d\n", i, g[i][j]);
+			}
+		}
+	}
+
+	return 0;
+}

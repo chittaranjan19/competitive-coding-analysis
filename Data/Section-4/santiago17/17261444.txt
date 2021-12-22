@@ -1,0 +1,131 @@
+//
+// Created by Santiago on 10/04/2016.
+//
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+class Node;
+
+vector<bool> bnodes;
+vector<bool> inserted;
+vector<vector<bool> > matrix;
+
+
+class Node {
+public:
+    int id;
+    char letter;
+    vector<Node*> vec;
+    Node() {
+        letter = 0;
+    };
+    bool operator < (const Node &a) const{
+        return id < a.id;
+    }
+};
+
+
+bool check_clique(Node* node, char letter, int bs) {
+    //cout<<"in check"<<endl;
+    vector<Node*> test_nodes;
+    set<Node> nodes;
+    test_nodes.push_back(node);
+    //cout<<"nodes to check"<<endl;
+    //cout<<node->id<<endl;
+    nodes.insert(*node);
+    node->letter = letter;
+    for (int i = 0; i < node->vec.size(); ++i) {
+        Node *t = node->vec[i];
+        if(!bnodes[t->id]) {
+            //cout<<t->id<<endl;
+            t->letter = letter;
+            inserted[t->id] = true;
+            test_nodes.push_back(t);
+            nodes.insert(*t);
+        }
+
+    }
+
+    bool test = true;
+    for (int i = 0; i < test_nodes.size(); ++i) {
+        Node *n1 = test_nodes[i];
+        //printf("current %d\n", n1->id);
+        //if(n1->vec.size() - bs > test_nodes.size())
+        //    return false;
+        for (int j = 0; j < n1->vec.size(); ++j) {
+            Node *t = n1->vec[j];
+            if(!bnodes[t->id] && nodes.count(*t) == 0)
+                return false;
+        }
+        for (int j = 0; j < test_nodes.size(); ++j) {
+            Node *n2 = test_nodes[j];
+            if(n2->id != n1->id && !matrix[n1->id][n2->id]) {
+                //printf("no match %d %d", n1->id, n2->id);
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+int main() {
+    //freopen("graph.in", "r", stdin);
+    int N, M;
+    cin>>N>>M;
+    inserted = vector<bool>(N, false);
+    bnodes = vector<bool>(N, false);
+    matrix = vector<vector<bool> >(N, vector<bool>(N, false));
+    vector<Node> graph(N);
+    char letter = 'a';
+    int bs = 0;
+    bool possible = true;
+    for (int i = 0; i < M; ++i) {
+        int u, v;
+        cin>>u>>v;
+        matrix[u-1][v-1] = true;
+        matrix[v-1][u-1] = true;
+        graph[u-1].vec.push_back(&graph[v-1]);
+        graph[v-1].vec.push_back(&graph[u-1]);
+    }
+    for (int i = 0; i < N; ++i) {
+        Node *n = &graph[i];
+        n->id = i;
+        //printf("size of %d = %d\n", i, n->vec.size());
+        if(n->vec.size() == N-1) {
+            bs++;
+            bnodes[n->id] = true;
+            inserted[n->id] = true;
+            n->letter = 'b';
+        }
+    }
+    /*for (int i = 0; i < N; ++i) {
+        printf("node %d letter %c\n", graph[i].id, graph[i].letter);
+    }*/
+    for (int i = 0; i < N; ++i) {
+        if(!inserted[graph[i].id]) {
+            if(letter > 'c') {
+                //cout<<"bad letter "<<graph[i].id<<endl;
+                possible = false;
+                break;
+            }
+            bool test = check_clique(&graph[i], letter, bs);
+            if(!test) {
+                possible = false;
+                break;
+            }
+            letter += 2;
+        }
+    }
+    if(possible) {
+        cout<<"Yes"<<endl;
+        for (int i = 0; i < N; ++i) {
+            cout<<graph[i].letter;
+        }
+    }
+    else {
+        cout<<"No"<<endl;
+    }
+    return 0;
+}

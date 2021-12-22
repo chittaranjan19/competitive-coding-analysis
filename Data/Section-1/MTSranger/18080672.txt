@@ -1,0 +1,72 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int begin[100005];
+int numA[100005];
+int numB[100005];
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	int n, k; cin >> n >> k;
+	string s; cin >> s;
+
+	// ensure start with a by flipping
+	if (s[0] != 'a') {
+		for (int i = 0; i < n; i++) {
+			if (s[i] == 'a') s[i] = 'b';
+			else s[i] = 'a';
+		}
+	}
+
+	begin[0] = 0;
+	numA[0] = 1;
+	numB[0] = 0;
+	for (int i = 1; i < n; i++) {
+		if (s[i] == s[i-1]) begin[i] = begin[i-1];
+		else begin[i] = i;
+		numA[i] = numA[i-1];
+		numB[i] = numB[i-1];
+		if (s[i] == 'a') numA[i]++; else numB[i]++;
+	}
+	numA[n] = numA[n-1];
+	numB[n] = numB[n-1];
+
+	int best = 0;
+
+	// try a
+	for (int start = 0; start < n; start++) {
+		int x = numB[start];
+		if (s[start] == 'b') x--;
+		int lb = start;
+		int ub = n-1;
+		while (ub - lb > 4) {
+			int mid = lb+(ub-lb)/2;
+			if (numB[mid] - x <= k) lb = mid;
+			else ub = mid;
+		}
+		int end = lb;
+		while (end < ub && numB[end+1] - x <= k) end++;
+		best = max(best, end-start+1);
+	}
+	// try b
+	for (int start = 0; start < n; start++) {
+		int x = numA[start];
+		if (s[start] == 'a') x--;
+		int lb = start;
+		int ub = n-1;
+		while (ub - lb > 4) {
+			int mid = lb+(ub-lb)/2;
+			if (numA[mid] - x <= k) lb = mid;
+			else ub = mid;
+		}
+		int end = lb;
+		while (end < ub && numB[end+1] - x <= k) end++;
+		best = max(best, end-start+1);
+	}
+
+	cout << best << endl;
+}

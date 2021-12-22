@@ -1,0 +1,64 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 300 + 5;
+const int INF = 1 << 30;
+
+int a[maxn * maxn], num[maxn], d1[maxn * maxn], d2[maxn * maxn];
+
+int main()
+{
+    int n, t;
+    while(~scanf("%d%d", &n, &t))
+    {
+        memset(num, 0, sizeof(num));
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", a + i);
+            ++num[a[i]];
+        }
+        ll ans = 0;
+        for(int k = 1; k <= min(n, t); ++k)
+        {
+            memset(d1, 0, sizeof(d1));
+            memset(d2, 0, sizeof(d2));
+            for(int i = 1; i <=n; ++i)
+            {
+                a[i + (k - 1) * n] = a[i];
+            }
+            int e = k * n + 1;
+            a[e] = INF;
+            for(int i = 1; i < e; ++i)
+            {
+                for(int j = 0; j < i; ++j)
+                {
+                    if(a[i] >= a[j])
+                    {
+                        d1[i] = max(d1[i], d1[j] + 1);
+                    }
+                }
+            }
+            for(int i = e - 1; i; --i)
+            {
+                for(int j = e; j > i; --j)
+                {
+                    if(a[i] <= a[j])
+                    {
+                        d2[i] = max(d2[i], d2[j] + 1);
+                    }
+                }
+            }
+            for(int i = 1; i < e; ++i)
+            {
+                ans = max(ans, (ll)(d1[i] + d2[i] - 1) + (ll)(t - k) * num[a[i]]);
+            }
+        }
+        printf("%I64d\n", ans);
+    }
+    return 0;
+}

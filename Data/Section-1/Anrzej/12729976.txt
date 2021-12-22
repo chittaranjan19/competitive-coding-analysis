@@ -1,0 +1,125 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+#include <cstring>
+#include <map>
+#include <unordered_map>
+#include <iostream>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+#define ll long long
+#define db double
+#define fs first
+#define sc second
+#define mp make_pair
+
+struct edge
+{
+    int from, to, cost;
+};
+
+vector<int> g[2][200000];
+vector<pair<int, int> > kg[200000];
+edge e[200000];
+ll d[2][200000], n, m, s, t, ans[200000];
+
+void dijkstra(int nm, int st)
+{
+    for (int i = 0; i < 200000; i++)
+        d[nm][i] = 1e18;
+    d[nm][st] = 0;
+    priority_queue<int> q;
+    q.push(st);
+    while (!q.empty())
+    {
+        int v = q.top();
+        q.pop();
+        for (int i = 0; i < g[nm][v].size(); i++)
+        {
+            ll j = g[nm][v][i], to = e[j].to, cost = e[j].cost;
+            if (nm == 1) to = e[j].from;
+            if (d[nm][to] > d[nm][v] + cost)
+            {
+                d[nm][to] = d[nm][v] + cost;
+                q.push(to);
+            }
+        }
+    }
+}
+
+bool u[200000];
+int tm = 0, in[200000], fup[200000];
+
+map<pair<pair<int, int>, int>, int> cnt;
+
+void dfs(int v, int p)
+{
+    u[v] = 1;
+    in[v] = fup[v] = tm++;
+    for (int i = 0; i < kg[v].size(); i++)
+    {
+        int to = kg[v][i].fs, j = kg[v][i].sc;
+        if (p == to) continue;
+        if (u[to])
+            fup[v] = min(fup[v], in[to]);
+        else
+        {
+            dfs(to, v);
+            fup[v] = min(fup[v], fup[to]);
+            pair<pair<int, int>, int> a = mp(mp(e[j].to, e[j].from), e[j].cost);
+            if (fup[to] > in[v] && cnt[a] == 1)
+                ans[j] = -1;
+        }
+    }
+}
+
+
+int main()
+{
+    //ios::sync_with_stdio(false);
+    cin >> n >> m >> s >> t;
+    for (int i = 0; i < m; i++)
+    {
+        int fr, to, c;
+        cin >> fr >> to >> c;
+        g[0][fr].push_back(i);
+        g[1][to].push_back(i);
+        e[i].from = fr, e[i].to = to, e[i].cost = c;
+        pair<pair<int, int>, int> a = mp(mp(e[i].to, e[i].from), e[i].cost);
+        cnt[a]++;
+    }
+    dijkstra(0, s);
+    dijkstra(1, t);
+    for (int i = 0; i < m; i++)
+    {
+        int from = e[i].from, to = e[i].to, cost = e[i].cost;
+        if (d[0][from] + d[1][to] + cost == d[0][t]){
+            kg[from].push_back(mp(to, i));
+            kg[to].push_back(mp(from, i));
+        }
+    }
+    memset(u, 0, sizeof(u));
+    dfs(s, -1);
+    for (int i = 0; i < m; i++)
+    {
+        if (ans[i] == -1)
+            cout << "YES" << endl;
+        else
+        {
+            int to = e[i].to, from = e[i].from, cost = e[i].cost;
+            ll new_cost = d[0][t] - d[0][from] - d[1][to] - 1;
+            if (new_cost < 1)
+                cout << "NO" << endl;
+            else cout << "CAN " << cost - new_cost << endl;
+        }
+    }
+}

@@ -1,0 +1,71 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+using namespace std;
+
+const int maxn=100005;
+char str[maxn];
+bool vis[60];
+int times[60][maxn],last[60],cnt[60];//times[i][j]第i个字母在0到j区间出现了多少次,last[i]每一个字母最后出现的位置,cnt[i]每个字母被删掉了多少次
+
+int change(char a)
+{
+   int tmp;
+   if(a>='a'&& a<='z') tmp=a-'a';
+   else tmp = a-'A'+26;
+   return tmp;
+}
+
+int main()
+{
+   int n,i,tmp,maxn=-1,num=0,head,tail=0,ans,j;
+   memset(vis,false,sizeof(vis));
+   memset(last,-1,sizeof(last));
+   memset(times,0,sizeof(times));
+   memset(cnt,0,sizeof(cnt));
+   scanf("%d",&n);
+   getchar();
+   scanf("%s",str);
+   for(i=0;i<n;i++)
+   {
+      for(j=0;j<=51;j++)
+      {
+         times[j][i]=times[j][i-1];
+      }
+      tmp=change(str[i]);
+      if(!vis[tmp])
+      {
+         num++;
+         vis[tmp]=true;
+         times[tmp][i]=1;
+         if(maxn<num)
+         {
+            maxn=num;
+            head=i;
+         }
+      }
+      else
+      {
+         times[tmp][i]=times[tmp][last[tmp]]+1;
+      }
+      last[tmp]=i;
+   }
+   ans=head-tail+1;
+   while(head<n)
+   {
+      tmp=change(str[tail]);
+      tail++;
+      cnt[tmp]++;
+      if(times[tmp][head]-cnt[tmp]==0)
+      {
+         while(times[tmp][head]-cnt[tmp]==0)
+         {
+            head++;
+            if(head==n)break;
+         }
+      }
+      else ans=min(ans,head-tail+1);
+   }
+   printf("%d\n",ans);
+   return 0;
+}

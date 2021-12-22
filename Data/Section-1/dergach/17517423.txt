@@ -1,0 +1,130 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+#include <stack>
+using namespace std;
+
+typedef long long ll;
+#define mod 1000000007
+#define INF mod
+#define pi acos(-1.0)
+#define LINF 1000000000000000000LL
+#define eps 1e-10
+
+struct problem
+{
+	int TL;
+	int testCnt;
+}problems[10005];
+
+struct solution
+{
+	int problemId;
+	int solutionId;
+	vector <int> checked; //0 - not checked, 1 - is checking now, 2 - checked
+
+	solution(int _problemId, int _solutionId) : problemId(_problemId), solutionId(_solutionId)
+	{
+		if(problemId >= 0)
+			checked.resize(problems[problemId].testCnt);
+	}
+
+	const bool operator<(const solution& sol) const
+	{
+		return solutionId < sol.solutionId;
+	}
+};
+
+int t, p;
+string s;
+set <solution> solutions;
+int solutionCnt;
+
+int main()
+{
+	scanf("%d", &t);
+	scanf("%d", &p);
+	for(int i = 0; i < p; i++)
+	{
+		scanf("%d %d", &problems[i].TL, &problems[i].testCnt);
+	}
+	int problemId;
+	while(cin >> problemId)
+	{	
+		if(problemId >= 0)
+		{
+			solutions.insert(solution(problemId, solutionCnt++));
+			while(cin >> problemId) //read list of new solutions
+			{
+				if(problemId == -1)
+					break;
+				solutions.insert(solution(problemId, solutionCnt++));
+			}
+		}
+		while(1) //read verdicts
+		{
+			int solutionId, testNumber;
+			scanf("%d %d", &solutionId, &testNumber);
+			if(solutionId == -1 && testNumber == -1)
+				break;
+			t++;
+			solution sol = *(solutions.find(solution(-1, solutionId)));
+			solutions.erase(solution(-1, solutionId));
+			cin >> s;
+			if(s == "OK")
+			{
+				sol.checked[testNumber] = 2;
+				for(int i = 0; i < sol.checked.size(); i++)
+					if(sol.checked[i] < 2)
+					{
+						solutions.insert(sol);
+						break;
+					}
+			}
+		}
+		//assign checking tasks
+		{
+			vector <solution> curSolutions;
+			for(set<solution>::iterator it = solutions.begin(); t > 0 && it != solutions.end(); it++)
+			{
+				bool ok = false;
+				solution sol = *it;
+				for(int i = 0; i < sol.checked.size(); i++)
+					if(sol.checked[i] == 0)
+					{
+						ok = true;
+						break;
+					}
+				if(ok)
+				{
+					for(int i = 0; t > 0 && i < sol.checked.size(); i++)
+						if(sol.checked[i] == 0)
+						{
+							t--;
+							printf("%d %d\n", sol.solutionId, i);
+							sol.checked[i] = 1;
+						}
+					curSolutions.push_back(sol);
+				}
+			}
+			for(int i = 0; i < curSolutions.size(); i++)
+				solutions.erase(solution(-1, curSolutions[i].solutionId));
+			for(int i = 0; i < curSolutions.size(); i++)
+				solutions.insert(curSolutions[i]);
+		}
+		puts("-1 -1");
+		fflush(stdout);
+	}
+	return 0;
+}

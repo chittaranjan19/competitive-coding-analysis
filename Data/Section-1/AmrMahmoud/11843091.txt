@@ -1,0 +1,138 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int tree[800005][2];
+
+void update(int i,int L,int R,int node,int val, bool ch)
+{
+  if(L == R)
+  {
+    tree[i][ch] = val;
+    return ;
+  }
+  if(node <= (L + R) / 2)
+    update(i*2 + 1, L, (L + R) / 2, node, val, ch);
+  else update(i*2 + 2, (L + R) / 2 + 1, R, node, val, ch);
+  tree[i][ch] = min(tree[i*2 + 1][ch], tree[i*2 + 2][ch]);
+}
+
+int query(int i,int L,int R,int x,int y, int ch)
+{
+  if(L >= x && R <= y)
+    return tree[i][ch];
+  if(L > y || R < x)
+    return 1000000;
+  return min(query(i*2 + 1, L, (L + R) / 2, x, y, ch), query(i*2 + 2, (L + R) / 2 + 1, R, x, y, ch));
+}
+
+int r[200005], c[200005];
+bool up[200005];
+
+map<int, int> m;
+set<pair<int, int> > s;
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  //freopen("funny.in", "r", stdin);
+  //freopen("funny.out", "w", stdout);
+  int n, q;
+  cin >> n >> q;
+  char ch;
+  vector<int> v;
+  for(int i=0;i<q;i++)
+  {
+    cin >> r[i] >> c[i] >> ch;
+    if(m.find(r[i]) == m.end())
+    {
+      m[r[i]] = i;
+      v.pb(r[i]);
+    }
+    if(m.find(c[i]) == m.end())
+    {
+      m[c[i]] = i;
+      v.pb(c[i]);
+    }
+    if(ch == 'L') up[i] = true;
+  }
+  sort(v.begin(), v.end());
+  m.clear();
+  for(int i=0;i<v.size();i++)
+    m[v[i]] = i;
+  for(int i=0;i<800005;i++)
+    for(int j=0;j<2;j++)
+      tree[i][j] = 1000000;
+  int sz = m.size(), x, y;
+  for(int i=0;i<q;i++)
+  {
+    x = r[i], y = c[i];
+    if(s.find(mp(x, y)) != s.end())
+    {
+      cout << "0\n";
+      continue;
+    }
+    s.insert(mp(x, y));
+    int L = 0, R = 0, z;
+    if(up[i]) R = m[x] - 1, z = R;
+    else R = m[y] - 1, z = R;
+    int tmp;
+    if(up[i]) tmp = y;
+    else tmp = x;
+    if(query(0, 0, sz - 1, 0, z, !up[i]) > tmp)
+    {
+      int sol = 0;
+      if(up[i]) sol+=x;
+      else sol+=y;
+      cout << sol << "\n";
+      update(0, 0, sz - 1, z + 1, 1, up[i]);
+    }
+    while(R > L)
+    {
+      int mid = L + (R - L) / 2;
+      int nxt = query(0, 0, sz - 1, mid, z, !up[i]);
+      if(nxt <= tmp) L = mid;
+      else R = mid - 1;
+    }
+    int sol = -v[L];
+    if(up[i]) sol+=x;
+    else sol+=y;
+    cout << sol << "\n";
+    update(0, 0, sz - 1, z + 1,v[L] , up[i]);
+  }
+  return 0;
+}

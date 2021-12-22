@@ -1,0 +1,86 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+char str[maxn];
+int z[maxn], pref[maxn], seen[maxn], n;
+vector<pii> v;
+
+void compute_z()
+{
+    int i, k, l, r;
+    l = r = -1;
+    for(i=1; i<n; i++){
+        if(r<i){
+            l = r = i;
+            while(1){
+                if(str[r]!=str[r-l])
+                    break;
+                r++;
+            }
+            z[i] = r-l;
+            r--;
+        }
+        else{
+            k = i-l;
+            if(z[k]<(r-i+1))
+                z[i] = z[k];
+            else{
+                l = i;
+                while(1){
+                    if(str[r]!=str[r-l])
+                        break;
+                    r++;
+                }
+                z[i] = r-l;
+                r--;
+            }
+        }
+    }
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int i, j, ans=0;
+    scanf("%s", str);
+    n = strlen(str);
+    compute_z();
+    for(i=1; i<n; i++){
+        //cout << z[i] << " ";
+        pref[z[i]]++;
+        if(z[i]==(n-i))
+            seen[z[i]] = 1;
+    }
+    for(i=n; i>=0; i--)
+        pref[i] = pref[i+1]+pref[i];
+    for(i=1; i<=n; i++){
+        if(!seen[i])
+            continue;
+        ans++;
+        v.pb(mp(i, pref[i]+1));
+    }
+    ans++;
+    v.pb(mp(n, 1));
+    printf("%d\n", ans);
+    for(i=0; i<v.size(); i++)
+        printf("%d %d\n", v[i].f, v[i].s);
+
+    return 0;
+}

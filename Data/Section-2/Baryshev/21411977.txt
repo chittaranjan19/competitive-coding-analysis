@@ -1,0 +1,81 @@
+#include <string>
+#include <vector>
+#include <map>
+#include <list>
+#include <iterator>
+#include <cassert>
+#include <set>
+#include <queue>
+#include <iostream>
+#include <sstream>
+#include <stack>
+#include <deque>
+#include <cmath>
+#include <memory.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cctype>
+#include <algorithm>
+#include <utility>
+#include <time.h>
+#include <complex>
+#include <fstream>
+#include <tuple>
+#include <iomanip>
+#include <time.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+using namespace std;
+
+const int MAX_N = 2e5;
+const int inf = 1e9;
+
+int main(){
+    int n, T;
+    int w[MAX_N][3], kol[MAX_N] = {0, };
+    int dp[MAX_N][2];
+    int max_i = 0, max_r = 0;
+    cin >> n >> T;
+    int start[MAX_N];
+    for (int i = 0; i < n; i++){
+        cin >> start[i];
+        kol[start[i]]++;
+    }
+    for (int i = n; i < n * n; i++){
+        start[i] = start[i - n];
+    }
+    for (int i = 0; i <= n * n; i++)
+        dp[i][0] = inf;
+    dp[0][0] = -1;
+    for (int i = 0; i < n * n; i++){
+        int left = 0;
+        int right = n + 1;
+        while(right - left > 1){
+            int middle = (right + left) / 2;
+            if (dp[middle][0] > start[i])
+                right = middle;
+            else left = middle;
+        }
+        dp[right][0] = start[i];
+        dp[right][1] = i;
+        w[i][1] = i;
+        if (right == 1) w[i][0] = -1;
+        else w[i][0] = dp[right - 1][1];
+        w[i][2] = right;
+    }
+    if (T <= n) {
+    for (int i = 0; i < n * T; i++)
+        if (w[i][2] > max_r){
+                max_r = w[i][2];
+                max_i = i;
+            }
+            cout << max_r; return 0;}
+    for (int i = 0; i < n * T; i++)
+        if (w[i][2] + (T - n) * kol[start[i]] > max_r){
+                max_r = w[i][2] + + (T - n) * kol[start[i]];
+                max_i = i;
+            }
+    cout << max_r;
+return 0;
+}

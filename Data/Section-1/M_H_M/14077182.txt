@@ -1,0 +1,110 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+
+const int N = 300 * 1000 + 100;
+const ll M = 1000 * 1000 * 1000 + 7;
+
+vector <ll> g[N];
+ll n;
+ll st[N];
+ll ft[N];
+ll h[N];
+ll a[N];
+int T;
+
+void dfs(int v, int p){
+	st[v] = T ++;
+	a[st[v]] = v;
+	for(int u : g[v]){
+		if(u == p) continue;
+		h[u] = h[v] + 1;
+		dfs(u, v);
+	}
+	ft[v] = T;
+}
+
+ll fen[N];
+
+void ad(int p, int val){
+	for(p ++; p < N; p += p & -p){
+		fen[p] += val;
+		fen[p] %= M;
+	}
+}
+
+ll gt(int p, ll sum = 0){
+	for(; p; p -= p & -p){
+		sum += fen[p];
+		sum %= M;
+	}
+	return sum;
+}
+
+ll q[4 * N];
+
+void update(int v, int s, int e, int l, int r, int k){
+	if(r <= s || e <= l) return;
+	if(l <= s && e <= r){
+		q[v] += k;
+		q[v] %= M;
+		return;
+	}
+	int mid = (s + e) / 2;
+	update(2 * v + 0, s, mid, l, r, k);
+	update(2 * v + 1, mid, e, l, r, k);
+}
+
+ll get(int v, int s, int e, int p){
+	if(p < s || e <= p) return 0;
+	if(e - s == 1) return (h[a[p]] * q[v]) % M;
+	int mid = (s + e) / 2;
+	return ((h[a[p]] * q[v] % M + get(2 * v + 0, s, mid, p)) % M + get(2 * v + 1, mid, e, p)) % M;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for(int i = 1; i < n; ++i){
+		int p;
+		cin >> p;
+		p --;
+		g[i].PB(p);
+		g[p].PB(i);
+	}
+	dfs(0, -1);
+	int q;
+	cin >> q;
+	for(int i = 0; i < q; ++i){
+		int t;
+		cin >> t;
+		if(t == 1){
+			int v, x, k;
+			cin >> v >> x >> k;
+			v --;
+			ad(st[v], (x + h[v] * k) % M);
+			ad(ft[v], (-x - h[v] * k) % M);
+			update(1, 0, n, st[v], ft[v], k);
+		}
+		else{
+			int v;
+			cin >> v;
+			v --;
+			cout << ((gt(st[v] + 1) - get(1, 0, n, st[v])) % M + M) % M << "\n";
+		}
+	}
+	return 0;
+}

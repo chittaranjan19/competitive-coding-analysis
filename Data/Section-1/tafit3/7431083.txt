@@ -1,0 +1,87 @@
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+public class ProblemA2 {
+    private ProblemA2() throws IOException {
+        BufferedInputStream is = new BufferedInputStream(System.in);
+        char[] ca = read(is);
+        char[] cb = read(is);
+        int len = Math.max(ca.length,cb.length)+2;
+        int[] a = preprocess(ca, len);
+        int[] b = preprocess(cb, len);
+        boolean res = false;
+        for(int i=len-1;i>=0;i--) {
+            if(a[i] > b[i]) {
+                out(">");
+                res = true;
+                break;
+            } else if(a[i] < b[i]) {
+                out("<");
+                res = true;
+                break;
+            }
+        }
+        if(!res) {
+            out("=");
+        }
+    }
+
+    private char[] read(InputStream is) throws IOException {
+        char[] c1 = new char[100000];
+        int cpos = 0;
+        int d;
+        boolean firstOne = false;
+        while(true) {
+            d = is.read();
+            if(d=='1' || d=='0') {
+                if(d=='1' || firstOne) {
+                    if(d == '1') {
+                        firstOne = true;
+                    }
+                    c1[cpos] = (char)d;
+                    cpos++;
+                }
+            } else {
+                break;
+            }
+        }
+        char[] c;
+        if(firstOne) {
+            c = new char[cpos];
+            System.arraycopy(c1,0,c,0,cpos);
+        } else {
+            c = new char[] { '0' };
+        }
+        return c;
+    }
+
+    private int[] preprocess(char[] c, int len) {
+        int n = c.length;
+        int[] v = new int[len];
+        for(int i=0;i<n;i++) {
+            v[i] = c[n-1-i]=='1'?1:0;
+        }
+        boolean found = true;
+        while(found) {
+            found = false;
+            for(int i=n;i>=1;i--) {
+                if(v[i]>=1 && v[i-1]>=1) {
+                    found = true;
+                    v[i]--;
+                    v[i-1]--;
+                    v[i+1]++;
+                }
+            }
+        }
+        return v;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemA2();
+    }
+}

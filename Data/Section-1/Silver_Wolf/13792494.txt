@@ -1,0 +1,78 @@
+// in the name of allah
+
+#include<bits\stdc++.h>
+#include <stdio.h>
+
+#define debug(x) cout<<#x<<" = "<<x<<endl
+#define pb(k) push_back(k)
+#define pf(k) push_front(k)
+#define pob() pop_back()
+#define pof() pop_front()
+#define LL long long
+#define LB long double
+#define PII pair <int,int>
+#define PLI pair <long long,int>
+#define sin(k) sin(k*PI/180)
+#define tan(k) sin(k*PI/180)
+#define cot(k) sin(k*PI/180)
+#define cos(k) cos(k*PI/180)
+
+
+using namespace std;
+
+ifstream input("input.txt");
+ofstream output("output.txt");
+
+const int MOD=1000*1000*100;
+const int MAXN=100+10;
+const int MAXM=10+1;
+const int INF=1000*1000*100;
+
+long long a [MAXN][MAXN][MAXM][MAXM];
+bool A [MAXN][MAXN][MAXM][MAXM];
+
+
+long long solve(int n1, int n2, int k1, int k2){
+    if(A[n1][n2][k1][k2])return a[n1][n2][k1][k2];
+    
+    long long sum=0;
+    
+    for(int i=1;i<=k1 && i<=n1;i++){
+        sum+=solve(n2,n1-i,k2,k1);
+        sum%=MOD;
+    }
+    
+    A[n1][n2][k1][k2]=true;
+    a[n1][n2][k1][k2]=sum;  
+    
+    return sum;
+} 
+long long chose(long long A,long long B){
+    A=max(A,B-A);
+    long long s=1;
+    for(int i=A+1;i<=B;i++){
+        s*=i;
+        s/=(i-A);
+    }
+    return s%MOD;
+}
+bool check(int n1,int n2,int k1,int k2){
+    int t1=(n1+k1-1)/k1;
+    int t2=(n2+k2-1)/k2;
+    if( t1>n2+1 or t2>n1+1 )return 0;
+    return 1;
+}
+int main(){
+    
+    ios_base::sync_with_stdio(false);
+    cin.tie(false);cout.tie(false);
+    
+    int n1,n2;
+    int k1,k2;
+    cin>>n1>>n2>>k1>>k2;
+    for(int i=0;i<=k1;i++)
+        for(int j=0;j<=k2;j++)
+            a[i][j][k1][k2]=chose(i-1,i+j-1),A[i][j][k1][k2]=true,a[j][i][k2][k1]=chose(j-1,i+j-1),a[j][i][k2][k1]=true;
+    if(check(n1,n2,k1,k2))cout<<(solve(n1,n2,k1,k2)+solve(n2,n1,k2,k1))%MOD;
+    else cout<<0;
+}

@@ -1,0 +1,96 @@
+import java.util.*;
+
+public class Main {
+
+	public static void main(String[] args) {
+
+		Scanner in = new Scanner(System.in);
+
+		int n = in.nextInt();
+		int m = in.nextInt();
+
+		ArrayList<ArrayList<Integer>> al = new ArrayList<>();
+		for (int i = 0; i < n; i++) {
+			al.add(new ArrayList<Integer>());
+		}
+
+		for (int i = 0; i < m; i++) {
+			int v = in.nextInt() - 1;
+			int u = in.nextInt() - 1;
+			al.get(v).add(u);
+			al.get(u).add(v);
+		}
+
+		boolean[] even = new boolean[n];
+		boolean[] odd = new boolean[n];
+
+		int[] dist = new int[n];
+		boolean[] visited = new boolean[n];
+		
+		Stack<Integer> s = new Stack<>();
+		for (int x = 0; x < n; x++) {
+			if (!visited[x]) {
+				s.clear();
+				
+				s.push(x);
+				visited[x] = true;
+
+				dist[x] = 0;
+				if (al.get(x).size() > 0)
+					even[x] = true;
+				while (!s.isEmpty()) {
+					int node = s.pop();
+					for (int next : al.get(node)) {
+						if (!visited[next]) {
+							visited[next] = true;
+							dist[next] = dist[node] + 1;
+							s.push(next);
+							if (dist[next] % 2 == 0) {
+								even[next] = true;
+							} else {
+								odd[next] = true;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		for (int i = 0; i < n; i++) {
+			for (int j : al.get(i)) {
+				if ((even[i] && odd[j]) || (even[j] && odd[i]))
+					continue;
+				else {
+					System.out.println(-1);
+					System.exit(0);
+				}
+			}
+		}
+
+		int even_count = 0;
+		for (boolean b : even) {
+			if (b)
+				even_count++;
+		}
+		System.out.println(even_count);
+		for (int i = 0; i < n; i++) {
+			if (even[i])
+				System.out.print((i + 1) + " ");
+		}
+		System.out.println();
+
+		int odd_count = 0;
+		for (boolean b : odd) {
+			if (b)
+				odd_count++;
+		}
+		System.out.println(odd_count);
+		for (int i = 0; i < n; i++) {
+			if (odd[i])
+				System.out.print((i + 1) + " ");
+		}
+		System.out.println();
+
+		in.close();
+	}
+}

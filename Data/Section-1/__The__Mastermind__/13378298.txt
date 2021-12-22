@@ -1,0 +1,85 @@
+uses math;
+
+const
+  tfi = '';//'583d.inp';
+  tfo = '';//'583d.out';
+
+var
+  n,nn,t,tt,cc,res,vmax,key : longint;
+  a,f : array [1..10000] of longint;
+  c,v : array [1..300] of longint;
+
+procedure enter;
+  var i : longint;
+  begin
+    assign(input,tfi);
+    reset(input);
+    read(n,t); nn := n*n;
+    for i := 1 to n do
+      begin
+        read(a[i]);
+        inc(c[a[i]]);
+        vmax := max(vmax,a[i]);
+        tt := max(tt,c[a[i]]);
+      end;
+    for i := n+1 to nn do a[i] := a[i-n];
+    close(input);
+  end;
+
+procedure update(i,x : longint);
+  begin
+    while i <= 300 do
+      begin
+        v[i] := max(v[i],x);
+        i := i + (i and (-i));
+      end;
+  end;
+
+function get(i : longint) : longint;
+  var tmp : longint;
+  begin
+    tmp := 0;
+    while i > 0 do
+      begin
+        tmp := max(tmp,v[i]);
+        i := i - (i and (-i));
+      end;
+    exit(tmp);
+  end;
+
+procedure process;
+  var i : longint;
+  begin
+    key := maxlongint;
+    for i := 1 to nn do
+      begin
+        f[i] := get(a[i]) + 1;
+        if i <= n*t then
+          begin
+            res := max(res,f[i]);
+            res := max(res,(t - (i - 1) div n - 1)*tt);
+          end;
+        update(a[i],f[i]);
+        if (a[i] = vmax) and (f[i] = n) then
+          begin
+            cc := t - (i - 1) div n - 1;
+            key := i;
+            exit;
+          end;
+      end;
+  end;
+
+procedure print;
+  begin
+    assign(output,tfo);
+    rewrite(output);
+    if key > n*t then write(res)
+    else write(cc*tt + n);
+    close(output);
+  end;
+
+begin
+  enter;
+  process;
+  print;
+end.

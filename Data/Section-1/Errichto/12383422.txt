@@ -1,0 +1,89 @@
+#include <cstdio>
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <cstring>
+#include <map>
+#include <set>
+#include <iterator>
+#include <string>
+#include <queue>
+#include <cctype>
+using namespace std;
+#define LL long long
+const LL l1 = 1LL;
+const int Len = 100000;
+const LL Mod = 1000000033;
+const LL inf = (l1<<60);
+vector<pair<int, LL> > E[Len+5], rE[Len+5];
+int n, m, s, t;
+queue<int> Q;
+LL L[Len+5], rL[Len+5];
+LL ways[Len+5], rways[Len+5];
+bool vis[Len+5];
+struct edge {
+    int a, b, v;
+}eg[Len+5];
+void Init()
+{
+    for (int i = 1; i <= n; ++i) {
+        E[i].clear();
+        rE[i].clear();
+        L[i] = inf;
+        rL[i] = inf;
+        ways[i] = rways[i] = 0;
+    }
+}
+void spfa(int start, vector<pair<int, LL> > EE[], LL dist[], LL way[]) {
+    memset(vis, 0, sizeof(vis));
+    while (!Q.empty()) Q.pop();
+    dist[start] = 0;
+    way[start] = 1;
+    Q.push(start);
+    vis[start] = true;
+    while (!Q.empty()) {
+        int cur = Q.front();
+        Q.pop();
+        vis[cur] = false;
+        for (int i = 0; i < EE[cur].size(); ++i) {
+            int nex = EE[cur][i].first, d = EE[cur][i].second;
+            if (dist[nex] > dist[cur]+d) {
+                dist[nex] = dist[cur]+d;
+                way[nex] = way[cur];
+                if (!vis[nex]) {
+                    vis[nex] = true;
+                    Q.push(nex);
+                }
+            } else if (dist[nex] == dist[cur] + d) {
+                way[nex] += way[cur];
+                way[nex] %= Mod;
+            }
+        }
+    }
+}
+void solve()
+{
+    spfa(s, E, L, ways);
+    spfa(t, rE, rL, rways);
+    for (int i = 1; i <= m; ++i) {
+        int a = eg[i].a, b = eg[i].b, v = eg[i].v;
+        if (L[a] + v + rL[b] == L[t] && (ways[a]*rways[b])%Mod == ways[t]) puts("YES");
+        else if (L[a] + 1 + rL[b] < L[t]) {
+            printf("CAN %d\n", v - (L[t]-L[a]-rL[b]) + 1);
+        }
+        else puts("NO");
+    }
+}
+int main()
+{
+    while (scanf("%d%d%d%d", &n, &m, &s, &t) != EOF) {
+        Init();
+        for (int i = 1; i <= m; ++i) {
+            scanf("%d%d%d", &eg[i].a, &eg[i].b, &eg[i].v);
+            E[eg[i].a].push_back(make_pair(eg[i].b, eg[i].v));
+            rE[eg[i].b].push_back(make_pair(eg[i].a, eg[i].v));
+        }
+        solve();
+    }
+    return 0;
+}

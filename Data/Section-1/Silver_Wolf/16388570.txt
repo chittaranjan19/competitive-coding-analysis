@@ -1,0 +1,71 @@
+//INOG
+//<MohammadJavad Akbari/>
+//I Try So Hard And Got So Far,But In The End It Doesn't Even Matter... 
+#include<bits/stdc++.h>
+using namespace std;
+
+#define mp make_pair
+#define ll long long
+#define int long long
+#define ld long double
+#define pb(x) push_back(x)
+#define all(x) x.begin(),x.end()
+#define endl '\n'
+const long long MAXN=1e6+51;
+const long long MAXM=3e3;
+const long long MOD=1610612741;
+const long long mod=1e9+7;
+const long long INF=1e15+5040;
+const int dx[4]={1,-1,0,0};
+const int dy[4]={0,0,-1,1};
+
+bool vis[MAXN];
+vector<int>ver[MAXN];
+vector<pair<int,int>>eg;
+int DpDown[MAXN];
+int DpUp[MAXN];
+int Dis[MAXN];
+
+void dfs(int v=0,int dis=0,int par=-1){
+	vis[v]=true;
+	Dis[v]=dis;
+	for(auto u:ver[v])
+		if(vis[u] && u!=par)
+			DpDown[v]=min(DpDown[v],Dis[u]);
+		else if(!vis[u]){
+			dfs(u,dis+1,v);
+			DpUp[v]=min(DpUp[v],DpDown[u]);
+		}
+	DpUp[v]=min(DpUp[v],DpDown[v]);
+}
+main(){
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);cout.tie(0);
+	int n,m;
+	cin>>n>>m;
+	for(int i=0;i<m;i++){
+		int x,y;
+		cin>>x>>y;
+		x--,y--;
+		ver[x].push_back(y);
+		ver[y].push_back(x);
+		eg.push_back(mp(x,y));
+	}
+	fill(DpUp,DpUp+MAXN,INF);
+	fill(DpDown,DpDown+MAXN,INF);
+	dfs();
+	for(int i=1;i<n;i++)
+		//cout<<">>>"<<i+1<<':'<<Dis[i]<<' '<<DpUp[i]<<'\n';
+		if(DpUp[i]>=Dis[i])return cout<<0,0;
+	
+	for(int i=0;i<m;i++)
+		if(abs(Dis[eg[i].first]-Dis[eg[i].second])==1){
+			if(Dis[eg[i].first]>Dis[eg[i].second])cout<<eg[i].second+1<<' '<<eg[i].first+1<<'\n';
+			else cout<<eg[i].first+1<<' '<<eg[i].second+1<<'\n';
+		}
+		else{
+			if(Dis[eg[i].first]<Dis[eg[i].second])cout<<eg[i].second+1<<' '<<eg[i].first+1<<'\n';
+			else cout<<eg[i].first+1<<' '<<eg[i].second+1<<'\n';
+		}
+}
+

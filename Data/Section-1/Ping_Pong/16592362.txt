@@ -1,0 +1,97 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+using namespace std;
+
+const int inf = (int)1e9;
+const int MOD = (int)1e9 + 7;
+const int p = 239;
+const int MAX_N = 1000;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+vector<int> z_f(string s)
+{
+	int len = s.size(), l = -1, r = -1;
+	vector<int> z(len);
+	for (int i = 0; i < len; i++)
+		z[i] = 0;
+	for (int i = 1; i < len; i++)
+		if (i > r)
+		{
+			l = i; r = i - 1;
+			for (int j = 0; j < len - i; j++)
+				if (s[j] == s[i + j])
+				{
+					z[i]++;
+					r++;
+				}
+				else
+					break;
+		}
+		else
+		{
+			z[i] = min(z[i - l], r - i + 1);
+			for (int j = i + z[i]; j < len; j++)
+				if (s[j] == s[j - i])
+					z[i]++;
+				else
+					break;
+			if (z[i] > z[i - l])
+			{
+				l = i;
+				r = i + z[i] - 1;
+			}
+		}
+	return z;
+}
+
+int main()
+{
+    //ifstream ifs("input.txt");
+    //ofstream ofs("output.txt");
+    //freopen("candies.in", "r", stdin);
+    //freopen("candies.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, m;
+    cin >> n >> m;
+    string p;
+    cin >> p;
+    int len = p.size();
+    int a[m];
+    for (int i = 0; i < m; i++)
+        cin >> a[i];
+    vector<int> v = z_f(p);
+    for (int i = 0; i < m - 1; i++)
+        if (a[i] + len > a[i + 1])
+            if (v[a[i + 1] - a[i]] < a[i] + len - a[i + 1])
+            {
+                cout << 0;
+                return 0;
+            }
+    int cnt;
+    if (m == 0)
+        cnt = n;
+    else
+        cnt = a[0] - 1 + n - (a[m - 1] + len - 1);
+    for (int i = 0; i < m - 1; i++)
+        cnt += max(0, a[i + 1] - a[i] - len);
+    long long ans = 1;
+    for (int i = 0; i < cnt; i++)
+        ans = (ans * 26) % MOD;
+    cout << ans;
+    return 0;
+}

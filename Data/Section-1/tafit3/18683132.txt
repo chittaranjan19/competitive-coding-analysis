@@ -1,0 +1,215 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD {
+    BufferedReader rd;
+
+    ProblemD() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int q = intarr()[1];
+        int[] p = intarr();
+        int n = p.length + 1;
+        List<int[]> e = new ArrayList<>();
+        for(int i=0;i<n;i++) {
+            e.add(null);
+        }
+        for(int i=0;i<n-1;i++) {
+            p[i]--;
+            int u = i+1;
+            int v = p[i];
+            add(e,u,v);
+            add(e,v,u);
+        }
+
+        int[] pa = new int[n];
+        int[] ch = new int[n];
+        boolean[] vis = new boolean[n];
+        Queue<Integer> singles = new ArrayDeque<>();
+        Queue<Integer> qu = new ArrayDeque<>();
+        qu.add(0);
+        vis[0] = true;
+        while(!qu.isEmpty()) {
+            int v = qu.poll();
+            int[] ne = e.get(v);
+            if(ne != null) {
+                int visited = 0;
+                for(int u: ne) {
+                    if(!vis[u]) {
+                        vis[u] = true;
+                        visited++;
+                        pa[u] = v;
+                        ch[v]++;
+                        qu.add(u);
+                    }
+                }
+                if(visited == 0) {
+                    singles.add(v);
+                }
+            }
+        }
+
+        int[] c = new int[n];
+        int[] ma = new int[n];
+        int[] ce = new int[n];
+        if(n > 1) {
+            while (!singles.isEmpty()) {
+                int v = singles.poll();
+                c[v] = 1;
+                ce[v] = v;
+                int u = pa[v];
+                ch[u]--;
+                if(ch[u] == 0) {
+                    qu.add(u);
+                }
+            }
+            while(!qu.isEmpty()) {
+                int v = qu.poll();
+                int sum = 1;
+                int pr = pa[v];
+                int[] z = e.get(v);
+                int mm = 0;
+                for(int x: z) {
+                    if(x != pr) {
+                        sum += c[x];
+                        mm = Math.max(mm, c[x]);
+                    }
+                }
+                c[v] = sum;
+                ma[v] = mm;
+                int d = sum / 2;
+                int best = -1;
+                outer: for(int x: z) {
+                    if(x != pr) {
+                        int u = ce[x];
+                        while (true) {
+                            int be = Math.max(sum - c[u], ma[u]);
+                            if(be <= d) {
+                                best = u;
+                                break outer;
+                            }
+                            if(u == v) {
+                                break;
+                            }
+                            u = pa[u];
+                        }
+                    }
+                }
+                if(best == -1) {
+                    best = v;
+                }
+                ce[v] = best;
+                ch[pr]--;
+                if(ch[pr] == 0) {
+                    qu.add(pr);
+                }
+            }
+        }
+
+        StringBuilder buf = new StringBuilder();
+        for(int i=0;i<q;i++) {
+            int v = pint()-1;
+            if(i > 0) {
+                buf.append('\n');
+            }
+            buf.append(ce[v]+1);
+        }
+        out(buf);
+    }
+
+    private void add(List<int[]> e, int u, int v) {
+        int[] z = e.get(u);
+        int[] d;
+        if(z == null) {
+            d = new int[] { v };
+        } else {
+            d = Arrays.copyOf(z, z.length+1);
+            d[z.length] = v;
+        }
+        e.set(u, d);
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

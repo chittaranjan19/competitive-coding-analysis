@@ -1,0 +1,87 @@
+#include <iostream>
+#include <stdlib.h>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <math.h>
+
+using namespace std;
+
+int main()
+{
+    string s, s1;
+    cin >> s;
+    cin >> s1;
+    int used[26];
+    for (int i = 0; i < 26; i++)
+        used[i] = 0;
+    for (int i = 0; i < s1.size(); i++)
+        used[s1[i] - 'a'] = 1;
+
+    vector<vector<int> > letter(26);
+    for (int i = 0; i < s1.size(); i++)
+        letter[s1[i] - 'a'].push_back(i);
+    /*for (int i = 0; i < 26; i++)
+    {
+        cout << char(i + 'a') << " ";
+        for (int j = 0; j < letter[i].size(); j++)
+            cout << letter[i][j] << " ";
+        cout << endl << endl;;
+    }*/
+
+    int pref[s.size() + 1], suff[s.size() + 1];
+    pref[0] = 0; suff[s.size()] = 0;
+    int curr = 0;
+    for (int i = 1; i < s.size() + 1; i++)
+        if (curr < s1.size() && s[i - 1] == s1[curr])
+        {
+            pref[i] = pref[i - 1] + 1;
+            curr++;
+        }
+        else
+            pref[i] = pref[i - 1];
+    curr = s1.size() - 1;
+    for (int i = s.size() - 1; i >= 0; i--)
+        if (curr >= 0 && s[i] == s1[curr])
+        {
+            suff[i] = suff[i + 1] + 1;
+            curr--;
+        }
+        else
+            suff[i] = suff[i + 1];
+
+    /*for (int i = 0; i < s.size() + 1; i++)
+        cout << pref[i] << " ";
+    cout << endl;
+    for (int i = 0; i < s.size() + 1; i++)
+        cout << suff[i] << " ";
+    cout << endl;*/
+
+    int l, r, mid;
+    for (int i = 0; i < s.size(); i++)
+        if (!used[s[i] - 'a'])
+        {
+            cout << "NO";
+            return 0;
+        }
+        else
+        {
+            l = 0; r = letter[s[i] - 'a'].size();
+            while (r - l > 1)
+            {
+                mid = (l + r) / 2;
+                if ((pref[i + 1] - 1) >= letter[s[i] - 'a'][mid])
+                    l = mid;
+                else
+                    r = mid;
+            }
+            //cout << letter[s[i] - 'a'][l] << " " << suff[i + 1] << endl;
+            if ((i < letter[s[i] - 'a'][l]) || (letter[s[i] - 'a'][l] + 1 + suff[i + 1] < s1.size()))
+            {
+                cout << "NO";
+                return 0;
+            }
+        }
+    cout << "YES";
+    return 0;
+}

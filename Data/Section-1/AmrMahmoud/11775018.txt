@@ -1,0 +1,158 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int n, m;
+
+vector<int> g[100005];
+int v[100005];
+bool grp[100005];
+vector<pair<int, int> > edges;
+
+struct disjointset
+{
+    vector<int> rank, parent;
+    int subtrees;
+
+    disjointset(int n)
+    {
+        subtrees = n;
+        for(int i=0;i<n;i++)
+            rank.pb(1),parent.pb(i);
+    }
+
+    int find_set(int x)
+    {
+        if(x == parent[x])
+            return x;
+        return parent[x] = find_set(parent[x]);
+    }
+
+    void link(int x,int y)
+    {
+        if(rank[x] > rank[y])
+            swap(x, y);
+        parent[x] = y;
+        if(rank[x] == rank[y])
+            rank[y]++;
+    }
+
+    bool union_sets(int x,int y)
+    {
+        x = find_set(x),y = find_set(y);
+        if(x != y)
+        {
+            link(x,y);
+            subtrees--;
+        }
+        return x != y;
+    }
+
+    bool same_set(int x,int y)
+    {
+        return find_set(x) == find_set(y);
+    }
+};
+
+bool dfs(int node, bool c)
+{
+  if(v[node])
+  {
+    if(v[node] == c) return true;
+    return false;
+  }
+  v[node] = c;
+  for(int i=0;i<g[node].size();i++)
+    dfs(g[node][i], !c);
+  return true;
+}
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  //freopen("ebola.in", "r", stdin);
+  //freopen("ebola.out", "w", stdout);
+  int x, y, z;
+  cin >> n >> m;
+  disjointset temp(n);
+  for(int i=0;i<n;i++) grp[i] = true;
+  for(int i=0;i<m;i++)
+  {
+    cin >> x >> y >> z;
+    x--, y--;
+    if(z)
+    {
+      grp[x] = false;
+      grp[y] = false;
+      temp.union_sets(x, y);
+    }
+    else edges.pb(mp(x, y));
+  }
+  for(int i=0;i<edges.size();i++)
+  {
+    x = temp.find_set(edges[i].f);
+    y = temp.find_set(edges[i].s);
+    if(x == y)
+    {
+      cout << 0;
+      return 0;
+    }
+    g[x].pb(y);
+    g[y].pb(x);
+    grp[x] = true;
+    grp[y] = true;
+  }
+  int cnt = 0;
+  for(int i=0;i<n;i++)
+  {
+    if(!grp[i] || v[i]) continue;
+    if(!dfs(i, 0))
+    {
+      cout << 0;
+      return 0;
+    }
+    cnt++;
+  }
+  int res = 1;
+  for(int i=0;i<cnt - 1;i++)
+  {
+    res*=2;
+    if(res >= mod) res-=mod;
+  }
+  cout << res;
+  return 0;
+}

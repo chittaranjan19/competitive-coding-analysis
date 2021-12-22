@@ -1,0 +1,65 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int arr[2005], n;
+int cnt[5005], maxdiff;
+double DP[5005][3];
+bool v[5005][3];
+
+double solve(int diff, int phase)
+{
+  if(diff > maxdiff) return 0.0;
+  double &temp = DP[diff][phase];
+  if(v[diff][phase]) return temp;
+  v[diff][phase] = true;
+  if(phase == 2)
+  {
+    for(int i=diff + 1;i<=maxdiff;i++)
+      temp += cnt[i];
+    temp /= n;
+    temp /= (n - 1);
+    temp *= 2;
+    return temp;
+  }
+  for(int i=1;i<=maxdiff;i++)
+    temp += cnt[i] * 1.0 * solve(diff + i, phase + 1);
+  temp /= n;
+  temp /= (n - 1);
+  temp *= 2;
+  return temp;
+}
+
+int main()
+{
+  cin >> n;
+  for(int i=0;i<n;i++)
+    scanf("%d", &arr[i]);
+  sort(arr, arr + n);
+  for(int i=0;i<n;i++)
+  {
+    for(int j=0;j<i;j++)
+    {
+      cnt[arr[i] - arr[j]]++;
+      maxdiff = max(maxdiff, arr[i] - arr[j]);
+    }
+  }
+  printf("%.15lf", solve(0, 0));
+  return 0;
+}

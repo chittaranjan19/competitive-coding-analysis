@@ -1,0 +1,74 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+template<class T> T sqr(T x) { return x*x; }
+
+const int N = 2222;
+
+ld pi = 3.1415926535897932384626433832795;
+
+int n, a[2222], cr = 0;
+map<pair<ll, ll>, int> id;
+vector<int> g[111111];
+map<ll, ll> nds[1100];
+int ans = 0;
+bool used[111111];
+set<int> bad;
+
+void dfs(int v, int d = 0){
+	if (used[v]) return;
+	used[v] = 1;
+	ans = max(d, ans);
+	for (int i = 0; i < g[v].size(); i++)
+		dfs(g[v][i], d + 1);
+}
+
+int main()
+{
+	cin >> n;
+	for (int i = 0; i < n; i++)
+		cin >> a[i];
+	for (int i = 0; i < n; i++){
+		for (int j = 0; j < n; j++){
+			if (i == j) continue;
+			id[mp(a[i], a[j])] = cr++;
+		}
+	}
+	for (int i = 0; i < n; i++){
+		for (int j = 0; j < n; j++){
+			if (i == j) continue;
+			pair<ll, ll> nxt = mp(a[j], a[i] + a[j]);
+			if (id.count(nxt) != 0)
+				g[id[mp(a[i], a[j])]].push_back(id[nxt]), bad.insert(id[nxt]);
+			nxt = mp(a[j], a[j] - a[i]);
+			if (id.count(nxt) != 0)
+				g[id[nxt]].push_back(id[mp(a[i], a[j])]), bad.insert(id[mp(a[i], a[j])]);
+		}
+	}
+	for (int i = 0; i < cr; i++){
+		
+			dfs(i);
+	}
+	cout << ans + 2;
+	return 0;
+}

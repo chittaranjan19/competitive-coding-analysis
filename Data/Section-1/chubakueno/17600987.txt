@@ -1,0 +1,75 @@
+#include <bits/stdc++.h>
+#include <tr1/functional>
+using namespace std;
+typedef long long ll;
+
+vector<ll> vp;
+inline void hash_combine(ll & seed, ll v)
+{
+  seed ^= v + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+struct hasher
+{
+  ll operator()(const pair<ll,ll>& v) const
+  {
+	ll seed = 0;
+    hash_combine(seed, v.first);
+    hash_combine(seed, v.second);
+    return seed;
+  }
+};
+unordered_map<pair<ll,ll>,ll,hasher> mp;
+ll phi(ll x, ll a){
+	if (mp.count(make_pair(x,a)))
+		return mp[make_pair(x,a)];
+	if (a == 1)
+		return (x + 1)/ 2;
+	ll t = phi(x, a-1) - phi(x /vp[a], a-1);
+	return mp[make_pair(x, a)] = t;
+}
+char sp[1000000];
+ll np[1000000];
+ll root(ll x, double p){
+	return pow((double)x,1/p)+1e-10;
+}
+unordered_map<ll,ll> mpi;
+ll pi(ll x){
+	if (x < 1000000) return np[x];
+	if (mpi[x]) return mpi[x];
+	ll a = pi(root(x, 4));
+	ll b = pi(root(x, 2));
+	ll c = pi(root(x, 3));
+	ll sum = phi(x,a) + (b+a-2) * (b-a+1) / 2;
+	for (ll i=a+1;i<=b;++i)
+		sum-= pi(x/vp[i]);
+	for (ll i=a+1;i<=c;++i){
+		ll w=pi(root(x/vp[i],2));
+		for(ll j=i;j<=w;++j)
+			sum-= pi(x/(vp[i]*vp[j]))-(j-1);
+	}
+	return mpi[x]=sum;
+}
+int main(){
+	memset(sp,1,sizeof sp);
+	sp[0]=sp[1]=0;
+	vp.push_back(-1);
+	for(int i=2;i<1000000;++i){
+		if(sp[i]==0) continue;
+		vp.push_back(i);
+		for(int j=2*i;j<1000000;j+=i)
+			sp[j]=0;
+	}
+	np[0]=np[1]=0;
+	for(int i=2;i<1000000;++i)
+		np[i]=sp[i]+np[i-1];
+	ll n;
+	cin>>n;
+	ll ans=pi(root(n,3));
+	ll pr2=pi(root(n,2));
+	ans-=pr2*(pr2-1)/2;
+	ans-=pr2;
+	for(int i=1;vp[i]*vp[i]<=n;++i){
+		ans+=pi(n/vp[i]);
+	}
+	cout<<ans<<endl;
+}

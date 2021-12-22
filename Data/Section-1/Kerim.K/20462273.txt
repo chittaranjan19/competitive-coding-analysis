@@ -1,0 +1,80 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+ll s[7][10][MAXN<<2];
+void upd(int x1,int y1,int p,int v,int nd,int x,int y){
+	if(x==y){
+		s[x1][y1][nd]=v;
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(x1,y1,p,v,nd<<1,x,mid);
+	else
+		upd(x1,y1,p,v,nd<<1|1,mid+1,y);
+	s[x1][y1][nd]=s[x1][y1][nd<<1]+s[x1][y1][nd<<1|1];	
+}
+ll tap(int x1,int y1,int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0LL;
+	if(l<=x and y<=r)
+		return s[x1][y1][nd];
+	int mid=(x+y)>>1;
+	ll i1=tap(x1,y1,l,r,nd<<1,x,mid);	
+	ll i2=tap(x1,y1,l,r,nd<<1|1,mid+1,y);
+	return i1+i2;	
+}
+int calc(int i,int z){
+	if(i%(2*(z-1))==0)
+		return 2;
+	if(i%(2*(z-1))<=z)
+		return i%(2*(z-1));
+	return 2*z-(i%(2*(z-1)));	
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	int n,q;
+	scanf("%d",&n);
+	for(int i=1;i<=n;i++){
+		int x;
+		scanf("%d",&x);
+		for(int j=2;j<=6;j++)
+			upd(j,i%(2*j-2),i,x,1,1,n);
+	}
+	scanf("%d",&q);
+	while(q--){
+		int type;
+		scanf("%d",&type);
+		if(type==1){
+			int p,v;
+			scanf("%d%d",&p,&v);
+			for(int j=2;j<=6;j++)
+				upd(j,p%(2*j-2),p,v,1,1,n);
+		}
+		else{
+			int l,r,z;ll ans=0;
+			scanf("%d%d%d",&l,&r,&z);
+			for(int j=1;j<=2*z-2;j++)
+				ans+=ll(calc(j,z)*tap(z,(l+j-1)%(2*z-2),l,r,1,1,n));
+			printf("%lld\n",ans);
+		}
+	}
+	return 0;
+}

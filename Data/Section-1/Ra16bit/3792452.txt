@@ -1,0 +1,72 @@
+#include <cstdio>
+#include <map>
+#include <queue>
+#include <algorithm>
+using namespace std;
+typedef pair<long long, long long> pli;
+long long n,m,k,i,j,y,b[200200];
+long long h,x,e,p[200200],w[200200];
+vector<long long> a[200200];
+priority_queue<pli,vector<pli>,greater<pli> > q;
+priority_queue<pair<long long, long long> > all;
+map<long long, long long> M;
+int main() {
+  scanf("%I64d%I64d%I64d%I64d",&h,&n,&m,&k);
+  for (i=0; i<n; i++) {
+    scanf("%I64d%I64d",&x,&y);
+	w[i]=x-1;
+	a[w[i]%k].push_back(w[i]);
+	M[w[i]]=y;
+  }
+  for (i=0; i<k; i++) {
+    sort(a[i].begin(),a[i].end());
+	if (i==0) {
+	  for (j=0; j<a[i].size(); j++) all.push(make_pair(M[a[i][j]],a[i][j]));
+	  p[i]=0; b[i]=-1;
+	} else {
+	  b[i]=int(a[i].size())-1;
+	  p[i]=2000000000000000000LL;
+	}
+  }
+  while (m--) {
+    scanf("%I64d",&y);
+	if (y==1) {
+	  scanf("%I64d",&x);
+	  for (i=0; i<k; i++) q.push(make_pair(p[i],i));
+	  while (!q.empty()) {
+	    i=q.top().second;
+		e=q.top().first;
+		q.pop();
+		if (e!=p[i]) continue;
+		for (; b[i]>=0 && a[i][b[i]]>=p[i]; b[i]--) all.push(make_pair(M[a[i][b[i]]],a[i][b[i]]));
+		j=(i+x)%k;
+		if (p[i]+x<p[j]) {
+		  p[j]=p[i]+x;
+		  q.push(make_pair(p[j],j));
+		}
+	  }
+	  continue;
+	}
+	if (y==3) {
+	  if (all.empty()) {
+	    puts("0");
+		continue;
+	  }
+	  while (true) {
+	    j=all.top().first;
+	    x=all.top().second;
+		all.pop();
+		i=M[x];
+		if (j==i) {
+		  printf("%I64d\n",j);
+		  break;
+		}
+		all.push(make_pair(i,x));
+	  }
+	  continue;
+	}
+	scanf("%I64d%I64d",&x,&y);
+	M[w[x-1]]-=y;
+  }
+  return 0;
+}

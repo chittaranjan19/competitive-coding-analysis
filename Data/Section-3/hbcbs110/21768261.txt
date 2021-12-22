@@ -1,0 +1,88 @@
+#include<iostream>
+#include<algorithm>
+#include<cstdio>
+#include<stack>
+#include<map>
+#include<set>
+using namespace std;
+int c[200005],fa[200005];
+long long ans=0,sm,mx;
+int n,m,k,tmp;
+stack <int> st;
+set <int> vis;
+map <int,int> mp;
+void fanit()
+{
+    for(int i=0;i<200002;i++) fa[i]=i;
+}
+inline int find(int x)
+{
+    if(fa[x]==x) return x;
+    else return fa[x]=find(fa[x]);
+}
+void merge(int x,int y)
+{
+    x=find(x),y=find(y);
+    if(x!=y)
+    {
+        if(x>y) fa[y]=fa[x];
+        else fa[x]=fa[y];
+    }
+}
+void fndltk()
+{
+    set <int> :: iterator iti;
+    set <int> :: iterator itj;
+    map <int,int> :: iterator itm;
+    for(iti=vis.begin();iti!=vis.end();)
+    {
+        mp.clear();
+        for(itj=vis.begin();itj!=vis.end();itj++)
+        {
+            if(find(*iti)==find(*itj))
+            {
+                if(mp.find(c[*itj])==mp.end()) mp[c[*itj]]=1;
+                else mp[c[*itj]]=mp[c[*itj]]+1;
+                st.push(*itj);
+            }
+        }
+        while(!st.empty())
+        {
+            if(vis.find(st.top())==vis.end())
+            {
+                st.pop();
+                continue;
+            }
+            tmp=st.top();
+            st.pop();
+            if(iti==vis.end()) continue;
+            if(vis.find(tmp)==iti) iti++;
+            vis.erase(tmp);
+        }
+        for(itm=mp.begin(),mx=0,sm=0;itm!=mp.end();itm++)
+        {
+            mx=max(mx,(long long)(itm->second));
+            sm=sm+(long long)(itm->second);
+        }
+        sm-=mx;
+        ans+=sm;
+    }
+}
+int main()
+{
+    int i,li,ri;
+    cin>>n>>m>>k;
+    fanit();
+    for(i=1;i<=n;i++) scanf("%d",&c[i]);
+    for(i=0;i<m;i++)
+    {
+        scanf("%d%d",&li,&ri);
+        merge(li,ri);
+        vis.insert(li);
+        vis.insert(ri);
+    }
+    fndltk();
+    printf("%I64d\n",ans);
+    return 0;
+}
+    

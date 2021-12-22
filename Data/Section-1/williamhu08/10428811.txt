@@ -1,0 +1,195 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 17, MAXLG = 17;
+
+struct bit {
+	vector<int> data;
+	int size;
+	bit() {}
+	void resize (int x) {
+		data.resize(x + 1);
+		size = x;
+	}
+	void update (int x, int v) {
+		for (x++; x <= size; x += (x & -x)) {
+			data[x] += v;
+		}
+	}
+	int query (int x) {
+		int s = 0;
+		for (x++; x; x &= x - 1) {
+			s += data[x];
+		}
+		return s;
+	}
+	int query (int x, int y) {
+		return query(y) - query(x - 1);
+	}
+};
+
+int N, Q;
+int A[MAXN], B[MAXN];
+int depth[MAXN], par[MAXN][MAXLG];
+vector<int> adj[MAXN];
+vector<vector<int> > chains;
+vector<bit> chbit;
+int sub[MAXN];
+int bel[MAXN], ind[MAXN];
+
+int dfs (int x, int p, int d) {
+	depth[x] = d++;
+	par[x][0] = p;
+	int &ref = sub[x];
+	ref = 1;
+	for (int t : adj[x]) {
+		if (t != p) {
+			ref += dfs(t, x, d);
+		}
+	}
+	return ref;
+}
+
+void dfs2 (int x, int p, vector<int> &ref) {
+	ref.push_back(x);
+	bel[x] = chains.size() - 1;
+	ind[x] = ref.size() - 1;
+	for (int t : adj[x]) {
+		if (t == p) {
+			continue;
+		}
+		vector<int> *child = &ref;
+		if (sub[t] * 2 <= sub[x]) {
+			chains.push_back(vector<int> ());
+			child = &chains.back();
+		}
+		dfs2(t, x, *child);
+	}
+}
+
+int up (int x, int d) {
+	for (int i = 0; i < MAXLG; i++) {
+		if (d & (1 << i)) {
+			x = par[x][i];
+		}
+	}
+	return x;
+}
+
+int lca (int x, int y) {
+	if (depth[x] < depth[y]) {
+		swap(x, y);
+	}
+	x = up(x, depth[x] - depth[y]);
+	if (x == y) {
+		return x;
+	}
+	for (int i = MAXLG - 1; i >= 0; i--) {
+		if (par[x][i] != par[y][i]) {
+			x = par[x][i];
+			y = par[y][i];
+		}
+	}
+	return par[x][0];
+}
+
+bool safe (int x, int u) {
+	u = up(x, depth[x] - depth[u] - 1);
+	for (;;) {
+		int cur = bel[x];
+		bool uexist = (bel[u] == cur);
+		int iu = uexist ? ind[u] : 0;
+		if (chbit[cur].query(iu, ind[x])) {
+			if (N == 25) {
+				printf("cur = %d, iu = %d, ind[%d] = %d\n", cur, iu, x, ind[x]);
+			}
+			return false;
+		}
+		if (uexist) {
+			break;
+		}
+		x = par[chains[cur][0]][0];
+	}
+	return true;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d", &N);
+	for (int i = 1; i < N; i++) {
+		int &a = A[i], &b = B[i];
+		scanf("%d %d", &a, &b);
+		adj[a].push_back(b);
+		adj[b].push_back(a);
+	}
+	dfs(1, 0, 0);
+	for (int i = 1; i < N; i++) {
+		int &a = A[i], &b = B[i];
+		if (depth[a] < depth[b]) {
+			swap(a, b);
+		}
+	}
+	chains.reserve(N);
+	chains.resize(1);
+	dfs2(1, 0, chains.front());
+	chbit.resize(chains.size());
+	for (int i = 0, sz = chains.size(); i < sz; i++) {
+		chbit[i].resize(chains[i].size());
+	}
+	for (int j = 1; j < MAXLG; j++) {
+		for (int i = 1; i <= N; i++) {
+			par[i][j] = par[par[i][j - 1]][j - 1];
+		}
+	}
+	for (int type = scanf("%d", &Q), x, y; Q--; ) {
+		scanf("%d %d", &type, &x);
+		if (type == 1) {
+			x = A[x];
+			chbit[bel[x]].update(ind[x], -1);
+			if (N == 25) {
+				puts("upd");
+			}
+		} else if (type == 2) {
+			x = A[x];
+			chbit[bel[x]].update(ind[x], 1);
+			if (N == 25) {
+				puts("upd");
+			}
+		} else {
+			scanf("%d", &y);
+			if (x == y) {
+				puts("0");
+				continue;
+			}
+			if (depth[x] < depth[y]) {
+				swap(x, y);
+			}
+			int u = lca(x, y);
+			bool ans;
+			if (u == y) {
+				ans = safe(x, y);
+			} else {
+				ans = safe(x, u) && safe(y, u);
+			}
+			if (ans) {
+				printf("%d\n", depth[x] + depth[y] - 2 * depth[u]);
+			} else {
+				puts("-1");
+			}
+		}
+	}
+	//4U9525
+}

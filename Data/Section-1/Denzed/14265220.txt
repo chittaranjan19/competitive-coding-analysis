@@ -1,0 +1,87 @@
+#include <fstream>
+#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <cmath>
+#include <complex>
+#include <map>
+
+using namespace std;
+
+typedef long long ll;
+
+const int MN = 1e7;
+
+int h, w;
+bool used[15][15][4];
+bool desk[15][15];
+
+void dfs(int x, int y, int d)
+{
+    if (used[x][y][d])
+        return;
+    used[x][y][d] = true;
+    if (d == 0 && x > 0 && desk[x - 1][y])
+    {
+        dfs(x - 1, y, d);
+        return;
+    }
+    if (d == 1 && y < w - 1 && desk[x][y + 1])
+    {
+        dfs(x, y + 1, d);
+        return;
+    }
+    if (d == 2 && x < h - 1 && desk[x + 1][y])
+    {
+        dfs(x + 1, y, d);
+        return;
+    }
+    if (d == 3 && y > 0 && desk[x][y - 1])
+    {
+        dfs(x, y - 1, d);
+        return;
+    }
+    dfs(x, y, (d + 1) % 4);
+}
+
+
+int main()
+{
+    cin >> h >> w;
+    vector<string> brd(h);
+    for (int i = 0; i < h; ++i)
+    {
+        cin >> brd[i];
+    }
+    int x, y, d;
+    map<char, int> dir = { { 'U', 0 }, { 'R', 1 }, { 'D', 2 }, { 'L', 3 } };
+    for (int i = 0; i < h; ++i)
+    {
+        for (int j = 0; j < w; ++j)
+        {
+            if (brd[i][j] != '*')
+                desk[i][j] = true;
+            if (brd[i][j] != '*' && brd[i][j] != '.')
+            {
+                x = i;
+                y = j;
+                d = dir[brd[i][j]];
+            }
+        }
+    }
+    dfs(x, y, d);
+    int ans = 0;
+    for (int i = 0; i < h; ++i)
+    {
+        for (int j = 0; j < w; ++j)
+        {
+            bool ok = false;
+            for (int k = 0; k < 4; ++k)
+            {
+                ok |= used[i][j][k];
+            }
+            if (ok) ans++;
+        }
+    }
+    cout << ans;
+}

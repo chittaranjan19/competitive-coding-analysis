@@ -1,0 +1,129 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+vector<int> primes;
+int DP[100005];
+bool opened[100005];
+
+void get_primes(LL max){
+    char *sieve;
+    sieve = new char[max/8+1];
+    memset(sieve, 0xFF, (max/8+1) * sizeof(char));
+    for(LL x = 2; x <= max; x++)
+        if(sieve[x/8] & (0x01 << (x % 8))){
+            primes.push_back(x);
+            for(LL j = 2*x; j <= max; j += x)
+                sieve[j/8] &= ~(0x01 << (j % 8));
+        }
+    delete[] sieve;
+}
+
+int main()
+{
+    char c;
+    int n,t,x;
+    cin >> n >> t;
+    get_primes(320);
+    while(t--)
+    {
+        getchar();
+        scanf("%c %d",&c,&x);
+        if(c == '+')
+        {
+            if(opened[x])
+            {
+                printf("Already on\n");
+                continue;
+            }
+            int xx = x;
+            int temp=-1;
+            for(int i=0;i<primes.size() && primes[i] * primes[i] <= x;i++)
+            {
+                int counter = 0;
+                while(x % primes[i] == 0)
+                    counter++,x/=primes[i];
+                if(DP[primes[i]] != 0 && counter)
+                    temp = primes[i];
+            }
+            if(x != 1)
+            {
+                if(DP[x] != 0)
+                    temp = x;
+            }
+            if(temp == -1)
+            {
+                x = xx;
+                opened[x] = true;
+                for(int i=0;i<primes.size() && primes[i] * primes[i] <= x;i++)
+                {
+                    int counter = 0;
+                    while(x % primes[i] == 0)
+                        counter++,x/=primes[i];
+                    DP[primes[i]]+=counter;
+                }
+                if(x != 1) DP[x]++;
+                printf("Success\n");
+                continue;
+            }
+            for(int i=temp;i<=n;i+=temp)
+            {
+                if(opened[i])
+                {
+                    temp = i;
+                    break;
+                }
+            }
+            printf("Conflict with %d\n",temp);
+        }
+        else
+        {
+            if(!opened[x])
+            {
+                printf("Already off\n");
+                continue;
+            }
+            opened[x] = false;
+            for(int i=0;i<primes.size() && primes[i] * primes[i] <= x;i++)
+            {
+                int counter = 0;
+                while(x % primes[i] == 0)
+                    counter++,x/=primes[i];
+                DP[primes[i]]-=counter;
+            }
+            if(x != 1) DP[x]--;
+            printf("Success\n");
+        }
+    }
+    return 0;
+}

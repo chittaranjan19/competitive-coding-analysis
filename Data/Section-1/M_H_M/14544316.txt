@@ -1,0 +1,130 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+const int SQ = 317;
+
+int n, m;
+
+int a[N];
+int sum[SQ];
+int add[SQ];
+map<int, int> mp[SQ];
+int lck[30] = {4, 7, 44, 47, 74, 77, 444, 447, 474, 477, 744, 747, 774, 777, 4444, 4447, 4474, 4477, 4744, 4747, 4774, 4777, 7444, 
+				7447, 7474, 7477, 7744, 7747, 7774, 7777};
+
+inline int readInt(){
+	int _integer=0;
+	char _char=0;
+	while(_char<48)
+		_char=getchar_unlocked();
+	while(_char>=48)
+	{
+		_integer = (_integer << 1) + (_integer << 3) + (_char-48);
+		_char = getchar_unlocked();
+	}
+	return _integer;
+}
+
+bool islck(int x){
+	while(x > 0){
+		if(x % 10 != 4 && x % 10 != 7)
+			return false;
+		x /= 10;
+	}
+	return true;
+}
+
+void update(int val, int l, int r){
+	while(l % SQ != 0 && l < r){
+		mp[l / SQ][a[l]] --;
+		if(islck(a[l] + add[l / SQ])) sum[l / SQ] --;
+		a[l] += val;
+		mp[l / SQ][a[l]] ++;
+		if(islck(a[l] + add[l / SQ])) sum[l / SQ] ++;
+		l ++;
+	}
+	while(r % SQ != 0 && l < r){
+		r --;
+		mp[r / SQ][a[r]] --;
+		if(islck(a[r] + add[r / SQ])) sum[r / SQ] --;
+		a[r] += val;
+		mp[r / SQ][a[r]] ++;
+		if(islck(a[r] + add[r / SQ])) sum[r / SQ] ++;
+	}
+	for(; l < r; l += SQ){
+		add[l / SQ] += val;
+		sum[l / SQ] = 0;
+		for(int i = 0; i < 30; ++i)
+			if(mp[l / SQ].find(lck[i] - add[l / SQ]) != mp[l / SQ].end())
+				sum[l / SQ] += mp[l / SQ][lck[i] - add[l / SQ]]; 	
+	}
+}
+
+int get(int l, int r){
+	int ans = 0;
+	while(l % SQ != 0 && l < r){	
+		if(islck(a[l] + add[l / SQ])) ans ++;
+		l ++;
+	}
+	while(r % SQ != 0 && l < r){
+		r --;
+		if(islck(a[r] + add[r / SQ])) ans ++;	
+	}
+	for(; l < r; l += SQ)
+		ans += sum[l / SQ];
+	return ans;
+}
+
+int main(){
+	n = readInt();
+	m = readInt();
+	for(int i = 0; i < n; ++i){
+		a[i] = readInt();
+		mp[i / SQ][a[i]] ++;
+		if(islck(a[i]))
+			sum[i / SQ] ++;
+	}
+	for(int i = 0; i < m; ++i){
+		char s[6];
+		scanf("%6s", s);
+		if(s[0] == 'a'){
+			int val, l, r;
+			l = readInt();
+			r = readInt();
+			val = readInt();
+			l --;
+			update(val, l, r);
+		}
+		else{
+			int l, r;
+			l = readInt();
+			r = readInt();
+			l --;
+			cout << get(l, r) << "\n";
+		}
+	}
+	return 0;
+}

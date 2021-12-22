@@ -1,0 +1,117 @@
+#include<iostream>
+#include<cstdio>
+#include<map>
+#include<string>
+#include<cstring>
+#include<vector>
+#include<algorithm>
+
+using namespace std;
+
+#define max(a,b) a>b?a:b
+#define min(a,b) a<b?a:b
+
+void scan(long &x); //IMPORTANT: for positive only
+
+bool cmp(const pair<int, pair<int,int> >&i, const pair<int,pair<int,int> >&j)
+{
+        return i.first < j.first;
+}
+
+int n,m;
+
+vector< pair<long, pair<int,int> > > order;
+
+int main(void)
+{
+  cin >> n >> m;
+
+  long a[n][m];
+
+  for(int i=0;i<n;i++)
+     for(int j=0;j<m;j++)
+        {
+            scan(a[i][j]);
+            order.push_back( { a[i][j],{i,j} } );
+        }
+
+  sort(order.begin(),order.end(),cmp);
+
+  int x,y,len,cnum;
+
+  len = order.size();
+
+  vector < pair<int,int> >cstate; // curr num,(x,y)
+
+  cstate.push_back(order[0].second);
+  cnum = 1;
+
+  a[cstate[0].first][cstate[0].second] = 1;
+
+  for(int i=1;i<len;i++)
+  {
+     x = order[i].second.first;
+     y = order[i].second.second;
+
+     if(order[i].first == order[i-1].first)
+     {
+          a[x][y] = cnum;
+          cstate.push_back({x,y});
+     }
+     else
+     {
+         int flag=1; // 1 indicates does not fall in same row or column
+         for(int j=0;j<cstate.size();j++)
+         {
+             if( x==cstate[j].first || y==cstate[j].second )
+             {
+                 flag=0; //falls in same row or column
+                 break;
+             }
+         }
+
+         if(flag)
+         {
+             a[x][y] = cnum;
+             cstate.push_back({x,y});
+         }
+         else
+         {
+             cstate.clear();
+             cstate.push_back({x,y});
+             a[x][y] = ++cnum;
+         }
+     }
+  }
+
+  for(int i=0;i<n;i++,printf("\n"))
+     for(int j=0;j<m;j++)
+        printf("%ld ",a[i][j]);
+
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+
+void scan(long &x)
+{
+    register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+
+   /* register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x; */
+}

@@ -1,0 +1,145 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+/**
+ * Date: 02.05.14
+ * Time: 20:07
+ */
+public class MatchCatch2 {
+
+    public MatchCatch2() throws IOException {
+        BufferedReader rd = new BufferedReader(new InputStreamReader(System.in));
+        String ax = rd.readLine();
+        String bx = rd.readLine();
+        char[] a = ax.toCharArray();
+        char[] b = bx.toCharArray();
+
+        Integer[][] lcp = computeLcp(a,b);
+        Integer[][] lcp2 = computeLcp(a,a);
+        Integer[][] lcp3 = computeLcp(b,b);
+
+        SortedMap<Integer, Map<Integer, Integer>> byRow = new TreeMap<>();
+        SortedMap<Integer, Map<Integer, Integer>> byCol = new TreeMap<>();
+
+        Set<Integer> forbidden = new HashSet<>();
+        for(int i=0;i<a.length;i++) {
+            for(int j=0;j<b.length;j++) {
+                int len = lcp[i][j];
+                if(len > 0) {
+                    Map<Integer, Integer> m1 = byRow.get(len);
+                    if(m1 == null) {
+                        m1 = new HashMap<>();
+                        byRow.put(len, m1);
+                    }
+                    Map<Integer, Integer> m2 = byCol.get(len);
+                    if(m2 == null) {
+                        m2 = new HashMap<>();
+                        byCol.put(len, m2);
+                    }
+                    Integer g1 = m1.get(i);
+                    Integer g2 = m2.get(j);
+                    if(g1 == null && g2 == null) {
+                        m1.put(i, j);
+                        m2.put(j, i);
+                    } else {
+                        forbidden.add(len);
+                    }
+                }
+            }
+        }
+
+        for(Integer f: forbidden) {
+            byRow.remove(f);
+            byCol.remove(f);
+        }
+        if(!byRow.isEmpty()) {
+            for(Map.Entry<Integer, Map<Integer, Integer>> entry: byRow.entrySet()) {
+                int len = entry.getKey();
+                Map<Integer, Integer> r = entry.getValue();
+
+                for(Map.Entry<Integer, Integer> v: r.entrySet()) {
+                    int i = v.getKey();
+                    SortedSet<Integer> unique = new TreeSet<>();
+                    Set<Integer> forb = new HashSet<>();
+                    for(int k=0;k<a.length;k++) {
+                        int key = lcp2[i][k];
+                        if(k != i && (key > 0 && key <= len)) {
+                            if(unique.contains(key)) {
+                                forb.add(key);
+                            } else {
+                                unique.add(key);
+                            }
+                        }
+                    }
+                    unique.removeAll(forb);
+                    Set<Integer> unique2 = new TreeSet<>();
+                    Set<Integer> forb2 = new HashSet<>();
+                    int j = v.getValue();
+                    for(int k=0;k<b.length;k++) {
+                        int key = lcp3[j][k];
+                        if(k != j && (key > 0 && key <= len)) {
+                            if(unique2.contains(key)) {
+                                forb2.add(key);
+                            } else {
+                                unique2.add(key);
+                            }
+                        }
+                    }
+                    unique2.removeAll(forb2);
+                    unique.addAll(unique2);
+                    int ans;
+                    if(unique.isEmpty()) {
+                        ans = 1;
+                    } else {
+                        ans = unique.first() + 1;
+                    }
+                    out(ans);
+                    return;
+                }
+            }
+        }
+        out("-1");
+    }
+
+    private Integer[][] computeLcp(char[] a, char[] b) {
+        int an = a.length;
+        int bn = b.length;
+        Integer[][] lcp = new Integer[an][bn];
+        for(int i=0;i<an;i++) {
+            for(int j=0;j<bn;j++) {
+                if(lcp[i][j] == null) {
+                    List<int[]> q = new LinkedList<>();
+                    q.add(new int[] { i, j });
+                    while(!q.isEmpty()) {
+                        int[] v = q.get(q.size()-1);
+                        if(lcp[v[0]][v[1]] == null) {
+                            if(v[0] < an-1 && v[1] < bn-1) {
+                                Integer curLen = lcp[v[0]+1][v[1]+1];
+                                if(curLen == null) {
+                                    q.add(new int[] { v[0]+1, v[1]+1 });
+                                } else {
+                                    lcp[v[0]][v[1]] = a[v[0]] == b[v[1]]?(1+curLen):0;
+                                    q.remove(q.size()-1);
+                                }
+                            } else {
+                                lcp[v[0]][v[1]] = a[v[0]] == b[v[1]]?1:0;
+                                q.remove(q.size()-1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return lcp;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new MatchCatch2();
+    }
+}

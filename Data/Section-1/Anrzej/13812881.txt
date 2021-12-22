@@ -1,0 +1,84 @@
+#include <iostream>
+#include <algorithm>
+#include <map>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+struct Hash {
+	unsigned long long h1, h2;
+	int l;
+	bool operator<(Hash a) const {
+		return l < a.l || (l == a.l && (h1 < a.h1 || (h1 == a.h1 && h2 < a.h2)));
+	}
+};
+
+int n;
+vector<string> a;
+map< Hash, vector<int> > mp;
+map< Hash, vector<int> >::iterator it;
+
+void toLower(string &s) {
+	for (int i = 0; i < s.size(); i++)
+		if (s[i] >= 'A' && s[i] <= 'Z')
+			s[i] ^= ' ';
+}
+
+string getNormal(string s) {
+	string s1 = "", s2 = "";
+	for (int i = 0; i < s.size(); i++) {
+		if (s[i] == '@') {
+			s2 = s.substr(i + 1, s.size() - i - 1);
+			break;
+		}
+		s1.push_back(s[i]);
+	}
+
+	toLower(s1), toLower(s2);
+
+	if (s2 == "bmail.com") {
+		string buf = "";
+		for (int i = 0; i < s1.size(); i++) {
+			if (s1[i] == '+')
+				break;
+			if (s1[i] != '.')
+				buf.push_back(s1[i]);
+		}
+		s1 = buf;
+	}
+
+	return s1 + "@" + s2;
+}
+
+Hash getHash(string s) {
+	Hash ret; ret.h1 = 0, ret.h2 = 0, ret.l = s.size();
+	for (int i = 0; i < ret.l; i++) {
+		ret.h1 = ret.h1 * 37 + (unsigned long long)(s[i]);
+		ret.h2 = ret.h2 * 31 + (unsigned long long)(s[i]);
+	}
+	return ret;
+}
+
+int main() {
+	cin >> n; a.resize(n);
+
+	for (int i = 0; i < n; i++) {
+		cin >> a[i];
+		string ai = getNormal(a[i]);
+		//cout << ai << endl;
+		Hash ah = getHash(ai);
+		mp[ah].push_back(i);
+	}
+
+	cout << mp.size() << endl;
+
+	for (it = mp.begin(); it != mp.end(); it++) {
+		cout << it->second.size() << " ";
+		for (int i = 0; i < it->second.size(); i++)
+			cout << a[it->second[i]] << " ";
+		cout << endl;
+	}
+	
+	return 0;
+}

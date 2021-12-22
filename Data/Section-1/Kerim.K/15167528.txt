@@ -1,0 +1,79 @@
+//Cok tavsanin pesinde kosan hicbrini yakalmaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define lg(x) ceil(log2(x))
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int n,m,s[MAXN<<2][1<<2],lazy[MAXN<<2];
+string k;
+void i_love_you(int nd){
+	s[nd][0]=s[nd*2][0]+s[nd*2+1][0];
+	s[nd][1]=s[nd*2][1]+s[nd*2+1][1];
+	s[nd][2]=max(s[nd*2][0]+s[nd*2+1][2],s[nd*2][2]+s[nd*2+1][1]);
+	umax(s[nd][2],s[nd*2][0]+s[nd*2+1][1]);
+	s[nd][3]=max(s[nd*2][1]+s[nd*2+1][3],s[nd*2][3]+s[nd*2+1][0]);
+	umax(s[nd][3],s[nd*2][1]+s[nd*2+1][0]);
+}
+void inc(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		swap(s[nd][0],s[nd][1]),swap(s[nd][2],s[nd][3]);
+		lazy[nd]++;
+		return;
+	}
+	if(lazy[nd]&1)
+		swap(s[nd][0],s[nd][1]),swap(s[nd][2],s[nd][3]);
+	lazy[nd*2]+=lazy[nd];
+	lazy[nd*2+1]+=lazy[nd];
+	lazy[nd]=0;
+	int mid=(x+y)>>1;
+	inc(l,r,nd*2,x,mid);
+	inc(l,r,nd*2+1,mid+1,y);
+	i_love_you(nd);
+}
+void build(int nd,int x,int y){
+	if(x==y){
+		if(k[x-1]=='4')
+			s[nd][0]=1;
+		else
+			s[nd][1]=1;
+		s[nd][2]=1;s[nd][3]=1;	
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd*2,x,mid);
+	build(nd*2+1,mid+1,y);
+	i_love_you(nd);
+}
+int main(){
+	cin>>n>>m>>k;
+	build(1,1,n);
+	while(m--){
+		string t;
+		int l,r;
+		cin>>t;
+		if(t=="count")
+			cout<<s[1][2]<<endl;
+		else{
+			cin>>l>>r;
+			inc(l,r,1,1,n);
+		}
+	}
+	return 0;
+}

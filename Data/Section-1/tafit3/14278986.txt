@@ -1,0 +1,184 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemC {
+    BufferedReader rd;
+
+    ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int n = pint();
+        Map<Integer, NavigableMap<Integer, Integer>> byDiff = new HashMap<>();
+        for(int i=0;i<n;i++) {
+            int[] a = intarr();
+            int diff = a[1] - a[0];
+            NavigableMap<Integer, Integer> u = byDiff.get(diff);
+            if(u == null) {
+                u = new TreeMap<>();
+                byDiff.put(diff, u);
+            }
+            u.put(a[0], a[1]);
+        }
+        int[] w = intarr();
+        Map<Integer, NavigableSet<Integer>> wm = new HashMap<>();
+        for(int i=0;i<n;i++) {
+            NavigableSet<Integer> s = wm.get(w[i]);
+            if(s == null) {
+                s = new TreeSet<>();
+                wm.put(w[i], s);
+            }
+            s.add(i+1);
+        }
+        boolean ok = true;
+        NavigableMap<Integer, Map<Integer, Integer>> bySum = new TreeMap<>();
+        int[][] res = new int[n][2];
+        for(Map.Entry<Integer, NavigableMap<Integer, Integer>> e: byDiff.entrySet()) {
+            NavigableSet<Integer> ws = wm.get(e.getKey());
+            if(ws == null) {
+                ok = false;
+                break;
+            }
+            NavigableMap<Integer, Integer> pts = e.getValue();
+            if(ws.size() != pts.size()) {
+                ok = false;
+                break;
+            }
+            Iterator<Integer> it = ws.iterator();
+            for(Map.Entry<Integer, Integer> coords: pts.entrySet()) {
+                int x = coords.getKey();
+                int y = coords.getValue();
+                int key = x+y;
+                Map<Integer,Integer> byCoords = bySum.get(key);
+                if(byCoords == null) {
+                    byCoords = new HashMap<>();
+                    bySum.put(key, byCoords);
+                }
+                int id = it.next();
+                byCoords.put(x, id);
+                res[id-1][0] = x;
+                res[id-1][1] = y;
+            }
+        }
+        if(ok) {
+            Map<Integer, Integer> levelDown = null;
+            for(Map.Entry<Integer, Map<Integer, Integer>> e: bySum.entrySet()) {
+                int sum = e.getKey();
+                for(Map.Entry<Integer, Integer> pe: e.getValue().entrySet()) {
+                    Integer current = pe.getValue();
+                    int x = pe.getKey();
+                    int y = sum - x;
+                    if(x > 0) {
+                        Integer prev = levelDown.get(x-1);
+                        if(prev.compareTo(current) > 0) {
+                            ok = false;
+                            break;
+                        }
+                    }
+                    if(y > 0) {
+                        Integer prev = levelDown.get(x);
+                        if(prev.compareTo(current) > 0) {
+                            ok = false;
+                            break;
+                        }
+                    }
+                }
+                if(!ok) {
+                    break;
+                }
+                levelDown = e.getValue();
+            }
+        }
+        out(ok?"YES":"NO");
+        if(ok) {
+            StringBuilder buf = new StringBuilder();
+            for(int i=0;i<n;i++) {
+                buf.append(res[i][0]).append(' ').append(res[i][1]).append('\n');
+            }
+            out(buf);
+        }
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

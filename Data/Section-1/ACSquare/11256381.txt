@@ -1,0 +1,60 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <queue>
+#include <set>
+using namespace std;
+typedef pair<int,int> P;
+const int MAX_n = 10;
+int cards[2][MAX_n];
+int main()
+{
+    int n,k[2];
+    scanf("%d",&n);
+    for(int i=0;i<2;++i)
+    {
+        scanf("%d",k+i);
+        for(int j=0;j<k[i];++j)
+            scanf("%d",cards[i]+j);
+    }
+    
+    deque<int> que[2];
+    
+    for(int i=0;i<2;++i)
+        for(int j =0;j<k[i];++j)
+            que[i].push_back(cards[i][j]);
+    int cnt=0;      set <P > visited;
+    do
+    {
+        int card[2];
+        for(int i=0;i<2;++i)
+        {
+            card[i]=que[i].front();     que[i].pop_front();
+        }
+        
+        if(card[0]<card[1])
+            for(int i=0;i<2;++i)
+                que[1].push_back(card[i]);
+        else
+            for(int i=1;i>=0;--i)
+                que[0].push_back(card[i]);
+        
+        
+        P crt=make_pair(0,0);
+        for(int i=0;i<que[0].size();++i)            crt.first*=11,crt.first+=que[0][i];
+        for(int i=0;i<que[1].size();++i)            crt.first*=11,crt.second+=que[1][i];
+
+        if(visited.find(crt)!=visited.end())
+            break;
+        
+        visited.insert(crt);
+        ++cnt;
+    }while( !que[0].empty()&&!que[1].empty() );
+    
+    if(!que[0].empty()&&!que[1].empty())
+        printf("%d\n",-1);
+    else    if(que[0].empty())
+        printf("%d %d\n",cnt,2);
+    else
+        printf("%d %d\n",cnt,1);
+}

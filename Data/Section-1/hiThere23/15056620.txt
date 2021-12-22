@@ -1,0 +1,146 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 200100
+#define base1 7
+#define maxC 1000000007
+#define F first
+#define S second
+#define bit(x, i) (((x) >> (i)) & 1)
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+struct bitTree
+{
+    int tree[mn << 1];
+
+    void update(int x, int val)
+    {
+        for(; x < (mn << 1); x += (x & (-x)))
+            tree[x] += val;
+    }
+
+    int get(int x)
+    {
+        int re = 0;
+        for(; x; x -= (x & (-x)))
+            re += tree[x];
+        return re;
+    }
+} t;
+int n, allX[mn], allY[mn], lef[mn], rig[mn], low[mn], high[mn];
+map<int, int> mapX, mapY;
+int X1[mn], X2[mn], Y1[mn], Y2[mn], r1, conX[mn], conY[mn], topX = 0, topY = 0;
+long long ans = 0;
+pair< int, int > eve[mn << 2];
+
+void setup ()
+{
+    cin >> n;
+    FOR(i, 1, n)
+    {
+        cin >> X1[i] >> Y1[i] >> X2[i] >> Y2[i];
+        r1 ++;
+        allX[r1] = X1[i], allY[r1] = Y1[i];
+        r1 ++;
+        allX[r1] = X2[i], allY[r1] = Y2[i];
+    }
+}
+
+void compress()
+{
+    r1 ++;
+    allX[r1] = allY[r1] = -maxC;
+    r1 ++;
+    allX[r1] = allY[r1] = maxC;
+    sort(allX + 1, allX + r1 + 1);
+    sort(allY + 1, allY + r1 + 1);
+    FOR(i, 1, r1)
+    {
+        if (allX[i] != allX[i - 1])
+        {
+            conX[++ topX] = allX[i];
+            mapX[allX[i]] = topX;
+            high[topX] = -maxC;
+            low[topX] = maxC;
+        }
+        if (allY[i] != allY[i - 1])
+        {
+            conY[++ topY] = allY[i];
+            mapY[allY[i]] = topY;
+            lef[topY] = maxC;
+            rig[topY] = -maxC;
+        }
+    }
+}
+
+void compressLine()
+{
+    FOR(i, 1, n)
+    {
+        if (X1[i] == X2[i] && Y1[i] != Y2[i])
+        {
+            if (Y1[i] > Y2[i])
+                swap(Y1[i], Y2[i]);
+            int valX = mapX[X1[i]];
+            high[valX] = max(high[valX], Y2[i]);
+            low[valX] = min(low[valX], Y1[i]);
+        }
+        else
+        {
+            if (X1[i] > X2[i])
+                swap(X1[i], X2[i]);
+            int valY = mapY[Y1[i]];
+            lef[valY] = min(lef[valY], X1[i]);
+            rig[valY] = max(rig[valY], X2[i]);
+        }
+    }
+    r1 = 0;
+    FOR(i, 1, topX)
+    if (high[i] >= low[i])
+    {
+        ans += high[i] - low[i] + 1;
+        eve[++ r1] = mp(i, maxC);
+    }
+    FOR(i, 1, topY)
+    if (rig[i] >= lef[i])
+    {
+        ans += rig[i] - lef[i] + 1;
+        eve[++ r1] = mp(mapX[lef[i]], i);
+        eve[++ r1] = mp(mapX[rig[i]], maxC + i);
+    }
+}
+
+void deleteCross()
+{
+    sort(eve + 1, eve + r1 + 1);
+    FOR(i, 1, r1)
+    {
+        if (eve[i].S < maxC)
+            t.update(eve[i].S, 1);
+        if (eve[i].S == maxC)
+            ans -= t.get(mapY[high[eve[i].F]]) - t.get(mapY[low[eve[i].F]] - 1);
+        if (eve[i].S > maxC)
+            t.update(eve[i].S - maxC, -1);
+    }
+    cout << ans;
+}
+
+void xuly()
+{
+    compress();
+    compressLine();
+    deleteCross();
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

@@ -1,0 +1,276 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+
+bool wavy (ll x) {
+	int h[3];
+	for (; x >= 100; x /= 10) {
+		//check the last 3 digits
+		for (int i = 0, last = x % 1000; i < 3; i++, last /= 10) {
+			h[i] = last % 10;
+		}
+		if (h[0] == h[1] || h[1] == h[2]) {
+			// if (x == 10120101) {
+				// cerr << "bad\n";
+				// assert(0);
+			// }
+			return false;
+		}
+		if ((h[1] < h[0]) ^ (h[1] < h[2])) {
+			// if (x == 10120101) {
+				// cerr << "bad2, x = " << x << endl;
+				// assert(0);
+			// }
+			return false;
+		}
+	}
+	return true;
+}
+
+ll N, K;
+vector<ll> bef;
+vector<ll> after;	//after 10^5
+vector<ll> vrem[int(1e7)];
+vector<ll> special[int(1e6)];	//SPECIAL wavy numbers
+// map<ll, vector<ll> > vrem;
+
+void checkv (ll x) {
+	if (!(x % N)) {
+		// cerr << "haha " << x << endl;
+		if (!--K) {
+			cout << x << endl;
+			exit(0);
+		}
+	}
+}
+
+void test() {
+	rep(it, bef) {
+		int t = *it;
+		if (!wavy(t)) {
+			cout << t << endl;
+			assert(0);
+		};
+	}
+	cout << bef.size() << endl;
+	cout << bef.front() << ' ' << bef.back() << endl;
+	cout << *max_element(bef.begin(), bef.end()) << endl;
+	for (int i = 1; i < int(bef.size()); i++) {
+		assert(bef[i] > bef[i - 1]);
+	}
+}
+
+void gettime() {
+	cout << "sec " << clock() / (float) CLOCKS_PER_SEC << endl;
+}
+
+bool type (ll cur) {
+	cur %= 100;
+	//tens < ones
+	return cur / 10 < cur % 10;
+}
+
+void getbef() {
+	for (int i = 1; i < 100; i++) {
+		bef.push_back(i);
+	}
+	for (int i = 3, cbf = 9; i <= 7; i++) {
+		int ss = bef.size();
+		for (int s = bef.size(); cbf < s; cbf++) {
+			int cur = bef[cbf], b = cur % 100;
+			if (!(b % 11)) {
+				continue;
+			}
+			int d0 = b % 10;
+			if (type(b)) {
+				for (int i = 0; i < d0; i++) {
+					bef.push_back(10 * cur + i);
+				}
+			} else {
+				//d1 > d0 < dn
+				for (int i = d0 + 1; i < 10; i++) {
+					bef.push_back(10 * cur + i);
+				}
+			}
+		}
+		// cerr << "ss " << bef[ss] << endl;
+	}
+	// test();
+}
+
+void categorize() {
+	//categorize the wavy #s
+	rep(it, after) {
+		ll t = *it;
+		vrem[t % N].push_back(t);
+	}
+}
+
+bool special11 (ll x) {
+	return x < 100 && !(x % 11);
+}
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces478E.in", "r", stdin);
+	atexit(gettime);
+#endif
+	// assert(wavy(10120101));
+	cin >> N >> K;
+	// assert(wavy(102));
+	// assert(!wavy(158));
+	// assert(!wavy(100002));
+	//meet in the middle why not?
+	if (K > 1e14 / N) {
+		cout << "-1\n";
+		return 0;
+	}
+	if (N >= 1e7) {
+		for (ll i = N; i <= 1e14; i += N) {
+			if (wavy(i)) {
+				checkv(i);
+			}
+		}
+		//gettime();
+		cout << "-1\n";
+		return 0;
+	}
+	//ok now do meetmid FTW!!
+	getbef();
+	//do a preliminary check
+	rep(it, bef) {
+		checkv(*it);
+	}
+	// assert(wavy(101010));
+	bef.resize(remove_if(bef.begin(), bef.end(), special11) - bef.begin());
+	//ok now we need to merge the two sides
+	after.assign(lower_bound(bef.begin(), bef.end(), ll(1e5)), bef.end());
+	for (vector<ll>::iterator it = after.begin(); (*it) < ll(1e6); it++) {
+		//then what you do is just insert
+		ll c = *it, t = c / 10000;
+		if (t / 10 > t % 10) {
+			special[c % N].push_back(c);
+		}
+	}
+	// cerr << after.size() << endl;
+	// cerr << after.front() << ' ' << after.back() << endl;
+	for (int i = 1; i < 10; i++) {
+		rep(it, after) {
+			ll t = *it;
+			ll val = ll(1e7) * i + t;
+			if (wavy(val / ll(1e5))) {
+				// if (!wavy(val)) {
+					// cerr << "bad val = " << val << endl;
+					// assert(0);
+				// }
+				// cerr << "shostakovich " << val << endl;
+				t /= 10000;
+				if (t < 100) {
+					if (t / 10 <= t % 10) {
+						// assert(!wavy(val));
+						continue;
+					}
+				}
+				// assert(wavy(val));
+				checkv(val);
+			}
+		}
+	}
+	bef.erase(bef.begin(), bef.begin() + 9);
+	assert(bef.front() == 10);
+	categorize();
+	// gettime();
+	rep(it, bef) {
+		ll cur = (*it), t = (ll(1e7) * cur) % N;
+		if (t) {
+			t = N - t;
+		}
+		vector<ll> &ref = vrem[t];
+		//now check for the type of #
+		// assert(wavy(cur));
+		bool tp = type(cur);	//tens < ones
+		int ones = cur % 10;
+		// cerr << "ones = " << ones << endl;
+		for (int i = 0; i < 10; i++) {
+			//i is the leading digit
+			// cerr << "i'm right now at " << cur << ' ' << i << endl;
+			vector<ll>::iterator lt, rt;
+			if (tp) {
+				//tens < ones. so then take a smaller digit and then a bigger digit than that
+				if (i >= ones) {
+					break;
+				}
+				if (!i && t >= ll(1e6)) {
+					continue;
+				}
+				vector<ll> &what = i ? ref : special[t];
+				lt = lower_bound(what.begin(), what.end(), ll(1e5) * (10 * i + (i + 1)));
+				rt = lower_bound(what.begin(), what.end(), ll(1e5) * (10 * (i + 1)));
+			} else {
+				//tens > ones
+				if (i <= ones) {
+					continue;
+				}
+				lt = lower_bound(ref.begin(), ref.end(), ll(1e5) * (10 * i));
+				rt = lower_bound(ref.begin(), ref.end(), ll(1e5) * (10 * i + i));
+			}
+			//ok now take i_j, where j > i
+			//higher is just lower_bound
+			int diff = rt - lt;
+			// cerr << "at " << cur << ' ' << i << " there are " << diff << endl;
+			// for (__typeof(lt) t = lt; t != rt; t++) {
+				// ll vv = ll(1e7) * cur + (*t);
+				// if (vv % N) {
+					// cerr << "bad div " << vv << endl;
+				// }
+				// if (!wavy(vv)) {
+					// cerr << "bad wave " << vv << endl;
+					// assert(0);
+				// }
+				// cerr << "rugt " << vv << endl;
+			// }
+			if (K <= diff) {
+				//then it exists hey
+				lt += K - 1;	//careful off by one. this is a stupid mistake to make
+				cout << ll(1e7) * cur + (*lt) << endl;
+				return 0;
+			} else {
+				K -= diff;
+			}
+		}
+	}
+	cout << "-1\n";
+}

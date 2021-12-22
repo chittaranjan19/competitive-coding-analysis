@@ -1,0 +1,77 @@
+#include <iostream>
+#include <algorithm>
+#include <set>
+#include <vector>
+
+using namespace std;
+
+struct E {
+	int x1, x2, i, x;
+	bool isleft;
+	E(){}
+	E(int lx1, int lx2, int li, bool lisleft) {
+		x1 = lx1; x2 = lx2; i = li; isleft = lisleft;
+		if (isleft) x = x1;
+		else x = x2;
+	}
+};
+
+struct cmpEleft {
+	bool operator() (const E &e1, const E &e2) const {
+		return e1.x < e2.x || (e1.x == e2.x && 
+				(e1.isleft && !e2.isleft));
+	}
+};
+
+struct cmpE {
+	bool operator() (const E &e1, const E &e2) const {
+		return e1.x2 < e2.x2 || (e1.x2 == e2.x2 && e1.x1 < e2.x1);
+	}
+};
+
+vector<E> events;
+set<E, cmpE> q;
+vector<int> ans;
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	int n, m;
+	cin >> n >> m;
+	for (int i = 0; i < m; i++) {
+		int r, c; cin >> r >> c;
+		int lb = n+1 - r;
+		int rb = c;
+		events.push_back(E(lb, rb, i+1, true));
+		events.push_back(E(lb, rb, i+1, false));
+	}
+	sort(events.begin(), events.end(), cmpEleft());
+	int ind = 0;
+	for (int x = 1; x <= n; x++) {
+		while (ind < events.size() && events[ind].isleft && events[ind].x == x) {
+			q.insert(events[ind]);
+			ind++;
+		}
+		if (!q.empty()) {
+			set<E, cmpE>::iterator it = q.begin();
+			E e = *it;
+			ans.push_back(e.i);
+			q.erase(e);
+		}
+		while (ind < events.size() && !events[ind].isleft && events[ind].x == x) {
+			E e = events[ind];
+			if (q.count(e) > 0) {
+				q.erase(e);
+			}
+			ind++;
+		}
+	}
+	cout << ans.size() << endl;
+	for (int i = 0; i < ans.size(); i++) {
+		if (i > 0) cout << ' ';
+		cout << ans[i];
+	}
+	cout << endl;
+	return 0;
+}

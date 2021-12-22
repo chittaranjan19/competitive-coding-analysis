@@ -1,0 +1,370 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 2010;
+
+void setmin (int &a, int b) {
+	if (a > b) {
+		a = b;
+	}
+}
+
+int N, M;
+bool grid[MAXN][MAXN];
+int psum[MAXN][MAXN];
+int nextup[MAXN][MAXN], nextdown[MAXN][MAXN], nextrt[MAXN][MAXN], nextlft[MAXN][MAXN];
+
+int getpsum (int x1, int y1, int x2, int y2) {
+	x1--;
+	y1--;
+	return psum[x2][y2] - psum[x1][y2] - psum[x2][y1] + psum[x1][y1];
+}
+
+bool flawless (int x1, int y1, int x2, int y2) {
+	return !getpsum(x1, y1, x2, y2);
+}
+
+//screw this bit if it is slow
+
+int bit[MAXN];
+vector<int> bynext[MAXN];
+
+void update (int x, int v) {
+	for (; x < MAXN; x += (x & -x)) {
+		bit[x] += v;
+	}
+}
+
+int query (int x) {
+	int s = 0;
+	for (; x; x &= x - 1) {
+		s += bit[x];
+	}
+	return s;
+}
+
+int query (int x, int y) {
+	return x > y ? 0 : query(y) - query(x - 1);
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d", &N, &M);
+	fillchar(grid, true);	//well the whole grid is covered up
+	for (int i = 1; i <= N; i++) {
+		getchar();
+		for (int j = 1; j <= M; j++) {
+			grid[i][j] = (getchar() == '#');
+		}
+	}
+	//create the psum
+	for (int i = 1; i <= M; i++) {
+		psum[1][i] = psum[1][i - 1] + grid[1][i];
+	}
+	for (int i = 2; i <= N; i++) {
+		int p = 0;
+		for (int j = 1; j <= M; j++) {
+			p += grid[i][j];
+			psum[i][j] = psum[i - 1][j] + p;
+			// cout << "psum[" << i << "][" << j << "] = " << psum[i][j] << endl;
+		}
+	}
+	// cout << getpsum(1, 4, 4, 4) << endl;
+	//lots of cases. gotta watch out.
+	ll ans = 0;
+	//first: casework by # of turns
+	//case 0: 0 turns
+	for (int i = 2; i < N; i++) {
+		ans += flawless(i, 1, i, M);
+	}
+	for (int j = 2; j < M; j++) {
+		ans += flawless(1, j, N, j);
+	}
+	// cerr << "ans = " << ans << endl;
+	//case 1: 1 turn
+	for (int i = 2; i < N; i++) {
+		for (int j = 2; j < M; j++) {
+			//consider 4 cases
+			//[i][0], [i][M]
+			//[0][j], [N][j]
+			// cerr << "blaa\n";
+			ans += (flawless(i, 1, i, j) + flawless(i, j, i, M)) * (flawless(1, j, i, j) + flawless(i, j, N, j)); 
+		}
+	}
+	//case 2: 2 turn. this is the hard part. 8 cases. CODE IT!!!
+	//first compute the nextup, nextdown, nextlft, nextrt
+	for (int j = 1; j <= M; j++) {
+		//nextup
+		int u = 0;
+		for (int i = 1; i <= N; i++) {
+			if (grid[i][j]) {
+				u = i;
+			}
+			nextup[i][j] = u;
+		}
+		//nextdown
+		u = N + 1;
+		for (int i = N; i; i--) {
+			if (grid[i][j]) {
+				u = i;
+			}
+			nextdown[i][j] = u;
+		}
+	}
+	for (int i = 1; i <= N; i++) {
+		//nextlft
+		int u = 0;
+		for (int j = 1; j <= M; j++) {
+			if (grid[i][j]) {
+				u = j;
+			}
+			nextlft[i][j] = u;
+		}
+		u = M + 1;
+		for (int j = M; j; j--) {
+			if (grid[i][j]) {
+				u = j;
+			}
+			nextrt[i][j] = u;
+			// cerr << "set nextrt[" << i << "][" << j << "] = " << nextrt[i][j] << endl;
+		}
+	}
+	// int la = ans;
+	//first one: top
+	for (int i = 2; i < M - 1; i++) {
+		int ni = nextdown[1][i];
+		if (ni <= 2) {
+			//totally blocked
+			continue;
+		}
+		for (int j = 1; j <= M; j++) {
+			bynext[j].clear();
+		}
+		for (int j = 1; j <= N; j++) {
+			// cerr << "nextrt[" << j << "][" << i << "] = " << nextrt[j][i] << endl;
+			bynext[nextrt[j][i]].push_back(j);
+		}
+		fillchar(bit, 0);
+		for (int j = 2; j < ni && j < N; j++) {
+			update(j, 1);
+		}
+		for (int j = i + 1; j < M; j++) {
+			//ok let's think about this.
+			if (j - i >= 2) {
+				ans += query(2, min(ni, nextdown[1][j]) - 1);
+				// cerr << "i = " << i << ", j = " << j << endl;
+				// cerr << "add 2 to " << min(ni, nextdown[1][j]) - 1 << " = " << query(2, min(ni, nextdown[1][j]) - 1) << endl;
+			}
+			for (int k : bynext[j]) {
+				// cerr << "kill " << k << endl;
+				update(k, -1);
+			}
+		}
+	}
+	// cerr << "now diff " << ans - la << endl;
+	// cerr << " ans " << ans << endl;
+	//second one: bottom
+	for (int i = 2; i < M - 1; i++) {
+		int ni = nextup[N][i];
+		if (ni >= N - 1) {
+			continue;
+		}
+		for (int j = 1; j <= M; j++) {
+			bynext[j].clear();
+		}
+		for (int j = 1; j <= N; j++) {
+			bynext[nextrt[j][i]].push_back(j);
+		}
+		fillchar(bit, 0);
+		for (int j = N - 1; j > ni && j > 1; j--) {
+			update(j, 1);
+		}
+		for (int j = i + 1; j < M; j++) {
+			if (j - i >= 2) {
+				ans += query(max(ni, nextup[N][j]) + 1, N - 1);
+				// cerr << "add " << max(ni, nextup[N][j]) + 1 << " to " << N - 1 << " = " << query(max(ni, nextup[N][j]) + 1, N - 1) << endl;
+			}
+			for (int k : bynext[j]) {
+				update(k, -1);
+			}
+		}
+	}
+	//third one: left
+	for (int i = 2; i < N - 1; i++) {
+		int ni = nextrt[i][1];
+		if (ni <= 2) {
+			continue;
+		}
+		for (int j = 1; j <= N; j++) {
+			bynext[j].clear();
+		}
+		for (int j = 1; j <= M; j++) {
+			bynext[nextdown[i][j]].push_back(j);
+		}
+		fillchar(bit, 0);
+		for (int j = 2; j < ni && j < M; j++) {
+			update(j, 1);
+		}
+		for (int j = i + 1; j < N; j++) {
+			if (j - i >= 2) {
+				ans += query(2, min(ni, nextrt[j][1]) - 1);
+				// cerr << "add 2 to " << min(ni, nextrt[j][1]) - 1 << " = " << query(2, min(ni, nextrt[j][1]) - 1) << endl;
+			}
+			for (int k : bynext[j]) {
+				update(k, -1);
+			}
+		}
+	}
+	//fourth one: right
+	for (int i = 2; i < N - 1; i++) {
+		int ni = nextlft[i][M];
+		if (ni >= M - 1) {
+			continue;
+		}
+		for (int j = 1; j <= N; j++) {
+			bynext[j].clear();
+		}
+		for (int j = 1; j <= M; j++) {
+			bynext[nextdown[i][j]].push_back(j);
+		}
+		fillchar(bit, 0);
+		for (int j = M - 1; j > 1 && j > ni; j--) {
+			update(j, 1);
+		}
+		for (int j = i + 1; j < N; j++) {
+			if (j - i >= 2) {
+				ans += query(max(ni, nextlft[j][M]) + 1, M - 1);
+				// cerr << "add " << max(ni, nextlft[j][M]) + 1 << " to " << M - 1 << " = " << query(max(ni, nextlft[j][M]) + 1, M - 1) << endl;
+			}
+			for (int k : bynext[j]) {
+				update(k, -1);
+			}
+		}
+	}
+	// cerr << "ans = " << ans << endl;
+	//ok let's see what's next. it's the crossing over. je suis charlie
+	//first one: vertical. >>>>
+	// int la = ans;
+	for (int i = 2; i < M - 1; i++) {
+		int ni = nextdown[1][i];
+		if (ni <= 2) {
+			//totally blocked
+			continue;
+		}
+		for (int j = 1; j <= M; j++) {
+			bynext[j].clear();
+		}
+		for (int j = 1; j <= N; j++) {
+			bynext[nextrt[j][i]].push_back(j);
+			// assert(nextrt[j][i] == 90);
+			// if (nextrt[j][i] != 90) {
+				// cerr << "bad " << nextrt[j][i] << endl;
+			// }
+		}
+		fillchar(bit, 0);
+		for (int j = 2; j < ni && j < N; j++) {
+			update(j, 1);
+			// cerr << "add " << j << endl;
+		}
+		for (int j = i + 1; j < M; j++) {
+			//there is no if condition now.
+			int nj = nextup[N][j];
+			ans += query(nj + 1, ni - 1);
+			// cerr << "query = " << query(nj + 1, ni - 1) << endl;
+			// cerr << "i = " << i << ", j = " << j << endl;
+			// cerr << "query " << nj + 1 << ", " << ni - 1 << endl;
+			for (int k : bynext[j]) {
+				// cerr << "j = " << j << ", subtr " << k << endl;
+				update(k, -1);
+			}
+		}
+	}
+	// cout << "diff ans " << ans - la << endl;
+	//second one: vertical. <<<<
+	for (int i = 2; i < M - 1; i++) {
+		int ni = nextup[N][i];
+		if (ni >= N - 1) {
+			continue;
+		}
+		for (int j = 1; j <= M; j++) {
+			bynext[j].clear();
+		}
+		for (int j = 1; j <= N; j++) {
+			bynext[nextrt[j][i]].push_back(j);
+		}
+		fillchar(bit, 0);
+		for (int j = N - 1; j > ni && j > 1; j--) {
+			update(j, 1);
+		}
+		for (int j = i + 1; j < M; j++) {
+			int nj = nextdown[1][j];
+			ans += query(ni + 1, nj - 1);
+			for (int k : bynext[j]) {
+				update(k, -1);
+			}
+		}
+	}
+	//third one: horizontal. vvvv
+	for (int i = 2; i < N - 1; i++) {
+		int ni = nextrt[i][1];
+		if (ni <= 2) {
+			continue;
+		}
+		for (int j = 1; j <= N; j++) {
+			bynext[j].clear();
+		}
+		for (int j = 1; j <= M; j++) {
+			bynext[nextdown[i][j]].push_back(j);
+		}
+		fillchar(bit, 0);
+		for (int j = 2; j < ni && j < M; j++) {
+			update(j, 1);
+		}
+		for (int j = i + 1; j < N; j++) {
+			int nj = nextlft[j][M];
+			ans += query(nj + 1, ni - 1);
+			for (int k : bynext[j]) {
+				update(k, -1);
+			}
+		}
+	}
+	//fourth one: horizontal. ^^^^
+	for (int i = 2; i < N - 1; i++) {
+		int ni = nextlft[i][M];
+		if (ni >= M - 1) {
+			continue;
+		}
+		for (int j = 1; j <= N; j++) {
+			bynext[j].clear();
+		}
+		for (int j = 1; j <= M; j++) {
+			bynext[nextdown[i][j]].push_back(j);
+		}
+		fillchar(bit, 0);
+		for (int j = M - 1; j > 1 && j > ni; j--) {
+			update(j, 1);
+		}
+		for (int j = i + 1; j < N; j++) {
+			int nj = nextrt[j][1];
+			ans += query(ni + 1, nj - 1);
+			for (int k : bynext[j]) {
+				update(k, -1);
+			}
+		}
+	}
+	cout << ans << endl;
+	//JE SUIS CHARLIE
+}

@@ -1,0 +1,110 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 2e3 + 5;
+
+struct edge
+{
+    int x, y, w, next;
+} G[maxn * maxn];
+struct node
+{
+    int x1, y1, x2, y2, id;
+} nd[maxn];
+ll bit[maxn][maxn], ans[maxn];
+int n, m, k, q, head[maxn], tot;
+char s[10];
+bool ok[maxn][maxn], on[maxn];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    memset(bit, 0, sizeof(bit));
+    memset(on, true, sizeof(on));
+    tot = 0;
+}
+
+void addedge(int u, int x, int y, int w)
+{
+    G[tot].x = x;
+    G[tot].y = y;
+    G[tot].w = w;
+    G[tot].next = head[u];
+    head[u] = tot++;
+}
+
+void update(int x, int y, int v)
+{
+    while(x <= n)
+    {
+        for(int i = y; i <= m; i += i & -i)
+        {
+            bit[x][i] += v;
+        }
+        x += x & -x;
+    }
+}
+
+ll query(int x, int y)
+{
+    ll ret = 0;
+    while(x)
+    {
+        for(int i = y; i; i -= i & -i)
+        {
+            ret += bit[x][i];
+        }
+        x -= x & -x;
+    }
+    return ret;
+}
+
+int main()
+{
+    scanf("%d%d%d", &n, &m, &k);
+    init();
+    for(int i = 1; i <= k; ++i)
+    {
+        int l;
+        scanf("%d", &l);
+        for(int j = 0; j < l; ++j)
+        {
+            int x, y, w;
+            scanf("%d%d%d", &x, &y, &w);
+            addedge(i, x, y, w);
+        }
+    }
+    scanf("%d", &q);
+    int cnt = 0;
+    for(int i = 0; i < q; ++i)
+    {
+        scanf("%s", s);
+        if(*s == 'S')
+        {
+            int o;
+            scanf("%d", &o);
+            on[o] ^= 1;
+        }
+        else
+        {
+            scanf("%d%d%d%d", &nd[cnt].x1, &nd[cnt].y1, &nd[cnt].x2, &nd[cnt].y2);
+            nd[cnt].id = i;
+            for(int j = 1; j <= k; ++j) ok[cnt][j] = on[j];
+            ans[cnt++] = 0;
+        }
+    }
+    for(int i = 1; i <= k; ++i)
+    {
+        for(int j = head[i]; ~j; j = G[j].next) update(G[j].x, G[j].y, G[j].w);
+        for(int j = 0; j < cnt; ++j) if(ok[j][i]) ans[j] += query(nd[j].x2, nd[j].y2) - query(nd[j].x1 - 1, nd[j].y2) - query(nd[j].x2, nd[j].y1 - 1) + query(nd[j].x1 - 1, nd[j].y1 - 1);
+        for(int j = head[i]; ~j; j = G[j].next) update(G[j].x, G[j].y, -G[j].w);
+    }
+    for(int i = 0; i < cnt; ++i) printf("%I64d\n", ans[i]);
+    return 0;
+}

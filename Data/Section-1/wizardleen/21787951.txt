@@ -1,0 +1,67 @@
+import java.io.BufferedInputStream;
+import java.util.*;
+
+/**
+ * Created by leen on 26/10/2016.
+ */
+public class _725D {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in));
+        int n = scan.nextInt();
+
+        long t1 = scan.nextLong();
+        long w1 = scan.nextLong();
+
+        Team[] teams = new Team[n-1];
+
+        for(int i = 0; i < n-1; i++)
+            teams[i] = new Team(scan.nextLong(), scan.nextLong());
+
+        Arrays.sort(teams, new Comparator<Team>() {
+            @Override
+            public int compare(Team o1, Team o2) {
+                if(o1.t > o2.t)
+                    return -1;
+                if(o1.t < o2.t)
+                    return 1;
+                return 0;
+            }
+        });
+
+        PriorityQueue<Long> heap = new PriorityQueue<Long>(n / 2, new Comparator<Long>() {
+            @Override
+            public int compare(Long o1, Long o2) {
+                if(o1<o2)
+                    return -1;
+                if(o1>o2)
+                    return 1;
+                return 0;
+            }
+        });
+
+        int p = 0;
+        for(;p < n-1 && teams[p].t > t1; p++)
+            heap.add(teams[p].w - teams[p].t + 1);
+
+        int bestRank = heap.size()+1;
+
+        while(!heap.isEmpty() && t1 >= heap.peek()) {
+            t1 -= heap.poll();
+            for(;p < n-1 && teams[p].t > t1; p++)
+                heap.add(teams[p].w - teams[p].t + 1);
+            bestRank = Math.min(bestRank, heap.size()+1);
+        }
+
+        System.out.println(bestRank);
+    }
+
+    static class Team {
+        long t;
+        long w;
+
+        Team(long t, long w) {
+            this.t = t;
+            this.w = w;
+        }
+    }
+}

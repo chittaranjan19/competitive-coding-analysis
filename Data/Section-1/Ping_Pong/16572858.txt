@@ -1,0 +1,107 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+using namespace std;
+
+const long long inf = (long long)2 * 1e9;
+const long long MOD = (long long)1e9 + 7;
+const long long p = 239;
+const long long MAX_N = 1000;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+int main()
+{
+    //ifstream ifs("input.txt");
+    //ofstream ofs("output.txt");
+    //freopen("candies.in", "r", stdin);
+    //freopen("candies.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    long long n, a, b, t;
+    scanf("%I64d %I64d %I64d %I64d", &n, &a, &b, &t);
+    char v[n];
+    for (long long i = 0; i < n; i++)
+        scanf(" %c", &v[i]);
+    long long pref[n];
+    if (v[0] == 'w')
+        pref[0] = b;
+    else
+        pref[0] = 0;
+    for (long long i = 1; i < n; i++)
+        if (v[i] == 'w')
+            pref[i] = pref[i - 1] + a + b;
+        else
+            pref[i] = pref[i - 1] + a;
+    long long suff[n];
+    if (v[0] == 'w')
+        suff[0] = b;
+    else
+        suff[0] = 0;
+    for (long long i = 1; i < n; i++)
+        if (v[n - i] == 'w')
+            suff[i] = suff[i - 1] + a + b;
+        else
+            suff[i] = suff[i - 1] + a;
+    /*for (long long i = 0; i < n; i++)
+        cout << pref[i] << " ";
+    cout << endl;
+    for (long long i = 0; i < n; i++)
+        cout << suff[i] << " ";
+    cout << endl;*/
+    long long ans = 0;
+    for (long long i = 0; i < n; i++)
+    {
+        if (pref[i] + (i + 1) <= t)
+            ans = max(ans, i + 1);
+        long long cnt = i + 1;
+        long long len = pref[i] + (i + 1) + i * a;
+        if (len > t)
+            continue;
+        long long l = 0, r = n - i, mid;
+        while (r - l > 1)
+        {
+            mid = (l + r) / 2;
+            if (suff[mid] - suff[0] + mid <= (t - len))
+                l = mid;
+            else
+                r = mid;
+        }
+        cnt += l;
+        ans = max(ans, cnt);
+    }
+    for (long long i = 0; i < n; i++)
+    {
+        if (suff[i] + (i + 1) <= t)
+            ans = max(ans, i + 1);
+        long long cnt = i + 1;
+        long long len = suff[i] + (i + 1) + i * a;
+        if (len > t)
+            continue;
+        long long l = 0, r = n - i, mid;
+        while (r - l > 1)
+        {
+            mid = (l + r) / 2;
+            if (pref[mid] - pref[0] + mid <= (t - len))
+                l = mid;
+            else
+                r = mid;
+        }
+        cnt += l;
+        ans = max(ans, cnt);
+    }
+    cout << ans;
+    return 0;
+}

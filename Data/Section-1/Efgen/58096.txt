@@ -1,0 +1,190 @@
+import java.io.*;         
+import java.util.*;         
+import java.math.*;         
+
+ 
+public class Main  implements Runnable {
+//public static final String FileName = "test";
+StreamTokenizer ST;      
+PrintWriter out;      
+BufferedReader br;   
+Scanner in;
+static final int inf = 1000000000;
+ 
+int nextInt() throws IOException{      
+    ST.nextToken();      
+    return (int)ST.nval;      
+}
+long nextLong() throws IOException{      
+    ST.nextToken();      
+    return (long)ST.nval;      
+}      
+String next() throws IOException{      
+    ST.nextToken();      
+    return ST.sval;      
+}      
+double nextD() throws IOException{      
+    ST.nextToken();      
+    return ST.nval;      
+}      
+public static void main(String[] args) throws IOException {       
+   new Thread(new Main()).start();
+//	new Main().run();
+}
+ 
+public void run()  {      
+    try {
+    	br = new BufferedReader(new InputStreamReader(System.in));
+    	out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(System.out)));    	
+    	//br = new BufferedReader(new FileReader(new File("input.txt")));
+    	//out = new PrintWriter(new BufferedWriter(new FileWriter("output.txt")));
+    	in = new Scanner(br);
+        ST = new StreamTokenizer(br);      
+        solve();      
+        out.close();
+        //in.close();
+        br.close();   
+    }         
+    catch (IOException e) {       
+    	e.printStackTrace();
+    	throw new IllegalStateException(e);  
+    }      
+}
+class Point {
+	long x, y;
+	public Point (int xx, int yy) {
+		x = xx; y = yy;
+	}
+	public String toString() {
+		return x+" "+y;
+	}
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + getOuterType().hashCode();
+		result = prime * result + (int) (x ^ (x >>> 32));
+		result = prime * result + (int) (y ^ (y >>> 32));
+		return result;
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Point other = (Point) obj;
+		if (!getOuterType().equals(other.getOuterType()))
+			return false;
+		if (x != other.x)
+			return false;
+		if (y != other.y	)
+			return false;
+		return true;
+	}
+	private Main getOuterType() {
+		return Main.this;
+	}
+}
+long sc(long x1, long y1, long x2, long y2) {
+	return x1*x2+y1*y2;
+}
+long vec(long x1, long y1, long x2, long y2) {
+	return x1*y2-x2*y1;
+}
+long d2(long x, long y) {
+	return x*x+y*y;
+}
+long dist(Point a, Point b) {
+	return d2(b.x-a.x, b.y-a.y);
+}
+class Seg {
+	Point a, b;
+	public Seg(int x1, int y1, int x2, int y2) {
+		a = new Point(x1, y1);
+		b = new Point(x2, y2);
+	}
+	long len() {
+		return dist(a, b);
+	}
+	void swap() {
+		Point q = a; a = b; b = q;
+	}
+	boolean ok(Seg s) {
+		return(a.equals(s.a) ||a.equals(s.b) || b.equals(s.a) || b.equals(s.b));
+	}
+	boolean cont(Point p) {
+		return vec(a.x-b.x, a.y-b.y, p.x-b.x, p.y-b.y)==0 && sc(p.x-a.x, p.y-a.y, b.x-a.x, b.y-a.y)>0 && sc(p.x-b.x, p.y-b.y, a.x-b.x, a.y-b.y)>0; 
+	}
+}
+public void solve() throws IOException {
+	int n = nextInt();
+	while (n-->0) {
+		Seg s1 = new Seg(nextInt(), nextInt(), nextInt(), nextInt());
+		Seg s2 = new Seg(nextInt(), nextInt(), nextInt(), nextInt());
+		Seg s3 = new Seg(nextInt(), nextInt(), nextInt(), nextInt());
+		if (s1.ok(s3)) {
+			Seg q = s2; s2 = s3; s3 = q;
+		} else
+		if (s2.ok(s3)) {
+			Seg q = s1; s1 = s3; s3 = q;
+		}
+		if (!s1.ok(s2)) {
+			out.println("NO"); continue;
+		}
+		if (s1.a.equals(s2.b)) s2.swap();
+		if (s1.b.equals(s2.a)) s1.swap();
+		if (s1.b.equals(s2.b)) {
+			s1.swap();
+			s2.swap();
+		}
+		if (s1.cont(s3.b)) s3.swap();
+		if (!s1.cont(s3.a) || !s2.cont(s3.b) || !s1.a.equals(s2.a)) {
+			out.println("NO"); continue;
+		}
+		long scv =   sc(s1.b.x-s1.a.x, s1.b.y-s1.a.y, s2.b.x-s2.a.x, s2.b.y-s2.a.y);
+		long vecv = vec(s1.b.x-s1.a.x, s1.b.y-s1.a.y, s2.b.x-s2.a.x, s2.b.y-s2.a.y);
+		if (scv>=0 && vecv!=0) {
+			boolean ok = true;
+			long d1 = dist(s1.a, s3.a);
+			long d2 = dist(s3.a, s1.b);
+			if (d2>d1) {
+				long q = d1; d1 = d2; d2 = q;
+			}
+			if (d2*16<d1) ok = false;
+			
+			d1 = dist(s2.a, s3.b);
+			d2 = dist(s3.b, s2.b);
+			if (d2>d1) {
+				long q = d1; d1 = d2; d2 = q;
+			}
+			if (d2*16<d1) ok = false;
+			if (ok) out.println("YES"); else out.println("NO");
+		} else out.println("NO");
+		
+		
+	}
+	
+}
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+  

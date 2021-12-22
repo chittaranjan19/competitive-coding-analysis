@@ -1,0 +1,154 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define pf push_front
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+const int block = 500;
+
+int n, cnt[block][maxn], arr[maxn], block_sz[block];
+deque<int> dq[block], temp;
+
+int get(int bnum, int ind)
+{
+	temp.clear();
+	int lst_elem;
+	while(ind--){
+		lst_elem = dq[bnum].front();
+		dq[bnum].pop_front();
+		temp.pb(lst_elem);
+	}
+	lst_elem = dq[bnum].front();
+	dq[bnum].pop_front();
+	cnt[bnum][lst_elem]--;
+	int ret = lst_elem;
+	while(!temp.empty()){
+		lst_elem = temp.back();
+		temp.pop_back();
+		dq[bnum].pf(lst_elem);
+	}
+	return ret;
+}
+
+void insert(int bnum, int ind, int val)
+{
+	temp.clear();
+	int lst_elem;
+	while(ind--){
+		lst_elem = dq[bnum].front();
+		dq[bnum].pop_front();
+		temp.pb(lst_elem);
+	}
+	dq[bnum].pf(val);
+	while(!temp.empty()){
+		lst_elem = temp.back();
+		temp.pop_back();
+		dq[bnum].pf(lst_elem);
+	}
+	cnt[bnum][val]++;
+}
+
+int cnt_s(int bnum, int ind, int k)
+{
+	int ret = 0;
+	temp.clear();
+	while(ind>=0){
+		int x = dq[bnum].front();
+		dq[bnum].pop_front();
+		temp.pb(x);
+		if(x==k)
+			ret++;
+		ind--;
+	}
+	while(!temp.empty()){
+		int x = temp.back();
+		temp.pop_back();
+		dq[bnum].pf(x);
+	}
+	return ret;
+}
+
+int cnt_e(int bnum, int ind, int k)
+{
+	int ret = 0;
+	temp.clear();
+	while(ind--){
+		int x = dq[bnum].back();
+		dq[bnum].pop_back();
+		temp.pb(x);
+		if(x==k)
+			ret++;
+	}
+	while(!temp.empty()){
+		int x = temp.back();
+		temp.pop_back();
+		dq[bnum].pb(x);
+	}
+	return ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, q, l, r, k, t, ans, start_block, end_block;
+	scanf("%d", &n);
+	for(i=0; i<n; i++){
+		scanf("%d", &arr[i]);
+		dq[i/block].pb(arr[i]);
+		cnt[i/block][arr[i]]++;
+	}
+	for(i=0; i<block; i++)
+		block_sz[i] = dq[i].size();
+	scanf("%d", &q);
+	ans = 0;
+	while(q--){
+		scanf("%d%d%d", &t, &l, &r);
+		l = ((l+ans-1)%n);
+		r = ((r+ans-1)%n);
+		if(l>r)
+			swap(l, r);
+		start_block = l/block;
+		end_block = r/block;
+		if(t==1){
+			int x = get(end_block, r%block);
+			insert(start_block, l%block, x);
+			for(i=start_block+1; i<=end_block; i++){
+				x = dq[i-1].back();
+				dq[i-1].pop_back();
+				cnt[i-1][x]--;
+				dq[i].pf(x);
+				cnt[i][x]++;
+			}
+		}
+		else{
+			scanf("%d", &k);
+			k = ((k+ans-1)%n) + 1;
+			ans = cnt_s(end_block, r%block, k) + cnt_e(start_block, block_sz[start_block]-(l%block), k);
+			if(start_block == end_block){
+				ans = ans - cnt_s(start_block, (l%block)-1, k) - cnt_e(start_block, block_sz[start_block]-(r%block)-1, k);
+				ans /= 2;
+			}
+			else{
+				for(i=start_block+1; i<end_block; i++)
+					ans += cnt[i][k];
+			}
+			printf("%d\n", ans);
+		}
+	}
+	return 0;
+}

@@ -1,0 +1,131 @@
+#include <cstdio>
+#include <cstring>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <utility>
+#include <string>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <set>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define lsone(value) (value)&(-value)
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+class Fenwick {
+private:
+	vector<int> arr;
+	const int size;
+public:
+	Fenwick(int n) : arr(n+1), size(n) {
+		for (int it = 0; it < arr.size(); ++it)
+			arr[it] = 0;
+	}
+	void add(int v, int k) {
+		for (;k <= size; k += lsone(k)) {
+			arr[k] += v;
+		}
+	}
+	int get(int k) {
+		int total = 0;
+		for (;k > 0; k -= lsone(k))  {
+			total += arr[k];
+		}
+		return total;
+	}
+};
+
+template <typename U> class Comparator {
+public:
+    bool operator() (const U lhs, const U rhs) {
+        // implement
+        return true;
+    }
+};
+// end of template
+
+vector<bool> isPrime(31624, true); 
+int main() {
+    // freopen("75C.in", "r", stdin);
+    isPrime[0] = isPrime[1] = false;
+    for (int i = 2; i < 31624; ++i)
+    	if (isPrime[i] == true)
+    		for (int j = i; j*i < 31624; ++j)
+    			isPrime[i*j] = false;
+    vi primes;
+    for (int it = 0; it < 31624; ++it)
+    	if (isPrime[it])
+    		primes.push_back(it);
+
+    int a, b;
+    scanf("%d %d", &a, &b);
+
+    int val = __gcd(a, b);
+    vii factors;
+    for (int it = 0; it < primes.size(); ++it) {
+    	int &prime = primes[it];
+    	int count = 0;
+    	while (val%prime == 0) {
+    		++count;
+    		val /= prime;
+    	}
+    	if (count)
+    		factors.push_back(make_pair(prime, count));
+    }
+    if (val > 1)
+    	factors.push_back(make_pair(val, 1));
+
+    vi ans;
+    ans.push_back(1);
+    for (int it = 0; it < factors.size(); ++it) {
+    	ii &factor = factors[it];
+    	int size = ans.size();
+    	for (int pos = 0; pos < size; ++pos) {
+    		int mult = 1;
+    		for (int j = 0; j < factor.b; ++j) {
+    			mult *= factor.a;
+    			ans.push_back(ans[pos]*mult);
+    		}
+    	}
+    }
+    sort(ans.begin(), ans.end());
+    int n;
+    scanf("%d", &n);
+    while (n--) {
+    	int low, high;
+    	scanf("%d %d", &low, &high);
+    	int l = 0, r = ans.size()-1;
+    	while (l < r) {
+    		int mid = (l+r)/2;
+    		if (ans[mid] < high)
+    			l = mid+1;
+    		else
+    			r = mid;
+    	}
+    	if (ans[l] > high)
+    		--l;
+    	if (ans[l] >= low)
+    		printf("%d\n", ans[l]);
+    	else
+    		printf("-1\n");
+    }
+    return 0;
+}

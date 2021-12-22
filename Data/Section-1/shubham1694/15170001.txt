@@ -1,0 +1,72 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+int graph[205][205], n;
+vector<pii> edges;
+
+int solve(int cur, int parent, int cur_d)
+{
+    int i, u, ret=cur_d;
+    for(i=1; i<=n; i++){
+        if(i!=parent && graph[cur][i])
+            ret = max(ret, solve(i, cur, cur_d+1));
+    }
+    return ret;
+}
+
+pii find(int cur, int parent, int cur_d)
+{
+    int i, u;
+    pii ret = mp(cur_d, cur), x;
+    for(i=1; i<=n; i++){
+        if(i!=parent && graph[cur][i]){
+            x = find(i, cur, cur_d+1);
+            if(ret.f < x.f)
+                ret = x;
+        }
+    }
+    return ret;
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int i, j, u, v, p, d1, d2, ans=0;
+    sd(n);
+    for(i=0; i<n-1; i++){
+        sd(u), sd(v);
+        graph[u][v] = graph[v][u] = 1;
+        edges.pb(mp(u, v));
+    }
+    for(i=0; i<n-1; i++){
+        u = edges[i].f, v = edges[i].s;
+        graph[u][v] = graph[v][u] = 0;
+        p = find(u, v, 0).s;
+        d1 = solve(p, -1, 0);
+        //cout << u << " " << v << " " << p << " " << d1 << " ";
+        p = find(v, u, 0).s;
+        d2 = solve(p, -1, 0);
+        graph[u][v] = graph[v][u] = 1;
+        ans = max(ans, d1*d2);
+        //cout << p << " " << d2 << " " << ans << "\n";
+    }
+    printf("%d\n", ans);
+    return 0;
+}

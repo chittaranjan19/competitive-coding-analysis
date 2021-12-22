@@ -1,0 +1,60 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+
+using namespace std;
+
+const int N = 100 * 1000 + 100;
+const int M = 100 + 10;
+const int L = 1000 + 100;
+
+int m;
+string s, t[M];
+int f[M][L];
+bool mark[N];
+
+int lr[2][M][N];
+
+void kmp(int x){
+    int k;
+    for(int j = 0; j < m; ++j){
+        f[j][1] = k = 0;
+        for(int i = 1; i < SZ(t[j]); ++i){
+            while(k && t[j][i] != t[j][k]) k = f[j][k];
+            if(t[j][i] == t[j][k]) k ++;
+            f[j][i + 1] = k;
+        }
+    }
+    for(int j = 0; j < m; ++j){
+        k = 0;
+        for(int i = 0; i < SZ(s); ++i){
+            while(k && s[i] != t[j][k]) k = f[j][k];
+            if(s[i] == t[j][k]) k++;
+            lr[x][j][i + 1] = max(lr[x][j][i], k);
+            if(k == m) k = f[j][k];
+        }
+    }
+}
+
+int main(){
+    ios::sync_with_stdio(0); cin.tie(0);
+    cin >> s;
+    cin >> m;
+    for(int i = 0; i < m; ++i)
+        cin >> t[i];
+    kmp(0);
+    reverse(s.begin(), s.end());
+    for(int i = 0; i < m; ++i)
+        reverse(t[i].begin(), t[i].end());
+    kmp(1);
+    for(int i = 1; i < SZ(s); ++i){
+        for(int j = 0; j < m; ++j){
+            if(SZ(t[j]) <= lr[0][j][i] + lr[1][j][SZ(s) - i] && SZ(t[j]) > 1)
+                mark[j] = true;
+        }
+    }
+    int ans = 0;
+    for(int i = 0; i < m; ++i)
+        ans += mark[i];
+    cout << ans << "\n";
+}

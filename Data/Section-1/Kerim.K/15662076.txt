@@ -1,0 +1,87 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 200009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int chl[MAXN];
+vector<int>adj[MAXN];
+PII far[MAXN][3];
+void dfs(int nd,int pr){
+	far[nd][0].ss=nd;
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to==pr)
+			continue;
+		chl[nd]++;	
+		dfs(to,nd);
+		if(far[to][0].ff+1>far[nd][0].ff){
+			far[nd][1]=far[nd][0];
+			far[nd][0]=mp(far[to][0].ff+1,far[to][0].ss);
+		}
+		else if(far[to][0].ff+1>far[nd][1].ff)
+			far[nd][1]=mp(far[to][0].ff+1,far[to][0].ss);
+	}
+}
+void dfs2(int nd,int pr){
+	if(pr!=-1){
+		PII tmp=far[pr][0];
+		if(tmp.ss==far[nd][0].ss)
+			tmp=far[pr][1];
+		tmp.ff++;
+		if(tmp.ff>far[nd][0].ff){
+			far[nd][1]=far[nd][0];
+			far[nd][0]=tmp;
+		}
+		else if(tmp.ff>far[nd][1].ff)
+			far[nd][1]=tmp;
+	}
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to!=pr)
+			dfs2(to,nd);
+	}
+}
+int main(){
+	ll mn,x,y,n;
+	scanf("%lld%lld%lld",&n,&x,&y);
+	for(int i=0;i<n-1;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	mn=(n-1)*y;	
+	dfs(1,-1);
+	for(int i=1;i<=n;i++)
+		if(chl[i]==n-1)
+			mn=(mn-y)+x;	
+	dfs2(1,-1);
+	ll mx=0;
+	for(int i=1;i<=n;i++)
+		umax(mx,far[i][0].ff);
+	umin(mn,(mx*x)+(n-mx-1)*y);
+	printf("%lld\n",mn);	
+	return 0;
+}
+/*
+5 3 5
+1 2
+1 3
+1 4
+1 5
+*/

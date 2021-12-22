@@ -1,0 +1,190 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int P = 239;
+const int MAX_N = 500000;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+vector<vector<int> > tree;
+vector<int> tree_size;
+vector<int> sort_type;
+vector<int> need_update;
+int cnt_ver = 1;
+int height = 0;
+vector<pair<int, int> > seg;
+vector<int> buf;
+
+vector<int> part(vector<int> &a, int cnt)
+{
+    vector<int> ans(26, 0);
+    for (int i = 0; i < 26 && cnt > 0; i++)
+    {
+        int d = min(cnt, a[i]);
+        ans[i] += d;
+        cnt -= d;
+        a[i] -= d;
+    }
+    return ans;
+}
+
+vector<int> part_reverse(vector<int> &a, int cnt)
+{
+    vector<int> ans(26, 0);
+    for (int i = 25; i >= 0 && cnt > 0; i--)
+    {
+        int d = min(cnt, a[i]);
+        ans[i] += d;
+        cnt -= d;
+        a[i] -= d;
+    }
+    return ans;
+}
+
+void build(int n, string s)
+{
+    while (cnt_ver < n)
+    {
+        cnt_ver <<= 1;
+        height++;
+    }
+    tree.resize(cnt_ver * 2 - 1);
+    tree_size.resize(cnt_ver * 2 - 1, 1);
+    sort_type.resize(cnt_ver * 2 - 1, 0);
+    for (int i = 0; i < cnt_ver * 2 - 1; i++)
+        tree[i].resize(26, 0);
+    for (int i = 0; i < n; i++)
+        tree[cnt_ver - 1 + i][s[i] - 'a']++;
+    for (int i = cnt_ver - 2; i >= 0; i--)
+    {
+        for (int j = 0; j < 26; j++)
+            tree[i][j] = tree[i * 2 + 1][j] + tree[i * 2 + 2][j];
+        tree_size[i] = tree_size[i * 2 + 1] * 2;
+    }
+}
+
+void push(int x, int sx)
+{
+    if (sort_type[x] == 0)
+        return;
+    tree[x * 2 + 2] = tree[x];
+    if (sort_type[x] == 1)
+        tree[x * 2 + 1] = part(tree[x * 2 + 2], sx / 2);
+    else if (sort_type[x] == -1)
+        tree[x * 2 + 1] = part_reverse(tree[x * 2 + 2], sx / 2);
+    sort_type[x * 2 + 1] = sort_type[x];
+    sort_type[x * 2 + 2] = sort_type[x];
+}
+
+void ans(int x, int lx, int rx, int l, int r)
+{
+    if (l > rx || r < lx)
+        return;
+    else if (lx >= l && rx <= r)
+    {
+        for (int i = 0; i < 26; i++)
+            buf[i] += tree[x][i];
+        seg.push_back(make_pair(x, rx - lx + 1));
+    }
+    else
+    {
+        push(x, rx - lx + 1);
+        ans(x * 2 + 1, lx, (lx + rx) / 2, l, r);
+        ans(x * 2 + 2, (lx + rx) / 2 + 1, rx, l, r);
+        need_update.push_back(x);
+    }
+}
+
+void query(int i, int j, int k)
+{
+    seg.clear();
+    need_update.clear();
+    buf.resize(26, 0);
+    ans(0, cnt_ver - 1, cnt_ver * 2 - 2, cnt_ver - 1 + i - 1, cnt_ver - 1 + j - 1);
+    for (int x = 0; x < seg.size(); x++)
+        if (k == 1)
+        {
+            tree[seg[x].first] = part(buf, seg[x].second);
+            sort_type[seg[x].first] = 1;
+        }
+        else
+        {
+            tree[seg[x].first] = part_reverse(buf, seg[x].second);
+            sort_type[seg[x].first] = -1;
+        }
+    for (int x = 0; x < need_update.size(); x++)
+    {
+        sort_type[need_update[x]] = 0;
+        tree[need_update[x]].resize(26, 0);
+        for (int g = 0; g < 26; g++)
+            tree[need_update[x]][g] = tree[need_update[x] * 2 + 1][g] + tree[need_update[x] * 2 + 2][g];
+    }
+}
+
+void print()
+{
+	int curr = 0, d = cnt_ver - 1, curr_cnt_ver = 1;
+	for (int i = 0; i <= height; i++)
+	{
+		for (int i = 0; i < d; i++)
+			cout << "  ";
+		for (int i = 0; i < curr_cnt_ver; i++)
+		{
+			for (int g = 0; g < 26; g++)
+                for (int h = 0; h < tree[curr][g]; h++)
+                    cout << (char)('a' + g);
+			curr++;
+			for (int i = 0; i < d * 2 + 1; i++)
+				cout << "  ";
+		}
+		cout << endl << endl;
+		curr_cnt_ver *= 2;
+		d /= 2;
+	}
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, q;
+    cin >> n >> q;
+    string s;
+    cin >> s;
+    build(n, s);
+    //print();
+    for (int i = 0; i < q; i++)
+    {
+        int l, r, k;
+        cin >> l >> r >> k;
+        query(l, r, k);
+        //print();
+    }
+    for (int i = 0; i < cnt_ver - 1; i++)
+        push(i, tree_size[i]);
+    //print();
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < 26; j++)
+            if (tree[cnt_ver - 1 + i][j])
+                cout << (char)(j + 'a');
+    return 0;
+}

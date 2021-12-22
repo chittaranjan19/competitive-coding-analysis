@@ -1,0 +1,63 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define llu unsigned long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 4294967296
+
+const int lmt = 100005;
+int depth[lmt];
+bool vis[lmt];
+int ans[lmt];
+vector<int> adj[lmt];
+int st=0,en=0;
+
+void dfs(int x,int k,int p){
+    if(st) return;
+    if(depth[x]){
+        int len = abs(depth[p]-depth[x]) + 1;
+        if(len >= k+1){
+            st = depth[x];
+            en = depth[p];
+//            DEBUG(x);
+//            DEBUG(p);
+//            DEBUG(len);
+//            DEBUG(k+1);
+        }
+        return;
+    }
+    if(vis[x]) return;
+    vis[x] = true;
+    depth[x] = depth[p] + 1;
+    for(int i=0;i<adj[x].size();i++)
+        dfs(adj[x][i],k,x);
+    if(st) return;
+    depth[x] = 0;
+}
+
+int main(){
+    int n,m,k,a,b;
+    scanf("%d %d %d",&n,&m,&k);
+    while(m--){
+        scanf("%d %d",&a,&b);
+        adj[a].pb(b);
+        adj[b].pb(a);
+    }
+    for(int i=1;i<=n;i++){
+        if(!vis[i])
+            dfs(i,k,0);
+    }
+//    for(int i=1;i<=n;i++)
+//        cout<<depth[i]<<endl;
+    if(st > en) swap(st,en);
+    for(int i=1;i<=n;i++)
+        ans[depth[i]] = i;
+    cout<<en-st+1<<"\n";
+    for(int i=st;i<=en;i++) cout<<ans[i]<<" ";
+    return 0;
+}

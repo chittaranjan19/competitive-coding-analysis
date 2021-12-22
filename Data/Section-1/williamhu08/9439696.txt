@@ -1,0 +1,93 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 100010;
+
+struct edge {
+	int v, w;
+	edge (int _v, int _w) {
+		v = _v;
+		w = _w;
+	}
+	bool operator < (const edge &e) const {
+		return w > e.w;
+	}
+};
+
+int N, M, S, L;
+pair<int, pair<int, int> > edges[MAXN];
+int dist[MAXN];
+bool vis[MAXN];
+vector<edge> adj[MAXN];
+priority_queue<edge> pq;
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M >> S;
+	int u, v, w;
+	for (int i = 0; i < M; i++) {
+		cin >> u >> v >> w;
+		adj[u].push_back(edge(v, w));
+		adj[v].push_back(edge(u, w));
+		edges[i] = make_pair(w, make_pair(u, v));
+	}
+	//dijkstra
+	fill_n(dist + 1, N, 1e9);
+	pq.push(edge(S, dist[S] = 0));
+	while (!pq.empty()) {
+		u = pq.top().v;
+		w = pq.top().w;
+		pq.pop();
+		if (vis[u]) {
+			continue;
+		}
+		vis[u] = true;
+		for (edge e : adj[u]) {
+			int ndist = w + e.w;
+			v = e.v;
+			if (dist[v] > ndist) {
+				pq.push(edge(v, dist[v] = ndist));
+			}
+		}
+	}
+	cin >> L;
+	int ans = count(dist + 1, dist + N + 1, L);
+	for (int i = 0; i < M; i++) {
+		u = edges[i].second.first;
+		v = edges[i].second.second;
+		w = edges[i].first;
+		//parts of edges
+		int d[2] = {-1, -1};
+		for (int j = 0; j < 2; j++) {
+			int diff = L - dist[u];
+			if (0 < diff && diff < w) {
+				//make sure there is no definitely short way, thru v
+				if (dist[v] + (w - diff) >= L) {
+					d[j] = diff;
+					// cout << "located " << u << " -> " << v << " distance " << diff << '\n';
+				}
+			}
+			swap(u, v);
+		}
+		if ((d[0] == -1) ^ (d[1] == -1)) {
+			ans++;
+		} else if (d[0] != -1) {
+			d[0] = w - d[0];
+			ans += 2 - (d[0] == d[1]);
+		}
+	}
+	cout << ans << endl;
+}

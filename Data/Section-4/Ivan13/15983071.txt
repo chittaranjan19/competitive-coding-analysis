@@ -1,0 +1,162 @@
+import java.io.*;
+import java.util.*;
+public class SlimeCombining {
+  private static InputReader in;
+  private static PrintWriter out;
+  public static double EPS = 1e-15;
+  public static int maxp = 50;
+  
+  public static void main (String[] args) {
+    in = new InputReader(System.in);
+    out = new PrintWriter(System.out, true);
+    
+    int n = in.nextInt();
+    int p = in.nextInt();
+    
+    double p2 = p / 1000000000., p4 = 1 - p2;
+    double[][] a = new double[maxp][maxp];
+    double[][] b = new double[maxp][maxp];
+    for (int len = 1; len < maxp; len++) { 
+      for (int pow = 1; pow < maxp; pow++) {
+        if (pow == 1) a[len][pow] += p2;
+        if (pow == 2) {
+          a[len][pow] += p4;
+          b[len][pow] += p4;
+        }
+        a[len][pow] += a[len-1][pow-1] * a[len][pow-1];
+        b[len][pow] += a[len-1][pow-1] * b[len][pow-1];
+      }
+    }
+    for (int len = maxp - 1; len >= 1; len--) {
+      for (int pow = 1; pow < maxp; pow++) {
+        a[len][pow] *= 1 - a[len-1][pow];
+        b[len][pow] *= 1 - a[len-1][pow];
+      }
+    }
+    
+    // value of a slime that has been merged i times
+    long[] vals = new long[maxp];
+    for (int i = 0; i < maxp; i++) vals[i] = i;//1l << i;
+    // manually do first few cases
+    double[][] dp = new double[maxp][maxp];
+    double[][] sum = new double[maxp][maxp];
+    for (int cur = 1; cur < maxp; cur++)
+      dp[maxp-1][cur] = vals[cur];
+    
+    // manual dp
+    for (int i = maxp-2; i >= 0; i--) {
+      for (int cur = 1; cur < maxp; cur++) {
+        for (int next = 1; next < maxp; next++) {
+          if (cur == next) continue;
+          if (cur == 1) {
+            dp[i][cur] += b[maxp-i-1][next] * dp[i+1][next];
+            sum[i][cur] += b[maxp-i-1][next];
+          } else {
+            if (cur < next) continue;
+            dp[i][cur] += a[maxp-i-1][next] * dp[i+1][next];
+            sum[i][cur] += a[maxp-i-1][next];
+          }
+        }
+      }
+      for (int cur = 1; cur < maxp; cur++) {
+        dp[i][cur] = vals[cur] + dp[i][cur] / sum[i][cur];
+      }
+    }
+    if (n < maxp) {
+      int k = (int)n;
+      double exp = 0;
+      for (int i = 1; i < maxp; i++) {
+        exp += a[k][i] * dp[maxp-k][i];
+      }
+      out.printf("%.15f\n", exp);
+      out.close();
+      System.exit(0);
+    }
+    
+    double[] vec = new double[maxp+1];
+    System.arraycopy(dp[0], 0, vec, 0, maxp);
+    vec[maxp] = 1;
+    double[][] mat = new double[maxp+1][maxp+1];
+    mat[maxp][maxp] = 1;
+    for (int i = 1; i < maxp; i++) {
+      for (int j = 1; j < maxp; j++) {
+        if (i == j) continue;
+        if (i == 1) {
+          mat[i][j] += b[maxp-1][j] / sum[0][i];
+        } else {
+          if (i < j) continue;
+          mat[i][j] += a[maxp-1][j] / sum[0][i];
+        }
+      }
+      mat[i][maxp] += vals[i];
+    }
+    mat = mat_exp(mat, n - maxp);
+    vec = vec_mult(mat, vec);
+    double exp = 0;
+    for (int i = 1; i < maxp; i++) {
+      exp += a[maxp-1][i] * vec[i];
+    }
+    out.printf("%.15f\n", exp);
+    out.close();
+    System.exit(0);
+  }
+  
+  public static double[] vec_mult(double[][] A, double[] B) {
+    double[] C = new double[A.length];
+    for (int i = 0; i < A.length; i++) {
+      for (int j = 0; j < B.length; j++) {
+        C[i] += A[i][j] * B[j];
+      }
+    }
+    return C;
+  }
+  
+  private static double[][] mat_exp(double[][] A, long e) {
+    if (e == 0) {
+      double[][] ret = new double[A.length][A.length];
+      for (int i = 0; i < A.length; i++) ret[i][i] = 1.0;
+      return ret;
+    }
+    if (e == 1)
+      return A;
+    else if (e % 2 == 0) {
+      double[][] A1 = mat_exp(A, e / 2);
+      return matrix_mult(A1, A1);
+    } else
+      return matrix_mult(A, mat_exp(A, e - 1));
+  }
+
+  private static double[][] matrix_mult(double[][] A, double[][] B) {
+    double[][] C = new double[A.length][A.length];
+    for (int i = 0; i < A.length; i++)
+      for (int j = 0; j < A.length; j++)
+        for (int k = 0; k < A.length; k++)
+          C[i][k] += A[i][j] * B[j][k];
+    return C;
+  }
+
+  static class InputReader {
+    public BufferedReader reader;
+    public StringTokenizer tokenizer;
+
+    public InputReader(InputStream stream) {
+      reader = new BufferedReader(new InputStreamReader(stream), 32768);
+      tokenizer = null;
+    }
+
+    public String next() {
+      while (tokenizer == null || !tokenizer.hasMoreTokens()) {
+        try {
+          tokenizer = new StringTokenizer(reader.readLine());
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+      return tokenizer.nextToken();
+    }
+
+    public int nextInt() {
+      return Integer.parseInt(next());
+    }
+  }
+}

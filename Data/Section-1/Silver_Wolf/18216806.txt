@@ -1,0 +1,76 @@
+// In The Name Of ALLAH
+
+#include<bits/stdc++.h>
+#define ll long long
+#define ld long double
+#define ALL(X) X.begin(),X.end()
+#define dd(X) cout<<#X<<' '<<X<<endl;
+#define Speed_Up; ios_base::sync_with_stdio(0),cin.tie(0),cout.tie(0);
+#define int long long
+using namespace std;
+
+const long long MOD=1000*1000*1000+7;
+const long long MAXN=1e6;
+const long long MAXM=200+50;
+const long long INF=1e9+7;
+
+const long long dx[4]={0,0,-1,+1};
+const long long dy[4]={+1,-1,0,0};
+
+int up[MAXN];
+int dn[MAXN];
+
+vector<int>ver[MAXN];
+
+int power(int a,int b){
+	if(b==0)return 1;
+	if(b%2)
+		return a*power(a,b-1)%MOD;
+	return power(a,b/2)*power(a,b/2)%MOD;
+}
+
+inline int div(int a){return power(a,MOD-2);}
+
+void dfs1(int v=1 , int p=0 ){
+	int h=1;
+	for(auto u:ver[v])
+		if(u != p ){
+			dfs1(u , v);
+			h *= up[u]+1;
+			h %= MOD;
+		}
+	up[v]=h;	
+}
+
+
+void dfs2(int v=1 , int p=0 ){
+	
+	dn[v]=( ( v==1 )? 1 : dn[p] * up[p] %MOD *div(up[v] + 1) %MOD + 1 );
+	
+	for(auto u:ver[v])
+		if(u != p )
+			dfs2(u , v);
+}
+
+
+main(){
+	Speed_Up;
+	int n;
+	cin>>n;
+	
+
+	for(int i=1;i<n;i++){
+		int x;
+		cin>>x;
+		ver[x].push_back(i+1);
+		ver[i+1].push_back(x);
+	}
+
+	dfs1();
+	dfs2();
+	
+	for(int i=1;i<=n;i++)
+		cout<<dn[i] * up[i] % MOD <<' ';
+		
+}
+	

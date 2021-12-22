@@ -1,0 +1,90 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 20;
+
+void setmin (int &a, int b) {
+	if (a > b) {
+		a = b;
+	}
+}
+
+void setmax (int &a, int b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+int N, M;
+char S[MAXN][MAXN];
+int A[MAXN][MAXN];
+int dp[1 << MAXN];
+int same[MAXN][MAXN], rcost[MAXN][MAXN];	//same mask, remove cost (all except most expensive)
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M;
+	if (N == 20) printf("M = %d\n", M);
+	for (int i = 0; i < N; i++) {
+		cin >> S[i];
+	}
+	if (N == 20) printf("M = %d\n", M);
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < M; j++) {
+			cin >> A[i][j];
+		}
+	}
+	if (N == 20) printf("M = %d\n", M);
+	for (int i = 0; i < N; i++) {
+		if (N == 20) printf("M = %d\n", M);
+		for (int j = 0; j < M; j++) {
+			int maxcost = 0;
+			for (int k = 0; k < N; k++) {
+				if (S[i][j] == S[k][j]) {
+					same[i][j] |= (1 << k);
+					rcost[i][j] += A[k][j];
+					setmax(maxcost, A[k][j]);
+				}
+			}
+			rcost[i][j] -= maxcost;
+		}
+	}
+	if (N == 20) printf("M = %d\n", M);
+	for (int i = 1; i < (1 << N); i++) {
+		dp[i] = 1e9;
+		int lo = __builtin_ctz(i);
+		for (int j = 0; j < M; j++) {
+			if (N == 20) printf("ITERATO j = %d\n", j);
+			//rem one
+			setmin(dp[i], dp[i ^ (1 << lo)] + A[lo][j]);	//WHOOPS WRONG VAR
+			if (N == 20) {
+				printf("A[%d][%d] = %d\n", lo, j, A[lo][j]);
+			}
+			//rem ALL
+			setmin(dp[i], dp[i & (i ^ same[lo][j])] + rcost[lo][j]);
+			if (N == 20) {
+				printf("dp[%d] + rcost[%d][%d] = %d + %d = %d\n", i & (i ^ same[lo][j]), lo, j, dp[i & (i ^ same[lo][j])], rcost[lo][j], dp[i & (i ^ same[lo][j])] + rcost[lo][j]);
+			}
+			//subset of i, also i excluding the same mask
+		}
+		if (N == 20) {
+			printf("DATS IT\n");
+			assert(0);
+		}
+	}
+	cout << dp[(1 << N) - 1] << endl;
+}

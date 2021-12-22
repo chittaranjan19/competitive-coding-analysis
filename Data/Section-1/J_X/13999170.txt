@@ -1,0 +1,101 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <queue>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 2e5 + 5;
+
+struct edge
+{
+    int to, next;
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxn << 1];
+int head[maxn], tot, point, deep, ans;
+bool tag[maxn];
+vector<int> E[maxn];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u]);
+    head[u] = tot++;
+    G[tot] = edge(u, head[v]);
+    head[v] = tot++;
+}
+
+bool dfs1(int u, int fa)
+{
+    bool ret = tag[u];
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(v == fa) continue;
+        if(dfs1(v, u))
+        {
+            ret = true;
+            E[u].push_back(v);
+            E[v].push_back(u);
+            ++ans;
+        }
+    }
+    return ret;
+}
+
+void dfs2(int u, int fa, int h)
+{
+    if(tag[u] && h > deep || (h == deep && u < point))
+    {
+        point = u;
+        deep = h;
+    }
+    for(int i = 0; i < E[u].size(); ++i)
+    {
+        int v = E[u][i];
+        if(v == fa) continue;
+        dfs2(v, u, h + 1);
+    }
+}
+
+int main()
+{
+    init();
+    int n, m;
+    scanf("%d%d", &n, &m);
+    for(int i = 1; i < n; ++i)
+    {
+        int u, v;
+        scanf("%d%d", &u, &v);
+        addedge(u, v);
+    }
+    for(int i = 0; i < m; ++i)
+    {
+        int x;
+        scanf("%d", &x);
+        tag[x] = true;
+    }
+    ans = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        if(tag[i])
+        {
+            dfs1(i, 0);
+            point = n + 1, deep = 0;
+            dfs2(i, 0, 0);
+            int root = point;
+            deep = 0, point = n + 1;
+            dfs2(root, 0, 0);
+            point = min(root, point);
+            break;
+        }
+    }
+    printf("%d\n%d\n", point, 2 * ans - deep);
+    return 0;
+}

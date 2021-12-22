@@ -1,0 +1,129 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[455][MAXN],d[MAXN];
+vector<int>adj[455];
+int n,c=1,la=0,sq;
+PII pos(int x){
+	PII gerek;
+	for(int i=1;i<=c;i++){
+		if(adj[i].size()<x)
+			x-=adj[i].size();
+		else{
+			gerek.ff=i;
+			for(int j=0;j<adj[i].size();j++){
+				if(j+1==x){
+					gerek.ss=j;
+					break;
+				}
+			}
+			break;
+		}
+	}
+	return gerek;
+}
+int tap(int x,int y,int z,int l,int r){
+	int ans=0;
+	if(x==y){
+		for(int i=l;i<=r;i++)
+			if(adj[x][i]==z)
+				ans++;
+		return ans;	
+	}
+	for(int i=l;i<adj[x].size();i++)
+		if(adj[x][i]==z)
+			ans++;
+	for(int i=0;i<=r;i++)
+		if(adj[y][i]==z)
+			ans++;		
+	for(int i=x+1;i<y;i++)
+		ans+=arr[i][z];
+	return ans;	
+}
+void init(){
+	vector<int>ay;
+	for(int i=1;i<=c;i++){
+		for(int j=0;j<adj[i].size();j++)
+			ay.pb(adj[i][j]),arr[i][adj[i][j]]=0;
+		adj[i].resize(0);
+	}	
+	int sana=1;		
+	for(int i=0;i<ay.size();i++){
+		adj[sana].pb(ay[i]);
+		arr[sana][ay[i]]++;
+		if((i+1)%sq==0)
+			sana++;
+	}
+}
+void upd(int x,int y,int l,int r){
+	if(x==y){
+		int nah=adj[x][r];
+		for(int i=r;i>l;i--)
+			adj[x][i]=adj[x][i-1];
+		adj[x][l]=nah;	
+		return;
+	} 
+	int ber=adj[y][r];
+	adj[x].pb(0);
+	for(int i=adj[x].size()-1;i>l;i--)
+		adj[x][i]=adj[x][i-1];
+	adj[x][l]=ber;
+	arr[y][ber]--;
+	arr[x][ber]++;
+	for(int i=r;i<int(adj[y].size()-1);i++)
+		adj[y][i]=adj[y][i+1];
+	adj[y].ppb();	
+}
+int main(){
+	scanf("%d",&n);
+	sq=sqrt(n);
+	for(int i=1;i<=n;i++)
+		scanf("%d",d+i);
+	for(int i=1;i<=n;i++){
+		adj[c].pb(d[i]);
+		arr[c][d[i]]++;
+		if(i%sq==0)
+			++c;
+	}
+	int counter=0,q=0;
+	scanf("%d",&q);
+	while(q--){
+		counter++;
+		if(counter%sq==0)
+			init();
+		int type,l,r,k;
+		scanf("%d%d%d",&type,&l,&r);
+		l=((l+la-1)%n)+1;
+		r=((r+la-1)%n)+1;
+		if(l>r)
+			swap(l,r);
+		PII fup=pos(l);
+		PII tin=pos(r);
+		if(type==1)
+			upd(fup.ff,tin.ff,fup.ss,tin.ss);	
+		else{
+			scanf("%d",&k);
+			k=((k+la-1)%n)+1;
+			la=tap(fup.ff,tin.ff,k,fup.ss,tin.ss);
+			printf("%d\n",la);
+		}
+	}
+	return 0;
+}
+

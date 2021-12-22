@@ -1,0 +1,109 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<int, pii> block;
+const int MOD = 1e9 + 7;
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+int N;
+map<pii, int> mp;
+set<block> st;
+
+bool exist (int x, int y) {
+	return mp.count(pii(x, y));
+}
+
+bool canrem (int x, int y) {
+	//check if you can remove it
+	if (!exist(x, y)) {
+		return false;
+	}
+	int c = 0;
+	for (int i = x - 1; i <= x + 1; i++) {
+		if (!exist(i, y + 1)) {
+			//block doesn't exist
+			continue;
+		}
+		//(i, y + 1)
+		int t = 0;
+		//find # of supports
+		for (int j = i - 1; j <= i + 1; j++) {
+			if (j == x) {
+				continue;
+			}
+			//j, y
+			t += exist(j, y);
+		}
+		if (!t) {
+			return false;
+		}
+	}
+	return true;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	//oh i get it now.
+	for (int i = 0; i < N; i++) {
+		int x, y;
+		cin >> x >> y;
+		mp[pii(x, y)] = i;
+	}
+	for (auto it : mp) {
+		pii p = it.first;
+		if (canrem(p.first, p.second)) {
+			//then insert it!
+			st.insert(block(it.second, p));
+		}
+	}
+	int ans = 0;
+	for (int i = 0; i < N; i++) {
+		// cerr << "i = " << i << endl;
+		assert(!st.empty());
+		//ok add one
+		block prem = i % 2 ? *st.begin() : *st.rbegin();
+		assert(st.erase(prem));
+		mp.erase(prem.second);
+		ans = add(mult(ans, N), prem.first);
+		//so what blocks will be affected
+		int x = prem.second.first, y = prem.second.second;
+		for (int j = x - 2; j <= x + 2; j++) {
+			for (int k = y - 2; k <= y + 2; k++) {
+				if (!exist(j, k)) {
+					continue;
+				}
+				pii p(j, k);
+				block b(mp[p], p);
+				if (canrem(j, k)) {
+					//then insert it
+					st.insert(b);
+				} else {
+					st.erase(b);
+				}
+			}
+		}
+	}
+	cout << ans << endl;
+}

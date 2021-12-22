@@ -1,0 +1,169 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <fstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+#include <stack>
+#include <bitset>
+using namespace std;
+
+#define pi acos(-1.0)
+#define eps 1e-7
+#define start 131072
+#define LINF 1000000000000000000LL
+#define pi acos(-1.0)
+#define SHIFT 100000
+#define mod 1000000007
+
+int n, m, k;
+int x[100005], y[100005];
+long long res[100005];
+set<pair <int, int> > diagupright[200005], diagupleft[200005], diagdownright[200005], diagdownleft[200005];
+set<pair <int, int> > collisions;
+map <pair<int, int>, int> mp;
+pair <int, int> dir = make_pair(1, 1);
+pair <int, int> pos = make_pair(0, 0);
+
+int main()
+{
+	memset(res, -1, sizeof(res));
+	cin >> n >> m >> k;
+	for(int i = 0; i < k; i++)
+	{
+		scanf("%d %d", &x[i], &y[i]);
+		diagupright[x[i]-y[i]+SHIFT].insert(make_pair(x[i], y[i]));
+		diagdownleft[x[i]-y[i]+SHIFT].insert(make_pair(-x[i], -y[i]));
+		diagupleft[x[i]+y[i]].insert(make_pair(-x[i], y[i]));
+		diagdownright[x[i]+y[i]].insert(make_pair(x[i], -y[i]));
+		mp[make_pair(x[i], y[i])] = i;
+	}
+	collisions.insert(make_pair(0, 0));
+	collisions.insert(make_pair(0, m));
+	collisions.insert(make_pair(n, 0));
+	collisions.insert(make_pair(n, m));
+	long long T = 0;
+	while(1)
+	{
+		vector<int> forRemove;
+		if(dir.first == 1) //right
+		{
+			if(dir.second == 1) //up
+			{
+				set<pair<int, int> >::iterator it = diagupright[pos.first-pos.second+SHIFT].lower_bound(make_pair(pos.first, pos.second));
+				for(; it != diagupright[pos.first-pos.second+SHIFT].end(); ++it)
+				{
+					pair<int, int> p = *it;
+					p.first = abs(p.first);
+					p.second = abs(p.second);
+					int ind = mp[p];
+					if(res[ind] == -1)
+						res[ind] = T + abs(pos.first - p.first);
+					forRemove.push_back(ind);
+				}
+				if(n - pos.first < m - pos.second)
+					dir = make_pair(-1, 1);
+				else
+					dir = make_pair(1, -1);
+				int t = min(n - pos.first, m - pos.second);
+				T += t;
+				pos.first += t;
+				pos.second += t;
+			}
+			else //down
+			{
+				set<pair<int, int> >::iterator it = diagdownright[pos.first+pos.second].lower_bound(make_pair(pos.first, -pos.second));
+				for(; it != diagdownright[pos.first+pos.second].end(); ++it)
+				{
+					pair<int, int> p = *it;
+					p.first = abs(p.first);
+					p.second = abs(p.second);
+					int ind = mp[p];
+					if(res[ind] == -1)
+						res[ind] = T + abs(pos.first - p.first);
+					forRemove.push_back(ind);
+				}
+				if(n - pos.first < pos.second)
+					dir = make_pair(-1, -1);
+				else
+					dir = make_pair(1, 1);
+				int t = min(n - pos.first, pos.second);
+				T += t;
+				pos.first += t;
+				pos.second -= t;
+			}
+		}
+		else //left
+		{
+			if(dir.second == 1) //up
+			{
+				set<pair<int, int> >::iterator it = diagupleft[pos.first+pos.second].lower_bound(make_pair(-pos.first, pos.second));
+				for(; it != diagupleft[pos.first+pos.second].end(); ++it)
+				{
+					pair<int, int> p = *it;
+					p.first = abs(p.first);
+					p.second = abs(p.second);
+					int ind = mp[p];
+					if(res[ind] == -1)
+						res[ind] = T + abs(pos.first - p.first);
+					forRemove.push_back(ind);
+				}
+				if(pos.first < m - pos.second)
+					dir = make_pair(1, 1);
+				else
+					dir = make_pair(-1, -1);
+				int t = min(pos.first, m - pos.second);
+				T += t;
+				pos.first -= t;
+				pos.second += t;
+			}
+			else //down
+			{
+				set<pair<int, int> >::iterator it = diagdownleft[pos.first-pos.second+SHIFT].lower_bound(make_pair(-pos.first, -pos.second));
+				for(; it != diagdownleft[pos.first-pos.second+SHIFT].end(); ++it)
+				{
+					pair<int, int> p = *it;
+					p.first = abs(p.first);
+					p.second = abs(p.second);
+					int ind = mp[p];
+					if(res[ind] == -1)
+						res[ind] = T + abs(pos.first - p.first);
+					forRemove.push_back(ind);
+				}
+				if(pos.first < pos.second)
+					dir = make_pair(1, -1);
+				else
+					dir = make_pair(-1, 1);
+				int t = min(pos.first, pos.second);
+				T += t;
+				pos.first -= t;
+				pos.second -= t;
+			}
+		}
+		for(int j = 0; j < forRemove.size(); ++j)
+		{
+			int i = forRemove[j];
+			diagupright[x[i]-y[i]+SHIFT].erase(make_pair(x[i], y[i]));
+			diagdownleft[x[i]-y[i]+SHIFT].erase(make_pair(-x[i], -y[i]));
+			diagupleft[x[i]+y[i]].erase(make_pair(-x[i], y[i]));
+			diagdownright[x[i]+y[i]].erase(make_pair(x[i], -y[i]));
+		}
+		if(collisions.find(pos) != collisions.end())
+		{
+			for(int i = 0; i < k; i++)
+				printf("%I64d\n", res[i]);
+			return 0;
+		}
+		collisions.insert(pos);
+	}
+	return 0;
+}

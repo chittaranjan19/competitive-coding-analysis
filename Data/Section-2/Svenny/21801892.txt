@@ -1,0 +1,149 @@
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <cstdio>
+#include <memory>
+#include <algorithm>
+#include <iomanip>
+#include <vector>
+#include <list>
+#include <set>
+#include <map>
+#include <string>
+#include <memory.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef long double ld;
+typedef unsigned uint;
+
+const ll posinf = 1000000000000000001;
+const ll neginf = -1000000000000000001;
+
+ll n, m, k, t, i, j, x, y, a, l1, l2;
+vector<ll> xs, ts;
+vector<set<ll> > sums, diffs;
+
+enum dir { NE, NW, SE, SW };
+dir d;
+
+int main ()
+{
+#ifdef CONTEST_ONME
+	freopen ("input.txt", "r", stdin);
+	freopen ("output.txt", "w", stdout);
+#endif
+
+	cin >> n >> m >> k;
+	xs.resize (k + 1);
+	ts.resize (k + 1);
+	sums.resize (n + m + 1);
+	diffs.resize (n + m + 1);
+	for (i = 1; i <= k; i++)
+	{
+		x, y; cin >> x >> y;
+		ts[i] = -1;
+		xs[i] = x;
+		sums[y + x].insert (i);
+		diffs[y - x + n].insert (i);
+	}
+
+	t = 0; x = 0; y = 0; d = NE;
+	do
+	{
+		if (d == NE || d == SW)
+		{
+			a = y - x + n;
+			for (auto it = diffs[a].begin (); it != diffs[a].end (); it++)
+			{
+				j = *it;
+				ts[j] = abs (x - xs[j]) + t;
+				sums[a + 2 * xs[j] - n].erase (j);
+			}
+		}
+		else
+		{
+			a = y + x;
+			for (auto it = sums[a].begin (); it != sums[a].end (); it++)
+			{
+				j = *it;
+				ts[j] = abs (x - xs[j]) + t;
+				diffs[a - 2 * xs[j] + n].erase (j);
+			}
+		}
+		switch (d)
+		{
+		case NE:
+			l1 = m - y;
+			l2 = n - x;
+			if (l1 <= l2)
+			{
+				y = m; x += l1;
+				d = SE;
+			}
+			else
+			{
+				x = n; y += l2;
+				d = NW;
+			}
+			break;
+		case NW:
+			l1 = m - y;
+			l2 = x;
+			if (l1 <= l2)
+			{
+				y = m; x -= l1;
+				d = SW;
+			}
+			else
+			{
+				x = 0; y += l2;
+				d = NE;
+			}
+			break;
+		case SE:
+			l1 = y;
+			l2 = n - x;
+			if (l1 <= l2)
+			{
+				y = 0; x += l1;
+				d = NE;
+			}
+			else
+			{
+				x = n; y -= l2;
+				d = SW;
+			}
+			break;
+		case SW:
+			l1 = y;
+			l2 = x;
+			if (l1 <= l2)
+			{
+				y = 0; x -= l1;
+				d = NW;
+			}
+			else
+			{
+				x = 0; y -= l2;
+				d = SE;
+			}
+			break;
+		}
+		t += min (l1, l2);
+		if (x == n || x == 0)
+		{
+			if (y == m || y == 0)
+				break;
+		}
+	} while (true);
+
+	for (i = 1; i <= k; i++)
+		cout << ts[i] << endl;
+
+#ifdef CONTEST_ONME
+	//system ("pause");
+#endif
+	return 0;
+}

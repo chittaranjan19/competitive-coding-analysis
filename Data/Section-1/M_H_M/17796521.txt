@@ -1,0 +1,69 @@
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 2e5 + 100;
+
+int n, k;
+long double dp[55][N];
+long double t[N];
+
+long double ps[N];
+long double ips[N];
+long double sp[N];
+
+long double doJob(int i, int x, int j){
+	return sp[x] - sp[i] - ps[i] * (ips[x] - ips[i]) + dp[x][j - 1];
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> k;
+	for(int i = 0; i < n; ++i){
+		cin >> t[i];
+		ps[i + 1] = ps[i] + t[i];
+		ips[i + 1] = ips[i] + 1 / t[i];
+		sp[i + 1] = sp[i] + ps[i + 1] / t[i];
+	}
+	for(int i = n; i --; ){
+		dp[i][1] = t[i] * (ips[n] - ips[i]) + dp[i + 1][1];
+		for(int j = 2; j <= min(k, n - i); ++j){
+			dp[i][j] = 1e18;
+			int down = i + 1, up = n - j + 1;
+			while(up - down > 1){
+				int x = (up + down) / 2;
+				if(doJob(i, x + 1, j) - doJob(i, x, j) > 0)
+					down = x;
+				else
+					up = x;
+			}
+			for(int k = max(down - 50, i + 1); k <= min(n - j + 1, up + 50); ++k)
+				dp[i][j] = min(dp[i][j], doJob(i, k, j));
+			dp[i][j] = min(dp[i][j], dp[i + 1][j - 1] + 1);
+		}
+	}
+	cout << fixed << setprecision(4) << dp[0][k] << "\n";
+	return 0;
+}

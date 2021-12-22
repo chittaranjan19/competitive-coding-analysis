@@ -1,0 +1,75 @@
+# include <iostream>
+# include <cstdlib>
+# include <cstdio>
+# include <algorithm>
+
+using namespace std;
+
+const char input[] = "input.txt";
+const char output[] = "output.txt";
+
+const int N = 5002;
+int n, m, L, R, M, d[N][N], dp[N][N], res, answer, ans, k, p[N];
+bool a[N][N];
+char s[N];
+
+int main ()
+{
+    /*freopen (input, "r", stdin);
+    freopen (output, "w", stdout);*/
+
+    scanf ("%d %d ", &n, &m);
+
+    for (int i = 1; i <= n; ++i)
+    {
+        gets (s);
+        for (int j = 0; j < m; ++j)
+            a[i][j + 1] = (s[j] == '1');
+        scanf (" ");
+    }
+
+    for (int i = 1; i <= n; ++i)
+        for (int j = m; j >= 1; --j)
+            if (a[i][j])
+                dp[i][j] = d[j][i] = d[j + 1][i] + 1;
+
+    for (int j = 1; j <= m; ++j)
+    {
+        k = 0;
+        for (int i = 1; i <= n; ++i)
+            ++p[d[i][j]];
+        for (int i = 0; i <= n; ++i)
+            while (p[i])
+            {
+                --p[i];
+                d[j][++k] = i;
+            }
+    }
+
+
+    for (int i = 1; i <= n; ++i)
+        for (int j = 1; j <= m; ++j)
+            if (a[i][j])
+            {
+                L = 1;
+                R = n;
+                ans = -1;
+                while (L <= R)
+                {
+                    M = (L + R) >> 1;
+                    if (d[j][M] >= dp[i][j])
+                    {
+                        ans = M;
+                        R = M - 1;
+                    }
+                    else
+                        L = M + 1;
+                }
+                if (ans != -1)
+                    answer = max (answer, dp[i][j] * (n - ans + 1));
+            }
+
+    printf ("%d\n", answer);
+
+    return 0;
+}

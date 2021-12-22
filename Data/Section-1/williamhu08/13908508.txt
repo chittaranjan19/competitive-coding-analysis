@@ -1,0 +1,18 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define mp make_pair
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 30010;
+
+int N, Q; struct perm {pii arr[MAXN]; int pos[MAXN];	/* pos[i] = x s.t. arr[x].se = i */ void read() {for (int i = 1; i <= N; i++) {scanf("%d", &arr[i].fi); arr[i].se = i; } sort(arr + 1, arr + N + 1); for (int i = 1; i <= N; i++) {pos[arr[i].se] = i; } } void swpos (int person1, int person2) {/*swap positions*/ swap(arr[pos[person1]].second, arr[pos[person2]].second); swap(pos[person1], pos[person2]); } }; perm A, B; ll cost[MAXN][2]; ll dp[MAXN]; ll getcst (int x, int y) {/* x, y = ordered indices */ return 1 <= x && x <= N && 1 <= y && y <= N ? ll(A.arr[x].fi) * B.arr[y].fi : -1e17; } void calc (int x) {if (1 <= x && x <= N) {cost[x][0] = getcst(x, x + 1) + getcst(x + 1, x); cost[x][1] = -1e17; for (int i = 1; i < 3; i++) {ll val = 0; for (int j = 0; j < 3; j++) {val += getcst(x + j, x + (j + i) % 3); } cost[x][1] = max(cost[x][1], val); } } } int main() {if (fopen("input.txt", "r")) {freopen("input.txt", "r", stdin); } /*qn haha*/ scanf("%d %d", &N, &Q); A.read(); B.read(); for (int i = 1; i <= N; i++) {calc(i); } for (int x, y; Q--; ) {scanf("%d %d", &x, &y); /*swap stuff*/ B.swpos(x, y); /*oops going fwd is not best idea for dp. can get into trouble*/ for (int i = -2; i <= 0; i++) {for (int j = 0; j < 2; j++) {int person = j ? x : y; for (int k = 0; k < 2; k++) {perm &pr = k ? A : B; calc(i + pr.pos[person]); } } } dp[N + 1] = 0; for (int i = N; i; i--) {dp[i] = max(dp[i + 2] + cost[i][0], dp[i + 3] + cost[i][1]); /*can you pair them up together???*/ if (A.arr[i].second != B.arr[i].second) {dp[i] = max(dp[i], dp[i + 1] + getcst(i, i)); } } printf("%lld\n", dp[1]); } }

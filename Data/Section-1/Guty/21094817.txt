@@ -1,0 +1,223 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+#include <valarray>
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+
+#define forn(i,n) for(tint i=0;i<(tint)(n); i++)
+#define forsn(i,s,n) for(tint i=(s);i<(tint)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) )
+		Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+// Nodo del segment tree
+struct Nodo
+{
+	tint x;
+	Nodo (tint xx)
+	{
+		x = xx;
+	}
+};
+
+
+// Operacion del segment tree : tiene que ser ASOCIATIVA
+Nodo op (Nodo n1, Nodo n2)
+{
+	return Nodo(n1.x+n2.x);
+}
+
+vector<Nodo> buildSegTree (vector<Nodo> &v )
+{
+	// Completa el tamanho
+	tint k = 4, n = v.size();
+	while (k < 2*n)
+		k *= 2;
+	// Rellena las hojas
+	vector<Nodo> seg (k, Nodo(0));
+	forn(i,n)
+		seg[k/2+i] = v[i];
+	// Completa los padres
+	while (k > 0)
+	{
+		seg[(k-1)/2] = op(seg[k-1],seg[k-2]);
+		k -= 2;
+	}
+		
+	return seg; 
+}
+
+// i es el indice de [0,n) en el arreglo original
+// Nodo es lo que queremos poner ahora como hoja
+void update(tint i, Nodo nodo,vector<Nodo> &seg)
+{
+	tint k = seg.size()/2 + i;
+	seg[k] = nodo;
+	while (k > 0)
+	{
+		seg[k >> 1] = op(seg[k],seg[k^1]);
+		k /= 2;
+	}
+}
+
+
+Nodo queryAux(tint k, tint l, tint r, tint i, tint j, vector<Nodo> &seg)
+{
+	
+	if (i <= l && r <= j)
+		return seg[k];
+	if (r <= i or l >= j)
+		return 0; // Aca va el NEUTRO de la funcion "op"
+	Nodo a = queryAux(2*k,l,(l+r)/2,i,j,seg);
+	Nodo b = queryAux(2*k+1,(l+r)/2,r,i,j,seg);
+	return op(a,b);
+	
+}
+
+
+// i,j son los indices del arreglo del que se hace la query
+// la query se hace en [i,j)
+Nodo query(tint i, tint j, vector<Nodo> &seg)
+{
+	return queryAux(1,0,seg.size()/2,i,j,seg);
+}
+
+
+
+int main()
+{
+	#ifdef ACMTUYO
+		assert(freopen("entrada.in", "r", stdin));
+	#endif
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	tint n;
+	while (cin >> n)
+	{
+		tint res = 0;
+		vector<Nodo> a(n,Nodo(0));
+		forn(i,n)
+		{
+			tint aa;
+			cin >> aa;
+			res += aa;
+			a[i] = Nodo(aa);
+		}
+		vector<Nodo> seg = buildSegTree(a);
+		multiset<tint> s;
+		s.insert(res);
+		tint e = seg.size();
+		forn(i,n)
+		{
+			tint p;
+			cin >> p;
+			p--;
+			// DERECHA
+			tint der = p, r = n-1; // der funciona, r no
+			if ((query(p,r+1,seg).x > 0))
+				der = n-1;
+			while (r-der > 1)
+			{
+				tint c  = (der+r)/2;
+				if (query(p,c+1,seg).x > 0)
+					der = c;
+				else
+					r = c;
+			} 
+			// IZQUIERDA
+			tint izq = 0, t = p+1; // t funciona, izq no
+			if (query(0,p+1,seg).x > 0)
+				t = 1;
+			while (t - izq > 1)
+			{
+				tint c  = (izq+t)/2;
+				if (query(c,p+1,seg).x > 0)
+					t = c;
+				else
+					izq = c;
+			}
+			//debug(izq);
+			//debug(der);
+			if (seg[e/2+izq].x < 0)
+				izq++;
+			if (seg[e/2+der].x < 0)
+				der--;
+			//debug(p);
+			//debug(izq);
+			//debug(der);
+			
+			tint suma = query(izq,der+1,seg).x;
+			update(p,Nodo(-9999999999999),seg);
+			tint suma1 = query(izq,p,seg).x;
+			tint suma2 = query(p+1,der+1,seg).x;
+			//debug(suma);
+			//debug(suma1);
+			//debug(suma2);
+			//cout << " ----------- " << endl;
+			s.erase(s.find(suma));
+			s.insert(suma1);
+			s.insert(suma2);
+			cout <<(*--s.end()) << endl;
+			//s.erase(0);
+		}
+		//cout << "\n\n\n";
+				
+	}
+	return 0;
+}
+
+
+

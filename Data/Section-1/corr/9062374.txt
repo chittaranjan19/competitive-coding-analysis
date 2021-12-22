@@ -1,0 +1,164 @@
+#include<cstdio>
+#include<cstring>
+#include<cstdlib>
+#include<cctype>
+
+#include<cmath>
+#include<iostream>
+#include<iomanip>
+#include<fstream>
+
+#include<string>
+#include<utility>
+#include<vector>
+#include<list>
+#include<queue>
+#include<map>
+#include<algorithm>
+#include<set>
+#include<sstream>
+#include<stack>
+
+#define ii long long int
+#define pi 2*acos(0.0)
+#define eps 1e-9
+#define mem(x,y) memset(x,y,sizeof(x))
+#define all(x) x.begin(), x.end()
+#define pb push_back
+#define sz(a) (int)a.size()
+#define inf 1LL<<40
+#define mx 1010
+#define DOWN 0
+#define RIGHT 1
+
+using namespace std;
+
+const int debug= 0;
+
+struct Result {
+    ii two,five;
+    bool prodIsZero;
+    Result() {}
+    Result(ii t,ii f,bool piz) {two=t;five=f;prodIsZero=piz;}
+};
+
+int n,a[mx][mx][6];
+bool taken[mx][mx],vis[mx][mx];
+Result dp[mx][mx];
+
+int factorizeByX(int n,int x) {
+    int ans=0;
+    while (n%x==0 && n) {
+        ans++;
+        n/=x;
+    }
+    return ans;
+}
+
+ii maxi(ii a,ii b) {
+    return (a>b) ? a:b;
+}
+
+ii mini(ii a,ii b) {
+    return (a>b) ? b:a;
+}
+
+Result calc(int i,int j) {
+    if (i==n && j==n) {
+        if (!a[i][j][0]) dp[i][j]=Result(0,0,1);
+        else dp[i][j]=Result(a[i][j][2],a[i][j][5],0);
+
+        if (debug) cout<<i<<" "<<j<<"("<<a[i][j][0]<<") returns "<<dp[i][j].two<<" "<<dp[i][j].five<<" "<<dp[i][j].prodIsZero<<endl;
+        return dp[i][j];
+    }
+
+    if (vis[i][j]) return dp[i][j];
+    vis[i][j]=1;
+
+    if (!a[i][j][0]) {
+        dp[i][j]=Result(0,0,1);
+        if (debug) cout<<i<<" "<<j<<"("<<a[i][j][0]<<") -returns "<<dp[i][j].two<<" "<<dp[i][j].five<<" "<<dp[i][j].prodIsZero<<endl;
+        return dp[i][j];
+    }
+
+    Result down,right;
+    ii dZero,rZero;
+
+    if (i+1<=n) down=calc(i+1,j);
+    else down=Result(inf,inf,0);
+    if (j+1<=n) right=calc(i,j+1);
+    else right=Result(inf,inf,0);
+
+    if (down.prodIsZero) {
+        down=Result(0,0,1);
+        dZero=1;
+    }
+    else {
+        down.two+=a[i][j][2];
+        down.five+=a[i][j][5];
+        dZero=mini(down.two,down.five);
+    }
+
+    if (right.prodIsZero) {
+        right=Result(0,0,1);
+        rZero=1;
+    }
+    else {
+        right.two+=a[i][j][2];
+        right.five+=a[i][j][5];
+        rZero=mini(right.two,right.five);
+        if (debug) cout<<i<<" "<<j<<" right is "<<right.two<<" "<<right.five<<" "<<rZero<<endl;
+    }
+
+    if (i+1>n || rZero<dZero) {
+        if (debug) cout<<i<<" "<<j<<" here, rZero"<<rZero<<" , dZero"<<dZero<<endl;
+        taken[i][j]=RIGHT;
+        dp[i][j]=right;
+    }
+    else {
+        taken[i][j]=DOWN;
+        dp[i][j]=down;
+    }
+
+    if (debug) cout<<i<<" "<<j<<"("<<a[i][j][0]<<") returns "<<dp[i][j].two<<" "<<dp[i][j].five<<" "<<dp[i][j].prodIsZero<<endl;
+    return dp[i][j];
+}
+
+void printPath(int i,int j) {
+    if (i==n && j==n) {
+        puts("");
+        return;
+    }
+    if (taken[i][j]==DOWN) {
+        printf("D");
+        printPath(i+1,j);
+    }
+    else {
+        printf("R");
+        printPath(i,j+1);
+    }
+}
+
+int main() {
+    //freopen("in.txt","r",stdin);
+    //freopen("out.txt","w",stdout);
+    while (scanf("%d",&n)==1) {
+        mem(vis,0);
+        int i,j;
+        for (i=1;i<=n;++i) for (j=1;j<=n;++j) {
+            scanf("%d",&a[i][j][0]);
+            a[i][j][2]=factorizeByX(a[i][j][0],2);
+            a[i][j][5]=factorizeByX(a[i][j][0],5);
+            if (debug) cout<<i<<" "<<j<<" : "<<a[i][j][2]<<" "<<a[i][j][5]<<endl;
+        }
+        Result ans=calc(1,1);
+        ii noOfZero;
+        if (ans.prodIsZero) noOfZero=1;
+        else noOfZero=mini(ans.two,ans.five);
+        cout<<noOfZero<<endl;
+
+        printPath(1,1);
+    }
+
+    return 0;
+}

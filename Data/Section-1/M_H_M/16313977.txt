@@ -1,0 +1,50 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+
+#define SZ(x) ((int)x.size())
+#define PB push_back 
+
+using namespace std;
+typedef long long ll;
+
+const int LG = 22;
+const int N = 1 << LG;
+const int M = 1000 * 1000 * 1000 + 7;
+const int oo = (1 << LG) - 1;
+
+ll dp[N][LG + 1];
+ll a[N];
+ll p[N];
+ll n;
+
+int main(){
+	ios::sync_with_stdio(false);
+	p[0] = 1;
+	for(int i = 1; i < N; ++i) p[i] = p[i - 1] * 2 % M;
+	cin >> n;
+	for(int i = 0; i < n; ++i){
+		int t; cin >> t;
+		a[oo - t] ++;
+	}
+	for(int mask = 0; mask < N; ++mask){
+		dp[mask][0] = a[mask];
+		for(int i = 0; i < LG; ++i){
+			if((mask >> i) & 1)
+				dp[mask][i + 1] = dp[mask][i] + dp[mask - (1 << i)][i + 1];
+			else
+				dp[mask][i + 1] = dp[mask][i];
+			dp[mask][i] %= M;
+		}
+	}
+	ll ans = 0;
+	for(int mask = 0; mask < N; ++mask){
+		ll x = p[dp[oo - mask][LG]];
+		if(__builtin_popcount(mask) & 1) x *= -1;
+		ans += x;
+		ans %= M;
+	}
+	ans += M; ans %= M;
+	cout << ans << "\n";
+	return 0;
+}

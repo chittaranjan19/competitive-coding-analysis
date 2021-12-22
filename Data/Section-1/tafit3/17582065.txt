@@ -1,0 +1,114 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.TreeSet;
+
+public class ProblemA5 {
+    char[] c;
+    Boolean[] pos2;
+    Boolean[] pos3;
+    BufferedReader rd;
+    int n;
+
+    ProblemA5() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        c = rd.readLine().toCharArray();
+        n = c.length;
+        pos2 = new Boolean[n+10];
+        pos3 = new Boolean[n+10];
+        Set<String> suffixes = new TreeSet<>();
+        if(n > 6) {
+            for(int i=5;i<n-1;i++) {
+                int rest = n - i - 2;
+                if(rest != 1 && i+2 <= n) {
+                    boolean ok = false;
+                    for(int j=0;j<2;j++) {
+                        if(i+2+j >= n || c[i+j] != c[i+2+j]) {
+                            ok = true;
+                            break;
+                        }
+                    }
+                    if(ok && isPos2(i)) {
+                        suffixes.add(new String(c, i, 2));
+                    }
+                }
+                rest = n - i - 3;
+                if(i+3 <= n && rest != 1) {
+                    boolean ok = false;
+                    for(int j=0;j<3;j++) {
+                        if(i+3+j >= n || c[i+j] != c[i+3+j]) {
+                            ok = true;
+                            break;
+                        }
+                    }
+                    if(ok && isPos3(i)) {
+                        suffixes.add(new String(c,i,3));
+                    }
+                }
+            }
+        }
+        out(suffixes.size());
+        for(String suffix: suffixes) {
+            out(suffix);
+        }
+    }
+
+    private boolean isPos2(int x) {
+        if(pos2[x] == null) {
+            if(x+2 > n) {
+                pos2[x] = false;
+            } else if(x+2==n) {
+                pos2[x] = true;
+            } else if(x+2==n-1) {
+                pos2[x] = false;
+            } else if(!equals(x,x+2,2)) {
+                pos2[x] = isPos2(x+2) || isPos3(x+2);
+            } else {
+                pos2[x] = isPos3(x+2);
+            }
+        }
+        return pos2[x];
+    }
+
+    private boolean isPos3(int x) {
+        if(pos3[x] == null) {
+            if(x+3 > n) {
+                pos3[x] = false;
+            } else if(x+3==n) {
+                pos3[x] = true;
+            } else if(x+3==n-1) {
+                pos3[x] = false;
+            } else if(x+3==n-2) {
+                pos3[x] = true;
+            } else if(!equals(x, x+3, 3)) {
+                pos3[x] = true;
+            } else {
+                pos3[x] = isPos2(x+3);
+            }
+        }
+        return pos3[x];
+    }
+
+    private boolean equals(int a, int b, int len) {
+        for(int k=0;k<len;k++) {
+            if(c[a+k] != c[b+k]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemA5();
+    }
+}

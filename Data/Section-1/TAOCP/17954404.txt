@@ -1,0 +1,144 @@
+/*
+*Rainto96
+*Beijing University of Posts and Telecommunications School of Software Engineering
+*http://blog.csdn.net/u011775691
+*/
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <queue>
+#include <cstring>
+#include <string>
+#include <cmath>
+#include <set>
+#include <map>
+#include <vector>
+#include <climits>
+#include <sstream>
+using namespace std;
+#define pb push_back
+#define ALL(x) x.begin(),x.end()
+#define VINT vector<ll>
+#define PII pair<ll,ll>
+#define MP(x,y) make_pair((x),(y))
+#define ll long long
+#define ull unsigned long long
+#define MEM0(x)  memset(x,0,sizeof(x))
+#define MEM(x,val) memset((x),val,sizeof(x))
+#define scan(x) scanf("%d",&(x))
+#define scan2(x,y) scanf("%d%d",&(x),&(y))
+#define scan3(x,y,z) scanf("%d%d%d",&(x),&(y),&(z))
+#define scan4(x,y,z,k) scanf("%d%d%d%d",&(x),&(y),&(z),&(k))
+#define Max(a,b) a=max(a,b)
+#define Min(a,b) a=min(a,b)
+#define fuck(x) cout<<#x<<" - "<<x<<endl
+#define lson(x) (x<<1)
+#define rson(x) ((x<<1)|1)
+const int MAXN = 101111;
+int hs[101111];
+struct Node {
+	int l, r, left, right, val;
+	int flag;
+};
+int a0;
+struct Seg{
+	Node  node[MAXN * 6];
+    void pushup(int x) {
+        ;
+    }
+    void pushdown(int x) {
+        if (node[x].flag != -1) {
+            node[lson(x)].val = node[x].flag;
+            node[rson(x)].val = node[x].flag;
+            node[lson(x)].flag = node[x].flag;
+            node[rson(x)].flag = node[x].flag;
+            node[x].flag = -1;
+        }
+    }
+
+    void build(int l, int r, int x = 1) {
+        node[x].l = l; node[x].r = r; node[x].flag = -1;
+        if (l == r) {
+            node[x].val = a0;
+            node[x].left = -0x3f3f3f3f;
+            node[x].right = 0x3f3f3f3f;
+            return;
+        }
+        int mid = (l + r) / 2;
+        build(l, mid, lson(x));
+        build(mid + 1, r, rson(x));
+        pushup(x);
+    }
+
+    int query(int v, int x = 1) {
+        if(node[x].flag!=-1){
+            return node[x].flag;
+        }
+        if (node[x].l == node[x].r) {
+            return node[x].val;
+        }
+        int mid = (node[x].l + node[x].r) / 2;
+        pushdown(x);
+        if (v <= mid) return query(v, lson(x));
+        if (v > mid) return query(v, rson(x));
+        pushup(x);
+    }
+    PII queryLR(int v, int x = 1) {
+        if (node[x].l == node[x].r) {
+            return MP(node[x].left, node[x].right);
+        }
+        int mid = (node[x].l + node[x].r) / 2;
+        if (v <= mid) return queryLR(v, lson(x));
+        if (v > mid) return queryLR(v, rson(x));
+    }
+
+    void update(int l, int r,int val, int x = 1) {
+        if (node[x].l >= l && node[x].r <= r) {
+            node[x].flag= val;
+            return;
+        }
+        int mid = (node[x].l + node[x].r) / 2;
+        pushdown(x);
+        if (l <= mid) update(l, r,val, lson(x));
+        if (r > mid) update(l, r,val, rson(x));
+        pushup(x);
+    }
+
+}seg;
+int a[101111];
+map<int ,int > nihs;
+int main()
+{
+    //freopen("C:/OJ/OJ/in.txt","r",stdin);
+    int n;
+    scan(n);
+    for(int i=1;i<=n;i++){
+        scan(a[i]);
+        hs[i] = a[i];
+
+    }
+    sort(hs+1,hs+n+1);
+    int siz = unique(hs+1,hs+n+1)-hs - 1;
+    for(int i=1;i<=n;i++){
+        a[i] = lower_bound(hs+1,hs+1+siz,a[i]) - hs;
+        nihs[hs[i]] = a[i];
+    }
+    a0 = hs[1];
+    seg.build(1,n);
+    for(int i=2;i<=n;i++){
+        int fa = seg.query(a[i]);
+        printf("%d ",fa);
+        PII res = seg.queryLR(nihs[fa]);
+        int L;
+        int R;
+        if(a[i] > nihs[fa]){
+            L = nihs[fa];
+            R = res.second;
+        }else{
+            L = res.first;
+            R = nihs[fa];
+        }
+        seg.update(L,R,hs[i]);
+    }
+    return 0;
+}

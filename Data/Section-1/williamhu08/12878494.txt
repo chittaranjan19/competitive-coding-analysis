@@ -1,0 +1,221 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1e5 + 10, MAXK = 10 * MAXN, MOD = 1e9 + 7;
+
+//modint stuff
+int pwr[MAXK];
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+void addeq (int &x, int y) {
+	x = add(x, y);
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+int N, K;
+vector<pii> tmpadj[MAXN];
+
+//graph + lca
+vector<int> adj[MAXN];
+int par[MAXN][17], sub[MAXN], depth[MAXN];
+int D[MAXN];	//is par to cur bad? is cur to par bad?
+
+int dfsdir (int x, int p, int d) {
+	int &res = sub[x];
+	res = 1;
+	depth[x] = d;
+	for (pii t : tmpadj[x]) {
+		int v = t.first;
+		if (v == p) {
+			continue;
+		}
+		D[v] = t.second;
+		adj[x].push_back(v);
+		par[v][0] = x;
+		res += dfsdir(v, x, d + 1);
+	}
+	return res;
+}
+
+int getpar (int x, int d) {
+	for (int i = 0; d; d /= 2, i++) {
+		if (d & 1) {
+			x = par[x][i];
+		}
+	}
+	return x;
+}
+
+int lca (int x, int y) {
+	if (depth[x] > depth[y]) {
+		swap(x, y);
+	}
+	y = getpar(y, depth[y] - depth[x]);
+	if (x == y) {
+		return x;
+	}
+	for (int k = 16; k >= 0; k--) {
+		if (par[x][k] != par[y][k]) {
+			x = par[x][k];
+			y = par[y][k];
+		}
+	}
+	return par[x][0];
+}
+
+//HLD stuff
+
+int M = 1;	//# of chains
+int bel[MAXN], pos[MAXN];
+
+pii operator - (pii p) {
+	return pii(-p.first, -p.second);
+}
+
+pii operator + (pii p, pii q) {
+	return pii(p.first + q.first, p.second + q.second);
+}
+
+pii operator - (pii p, pii q) {
+	return pii(p.first - q.first, p.second - q.second);
+}
+
+void operator += (pii &p, pii q) {
+	p = p + q;
+}
+
+struct chain {
+	int id;
+	vector<pii> bit;	//BIT for prefix sums.
+	vector<int> nodes;
+	int size;
+	void add (int x) {
+		bel[x] = id;
+		pos[x] = size;
+		nodes.push_back(x);
+		size++;
+	}
+	void init() {
+		nodes.insert(nodes.begin(), 0);
+		bit.resize(size + 3);
+	}
+	void update (int x, pii v) {
+		for (; x < size + 3; x += (x & -x)) {
+			bit[x] += v;
+		}
+	}
+	void update (int x, int y, pii v) {
+		update(x, v);
+		update(y + 1, -v);
+	}
+	pii query (int x) {
+		pii res(0, 0);
+		for (; x; x &= x - 1) {
+			res += bit[x];
+		}
+		return res;
+	}
+} ch[MAXN];
+
+void dfschain (int x, int b) {
+	ch[b].add(x);
+	for (int t : adj[x]) {
+		if (sub[t] * 2 >= sub[x]) {
+			dfschain(t, b);
+		} else {
+			dfschain(t, ++M);
+		}
+	}
+}
+
+void updpath (int x, int y, bool dwn) {
+	if (x == y) {
+		return;
+	}
+	assert(depth[x] > depth[y]);
+	pii p = dwn ? pii(0, 1) : pii(1, 0);
+	y = getpar(x, depth[x] - depth[y] - 1);
+	int by = bel[y];
+	while (true) {
+		int b = bel[x];
+		if (b == by) {
+			ch[b].update(pos[y], pos[x], p);
+			break;
+		}
+		ch[b].update(1, pos[x], p);
+		x = par[ch[b].nodes[1]][0];
+	}
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d", &N);
+	for (int i = 1, a, b, d; i < N; i++) {
+		scanf("%d %d %d", &a, &b, &d);
+		tmpadj[a].push_back(pii(b, d * 2));
+		tmpadj[b].push_back(pii(a, d));
+	}
+	dfsdir(1, 0, 0);
+	//LCA
+	for (int j = 1; j < 17; j++) {
+		for (int i = 1; i <= N; i++) {
+			par[i][j] = par[par[i][j - 1]][j - 1];
+		}
+	}
+	//init chain id
+	for (int i = 1; i < MAXN; i++) {
+		ch[i].id = i;
+	}
+	dfschain(1, 1);
+	//init all chains
+	for (int i = 1; i <= N; i++) {
+		pos[i]++;
+	}
+	for (int i = 1; i <= M; i++) {
+		ch[i].init();
+	}
+	//query
+	int prv = 1, cur;
+	for (scanf("%d", &K); K--; ) {
+		scanf("%d", &cur);
+		//update road prv -> cur
+		int c = lca(prv, cur);
+		//prv -> c -> cur
+		updpath(prv, c, false);
+		updpath(cur, c, true);
+		prv = cur;
+	}
+	pwr[0] = 1;
+	for (int i = 1; i < MAXK; i++) {
+		pwr[i] = mult(pwr[i - 1], 2);
+	}
+	int ans = 0;
+	for (int i = 1; i <= N; i++) {
+		pii p = ch[bel[i]].query(pos[i]);
+		if (D[i] & 2) {
+			//up illegal
+			addeq(ans, pwr[p.second] - 1);
+		}
+		if (D[i] & 1) {
+			//down illegal
+			addeq(ans, pwr[p.first] - 1);
+		}
+	}
+	printf("%d\n", ans);
+}

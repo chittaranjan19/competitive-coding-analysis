@@ -1,0 +1,102 @@
+#define _CRT_SECURE_NO_WARNINGS
+//lasdlasldlasdlasldlasldasldlasldlasdlasldlasdlasldlasldlasdlasldl
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = (int)155333;
+
+int n, d, h;
+
+vector<int> g[N];
+vector<pair<int, int> > ans;
+int H, D, mx, cnt = 0, cnt1 = 0;
+
+void geth(int v, int p = 0, int deep = 0)
+{
+	cnt++;
+	if (deep > H)
+	{
+		H = deep, mx = v;
+	}
+	cnt1 += g[v].size();
+	for (int i = 0; i < g[v].size(); i++){
+		if (p != g[v][i])
+			geth(g[v][i], v, deep + 1);
+	}
+}
+
+bool check()
+{
+	bool ok = 1;
+	geth(1);
+	ok &= cnt == n;
+	ok &= cnt1 == 2 * n - 2;
+	ok &= H == h;
+	H = 0;
+	geth(mx);
+	ok &= H == d;
+	ok &= ans.size() == n - 1;
+	return ok;
+}
+
+int main()
+{
+	cin >> n >> d >> h;
+	int k = n - 1;
+	int root = 1, cur = 1;
+	for (int i = 0; i < h; i++)
+		ans.push_back(mp(cur, cur + 1)), g[cur].push_back(cur + 1), g[cur + 1].push_back(cur), cur++;
+	if (d != h && d != n - 1){
+		if (d > h){
+			cur++;
+			ans.push_back(mp(1, cur)), g[cur].push_back(1), g[1].push_back(cur);
+		}
+		for (int i = 0; i < d - h - 1; i++)
+			ans.push_back(mp(cur, cur + 1)), g[cur].push_back(cur + 1), g[cur + 1].push_back(cur), cur++;
+		cur++;
+		while (cur <= n){
+			ans.push_back(mp(1, cur)), g[cur].push_back(1), g[1].push_back(cur), cur++;
+		}
+	}
+	else{
+		int s = 1;
+		while ((d - (s - 1)) * 2 > d)
+			s++;
+		cur++;
+		ans.push_back(mp(s, cur)), g[cur].push_back(s), g[s].push_back(cur);
+		while (cur < n){
+			ans.push_back(mp(cur, cur+1)), g[cur].push_back(cur+1), g[cur+1].push_back(cur), cur++;
+		}
+	}
+	if (check())
+	{
+		for (int i = 0; i < ans.size(); i++)
+			cout << ans[i].fs << ' ' << ans[i].sc << endl;
+	}
+	else cout << -1;
+	return 0;
+}

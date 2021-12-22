@@ -1,0 +1,130 @@
+/*
+PROG:kerim
+LANG:C++
+*/
+#include<bits/stdc++.h>
+#define MAXN 200009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,int> PII;
+template<class T> bool checkMin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool checkMax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int n,m,s1[1600009],s2[1600009],san;
+pair<PII,char> arr[2*MAXN];
+PII ar[2*MAXN];
+map<int,int>mpa;
+vector<int>v;
+set<int>s;
+void compres()
+{
+	sort(all(v));
+	v.erase(unique(all(v)),v.end());
+	for(int i=0;i<v.size();i++)
+		mpa[v[i]]=i+1;
+	for(int i=0;i<m;i++)
+		arr[i].ff.ff=mpa[arr[i].ff.ff],arr[i].ff.ss=mpa[arr[i].ff.ss];
+}
+void upd(int type,int l,int r,int nd,int x,int y,int v)
+{
+	if(y<l or x>r)
+		return;	
+	if(l<=x and y<=r)
+	{
+		if(type==1)
+			s2[nd]=max(s2[nd],v);
+		if(type==2)
+			s1[nd]=max(s1[nd],v);
+		return;	
+	}
+	int mid=(x+y)>>1;
+	upd(type,l,r,nd*2,x,mid,v);
+	upd(type,l,r,nd*2+1,mid+1,y,v);
+}
+void tap(int type,int l,int nd,int x,int y)
+{
+	if(type==1)	
+		san=max(san,s1[nd]);
+	else
+		san=max(san,s2[nd]);
+	if(x==y)
+	return;
+	int mid=(x+y)>>1;
+	if(l<=mid)
+	tap(type,l,nd*2,x,mid);
+	else
+	tap(type,l,nd*2+1,mid+1,y);
+}
+int main()
+{
+	cin>>n>>m;
+	for(int i=0;i<m;i++){
+		cin>>arr[i].ff.ff>>arr[i].ff.ss>>arr[i].ss;
+		ar[i].ff=arr[i].ff.ff;ar[i].ss=arr[i].ff.ss;	
+		v.pb(arr[i].ff.ff),v.pb(arr[i].ff.ss);}
+	compres();
+	for(int i=0;i<m;i++)
+	{
+		int a2=arr[i].ff.ff,a1=arr[i].ff.ss;
+		if(s.count(ar[i].ss))
+		{
+			cout<<"0"<<endl;
+			continue;
+		}
+		san=0;
+		if(arr[i].ss=='U')
+		{
+			tap(1,a2,1,1,v.size());
+			int b1=ar[i].ss-mpa[san];
+		//	cout<<san<<" "<<mpa[san]<<endl;
+			cout<<b1<<endl;
+			upd(1,a1-b1+1,a1,1,1,v.size(),ar[i].ff);
+		}
+		else
+		{
+			tap(2,a1,1,1,v.size());
+			int b2=ar[i].ff-mpa[san];
+		//	cout<<san<<" "<<mpa[san]<<endl; 
+			cout<<b2<<endl;
+			upd(2,a2-b2+1,a2,1,1,v.size(),ar[i].ss);
+		}
+		s.insert(ar[i].ss);
+	}
+	return 0;
+}
+
+
+
+
+/*
+6 5
+3 4 U
+6 1 L
+2 5 L
+1 6 U
+4 3 U
+
+
+
+10 10
+5 6 U
+4 7 U
+8 3 L
+8 3 L
+1 10 U
+9 2 U
+10 1 L
+10 1 L
+8 3 U
+8 3 U
+*/

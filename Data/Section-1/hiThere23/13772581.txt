@@ -1,0 +1,99 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 20009
+#define maxC 2000000000
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+#define bit(x, i) ((x >> i) & 1)
+
+using namespace std;
+pair<int, int> a[mn], best[mn];
+int n, m, dem = 0, difWord = 0, numS[mn];
+vector<int> g[mn];
+map<string, int> Map;
+bool mark[mn];
+
+int better(string &x)
+{
+    int r = 0;
+    FOR(i, 0, int(x.length()) - 1)
+    {
+        if ('A' <= x[i] && x[i] <= 'Z')
+            x[i] += 'a' - 'A';
+        r += (x[i] == 'r');
+    }
+    return r;
+}
+
+void setup()
+{
+    cin >> n;
+    string s1, s2;
+    FOR(i, 1, n)
+    {
+        cin >> s1;
+        int r = better(s1);
+        if (Map[s1] <= 0)
+        {
+            Map[s1] = ++ dem;
+            difWord ++;
+            a[dem] = mp(r, s1.length());
+        }
+        int z = Map[s1];
+        numS[z] ++;
+    }
+    cin >> m;
+    FOR(i, 1, m)
+    {
+        cin >> s1 >> s2;
+        int r1 = better(s1);
+        int r2 = better(s2);
+        if (Map[s1] <= 0)
+            Map[s1] = ++ dem, a[dem] = mp(r1, s1.length());
+        if (Map[s2] <= 0)
+            Map[s2] = ++ dem, a[dem] = mp(r2, s2.length());
+        int z1 = Map[s1], z2 = Map[s2];
+        g[z1].pb(z2);
+    }
+}
+
+pair<int, int> dfs(int u)
+{
+    if (mark[u])
+        return best[u];
+    mark[u] = true;
+    pair<int, int> re = a[u];
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        re = min(re, dfs(v));
+    }
+    best[u] = re;
+    return re;
+}
+
+void xuly ()
+{
+    memset(mark, 0, sizeof(mark));
+    int ansR = 0, ansL = 0;
+    FOR(i, 1, difWord)
+    {
+        pair<int, int> add = dfs(i);
+        ansR += add.F * numS[i];
+        ansL += add.S * numS[i];
+    }
+    cout << ansR << " " << ansL;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

@@ -1,0 +1,118 @@
+#include <cstdio>
+#include <algorithm>
+
+using namespace std;
+
+struct Interv {
+    int k; int v;
+    int lazy;
+    int db[21];
+    Interv* left; Interv* right;
+    Interv(int _k, int _v) {
+        k = _k; v = _v;
+        lazy = 0;
+        fill(db,db+21,0);
+        left = right = NULL;
+    }
+};
+
+Interv* root;
+
+int n,m;
+int a[100001];
+
+Interv* epit(int k, int v) {
+    Interv* ret = new Interv(k,v);
+    if(k == v) {
+        for(int i=0; i<=20; i++) {
+            if((1<<i) & a[k]) ret->db[i] = 1;
+        }
+        return ret;
+    }
+
+    int f = (k+v) / 2;
+    ret->left = epit(k,f);
+    ret->right = epit(f+1,v);
+
+    for(int i=0; i<=20; i++) ret->db[i] = ret->left->db[i] + ret->right->db[i];
+
+    return ret;
+}
+
+void update(Interv* in) {
+    for(int i=0; i<=20; i++) {
+        if(in->lazy & (1<<i)) in->db[i] = ((in->v+1-in->k) - in->db[i]);
+    }
+
+    if(in->left != NULL) in->left->lazy ^= in->lazy;
+    if(in->right != NULL) in->right->lazy ^= in->lazy;
+
+    in->lazy = 0;
+}
+
+void doupdate(Interv* in) {
+    update(in);
+    if(in->left == NULL) return;
+
+    update(in->left);
+    update(in->right);
+
+    for(int i=0; i<=20; i++) in->db[i] = in->left->db[i] + in->right->db[i];
+}
+
+long long szum(Interv* in, int k, int v) {
+    update(in);
+
+    if((k<=in->k) && (in->v<=v)) {
+        long long ret = 0ll;
+        for(int i=0; i<=20; i++) ret += (1ll<<i) * (0ll+in->db[i]);
+        return ret;
+    }
+
+    long long ret = 0ll;
+    int f = (in->k + in->v) / 2;
+    if(k <= f) ret += szum(in->left,k,v);
+    if(f < v) ret += szum(in->right,k,v);
+
+    return ret;
+}
+
+void doxor(Interv* in, int k, int v, int x) {
+    update(in);
+
+    if((k<=in->k) && (in->v<=v)) {
+        in->lazy ^= x;
+        return;
+    }
+
+    int f = (in->k + in->v) / 2;
+    if(k <= f) doxor(in->left,k,v,x);
+    if(f < v) doxor(in->right,k,v,x);
+
+    doupdate(in);
+}
+
+
+int main()
+{
+    scanf("%d",&n);
+
+    for(int i=1; i<=n; i++) scanf("%d",&a[i]);
+
+    root = epit(1,n);
+
+    scanf("%d",&m);
+
+    int t,l,r,x;
+    for(int i=0; i<m; i++) {
+        scanf("%d%d%d",&t,&l,&r);
+        if(t==1) {
+            printf("%I64d\n",szum(root,l,r));
+        } else {
+            scanf("%d",&x);
+            doxor(root,l,r,x);
+        }
+    }
+
+    return 0;
+}

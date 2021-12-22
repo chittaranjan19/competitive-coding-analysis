@@ -1,0 +1,76 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int arr[4005][4005];
+int cost[4005][4005];
+int DP[805][4005];
+
+void calc(int L, int R, int x, int y, int j)
+{
+  if(L > R) return;
+  if(L == R)
+  {
+    for(int i=x;i<=min(y, R);i++)
+      DP[j][L] = min(DP[j - 1][i - 1] + cost[i][L], DP[j][L]);
+    return ;
+  }
+  int mid = L + (R - L) / 2, best = -1;
+  for(int i=x;i<=min(y, mid);i++)
+  {
+    if(DP[j][mid] > DP[j - 1][i - 1] + cost[i][mid])
+    {
+      DP[j][mid] = DP[j - 1][i - 1] + cost[i][mid];
+      best = i;
+    }
+  }
+  calc(L, mid - 1, x, best, j);
+  calc(mid + 1, R, best, y, j);
+}
+
+int main()
+{
+  int n, k;
+  cin >> n >> k;
+  for(int i=1;i<=n;i++)
+  {
+    for(int j=1;j<=n;j++)
+    {
+      scanf("%d", &arr[i][j]);
+      arr[i][j] += arr[i][j - 1];
+    }
+  }
+  for(int i=2;i<=n;i++)
+  {
+    for(int j=1;j<=n;j++)
+    {
+      int R = j + i - 1;
+      if(R > n) break;
+      cost[j][R] = cost[j + 1][R] + arr[j][R] - arr[j][j];
+    }
+  }
+  for(int j=0;j<=k;j++)
+    for(int i=0;i<=n;i++)
+      DP[j][i] = (1 << 30);
+  DP[0][0] = 0;
+  for(int i=1;i<=k;i++)
+    calc(1, n, 1, n, i);
+  cout << DP[k][n];
+  return 0;
+}

@@ -1,0 +1,119 @@
+#include "bits/stdc++.h"
+#define MAXN 300009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+const ll B=1e18+9;
+vector<PII>v;
+PII arr[MAXN];
+struct node{
+	ll val,ind,cnt;
+	node(){
+		val=2*B;
+		cnt=0;
+		ind=-1;
+	}
+}emp,s[MAXN<<2];
+node merge(node x,node y){
+	node z;
+	z.cnt=x.cnt+y.cnt;
+	if(x.val<=y.val)
+		z.val=x.val,z.ind=x.ind;
+	else
+		z.val=y.val,z.ind=y.ind;
+	return z;	
+}
+void upd(ll p,ll v,ll f,ll nd,ll x,ll y){
+	if(x==y){
+		if(v==-1){
+			s[nd]=emp;
+			return;
+		}
+		s[nd].val=v;
+		s[nd].ind=x;
+		s[nd].cnt=f;
+		return;
+	}
+	ll mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,v,f,nd<<1,x,mid);
+	else
+		upd(p,v,f,nd<<1|1,mid+1,y);
+	s[nd]=merge(s[nd<<1],s[nd<<1|1]);	
+}
+node tap(ll l,ll r,ll nd,ll x,ll y){
+	if(l>y or x>r)
+		return emp;
+	if(l<=x and y<=r)
+		return s[nd];
+	ll mid=(x+y)>>1;
+	node i1=tap(l,r,nd<<1,x,mid);
+	node i2=tap(l,r,nd<<1|1,mid+1,y);
+	return merge(i1,i2);	
+}
+ll sz;
+ll id(ll x){
+	ll pos=upper_bound(all(v),mp(x,2*B+3))-v.begin();
+	return sz-pos+1;
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	ll n,a,b;
+	scanf("%lld",&n);
+	scanf("%lld%lld",&a,&b);
+	for(ll i=1;i<n;i++)
+		scanf("%lld%lld",&arr[i].ff,&arr[i].ss);
+	sort(arr+1,arr+n);
+	vector<ll>t;
+	ll cur=0;
+	v.pb(mp(B,-1));
+	t.pb(B);
+	ll num=0;
+	for(ll i=n-1;i>=1;i--){
+		if(cur+(arr[i].ss-arr[i].ff+1)>=B)
+			cur=2*B;
+		else	
+			cur+=arr[i].ss-arr[i].ff+1;
+		num++;	
+		if(i==1 or arr[i].ff!=arr[i-1].ff){
+			v.pb(mp(arr[i].ff,cur));
+			t.pb(num);
+			num=cur=0;
+		}
+	}
+	sz=v.size()-1;
+	for(ll i=1;i<=sz;i++)
+		upd(i,v[i].ss,t[i],1,1,sz);
+	sort(all(v));	
+	ll ans=id(a);
+	while(1){
+		node k=tap(1,id(a)-1,1,1,sz);
+		ll mn=k.val;
+		ll pl=k.cnt;
+		ll pos=k.ind;
+		umin(ans,pl+1);
+		if(!pl)
+			break;
+		if(mn>a)
+			break;
+		a-=mn;
+		upd(pos,-1,-1,1,1,sz);	
+	}
+	printf("%lld\n",ans);
+	return 0;
+}

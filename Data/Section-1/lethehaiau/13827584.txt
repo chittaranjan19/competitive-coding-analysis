@@ -1,0 +1,72 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int n, m, k;
+int a[20];
+int c[20][20];
+long long l[20][300000];
+bool kt[20][300000];
+
+int check(int i, int j)
+{
+	--j;
+	return (i >> j) & 1;
+}
+
+int setb(int num, int j, int x)
+{
+	--j;
+	int i = num;
+	i ^= (-x ^ i) & (1 << j);
+	return i;
+}
+
+long long dp(int u, int x, int h)
+{
+	if(kt[u][x]) return l[u][x];
+	if(h == 0) 
+	{
+		kt[u][x] = 1; l[u][x] = 0;
+		return 0;
+	}
+	int y = setb(x, u, 0);
+	for(int i = 1; i <= n; i++)
+		if(i!= u && check(x, i))
+		{
+			//cout << y << " ";
+			l[u][x] = max(l[u][x], dp(i, y, h - 1) + c[i][u]);
+		}
+	l[u][x] += a[u];
+	kt[u][x] = 1;
+	return l[u][x];
+}
+
+int main()
+{
+	//freopen("in.txt", "r", stdin);
+	cin >> n >> m >> k;
+	for(int i = 1; i <= n; i++)
+		cin >> a[i];
+	for(int i = 0; i < k; i++)
+	{
+		int u, v, vl;
+		cin >> u >> v >> vl;
+		c[u][v] = vl;
+	}
+	long long rs = 0;
+	for(int i = 0; i < 1 << n; i++)
+	{
+		int d = 0;
+		for(int j = 1; j <= n; j++)
+			d += check(i, j);
+		if(d == m)
+			for(int j = 1; j <= n; j++)
+				if(check(i, j))
+				{
+					rs = max(rs, dp(j, i, m));
+					//cout << j << " " << i << "\n";
+				}
+	}
+	cout << rs;
+	return 0;
+}

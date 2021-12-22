@@ -1,0 +1,165 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 250 * 1000 + 100;
+const int SQ = 400;
+
+inline int readInt(){
+	int _integer=0;
+	char _char=0;
+	while(_char<48)
+		_char=getchar();
+	while(_char>=48)
+	{
+		_integer = (_integer << 1) + (_integer << 3) + (_char-48);
+		_char = getchar();
+	}
+	return _integer;
+}
+
+int n, m, Q, o;
+bool ison[N];
+unordered_set<int> ns[N];
+unordered_set<int> s[N];
+int cof[N];
+
+inline int nei(int u){
+	return SZ(s[u]) + SZ(ns[u]);
+}
+
+inline void beon(int u){
+	ison[u] |= 1;
+	for(auto v : s[u])
+		cof[v] ++;
+}
+
+inline void beoff(int u){
+	ison[u] &= 0;
+	for(auto v : s[u])
+		cof[v] --;
+}
+
+inline void besociable(int u){
+	cof[u] &= 0;
+	for(auto v : s[u]){
+		cof[u] += ison[v];
+		ns[v].erase(u);
+		s[v].insert(u);
+	}
+	for(auto v : ns[u]){
+		cof[u] += ison[v];
+		ns[v].erase(u);
+		s[v].insert(u);
+	}
+}
+
+inline void bensociable(int u){
+	for(auto v : s[u]){
+		s[v].erase(u);
+		ns[v].insert(u);
+	}
+	for(auto v : ns[u]){
+		s[v].erase(u);
+		ns[v].insert(u);
+	}
+}
+
+inline void ad(int u, int v){
+	if(nei(u) == SQ) besociable(u);
+	if(nei(v) == SQ) besociable(v);
+	if(nei(v) >= SQ) s[u].insert(v);
+	else ns[u].insert(v);
+	if(nei(u) > SQ) s[v].insert(u);
+	else ns[v].insert(u);
+	if(nei(v) > SQ) cof[v] += ison[u];
+	if(nei(u) > SQ) cof[u] += ison[v];
+}
+
+inline void rm(int u, int v){
+	if(nei(u) == SQ + 1) bensociable(u);
+	if(nei(v) == SQ + 1) bensociable(v);
+	if(nei(v) > SQ) s[u].erase(v);
+	else ns[u].erase(v);
+	if(nei(u)>= SQ) s[v].erase(u);
+	else ns[v].erase(u);
+	if(nei(v) > SQ) cof[v] -= ison[u];
+	if(nei(u) > SQ) cof[u] -= ison[v];
+}
+
+int main(){
+	n = readInt();
+	m = readInt();
+	Q = readInt();
+	o = readInt();
+	for(int i = 0; i < o; ++i){
+		int t; t = readInt(); t --;
+		beon(t);
+	}
+	for(int i = 0; i < m; ++i){
+		int u, v;
+		u = readInt();
+		v = readInt();
+		u --; v --;
+		ad(u, v);
+	}
+	for(int i = 0; i < Q; ++i){
+		char ch; int u, v;
+		scanf("%s", &ch);
+		if(ch == 'O'){
+			u = readInt(); u --;
+			beon(u);
+		}
+		if(ch == 'F'){
+			u = readInt(); u --;
+			beoff(u);
+		}
+		if(ch == 'A'){
+			u = readInt(); 
+			v = readInt();
+			u --; v --;
+			ad(u, v);
+		}
+		if(ch == 'D'){
+			u = readInt(); 
+			v = readInt();
+			u --; v --;
+			rm(u, v);
+		}
+		if(ch == 'C'){
+			int u; u = readInt(); u --;
+			int ans = 0;
+			if(nei(u) > SQ)
+				ans = cof[u];
+			else{
+				for(auto v : s[u]) ans += ison[v];
+				for(auto v : ns[u]) ans += ison[v];
+			}
+			printf("%d\n", ans);
+		}
+	}
+	return 0;
+}

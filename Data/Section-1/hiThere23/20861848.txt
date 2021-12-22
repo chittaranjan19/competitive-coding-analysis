@@ -1,0 +1,169 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+#define mid ((l + r) >> 1)
+#define lc (id << 1)
+#define rc (lc + 1)
+
+using namespace std;
+struct matrix
+{
+    long long a[3][3];
+    int m, n;
+
+    matrix(int m = 0, int n = 0): m(m), n(n)
+    {
+        memset(a, 0, sizeof(a));
+    }
+};
+
+matrix mul(matrix a, matrix b)
+{
+    matrix re = matrix(a.m, b.n);
+    FOR(i, 1, re.m)
+    FOR(j, 1, re.n)
+    FOR(k, 1, a.n)
+        re.a[i][j] = (re.a[i][j] + a.a[i][k] * b.a[k][j]) % maxC;
+    return re;
+}
+
+matrix power(matrix a, long long x)
+{
+    if (x == 1)
+        return a;
+    matrix re = power(a, x >> 1);
+    re = mul(re, re);
+    if (x & 1)
+        re = mul(re, a);
+    return re;
+}
+
+pair<long long, long long> fibo(long long a, long long b, long long add)
+{
+    //cout << a << ' ' << b << ' ' << add << '\n';
+    if (add == 0)
+        return mp(b, a);
+    matrix first = matrix(2, 2);
+    first.a[1][1] = 0, first.a[1][2] = 1;
+    first.a[2][1] = 1, first.a[2][2] = 1;
+    first = power(first, add);
+    //cout << first.a[1][1] << ' ' << first.a[1][2] << '\n';
+    //cout << first.a[2][1] << ' ' << first.a[2][2] << '\n';
+    matrix re = matrix(2, 1);
+    re.a[1][1] = a;
+    re.a[2][1] = b;
+    re = mul(first, re);
+    //cout << re.a[2][1] << ' ' << re.a[1][1] << '\n';
+    return mp(re.a[2][1], re.a[1][1]);
+}
+
+int n, m, a[mn];
+
+struct interval
+{
+    long long tree[mn << 2], pre[mn << 2], f[mn << 2];
+
+    void build(int l, int r, int id)
+    {
+        if (l == r)
+        {
+            pair<long long, long long> p = fibo(0, 1, a[l] - 1);
+            tree[id] = p.F, pre[id] = p.S;
+            return;
+        }
+        build(l, mid, lc);
+        build(mid + 1, r, rc);
+        tree[id] = (tree[lc] + tree[rc]) % maxC;
+        pre[id] = (pre[lc] + pre[rc]) % maxC;
+    }
+
+    void push(int l, int r, int id, bool calc)
+    {
+        if (f[id] == 0)
+            return;
+        if (calc)
+        {
+            pair<long long, long long> p = fibo(pre[id], tree[id], f[id]);
+            tree[id] = p.F, pre[id] = p.S;
+        }
+        if (l < r)
+            f[lc] += f[id], f[rc] += f[id];
+        f[id] = 0;
+    }
+
+    void update(int l, int r, int id, int x, int y, long long v)
+    {
+        if (l > y || r < x)
+            return;
+        if (x <= l && r <= y)
+        {
+            f[id] += v;
+            push(l, r, id, true);
+            return;
+        }
+        push(l, r, id, false);
+        update(l, mid, lc, x, y, v);
+        update(mid + 1, r, rc, x, y, v);
+        tree[id] = (tree[lc] + tree[rc]) % maxC;
+        pre[id] = (pre[lc] + pre[rc]) % maxC;
+    }
+
+    long long get(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return 0;
+        push(l, r, id, true);
+        if (x <= l && r <= y)
+        {
+//            cout << l << ' ' << r << ' ' << x << ' ' << y << ' ';
+//            cout << tree[id] << '\n';
+            return tree[id];
+        }
+        long long a = get(l, mid, lc, x, y);
+        long long b = get(mid + 1, r, rc, x, y);
+//        cout << l << ' ' << r << ' ' << x << ' ' << y << ' ';
+//        cout << a + b << '\n';
+        return (a + b) % maxC;
+    }
+} t;
+
+void setup()
+{
+    cin >> n >> m;
+    FOR(i, 1, n)
+        cin >> a[i];
+    t.build(1, n, 1);
+    int type, l, r, k;
+    FOR(i, 1, m)
+    {
+        cin >> type >> l >> r;
+        if (type == 1)
+        {
+            cin >> k;
+            t.update(1, n, 1, l, r, k);
+        }
+        else
+            cout << t.get(1, n, 1, l, r) << '\n';
+    }
+}
+
+void xuly()
+{
+
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

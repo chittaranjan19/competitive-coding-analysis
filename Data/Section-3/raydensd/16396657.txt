@@ -1,0 +1,81 @@
+#include<iostream>
+#include<cmath>
+using namespace std;
+__int32 gcd (__int32 a, __int32 b, __int32 & x, __int32 & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	__int32 x1, y1;
+	__int32 d = gcd (b%a, a, x1, y1);
+	x = y1 - (b / a) * x1;
+	y = x1;
+	return d;
+}
+bool find_any_solution (__int32 a, __int32 b, __int32 c, __int32 & x0, __int32 & y0, __int32 & g) {
+	g = gcd (abs(a), abs(b), x0, y0);
+	if (c % g != 0)
+		return false;
+	x0 *= c / g;
+	y0 *= c / g;
+	if (a < 0)   x0 *= -1;
+	if (b < 0)   y0 *= -1;
+	return true;
+}
+void shift_solution (__int32 & x, __int32 & y, __int32 a, __int32 b, __int32 cnt) {
+	x += cnt * b;
+	y -= cnt * a;
+}
+ 
+__int32 find_all_solutions (__int32 a, __int32 b, __int32 c, __int32 minx, __int32 maxx, __int32 miny, __int32 maxy) {
+	__int32 x, y, g;
+	if (! find_any_solution (a, b, c, x, y, g))
+		return 0;
+	a /= g;  b /= g;
+ 
+	__int32 sign_a = a>0 ? +1 : -1;
+	__int32 sign_b = b>0 ? +1 : -1;
+ 
+	shift_solution (x, y, a, b, (minx - x) / b);
+	if (x < minx)
+		shift_solution (x, y, a, b, sign_b);
+	if (x > maxx)
+		return 0;
+	__int32 lx1 = x;
+ 
+	shift_solution (x, y, a, b, (maxx - x) / b);
+	if (x > maxx)
+		shift_solution (x, y, a, b, -sign_b);
+	__int32 rx1 = x;
+ 
+	shift_solution (x, y, a, b, - (miny - y) / a);
+	if (y < miny)
+		shift_solution (x, y, a, b, -sign_a);
+	if (y > maxy)
+		return 0;
+	__int32 lx2 = x;
+ 
+	shift_solution (x, y, a, b, - (maxy - y) / a);
+	if (y > maxy)
+		shift_solution (x, y, a, b, sign_a);
+	__int32 rx2 = x;
+ 
+	if (lx2 > rx2)
+		swap (lx2, rx2);
+	__int32 lx = max (lx1, lx2);
+	__int32 rx = min (rx1, rx2);
+ 
+	return (rx - lx) / abs(b) + 1;
+}
+int main(){
+	__int32 a,b,c;
+	cin>>a>>b>>c;
+	if(a==c||b==c){
+		cout<<"YES";
+	}else
+	if(find_all_solutions(a,b,c,1,c,1,c)>=1){
+		cout<<"YES";
+	}else{
+		cout<<"NO";
+	}
+}

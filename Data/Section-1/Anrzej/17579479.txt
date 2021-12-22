@@ -1,0 +1,110 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 3e5 + 10, l = 20;
+
+int gcd(int a, int b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+vector<int> g[3333];
+
+int n, m;
+
+int dist[3333][3333];
+
+bool used[3333];
+
+void dfs(int v, int p, int d){
+	used[v] = 1;
+	dist[p][v] = d;
+	for (int i = 0; i < g[v].size(); i++)
+	{
+		int to = g[v][i];
+		if (!used[to])
+		dfs(to, p, d + 1);
+	}
+}
+
+int mxx[3333];
+
+int cur_max = 0;
+vector<int> ans;
+
+void rec(int lvl, int v, vector<int> alr, int cur)
+{
+	if (lvl == 4){
+		if (cur > cur_max)
+			cur_max = cur, ans = alr;
+		return;
+	}
+	for (int i = 1; i <= n; i++){
+		if (dist[v][i] == 1e9) continue;
+		if (i == v) continue;
+		bool ok = 1;
+		for (int j = 0; j < alr.size(); j++)
+			ok &= !(alr[j] == i);
+		if (!ok) continue;
+		int n_cur = cur + dist[v][i];
+		if (1){
+			vector<int> next = alr;
+			next.push_back(i);
+			rec(lvl + 1, i, next, n_cur);
+		}
+	}
+}
+
+int main()
+{
+	cin >> n >> m;
+	for (int i = 0; i < m; i++){
+		int u, v;
+		cin >> u >> v;
+		g[u].push_back(v);
+	}
+	for (int i = 1; i <= n; i++){
+		for (int j = 1; j <= n; j++)
+			dist[i][j] = 1e9;
+	}
+	for (int i = 1; i <= n; i++){
+		memset(used, false, sizeof(used));
+		dfs(i, i, 0);
+	}
+	for (int i = 1; i <= n; i++){
+		int cur_m = 0;
+		for (int j = 1; j <= n; j++){
+			if (cur_m < dist[i][j] && dist[i][j] != 1e9)
+				cur_m = dist[i][j];
+		}
+	}
+	vector<int> alr;
+	rec(0, 0, alr, 0);
+	//cout << cur_max << endl;
+	for (int i = 0; i < 4; i++)
+		cout << ans[i] << ' ';
+	return 0;
+}

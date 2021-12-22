@@ -1,0 +1,142 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+import static java.util.Collections.singletonList;
+
+public class ProblemD2 {
+    BufferedReader rd;
+
+    ProblemD2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] q = intarr();
+        int n = q[0];
+        int m = q[1];
+        int p = q[2];
+
+        int[][] z = new int[n][];
+        int row = 0;
+        int col = 0;
+        NavigableSet<Integer> levels = new TreeSet<>();
+        for(int i=0;i<n;i++) {
+            z[i] = intarr();
+            for(int j=0;j<m;j++) {
+                if(z[i][j] == p) {
+                    row = i;
+                    col = j;
+                }
+                levels.add(z[i][j]);
+            }
+        }
+        int level = p;
+        long best = 0;
+        while(true) {
+            Integer lower = levels.lower(level);
+            if(lower == null) {
+                break;
+            }
+            int lo = lower;
+            long dist = Long.MAX_VALUE;
+            int nr = 0;
+            int nc = 0;
+            for(int i=0;i<n;i++) {
+                for(int j=0;j<m;j++) {
+                    if(z[i][j] == lo) {
+                        long d = dist(row,col,i,j);
+                        if(d < dist) {
+                            dist = d;
+                            nr = i;
+                            nc = j;
+                        }
+                    }
+                }
+            }
+            row = nr;
+            col = nc;
+            best += dist;
+            level = lo;
+        }
+        best += dist(row,col,0,0);
+        out(best);
+    }
+
+    private long dist(int r1, int c1, int r2, int c2) {
+        return Math.abs(r1-r2) + Math.abs(c1 - c2);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD2();
+    }
+}

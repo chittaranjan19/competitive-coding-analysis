@@ -1,0 +1,98 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const ll inf = 1ll<<50;
+const int maxn = 1000010;
+
+vector<int> pf;
+int arr[maxn], n;
+int diff[] = {-1, 0, 1};
+ll dp[maxn][3];
+ll a, b;
+
+void factorize(int n)
+{
+	int i, j;
+	for(i=2; i<=sqrt(n); i++){
+		if(!(n%i)){
+			while(!(n%i)){
+				n/=i;
+			}
+			pf.pb(i);
+		}
+	}
+	if(n>1)
+		pf.pb(n);
+}
+
+ll solve(int cur, int p, int state)
+{
+	if(cur>n)
+		return 0;
+	if(dp[cur][state]!=-1)
+		return dp[cur][state];
+	ll ret = inf;
+	if(state==0){																//deleting not started yet
+		ret = min(ret, a+solve(cur+1, p, 1));
+		if(!(arr[cur]%p))
+			ret = min(ret, solve(cur+1, p, 0));
+		if(!((arr[cur]-1)%p) || !((arr[cur]+1)%p))
+			ret = min(ret, b+solve(cur+1, p, 0));
+	}
+	else if(state==1){															//deleting started
+		ret = min(ret, a+solve(cur+1, p, 1));
+		if(!(arr[cur]%p))
+			ret = min(ret, solve(cur+1, p, 2));
+		if(!((arr[cur]-1)%p) || !((arr[cur]+1)%p))
+			ret = min(ret, b+solve(cur+1, p, 2));
+	}	
+	else{
+		if(!(arr[cur]%p))
+			ret = min(ret, solve(cur+1, p, 2));
+		if(!((arr[cur]-1)%p) || !((arr[cur]+1)%p))
+			ret = min(ret, b+solve(cur+1, p, 2));	
+	}
+	return dp[cur][state] = ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j;
+	ll ans = inf;
+	scanf("%d%lld%lld", &n, &a, &b);
+	for(i=1; i<=n; i++)
+		scanf("%d", &arr[i]);
+	for(i=0; i<3; i++){
+		pf.clear();
+		factorize(arr[1]+diff[i]);
+		for(j=0; j<pf.size(); j++){
+			memset(dp, -1, sizeof(dp));
+			ans = min(ans, solve(1, pf[j], 0));
+		}
+	}
+	for(i=0; i<3; i++){
+		pf.clear();
+		factorize(arr[n]+diff[i]);
+		for(j=0; j<pf.size(); j++){
+			memset(dp, -1, sizeof(dp));
+			ans = min(ans, solve(1, pf[j], 0));
+		}
+	}
+	printf("%lld\n", ans);
+	return 0;
+}

@@ -1,0 +1,110 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+const int SQ = 317;
+
+int n;
+pair<pii, pii> a[N];
+piii b[N];
+set <piii> s[SQ];
+int d[N];
+queue <pair<pii, pii> > q;
+int par[N];
+
+void build(int k){
+	for(int i = k * SQ; i < min(k * SQ + SQ, n); ++i)
+		s[k].insert(MP(MP(b[i].X.Y, b[i].X.X), b[i].Y));
+}
+
+void doJob(int x, int y, int k, int id){
+	for(int i = 0; i < SQ; ++i){
+		int r = min(i + SQ - 1, n - 1);
+		if(b[r].X.X <= x){
+			while(SZ(s[i]) && (s[i].begin() -> X).X <= y){
+				int t = s[i].begin() -> Y;
+				d[t] = k;
+				par[t] = id;
+				q.push(MP(a[t].Y, MP(k, t)));
+				s[i].erase(s[i].begin());
+			}
+			continue;
+		}
+		vector <piii> tmp; 
+		for(auto it : s[i]){
+			if(it.X.Y <= x && it.X.X <= y){
+				int t = it.Y;
+				d[t] = k;
+				par[t] = id;
+				q.push(MP(a[t].Y, MP(k, t)));
+				tmp.PB(it);
+			}
+		}
+		for(auto it : tmp)
+			s[i].erase(it);
+		break;
+	}
+}
+
+void bfs(){
+	int x = 0, y = 0;
+	q.push(MP(MP(x, y), MP(0, -1)));
+	while(!q.empty()){
+		x = q.front().X.X;
+		y = q.front().X.Y;
+		doJob(x, y, q.front().Y.X + 1, q.front().Y.Y);
+		q.pop();
+	}
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	memset(d, -1, sizeof d);
+	memset(par, -1, sizeof par);
+	cin >> n;
+	for(int i = 0; i < n; ++i){
+		cin >> a[i].X.X >> a[i].X.Y >> a[i].Y.X >> a[i].Y.Y;
+		b[i] = MP(a[i].X, i);
+	}
+	sort(b, b + n);
+	for(int i = 0; i < SQ; ++i)
+		build(i);
+	bfs();
+	cout << d[n - 1] << "\n";
+	if(d[n - 1] == -1) return 0;
+	vector <int> ans;
+	int x = n - 1;
+	while(par[x] != -1){
+		ans.PB(x);
+		x = par[x];
+	}
+	ans.PB(x);
+	for(int i = SZ(ans); i --;)
+		cout << ans[i] + 1 << " ";
+	cout << "\n";
+	return 0;
+}

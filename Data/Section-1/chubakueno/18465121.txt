@@ -1,0 +1,64 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> ii;
+typedef pair<ll,ii> iii;
+// Devuelve gcd(a,b) seguido del par (x,y) que cumple: ax + by = gcd(a,b)
+iii extendedEuclid(ll a, ll b)
+{
+if(b == 0) return iii(a, ii(1, 0)); // Caso base: Residuo 0
+iii p = extendedEuclid(b, a % b); // Logica del algoritmo de Euclides
+ll x = p.second.first, y = p.second.second;
+return iii(p.first, ii(y, x - (a / b) * y));
+}
+ii solve(ll a, ll b, ll c, ll c1, ll c2)
+{
+iii egcd = extendedEuclid(a, b); // Resolver con Euclides Extendido
+ll x = egcd.second.first, y = egcd.second.second, d = egcd.first;
+if(c % d != 0) return ii(-1,-1); // No hay solucion
+// Buscar los dos extremos de t y hallar los valores (x,y)
+ll t1 = ceil(-c * x / b), t2 = floor(c * y / a);
+ll x1 = (x * c / d) + (b / d) * t1, y1 = (y * c / d) - (a / d) * t1;
+ll x2 = (x * c / d) + (b / d) * t2, y2 = (y * c / d) - (a / d) * t2;
+// Validar si los numeros son positivos
+if((x1 < 0 || y1 < 0) && (x2 < 0 || y2 < 0)) return ii(-1,-1);
+// Nos quedamos con el par que minimize la segunda ecuacion
+if(x1 * c1 + y1 * c2 < x2 * c1 + y2 * c2) return ii(x1,y1);
+return ii(x2,y2);
+}
+int main(){
+	ios::sync_with_stdio(false);
+	ll n;
+	cin>>n;
+	priority_queue<int,vector<int>,greater<int> > pq;
+	vector<pair<string,int> > ans;
+	for(int i=0;i<n;++i){
+		string op;
+		cin>>op;
+		int x=2e9;
+		if(op=="insert"){
+			cin>>x;
+			pq.push(x);
+		}if(op=="removeMin"){
+			if(pq.empty())
+				ans.emplace_back("insert",1000000000);
+			pq.pop();
+		}if(op=="getMin"){
+			cin>>x;
+			while(pq.size()&&pq.top()<x){
+				ans.emplace_back("removeMin",2e9);
+				pq.pop();
+			}
+			if(pq.empty()||pq.top()!=x){
+				ans.emplace_back("insert",x);
+			}
+		}
+		ans.emplace_back(op,x);
+	}
+	cout<<ans.size()<<endl;
+	for(int i=0;i<ans.size();++i){
+		cout<<ans[i].first;
+		if(ans[i].second!=2e9) cout<<" "<<ans[i].second;
+		cout<<endl;
+	}
+}

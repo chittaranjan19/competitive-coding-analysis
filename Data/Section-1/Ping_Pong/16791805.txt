@@ -1,0 +1,93 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int p = 239;
+const int MAX_N = 10;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+vector<vector<int> > graph;
+vector<int> num;
+vector<bool> used;
+
+int dfs(int x, int cnt)
+{
+    used[x] = true;
+    for (int i = 0; i < graph[x].size(); i++)
+        if (!used[graph[x][i]])
+            cnt = dfs(graph[x][i], cnt);
+    num[x] = cnt;
+    return cnt + 1;
+}
+
+int main()
+{
+    //ifstream ifs("input.txt");
+    //ofstream ofs("output.txt");
+    //freopen("candies.in", "r", stdin);
+    //freopen("candies.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, m;
+    cin >> n >> m;
+    graph.resize(n);
+    num.resize(n);
+    used.resize(n);
+    int ok[n];
+    int pos[n];
+    int a[m][2];
+    for (int i = 0; i < m; i++)
+        cin >> a[i][0] >> a[i][1];
+    int l = 0, r = m + 1, mid;
+    while (r - l > 1)
+    {
+        mid = (l + r) / 2;
+        for (int i = 0; i < n; i++)
+            graph[i].clear();
+        for (int i = 0; i < n; i++)
+            ok[i] = 0;
+        for (int i = 0; i < mid; i++)
+        {
+            graph[a[i][0] - 1].push_back(a[i][1] - 1);
+            ok[a[i][1] - 1]++;
+        }
+        for (int i = 0; i < n; i++)
+            used[i] = false;
+        for (int i = 0; i < n; i++)
+            if (!used[i] && ok[i] == 0)
+                dfs(i, 1);
+        for (int i = 0; i < n; i++)
+            pos[i] = 0;
+        for (int i = 0; i < n; i++)
+            pos[num[i] - 1]++;
+        bool b = true;
+        for (int i = 0; i < n; i++)
+            if (pos[i] > 1)
+                b = false;
+        if (b)
+            r = mid;
+        else
+            l = mid;
+    }
+    cout << (r <= m ? r : -1);
+    return 0;
+}

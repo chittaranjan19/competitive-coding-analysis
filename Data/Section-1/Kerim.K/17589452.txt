@@ -1,0 +1,90 @@
+#include<stdio.h>
+#include<math.h>
+#include<vector>
+#include<algorithm>
+#include<set>
+#include<queue>
+#define MAXN 3009
+#define ff first
+#define ss second
+#define mp(x,y) make_pair(x,y)
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef pair<int,int>PII;
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+int F[MAXN][MAXN];
+int dis[MAXN];
+vector<int>adj[MAXN];
+set<PII>OUT[MAXN],IN[MAXN];
+int n,m;
+void tap(int x){
+	queue<int>q;
+	fill(dis,dis+MAXN,1000000007);
+	q.push(x);dis[x]=0;
+	while(!q.empty()){
+		int nd=q.front();
+		q.pop();
+		for(int i=0;i<adj[nd].size();i++){
+			int to=adj[nd][i];
+			if(dis[to]>dis[nd]+1){
+				dis[to]=dis[nd]+1;
+				q.push(to);
+			}
+		}
+	}
+	for(int i=1;i<=n;i++){
+		if(dis[i]!=1000000007){
+			OUT[x].insert(mp(dis[i],i));
+			IN[i].insert(mp(dis[i],x));
+		}
+		F[x][i]=dis[i];	
+	}
+}
+int main(){
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=m;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+	}
+	for(int i=1;i<=n;i++){
+		sort(all(adj[i]));
+		adj[i].erase(unique(all(adj[i])),adj[i].end());
+	}
+	int a1,a2,a3,a4;
+	for(int i=1;i<=n;i++)
+		tap(i);int mx=0;	
+//	for(int i=1;i<=n;i++)
+//		for(int j=1;j<=n;j++)
+//			cout<<F[i][j]<<" "<<i<<"->"<<j<<endl;
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=n;j++){
+			if(i==j or F[i][j]==1000000007 or IN[i].size()==0 or OUT[j].size()==0)
+				continue;		
+			typeof((IN[i]).begin())	it=(--IN[i].end());
+			int cnt=4;
+			vector<PII>bir,iki;
+			while(cnt>=1 and it!=IN[i].begin())
+				bir.pb(*it),it--,cnt--;
+			typeof((OUT[j]).begin())it2=(--OUT[j].end());	cnt=4;
+			while(cnt>=1 and it2!=OUT[j].begin())
+				iki.pb(*it2),it2--,cnt--;
+			for(int k=0;k<bir.size();k++)
+				if(bir[k].ss!=i and bir[k].ss!=j)
+					for(int l=0;l<iki.size();l++)	
+						if(iki[l].ss!=i and iki[l].ss!=j and iki[l].ss!=bir[k].ss)
+							if(umax(mx,bir[k].ff+F[i][j]+iki[l].ff))
+								a1=bir[k].ss,a2=i,a3=j,a4=iki[l].ss;
+			for(int l=0;l<iki.size();l++)
+				if(iki[l].ss!=i and iki[l].ss!=j)
+					for(int k=0;k<bir.size();k++)	
+						if(bir[k].ss!=i and bir[k].ss!=j and iki[l].ss!=bir[k].ss)
+							if(umax(mx,bir[k].ff+F[i][j]+iki[l].ff))
+								a1=bir[k].ss,a2=i,a3=j,a4=iki[l].ss;					
+		}	
+	printf("%d %d %d %d\n",a1,a2,a3,a4);	
+	return 0;
+}
+//LooK aT mY COde ONlinE +_+

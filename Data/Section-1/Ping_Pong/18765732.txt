@@ -1,0 +1,89 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int P = 239;
+const int MAX_N = 500000;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+int dist[100001];
+int ans[100001];
+int cnt[100001];
+
+vector<int> used;
+queue<int> q;
+
+void bfs()
+{
+    while (!q.empty())
+    {
+        int x = q.front();
+        q.pop();
+        used.push_back(x);
+        cnt[x]++;
+        if (dist[x / 2] > dist[x] + 1)
+        {
+            dist[x / 2] = dist[x] + 1;
+            q.push(x / 2);
+        }
+        if (x * 2 <= 100000 && dist[x * 2] > dist[x] + 1)
+        {
+            dist[x * 2] = dist[x] + 1;
+            q.push(x * 2);
+        }
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n;
+    cin >> n;
+    int a[n];
+    for (int i = 0; i < n; i++)
+        cin >> a[i];
+    for (int i = 0; i <= 100000; i++)
+    {
+        dist[i] = inf;
+        ans[i] = 0;
+        cnt[i] = 0;
+    }
+    for (int i = 0; i < n; i++)
+    {
+        used.clear();
+        dist[a[i]] = 0;
+        q.push(a[i]);
+        bfs();
+        for (int j = 0; j < used.size(); j++)
+        {
+            ans[used[j]] += dist[used[j]];
+            dist[used[j]] = inf;
+        }
+    }
+    int res = inf;
+    for (int i = 0; i <= 100000; i++)
+        if (cnt[i] == n)
+            res = min(res, ans[i]);
+    cout << res;
+    return 0;
+}

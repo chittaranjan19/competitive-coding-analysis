@@ -1,0 +1,72 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+typedef long long ll;
+
+const ll t = 3e9;
+
+int a[10], m[10];
+
+ll extgcd(ll a, ll b, ll &x, ll &y)
+{
+    if(a == 0 && b == 0) return -1;
+    if(b == 0)
+    {
+        x = 1;
+        y = 0;
+        return a;
+    }
+    ll d = extgcd(b, a % b, y, x);
+    y -= a / b * x;
+    return d;
+}
+
+bool solve(ll &m0, ll &a0, ll m, ll a)
+{
+    ll y, x;
+    ll g = extgcd(m0, m, x, y);
+    if(abs(a - a0) % g) return false;
+    x *= (a - a0) / g;
+    x %= m / g;
+    a0 = x * m0 + a0;
+    m0 *= m / g;
+    a0 %= m0;
+    if(a0 < 0) a0 += m0;
+    return true;
+}
+
+bool mles(ll &m0, ll &a0, int n)
+{
+    m0 = 1;
+    a0 = 0;
+    for(int i = 0; i < n; ++i) if(!solve(m0, a0, m[i], a[i])) return false;
+    return true;
+}
+
+int main()
+{
+    for(int i = 0; i < 2; ++i) cin >> m[i] >> a[i];
+    ll l, r;
+    cin >> l >> r;
+    l = max(l, (ll)max(a[0], a[1]));
+    for(int i = 0; i < 2; ++i)
+    {
+        a[i] %= m[i];
+        if(a[i] < 0) a[i] += m[i];
+    }
+    ll ans = 0, m0, a0;
+    if(l <= r && mles(m0, a0, 2))
+    {
+        ll tmp = t / m0 + 1;
+        l += tmp * m0, r += tmp * m0;
+        if(a0 < l) ans = (r - a0) / m0 - (l - a0 + m0 - 1) / m0 + 1;
+        else if(a0 <= r) ans = (r - a0) / m0 + 1;
+    }
+    cout << ans << endl;
+    return 0;
+}

@@ -1,0 +1,82 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+const int mod =1000000007;
+
+using namespace std;
+
+char data[100005];
+int fff[100];
+
+int quickpow(int m,int n)
+{
+    int b = 1;
+    while (n > 0)
+    {
+          if (n & 1)
+             b = (b*m)%mod;
+          n = n >> 1 ;
+          m = (m*m)%mod;
+    }
+    return b;
+}
+
+long long q_mul( long long a, long long b, long long mod ) //快速计算 (a*b) % mod
+{
+    long long ans = 0;  // 初始化
+    while(b)                //根据b的每一位看加不加当前a
+    {
+        if(b & 1)           //如果当前位为1
+        {
+            b--;
+            ans =(ans+ a)%mod;   //ans+=a
+        }
+        b /= 2;                         //b向前移位
+        a = (a + a) % mod;          //更新a
+
+    }
+    return ans;
+}
+
+void init(){
+
+    for(int i=0;i<=63;i++){
+
+        int cc=0;
+        for(int j=0;j<=5;j++){
+            if( !(i&(1<<j)))
+                cc++;
+        }
+        fff[i]= quickpow(3,cc);
+
+    }
+}
+
+int main(){
+    init();
+    scanf("%s",data+1);
+    int len=strlen(data+1);
+    int i,j;
+    __int64 ans=1;
+    for(i=1;i<=len;i++){
+        char f=data[i];
+        __int64 num=0;
+        int fn;
+        if(f>='0'&&f<='9')
+            fn=f-'0';
+        else if(f>='A'&&f<='Z')
+            fn=f-'A'+10;
+        else if(f>='a'&&f<='z')
+            fn=f-'a'+36;
+        else if(f=='-')
+            fn=62;
+        else
+            fn=63;
+
+        num+=fff[fn];
+
+        ans=q_mul(ans,num,mod);
+    }
+    printf("%I64d\n",ans);
+    return 0;
+}

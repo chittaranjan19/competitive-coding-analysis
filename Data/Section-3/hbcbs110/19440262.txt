@@ -1,0 +1,71 @@
+#include<iostream>
+#include<cstdlib>
+#include<cstdio>
+#include<queue>
+using namespace std;
+int sm[1002][1002]={0},vx[]={0,0,1,-1},vy[]={1,-1,0,0};
+char mp[1002][1002];
+bool vis[1002][1002]={0};
+struct node
+{
+    int x,y;
+}tmp;
+queue <node> q;
+void bfs(int x,int y)
+{
+    int ansm=0,i;
+    tmp.x=x;
+    tmp.y=y;
+    vis[x][y]=1;
+    q.push(tmp);
+    while(!q.empty())
+    {
+        for(i=0;i<4;i++)
+        {
+            if(mp[q.front().x+vx[i]][q.front().y+vy[i]]=='*') ansm++;
+            else if(!vis[q.front().x+vx[i]][q.front().y+vy[i]])
+                 {
+                     tmp.x=q.front().x+vx[i];
+                     tmp.y=q.front().y+vy[i];
+                     q.push(tmp);
+                     vis[tmp.x][tmp.y]=1;
+                 }
+        }
+        q.pop();
+    }
+    tmp.x=x;
+    tmp.y=y;
+    q.push(tmp);
+    vis[x][y]=0;
+    sm[x][y]=ansm;
+    while(!q.empty())
+    {
+        for(i=0;i<4;i++)
+        {
+            if(vis[q.front().x+vx[i]][q.front().y+vy[i]])
+            {
+                tmp.x=q.front().x+vx[i];
+                tmp.y=q.front().y+vy[i];
+                q.push(tmp);
+                vis[tmp.x][tmp.y]=0;
+                sm[tmp.x][tmp.y]=ansm;
+            }
+        }
+        q.pop();
+    }
+    printf("%d\n",ansm);
+}
+int main()
+{
+    int n,m,k,i,x,y;
+    scanf("%d%d%d\n",&n,&m,&k);
+    //scanf("%c",&mp[0][0]);
+    for(i=0;i<n;i++) gets(mp[i]);
+    while(k--)
+    {
+        scanf("%d%d",&x,&y);
+        if(sm[x-1][y-1]) printf("%d\n",sm[x-1][y-1]);
+        else bfs(x-1,y-1);
+    }
+    return 0;
+}

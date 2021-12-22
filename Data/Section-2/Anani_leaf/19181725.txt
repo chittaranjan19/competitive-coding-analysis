@@ -1,0 +1,98 @@
+#include<iostream>
+#include<cstdio>
+#include<cstring>
+#include<algorithm>
+#include<string>
+#include<queue>
+#include<vector>
+#include<map>
+#include<cmath>
+#define Max(a,b) (a>b?a:b)
+#define Min(a,b) (a>b?b:a)
+using namespace std;
+//typedef __int64 ll;
+//typedef long long ll;
+vector<int>head[100010];
+vector<int>Pari;
+vector<int>Arya;
+int m,n;
+
+int color[100010] = {0};
+bool ok = true;
+void bfs(int nod)
+{
+	queue<int>que;
+	que.push(nod);
+	while(!que.empty())
+	{
+		nod = que.front();
+		que.pop();
+		for (int i = 0; i < head[nod].size(); i++)
+		{
+			int num = head[nod][i];
+			if(!color[num])
+			{
+				color[num] = -color[nod];
+				que.push(num);
+				if(color[num] == 1) Pari.push_back(num);
+				else if(color[num] == -1) Arya.push_back(num);
+			}
+
+			if(color[num] == color[nod])
+			{
+				ok = false;
+				return;
+			}
+
+		}
+	}
+}
+int main()
+{
+	scanf("%d %d",&n,&m);
+	for(int i = 0; i < m; i++)
+	{
+		int a,b;
+		scanf("%d %d",&a,&b);
+		head[a].push_back(b);
+		head[b].push_back(a);
+	}
+
+	for(int i = 1; i < 1+n; i++)
+	{
+		if(!ok) break;
+		if(!color[i])
+		{
+			if(Arya.size()==0)
+			{
+				color[i] = -1;
+				Arya.push_back(i);
+			}
+			else
+			{
+				color[i] = 1;
+				Pari.push_back(i);
+			}
+
+			bfs(i);
+		}
+	}
+	if(ok)
+	{
+		printf("%d\n",Pari.size());
+		for(int i = 0; i < Pari.size(); i++)
+		{
+			if(i)printf(" ");
+			printf("%d",Pari[i]);
+		}
+		printf("\n%d\n",Arya.size());
+		for(int i = 0; i < Arya.size(); i++)
+		{
+			if(i)printf(" ");
+			printf("%d",Arya[i]);
+		}
+	}
+	else printf("-1\n");
+	return 0;
+}
+

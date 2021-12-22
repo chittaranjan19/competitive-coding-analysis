@@ -1,0 +1,176 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long int ll;
+typedef vector<int> vi;
+#define TRACE
+
+#ifdef TRACE
+#define trace1(x)                cerr << #x << ": " << x << endl;
+#define trace2(x, y)             cerr << #x << ": " << x << " | " << #y << ": " << y << endl;
+#define trace3(x, y, z)          cerr << #x << ": " << x << " | " << #y << ": " << y << " | " << #z << ": " << z << endl;
+#define trace4(a, b, c, d)       cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << endl;
+#define trace5(a, b, c, d, e)    cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << endl;
+#define trace6(a, b, c, d, e, f) cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << " | " << #f << ": " << f << endl;
+
+#else
+
+#define trace1(x)
+#define trace2(x, y)
+#define trace3(x, y, z)
+#define trace4(a, b, c, d)
+#define trace5(a, b, c, d, e)
+#define trace6(a, b, c, d, e, f)
+
+#endif
+std::vector<int> a(200009);
+struct AdjListNode
+{
+    int dest;
+    int weight;
+    struct AdjListNode* next;
+};
+ 
+// A structure to represent an adjacency liat
+struct AdjList
+{
+    struct AdjListNode *head;  // poller to head node of list
+};
+ 
+// A structure to represent a graph. A graph is an array of adjacency lists.
+// Size of array will be V (number of vertices in graph)
+struct Graph
+{
+    int V;
+    struct AdjList* array;
+};
+ 
+// A utility function to create a new adjacency list node
+struct AdjListNode* newAdjListNode(int dest, int weight)
+{
+    struct AdjListNode* newNode =
+            (struct AdjListNode*) malloc(sizeof(struct AdjListNode));
+    newNode->dest = dest;
+    newNode->weight = weight;
+    newNode->next = NULL;
+    return newNode;
+}
+ 
+// A utility function that creates a graph of V vertices
+struct Graph* createGraph(int V)
+{
+    struct Graph* graph = (struct Graph*) malloc(sizeof(struct Graph));
+    graph->V = V;
+ 
+    // Create an array of adjacency lists.  Size of array will be V
+    graph->array = (struct AdjList*) malloc(V * sizeof(struct AdjList));
+ 
+     // Initialize each adjacency list as empty by making head as NULL
+    for (ll i = 0; i < V; ++i)
+        graph->array[i].head = NULL;
+ 
+    return graph;
+}
+ 
+// Adds an edge to an undirected graph
+void addEdge(struct Graph* graph, int src, int dest, int weight)
+{
+    // Add an edge from src to dest.  A new node is added to the adjacency
+    // list of src.  The node is added at the begining
+    struct AdjListNode* newNode = newAdjListNode(dest, weight);
+    newNode->next = graph->array[src].head;
+    graph->array[src].head = newNode;
+ 
+    // Since graph is undirected, add an edge from dest to src also
+    newNode = newAdjListNode(src, weight);
+    newNode->next = graph->array[dest].head;
+    graph->array[dest].head = newNode;
+}
+ void DFSUtil(struct Graph* graph,int v, bool visited[])
+{
+    // Mark the current node as visited and print it
+    visited[v] = true;
+//    cout << v << " ";
+    struct AdjListNode* i;
+//    i=(graph->array[v].head)->next;
+    // Recur for all the vertices adjacent to this vertex
+
+   // list<int>::iterator i;
+  /*  for (i = adj[v].begin(); i != adj[v].end(); ++i)
+        if (!visited[*i])
+            DFSUtil(*i, visited);  */
+    if(graph->array[v].head!=NULL)
+    {
+      a[v]+=graph->array[v].head->weight;
+    }
+    trace2(v+1,graph->array[v].head->weight);
+   //   a[graph->array[v].head->dest]+=graph->array[v].head->weight;
+            
+      for (i=(graph->array[v].head); i !=NULL; i=i->next)
+      {
+        if (!visited[i->dest])
+            {
+                trace2(v,i->dest);   
+                DFSUtil(graph,i->dest,visited);
+                a[v]+=a[i->dest];
+            }
+      }
+      trace2(v+1,a[v]);
+}
+ 
+// DFS traversal of the vertices reachable from v. It uses recursive DFSUtil()
+void DFS(struct Graph* graph, int src)
+{
+    int V = graph->V;
+    // Mark all the vertices as not visited
+    bool *visited = new bool[V];
+    for (int i = 0; i < V; i++)
+        visited[i] = false;
+ 
+    // Call the recursive helper function to print DFS traversal
+    DFSUtil(graph,src,visited);
+}
+int main()
+{
+    int n,v1,v2,w;
+    cin >> n;
+    struct Graph* g = createGraph(n);
+    for(int i=0;i< n-1;i++)
+    {
+        cin >> v1 >> v2 >> w;
+        if(w==2)
+        {
+            a[v1-1]=1;
+            a[v2-1]=1;
+            w=1;
+        }
+        else
+        {
+            w=0;
+        }
+        addEdge(g, v1-1, v2-1, w);
+    }
+    DFS(g,0);
+    int ans=0;
+    for(int i=0;i<n;i++)
+    {
+        if(a[i]==2)
+        {
+           // trace1(i);
+            ans++;
+        }
+    }
+    //trace1(ans);
+    cout << ans << endl;
+    for(int i=0;i<n;i++)
+    {
+        if(a[i]==2)
+        {
+           // trace1(i);
+            cout << i+1 << " ";
+        }
+    }
+    if(ans)
+        cout << endl;
+//    cout << ans << endl;
+    return 0;
+}

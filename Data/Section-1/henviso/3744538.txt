@@ -1,0 +1,132 @@
+#include <iostream>
+#include <cstdio>
+#include <string>
+#include <cstring>
+#include <cstdlib>
+#include <stack>
+#include <algorithm>
+#include <cctype>
+#include <vector>
+#include <queue>
+#include <tr1/unordered_map>
+#include <cmath>
+#include <map>
+#include <bitset>
+using namespace std;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef vector<int> vi;
+typedef pair<int,int> ii;
+///////////////////////////////UTIL/////////////////////////////////
+#define ALL(x) (x).begin(),x.end()
+#define CLEAR0(v) memset(v, 0, sizeof(v))
+#define CLEAR(v, x) memset(v, x, sizeof(v))
+#define INRANGE0(x, n) ((x) > -1 && (x) < n)
+#define INRANGE(x, a, b) ((x) >= a && (x) <= b)
+#define COPY(a, b) memcpy(a, b, sizeof(a))
+#define REP(i,n) for(int i = 0; i<n; i++)
+#define REPP(i,a,n) for(int i = a; i<n; i++)
+#define REPD(i,n) for(int i = n-1; i>-1; i--)
+#define REPDP(i,a,n) for(int i = a; i>-1; i--)
+#define pb push_back
+#define pf push_front
+#define sz size()
+#define mp make_pair
+/////////////////////////////NUMERICAL//////////////////////////////
+#define INCMOD(a,b,c) (((a)+b)%c)
+#define DECMOD(a,b,c) (((a)+c-b)%c)
+#define ROUNDINT(a) (int)((double)(a) + 0.5)
+#define INF 2000000000
+#define EPS 1e-9
+/////////////////////////////BITWISE////////////////////////////////
+#define CHECK(S, j) (S & (1 << j))
+#define CHECKFIRST(S) (S & (-S))  //PRECISA DE UMA TABELA PARA TRANSFORMAR EM INDICE
+#define SET(S, j) S |= (1 << j)
+#define SETALL(S, j) S = (1 << j)-1  //J PRIMEIROS
+#define UNSET(S, j) S &= ~(1 << j)
+#define TOOGLE(S, j) S ^= (1 << j)
+///////////////////////////////64 BITS//////////////////////////////
+#define LCHECK(S, j) (S & (1ULL << j))
+#define LSET(S, j) S |= (1ULL << j)
+#define LSETALL(S, j) S = (1ULL << j)-1ULL  //J PRIMEIROS
+#define LUNSET(S, j) S &= ~(1ULL << j)
+#define LTOOGLE(S, j) S ^= (1ULL << j)
+//scanf(" %d ", &t);
+#define DFS_WHITE -1
+#define DFS_BLACK 1
+#define DFS_GRAY 2
+
+int x, y, d;
+
+//inv modular de a mod b = m é o x
+ull gcd(ull a, ull b){
+	if(b == 0) return a;
+	gcd(b, a%b);
+}
+
+int LOG10(ull a){
+	int res = 0;
+	while(a){
+		a /= 10;
+		res++;
+	}
+	return res;
+}
+
+ull lcm(ull a, ull b){
+	ull aux = a/gcd(a,b);
+	//cout << " A " << a << " GCD " << gcd(a,b) << endl;
+	//cout << " LOG 1 " << LOG10(aux) << " LOG 2 " << LOG10(b) << endl;
+	int casas = max(LOG10(aux), LOG10(b)); 
+	if(LOG10(aux*b) < casas || LOG10(aux)+LOG10(b) > 19) return 0;
+	return aux*b;
+}
+
+int main(){
+	ull n, d;
+	cin >> n >> d;
+	int h;
+	ull v[100];
+	cin >> h;
+	REP(i, h){
+		cin >> v[i];
+	}
+	ull num = 1, den = v[h-1];
+	ull aux;
+	REPD(i, h-1){
+		
+		aux = lcm(den, v[i]);
+		if(aux == 0){
+			num = 0;
+			den = 0;
+			//cout << " SAI 1 " << endl;
+			break;
+		}
+		
+		if(LOG10(aux/den)+LOG10(num) > 19){
+			num = 0;
+			den = 0;
+			//cout << " SAI 2 " << endl;
+			break;
+		}
+		num = aux/den * num;
+		
+		if(LOG10(aux)+LOG10(v[i]) > 19){
+			num = 0;
+			den = 0;
+			//cout << " SAI 3 " << endl;
+			break;
+		}
+		num += aux*v[i];
+		
+		den = aux;
+		if(num%den == 0){
+			num /= den;
+			den = 1;
+		}
+		if(i) swap(num, den);
+		//cout << "NUM " << num << " DEN " << den << endl; 
+	}
+	if(den == d && num == n) printf("YES\n");
+	else printf("NO\n");
+}

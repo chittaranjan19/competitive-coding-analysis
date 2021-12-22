@@ -1,0 +1,169 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1e5 + 10, SQRT = 320;
+
+
+
+struct line {
+	ll m, b;
+	int id;
+	void read (int i) {
+		cin >> b >> m;
+		id = i;
+	}
+	ll val (ll x) const {
+		return m * x + b;
+	}
+	bool operator < (const line &a) const {
+		return m == a.m ? b < a.b : m < a.m;
+	}
+	pll intersect (const line &a) const {
+		assert(m < a.m);
+		//m * x + b = (a.m) * x + (a.b)
+		//(a.m - m) * x = (b - a.b)
+		//x = (b - a.b) / (a.m - m)
+		return pll(b - a.b, a.m - m);
+	}
+};
+
+struct query {
+	int l, r;
+	ll t;
+	int id;
+	void read (int i) {
+		cin >> l >> r >> t;
+		l--;
+		r--;
+		id = i;
+	}
+	bool operator < (const query &a) const {
+		return t < a.t;
+	}
+};
+
+int N, Q;
+vector<line> blocks[MAXN];
+line lines[MAXN];
+int maxind[SQRT];
+query queries[MAXN];
+int ans[MAXN];
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces91E.in", "r", stdin);
+#endif
+	cin >> N >> Q;
+	for (int i = 0; i < N; i++) {
+		lines[i].read(i);
+		blocks[i / SQRT].push_back(lines[i]);
+	}
+	for (int i = 0; i < SQRT; i++) {
+		vector<line> &ref = blocks[i], toref;
+		sort(ref.begin(), ref.end());
+		rep(it, ref) {
+			if (toref.empty() || toref.back().m != it->m) {
+				//either it's empty. or the slope does not match
+				toref.push_back(*it);
+			} else {
+				toref.back() = *it;
+			}
+		}
+		ref = toref;
+		toref.clear();
+		//ok now do it again except remove the extraneous lines
+		for (int j = 0, siz = ref.size(), k; j < siz; j = k) {
+			toref.push_back(ref[j]);
+			//k now wtf now let's just go and
+			for (k = j + 1; k + 1 < ref.size(); k++) {
+				//k, k + 1 can be compared
+				pll pk = ref[j].intersect(ref[k]), qk = ref[j].intersect(ref[k + 1]);
+				//so if pk < qk break!
+				if (pk.first * qk.second < pk.second * qk.first) {
+					break;
+				}
+			}
+		}
+		ref = toref;
+	}
+	//read the queries
+	for (int i = 0; i < Q; i++) {
+		queries[i].read(i);
+	}
+	sort(queries, queries + Q);
+	//now let's process them!
+	for (int i = 0; i < Q; i++) {
+		//answer the query!
+		//ok now let's consider the time this query happens
+		ll t = queries[i].t;
+		int a = queries[i].l, b = queries[i].r;
+		ll val = -1; int ind = -1;
+		for (; a <= b && (a % SQRT); a++) {
+			ll v = lines[a].val(t);
+			if (val < v) {
+				val = v;
+				ind = a;
+			}
+		}
+		for (int comp = a / SQRT; b - a >= SQRT; a += SQRT, comp++) {
+			//advance the current pointer
+			int &ref = maxind[comp], nxt;
+			for (; ref + 1 < blocks[comp].size(); ref++) {
+				if (blocks[comp][ref].val(t) > blocks[comp][ref + 1].val(t)) {
+					break;
+				}
+			}
+			ll v = blocks[comp][ref].val(t);
+			if (val < v) {
+				val = v;
+				ind = blocks[comp][ref].id;
+			}
+		}
+		for (; a <= b; a++) {
+			ll v = lines[a].val(t);
+			if (val < v) {
+				val = v;
+				ind = a;
+			}			
+		}
+		ans[queries[i].id] = ind;
+	}
+	//finally: print ans!
+	for (int i = 0; i < Q; i++) {
+		cout << ans[i] + 1 << '\n';
+	}
+}

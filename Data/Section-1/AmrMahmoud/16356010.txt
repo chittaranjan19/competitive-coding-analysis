@@ -1,0 +1,100 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int b1 = 47, b2 = 53;
+int m1 = mod, m2 = mod + 2, n;
+char s[10005];
+char s2[1005];
+set<pair<int, int> > ss[1005];
+map<pair<int, int>, int> m[1005];
+
+bool v[10005], DP[10005];
+int ch[10005];
+vector<string> vec;
+
+bool solve(int ind)
+{
+  if(ind == n) return true;
+  if(v[ind]) return DP[ind];
+  v[ind] = true;
+  int h1 = 0, h2 = 0;
+  for(int i=1;i<1002;i++)
+  {
+    if(i + ind - 1 == n) break;
+    h1 = (h1 * 1LL * b1 + s[i + ind - 1] - 'a') % m1;
+    h2 = (h2 * 1LL * b2 + s[i + ind - 1] - 'a') % m2;
+    if(ss[i].find(mp(h1, h2)) != ss[i].end())
+    {
+      if(solve(ind + i))
+      {
+        DP[ind] = true;
+        ch[ind] = i;
+        return true;
+      }
+    }
+  }
+  return DP[ind] = false;
+}
+
+void get(int ind)
+{
+  if(ind == n) return;
+  if(ind) printf(" ");
+  int l = ch[ind];
+  int h1 = 0, h2 = 0;
+  for(int i=1;i<=l;i++)
+  {
+    h1 = (h1 * 1LL * b1 + s[i + ind - 1] - 'a') % m1;
+    h2 = (h2 * 1LL * b2 + s[i + ind - 1] - 'a') % m2;
+  }
+  int i = m[l][mp(h1, h2)];
+  printf("%s", vec[i].c_str());
+  get(ind + l);
+}
+
+int main()
+{
+  int mm;
+  scanf("%d", &n);
+  scanf("%s", s);
+  scanf("%d", &mm);
+  for(int i=0;i<mm;i++)
+  {
+    scanf("%s", s2);
+    int l = strlen(s2);
+    string tmp = "";
+    for(int j=0;j<l;j++)
+      tmp += s2[j];
+    vec.pb(tmp);
+    reverse(s2, s2 + l);
+    int h1 = 0, h2 = 0;
+    for(int j=0;j<l;j++)
+    {
+      s2[j] = tolower(s2[j]);
+      h1 = (h1 * 1LL * b1 + s2[j] - 'a') % m1;
+      h2 = (h2 * 1LL * b2 + s2[j] - 'a') % m2;
+    }
+    m[l][mp(h1, h2)] = i;
+    ss[l].insert(mp(h1, h2));
+  }
+  assert(solve(0));
+  get(0);
+  return 0;
+}

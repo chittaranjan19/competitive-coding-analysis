@@ -1,0 +1,101 @@
+const
+  tfi = '';//'573c.inp';
+  tfo = '';//'573c.out';
+
+var
+  ok : boolean;
+  n : longint;
+  adj,next : array [-100000..100000] of longint;
+  deg,head,c : array [1..100000] of longint;
+
+procedure addedge(j,u,v : longint);
+  begin
+    adj[j] := v;
+    next[j] := head[u];
+    head[u] := j;
+  end;
+
+procedure enter;
+  var j,u,v : longint;
+  begin
+    assign(input,tfi);
+    reset(input);
+    read(n);
+    for j := 1 to n-1 do
+      begin
+        read(u,v);
+        addedge( j,u,v);
+        addedge(-j,v,u);
+      end;
+    close(input);
+  end;
+
+function check(u : longint) : longint;
+  begin
+    if (deg[u] > 2) or (c[u] > 0) then exit(1) else exit(0);
+  end;
+
+procedure visit1(u,x : longint);
+  var v,j : longint;
+  begin
+    j := head[u];
+    while j <> 0 do
+      begin
+        v := adj[j];
+        if v <> x then
+          begin
+            inc(deg[u]);
+            visit1(v,u);
+            inc(c[u],check(v));
+          end;
+        j := next[j];
+      end;
+  end;
+
+procedure visit2(u,x : longint);
+  var v,j : longint;
+  begin
+    j := head[u];
+    while j <> 0 do
+      begin
+        v := adj[j];
+        if v <> x then
+          begin
+            if ((c[u] - check(v) > 0) or ((u <> 1) and (deg[u] > 2)) or (deg[u] > 3)) and (deg[v] > 1) then inc(c[v]);
+            visit2(v,u);
+          end;
+        j := next[j];
+      end;
+  end;
+
+procedure print;
+  var u,root : longint;
+  begin
+    ok := true;
+    visit1(1,0);
+    visit2(1,0);
+    root := 0;
+    for u := 1 to n do
+      if c[u] > 2 then
+        begin
+          ok := false;
+          break;
+        end
+      else
+      if c[u] = 2 then
+        if root = 0 then root := u
+        else
+          begin
+            ok := false;
+            break;
+          end;
+    assign(output,tfo);
+    rewrite(output);
+    if ok then write('Yes') else write('No');
+    close(output);
+  end;
+
+begin
+  enter;
+  print;
+end.

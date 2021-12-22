@@ -1,0 +1,148 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <climits>
+#ifdef DEBUG
+	#include <ctime>
+#endif
+using namespace std;
+
+// template
+
+// abbreviations
+#define vi vector<int>
+#define vl vector<ll>
+#define vb vector<bool>
+#define vs vector<string>
+#define ii pair<int, int>
+#define a first
+#define b second
+#define vii vector<ii>
+#define mii map<ii>
+#define vvi vector<vi>
+#define vvl vector<vl>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define sz(var) ((int) var.size())
+#define rep(it, n) for(int it = 0; it < n; ++it)
+#define dep(it, n) for(int it = n - 1; it >= 0; --it)
+#define rep1(it, n) for(int it = 1; it <= n; ++it)
+#define dep1(it, n) for(int it = n; it > 0; --it)
+#define loop(it, from, to) for(int it = (from); it <= (to); ++it)
+#define iter(it, cont) for(__typeof((cont).begin()) it = (cont).begin(); it != (cont).end(); ++it)
+#define riter(it, cont) for(__typeof((cont).rbegin()) it = (cont).rbegin(); it != (cont).rend(); ++it)
+#define all(cont) (cont).begin(), (cont).end()
+#define rng(cont, n) cont, cont + n
+#define memclr(var) memset(var, 0, sizeof(var))
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const int INF = INT_MAX;
+const int NINF = INT_MIN;
+const ll INF_LL = LLONG_MAX;
+const ll NINF_LL = LLONG_MIN;
+const double PI = acos(-1.0);
+const int MOD = 1e9+7;
+
+#ifdef DEBUG
+	#define debug(fmt, args...) printf("Line %d, in %s\t: " fmt, __LINE__, __FUNCTION__, ##args)
+	#define rep_rt() printf("[Run time: %.3fs]\n", ((double) clock()) / CLOCKS_PER_SEC)
+#else
+	#define debug(...)
+#endif
+
+// end of template
+
+#define POW2_MAX_N 17
+
+int arr[1 << POW2_MAX_N];
+
+struct Node {
+	int val;
+} tree[(1 << (POW2_MAX_N + 1)) + 1];
+
+#define L (1 << k)
+#define R (L | 1)
+#define m ((l + r) >> 1)
+
+int leaf_idx = 0;
+void init(int k, int l, int r, int d) {
+	Node &node = tree[k];
+	if (l == r) {
+		tree[k].val = arr[leaf_idx++];
+		return;
+	}
+	init(L, l, m, d - 1);
+	init(R, m + 1, r, d - 1);
+	if (d % 2) {
+		node.val = tree[L].val | tree[R].val;
+	} else {
+		node.val = tree[L].val ^ tree[R].val;
+	}
+}
+void update(int k, int i, int v, int l, int r, int d) {
+	Node &node = tree[k];
+	if (l == r) {
+		node.val = v;
+		return;
+	}
+	if (i <= m) {
+		update(L, i, v, l, m, d - 1);
+	} else {
+		update(R, i, v, m + 1, r, d - 1);
+	}
+	if (d % 2) {
+		node.val = tree[L].val | tree[R].val;
+	} else {
+		node.val = tree[L].val ^ tree[R].val;
+	}
+}
+#undef m
+
+#define ROOT 1
+
+int main() {
+#ifdef DEBUG
+	freopen("339D.in", "r", stdin);
+#endif
+    
+    int n, m;
+    scanf("%d %d", &n, &m);
+    rep(idx, (1 << n)) {
+    	scanf("%d", &arr[idx]);
+
+    }
+    init(ROOT, 1, (1 << n), n);
+
+    while (m--) {
+    	int p, b;
+    	scanf("%d %d", &p, &b);
+    	update(ROOT, p, b, 1, (1 << n), n);
+    	printf("%d\n", tree[ROOT].val);
+    }
+
+#ifdef DEBUG
+    rep_rt();
+#endif
+    return 0;
+}

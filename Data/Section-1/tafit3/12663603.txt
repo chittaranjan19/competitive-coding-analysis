@@ -1,0 +1,208 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+
+public class ProblemB {
+    BufferedReader rd;
+
+    ProblemB() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int k = intarr()[1];
+        int[] a = intarr();
+        int n = a.length;
+        NavigableMap<Integer, Integer> s = new TreeMap<>();
+        for(int i: a) {
+            Integer c = s.get(i);
+            if(c == null) {
+                c = 1;
+            } else {
+                c++;
+            }
+            s.put(i,c);
+        }
+        int[] b = new int[n];
+        int p = 0;
+        for(Map.Entry<Integer, Integer> e: s.entrySet()) {
+            int key = e.getKey();
+            int value = e.getValue();
+            for(int i=0;i<value;i++) {
+                b[p++] = key;
+            }
+        }
+        int[] dd = new int[n-1];
+        for(int i=0;i<n-1;i++) {
+            dd[i] = b[i+1] - b[i];
+        }
+        int res = 0;
+        if(k==1) {
+            for(int i: dd) {
+                res += i;
+            }
+        } else {
+            int rest = 0;
+            int oldN = n;
+            if(n < k*2) {
+                rest = n - 2*(n-k);
+                n -= rest;
+            }
+            if(n<=k) {
+                int[] ss = new int[oldN];
+                for(int i=0;i<oldN-1;i++) {
+                    ss[i+1] = ss[i] + dd[i];
+                }
+                res = Integer.MAX_VALUE;
+                for(int f=0;f<=rest;f++) {
+                    res = Math.min(res, ss[n-1+f]-ss[f]);
+                }
+            } else {
+                res = Integer.MAX_VALUE;
+                for(int f=0;f<=rest;f++) {
+                    int x = n/k;
+                    int y = n%k;
+                    int[][] d2 = new int[n+10][30];
+                    int[][] d3 = new int[n+10][30];
+                    int[] z = new int[n+10];
+                    int[][] w = new int[n+10][30];
+                    z[0] = 1;
+                    int d2c = k-y;
+                    int d3c = y;
+                    for(int i=0;i<n;i++) {
+                        for(int j=0;j<z[i];j++) {
+                            for(int u=0;u<=1;u++) {
+                                int v = i+x+u;
+                                if(v < n-1 || v==n) {
+                                    int d2n = d2[i][j];
+                                    int d3n = d3[i][j];
+                                    if(u == 0) {
+                                        d2n++;
+                                    } else {
+                                        d3n++;
+                                    }
+                                    if(d2n <= d2c && d3n <= d3c) {
+                                        int found = -1;
+                                        for(int r=0;r<z[v];r++) {
+                                            if(d2[v][r] == d2n && d3[v][r] == d3n) {
+                                                found = r;
+                                                break;
+                                            }
+                                        }
+                                        int ix;
+                                        if(found == -1) {
+                                            ix = z[v];
+                                            z[v]++;
+                                        } else if(w[v][found] < w[i][j] + (v < n-1?dd[f+v-1]:0)) {
+                                            ix = found;
+                                        } else {
+                                            ix = -1;
+                                        }
+                                        if(ix != -1) {
+                                            d2[v][ix] = d2n;
+                                            d3[v][ix] = d3n;
+                                            w[v][ix] = w[i][j];
+                                            if(v < n-1) {
+                                                w[v][ix] += dd[f+v-1];
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    int cc = 0;
+                    for(int i=0;i<n-1;i++) {
+                        cc += dd[f+i];
+                    }
+                    int max = 0;
+                    for(int i=0;i<z[n];i++) {
+                        if(d2[n][i]==d2c && d3[n][i]==d3c) {
+                            max = Math.max(max, w[n][i]);
+                        }
+                    }
+                    cc -= max;
+
+                    res = Math.min(res, cc);
+                }
+            }
+        }
+        out(res);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB();
+    }
+}

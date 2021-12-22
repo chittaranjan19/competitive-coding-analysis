@@ -1,0 +1,143 @@
+#include<bits/stdc++.h>
+#define MAX 1001000
+#define INF 0x3f3f3f
+typedef long long ll;
+typedef unsigned long long ull;
+#define mst(ss,b) memset((ss),(b),sizeof (ss))
+using namespace std;
+
+struct Node
+{
+    int x,y;
+    ll v;
+    Node (int xx=0,int yy=0,ll vv=0):x(xx),y(yy),v(vv){}
+}s[MAX];
+
+ll fa[MAX],num[MAX],a[1010][1010];
+int xx[]={0,1,0,-1};
+int yy[]={1,0,-1,0};
+int vis[1010][1010];
+int n,m;
+ll k;
+
+bool cmp(Node a,Node b)
+{
+    return a.v>b.v;
+}
+
+bool check(Node a)
+{
+    if (a.x<1 || a.x>n || a.y<1 || a.y>m || vis[a.x][a.y])
+        return 0;
+    return 1;
+}
+
+int fnd(int x)
+{
+    if (fa[x]!=x)
+    {
+        fa[x]=fnd(fa[x]);
+    }
+    return fa[x];
+}
+
+void uni(int x,int y)
+{
+    int X=fnd(x);
+    int Y=fnd(y);
+    if (X!=Y)
+    {
+        fa[X]=Y;
+        num[Y]+=num[X];
+       // num[X]=0;
+    }
+}
+
+void solve(int x,int y,ll V,ll Num)
+{
+    queue<Node> qu;
+    mst(vis,0);
+    vis[x][y]=1;
+    Num--;
+    qu.push(Node(x,y,V));
+    while (!qu.empty())
+    {
+        Node now=qu.front();
+        Node next;
+        qu.pop();
+        for (int j=0;j<4;j++)
+        {
+            next.x=now.x+xx[j];
+            next.y=now.y+yy[j];
+            if (Num==0 || a[next.x][next.y]<V)
+                continue;
+            if (check(next))
+            {
+                Num--;
+                vis[next.x][next.y]=1;
+                qu.push(Node(next));
+            }
+        }
+    }
+    for (int i=1;i<=n;i++)
+    {
+        for (int j=1;j<=m;j++)
+        {
+            if (vis[i][j])
+                printf("%I64d ",V);
+            else
+                printf("0 ");
+        }
+        printf("\n");
+    }
+}
+
+int main()
+{
+    int cnt=0;
+   // mst(a,-1);
+    scanf("%d%d%I64d",&n,&m,&k);
+
+    for (int i=0;i<=MAX;i++)
+    {
+        fa[i]=i;
+        num[i]=1;
+    }
+
+    for (int i=1;i<=n;i++)
+    {
+        for (int j=1;j<=m;j++)
+        {
+            scanf("%I64d",&a[i][j]);
+            s[++cnt]=Node(i,j,a[i][j]);
+        }
+    }
+
+    sort(s+1,s+cnt+1,cmp);
+
+    for (int i=1;i<=cnt;i++)
+    {
+        if (s[i].v==0)
+            break;
+        for (int j=0;j<4;j++)
+        {
+            int X=s[i].x+xx[j];
+            int Y=s[i].y+yy[j];
+            if (a[X][Y]>=s[i].v)
+                uni((s[i].x-1)*m+s[i].y,(X-1)*m+Y);
+        }
+        ll Num=k/s[i].v;
+        if (k%s[i].v)
+            continue;
+        int u=fnd((s[i].x-1)*m+s[i].y);
+        if (Num<=num[u])
+        {
+            printf("YES\n");
+            solve(s[i].x,s[i].y,s[i].v,Num);
+            return 0;
+        }
+    }
+    printf("NO\n");
+    return 0;
+
+}

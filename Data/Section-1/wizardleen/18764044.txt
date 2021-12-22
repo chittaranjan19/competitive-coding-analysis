@@ -1,0 +1,114 @@
+import java.io.BufferedOutputStream;
+import java.io.PrintWriter;
+import java.util.*;
+
+/**
+ * Created by leen on 6/27/16.
+ */
+public class _686D {
+
+    static Scanner scan = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        int n = scan.nextInt();
+        int q = scan.nextInt();
+        scan.nextLine();
+
+        Node[] nodes = new Node[n];
+        for(int i = 0; i < n; i++)
+            nodes[i] = new Node(i);
+
+        for(int j = 1; j < n; j++) {
+            int parentIdx = scan.nextInt()-1;
+            nodes[parentIdx].addChild(nodes[j]);
+        }
+
+        Node root = nodes[0];
+        getSubtreeSize(root);
+
+        Node[] queryNodes = new Node[q];
+        for(int i = 0; i < q; i++) {
+            Node queryNode = nodes[scan.nextInt() - 1];
+            queryNode.isQueried = true;
+            queryNodes[i] = queryNode;
+        }
+
+        calcCentroid(root);
+
+        PrintWriter pw = new PrintWriter(new BufferedOutputStream(System.out, 1024 * 1024));
+        for(Node queryNode : queryNodes)
+            pw.println(queryNode.centroidIdx + 1);
+        pw.flush();
+    }
+
+    static TreeSet<Node> calcCentroid(Node node) {
+        if(node.children.isEmpty()) {
+            if(node.isQueried)
+                node.centroidIdx = node.idx;
+
+            return new TreeSet<Node>();
+        }
+
+        TreeSet<Node> set = null;
+        for(Node child : node.children) {
+            TreeSet<Node> subTreeSet = calcCentroid(child);
+            if(child.subTreeSize == node.maxChildSubTreeSize)
+                set = subTreeSet;
+        }
+
+        assert set != null;
+        set.add(node);
+
+        if(node.isQueried) {
+            Node centroid = set.floor(new Node(Integer.MAX_VALUE, node.subTreeSize / 2));
+            assert centroid != null;
+            node.centroidIdx = centroid.idx;
+        }
+
+        return set;
+    }
+
+    static int getSubtreeSize(Node node) {
+        int subTreeSize = 1;
+        int maxChildSubTreeSize = 0;
+        for(Node child : node.children) {
+            int childSubTreeSize = getSubtreeSize(child);
+            subTreeSize += childSubTreeSize;
+            if(childSubTreeSize > maxChildSubTreeSize)
+                maxChildSubTreeSize = childSubTreeSize;
+        }
+        node.subTreeSize = subTreeSize;
+        node.maxChildSubTreeSize = maxChildSubTreeSize;
+        return subTreeSize;
+    }
+
+    static class Node implements Comparable<Node> {
+        final int idx;
+        final List<Node> children = new ArrayList<Node>();
+        int subTreeSize;
+        int maxChildSubTreeSize;
+        int centroidIdx;
+        boolean isQueried;
+
+        Node(int idx) {
+            this.idx = idx;
+        }
+
+        Node(int idx, int maxChildSubTreeSize) {
+            this.idx = idx;
+            this.maxChildSubTreeSize = maxChildSubTreeSize;
+        }
+
+        void addChild(Node node) {
+            children.add(node);
+        }
+
+        @Override
+        public int compareTo(Node o) {
+            if(maxChildSubTreeSize != o.maxChildSubTreeSize)
+                return maxChildSubTreeSize - o.maxChildSubTreeSize;
+            return idx - o.idx;
+        }
+    }
+
+}

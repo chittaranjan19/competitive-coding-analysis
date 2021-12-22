@@ -1,0 +1,69 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define f first
+#define s second
+#define mp make_pair
+#define pb push_back
+
+typedef long long ll;
+typedef pair<int, pair<int, ll> > ds;
+typedef vector<vector<ds> > matrix;
+
+const int maxn = 100010;
+const int logk = 40;
+
+int n;
+matrix arr[logk], identity;
+
+matrix multiply(matrix a, matrix b)
+{
+	matrix ret;
+	ret.resize(n);
+	int i, j, k;
+	for(i=0; i<n; i++){
+		j = a[i][0].f;
+		ll sum = a[i][0].s.s + b[j][0].s.s;
+		int mn = min(a[i][0].s.f, b[j][0].s.f);
+		ret[i].pb(mp(b[j][0].f, mp(mn, sum)));
+	}
+	return ret;
+}
+ 
+void matpow()
+{
+	int i;
+	for(i=1; i<logk; i++)	
+		arr[i] = multiply(arr[i-1], arr[i-1]);
+}
+
+int main()
+{
+	ll k, i; 
+	scanf("%d%lld", &n, &k);
+	for(i=0; i<logk; i++){
+		arr[i].resize(n);
+	}	
+	identity.resize(n);
+	for(i=0; i<n; i++){
+		arr[0][i].resize(1);
+		identity[i].resize(1);
+		scanf("%d", &arr[0][i][0].f);
+	}
+	for(i=0; i<n; i++){
+		scanf("%d", &arr[0][i][0].s.f);
+		arr[0][i][0].s.s = arr[0][i][0].s.f;
+		identity[i][0].f = i;
+		identity[i][0].s.f = 1000000005;
+		identity[i][0].s.s = 0;	
+	}
+	matpow();
+	for(i=logk-1; i>=0; i--){
+		if(k&(1ll<<(i)))	
+			identity = multiply(arr[i], identity);
+	}	
+	for(i=0; i<n; i++)
+		printf("%lld %d\n", identity[i][0].s.s, identity[i][0].s.f); 
+	return 0;
+}

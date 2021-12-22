@@ -1,0 +1,103 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100001
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int n, m, trace[mn];
+vector< pair<char, int> > g[mn];
+bool mark[mn];
+string ans;
+
+void setup ()
+{
+    int x, y;
+    char z;
+    cin >> n >> m;
+    FOR (i, 1, m)
+    {
+        cin >> x >> y >> z;
+        g[x].pb(mp(z, y));
+        g[y].pb(mp(z, x));
+    }
+    FOR(i, 1, n)
+    ans += '9';
+}
+
+void dfs(int u, string cost)
+{
+    if (cost.length() > ans.length())
+        return;
+    if (u == 0)
+    {
+        if (cost.length() < ans.length())
+            ans = cost;
+        else
+            if (ans > cost)
+            ans = cost;
+        return;
+    }
+    mark[u] = true;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].S;
+        if (mark[v])
+            continue;
+        dfs(v, cost + g[u][i].F);
+    }
+    mark[u] = false;
+}
+
+void dfs2(int u, string cost, int dem)
+{
+    if (cost.length() > ans.length())
+        return;
+    trace[dem] = u;
+    if (u == 0)
+    {
+        if (ans == cost)
+        {
+            FORD(i, dem, 1)
+                cout << trace[i] << " ";
+            exit(0);
+        }
+        return;
+    }
+    mark[u] = true;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].S;
+        if (mark[v])
+            continue;
+        dfs2(v, cost + g[u][i].F, dem + 1);
+    }
+    mark[u] = false;
+}
+
+
+void xuly ()
+{
+    memset(mark, 0, sizeof(mark));
+    dfs(n - 1, "");
+    string anS  = ans;
+    while (anS[0] == '0')
+    anS = anS.substr(1, anS.length() - 1);
+    cout << anS << " " << ans.length() + 1 << "\n";
+    dfs2(n - 1, "", 1);
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    //freopen("inp.inp", "r", stdin);
+    //freopen("inp.out", "w", stdout);
+    setup ();
+    xuly ();
+    return 0;
+}

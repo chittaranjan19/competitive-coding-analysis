@@ -1,0 +1,119 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+
+vector<bool> sieve(1001, true);
+vector<ll> values;
+vector<vector<int> > graph;
+vector<bitset<1000> > seg_tree;
+vector<ll> lazy;
+vector<bool> visited;
+
+void build_sieve() {
+    sieve[0] = false;
+    sieve[1] = false;
+    for (int i = 2; i <= sqrt(1000); ++i) {
+        if(sieve[i]) {
+            for (int j = 2; i*j <= 1000; ++j)
+                sieve[i*j] = false;
+        }
+    }
+}
+
+
+void build_tree(int node, int M) {
+    //printf("building %d\n", node);
+    visited[node] = true;
+    int test_number = values[node] % M;
+    if(sieve[test_number])
+        seg_tree[node].set(test_number, 1);
+    for (int i = 0; i < graph[node].size(); ++i) {
+        int p = graph[node][i];
+        if(!visited[p]) {
+            build_tree(p, M);
+            seg_tree[node] |= seg_tree[p];
+        }
+    }
+}
+
+void update_query(int node, int M) {
+    //printf("updating %d lazy %d\n", node, lazy[node]);
+    visited[node] = true;
+    values[node] += lazy[node];
+    int test_number = values[node] % M;
+    bitset<1000> neu;
+    if(sieve[test_number])
+        neu.set(test_number, 1);
+    for(int i = 0; i < graph[node].size(); i++) {
+        int p = graph[node][i];
+        if(!visited[p]) {
+            lazy[p] += lazy[node];
+            update_query(p, M);
+            neu |= seg_tree[p];
+        }
+    }
+    lazy[node] = 0;
+    seg_tree[node] = neu;
+}
+
+void init(int N) {
+    values = vector<ll>(N+1);
+    graph = vector<vector<int> >(N+1);
+    seg_tree = vector<bitset<1000> >(N+1, bitset<1000>());
+    lazy = vector<ll>(N+1, 0);
+    visited = vector<bool>(N+1, false);
+}
+
+int main() {
+    //freopen("yash_and_trees.in", "r", stdin);
+    //freopen("yash_and_trees.out", "w", stdout);
+    build_sieve();
+    int N, M;
+    cin>>N>>M;
+    init(N);
+    for (int i = 1; i <= N; ++i) {
+        ll t; cin>>t;
+        values[i] = t;
+    }
+    for (int i = 0; i < N - 1; ++i) {
+        int a, b;
+        cin>>a>>b;
+        graph[a].push_back(b);
+    }
+    build_tree(1, M);
+    /*for (int i = 1; i <= N; ++i) {
+        //cout<<"i = "<<i<<" "<<seg_tree[i]<<endl;
+        printf("i = %d ", i);
+        for (int j = 0; j < M; ++j) {
+            printf("%d", seg_tree[i][j]?1:0);
+        }
+        cout<<endl;
+    }*/
+    int c;
+    cin>>c;
+
+    for (int i = 0; i < c; ++i) {
+        int type;
+        cin>>type;
+        if(type == 1) {
+            int v, x;
+            cin>>v>>x;
+            lazy[v] += x;
+        }
+        else {
+            int v;
+            cin>>v;
+            visited = vector<bool>(N+1, false);
+            update_query(1, M);
+            cout<<seg_tree[v].count()<<endl;
+            /*cout<<"values"<<endl;
+            for (int i = 1; i <= N; ++i) {
+                printf("%d %d\n", i, values[i]);
+            }*/
+        }
+    }
+
+    return 0;
+}

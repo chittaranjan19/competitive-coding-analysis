@@ -1,0 +1,196 @@
+/**
+ * !!! WARNING !!!
+ * USE GNU GCC COMPILER
+ * (g++)
+ */
+#include <cstdio>
+#include <cstring>
+#include <vector>
+#include <set>
+
+struct Task
+{
+    int id;       // Task ID
+    int limit;    // Time limit
+    int tests;    // Number of tests
+    int oks, rjs; // OKs and RJs
+};
+
+struct Solution
+{
+    int id;     // Solution ID
+    int task;   // Number of task
+    int test;   // Number of last test
+    bool wrong; // Solution correctness
+};
+
+// Verdict types
+static const char *V_OK = "OK";
+static const char *V_RJ = "RJ";
+
+// Information about invokers
+int invokers_count;
+int invokers_free;
+
+// Information about tasks
+std::vector<Task> tasks;
+
+// Information about solutions
+std::vector<Solution> solutions;
+
+// Solutions queue
+std::set< std::pair<int, int> > solutions_queue;
+
+int get_cost(const Task &task)
+{
+    return task.oks * 3 - task.rjs * 100;
+}
+
+int get_priority(const Solution &solution)
+{
+    const Task &task = tasks[solution.task];
+
+    return get_cost(task);
+}
+
+/**
+ * Reads information about tasks
+ */
+void read_info()
+{
+    int tasks_count;
+
+    scanf("%d%d", &invokers_count, &tasks_count);
+
+    tasks.resize(tasks_count);
+
+    for (int i = 0; i < tasks_count; i++)
+    {
+        Task &task = tasks[i];
+
+        scanf("%d%d", &task.limit, &task.tests);
+        task.id = i;
+        task.oks = 0;
+        task.rjs = 0;
+    }
+
+    invokers_free = invokers_count;
+}
+
+/**
+ * Accepts all solutions
+ */
+void accept_solutions()
+{
+    int task_id;
+
+    for (;;)
+    {
+        scanf("%d", &task_id);
+
+        // On end
+        if (task_id == -1)
+            break;
+
+        Solution solution;
+
+        solution.id = solutions.size();
+        solution.task = task_id;
+        solution.test = 0;
+        solution.wrong = false;
+
+        solutions.push_back(solution);
+
+        solutions_queue.insert(std::make_pair(
+            -get_priority(solution), solution.id
+        ));
+    }
+}
+
+/**
+ * Accepts all verdicts
+ */
+void accept_verdicts()
+{
+    int solution_id, test_number;
+    char test_verdict[3];
+
+    for (;;)
+    {
+        scanf("%d%d", &solution_id, &test_number);
+
+        // On end
+        if (solution_id == -1 && test_number == -1)
+            break;
+
+        scanf("%*c%2s", test_verdict);
+
+        Solution &solution = solutions[solution_id];
+        Task &task = tasks[solution.task];
+
+        if (strcmp(test_verdict, V_OK) == 0)
+        {
+            ++task.oks;
+        }
+        else
+        {
+            solution.wrong = true;
+            ++task.rjs;
+        }
+
+        ++invokers_free;
+    }
+}
+
+void run_scheduler()
+{
+    while (invokers_free > 0)
+    {
+        while (!solutions_queue.empty())
+        {
+            int solution_id = solutions_queue.begin()->second;
+
+            Solution &solution = solutions[solution_id];
+            Task &task = tasks[solution.task];
+
+            if (!solution.wrong && solution.test < task.tests)
+                break;
+
+            solutions_queue.erase(solutions_queue.begin());
+        }
+
+        if (solutions_queue.empty())
+            break;
+
+        int solution_id = solutions_queue.begin()->second;
+
+        Solution &solution = solutions[solution_id];
+        Task &task = tasks[solution.task];
+
+        printf("%d %d\n", solution.id, solution.test);
+
+        ++solution.test;
+        --invokers_free;
+
+        solutions_queue.insert(std::make_pair(
+            -get_priority(solution), solution.id
+        ));
+    }
+
+    printf("-1 -1\n");
+    fflush(stdout);
+}
+
+int main(int argc, char *argv[])
+{
+    read_info();
+
+    while (!feof(stdin))
+    {
+        accept_solutions();
+        accept_verdicts();
+        run_scheduler();
+    }
+
+    return 0;
+}

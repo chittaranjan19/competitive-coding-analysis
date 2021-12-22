@@ -1,0 +1,168 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+typedef pair<int, int> pii;
+
+vector<int>  adj[100000];
+vector<int>  adjRev[100000];
+vector<bool> edgeColorOrig[100000];
+vector<bool> edgeColorCurr[100000];
+int seen[100000];
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	int n, m; cin >> n >> m;
+	for (int i = 0; i < m; i++) {
+		int x, y; string c; cin >> x >> y >> c; x--; y--;
+		adjRev[x].push_back(adj[y].size()); // adj[x][i] == y <=> adj[y][adjRev[x][i]] = x
+		adjRev[y].push_back(adj[x].size());
+		adj[x].push_back(y);
+		adj[y].push_back(x);
+		bool isRed = (c == "R");
+		edgeColorOrig[x].push_back(isRed);
+		edgeColorOrig[y].push_back(isRed);
+		edgeColorCurr[x].push_back(isRed);
+		edgeColorCurr[y].push_back(isRed);
+	}
+
+	bool hasAns = false;
+	vector<int> bestSol;
+
+	// try target = blue vs red
+	for (int mode = 0; mode < 2; mode++) {
+		bool target = (mode == 0);
+		for (int i = 0; i < n; i++) {
+			seen[i] = 0;
+			for (int j = 0; j < adj[i].size(); j++) {
+				edgeColorCurr[i][j] = edgeColorOrig[i][j];
+			}
+		}
+
+		bool success = true;
+		int startNode = 0;
+		vector<int> currSol;
+		while (startNode < n) {
+			// get cc starting with startNode
+			vector<int> cc;
+			queue<int> q1;
+			q1.push(startNode);
+			while (!q1.empty()) {
+				int currV = q1.front();
+				q1.pop();
+
+				if (seen[currV] > 0) continue;
+				seen[currV] = 1;
+				cc.push_back(currV);
+
+				for (int i = 0; i < adj[currV].size(); i++) {
+					q1.push(adj[currV][i]);
+				}
+			}
+
+			// try not changing vs changing first
+			bool currCCGood = false;
+			vector<int> currCCSol;
+			for (int mode2 = 0; mode2 < 2; mode2++) {
+				for (int i = 0; i < cc.size(); i++) {
+					seen[cc[i]] = 0;
+					for (int j = 0; j < adj[cc[i]].size(); j++) {
+						edgeColorCurr[cc[i]][j] = edgeColorOrig[cc[i]][j];
+					}
+				}
+
+				queue<pii> q;
+				q.push(pii(startNode, -1));
+				while (!q.empty()) {
+					pii curr = q.front();
+					int currV = curr.first;
+					int parV = curr.second;
+					q.pop();
+
+					if (seen[currV] > 0) continue;
+					seen[currV] = 1;
+
+					if (parV == -1) {
+						if (mode2 == 1) {
+							for (int j = 0; j < adj[currV].size(); j++) {
+								bool z = edgeColorCurr[currV][j];
+								edgeColorCurr[currV][j] = !z;
+								edgeColorCurr[adj[currV][j]][adjRev[currV][j]] = !z;
+							}
+							seen[currV] = 2;
+						}
+					} else {
+						for (int i = 0; i < adj[currV].size(); i++) {
+							if (adj[currV][i] == parV) {
+								if (edgeColorCurr[currV][i] != target) {
+									for (int j = 0; j < adj[currV].size(); j++) {
+										bool z = edgeColorCurr[currV][j];
+										edgeColorCurr[currV][j] = !z;
+										edgeColorCurr[adj[currV][j]][adjRev[currV][j]] = !z;
+									}
+									seen[currV] = 2;
+								}
+								break;
+							}
+						}
+					}
+
+					for (int i = 0; i < adj[currV].size(); i++) {
+						q.push(pii(adj[currV][i], currV));
+					}
+				}
+
+				bool currTryGood = true;
+				for (int i = 0; i < cc.size() && currTryGood; i++) {
+					for (int j = 0; j < adj[cc[i]].size(); j++) {
+						if (edgeColorCurr[cc[i]][j] != target) {
+							currTryGood = false;
+							break;
+						}
+					}
+				}
+				if (currTryGood) {
+					currCCGood = true;
+					vector<int> currTrySol;
+					for (int i = 0; i < cc.size(); i++) {
+						if (seen[cc[i]] == 2) {
+							currTrySol.push_back(cc[i]);
+						}
+					}
+					if (currCCSol.size() == 0 || currTrySol.size() < currCCSol.size()) {
+						currCCSol = currTrySol;
+					}
+				}
+			}
+			if (currCCGood) {
+				for (int i = 0; i < currCCSol.size(); i++) {
+					currSol.push_back(currCCSol[i]);
+				}
+			} else {
+				success = false;
+				break;
+			}
+			while (startNode < n && seen[startNode] > 0) startNode++;
+		}
+		if (success) {
+			hasAns = true;
+			if (bestSol.size() == 0 || currSol.size() < bestSol.size()) {
+				bestSol = currSol;
+			}
+		}
+	}
+	if (hasAns) {
+		cout << bestSol.size() << endl;
+		for (int i = 0; i < bestSol.size(); i++) {
+			if (i > 0) cout << ' ';
+			cout << bestSol[i]+1;
+		}
+		cout << endl;
+	} else {
+		cout << -1 << endl;
+	}
+}

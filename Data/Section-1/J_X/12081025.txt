@@ -1,0 +1,192 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+const int maxn = 50 + 5;
+const int INF = 1 << 30;
+
+struct edge
+{
+    int to, cap, next;
+    edge(int to = 0, int cap = 0, int next = 0) : to(to), cap(cap), next(next) {}
+} E[2 * maxn * maxn];
+int ans[maxn][maxn], head[maxn], q[maxn], d[maxn], cur[maxn], c[maxn], in[maxn][maxn], out[maxn][maxn], cnt;
+
+void add_edge(int u, int v, int cap)
+{
+    E[cnt] = edge(v, cap, head[u]);
+    head[u] = cnt++;
+    E[cnt] = edge(u, 0, head[v]);
+    head[v] = cnt++;
+}
+
+bool bfs(int s, int t)
+{
+    int front = 0, rear = 0;
+    memset(d, -1, sizeof(d));
+    d[s] = 0;
+    q[rear++] = s;
+    while(front < rear)
+    {
+        int u = q[front++];
+        if(u == t)
+        {
+            return true;
+        }
+        for(int i = head[u]; ~i; i = E[i].next)
+        {
+            edge e = E[i];
+            if(e.cap > 0 && d[e.to] == -1)
+            {
+                d[e.to] = d[u] + 1;
+                q[rear++] = e.to;
+            }
+        }
+    }
+    return false;
+}
+
+int max_flow(int s, int t)
+{
+    int res = 0;
+    while(bfs(s, t))
+    {
+        int top = 0;
+        memcpy(cur, head, sizeof(head));
+        q[++top] = s;
+        while(top)
+        {
+            int u = q[top];
+            if(u != t)
+            {
+                while(~cur[u])
+                {
+                    edge e = E[cur[u]];
+                    if(e.cap > 0 && d[e.to] == d[u] + 1)
+                    {
+                        q[++top] = e.to;
+                        break;
+                    }
+                    cur[u] = e.next;
+                }
+                if(cur[u] == -1)
+                {
+                    --top;
+                    d[u] = -1;
+                }
+            }
+            else
+            {
+                int f = INF, temp;
+                for(int i = 1; i < top; ++i)
+                {
+                    int k = cur[q[i]];
+                    if(f > E[k].cap)
+                    {
+                        f = E[k].cap;
+                        temp = i;
+                    }
+                }
+                for(int i = 1; i < top; ++i)
+                {
+                    int k = cur[q[i]];
+                    E[k].cap -= f;
+                    ans[q[i]][E[k].to] += f;
+                    E[k ^ 1].cap += f;
+                    ans[E[k].to][q[i]] -= f;
+                }
+                res += f;
+                top = temp;
+            }
+        }
+    }
+    return res;
+}
+
+int main()
+{
+    int n, m;
+    while(~scanf("%d%d", &m, &n))
+    {
+        memset(ans, 0, sizeof(ans));
+        memset(head, -1, sizeof(head));
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", c + i);
+            bool flag = true;
+            for(int j = 0; j < m; ++j)
+            {
+                scanf("%d", &in[i][j]);
+                if(in[i][j] == 1)
+                {
+                    flag = false;
+                }
+            }
+            if(flag)
+            {
+                add_edge(0, i, c[i]);
+            }
+            flag = true;
+            for(int j = 0; j < m; ++j)
+            {
+                scanf("%d", &out[i][j]);
+                if(!out[i][j])
+                {
+                    flag = false;
+                }
+            }
+            if(flag)
+            {
+                add_edge(i, n + 1, c[i]);
+            }
+        }
+        for(int i = 1; i <= n; ++i)
+        {
+            for(int j = 1; j <= n; ++j)
+            {
+                if(i != j)
+                {
+                    bool flag = true;
+                    for(int k = 0; k < m; ++k)
+                    {
+                        if(out[i][k] + in[j][k] == 1)
+                        {
+                            flag = false;
+                            break;
+                        }
+                    }
+                    if(flag)
+                    {
+                        add_edge(i, j, min(c[i], c[j]));
+                    }
+                }
+            }
+        }
+        int amount = 0;
+        printf("%d ", max_flow(0, n + 1));
+        for(int i = 1; i <= n; ++i)
+        {
+            for(int j = 1; j <= n; ++j)
+            {
+                if(ans[i][j] > 0)
+                {
+                    ++amount;
+                }
+            }
+        }
+        printf("%d\n", amount);
+        for(int i = 1; i <= n; ++i)
+        {
+            for(int j = 1; j <= n; ++j)
+            {
+                if(ans[i][j] > 0)
+                {
+                    printf("%d %d %d\n", i, j, ans[i][j]);
+                }
+            }
+        }
+    }
+    return 0;
+}

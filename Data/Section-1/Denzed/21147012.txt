@@ -1,0 +1,80 @@
+#include <bits/stdc++.h>
+
+#define f       first
+#define s       second
+#define mp      make_pair
+#define rank    something_which_is_supposed_to_be_rank
+#define left    something_which_is_supposed_to_be_left
+#define right   something_which_is_supposed_to_be_right
+
+using namespace std;
+
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+
+int n, m, ans, need;
+map<int,vector<int>> groups;
+set<pair<int,int>> like, doesnt_like;
+vector<int> playlist;
+
+int main() {
+    cin.sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n >> m;
+    need = n / m;
+    for (int i = 1, a; i <= n; ++i) {
+        cin >> a;
+        groups[a].push_back(i);
+    }
+    for (auto &it: groups) {
+        if (it.f > m) {
+            doesnt_like.insert({it.s.size(), it.f});
+        } else {
+            like.insert({it.s.size(), it.f});
+        }
+    }
+    for (int g = 1; g <= m; ++g) {
+        if (groups[g].empty()) {
+            like.insert({0, g});
+        }
+    }
+    for (; like.begin()->f < need && !doesnt_like.empty(); ++ans) {
+        pair<int,int> like_it = *like.begin();
+        pair<int,int> doesnt_like_it = *doesnt_like.begin();
+        groups[like_it.s].push_back(groups[doesnt_like_it.s].back());
+        like.insert({like_it.f + 1, like_it.s});
+        like.erase(like_it);
+        groups[doesnt_like_it.s].pop_back();
+        if (doesnt_like_it.f > 1) {
+            doesnt_like.insert({doesnt_like_it.f - 1, doesnt_like_it.s});
+        }
+        doesnt_like.erase(doesnt_like_it);
+    }
+    for (; like.begin()->f < need; ++ans) {
+        pair<int,int> like1 = *like.begin();
+        like.erase(like1);
+        pair<int,int> like2 = *like.rbegin();
+        like.erase(like2);
+        groups[like1.s].push_back(groups[like2.s].back());
+        like.insert({like1.f + 1, like1.s});
+        groups[like2.s].pop_back();
+        if (like2.f > 1) {
+            like.insert({like2.f - 1, like2.s});
+        }
+    }
+    playlist.resize(n);
+    for (auto &t: groups) {
+        for (int i: t.s) {
+            playlist[i - 1] = t.f;
+        }
+    }
+    cout << need << " " << ans << "\n";
+    for (int a: playlist) {
+        cout << a << " ";
+    }
+    cout << "\n";
+    cerr << "Time elapsed: " << (ld) clock() / CLOCKS_PER_SEC << "\n";
+    return 0;
+}

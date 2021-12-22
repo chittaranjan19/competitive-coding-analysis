@@ -1,0 +1,130 @@
+#include<bits/stdc++.h>
+#define X first
+#define Y second
+using namespace std;
+pair<int,int> d[2][1005];
+int a[10005],b[10005],c[10005],p[2][1005];
+vector<pair<int,int> > vec[1005];
+priority_queue<tuple<int,int,int> > pq;
+int main()
+{
+    int n,m,l,s,t,e,w,u,i,g,j,emn,wmn,nw,nw2,f;
+    scanf("%d%d%d%d%d",&n,&m,&l,&s,&t);
+    for(i=0;i<n;i++)
+        d[0][i]={1000000005,1000000005},d[1][i]={1000000005,1000000005};
+    for(i=1;i<=m;i++)
+    {
+        scanf("%d%d%d",&a[i],&b[i],&c[i]);
+        vec[a[i]].emplace_back(b[i],i);
+        vec[b[i]].emplace_back(a[i],i);
+    }
+
+    pq.emplace(0,0,s);
+    d[0][s]={0,0};
+    while(!pq.empty())
+    {
+        tie(e,w,u)=pq.top();
+        e*=-1;w*=-1;
+        pq.pop();
+        if(e!=d[0][u].X||w!=d[0][u].Y)
+            continue;
+        for(i=0;i<vec[u].size();i++)
+        {
+            if(c[vec[u][i].Y]==0) g=1;
+            else g=0;
+            if(d[0][vec[u][i].X].X>e+g||(d[0][vec[u][i].X].X==e+g&&d[0][vec[u][i].X].Y>w+c[vec[u][i].Y]))
+            {
+                d[0][vec[u][i].X]={e+g,w+c[vec[u][i].Y]};
+                p[0][vec[u][i].X]=vec[u][i].Y;
+                pq.emplace(-(e+g),-(w+c[vec[u][i].Y]),vec[u][i].X);
+            }
+        }
+    }
+    pq.emplace(0,0,t);
+    d[1][t]={0,0};
+    while(!pq.empty())
+    {
+        tie(e,w,u)=pq.top();
+        e*=-1;w*=-1;
+        pq.pop();
+        if(e!=d[1][u].X||w!=d[1][u].Y)
+            continue;
+        for(i=0;i<vec[u].size();i++)
+        {
+            if(c[vec[u][i].Y]==0) g=1;
+            else g=0;
+            if(d[1][vec[u][i].X].X>e+g||(d[1][vec[u][i].X].X==e+g&&d[1][vec[u][i].X].Y>w+c[vec[u][i].Y]))
+            {
+                d[1][vec[u][i].X]={e+g,w+c[vec[u][i].Y]};
+                p[1][vec[u][i].X]=vec[u][i].Y;
+                pq.emplace(-(e+g),-(w+c[vec[u][i].Y]),vec[u][i].X);
+            }
+        }
+    }
+
+    if(d[0][t].X==0)
+    {
+        if(d[0][t].Y==l)
+        {
+            printf("YES\n");
+            for(i=1;i<=m;i++)
+            {
+                if(c[i]==0) printf("%d %d 1000000000000000000\n",a[i],b[i]);
+                else printf("%d %d %d\n",a[i],b[i],c[i]);
+            }
+            return 0;
+        }
+        if(d[0][t].Y<l)
+        {
+            printf("NO\n");
+            return 0;
+        }
+    }
+    emn=1000000005;
+    nw=-1;
+    for(i=1;i<=m;i++)
+    {
+        if(c[i]!=0) continue;
+        for(j=0;j<2;j++)
+        {
+            if(emn>d[0][a[i]].X+d[1][b[i]].X||emn==d[0][a[i]].X+d[1][b[i]].X&&wmn>d[0][a[i]].Y+d[1][b[i]].Y)
+            {
+                emn=d[0][a[i]].X+d[1][b[i]].X;
+                wmn=d[0][a[i]].Y+d[1][b[i]].Y;
+                nw=i;
+                nw2=j;
+            }
+            swap(a[i],b[i]);
+        }
+    }
+
+    if(nw==-1||wmn+emn+1>l)
+    {
+        printf("NO\n");
+        return 0;
+    }
+    if(nw2) swap(a[nw],b[nw]);
+    c[nw]=l-emn-wmn;
+    u=a[nw];
+    while(u!=s)
+    {
+        if(c[p[0][u]]==0) c[p[0][u]]=1;
+        if(u==a[p[0][u]]) u=b[p[0][u]];
+        else u=a[p[0][u]];
+    }
+    u=b[nw];
+    while(u!=t)
+    {
+        if(c[p[1][u]]==0) c[p[1][u]]=1;
+        if(u==a[p[1][u]]) u=b[p[1][u]];
+        else u=a[p[1][u]];
+    }
+    if(nw2) swap(a[nw],b[nw]);
+    printf("YES\n");
+    for(i=1;i<=m;i++)
+    {
+        if(c[i]==0) printf("%d %d 1000000000000000000\n",a[i],b[i]);
+        else printf("%d %d %d\n",a[i],b[i],c[i]);
+    }
+
+}

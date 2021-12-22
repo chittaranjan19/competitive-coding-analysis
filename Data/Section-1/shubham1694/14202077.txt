@@ -1,0 +1,53 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define ll long long
+
+ll ft[12][100010];
+int n, arr[100010];
+
+void update(int t, int idx, ll val)
+{
+    while(idx<=n){
+        ft[t][idx]+=val;
+        idx+=(idx&(-idx));
+    }
+}
+
+ll read(int t, int idx)
+{
+    ll ret = 0;
+    while(idx>0){
+        ret+=(ft[t][idx]);
+        idx-=(idx&(-idx));
+    }
+    return ret;
+}
+
+ll range_read(int t, int a, int b)
+{
+    ll ret = read(t, b)-read(t, a-1);
+    return ret;
+}
+
+int main()
+{
+    int k, i, j;
+    ll x;
+    scanf("%d%d", &n, &k);
+    for(i=0; i<n; i++)
+        scanf("%d", &arr[i]);
+    for(i=0; i<n; i++){
+        update(1, arr[i], 1);
+        for(j=1; j<=k; j++){
+            x = range_read(j, 1, arr[i]-1);
+            //cout << i << " " << j << " " << x << "\n";
+            update(j+1, arr[i], x);
+        }
+    }
+    x = range_read(k+1, 1, n);
+    //printf("%I64d\n", x);
+    cout << x << "\n";
+    return 0;
+}

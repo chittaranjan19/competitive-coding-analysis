@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 505
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, m, k, sz;
+char c[mn][mn];
+bool mark[mn][mn], sea;
+int addX[] = {0, 0, 1, -1};
+int addY[] = {1, -1, 0, 0};
+vector< pair< int , pair<int, int> > > lake;
+
+void setup()
+{
+    cin >> n >> m >> k;
+    FOR(i, 1, n)
+    FOR(j, 1, m)
+        cin >> c[i][j];
+}
+
+void dfs(int x, int y)
+{
+    if (x == 1 || x == n || y == 1 || y == m)
+        sea = true;
+    mark[x][y] = true;
+    sz ++;
+    FOR(i, 0, 3)
+    {
+        int _x = x + addX[i];
+        int _y = y + addY[i];
+        if (c[_x][_y] != '.' || mark[_x][_y])
+            continue;
+        dfs(_x, _y);
+    }
+}
+
+void dfs2(int x, int y)
+{
+    c[x][y] = '*';
+    FOR(i, 0, 3)
+    {
+        int _x = x + addX[i];
+        int _y = y + addY[i];
+        if (c[_x][_y] == '.')
+            dfs(_x, _y);
+    }
+}
+
+void xuly()
+{
+    FOR(i, 1, n)
+    FOR(j, 1, m)
+    if (!mark[i][j] && c[i][j] == '.')
+    {
+        sea = false;
+        sz = 0;
+        dfs(i, j);
+        if (!sea)
+            lake.pb(mp(sz, mp(i, j)));
+    }
+    sort(lake.begin(), lake.end());
+    int sz = lake.size();
+    int low = sz - k, ans = 0;
+    FOR(i, 0, low - 1)
+    {
+        ans += lake[i].F;
+        dfs2(lake[i].S.F, lake[i].S.S);
+    }
+    cout << ans << '\n';
+    FOR(i, 1, n)
+    {
+        FOR(j, 1, m)
+            cout << c[i][j];
+        cout << '\n';
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

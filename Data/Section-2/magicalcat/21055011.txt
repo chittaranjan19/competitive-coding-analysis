@@ -1,0 +1,61 @@
+#include <iostream> 
+#include <cstdio> 
+#include <cstdlib> 
+#include <cstring> 
+#include <vector> 
+#include <queue> 
+#include <algorithm> 
+using namespace std; 
+
+int val[5040][5040];  
+int prv[5040][5040];  
+
+int main(){
+	int n,m,T; 
+	cin >> n >> m >> T; 
+	vector< vector< pair<int,int> > > G(n);  
+	for (int i = 0; i < m; i++){
+		int u,v,t;  
+		cin >> u >> v >> t;  
+		u--,v--;  
+		G[u].push_back(make_pair(v,t));  
+	}
+	for (int i = 0; i < n; i++){
+		for (int j = 0; j < n; j++){
+			val[i][j] = prv[i][j] = -1; 
+		}
+	}
+	val[0][0] = 0;  
+	vector<int> res; 
+	for (int iter = 1; iter < n; iter++){
+		for (int i = 0; i < n; i++){
+			if (val[iter-1][i] == -1) continue;  
+			for (int j = 0; j < G[i].size(); j++){
+				int vv = G[i][j].first; 
+				int tt = G[i][j].second;  
+				int nxt = val[iter-1][i]+tt;  
+				if (nxt > T) continue;  
+				if (val[iter][vv] == -1 || val[iter][vv] > nxt){
+					val[iter][vv] = nxt;  
+					prv[iter][vv] = i;  
+				}
+			}
+		}
+		if (val[iter][n-1] >= 0){
+			res.clear();  
+			int now = n-1;  
+			int cur_iter = iter; 
+			while (now != -1){
+				res.push_back(now);  
+				now = prv[cur_iter--][now];  
+			}
+			reverse(res.begin(),res.end());  
+		}
+	}
+	cout << res.size() << endl; 
+	for (int i = 0; i < res.size(); i++){
+		cout << res[i]+1 << " "; 
+	}
+	cout << endl; 
+	return 0; 
+}

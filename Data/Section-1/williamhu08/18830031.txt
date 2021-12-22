@@ -1,0 +1,109 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+const int MAXN = 5010;
+
+int N, M;
+vector<int> adj[MAXN], radj[MAXN], cadj[MAXN];
+bool vis[MAXN];
+int bel[MAXN], C;
+stack<int> stk;
+
+void dfs1 (int x) {
+	vis[x] = true;
+	for (int t : adj[x]) {
+		if (!vis[t]) {
+			dfs1(t);
+		}
+	}
+	stk.push(x);
+}
+
+void dfs2 (int x) {
+	vis[x] = false;
+	bel[x] = C;
+	for (int t : radj[x]) {
+		if (vis[t]) {
+			dfs2(t);
+		}
+	}
+}
+
+int dist[MAXN];
+int mncyc[MAXN];
+
+int main() {
+	scanf("%d %d", &N, &M);
+	for (int i = 0; i < M; i++) {
+		int a, b;
+		scanf("%d %d", &a, &b);
+		a--;
+		b--;
+		adj[a].push_back(b);
+		radj[b].push_back(a);
+	}
+
+	//ans = 998 * (# of nodes in cycle) + (# of cycles) + N
+	//find sccs
+	
+	for (int i = 0; i < N; i++) {
+		if (!vis[i]) {
+			dfs1(i);
+		}
+	}
+
+	while (!stk.empty()) {
+		int x = stk.top();
+		stk.pop();
+		if (vis[x]) {
+			//new group
+			dfs2(x);
+			C++;
+		}
+	}
+
+	for (int i = 0; i < N; i++) {
+		for (int t : adj[i]) {
+			if (bel[i] != bel[t]) {
+				cadj[bel[i]].push_back(bel[t]);
+			}
+		}
+	}
+
+	//now, get the shortest cycles in each of them sccs
+	memset(mncyc, 1, sizeof(mncyc));
+	for (int i = 0; i < N; i++) {
+		if (adj[i].empty()) {
+			mncyc[bel[i]] = 0;
+			//not cycle, we don't care.
+			continue;
+		}
+
+		queue<int> que;	//find distance to itself!
+		memset(dist, 0, sizeof(dist));
+		que.push(i);
+		while (!que.empty()) {
+			int fro = que.front();
+			que.pop();
+			for (int t : adj[fro]) {
+				if (dist[t] == 0) {
+					dist[t] = dist[fro] + 1;
+					que.push(t);
+				}
+			}
+		}
+
+		mncyc[bel[i]] = min(mncyc[bel[i]], dist[i]);
+	}
+
+	//ans = 998 * (# of nodes in cycle) + (# of cycles) + N
+
+	int ans = N;
+	for (int i = 0; i < C; i++) {
+		if (cadj[i].empty()) {
+			//sink node
+			ans += 998 * mncyc[i] + bool(mncyc[i]);
+		}
+	}
+	printf("%d\n", ans);
+}

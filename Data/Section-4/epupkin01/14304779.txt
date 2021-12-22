@@ -1,0 +1,89 @@
+#include <iostream>
+
+void prime_numbers();
+int palindrome(int);
+
+bool a[5000000]={0};
+int dec[10]={1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000};
+int main()
+{
+    using namespace std;
+    int spn=0, p=6, q=4, n=1, ans=-1;
+    cin >> p >> q;
+    prime_numbers();
+    while (n<1200000)
+    {
+        if (a[n]==0)
+        {
+            spn++;
+            //printf("%d ", n);
+        }
+        if (q*spn<=p*palindrome(n))
+            ans=n;
+        n++;
+    }
+    if (ans!=-1)
+        printf("%d\n", ans);
+    else
+        printf("Palindromic tree is better than splay tree\n");
+    return 0;
+}
+
+void prime_numbers()
+{
+    a[0]=1;
+    a[1]=1;
+    for (int j=4; j<=1200000; j++)
+        if (!(a[j]))
+            if (!(j%2))
+                a[j]=1;
+    for (int i=3; i*i<=1200000; i+=2)
+        if (!(a[i]))
+            for (int j=i*i; j<=1200000; j+=2)
+                if (!(a[j]))
+                    if (!(j%i))
+                        a[j]=1;
+}
+
+int palindrome(int n)
+{
+    int kolvo=0, r=0;//, dec[10]={1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000};
+    for (int i=1; n/i; i*=10)
+        r++;
+    int chislo[r];
+    for (int i=r-1, x=0; i>=0; i--, x++)
+        chislo[x]=(n/dec[i])-(n/dec[i+1])*10;
+    if (r%2)
+    {
+        for (int i=1, e=1; i<=r/2 && e; i++)
+        {
+            if (chislo[r/2+i]>chislo[r/2-i]) e=0;
+            if (chislo[r/2+i]<chislo[r/2-i]) {chislo[r/2]--; e=0;}
+        }
+        if(r!=1)
+        {
+            kolvo+=(chislo[r/2]+1+(chislo[0]-1)*dec[r/2])+(2*(dec[r/2]-1));
+            for (int i=1; i<r/2; i++)
+                kolvo+=chislo[r/2-i]*dec[i];
+        }
+        else
+            kolvo=n;
+    }
+    else
+    {
+        for (int i=0, e=1; i<r/2 && e; i++)
+        {
+            if (chislo[r/2+i]>chislo[(r/2)-1-i]) e=0;
+            if (chislo[r/2+i]<chislo[(r/2)-1-i]) {chislo[r/2-1]--; e=0;}
+        }
+        if(r!=2)
+        {
+            kolvo+=(chislo[r/2-1]+1+(chislo[0]-1)*dec[r/2-1])+(dec[r/2-1]*11-2);
+            for (int i=r/2-2; i>0; i--)
+                kolvo+=chislo[i]*dec[r/2-i-1];
+        }
+        else
+            kolvo=chislo[0]+9;
+    }
+    return kolvo;
+}

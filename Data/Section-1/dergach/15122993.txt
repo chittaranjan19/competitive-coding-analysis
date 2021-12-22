@@ -1,0 +1,147 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <cstdio>
+#include <cstring>
+#include <cassert>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
+#include <algorithm>
+#include <vector>
+#include <string> 
+#include <map>
+#include <iostream>
+#include <queue>
+#include <time.h>
+#include <set>
+#include <bitset>
+#include <sstream>
+using namespace std;
+
+typedef long long ll;
+
+#define INF 1000000000
+#define eps 1e-7
+#define mod 1000000007
+#define SHIFT 100000
+
+int n, dp[5005][5005];
+char s[10005];
+char binstrcmp[5005][5005][14];
+
+int solve(int pos, int prv)
+{
+    int res = 0;
+    if(prv == -1)
+    {
+        for(int i = pos + 1; i <= n; i++)
+            res = (res + solve(i, 0)) % mod;
+        return res;
+    }   
+    if(dp[pos][prv] == -1)
+    {
+        if(pos == n)
+            return dp[pos][prv] = 1;
+        if(pos > n)
+            return dp[pos][prv] = 0;
+        if(s[pos] == '0')
+            return dp[pos][prv] = 0;
+        dp[pos][prv] = 0;
+        int minlen = pos - prv;
+        int nextpos = pos + minlen;
+        if(memcmp(s + pos, s + prv, minlen) < 1)
+            nextpos++;
+        for(int i = nextpos; i <= n; i++)
+            dp[pos][prv] = (dp[pos][prv] + solve(i, pos)) % mod;
+    }
+    return dp[pos][prv];
+}
+
+int main()
+{
+    cin >> n;
+    scanf("%s", s);
+
+    for(int i = 0; i < n; i++)
+        for(int j = i + 1; j < n; j++)
+        {
+            if(s[i] > s[j])
+                binstrcmp[i][j][0] = 1;
+            else
+                if(s[i] == s[j])
+                    binstrcmp[i][j][0] = 0;
+                else
+                    binstrcmp[i][j][0] = -1;
+        }
+    for(int len = 1; len <= 12; len++)
+        for(int i = 0; i < n; i++)
+            for(int j = i + 1; j < n; j++)
+            {
+                if(j + (1 << len) <= n)
+                {
+                    if(binstrcmp[i][j][len-1] == 0)
+                    {
+                        binstrcmp[i][j][len] = binstrcmp[i + (1 << (len-1))][j + (1 << (len-1))][len-1];
+                    }
+                    else
+                    {
+                        binstrcmp[i][j][len] = binstrcmp[i][j][len-1];
+                    }
+                }
+            }
+/*
+    memset(dp, -1, sizeof(dp));
+    printf("%d\n", solve(0, -1));
+    for(int i = 0; i <= n; i++)
+    {
+        for(int j = 0; j <= n; j++)
+            printf("%d ", dp[i][j]);
+        puts("");
+    }
+*/
+    for(int j = 0; j <= n; j++)
+        dp[n][j] = 1;
+    for(int pos = n - 1; pos >= 1; pos--)
+        for(int prv = pos - 1; prv >= 0; prv--)
+        {
+            dp[pos][prv] = dp[pos+1][prv];
+            if(pos - prv > n - pos || s[pos] == '0' || s[prv] == '0')
+                continue;
+            int len = pos - prv;
+            int need = len + 1;
+            int i = prv, j = pos;
+            for(int pow2 = 12; pow2 >= 0; pow2--)
+            {
+                if(len >= (1 << pow2))
+                {
+                    if(binstrcmp[i][j][pow2] == -1)
+                    {
+                        need = len;
+                        break;
+                    }
+                    else
+                        if(binstrcmp[i][j][pow2] == 1)
+                        {
+                            need = len + 1;
+                            break;
+                        }
+                        else
+                        {
+                            i += (1 << pow2);
+                            j += (1 << pow2);
+                            len -= (1 << pow2);
+                        }
+                }
+            }
+            if(pos + need <= n)
+                dp[pos][prv] = (dp[pos][prv] + dp[pos+need][pos]) % mod;
+        }
+    printf("%d\n", dp[1][0]);
+/*  for(int i = 0; i <= n; i++)
+    {
+        for(int j = 0; j <= n; j++)
+            printf("%d ", dp[i][j]);
+        puts("");
+    }
+*/
+    return 0;
+}

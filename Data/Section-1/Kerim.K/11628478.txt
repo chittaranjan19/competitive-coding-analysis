@@ -1,0 +1,108 @@
+/*
+PROG: ride
+LANG: C++
+*/
+
+#include<bits/stdc++.h>
+#define INF 1e9+7
+#define LLINF 1e18+9
+#define ff first
+#define ss second
+#define mp make_pair
+#define all(x) x.begin(), x.end()
+#define MAXN 500009
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define FOR(x,s,y) for(int x=s;x<y;x++)
+#define sqr(x) ((x)*(x))
+#define lcm(x,y) (x/__gcd(x,y)*y)
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+#define gcd(x,y) (__gcd(x,y))
+#define sg(x) (atoi(x.c_str()))
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+//int palin(int n,int m,string s){int bl=0;for(int i=n;i<m;i++)if(s[i]!=s[m-i-1])bl++;if(bl==0)return 1;else return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll arr[MAXN],rr[1009];
+set<PII>s[1009];
+int main()
+{
+	int a,b,c,co=1,sz;
+	cin>>a>>b;
+	
+	c=sqrt(a);
+	sz=(a/c)+((a%c!=0)?1:0);
+	
+	for(int i=1;i<=a;i++)
+	{
+		cin>>arr[i];
+		s[co].insert(mp(arr[i],i));
+		if(i%c==0)
+		co++;
+	}
+	while(b--)
+	{
+		int type;
+		cin>>type;
+		if(type==1)
+		{
+			int l,r,x;
+			cin>>l>>r>>x;
+			while(l<=r)
+			{
+				if((l-1)%c==0 and l+c-1<=r)
+				{
+					int san=((l/c)+((l%c!=0)?1:0));
+					while((l-1)%c==0&&l+c-1<=r)
+					{
+						rr[san]+=x;
+						san++;
+						l+=c;
+					}
+				}
+				else
+				{
+					int bol=(l/c)+((l%c!=0)?1:0);
+					s[bol].erase({arr[l],l});
+					arr[l]+=x;
+					s[bol].insert({arr[l],l});
+					l++;
+				}
+			}
+		}
+		else
+		{
+			ll y,a1=INF,a2=-1;
+			cin>>y;
+			for(ll i=1;i<=sz;i++)
+			{
+				PII j = *s[i].lower_bound({y-rr[i], -1});
+				if (j.ff != y-rr[i])
+					continue;
+				
+				a1 = min(a1, j.ss);
+				a2 = max(a2, i);
+			}
+			
+			if(a2==-1) {
+				cout<<"-1"<<endl;
+			}
+			else
+			{
+				PII j = *(--s[a2].lower_bound({y-rr[a2]+1, -1}));
+				cout<<j.ss-a1<<endl;
+			}
+		}
+	}
+	return 0;
+}
+
+/*
+2 3
+1 2
+1 2 2 1
+2 3
+2 4
+*/

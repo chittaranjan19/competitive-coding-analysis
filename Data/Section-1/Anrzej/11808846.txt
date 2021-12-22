@@ -1,0 +1,76 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+#include <cstring>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+
+using namespace std;
+string s;
+ll n, m;
+ll rt[200000], lf[200000];
+set< pair<ll, int> > ms;
+pair<ll, int> del[200000];
+int good[200000];
+bool used[200000];
+
+int main()
+{
+    cin >> n >> m;
+    ll l0, r0;
+    for (int i = 0; i < n; i++)
+    {
+        ll l, r;
+        cin >> l >> r;
+        rt[i] = r;
+        lf[i] = l;
+    }
+    for (int i = 1; i < n; i++)
+    {
+        del[i-1] = (mp((lf[i] - rt[i - 1]), i));
+    }
+    for (int i = 0; i < m; i++)
+    {
+        ll l;
+        cin >> l;
+        ms.insert(mp(l, i));
+    }
+    sort(del, del + n - 1);
+    for (int i = n-2; i > -1; i--)
+    {
+        ll delta = rt[del[i].second] - lf[del[i].second - 1];
+        set<pair<ll, int> >::iterator low;
+        low = ms.upper_bound(mp(delta, 1000000000));
+        if (ms.size() == 0 || low == ms.begin())
+        {
+            cout << "No";
+            return 0;
+        }
+        low--;
+        if ( (low->first >= del[i].first) )
+        {
+            good[del[i].second] = low->second+1;
+            ms.erase(low);
+        }
+        else
+        {
+            cout << "No";
+            return 0;
+        }
+    }
+    cout << "Yes" << endl;
+    for (int i = 1; i < n; i++)
+    {
+        printf("%d ", good[i]);
+    }
+    return 0;
+}

@@ -1,0 +1,64 @@
+
+#include <bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second
+#define PB push_back
+#define MP make_pair
+
+using namespace std;
+typedef long long ll;
+const int N = 1e6;
+
+int n;
+ll a[N];
+ll cnt[N];
+ll dv[N];
+
+
+inline ll f(int x){
+    memset(cnt, 0, sizeof cnt);
+    int t = 0;
+    for(ll i = 1; i * i <= a[x]; i++){
+        if(a[x] % i == 0){
+            dv[t ++] = i;
+            if(a[x] == i * i) continue;
+            dv[t ++] = a[x] / i;
+        }
+    }
+    sort(dv, dv + t);
+    for(int i = 0; i < n; ++i){
+        ll g = __gcd(a[i], a[x]);
+        cnt[lower_bound(dv, dv + t, g) - dv] ++;
+    }
+    for(int i = 0; i < t; ++i){
+        for(int j = i + 1; j < t; ++j){
+            if(dv[j] % dv[i] == 0){
+                cnt[i] += cnt[j];
+            }
+        }
+    }
+    ll ans = 0;
+    for(int i = 0; i < t; ++i){
+        if(2 * cnt[i] >= n){
+            ans = max(ans, dv[i]);
+        }
+    }
+    return ans;
+}
+
+int main(){
+    srand(time(0));
+
+    scanf("%d", &n);
+    for(int i = 0; i < n; ++i)
+        scanf("%I64d", a+i);
+    random_shuffle(a, a + n);
+    ll mx = -1;
+    for(int i = 0; i < min(6, n); ++i){
+        mx = max(mx, f(i));
+    }
+    cout << mx << "\n";
+    return 0;
+}

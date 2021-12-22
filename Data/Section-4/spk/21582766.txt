@@ -1,0 +1,159 @@
+#include<iostream>
+#include<cstdio>
+#include<map>
+#include<string>
+#include<cstring>
+#include<vector>
+#include<algorithm>
+#include<queue>
+#include<set>
+#include<stack>
+
+#define fill(a,val) memset(a, (val), sizeof a)
+#define pb push_back
+#define scantype int
+#define lli long long int
+#define N 100003
+
+lli powermod(lli _a,lli _b){lli _r=1;while(_b){if(_b%2==1)_r=(_r*_a);_b/=2;_a=(_a*_a);}return _r;}
+
+using namespace std;
+
+void scan(scantype &x);
+
+
+int get(string a)
+{
+    if(a=="S")
+        return 0;
+    if(a=="M")
+        return 1;
+    if(a=="L")
+        return 2;
+    if(a=="XL")
+        return 3;
+    if(a=="XXL")
+        return 4;
+    if(a=="XXXL")
+        return 5;
+}
+
+
+char* con(int i)
+{
+    if(i==0)
+        return "S";
+    if(i==1)
+        return "M";
+    if(i==2)
+        return "L";
+    if(i==3)
+        return "XL";
+    if(i==4)
+        return "XXL";
+    if(i==5)
+        return "XXXL";
+}
+
+int main(void)
+{
+  int a[6];
+  for(int i=0;i<6;i++)cin>>a[i];
+
+  int n;
+  cin>>n;
+
+  bool vis[n];
+  int got;
+  fill(vis,false);
+  pair<int,int> choice[n];
+  int ans[n];
+
+  for(int i=0;i<n;i++)
+  {
+      char st[100];
+      scanf("%s",st);
+      string s1;
+      int flag=1;
+
+      for(int i=0;st[i]!='\0';i++)
+      {
+          if(st[i]==',')
+          {
+              choice[i].first = get(s1);
+              flag=0;
+              s1="";
+          }else s1=s1+st[i];
+      }
+      if(!flag)choice[i].second = get(s1);
+      else
+      {
+         a[get(s1)]--;
+         ans[i]=get(s1);
+         if(a[get(s1)]<0)
+         {
+             cout<<"NO";
+             return 0;
+         }
+         vis[i]=true;
+      }
+  }
+  vector<int>edge[6];
+
+  for(int i=0;i<n;i++)
+  {
+      if(vis[i])continue;
+      int x,y;
+      x = choice[i].first;
+      y = choice[i].second;
+
+      edge[x].pb(i);
+      edge[y].pb(i);
+  }
+
+  for(int i=0;i<6;i++)
+  {
+      for(int j=0;j<edge[i].size()&& j<a[i];j++)
+      {
+          if(vis[edge[i][j]])continue;
+          vis[edge[i][j]]=true;
+          ans[edge[i][j]]=i;
+      }
+  }
+
+  for(int i=0;i<n;i++)if(!vis[i]){
+   // cout<<"o: "<<i<<endl;
+    cout<<"NO";
+    return 0;
+  }
+
+  cout<<"YES"<<endl;
+  for(int i=0;i<n;i++)
+    printf("%s\n",con(ans[i]));
+
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+void scan(scantype &x)
+{
+    /*register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}*/
+
+    register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x;
+}

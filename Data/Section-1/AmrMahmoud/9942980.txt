@@ -1,0 +1,126 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+string input[2005];
+bool v[2005][2005];
+int n, m;
+
+bool check(int x, int y)
+{
+    if(x < 0 || y < 0 || x >= n || y >= m || input[x][y] != '.') return false;
+    int cnt = 0;
+    if(x != 0 && input[x-1][y] == '.') cnt++;
+    if(x != n-1 && input[x+1][y] == '.') cnt++;
+    if(y != 0 && input[x][y-1] == '.') cnt++;
+    if(y != m-1 && input[x][y+1] == '.') cnt++;
+    return (cnt == 1);
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    //freopen("wall.in", "r", stdin);
+    //freopen("wall.out", "w", stdout);
+    cin >> n >> m;
+    for(int i=0;i<n;i++)
+        cin >> input[i];
+    queue<pair<int, int> > q;
+    for(int i=0;i<n;i++)
+    {
+        for(int j=0;j<m;j++)
+        {
+            if(input[i][j] == '.' && check(i, j))
+                q.push(mp(i, j));
+        }
+    }
+    bool test = 1;
+    while(!q.empty())
+    {
+        int x = q.front().first;
+        int y = q.front().second;
+        q.pop();
+        if(input[x][y] != '.') continue;
+        int xx = x, yy = y;
+        if(x != 0 && input[x-1][y] == '.')
+        {
+            input[x][y] = 'v';
+            input[x-1][y] = '^';
+            xx--;
+        }
+        else if(x != n-1 && input[x+1][y] == '.')
+        {
+            input[x+1][y] = 'v';
+            input[x][y] = '^';
+            xx++;
+        }
+        else if(y != 0 && input[x][y-1] == '.')
+        {
+            input[x][y-1] = '<';
+            input[x][y] = '>';
+            yy--;
+        }
+        else if(y != m-1 && input[x][y+1] == '.')
+        {
+            input[x][y] = '<';
+            input[x][y+1] = '>';
+            yy++;
+        }
+        else
+        {
+            test = 0;
+            break;
+        }
+        if(check(xx+1, yy)) q.push(mp(xx+1, yy));
+        if(check(xx-1, yy)) q.push(mp(xx-1, yy));
+        if(check(xx, yy+1)) q.push(mp(xx, yy+1));
+        if(check(xx, yy-1)) q.push(mp(xx, yy-1));
+    }
+    for(int i=0;i<n && test;i++)
+    {
+        for(int j=0;j<m && test;j++)
+        {
+            if(input[i][j] == '.')
+                test = 0;
+        }
+    }
+    if(!test) cout << "Not unique";
+    else
+    {
+        for(int i=0;i<n && test;i++)
+        {
+            cout << input[i] << '\n';
+        }
+    }
+    return 0;
+}

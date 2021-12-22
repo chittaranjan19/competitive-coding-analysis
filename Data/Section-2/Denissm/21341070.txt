@@ -1,0 +1,72 @@
+#include <stdio.h>
+#include <vector>
+#include <string.h>
+#include <queue>
+using namespace std;
+typedef unsigned long long ull;
+typedef long long ll;
+
+int INF = 1000000002;
+
+ll modul(ll value) {
+    return value < 0 ? -value : value;
+}
+
+struct Pair {
+    ll* value;
+    Pair(ll* value): value(value){}
+    bool operator>(const Pair &other) const {
+        return modul(*value) > modul(*other.value);
+    }
+};
+
+int main() {
+    int n, k, x;
+    scanf("%d %d %d", &n, &k, &x);
+    int min_number_modul = INF;
+    int min_number_modul_index = -1;
+    bool is_product_negative = false;
+    ll arr[200002];
+    for (int i = 0; i < n; i++) {
+        scanf("%I64d", arr + i);
+        if (arr[i] < 0) {
+            is_product_negative = !is_product_negative;
+            if (min_number_modul > -arr[i]) {
+                min_number_modul = -arr[i];
+                min_number_modul_index = i;
+            }
+        } else {
+            if (min_number_modul > arr[i]) {
+                min_number_modul = arr[i];
+                min_number_modul_index = i;
+            }
+        }
+    }
+    //make product negative
+    if (!is_product_negative) {
+        if (k * x > min_number_modul) {
+            ll quot = min_number_modul / x + 1;
+            arr[min_number_modul_index] += ((arr[min_number_modul_index] < 0 ? x : -x) * quot);
+            k -= quot;
+            is_product_negative = true;
+        } else if (k * x == min_number_modul) {
+            k = 0;
+            arr[min_number_modul_index] = 0;
+        }
+    }
+    priority_queue<Pair, vector<Pair>,  greater<Pair> > q;
+    for (int i = 0; i < n; i++) {
+        q.push(Pair(arr + i));
+    }
+    while (k > 0) {
+        Pair lowest = q.top();
+        q.pop();
+        *lowest.value += *lowest.value < 0 ? is_product_negative ? -x : x : is_product_negative ? x : -x;
+        k--;
+        q.push(lowest);
+    }
+    for (int i = 0; i < n; i++) {
+        printf("%d ", arr[i]);
+    }
+	return 0;
+}

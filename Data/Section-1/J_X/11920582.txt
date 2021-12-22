@@ -1,0 +1,105 @@
+#include <iostream>
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 5000 + 5;
+
+char s[maxn];
+
+struct trie
+{
+    int sz, ch[4 * maxn][2], val[4 * maxn], l;
+    char ans[maxn];
+
+    trie()
+    {
+        for(int i = 0; i < maxn; ++i)
+        {
+            ans[i] = '\0';
+        }
+        sz = 0;
+        memset(ch[0], 0, sizeof(ch[0]));
+        l = 0;
+    }
+
+    void add(int m, int n)
+    {
+        int u = 0;
+        for(int i = m; i < n; ++i)
+        {
+//            cout << s[i];
+            int c = s[i] - 'a';
+            if(!ch[u][c])
+            {
+                ch[u][c] = ++sz;
+                memset(ch[sz], 0, sizeof(ch[sz]));
+                val[sz] = 0;
+            }
+            u = ch[u][c];
+        }
+//        cout << endl;
+        ++val[u];
+    }
+
+    bool dfs(int k, int u, int h)
+    {
+        l += val[u];
+        if(l >= k)
+        {
+            puts(ans);
+            return true;
+        }
+        if(ch[u][0])
+        {
+            ans[h] = 'a';
+            if(dfs(k, ch[u][0], h + 1))
+            {
+                return true;
+            }
+            ans[h] = '\0';
+        }
+        if(ch[u][1])
+        {
+            ans[h] = 'b';
+            if(dfs(k, ch[u][1], h + 1))
+            {
+                return true;
+            }
+            ans[h] = '\0';
+        }
+        return false;
+    }
+
+} T;
+
+bool check(int m, int n)
+{
+    for(int i = 0; i < (n - m) / 2; i += 2)
+    {
+        if(s[m + i] != s[n - i - 1])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+int main()
+{
+    int k;
+    scanf("%s%d", s, &k);
+    int len = strlen(s);
+    for(int i = 0; i < len; ++i)
+    {
+        for(int j = i + 1; j <= len; ++j)
+        {
+            if(check(i, j))
+            {
+                T.add(i, j);
+            }
+        }
+    }
+    T.dfs(k, 0, 0);
+    return 0;
+}

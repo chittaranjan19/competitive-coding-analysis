@@ -1,0 +1,81 @@
+#include <iostream>
+#include <algorithm>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+const int maxn = 1000005;
+
+struct node {
+    int l,r;
+    int id;
+}q[maxn];
+
+int c[maxn];
+int data[maxn];
+
+int cmp(node a ,node b){
+    if(a.r==b.r)
+        return a.l<b.l;
+    return a.r<b.r;
+}
+int Lowbit(int k)
+{
+    return (k&-k);
+}
+void update(int pos,int num)     //pos   &&  data
+{
+    while(pos<=maxn)//注意这里
+    {
+        c[pos]^=num;
+        pos+=Lowbit(pos);
+    }
+}
+int query(int pos)
+{
+    int ans=0;
+    while(pos){
+        ans^=c[pos];
+        pos-=Lowbit(pos);
+    }
+    return ans;
+}
+
+int sum[maxn];
+int pre[maxn];
+int vis[maxn];
+int ans[maxn];
+
+int main(){
+    int n,m;
+    int i,j;
+    cin>>n;
+    for(i=1;i<=n;i++){
+        cin>>data[i];
+        sum[i]=sum[i-1]^data[i];
+        pre[i]=vis[data[i]];
+        vis[data[i]]=i;
+    }
+    cin>>m;
+    for(i=1;i<=m;i++){
+        cin>>q[i].l>>q[i].r;
+        q[i].id=i;
+    }
+
+    sort(q+1,q+1+m,cmp);
+
+    for(int i=1,r=1;i<=m;i++){
+        while(r<q[i].r){
+            if(pre[r])
+                update(pre[r],data[r]);
+            update(r,data[r]);
+            r++;
+        }
+         ans[q[i].id]=query(q[i].r)^query(q[i].l-1)^sum[q[i].r]^sum[q[i].l-1];
+    }
+
+    for(i=1;i<=m;i++)
+        cout<<ans[i]<<endl;
+    return 0;
+}

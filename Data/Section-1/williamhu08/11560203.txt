@@ -1,0 +1,98 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 500010, SQRT = 710;
+
+int N, Q;
+ll A[MAXN], add[SQRT];
+vector<pair<ll, int> > inds[SQRT];
+
+void update (int cmp) {
+	//darn set is too slow
+	//just use this. Also it's clever how al_dai updated this.
+	if (cmp == -1) {
+		return;
+	}
+	auto &v = inds[cmp];
+	v.clear();
+	for (int i = cmp * SQRT; i < N && i / SQRT == cmp; i++) {
+		v.push_back(make_pair(A[i], i));
+	}
+	sort(all(v));
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	// int t = clock();
+	scanf("%d %d", &N, &Q);
+	//sqrt(N) trick
+	for (int i = 0, x; i < N; i++) {
+		scanf("%d", &x);
+		inds[i / SQRT].push_back(make_pair(A[i] = x, i));
+	}
+	//sqrt(N) trick DAMNIT
+	int qt, lt, rt, x;
+	while (Q--) {
+		scanf("%d", &qt);
+		if (qt == 1) {
+			scanf("%d %d %d", &lt, &rt, &x);
+			lt--;
+			rt--;
+			if (lt / SQRT == rt / SQRT) {
+				for (int i = lt; i <= rt; i++) {
+					A[i] += x;
+				}
+				update(lt / SQRT);
+			} else {
+				//go left, go right
+				int cmpl = -1, cmpr = -1;
+				for (; lt % SQRT; lt++) {
+					if (cmpl == -1) {
+						cmpl = lt / SQRT;
+					}
+					A[lt] += x;
+				}
+				for (; rt % SQRT != SQRT - 1; rt--) {
+					if (cmpr == -1) {
+						cmpr = rt / SQRT;
+					}
+					A[rt] += x;
+				}
+				//SQRT * log N
+				if (lt <= rt) {
+					for (int i = lt / SQRT; i <= rt / SQRT; i++) {
+						add[i] += x;
+					}
+				}
+				update(cmpl);
+				update(cmpr);
+			}
+		} else {
+			scanf("%d", &x);
+			int lo = MAXN, hi = -1;
+			for (int i = 0; i * SQRT < N; i++) {
+				ll w = x - add[i];
+				auto &v = inds[i];
+				auto it = upper_bound(all(v), make_pair(w - 1, MAXN));
+				if (it == v.end() || it->first != w) {
+					continue;
+				}
+				auto jt = upper_bound(all(v), make_pair(w, MAXN)) - 1;
+				lo = min(lo, it->second);
+				hi = max(hi, jt->second);
+			}
+			printf("%d\n", hi == -1 ? -1 : hi - lo);
+		}
+	}
+	// printf("time = %lf\n", (clock() - t) / double(CLOCKS_PER_SEC));
+}

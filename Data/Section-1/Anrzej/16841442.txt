@@ -1,0 +1,59 @@
+#include <cstdio>
+#include <cstring>
+
+const int N = 111, L = 33;
+
+int n;
+char s[N];
+int next[L], chain[L];
+bool used[L];
+
+void chain_dfs(int a) {
+    used[a] = true;
+    int b = next[a];
+    if (b == -1)
+        return;
+    if (!used[b])
+        chain_dfs(b);
+    chain[a] = chain[b] + 1;
+}
+
+int main() {
+    scanf("%d", &n);
+
+    for (int i = 0; i < L; i++)
+        next[i] = -1, chain[i] = 0, used[i] = false;
+
+    for (int i = 0; i < n; i++) {
+        scanf("%s", s);
+        for (int j = 0, l = strlen(s); j < l; j++) {
+            chain[s[j] - 'a'] = 1;
+            if (j > 0)
+                next[s[j - 1] - 'a'] = s[j] - 'a';
+        }
+    }
+
+    for (int i = 0; i < L; i++)
+        if (chain[i] > 0 && !used[i])
+            chain_dfs(i);
+
+    for (int i = 0; i < L; i++)
+        used[i] = false;
+
+    while (true) {
+        int p = -1, m = 0;
+        for (int i = 0; i < L; i++) {
+            if (!used[i] && chain[i] > m)
+                p = i, m = chain[i];
+        }
+        if (p == -1)
+            break;
+        while (p != -1) {
+            used[p] = true;
+            putchar('a' + p);
+            p = next[p];
+        }
+    }
+
+    return 0;
+}

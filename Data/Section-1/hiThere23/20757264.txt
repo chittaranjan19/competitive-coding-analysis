@@ -1,0 +1,168 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 10005
+#define mn2 1005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, m, s, t, u[mn], v[mn], e[mn], mark[mn2], num = 0, lock;
+long long l, d[mn2];
+vector< pair<int, int> > g[mn2];
+vector<int> zero;
+priority_queue< pair<long long, int> > p;
+
+void setup()
+{
+    cin >> n >> m >> l >> s >> t;
+    FOR(i, 1, m)
+    {
+        cin >> u[i] >> v[i] >> e[i];
+        g[u[i]].pb(mp(v[i], i));
+        g[v[i]].pb(mp(u[i], i));
+        if (!e[i])
+            zero.pb(i);
+    }
+}
+
+long long raw()
+{
+    mark[s] = ++ num;
+    d[s] = 0;
+    while(!p.empty())
+        p.pop();
+    p.push(mp(0, s));
+    while(!p.empty())
+    {
+        int u = p.top().S;
+        long long w = -p.top().F;
+        p.pop();
+        if (d[u] != w)
+            continue;
+        if (u == t)
+            return w;
+        FOR(i, 0, int(g[u].size()) - 1)
+        {
+            int v = g[u][i].F;
+            int id = g[u][i].S;
+            if (e[id] == 0)
+                continue;
+            if (mark[v] == num && d[v] <= w + e[id])
+                continue;
+            mark[v] = num;
+            d[v] = w + e[id];
+            p.push(mp(- d[v], v));
+        }
+    }
+    return maxC;
+}
+
+bool ijk(int x)
+{
+    mark[s] = ++ num;
+    d[s] = 0;
+    while(!p.empty())
+        p.pop();
+    p.push(mp(0, s));
+    while(!p.empty())
+    {
+        int u = p.top().S;
+        long long w = -p.top().F;
+        p.pop();
+        if (d[u] != w)
+            continue;
+        if (u == t)
+            return w <= l;
+        FOR(i, 0, int(g[u].size()) - 1)
+        {
+            int v = g[u][i].F;
+            int id = g[u][i].S;
+            int val = e[id];
+            if (!val)
+            {
+                if (x > 0)
+                    val = (id <= x? 1 : maxC);
+                else
+                    val = (id == lock? -x : (id < lock? 1 : maxC));
+            }
+            if (mark[v] == num && d[v] <= w + val)
+                continue;
+            mark[v] = num;
+            d[v] = w + val;
+            p.push(mp(- d[v], v));
+        }
+    }
+    return false;
+}
+
+void print(int x)
+{
+    cout << "YES\n";
+    FOR(i, 1, m)
+    {
+        if (e[i] == 0)
+        {
+            if (i < lock)
+                e[i] = 1;
+            if (i == lock)
+                e[i] = x;
+            if (i > lock)
+                e[i] = maxC;
+        }
+        cout << u[i] << ' ' << v[i] << ' ' << e[i] << '\n';
+    }
+}
+
+void xuly()
+{
+    long long xx = raw();
+    if (xx < l || (xx > l && !zero.size()))
+    {
+        cout << "NO\n";
+        return;
+    }
+    if (!zero.size())
+    {
+        print(0);
+        return;
+    }
+    int l = 0, r = zero.size() - 1;
+    if (!ijk(zero[r]))
+    {
+        cout << "NO\n";
+        return;
+    }
+    while(r - l > 1)
+    {
+        int g = ((l + r) >> 1);
+        if (ijk(zero[g]))
+            r = g;
+        else
+            l = g;
+    }
+    lock = zero[r];
+    l = 1, r = maxC;
+    while(r - l > 1)
+    {
+        int g = ((l + r) >> 1);
+        if (ijk(- g))
+            l = g;
+        else
+            r = g;
+    }
+    print(l);
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

@@ -1,0 +1,126 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+vector<PII>adj[MAXN];
+vector<PII>dj[MAXN];
+vector<int>ans[3];
+int deg[MAXN][3];
+int dg[MAXN][3];
+//0 - > B
+//1 - > R
+set<PII>s;
+int n,m;
+int clc(){
+	s.clear();
+	for(int i=1;i<=n;i++)
+		s.insert(mp(dg[i][1],i));
+	while(s.size()>0){
+		PII it=*s.rbegin();
+		if(it.ff==0)
+			break;	
+		if(ans[1].size()>n)
+			return INF;	
+		ans[1].pb(it.ss);
+		stack<PII>light;
+		light.push(it);
+		for(int i=0;i<dj[it.ss].size();i++){
+			int nd=dj[it.ss][i].ff;
+			int col=dj[it.ss][i].ss;
+			light.push(mp(dg[nd][1],nd));
+			dg[it.ss][col]--;dg[nd][col]--;
+			dg[it.ss][col^1]++;dg[nd][col^1]++;
+			dj[it.ss][i].ss^=1;
+			int pos=lower_bound(all(dj[nd]),mp(it.ss,-1))-dj[nd].begin();
+			dj[nd][pos].ss^=1;
+		}
+		while(!light.empty()){
+			s.erase(light.top());
+			int nd=light.top().ss;
+			s.insert(mp(dg[nd][1],nd));
+			light.pop();
+		}
+	}
+	return int(ans[1].size());
+}
+int calc(){
+	s.clear();
+	for(int i=1;i<=n;i++)
+		s.insert(mp(deg[i][0],i));
+	while(s.size()>0){
+		PII it=*s.rbegin();
+		if(it.ff==0)
+			break;	
+		if(ans[0].size()>n)
+			return INF;	
+		ans[0].pb(it.ss);
+		stack<PII>light;
+		light.push(it);
+		for(int i=0;i<adj[it.ss].size();i++){
+			int nd=adj[it.ss][i].ff;
+			int col=adj[it.ss][i].ss;
+			light.push(mp(deg[nd][0],nd));
+			deg[it.ss][col]--;deg[nd][col]--;
+			deg[it.ss][col^1]++;deg[nd][col^1]++;
+			adj[it.ss][i].ss^=1;
+			int pos=lower_bound(all(adj[nd]),mp(it.ss,-1))-adj[nd].begin();
+			adj[nd][pos].ss^=1;
+		}
+		while(!light.empty()){
+			s.erase(light.top());
+			int nd=light.top().ss;
+			s.insert(mp(deg[nd][0],nd));
+			light.pop();
+		}
+	}
+	return int(ans[0].size());
+}
+int main(){
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=m;i++){
+		int u,v,kind;
+		char f[2];
+		scanf("%d%d %c",&u,&v,&f[0]);
+		deg[u][f[0]=='R']++;
+		deg[v][f[0]=='R']++;
+		dg[u][f[0]=='R']++;
+		dg[v][f[0]=='R']++;
+		adj[u].pb(mp(v,f[0]=='R'));adj[v].pb(mp(u,f[0]=='R'));
+		dj[u].pb(mp(v,f[0]=='R'));dj[v].pb(mp(u,f[0]=='R'));
+	}
+	for(int i=1;i<=n;i++){
+		sort(all(adj[i]));
+		sort(all(dj[i]));
+	}
+	int mn=INF,kind=-1;
+	if(umin(mn,calc()))
+		kind=0;
+	if(umin(mn,clc()))
+		kind=1;
+	if(kind==-1)
+		printf("%d\n",kind);
+	else{
+		printf("%d\n",int(ans[kind].size()));
+		for(int i=0;i<ans[kind].size();i++)
+			printf("%d ",ans[kind][i]);
+		printf("\n");	
+	}
+	return 0;
+}
+

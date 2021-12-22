@@ -1,0 +1,92 @@
+# include <iostream>
+# include <cstdlib>
+# include <cstdio>
+# include <queue>
+
+using namespace std;
+
+const int N = 500, INF = 2147483647;
+int n, m, k, dp[10][N][N], kx, ky, v, ans, answer = INF, cnt, cntcnt, mp[10];
+int vx[] = {0, -1, 0, 1,  0};
+int vy[] = {0,  0, 1, 0, -1};
+char a[N][N];
+queue < int > qx, qy;
+struct edge{int x, y;} d[10];
+bool used[10][N][N];
+
+void bfs (int p)
+{
+	qx.push (d[p].x);
+	qy.push (d[p].y);
+	dp[p][d[p].x][d[p].y] = 0;
+	used[p][d[p].x][d[p].y] = true;
+	
+	while (!qx.empty ())
+	{
+		for (int i = 1; i <= 4; ++i)
+		{	
+			kx = qx.front ();
+			ky = qy.front ();
+			
+			v = i;
+			
+			while (true)
+			{
+				if (kx + vx[v] >= 1 && kx + vx[v] <= n && ky + vy[v] >= 1 && ky + vy[v] <= m && a[kx + vx[v]][ky + vy[v]] != 'x')
+				{
+					kx += vx[v];
+					ky += vy[v];
+				}
+				else
+					break;
+			}
+			
+			if (!used[p][kx][ky])
+			{
+				qx.push (kx);
+				qy.push (ky);
+				
+				dp[p][kx][ky] = dp[p][qx.front ()][qy.front ()] + 1;
+				used[p][kx][ky] = true;
+			}
+		}
+		
+		qx.pop ();
+		qy.pop ();
+	}
+}
+
+int main ()
+{
+	cin >> k >> m >> n;
+	
+	for (int i = 1; i <= n; ++i)
+		for (int j = 1; j <= m; ++j)
+		{
+			cin >> a[i][j];
+			if (a[i][j] >= '0' && a[i][j] <= '9')
+			{
+				d[a[i][j] - '0'].x = i;
+				d[a[i][j] - '0'].y = j; 
+				mp[++mp[0]] = a[i][j] - '0';
+			}
+		}
+	
+	bfs (mp[1]);
+	bfs (mp[2]);
+	
+	for (int i = 1; i <= n; ++i)
+		for (int j = 1; j <= m; ++j)
+			if (used[mp[1]][i][j] && used[mp[2]][i][j])
+				answer = min (answer, dp[mp[1]][i][j] + dp[mp[2]][i][j]);
+				
+	if (answer == INF)
+	{
+		cout << "-1";
+		return 0;
+	}
+
+	cout << answer << "\n";
+}
+
+

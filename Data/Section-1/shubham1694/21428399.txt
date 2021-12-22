@@ -1,0 +1,134 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+struct node {
+	int prefOnes, suffOnes, maxOnes, len;
+	node* L;
+	node* R;
+	node() {
+		this->L = this->R = NULL;
+		this->prefOnes = this->suffOnes = this->maxOnes = this->len = 0;
+	}
+};
+
+int n;
+vector<pii> height;
+node* root[maxn];
+
+void init(int s, int e, node* cur) {
+	if (s == e) {
+		return;
+	}
+	int mid = (s + e) >> 1;
+	cur->L = new node();
+	cur->R = new node();
+	init(s, mid, cur->L);
+	init(mid + 1, e, cur->R);
+}
+
+void insert(node* cur, node* prev, int l, int r, int q) {
+	if (l > r || l > q || q > r)
+		return;
+	if (l == r) {
+		cur->prefOnes = cur->suffOnes = cur->maxOnes = cur->len = 1;
+		return;
+	}
+	int mid = (l + r) >> 1;
+	if (q <= mid) {
+		if (cur->L == NULL)
+			cur->L = new node();
+		insert(cur->L, prev->L, l, mid, q);
+		cur->R = prev->R;
+	}
+	else {
+		if (cur->R == NULL)
+			cur->R = new node();
+		insert(cur->R, prev->R, mid + 1, r, q);
+		cur->L = prev->L;
+	}
+	cur->maxOnes = max(cur->L->maxOnes, max(cur->R->maxOnes, cur->L->suffOnes + cur->R->prefOnes));
+	if (cur->L->prefOnes == mid - l +1)
+		cur->prefOnes = cur->L->prefOnes + cur->R->prefOnes;
+	else
+		cur->prefOnes = cur->L->prefOnes;
+	if (cur->R->suffOnes == (r - mid))
+		cur->suffOnes = cur->L->suffOnes + cur->R->suffOnes;
+	else
+		cur->suffOnes = cur->R->suffOnes;
+	cur->len = cur->L->len + cur->R->len;
+}
+
+node* query(node* cur, int s, int e, int qs, int qe) {
+	if (s > e || s > qe || qs > e) 
+		return new node();
+	if (s >= qs && qe >= e)
+		return cur;
+	int mid = (s + e) >> 1;
+	node* lnode = query(cur->L, s, mid, qs, qe);
+	node* rnode = query(cur->R, mid + 1, e, qs, qe);
+	node* ret = new node();
+	ret->maxOnes = max(lnode->maxOnes, max(rnode->maxOnes, lnode->suffOnes + rnode->prefOnes));
+	if (lnode->prefOnes == lnode->len)
+		ret->prefOnes = lnode->prefOnes + rnode->prefOnes;
+	else
+		ret->prefOnes = cur->L->prefOnes;
+	if (rnode->suffOnes == rnode->len)
+		ret->suffOnes = lnode->suffOnes + rnode->suffOnes;
+	else
+		ret->suffOnes = rnode->suffOnes; 
+	ret->len = lnode->len + rnode->len;
+	return ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	scanf("%d", &n);
+	for (int i = 1; i <= n; i++) {
+		int x;
+		scanf("%d", &x);
+		height.pb(mp(x, i));
+	}
+	sort(all(height));
+	reverse(all(height));
+	root[0] = new node();
+	init(1, n, root[0]);
+	for (int i = 1; i <= n; i++) {
+		root[i] = new node();
+		insert(root[i], root[i - 1], 1, n, height[i-1].s);
+	}
+	int q, l, r, w;
+	scanf("%d", &q);
+	while (q--) {
+		scanf("%d%d%d", &l, &r, &w);
+		int L = 1, R = n;
+		while (L < R) {
+			int m = (L + R) >> 1;
+			node* temp = query(root[m], 1, n, l, r);
+			if (temp->maxOnes >= w)
+				R = m;
+			else
+				L = m + 1;
+		}
+		printf("%d\n", height[L-1].f);
+	}
+	return 0;
+}

@@ -1,0 +1,88 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<int> g[50005], teams[50005];
+bool color[1000005], pcolor[50005], v[50005];
+int ch[50005];
+
+void dfs(int node, bool c)
+{
+  if(v[node]) return;
+  v[node] = true;
+  pcolor[node] = c;
+  for(int x : teams[node])
+    if(color[x] == c)
+    {
+      ch[node] = x;
+      break;
+    }
+  for(int x : g[node])
+    dfs(x, 1 - c);
+}
+
+int main()
+{
+  srand(time(0));
+  int n, m, x, y, t = 0;
+  cin >> n >> m;
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d %d", &x, &y);
+    g[x].pb(y);
+    g[y].pb(x);
+  }
+  for(int i=1;i<=n;i++)
+  {
+    scanf("%d", &x);
+    for(int j=0;j<x;j++)
+    {
+      scanf("%d", &y);
+      teams[i].pb(y);
+      t = max(t, y);
+    }
+  }
+  for(int i=1;i<=t;i++) color[i] = rand() % 2;
+  while(1)
+  {
+    bool bad = false;
+    for(int i=1;i<=n;i++)
+    {
+      bool t1 = 0, t2 = 0;
+      for(int x : teams[i])
+      {
+        if(color[x]) t1 = 1;
+        else t2 = 1;
+        if(t1 && t2) break;
+      }
+      if(t1 && t2) continue;
+      bad = true;
+      int ind = rand() % teams[i].size();
+      ind = teams[i][ind];
+      color[ind] = 1 - color[ind];
+    }
+    if(!bad) break;
+  }
+  for(int i=1;i<=n;i++)
+    dfs(i, 0);
+  for(int i=1;i<=n;i++)
+    printf("%d ", ch[i]);
+  printf("\n");
+  for(int i=1;i<=t;i++) printf("%d ", (int)color[i] + 1);
+  return 0;
+}

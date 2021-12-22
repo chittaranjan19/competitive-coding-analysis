@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 751
+#define base 31
+#define maxC 1000000007
+#define mp make_pair
+#define F first
+#define S second
+#define mid ((l + r) >> 1)
+
+using namespace std;
+int n, m, q[mn], co;
+
+struct interval
+{
+    int l, r, mark;
+    pair<int, int> val;
+    interval* lc;
+    interval* rc;
+
+    interval(int l = 0, int r = 0): l(l), r(r)
+    {
+        mark = 0;
+        val = mp(0, r);
+        if (l == r)
+        {
+            lc = rc = NULL;
+            return;
+        }
+        lc = new interval(l, mid);
+        rc = new interval(mid + 1, r);
+    }
+
+    void update(int x, int v)
+    {
+        if (mark != co)
+            mark = co, val = mp(0, r);
+        if (l > x || r < x)
+            return;
+        if (l == r)
+        {
+            val.F = v;
+            return;
+        }
+        lc -> update(x, v);
+        rc -> update(x, v);
+        val = max(lc -> val, rc -> val);
+    }
+} t;
+
+void setup()
+{
+    cin >> n >> m;
+    FOR(i, 1, n)
+        cin >> q[i];
+    t = interval(1, n);
+}
+
+void xuly()
+{
+    int ans;
+    long long mood, sum;
+    for(co = 1; co <= m; co ++)
+    {
+        cin >> mood;
+        sum = ans = 0;
+        FOR(i, 1, n)
+        {
+            sum += q[i];
+            if (q[i] < 0)
+                t.update(i, - q[i]);
+            while(mood + sum < 0)
+            {
+                mood += t.val.F;
+                t.update(t.val.S, 0);
+                ans ++;
+            }
+        }
+        cout << ans << '\n';
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

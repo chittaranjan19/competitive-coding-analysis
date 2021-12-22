@@ -1,0 +1,219 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD {
+    BufferedReader rd;
+
+    ProblemD() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] nq = intarr();
+        int n = nq[0];
+        int q = nq[1];
+        DisjointSetForest f = new DisjointSetForest(n);
+        NavigableMap<Integer, Integer> z = new TreeMap<>();
+        for(int i=0;i<q;i++) {
+            int[] a = intarr();
+            a[1]--;
+            a[2]--;
+            switch(a[0]) {
+                case 1:
+                    if(a[1] != a[2]) {
+                        f.union(a[1], a[2]);
+                    }
+                    break;
+                case 2:
+                    if(a[1] != a[2]) {
+                        Integer f1 = z.floorKey(a[1]);
+                        Integer f2 = z.ceilingKey(a[2]);
+                        if(f1 == null || f2 == null || !z.get(f1).equals(f2)) {
+                            NavigableMap<Integer, Integer> sub = z.subMap(a[1],true,a[2],true);
+                            NavigableSet<Integer> p = new TreeSet<>();
+                            for(Map.Entry<Integer, Integer> e: sub.entrySet()) {
+                                p.add(e.getKey());
+                                p.add(e.getValue());
+                            }
+                            Integer y = z.lowerKey(a[1]);
+                            if(y != null && z.get(y) > y) {
+                                p.add(y);
+                                p.add(z.get(y));
+                            }
+                            y = z.higherKey(a[2]);
+                            if(y != null && z.get(y) < y) {
+                                p.add(y);
+                                p.add(z.get(y));
+                            }
+                            if(p.isEmpty()) {
+                                f.unionInt(a[1], a[2]);
+                                z.put(a[1], a[2]);
+                                z.put(a[2], a[1]);
+                            } else {
+                                int last = a[1];
+                                int mn = a[1];
+                                int mx = a[2];
+                                for(Integer c: p) {
+                                    mn = Math.min(mn, c);
+                                    mx = Math.max(mx, c);
+                                    y = z.get(c);
+                                    if(y > c) {
+                                        if(last < c) {
+                                            f.unionInt(last,Math.min(c,a[2]));
+                                        }
+                                        f.union(last,a[1]);
+                                        last = y+1;
+                                    }
+                                }
+                                if(last <= a[2]) {
+                                    f.union(last, a[1]);
+                                    f.unionInt(last,a[2]);
+                                }
+                                for(Integer c: p) {
+                                    z.remove(c);
+                                }
+                                z.put(mn,mx);
+                                z.put(mx,mn);
+                            }
+                        }
+                    }
+                    break;
+                case 3:
+                    out(f.find(a[1])==f.find(a[2])?"YES":"NO");
+                    break;
+            }
+        }
+    }
+
+    private static class DisjointSetForest {
+        int[] p;
+        int[] rank;
+
+        public DisjointSetForest(int n) {
+            p = new int[n];
+            for(int i=0;i<n;i++) {
+                p[i] = i;
+            }
+            rank = new int[n];
+        }
+
+        public int find(int x) {
+            if(p[x] == x) {
+                return x;
+            }
+            if(p[p[x]] == p[x]) {
+                return p[x];
+            }
+            List<Integer> q = new ArrayList<>();
+            int u = x;
+            while(u != p[u]) {
+                q.add(u);
+                u = p[u];
+            }
+            for(Integer z: q) {
+                p[z] = u;
+            }
+            return u;
+        }
+
+        public void unionInt(int a, int b) {
+            for(int i=a;i<b;i++) {
+                union(i,i+1);
+            }
+        }
+
+        public void union(int a, int b) {
+            int u = find(a);
+            int v = find(b);
+            if(u != v) {
+                link(u, v);
+            }
+        }
+
+        private void link(int x, int y) {
+            if(rank[x] > rank[y]) {
+                p[y] = x;
+            } else {
+                p[x] = y;
+                if(rank[x] == rank[y]) {
+                    rank[y]++;
+                }
+            }
+        }
+
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

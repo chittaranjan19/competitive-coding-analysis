@@ -1,0 +1,73 @@
+import java.io.BufferedInputStream;
+import java.util.Scanner;
+
+public class _569C {
+
+    static int[] pow10;
+
+    public static void main(String[] args) {
+        pow10 = new int[8];
+        pow10[0] = 1;
+        for(int i = 1; i < 8; i++)
+            pow10[i] = pow10[i-1] * 10;
+
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024 * 64));
+        long p = scan.nextInt(), q = scan.nextInt();
+
+        int N = 1200001;
+
+        boolean[] primes = new boolean[N];
+        primes[1] = false;
+        primes[2] = true;
+
+        for(int i = 3; i < N; i += 2)
+            primes[i] = true;
+
+        for(int i = 3; i < N; i +=2) {
+            if(primes[i]) {
+                for(int j = i * 2; j < N; j += i)
+                    primes[j] = false;
+            }
+        }
+
+        int[] primeNums = new int[N];
+        int[] palindromeNums = new int[N];
+        int numPrimes = 0;
+        int numPalindromes = 0;
+        for(int i = 1; i < N; i++) {
+            if(primes[i])
+                numPrimes++;
+
+            if(isPalindrome(i))
+                numPalindromes++;
+
+            primeNums[i] = numPrimes;
+            palindromeNums[i] = numPalindromes;
+        }
+
+        for(int j = N - 1; j >= 1; j--) {
+            if(primeNums[j] * q <= palindromeNums[j] * p) {
+                System.out.println(j);
+                return;
+            }
+        }
+
+        System.out.println("Palindromic tree is better than splay tree");
+    }
+
+    static boolean isPalindrome(int num) {
+        int numDigits = 0;
+        int tmp = num;
+        while(tmp != 0) {
+            numDigits++;
+            tmp /= 10;
+        }
+
+        for(int i = 0; i < numDigits / 2; i++) {
+            if(num / pow10[i] % 10 != num / pow10[numDigits - 1 - i] % 10)
+                return false;
+        }
+        return true;
+    }
+
+}

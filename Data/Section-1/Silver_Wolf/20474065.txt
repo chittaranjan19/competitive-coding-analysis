@@ -1,0 +1,69 @@
+//in the name of God
+
+#include<bits/stdc++.h>
+using namespace std;
+
+const int MAXN=1e6+10;
+
+int col[MAXN],st[MAXN],fn[MAXN];
+long long seg[4*MAXN],lzv[4*MAXN];
+bool lzf[4*MAXN];
+vector<int>ver[MAXN];
+int T=0;
+void dfs(int v,int par){
+	st[v]=T++;
+	for(auto u:ver[v])if(u!=par)dfs(u,v);
+	fn[v]=T;
+}
+inline void add(int id,int qv){lzf[id]=1; seg[id]=(1LL<<qv); lzv[id]=(1LL<<qv);}
+void shift(int id){
+	if(!lzf[id])return ;
+	add(2*id+1,lzv[id]);
+	add(2*id+2,lzv[id]);
+	lzf[id]=false;
+}
+void upd(int id,int xl,int xr,int ql, int qr,int qv){
+	if(ql<=xl && xr<=qr) return add(id,qv);
+	if(qr<=xl || xr<=ql) return ;
+	shift(id);
+	int mid=(xl+xr)/2;
+	upd(2*id+1,xl,mid,ql,qr,qv);
+	upd(2*id+2,mid,xr,ql,qr,qv);
+	seg[id]=seg[2*id+1]|seg[2*id+2];
+}
+int get(int id, int xl,int xr,int ql,int qr){
+	if(ql<=xl && xr<=qr) return seg[id];
+	if(qr<=xl || xr<=ql) return 0;
+	shift(id);
+	int mid=(xl+xr)/2;
+	return
+		get(2*id+1,xl,mid,ql,qr)|
+		get(2*id+2,mid,xr,ql,qr);
+}
+
+
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(0);cout.tie(0);
+	int n,m;	cin>>n>>m;
+	for(int i=1;i<=n;i++)cin>>col[i];
+	for(int i=1;i<n;i++){
+		int x,y;	cin>>x>>y;
+		ver[x].push_back(y);
+		ver[y].push_back(x);
+	}
+	dfs(1,0);
+	for(int i=1;i<=n;i++)upd(0,0,n,st[i],st[i]+1,col[i]);
+	while(m--){
+		int qt;	cin>>qt;
+		if(qt==1){
+			int x,y;	cin>>x>>y;
+			upd(0,0,n,st[x],fn[x],y);
+		}
+		else {
+			int x;	cin>>x;
+			cout<<__builtin_popcount(get(0,0,n,st[x],fn[x]))<<'\n';
+		}
+	}
+}

@@ -1,0 +1,93 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll, ll> P;
+
+const int maxn = 1e5 + 5;
+const ll INF = 1 << 30;
+
+P p[maxn];
+ll premin[maxn], sufmin[maxn], premax[maxn], sufmax[maxn];
+
+ll dis(ll x1, ll y1, ll x2, ll y2)
+{
+    return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+}
+
+bool C(ll x, int n)
+{
+    int j = 0, q = n - 1;
+    for(int i = 0; i < n && p[i].first <= 0; ++i)
+    {
+        while(j < n && dis(p[i].first, 0, p[j].first, 0) <= x) ++j;
+        while(q >= 0 && p[q].first > -p[i].first) --q;
+        ll _max = -INF, _min = INF;
+        int k = min(j, q + 1);
+        if(i)
+        {
+            _max = max(_max, premax[i - 1]), _min = min(_min, premin[i - 1]);
+        }
+        if(k < n)
+        {
+            _max = max(_max, sufmax[k]), _min = min(_min, sufmin[k]);
+        }
+        if(_max >= _min)
+        {
+            if(dis(0, _max, 0, _min) > x) continue;
+            if(dis(p[i].first, 0, 0, _max) > x) continue;
+            if(dis(p[i].first, 0, 0, _min) > x) continue;
+        }
+        return true;
+    }
+    j = n - 1, q = 0;
+    for(int i = n - 1; i >= 0 && p[i].first >= 0; --i)
+    {
+        while(j >= 0 && dis(p[i].first, 0, p[j].first, 0) <= x) --j;
+        while(q < n && p[q].first < -p[i].first) ++q;
+        ll _max = -INF, _min = INF;
+        int k = max(j, q - 1);
+        if(i < n - 1)
+        {
+            _max = max(_max, sufmax[i + 1]), _min = min(_min, sufmin[i + 1]);
+        }
+        if(~k)
+        {
+            _max = max(_max, premax[k]), _min = min(_min, premin[k]);
+        }
+        if(_max >= _min)
+        {
+            if(dis(0, _max, 0, _min) > x) continue;
+            if(dis(p[i].first, 0, 0, _max) > x) continue;
+            if(dis(p[i].first, 0, 0, _min) > x) continue;
+        }
+        return true;
+    }
+    return false;
+}
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        for(int i = 0; i < n; ++i) scanf("%I64d%I64d", &p[i].first, &p[i].second);
+        sort(p, p + n);
+        premin[0] = premax[0] = p[0].second, sufmin[n - 1] = sufmax[n - 1] = p[n - 1].second;
+        for(int i = 1; i < n; ++i) premin[i] = min(premin[i - 1], p[i].second), premax[i] = max(premax[i - 1], p[i].second);
+        for(int i = n - 2; i >= 0; --i) sufmin[i] = min(sufmin[i + 1], p[i].second), sufmax[i] = max(sufmax[i + 1], p[i].second);
+        ll l = 0, r = min(dis(0, sufmin[0], 0, sufmax[0]), dis(p[0].first, 0, p[n - 1].first, 0));
+        while(r > l)
+        {
+            ll mid = (l + r) >> 1;
+            C(mid, n) ? r = mid : l = mid + 1;
+        }
+        printf("%I64d\n", l);
+    }
+    return 0;
+}

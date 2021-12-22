@@ -1,0 +1,157 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef long long LL;
+
+struct on {
+    int id, len;
+    int beg;
+    LL cost;
+    on (int _id, int _beg, int _len, LL _cost) : id(_id), beg(_beg), len(_len), cost(_cost) {}
+};
+
+string s[100010];
+LL c[100010];
+queue <on> que;
+
+int main () {
+    ios::sync_with_stdio (false);
+    int n;
+    cin >> n;
+    for (int i = 1; i <= n; i++)
+        cin >> c[i];
+    for (int i = 1; i <= n; i++)
+        cin >> s[i];
+    while (!que.empty ())   que.pop ();
+    LL ans = -1;
+    int SI1 = s[1].size(), SI2 = s[2].size (), flag = 0;
+    for (int i = 0; i < min (SI1, SI2); i++) {
+        if (s[1][i] < s[2][i]) {
+            flag = 1;
+            que.push (on (2, 0, SI2, 0ll));
+            break;
+        } else if (s[1][i] > s[2][i]) {
+            flag = -1;
+            break;
+        }
+    }
+    if (flag == 0) {
+        if (SI1 <= SI2) {
+            que.push (on (2, 0, SI2, 0ll));
+        }
+    }
+    flag = 0;
+    for (int i = 0; i < min (SI1, SI2); i++) {
+        if (s[1][SI1 - i - 1] < s[2][i]) {
+            que.push (on (2, 0, SI2, c[1]));
+            flag = 1;
+            break;
+        } else if (s[1][SI1 - i - 1] > s[2][i]) {
+            flag = -1;
+            break;
+        }
+    }
+    if (flag == 0) {
+        if (SI1 <= SI2) {
+            que.push (on (2, 0, SI2, c[1]));
+        }
+    }
+    flag = 0;
+    for (int i = 0; i < min (SI1, SI2); i++) {
+        if (s[1][i] < s[2][SI2 - i - 1]) {
+            que.push (on (2, -1, SI2, c[2]));
+            flag = 1;
+            break;
+        } else if (s[1][i] > s[2][SI2 - i - 1]) {
+            flag = -1;
+            break;
+        }
+    }
+    if (flag == 0) {
+        if (SI1 <= SI2) {
+            que.push (on (2, -1, SI2, c[2]));
+        }
+    }
+    flag = 0;
+    for (int i = 0; i < min (SI1, SI2); i++) {
+        if (s[1][SI1 - i - 1] < s[2][SI2 - i - 1]) {
+            que.push (on (2, -1, SI2, c[1] + c[2]));
+            flag = 1;
+            break;
+        } else if (s[1][SI1 - i - 1] > s[2][SI2 - i - 1]) {
+            flag = -1;
+            break;
+        }
+    }
+    if (flag == 0) {
+        if (SI1 <= SI2) {
+            que.push (on (2, -1, SI2, c[1] + c[2]));
+        }
+    }
+    while (!que.empty ()) {
+        on tmp = que.front ();
+        que.pop ();
+        if (tmp.id == n) {
+            if (ans == -1)  ans = tmp.cost;
+            else    ans = min (ans, tmp.cost);
+            continue;
+        }
+        int SI = s[tmp.id + 1].size ();
+        flag = 0;
+        for (int i = 0; i < min (SI, tmp.len); i++) {
+            if (tmp.beg == 0) {
+                if (s[tmp.id][i] < s[tmp.id + 1][i]) {
+                    flag = 1;
+                    que.push (on (tmp.id + 1, 0, SI, tmp.cost));
+                    break;
+                } else if (s[tmp.id + 1][i] < s[tmp.id][i]) {
+                    flag = -1;
+                    break;
+                }
+            } else {
+                if (s[tmp.id + 1][i] > s[tmp.id][tmp.len - i - 1]) {
+                    flag = 1;
+                    que.push (on (tmp.id + 1, 0, SI, tmp.cost));
+                    break;
+                } else if (s[tmp.id + 1][i] < s[tmp.id][tmp.len - i - 1]) {
+                    flag = -1;
+                    break;
+                }
+            }
+        }
+        if (flag == 0) {
+            if (SI >= tmp.len) {
+                que.push (on (tmp.id + 1, 0, SI, tmp.cost));
+            }
+        }
+        flag = 0;
+        for (int i = 0; i < min (SI, tmp.len); i++) {
+            if (tmp.beg == 0) {
+                if (s[tmp.id + 1][SI - i - 1] > s[tmp.id][i]) {
+                    flag = 1;
+                    que.push (on (tmp.id + 1, -1, SI, tmp.cost + c[tmp.id + 1]));
+                    break;
+                } else if (s[tmp.id + 1][SI - i - 1] < s[tmp.id][i]) {
+                    flag = -1;
+                    break;
+                }
+            } else {
+                if (s[tmp.id +1][SI - i - 1] > s[tmp.id][tmp.len - i - 1]) {
+                    flag = 1;
+                    que.push (on (tmp.id + 1, -1, SI, tmp.cost + c[tmp.id + 1]));
+                    break;
+                } else if (s[tmp.id + 1][SI - i - 1] < s[tmp.id][tmp.len - i - 1]) {
+                    flag = -1;
+                    break;
+                }
+            }
+        }
+        if (flag == 0) {
+            if (SI >= tmp.len) {
+                que.push (on (tmp.id + 1, -1, SI, tmp.cost + c[tmp.id + 1]));
+            }
+        }
+    }
+    cout << ans << endl;
+    return 0;
+}

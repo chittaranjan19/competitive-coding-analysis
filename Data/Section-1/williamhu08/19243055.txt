@@ -1,0 +1,64 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+const int MAXN = 2e5 + 10;
+
+int N, A[MAXN], ans[MAXN];
+vector<int> cyc[MAXN];
+bool vis[MAXN];
+
+int main() {
+	scanf("%d", &N);
+	int isame = -1;
+	for (int i = 1; i <= N; i++) {
+		scanf("%d", &A[i]);
+		if (i == A[i]) {
+			isame = i;
+		}
+	}
+
+	for (int i = 1; i <= N; i++) {
+		ans[i] = A[i];
+	}
+	
+	for (int i = 1; i <= N; i++) {
+		if (vis[i]) {
+			continue;
+		}
+		vector<int> vc;
+		int cur = i;
+		while (true) {
+			vc.push_back(cur);
+			vis[cur] = true;
+			int ncur = A[cur];
+			if (vis[ncur]) {
+				auto it = find(vc.begin(), vc.end(), ncur);
+				if (it == vc.end()) {
+					break;
+				}
+				//otherwise 
+				vc.erase(vc.begin(), it);
+				if (i == 1 && isame == -1) {
+					//make it same
+					isame = vc.back();
+					ans[isame] = isame;
+				} else {
+					//otherwise connect it to some thing
+					ans[vc.back()] = isame;
+				}
+				break;
+			}
+			cur = A[cur];
+		}
+	}
+
+	int ndiff = 0;
+	for (int i = 1; i <= N; i++) {
+		ndiff += (A[i] != ans[i]);
+	}
+	printf("%d\n", ndiff);
+	for (int i = 1; i <= N; i++) {
+		printf("%d ", ans[i]);
+	}
+	puts("");
+}

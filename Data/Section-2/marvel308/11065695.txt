@@ -1,0 +1,92 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <algorithm>
+#include <cmath>
+#include <string>
+#include <cstring>
+#include <map>
+#include <queue>
+#include <set>
+#include <vector>
+using namespace std;
+
+char str[100010];
+
+int p[100010],num[100010],vis[100010],pre[100010];
+
+int main()
+{
+    int l;
+    scanf("%s",str+1);
+    l=strlen(str+1);
+    p[1]=0;
+    memset(num,0,sizeof(num));
+    memset(vis,0,sizeof(vis));
+    int i,j=0;
+    for(i=2;i<=l;i++)
+    {
+        while(j>0&&str[j+1]!=str[i])
+            j=p[j];
+        if(str[j+1]==str[i])
+            j++;
+        p[i]=j;
+    }
+    if(p[l]==0)
+    {
+        printf("1\n");
+        printf("%d 1\n",l);
+        return 0;
+    }
+    vis[l]=1;
+    int now=l;
+    while(1)
+    {
+        if(p[now]==0)
+            break;
+        pre[p[now]]=now;
+        now=p[now];
+        vis[now]=1;
+    }
+    p[1]=0;
+    j=0;
+    for(i=2;i<=l;i++)
+    {
+        while(j>0&&str[j+1]!=str[i])
+            j=p[j];
+        if(str[j+1]==str[i])
+            j++;
+        p[i]=j;
+    }
+    for(i=2;i<=l;i++)
+    {
+        if(p[i]==0)
+            continue;
+        if(vis[p[i]]!=1)
+            p[i]=p[p[i]];
+    }
+    for(i=2;i<=l;i++)
+    {
+        if(p[i]==0)
+            continue;
+        num[p[i]]++;
+    }
+    num[l]++;
+    int ans=1;
+    for(i=l-1;i>=1;i--)
+    {
+        if(vis[i]==1)
+        {
+            ans++;
+            num[i]+=num[pre[i]];
+        }
+    }
+    printf("%d\n",ans);
+    for(i=1;i<=l;i++)
+    {
+        if(vis[i])
+            printf("%d %d\n",i,num[i]);
+    }
+    return 0;
+}

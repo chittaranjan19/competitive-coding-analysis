@@ -1,0 +1,72 @@
+// In The Name Of ALLAH
+
+//codefuckers
+#include<bits\stdc++.h>
+#define LL long long
+#define LB long double
+#define ALL(X) X.begin(),X.end()
+#define DD(X) cout<<#X<<' '<<X<<endl;
+
+using namespace std;
+
+const int MOD=1000*1000*1000+7;
+const int MAXN=3*1000+200;
+const int MAXM=200+50;
+const long long INF=1e5+7;
+
+const int dx[4]={0,0,-1,+1};
+const int dy[4]={+1,-1,0,0};
+
+ifstream fin("input.txt");
+ofstream fout("output.txt");
+
+bool vis[MAXN];
+vector<int>ver[MAXN];	
+int dis[MAXN][MAXN];
+queue<int>q;
+
+int main(){
+	ios_base::sync_with_stdio(false);
+	cin.tie();cout.tie();
+	for(int i=0;i<MAXN;i++)	for(int j=0;j<MAXN;j++)	dis[i][j]=INF;
+	
+	int n,m;
+	cin>>n>>m;
+	for(int i=0;i<m;i++){
+		int x,y;
+		cin>>x>>y;
+		x--,y--;
+		ver[x].push_back(y);
+		ver[y].push_back(x);
+	}
+	for(int i=0;i<n;i++){
+		fill(vis,vis+n,false);
+		q.push(i);
+		dis[i][i]=0;
+		vis[i]=true;
+		while(q.size()){
+			int v=q.front();
+			q.pop();
+			for(auto u:ver[v])
+				if(!vis[u]){
+					dis[i][u]=dis[i][v]+1;
+					vis[u]=true;
+					q.push(u);
+				}
+		}
+	}
+	int s1,t1,s2,t2,l1,l2;
+	cin>>s1>>t1>>l1;
+	cin>>s2>>t2>>l2;
+	s1--,s2--;
+	t1--,t2--;
+	if(dis[s1][t1]>l1||dis[s2][t2]>l2)return cout<<-1,0;
+	int ans=dis[s1][t1]+dis[s2][t2];
+	for(int i=0;i<n;i++)
+		for(int j=i;j<n;j++){
+			int ans1=min(dis[s1][i]+dis[i][j]+dis[j][t1],dis[t1][i]+dis[i][j]+dis[j][s1]);
+            int ans2=min(dis[s2][i]+dis[i][j]+dis[j][t2],dis[t2][i]+dis[i][j]+dis[j][s2]);
+			if(ans1<=l1 && ans2<=l2)ans=min(ans,ans1+ans2-dis[i][j]);
+		}
+	cout<<m-ans;
+}

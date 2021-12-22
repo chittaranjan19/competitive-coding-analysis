@@ -1,0 +1,99 @@
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <set>
+#include <vector>
+using namespace std;
+const int MAX_N =100005;
+const int MOD = 1000000009;
+
+struct Cube {
+    int x, y;
+    Cube(int xx = 0, int yy = 0) {
+        x = xx; y = yy;
+    }
+    inline bool operator < (const Cube & other) const {
+        return y < other.y;
+    }
+} a[MAX_N];
+
+inline int ncif(int x) {
+    int answer = 1;
+    do {
+        answer *= 10;
+        x /= 10;
+    } while(x);
+    return answer;
+}
+
+class Cmp {
+    public: inline bool operator()(const int &a, const int &b) {
+        ///ab < ba
+        long long ab = 1LL * a * ncif(b) + b;
+        long long ba = 1LL * b * ncif(a) + a;
+        return ab < ba;
+    }
+};
+
+bool cleared[MAX_N];
+int need[MAX_N];
+vector<int> graph[MAX_N];
+map<Cube, int> value; ///the index in input
+
+int main() {
+    ///ifstream cin("f.in");
+    int n;
+    cin >> n;
+    for (int i = 0; i < n; ++ i) {
+        cin >> a[i].x >> a[i].y;
+        value[a[i]] = i;
+    }
+    for (int i = 0; i < n; ++ i) {
+        for (int x = a[i].x - 1; x <= a[i].x + 1; ++ x) {
+            Cube next(x, a[i].y - 1);
+            if (value.count(next)) {
+                graph[value[a[i]]].push_back(value[next]);
+                need[value[next]] = 1;
+            }
+        }
+    }
+    set<int, Cmp> s; ///ab < ba
+    for (int i = 0; i < n; ++ i) {
+        if (!need[i]) {
+            s.insert(i);
+        }
+    }
+    vector<int> order;
+    int turn = 0;
+    while (!s.empty()) {
+        int index;
+        if (turn == 0) {
+            index = *s.rbegin();
+        } else {
+            index = *s.begin();
+        }
+        turn = 1 - turn;
+        order.push_back(index);
+        s.erase(index); cleared[index] = true;
+        for (vector<int> :: iterator it = graph[index].begin(); it != graph[index].end(); ++ it) {
+            int v = *it; bool ok = true;
+            for (int x = a[v].x - 1; x <= a[v].x + 1; ++ x) {
+                Cube next(x, a[v].y + 1);
+                if (value.count(next) && !cleared[value[next]]) {
+                    ok = false;
+                }
+            }
+            if (ok) {
+                s.insert(v);
+            }
+        }
+    }
+    int answer = 0;
+    for (int i = 0; i < n; ++ i) {
+            ///cout << order[i] << " ";
+        answer = (1LL * answer * n + order[i]) % MOD;
+    }
+    cout << answer << "\n";
+    return 0;
+}

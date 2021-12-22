@@ -1,0 +1,108 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 300010;
+
+struct event{
+	int point, type, index;
+	bool operator<(const event&e) const{
+		if(point==e.point)
+			return type<e.type;
+		return point<e.point;
+	}
+};
+
+vector<event> events;
+int l[maxn], r[maxn], cnt[maxn], last_seen[maxn], ans[maxn];
+vector<int> q[maxn];
+vector<pii> lines;
+int st[maxn*5];
+
+void update(int s, int e, int q, int val, int node)
+{
+	if(s>e || s>q || q>e)
+		return;
+	if(s==e){
+		st[node] = val;
+		return;
+	}
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	update(s, mid, q, val, lc);
+	update(mid+1, e, q, val, rc);
+	st[node] = st[lc]+st[rc];
+}
+
+int query(int s, int e, int qs, int qe, int node)
+{
+	if(s>e || s>qe || qs>e)
+		return 0;
+	if(s>=qs && qe>=e)
+		return st[node];
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	int ret = query(s, mid, qs, qe, lc) + query(mid+1, e, qs, qe, rc);
+	return ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int n, m, i, j, p, t, ind, cur;
+	scanf("%d%d", &n, &m);
+	lines.resize(n);
+	for(i=0; i<n; i++)
+		scanf("%d%d", &lines[i].f, &lines[i].s);
+	sort(all(lines));
+	for(i=0; i<n; i++){
+		events.pb((event){lines[i].f, 0, i+1});
+		events.pb((event){lines[i].s, m+1, i+1});
+	}
+	for(i=1; i<=m; i++){
+		scanf("%d", &cnt[i]);
+		for(j=0; j<cnt[i]; j++){
+			scanf("%d", &p);
+			q[i].pb(p);
+			events.pb((event){p, i, 0});
+		}
+	}
+	sort(all(events));
+	cur = 0;
+	for(auto it:events){
+		p = it.point;
+		t = it.type;
+		ind = it.index;
+		if(t==0 && ind!=0){
+			update(0, n, ind, 1, 0);
+			cur++;
+		}
+		else if(t==m+1 && ind!=0)
+			update(0, n, ind, 0, 0);
+		else{
+			ans[t]+=query(0, n, last_seen[t]+1, n, 0);
+			last_seen[t] = cur;
+		}
+	}
+	for(i=1; i<=m; i++)
+		printf("%d\n", ans[i]);
+	return 0;
+}

@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define base 100007
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, nex[mn][18], pre[mn][18];
+pair<int, int> bef[mn][18], aft[mn][18];
+long long dp[mn];
+
+void setup()
+{
+    cin >> n;
+    FOR(i, 1, n - 1)
+    {
+        cin >> bef[i][0].F;
+        bef[i][0].S = i;
+        aft[i][0] = bef[i][0];
+        nex[i][0] = i + 1;
+        pre[i][0] = i - 1;
+    }
+    aft[n][0] = bef[n][0] = mp(0, n);
+    pre[1][0] = 1;
+    pre[n][0] = n - 1;
+    nex[n][0] = n;
+    FOR(j, 1, 17)
+    FOR(i, 1, n)
+    {
+        nex[i][j] = nex[nex[i][j - 1]][j - 1];
+        pre[i][j] = pre[pre[i][j - 1]][j - 1];
+        aft[i][j] = max(aft[i][j - 1], aft[nex[i][j - 1]][j - 1]);
+        bef[i][j] = max(bef[i][j - 1], bef[pre[i][j - 1]][j - 1]);
+    }
+}
+
+int get(int l, int r)
+{
+    int x = log2(r - l + 1);
+    return max(aft[l][x], bef[r][x]).S;
+}
+
+void xuly()
+{
+    dp[n] = 0;
+    long long ans = 0;
+    FORD(i, n - 1, 1)
+    {
+        int x = get(i + 1, bef[i][0].F);
+        dp[i] = dp[x] - (bef[i][0].F - x) + n - i;
+        ans += dp[i];
+    }
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

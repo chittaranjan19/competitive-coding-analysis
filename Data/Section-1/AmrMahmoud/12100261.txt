@@ -1,0 +1,139 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<int> decomp, v;
+bool graph[1005][1005];
+
+inline void add_edge(int x, int y)
+{
+  graph[x][y] = true;
+  graph[y][x] = true;
+}
+
+vector<int> primes;
+
+void get_primes(int MAX)
+{
+  bool visited[MAX + 10];
+  setzero(visited);
+  for(LL x = 2; x <= MAX; x++)
+    if(!visited[x])
+    {
+      primes.push_back(x);
+      for(LL j = x*x; j <= MAX; j += x)
+        visited[j] = true;
+    }
+}
+
+int main()
+{
+  //ios_base::sync_with_stdio(0);
+  //freopen("test0.txt", "r", stdin);
+  //freopen("lca.out", "w", stdout);
+  int k;
+  scanf("%d", &k);
+  if(k == 1)
+  {
+    printf("2\nNY\nYN");
+    return 0;
+  }
+  get_primes(31630);
+  int t = k;
+  for(int i=0;primes[i] * primes[i] <= t && i < primes.size();i++)
+  {
+    while(t % primes[i] == 0)
+      t/=primes[i], v.pb(primes[i]);
+  }
+  if(t != 1) v.pb(t);
+  int start = 1, en = 3, node = 4;
+  for(int _=0;_<v.size();_++)
+  {
+    if(_ == v.size() - 1) en = 2;
+    int maxlen = 0;
+    decomp.clear();
+    k = v[_];
+    for(int i=0;k;i++)
+    {
+      if(k & 1) decomp.pb(i);
+      k /= 2;
+      maxlen = i + 1;
+    }
+    for(int i=0;i<decomp.size();i++)
+    {
+      int x, y;
+      x = start;
+      for(int j=0;j<maxlen - decomp[i] - 1;j++)
+      {
+        add_edge(x, node);
+        x = node++;
+      }
+      if(!decomp[i])
+      {
+        add_edge(x, en);
+        continue;
+      }
+      add_edge(x, node);
+      add_edge(x, node + 1);
+      x = node;
+      y = node + 1;
+      node += 2;
+      for(int j=0;j<decomp[i] - 1;j++)
+      {
+        add_edge(x, node);
+        add_edge(x, node + 1);
+        add_edge(y, node);
+        add_edge(y, node + 1);
+        x = node;
+        y = node + 1;
+        node += 2;
+      }
+      add_edge(en, x);
+      add_edge(en, y);
+    }
+    start = en;
+  }
+  node--;
+  printf("%d\n", node);
+  for(int i=1;i<=node;i++)
+  {
+    for(int j=1;j<=node;j++)
+      printf("%c", ((graph[i][j])? 'Y' : 'N'));
+    printf("\n");
+  }
+  return 0;
+}

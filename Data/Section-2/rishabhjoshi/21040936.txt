@@ -1,0 +1,110 @@
+#include <bits/stdc++.h>
+#define LL long long
+#define FOR(i,c) for(__typeof(c.begin()) i = c.begin(); i != c.end(); i++)
+#define F first
+#define S second
+using namespace std;
+
+const LL mod = 1e9 + 7;
+
+template<typename T> T gcd(T a, T b) { return b == 0?a: gcd(b, a % b); }
+template<typename T> T LCM(T a, T b) { return a*(b/gcd(a, b)); }
+template<typename T, typename S> T expo(T b, S e, const T &m){if(e <= 1)return e == 0?1: b;\
+	return (e&1) == 0?expo((b*b)%m, e>>1, m): (b*expo((b*b)%m, e>>1, m))%m;}
+template<typename T, typename S> T expo(T b, S e){if(e <= 1)return e == 0?1: b;\
+	return (e&1) == 0?expo((b*b), e>>1): (b*expo((b*b), e>>1));}
+template<typename T, typename S> T modinv(T a, S mod) { return expo(a, mod-2, mod); }
+template<class T, class S> std::ostream& operator<<(std::ostream &os, const std::pair<T, S> &t) {
+	os<<"("<<t.first<<", "<<t.second<<")";
+	return os;
+}
+template<class T> std::ostream& operator<<(std::ostream &os, const std::vector<T> &t) {
+	os<<"["; FOR(it,t) { if(it != t.begin()) os<<", "; os<<*it; } os<<"]";
+	return os;
+}
+#define gc getchar
+template <typename T> void scanint(T &x) {
+	T c = gc(); while(((c < 48) || (c > 57)) && (c!='-')) c = gc();
+	bool neg = false; if(c == '-') neg = true; x = 0; for(;c < 48 || c > 57;c=gc());
+	for(;c > 47 && c < 58;c=gc())	x = (x*10) + (c - 48); if(neg)	x = -x;
+}
+
+typedef pair<int, int> pt;
+const int MAXN = 2e5 + 3;
+LL arr[MAXN], n, x, k;
+LL res[MAXN];
+
+void printer() {
+    for(int i = 1; i <= n; i++) {
+        printf("%I64d ", res[i]);
+    }
+    printf("\n");
+}
+
+int main() {
+    scanint(n), scanint(k), scanint(x);
+    priority_queue<pt, vector<pt>, greater<pt> > q;
+    bool neg = false;
+    int minim = 1e9 + 1, idx = -1;
+    for(int i = 1; i <= n; i++) {
+        scanint(arr[i]);
+        if(arr[i] < 0) neg ^= true;
+        res[i] = arr[i];
+        if(abs(arr[i]) < minim) {
+            minim = arr[i];
+            idx = i;
+        }
+    }
+    if(neg == false) {
+        if(arr[idx] >= 0) {
+            if(arr[idx] - k*x >= 0) {
+                idx = -1;
+            } else {
+                neg = true;
+                LL temp = arr[idx] % x == 0 ? ((arr[idx]/x) + 1) : (arr[idx] + x - 1) / x;
+                res[idx] = arr[idx] - temp*x;
+                k -= temp;
+            }
+        } else {
+            if(arr[idx] + k*x <= 0) {
+                idx = -1;
+            } else {
+                neg = true;
+                LL temp = arr[idx] % x == 0 ? ((-arr[idx]/x) + 1) : (-arr[idx] + x - 1) / x;
+                res[idx] = arr[idx] + temp*x;
+                k -= temp;
+            }
+        }
+    } else {
+        idx = -1;
+    }
+    for(int i = 1; i <= n; i++) {
+        q.push({abs(res[i]), i});
+    }
+    while(neg and q.empty() == false and k > 0) {
+        auto f = q.top();
+        q.pop();
+        if(res[f.S] < 0) {
+            res[f.S] -= x;
+        } else {
+            res[f.S] += x;
+        }
+        q.push({res[f.S], f.S});
+        k--;
+    }
+    if(neg == false) {
+        while(q.empty() == false and k > 0) {
+            auto f = q.top();
+            q.pop();
+            if(res[f.S] < 0) {
+                res[f.S] += x;
+            } else {
+                res[f.S] -= x;
+            }
+            q.push({res[f.S], f.S});
+            k--;
+        }
+    }
+    printer();
+    return 0;
+}

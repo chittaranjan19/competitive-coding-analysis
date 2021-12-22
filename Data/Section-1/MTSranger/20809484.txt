@@ -1,0 +1,116 @@
+#include <bits/stdtr1c++.h>
+
+using namespace std;
+typedef int ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+const int N = 200005;
+
+int pts[2*N]; int sz = 0;
+int lens[4*N];
+struct ARQBIT { vector<ll> t, d; int n, h;
+  ARQBIT(int _n) { n = _n; h = 8*sizeof(int) - __builtin_clz(n);
+    t = vector<ll>(2*n, 0); d = vector<ll>(n, 0); }
+
+  void initIntervalLength() {
+	memset(lens, 0, sizeof lens);
+	for (int i = 0; i+1 < sz; i++) {
+		lens[n+i] = pts[i+1] - pts[i];
+	}
+
+	int l = 0, r = n-1;
+    int curh = h, len = 1 << (h-1);
+    for (l += n, r += n; curh > 0; --curh, len>>=1) {
+      if (l == n) continue;
+      for (int i = l>>curh; i <= r>>curh; ++i) {
+        lens[i] = lens[i<<1] + lens[i<<1|1];
+	  }
+	}
+  }
+
+  void modify_node(int i, ll v, int len) {
+    t[i] = v*lens[i]; // the range-sum is easy to update after a range-increment
+    if (i < n) d[i] = v; // delayed range-increments are easy to merge
+  }
+  void pull(int l, int r) {
+    for (l += n, r += n; l > 1; ) { l >>= 1, r >>= 1;
+      for (int i = l; i <= r; ++i)
+        if (d[i] == 0) t[i] = t[i<<1] + t[i<<1|1]; // the associative operation
+    }
+  }
+  void push(int l, int r) {
+    int curh = h, len = 1 << (h-1);
+    for (l += n, r += n; curh > 0; --curh, len>>=1)
+      for (int i = l>>curh; i <= r>>curh; ++i) if (d[i] != 0) {
+        modify_node(i<<1, d[i], len);
+        modify_node(i<<1|1, d[i], len);
+        d[i] = 0;
+      }
+  }
+  void modify(int l, int r, ll v) {
+    if (v == 0) return;
+    push(l,l); push(r,r);
+    for (int L=l+n, R=r+n, len=1; L <= R; L>>=1, R>>=1, len<<=1) {
+      if  (L&1) modify_node(L++, v, len);
+      if (~R&1) modify_node(R--, v, len);
+    }
+    pull(l,l); pull(r,r);
+  }
+  ll query(int l, int r) {
+    push(l,l); push(r,r);
+    ll resl = 0, resr = 0;
+    for (l += n, r += n; l <= r; l>>=1, r>>=1) {
+      if  (l&1) resl = resl + t[l++]; // the associative operation
+      if (~r&1) resr = t[r--] + resr; // the associative operation
+    }
+    return resl + resr; // the associative operation
+  } };
+
+ARQBIT tree(2*N);
+ll p[N], len[N];
+piii queries[N];
+ll ans[N];
+
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+
+	set<int> seen;
+    int n; cin >> n;
+    for (int i = 0; i < n; i++) {
+        cin >> p[i] >> len[i];
+		seen.insert(p[i]);
+		seen.insert(p[i]+len[i]);
+    }
+	map<int, int> pidx;
+	for (int x : seen) {
+		pidx[x] = sz;
+		pts[sz] = x;
+		sz++;
+	}
+
+	tree.initIntervalLength();
+
+    int q; cin >> q;
+    for (int i = 0; i < q; i++) {
+        int x, y; cin >> x >> y; x--; y--;
+        queries[i] = piii(pii(x, y), i);
+    }
+    sort(queries, queries+q);
+
+    int qq = q-1;
+    for (int i = n-1; i >= 0; i--) {
+        tree.modify(pidx[p[i]], pidx[p[i]+len[i]]-1, 1);
+        while (qq >= 0 && queries[qq].first.first == i) {
+            int x = queries[qq].first.first;
+            int y = queries[qq].first.second;
+            int id = queries[qq].second;
+            ans[id] = (p[y]-p[x]) - tree.query(pidx[p[x]], pidx[p[y]]-1);
+            qq--;
+        }
+    }
+
+    for (int i = 0; i < q; i++) {
+        cout << ans[i] << endl;
+    }
+}

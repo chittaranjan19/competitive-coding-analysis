@@ -1,0 +1,134 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdio>
+#include <stdlib.h>
+#include <cmath>
+#include <algorithm>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const int MOD = (int)1e9 + 7;
+const int ABC = 26;
+
+int root = 0;
+int nv = 1;
+
+vector<vector<int> > go(1, vector<int> (ABC, -1));
+vector<int> par(1, -1);
+vector<int> in(1, -1);
+vector<int> suf(1, root);
+vector<vector<int> > pr(1);
+vector<int> res(1, 0);
+
+void add_str(string s, int val)
+{
+    int curr = root;
+    for (int c : s)
+    {
+        c -= 'a';
+        if (go[curr][c] == -1)
+        {
+            go[curr][c] = nv++;
+            go.push_back(vector<int> (ABC, -1));
+            par.push_back(curr);
+            in.push_back(c);
+            pr.push_back(vector<int>());
+            res.push_back(0);
+        }
+        curr = go[curr][c];
+    }
+    pr[curr].push_back(val);
+}
+
+void build()
+{
+    vector<bool> used(nv, false);
+    queue<int> q;
+    used[root] = true;
+    q.push(root);
+    while (!q.empty())
+    {
+        int u = q.front();
+        q.pop();
+        if (u == root)
+            suf[u] = root;
+        else if (par[u] == root)
+            suf[u] = root;
+        else
+            suf[u] = go[suf[par[u]]][in[u]];
+        for (int c = 0; c < ABC; c++)
+            if (go[u][c] != -1)
+                continue;
+            else if (u == root)
+                go[u][c] = root;
+            else
+                go[u][c] = go[suf[u]][c];
+        for (int c = 0; c < ABC; c++)
+            if (!used[go[u][c]])
+            {
+                used[go[u][c]] = true;
+                q.push(go[u][c]);
+            }
+    }
+}
+
+void f(int x)
+{
+    vector<vector<int> > pr1(nv, vector<int> ());
+    for (int i = 0; i < nv; i++)
+    {
+        int curr = i;
+        while (curr != root)
+        {
+            for (int j : pr[curr])
+                pr1[i].push_back(j);
+            curr = suf[curr];
+        }
+        sort(pr1[i].begin(), pr1[i].end());
+        for (int j = 0; j < min(x, (int)pr1[i].size()); j++)
+            res[i] += pr1[i][pr1[i].size() - j - 1];
+    }
+}
+
+int main()
+{
+    //freopen("in.in", "r", stdin);
+    //freopen("out.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n;
+    cin >> n;
+    string s;
+    cin >> s;
+    int m;
+    cin >> m;
+    for (int i = 0; i < m; i++)
+    {
+        string t;
+        int p;
+        cin >> t >> p;
+        add_str(t, p);
+    }
+    build();
+    int x;
+    cin >> x;
+    f(x);
+    int curr = root;
+    int ans = 0;
+    for (int c : s)
+    {
+        c -= 'a';
+        curr = go[curr][c];
+        ans += res[curr];
+    }
+    cout << ans << endl;
+    return 0;
+}

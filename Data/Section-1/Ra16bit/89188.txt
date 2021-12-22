@@ -1,0 +1,94 @@
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+struct node {
+  int x1,x2,x3,x4,l,r,d,u,mx,my;
+} a[6000000];
+int n,m,x,y,i,xx,yy;
+char s[20];
+void create(int c, int l, int r, int d, int u) {
+  a[c].l=l; a[c].r=r;
+  a[c].u=u; a[c].d=d;
+  a[c].mx=2000000000; a[c].my=2000000000;
+}
+void add(int c, int x, int y) {
+  if (x<a[c].mx || (x==a[c].mx && y<a[c].my)) {
+    a[c].mx=x; a[c].my=y;
+  }
+  if (a[c].l==a[c].r) return;
+  int h1=(a[c].l+a[c].r)/2,h2=(a[c].u+a[c].d)/2;
+  if (x<=h1) {
+    if (y<=h2) {
+      if (a[c].x1==0) { a[c].x1=++m; create(m,a[c].l,h1,a[c].d,h2); }
+      add(a[c].x1,x,y);
+    } else {
+      if (a[c].x2==0) { a[c].x2=++m; create(m,a[c].l,h1,h2+1,a[c].u); }
+      add(a[c].x2,x,y);
+    }
+  } else {
+    if (y<=h2) {
+      if (a[c].x3==0) { a[c].x3=++m; create(m,h1+1,a[c].r,a[c].d,h2); }
+      add(a[c].x3,x,y);
+    } else {
+      if (a[c].x4==0) { a[c].x4=++m; create(m,h1+1,a[c].r,h2+1,a[c].u); }
+      add(a[c].x4,x,y);
+    }
+  }
+}
+void rem(int c, int x, int y) {
+  a[c].mx=2000000000; a[c].my=2000000000; 
+  if (a[c].l==a[c].r) return;
+  int h1=(a[c].l+a[c].r)/2,h2=(a[c].u+a[c].d)/2;
+  if (x<=h1) {
+    if (y<=h2) rem(a[c].x1,x,y); else rem(a[c].x2,x,y);
+  } else {
+    if (y<=h2) rem(a[c].x3,x,y); else rem(a[c].x4,x,y);
+  }
+  a[c].mx=2000000000; a[c].my=2000000000;
+  if (a[c].x1!=0 && (a[a[c].x1].mx<a[c].mx || (a[a[c].x1].my==a[c].my && a[a[c].x1].my<a[c].my))) {
+    a[c].mx=a[a[c].x1].mx;
+    a[c].my=a[a[c].x1].my;
+  }
+  if (a[c].x2!=0 && (a[a[c].x2].mx<a[c].mx || (a[a[c].x2].my==a[c].my && a[a[c].x2].my<a[c].my))) {
+    a[c].mx=a[a[c].x2].mx;
+    a[c].my=a[a[c].x2].my;
+  }
+  if (a[c].x3!=0 && (a[a[c].x3].mx<a[c].mx || (a[a[c].x3].my==a[c].my && a[a[c].x3].my<a[c].my))) {
+    a[c].mx=a[a[c].x3].mx;
+    a[c].my=a[a[c].x3].my;
+  }
+  if (a[c].x4!=0 && (a[a[c].x4].mx<a[c].mx || (a[a[c].x4].my==a[c].my && a[a[c].x4].my<a[c].my))) {
+    a[c].mx=a[a[c].x4].mx;
+    a[c].my=a[a[c].x4].my;
+  }
+}
+void find(int c, int x, int y, int &xx, int &yy) {
+  if (x==a[c].l && y==a[c].d) {
+    if (a[c].mx<xx || (a[c].mx==xx && a[c].my<yy)) {
+      xx=a[c].mx; yy=a[c].my;
+    }
+    return;
+  }
+  int x_=2000000000,y_=2000000000;
+  int h1=(a[c].l+a[c].r)/2,h2=(a[c].u+a[c].d)/2;
+  if (x<=h1 && y<=h2 && a[c].x1!=0) find(a[c].x1,x,y,x_,y_);
+  if (x<=h1 && a[c].x2!=0) find(a[c].x2,x,max(h2+1,y),x_,y_);
+  if (y<=h2 && a[c].x3!=0) find(a[c].x3,max(h1+1,x),y,x_,y_);
+  if (a[c].x4!=0) find(a[c].x4,max(h1+1,x),max(h2+1,y),x_,y_);
+  if (x_<xx || (x_==xx && y_<yy)) {
+    xx=x_; yy=y_;
+  }
+}
+int main() {
+  create(0,1,(1<<30),1,(1<<30));
+  scanf("%d",&n);
+  for (i=0; i<n; i++) {
+    scanf("%s %d %d",&s,&x,&y); x++; y++;
+    if (s[0]=='a') add(0,x,y); else if (s[0]=='r') rem(0,x,y); else {
+      xx=2000000000,yy=2000000000;
+      find(0,x+1,y+1,xx,yy);
+      if (xx==2000000000) puts("-1"); else printf("%d %d\n",xx-1,yy-1);
+    }
+  }
+  return 0;
+}

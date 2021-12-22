@@ -1,0 +1,251 @@
+#include <bits/stdc++.h>
+#define alpha 0
+#define MAXN 110000
+#define LOG2MAXN 18
+using namespace std;
+typedef long long ll;
+typedef int coord_t;
+struct pt2d{
+    coord_t p[2];
+    int id;
+    pt2d(coord_t px=0, coord_t py=0, int pid=0){
+        p[0]=px;
+        p[1]=py;
+        id=pid;
+    }
+};
+typedef struct _Node{
+    pt2d key;
+    int size;
+    _Node *left,*right,*aux;
+    _Node(pt2d& pkey, int depth){
+        size=1;
+        key=pkey;
+        left=right=NULL;
+        aux=depth!=1?new _Node(pkey,depth+1):NULL;
+    }
+} *Node;
+bool comp(const pt2d& a, const pt2d& b,int depth){
+    return a.p[depth]<b.p[depth]||((a.p[depth]==b.p[depth])&&(a.id<=b.id));
+}
+bool compx(const pt2d& a, const pt2d& b){
+    return comp(a,b,0);
+}
+void clearnode(Node &node){
+    if(node==NULL) return;
+    if(node->aux) clearnode(node->aux);
+    if(node->left){
+        clearnode(node->left);
+        clearnode(node->right);
+    }else{
+        delete node;
+        node=NULL;
+    }
+}
+Node root=NULL;
+vector<pt2d> ordered,report;
+pt2d buildarr[LOG2MAXN*MAXN];
+void flatten(vector<pt2d> &vec,Node node){
+    if(node->left){
+        flatten(vec,node->left);
+        flatten(vec,node->right);
+    }else vec.push_back(node->key);
+}
+Node build(pt2d* ordered,pt2d* sorty,int l, int r, int depth){
+    if(r-l==1){
+        Node temp=new _Node(ordered[l],depth);
+        if(depth!=1)sorty[0]=ordered[l];
+        return temp;
+    }
+    int mid=(l+r)/2;
+    Node temp=new _Node(ordered[mid-1],depth);
+    temp->size=r-l;
+    pt2d* left=sorty+MAXN;
+    pt2d* right=sorty+MAXN+mid-l;
+    temp->left=build(ordered,left,l,mid,depth);
+    temp->right=build(ordered,right,mid,r,depth);
+    if(depth!=1){
+        int p1=0,p2=0,ind=0;
+        int sl=mid-l;
+        int sr=r-mid;
+        while(p1<sl&&p2<sr)
+            if(comp(left[p1],right[p2],1))
+                sorty[ind++]=left[p1++];
+            else
+                sorty[ind++]=right[p2++];
+        while(p1<sl) sorty[ind++]=left[p1++];
+        while(p2<sr) sorty[ind++]=right[p2++];
+        temp->aux=build(sorty,NULL,0,r-l,1);
+    }
+    return temp;
+}
+void rebalance(Node &node, int depth){
+    ordered.clear();
+    flatten(ordered,node);
+    clearnode(node);
+    node=build(&ordered[0],buildarr,0,ordered.size(),depth);
+}
+void insert(Node &node, pt2d& key, int depth=0){
+    if(node==NULL) {node=new _Node(key,depth);return;}
+    ++node->size;
+    bool unbalanced=false;
+    if(node->left){
+        int sl=node->left->size;
+        int sr=node->right->size;
+        bool left=false;
+        if(comp(key,node->key,depth)) {left=true;++sl;}
+        else ++sr;
+        if(sl<node->size*alpha||
+           sr<node->size*alpha) unbalanced=true;
+        insert(left?node->left:node->right,key,depth);
+        if(unbalanced)
+            rebalance(node,depth);
+    }else{
+        if(comp(key,node->key,depth)){
+            node->left=new _Node(key,depth);
+            node->right=new _Node(node->key,depth);
+            node->key=key;
+        }else{
+            node->left=new _Node(node->key,depth);
+            node->right=new _Node(key,depth);
+        }
+    }
+    if(depth!=1&&!unbalanced)
+        insert(node->aux,key,depth+1);
+}
+
+void del(Node &node,pt2d &key,int depth=0){
+    if(node->size>=2){
+        --node->size;
+        if(depth!=1) del(node->aux,key,1);
+        if(comp(key,node->key,depth))
+            del(node->left,key,depth);
+        else
+            del(node->right,key,depth);
+        if(node->left==NULL||node->right==NULL){
+            Node tmp=node->left?node->left:node->right;
+            clearnode(node->aux);
+            delete node;
+            node=tmp;
+        }
+        if(node->left&&
+        (node->left->size<node->size*alpha||node->right->size<node->size*alpha))
+            rebalance(node,depth);
+    }else{
+        if(node->key.id==key.id){
+            clearnode(node->aux);
+            delete node;
+            node=NULL;
+        }
+    }
+}
+Node split(Node node,coord_t l,coord_t r, int depth){
+    Node tmp=node;
+    while(tmp){
+        if(tmp->key.p[depth]<l) tmp=tmp->right;
+        else if(r<tmp->key.p[depth]) tmp=tmp->left;
+        else break;
+    }
+    return tmp;
+}
+void rep_pt(pt2d& p1, pt2d& p2, pt2d& p){
+    if(p1.p[0]<=p.p[0]&&
+       p2.p[0]>=p.p[0]&&
+       p1.p[1]<=p.p[1]&&
+       p2.p[1]>=p.p[1])
+       report.push_back(p);
+}
+void r2d(Node node, pt2d &p1, pt2d &p2, int depth){
+    coord_t c1=p1.p[depth];
+    coord_t c2=p2.p[depth];
+    Node s=split(node,c1,c2,depth);
+    if(s==NULL) return;
+    if(s->left==NULL)
+        rep_pt(p1,p2,s->key);
+    else{
+        Node l=s->left;
+        Node r=s->right;
+        while(l->left){
+            if(c1<=l->key.p[depth]){
+                if(depth!=1) r2d(l->right->aux,p1,p2,depth+1);
+                else flatten(report,l->right);
+                l=l->left;
+            }else
+                l=l->right;
+        }
+        rep_pt(p1,p2,l->key);   
+        while(r->left){
+            if(c2>=r->key.p[depth]){
+                if(depth!=1) r2d(r->left->aux,p1,p2,depth+1);
+                else flatten(report,r->left);
+                r=r->right;
+            }else
+                r=r->left;
+        }
+        rep_pt(p1,p2,r->key);
+    }
+}
+void query(pt2d p1, pt2d p2){
+    report.clear();
+    r2d(root,p1,p2,0);
+}
+void build(vector<pt2d>& vec){
+    clearnode(root);
+    sort(vec.begin(),vec.end(),compx);
+    root= build(&vec[0],buildarr,0,vec.size(),0);
+}
+vector<pair<int,int> > vinf;
+int main(){
+    int n;
+    cin>>n;
+    vector<pt2d> vec(n);
+    vinf.resize(n);
+    for(int i=0;i<n;++i){
+        int a,b,c,d;
+        cin>>a>>b>>c>>d;
+        vec[i]=pt2d(a,b,i);
+        vinf[i]=make_pair(c,d);
+    }
+    pt2d last=vec[n-1];
+    if(last.p[0]==0&&last.p[1]==0){
+        cout<<1<<endl;
+        cout<<n;
+        return 0;
+    }
+    build(vec);
+    queue<pt2d> q;
+    q.push(pt2d(0,0,-1));
+    bool ok=false;
+    vector<int> pred(n,-1);
+    while(!q.empty()&&!ok){
+        pt2d tmp=q.back();
+        q.pop();
+        pair<int,int> pi=(tmp.id>=0?vinf[tmp.id]:make_pair(0,0));
+        query(pt2d(0,0,-1),pt2d(pi.first,pi.second,200000));
+        for(int i=0;i<report.size();++i){
+            pred[report[i].id]=tmp.id;
+            if(report[i].id==42354){
+                cout<<"adsf";
+                return 0;
+            }
+            if(report[i].id==n-1){
+                ok=true;
+                break;
+            }
+            q.push(report[i]);
+            del(root,report[i]);
+        }
+    }
+    if(!ok) cout<<-1;
+    else{
+        vector<int> path;
+        int ind=n-1;
+        while(ind>=0){
+            path.push_back(ind);
+            ind=pred[ind];
+        }
+        cout<<path.size()<<endl;
+        for(int i=path.size()-1;i>=0;--i)
+            cout<<path[i]+1<<(i?" ":"");
+    }
+}

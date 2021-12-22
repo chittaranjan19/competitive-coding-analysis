@@ -1,0 +1,55 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define N 1001
+
+typedef long long int ll;
+
+int n, k, m;
+int potmodk[N];
+int potmodm[N];
+int dp[N][101][10][2];
+
+int solve(int x, int y, int d, bool onlyZeroes){
+	int res = 0;
+
+	// Usando todos os dígitos.
+	if (x == n){
+		return y == 0 and d != 0;
+	}
+
+	// Se alcançar um múltiplo com x dígitos.
+	if (y == 0 and x > 0 and !onlyZeroes){
+		return (9 * potmodm[n - x - 1]) % m;
+	}
+
+	if (dp[x][y][d][onlyZeroes] != -1){
+		return dp[x][y][d][onlyZeroes];
+	}
+
+	// Iterando sobre os dígitos.
+	for (int i = 0; i <= 9; i++){
+		res = (res + solve(x + 1, (y + ((i * potmodk[x]) % k)) % k, i, (i == 0 and onlyZeroes))) % m;
+	}
+
+	return dp[x][y][d][onlyZeroes] = res;
+}
+
+int main(){
+	scanf("%d%d%d", &n, &k, &m);
+
+	potmodk[0] = 1;
+	potmodm[0] = 1;
+
+	for (int i = 1; i < N; i++){
+		potmodk[i] = (potmodk[i - 1] * 10) % k;
+		potmodm[i] = (potmodm[i - 1] * 10) % m;
+	}
+
+	memset(dp, -1, sizeof(dp));
+
+	printf("%d\n", solve(0, 0, 0, true));
+
+	return 0;
+}

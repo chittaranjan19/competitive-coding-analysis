@@ -1,0 +1,77 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int n,m;
+ll G,S;
+vector<pair<pair<ll,ll>,PII> >adj;
+set<pair<ll,PII> >s,t;
+int ata[MAXN],sz[MAXN];
+int tap(int x){
+	if(ata[x]==x)
+		return x;
+	return ata[x]=tap(ata[x]);	
+}
+void init(){
+	for(int i=1;i<=n;i++){
+		ata[i]=i;
+		sz[i]=1;
+	}
+}
+void merge(int x,int y,ll z){
+	if((x=tap(x))==(y=tap(y)))
+		return;
+	t.insert(mp(z,mp(x,y)));	
+	if(sz[y]>sz[x])
+		swap(x,y);
+	sz[x]+=sz[y];
+	ata[y]=x;	
+}
+void _add(int x,int y,ll z){
+	init();
+	s.insert(mp(z,mp(x,y)));
+	tr(it,s)
+		merge(it->ss.ff,it->ss.ss,it->ff);
+	s.clear();
+	swap(s,t);
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	scanf("%d%d%lld%lld",&n,&m,&G,&S);
+	for(int i=1;i<=m;i++){
+		int u,v;
+		ll a,b;
+		scanf("%d%d%lld%lld",&u,&v,&a,&b);
+		adj.pb(mp(mp(a,b),mp(u,v)));
+	}
+	sort(all(adj));ll ans=INF;
+	for(int i=0;i<int(adj.size());i++){
+		ll a=adj[i].ff.ff;
+		ll b=adj[i].ff.ss;
+		int u=adj[i].ss.ff;
+		int v=adj[i].ss.ss;
+		if(a*G>=ans)
+			break;
+		_add(u,v,b);	
+		if(sz[1]==n)
+			umin(ans,a*G+(*s.rbegin()).ff*S);
+	}
+	printf("%lld\n",ans);
+	return 0;
+}

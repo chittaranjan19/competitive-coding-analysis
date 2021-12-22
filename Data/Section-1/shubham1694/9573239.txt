@@ -1,0 +1,158 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define MAX 1000
+
+vector<int> v;
+
+void computelps(int *lps, string pat)
+{
+    //cout << pat << endl;
+    int i, j, len, m;
+    m=pat.size();
+    len=0;
+    i=1;
+    lps[0]=0;
+    while(i<m){
+        if(pat[i]==pat[len]){
+            len++;
+            lps[i]=len;
+            i++;
+        }
+        else{
+            if(len!=0)
+                len=lps[len-1];
+            else{
+                lps[i]=0;
+                i++;
+            }
+        }
+    }
+}
+
+void kmp(string text, string pat, int *lps)
+{
+    int i, j, len, n, m;
+    n=text.size();
+    m=pat.size();
+    v.clear();
+    //cout << text << "  " << pat << endl;
+    /*for(i=0; i<m; i++)
+        cout << lps[i] << " ";
+    cout << endl;*/
+    i=j=0;
+    while(i<n){
+        if(text[i]==pat[j]){
+            i++;
+            j++;
+        }
+        if(j==m){
+            //cout << i << endl;
+            v.push_back(i-1);
+            j=lps[j-1];
+        }
+        else if(i<n && text[i]!=pat[j]){
+            if(j!=0)
+                j=lps[j-1];
+            else
+                i++;
+        }
+    }
+}
+
+int main()
+{
+    int i, j, k, n, m;
+    int dp[MAX][MAX];
+    memset(dp, -1, sizeof(dp));
+    string s1, s2, s3, s4, lcs;
+    cin >> s1 >> s2 >> s3;
+    n=s1.size();
+    m=s2.size();
+    for(i=0; i<=n; i++){
+        for(j=0; j<=m; j++){
+            if(i==0 || j==0)
+                dp[i][j]=0;
+            else{
+                if(s1[i-1]==s2[j-1])
+                    dp[i][j]=dp[i-1][j-1]+1;
+                dp[i][j]=max(dp[i][j], max(dp[i-1][j], dp[i][j-1]));
+            }
+        }
+    }
+    //cout << dp[n][m] << endl;
+    lcs="";
+    /*for(i=0; i<=n; i++){
+        for(j=0; j<=m; j++)
+            cout << dp[i][j] << " ";
+        cout << endl;
+    }
+    cout << n << " " << m << endl;*/
+    i=n, j=m;
+    while(i>0 && j>0){
+        if(s1[i-1]==s2[j-1]){
+            lcs+=s1[i-1];
+            i--;
+            j--;
+        }
+        else if(dp[i-1][j]>dp[i][j-1])
+            i--;
+        else
+            j--;
+            //cout << i << " " << j << endl;
+    }
+    //cout << lcs << endl;
+    reverse(lcs.begin(), lcs.end());
+    m=s3.size();
+    int *lps = (int *)malloc(sizeof(int)*m);
+    computelps(lps, s3);
+    //cout << lcs << endl;
+    //s4=lcs;
+    while(1){
+       // cout << "1\n\n" << lcs << endl;;
+        s4="";
+        for(i=0, j=0; i<lcs.size(); i++){
+            if(j<v.size()){
+                if(i==v[j]){
+                    j++;
+                    continue;
+                }
+                else
+                    s4+=lcs[i];
+            }
+            else
+                s4+=lcs[i];
+        }
+        lcs.clear();
+        lcs=s4;
+        kmp(s4, s3, lps);
+        //cout << s4 << " " << v.size() << "\n";
+       //for(i=0; i<v.size(); i++)
+       //     cout << v[i] << endl;
+        if(v.empty())
+            break;
+        // for(i=0; i<v.size(); i++)
+               // cout << v[i] << endl;
+        //cout << endl << endl;;
+        m=s3.size();
+        for(i=1; i<v.size(); ){
+            if((v[i]-m+1)<=v[i-1])
+                v.erase(v.begin()+i);
+            else
+                i++;
+           /* for(j=0; j<v.size(); j++)
+                cout << v[j] << " ";
+            cout << endl;*/
+        }
+       /* cout << "here\n";
+        for(i=0; i<v.size(); i++)
+            cout << v[i] << endl;
+*/
+    }
+    if(s4.empty())
+        cout << "0\n";
+    else
+        cout << s4 << endl;
+    return 0;
+}

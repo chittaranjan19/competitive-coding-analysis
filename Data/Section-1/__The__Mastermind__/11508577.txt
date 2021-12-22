@@ -1,0 +1,52 @@
+const
+  tfi = '';//'543a.inp';
+  tfo = '';//'543a.out';
+
+var
+  n,m,b,base,res : longint;
+  a : array [1..500] of longint;
+  f : array [0..1,0..500,0..500] of longint;
+
+procedure enter;
+  var i : longint;
+  begin
+    assign(input,tfi);
+    reset(input);
+    read(n,m,b,base);
+    for i := 1 to n do read(a[i]);
+    close(input);
+  end;
+
+procedure process;
+  var i,j,k,t : longint;
+  begin
+    f[1,0,0] := 1;
+    for i := 1 to n do
+      begin
+        t := i mod 2;
+        for j := 0 to m do
+          for k := 0 to b do
+            if f[t,j,k] > 0 then
+              begin
+                if i < n then f[1-t,j,k] := (f[1-t,j,k] + f[t,j,k]) mod base;
+                if (j < m) and (k + a[i] <= b) then f[t,j+1,k+a[i]] := (f[t,j+1,k+a[i]] + f[t,j,k]) mod base;
+              end;
+        if i <> n then fillchar(f[t],sizeof(f[t]),0);
+      end;
+    t := n mod 2;
+    for k := 0 to b do res := (res + f[t,m,k]) mod base;
+  end;
+
+procedure print;
+  begin
+    assign(output,tfo);
+    rewrite(output);
+    write(res);
+    close(output);
+  end;
+
+begin
+  enter;
+  process;
+  print;
+end.

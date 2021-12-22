@@ -1,0 +1,134 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<int> tree[100005];
+vector<int> t[100005];
+pair<LL, int> down[100005], tot[100005];
+int P[100005][17], h[100005], in[100005], out[100005];
+int c1, c2;
+
+int query(int p, int q)
+{
+  int log;
+  if(h[p] < h[q])
+    swap(p, q);
+  for(log = 1; (1 << log) <= h[p]; log++);
+  log--;
+  for(int i = log; i >= 0; i--)
+    if(h[p] - (1 << i) >= h[q])
+      p = P[p][i];
+  if(p == q)
+    return p;
+  for(int i = log; i >= 0; i--)
+    if(P[p][i] != -1 && P[p][i] != P[q][i])
+      p = P[p][i], q = P[q][i];
+  return P[p][0];
+}
+
+pair<LL, int> solve_down(int node, int parent = -1, int depth = 1)
+{
+  h[node] = depth;
+  P[node][0] = parent;
+  pair<LL, int> ans = mp(0, 1);
+  in[node] = c1++;
+  for(auto x : tree[node])
+  {
+    if(x == parent) continue;
+    pair<LL, int> tmp = solve_down(x, node, depth + 1);
+    t[node].pb(x);
+    ans.f += tmp.f + tmp.s;
+    ans.s += tmp.s;
+  }
+  down[node] = ans;
+  out[node] = c2++;
+  return ans;
+}
+
+void solve_up(int node, pair<LL, int> curr = mp(0, 0))
+{
+  tot[node] = mp(curr.f + down[node].f, curr.s + down[node].s);
+  curr = tot[node];
+  for(auto x : t[node])
+  {
+    pair<LL, int> tmp = curr;
+    tmp.f -= down[x].f + down[x].s;
+    tmp.s -= down[x].s;
+    tmp.f += tmp.s;
+    solve_up(x, tmp);
+  }
+}
+
+int main()
+{
+  int n, q, x, y;
+  cin >> n >> q;
+  for(int i=0;i<n - 1;i++)
+  {
+    scanf("%d %d", &x, &y);
+    tree[x].pb(y);
+    tree[y].pb(x);
+  }
+  setdp(P);
+  solve_down(1);
+  solve_up(1);
+  for(int j = 1; (1 << j) <= n; j++)
+    for(int i = 1; i <= n; i++)
+      if(P[i][j - 1] != -1)
+        P[i][j] = P[P[i][j - 1]][j - 1];
+  while(q--)
+  {
+    scanf("%d %d", &x, &y);
+    if(h[x] > h[y]) swap(x, y);
+    int lca = query(x, y);
+    if(lca == x)
+    {
+      int path = h[y] - h[x] + 1;
+      double ans = path;
+      ans += down[y].f * 1.0 / down[y].s;
+      int L = 0, R = t[x].size() - 1;
+      while(R > L)
+      {
+        int mid = L + (R - L + 1) / 2;
+        int tmp = t[x][mid];
+        if(in[tmp] > in[y])
+          R = mid - 1;
+        else if(out[tmp] < out[y])
+          L = mid + 1;
+        else L = mid;
+      }
+      int child = t[x][L];
+      pair<LL, int> tmp = down[child];
+      tmp.f += tmp.s;
+      tmp.f = tot[x].f - tmp.f;
+      tmp.s = tot[x].s - tmp.s;
+      ans += tmp.f * 1.0 / tmp.s;
+      printf("%.15lf\n", ans);
+    }
+    else
+    {
+      int path = h[x] + h[y] - 2 * h[lca] + 1;
+      double ans = down[x].f * 1.0 / down[x].s;
+      ans += down[y].f * 1.0 / down[y].s;
+      ans += path;
+      printf("%.15lf\n", ans);
+    }
+  }
+  return 0;
+}

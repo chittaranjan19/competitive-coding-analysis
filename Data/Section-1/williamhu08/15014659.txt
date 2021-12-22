@@ -1,0 +1,83 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1e6 + 10;
+
+int N;
+int A[MAXN];
+int ans[MAXN];
+bool vis[MAXN];
+int nlen[MAXN];
+vector<int> vcyc[MAXN];
+vector<vector<int> > bylen[MAXN];
+int C, E;
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d", &N);
+	for (int i = 1; i <= N; i++) {
+		scanf("%d", &A[i]);
+	}
+	//ident cyc
+	for (int i = 1; i <= N; i++) {
+		if (vis[i]) {
+			continue;
+		}
+		vector<int> v;
+		int x = i;
+		do {
+			vis[x] = true;
+			v.push_back(x);
+			x = A[x];
+		} while (x != i);
+		vcyc[++C] = v;
+		nlen[v.size()]++;
+	}
+	//consider evens...
+	for (int i = 0; i <= N; i += 2) {
+		bylen[i].reserve(nlen[i]);
+	}
+	for (int i = 1; i <= C; i++) {
+		vector<int> &vc = vcyc[i];
+		int s = vc.size();
+		if (s % 2) {
+			int half = (s + 1) / 2;
+			for (int j = 0; j < s; j++) {
+				ans[vc[j]] = vcyc[i][(j + half) % s];
+			}
+		} else {
+			bylen[vc.size()].push_back(vc);
+		}
+	}
+	for (int i = 0; i <= N; i += 2) {
+		if (bylen[i].size() % 2) {
+			puts("-1");
+			return 0;
+		}
+		for (int j = 0; j < bylen[i].size(); j += 2) {
+			vector<int> &v1 = bylen[i][j], &v2 = bylen[i][j + 1];
+			for (int k = 0; k < i; k++) {
+				ans[v1[k]] = v2[k];
+				ans[v2[k]] = v1[(k + 1) % i];
+			}
+		}
+	}
+	for (int i = 1; i <= N; i++) {
+		printf("%d ", ans[i]);
+	}
+	puts("");
+}

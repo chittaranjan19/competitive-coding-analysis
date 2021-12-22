@@ -1,0 +1,96 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 3e5 + 5;
+const int mod = 1e9 + 7;
+
+struct edge
+{
+    int to, next;
+
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxn];
+int head[maxn], tot, dep[maxn], bit1[maxn], bit2[maxn], n, q, dfn[maxn][2], clk;
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    memset(bit1, 0, sizeof(bit1));
+    memset(bit2, 0, sizeof(bit2));
+    tot = clk = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u]);
+    head[u] = tot++;
+}
+
+void dfs(int u, int d)
+{
+    dfn[u][0] = ++clk;
+    dep[u] = d;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        dfs(G[i].to, d + 1);
+    }
+    dfn[u][1] = clk;
+}
+
+void add(int *bit, int i, int v)
+{
+    while(i <= n)
+    {
+        bit[i] = (bit[i] + v) % mod;
+        i += i & -i;
+    }
+}
+
+int query(int *bit, int i)
+{
+    int ret = 0;
+    while(i)
+    {
+        ret = (ret + bit[i]) % mod;
+        i -= i & -i;
+    }
+    return ret;
+}
+
+int main()
+{
+    scanf("%d", &n);
+    init();
+    for(int i = 2; i <= n; ++i)
+    {
+        int u;
+        scanf("%d", &u);
+        addedge(u, i);
+    }
+    scanf("%d", &q);
+    dfs(1, 0);
+    while(q--)
+    {
+        int op, v, x, k;
+        scanf("%d%d", &op, &v);
+        if(op == 1)
+        {
+            scanf("%d%d", &x, &k);
+            add(bit1, dfn[v][0], (x + 1LL * dep[v] * k) % mod);
+            add(bit1, dfn[v][1] + 1, (mod - (x + 1LL * dep[v] * k) % mod) % mod);
+            add(bit2, dfn[v][0], k);
+            add(bit2, dfn[v][1] + 1, (mod - k) % mod);
+        }
+        else
+        {
+            int ans = query(bit1, dfn[v][0]);
+            ans = (ans - 1LL * dep[v] * query(bit2, dfn[v][0]) % mod + mod) % mod;
+            printf("%d\n", ans);
+        }
+    }
+    return 0;
+}

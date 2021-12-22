@@ -1,0 +1,126 @@
+/*
+ID: sananame
+PROG: ride
+LANG: C++
+*/
+#include<bits/stdc++.h>
+#define INF 1000000009
+#define ff first
+#define ss second
+#define mp make_pair
+#define all(x) x.begin(), x.end()
+#define MAXN 300009
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define sqr(x) ((x)*(x))
+#define lcm(x,y) (x/__gcd(x,y)*y)
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+#define gcd(x,y) (__gcd(x,y))
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll arr[MAXN],s[4*MAXN];
+ll fib[MAXN];
+PII lazy[MAXN*4];
+ll mod(ll x){
+	if(x<0)
+		x+=INF;
+	return (x%INF);
+}
+void build(ll nd,ll x,ll y)
+{
+	if(x==y)
+	{
+		s[nd]=arr[x];
+		return;
+	}
+	ll mid=(x+y)/2;
+	build(nd*2,x,mid);
+	build(nd*2+1,mid+1,y);
+	s[nd]=mod(s[nd*2]+s[nd*2+1]);
+}
+void go()
+{
+	for(ll i=3;i<MAXN;i++)
+	fib[i]=mod(fib[i-1]+fib[i-2]);
+}
+void shift(ll nd,ll st,ll en)
+{
+	ll mid=(st+en)>>1,a=lazy[nd].ff,b=lazy[nd].ss;
+	if(!a and !b)
+		return;	
+	ll vala=s[nd<<1];ll valb=s[nd<<1|1];	
+	lazy[nd*2].ff=mod(lazy[nd*2].ff+a);
+	lazy[nd*2].ss=mod(lazy[nd*2].ss+b);
+	
+	ll x=fib[mid+2-st];ll y=fib[mid+1-st];ll z=fib[mid-st];
+	lazy[nd*2+1].ff=mod(lazy[nd*2+1].ff+mod(mod(a*x)+mod(b*y)));
+	lazy[nd*2+1].ss=mod(lazy[nd*2+1].ss+mod(mod(a*y)+mod(b*z)));
+	
+	y=fib[mid+2-st];z=fib[mid+1-st];
+	s[nd<<1]=mod(mod(mod(a*y)+mod(b*z))-a);
+	
+	y=fib[en-st+2];z=fib[en-st+1];
+	s[nd<<1|1]=mod(mod(mod(a*y)+mod(b*z))-a);
+	s[nd<<1|1]=mod(s[nd<<1|1]-s[nd<<1]);
+	
+	s[nd<<1|1]=mod(s[nd<<1|1]+valb);
+	s[nd<<1]=mod(s[nd<<1]+vala);
+	lazy[nd]=mp(0,0);
+}
+ll tap(ll l,ll r,ll nd,ll x,ll y)
+{
+	if(l>y or r<x)
+		return 0;	
+	if(l<=x and y<=r)
+		return s[nd];
+	shift(nd,x,y);
+	ll mid=(x+y)/2;
+	return mod(tap(l,r,nd*2,x,mid)+tap(l,r,nd*2+1,mid+1,y));
+}
+void inc(ll l,ll r,ll nd,ll x,ll y)
+{
+	if(l>y or r<x)
+		return;	
+	if(l<=x and y<=r)
+	{
+		s[nd]=mod(s[nd]+mod((fib[y-l+3]-1)-(fib[x-l+2]-1)));
+		lazy[nd].ff=mod(fib[x-l+2]+lazy[nd].ff);
+		lazy[nd].ss=mod(fib[x-l+1]+lazy[nd].ss);
+	//	cout<<lazy[nd].ff<<" "<<lazy[nd].ss<<endl;
+		return;
+	}
+	shift(nd,x,y);
+	ll mid=(x+y)/2;
+	inc(l,r,nd*2,x,mid);
+	inc(l,r,nd*2+1,mid+1,y);
+	s[nd]=mod(s[nd*2]+s[nd*2+1]);
+}
+int main()
+{
+	ll n,m;
+	fib[0]=0;fib[1]=1,fib[2]=1;
+	scanf("%lld%lld",&n,&m);
+	for(ll i=1;i<=n;i++)
+		scanf("%lld",arr+i);
+	go();build(1,1,n);
+	while(m--){
+		ll type,l,r;
+		scanf("%lld%lld%lld",&type,&l,&r);
+		if(type==2)
+			printf("%lld\n",tap(l,r,1,1,n));
+		else
+			inc(l,r,1,1,n);
+	}
+	return 0;
+}
+/*
+4 4
+1 2 3 4
+1 1 4
+2 1 4
+1 2 4
+2 1 3
+*/

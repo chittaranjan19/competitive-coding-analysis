@@ -1,0 +1,82 @@
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <algorithm>
+#include <iomanip>
+#include <vector>
+#include <list>
+#include <set>
+#include <map>
+#include <string>
+
+using namespace std;
+
+typedef long long ll;
+typedef long double ld;
+typedef unsigned uint;
+
+ll n, m, k, i, l, r, j, maxc, sumc, res;
+vector<ll> scolors;
+vector<list<ll>> sockgraph;
+
+vector<bool> useds;
+vector<ll> clrtemp;
+
+void dfs (ll j)
+{
+	if (sockgraph[j].empty ())
+		return;
+	useds[j] = true;
+	clrtemp[scolors[j]]++;
+	for (auto it = sockgraph[j].begin (); it != sockgraph[j].end (); it++)
+	{
+		if (!useds[*it])
+			dfs (*it);
+	}
+}
+
+int main ()
+{
+#ifdef CONTEST_ONME
+	freopen ("input.txt", "r", stdin);
+	freopen ("output.txt", "w", stdout);
+#endif
+
+	res = 0;
+	cin >> n >> m >> k;
+	scolors.resize (n + 1);
+	sockgraph.resize (n + 1);
+	useds.resize (n + 1);
+	clrtemp.resize (k + 1);
+	for (i = 1; i <= n; i++)
+		cin >> scolors[i];
+	for (i = 1; i <= m; i++)
+	{
+		cin >> l >> r;
+		sockgraph[l].push_back (r);
+		sockgraph[r].push_back (l);
+	}
+	for (i = 1; i <= n; i++)
+	{
+		if (!useds[i])
+		{
+			dfs (i);
+			maxc = -1;
+			sumc = 0;
+			for (j = 1; j <= k; j++)
+			{
+				sumc += clrtemp[j];
+				if (clrtemp[j] > maxc)
+					maxc = clrtemp[j];
+				clrtemp[j] = 0;
+			}
+			res += sumc - maxc;
+		}
+	}
+	cout << res << endl;
+
+#ifdef CONTEST_ONME
+	//system ("pause");
+#endif
+	return 0;
+}

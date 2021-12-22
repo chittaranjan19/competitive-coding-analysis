@@ -1,0 +1,106 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int from[100005];
+int to[100005];
+int cost[100005];
+bool visited[100005];
+int arr[505],n,c,m;
+int dist[505][505];
+vector<vector<int> > graph(100005);
+map<int,int> counter;
+
+void dfs(int node)
+{
+    visited[node] = true;
+    counter[lower_bound(arr, arr+c, node) - arr]++;
+    for(int i=0;i<graph[node].size();i++)
+        if(!visited[graph[node][i]])
+            dfs(graph[node][i]);
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin >> n >> m >> c;
+    for(int i=0;i<c;i++) cin >> arr[i], arr[i]+=(i == 0) ? 0 : arr[i-1];
+    for(int i=0;i<m;i++)
+    {
+        cin >> from[i] >> to[i] >> cost[i];
+        if(cost[i] == 0) graph[from[i]].pb(to[i]),graph[to[i]].pb(from[i]);
+    }
+    for(int i=0;i<c;i++)
+    {
+        if(visited[arr[i]]) continue;
+        counter.clear();
+        dfs(arr[i]);
+        for(map<int,int>::iterator it = counter.begin(); it != counter.end();it++)
+        {
+            if(it->second != arr[it->first] - (it->first == 0 ? 0 : arr[it->first - 1]))
+            {
+                cout << "No";
+                return 0;
+            }
+        }
+    }
+    cout << "Yes\n";
+    for(int i=0;i<c;i++)
+        for(int j=0;j<c;j++)
+        {
+            if(i == j) dist[i][j] = 0;
+            else dist[i][j] = INF + 5;
+        }
+    for(int i=0;i<m;i++)
+    {
+        int x = lower_bound(arr, arr + c, from[i]) - arr;
+        int y = lower_bound(arr, arr + c, to[i]) - arr;
+        dist[x][y] = min(dist[x][y], cost[i]);
+        dist[y][x] = dist[x][y];
+    }
+    for(int k=0;k<c;k++)
+        for(int i=0;i<c;i++)
+            for(int j=0;j<c;j++)
+                dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]);
+    for(int i=0;i<c;i++)
+    {
+        for(int j=0;j<c;j++)
+        {
+            if(j) cout << " ";
+            if(dist[i][j] == INF + 5) cout << -1;
+            else cout << dist[i][j];
+        }
+        cout << "\n";
+    }
+    return 0;
+}

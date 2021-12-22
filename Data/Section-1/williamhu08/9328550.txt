@@ -1,0 +1,111 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+#include <iomanip>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 200010;
+
+int N, Q;
+int P[MAXN], L[MAXN];
+vector<pii> queries[MAXN];
+stack<int> gaps;	//start of segment
+int bit[MAXN], cost[MAXN], reach[MAXN];
+int ans[MAXN];
+
+void update (int x, int v) {
+	for (cost[x] += v; x < MAXN; x += (x & -x)) {
+		bit[x] += v;
+	}
+}
+
+void change (int x, int v) {
+	update(x, v - cost[x]);
+}
+
+int query (int x) {
+	int s = 0;
+	for (; x; x &= x - 1) {
+		s += bit[x];
+	}
+	return s;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 1; i <= N; i++) {
+		cin >> P[i] >> L[i];
+	}
+	cin >> Q;
+	for (int i = 1; i <= Q; i++) {
+		int x, y;
+		cin >> x >> y;
+		queries[x].push_back(pii(y, i));
+	}
+	for (int i = N; i; i--) {
+		//do the sweepline. ok
+		int x = P[i] + L[i];	//this is the last index. calculate where it reaches
+		while (!gaps.empty()) {
+			int t = gaps.top();
+			if (x >= P[t]) {
+				gaps.pop();
+				change(t, 0);
+				if (x < reach[t]) {
+					x = reach[t];
+				}
+			} else {
+				break;
+			}
+		}
+		//change the value of the next gap
+		if (!gaps.empty()) {
+			int t = gaps.top();
+			change(t, P[t] - x);
+		}
+		reach[i] = x;
+		gaps.push(i);
+		for (pii p : queries[i]) {
+			ans[p.second] = query(p.first);
+		}
+	}
+	for (int i = 1; i <= Q; i++) {
+		cout << ans[i] << '\n';
+	}
+}

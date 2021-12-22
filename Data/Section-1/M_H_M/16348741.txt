@@ -1,0 +1,117 @@
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+#define rank def1
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 300 * 1000 + 100;
+const int LG = 20;
+
+int sz[N][3];
+string s, s1, s2, s3;
+int rank[LG][N];
+int n;
+piii t[N];
+pii l[N];
+int par[N];
+int ans[N];
+int a[N];
+
+int lcp(int x, int y){
+	if(x == y) return a[x];
+	int ans = 0;
+	int t = min(a[x], a[y]);
+	for(int i = LG; i --;){
+		if(rank[i][x] == rank[i][y]){
+			x += 1 << i;
+			y += 1 << i;
+			ans |= 1 << i;
+		}
+	}
+	return min(ans, t);
+}
+
+int get_par(int x){
+	if(par[x] == x) return x;
+	return par[x] = get_par(par[x]);
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> s1 >> s2 >> s3;
+	s = s1 + "#" + s2 + "#" + s3;
+	for(int i = n; i --;)
+		a[i] = (s[i] == '#' ? 0 : a[i + 1] + 1);
+	n = SZ(s);	
+	for(int j = 0; j < n; ++j) par[j] = j, rank[0][j] = s[j];
+	for(int i = 1; i < LG; ++i){
+		for(int j = 0; j < n; ++j){
+			if(j + (1 << (i - 1)) < n)
+				t[j] = {{rank[i - 1][j], rank[i - 1][j + (1 << (i - 1))]}, j};
+			else
+				t[j] = {{rank[i - 1][j], -1}, j};
+		}
+		sort(t, t + n);
+		rank[i][t[0].Y] = 1;
+		for(int j = 1; j < n; ++j){
+			if(t[j - 1].X == t[j].X)
+				rank[i][t[j].Y] = rank[i][t[j - 1].Y];
+			else
+				rank[i][t[j].Y] = j + 1;
+		}
+	}
+	int k = n - 1;
+	for(int i = 0; i < n - 1; ++i){
+		l[i] = {lcp(t[i].Y, t[i + 1].Y), i};
+	}
+	for(int i = 0; i < n; ++i){
+		if(s[t[i].Y] == '#') continue;
+		if(t[i].Y < SZ(s1)) sz[i][0] = 1;
+		else if(t[i].Y < SZ(s1) + SZ(s2) + 1) sz[i][1] = 1;
+		else sz[i][2] = 1;
+	}
+	sort(l, l + k);
+	reverse(l, l + k);
+	for(int i = 0; i < k; ++i){
+		int x = l[i].Y, y = l[i].Y + 1;
+		x = get_par(x);
+		y = get_par(y);
+		par[y] = x;
+		ans[l[i].X] -= sz[x][0] * sz[x][1] * sz[x][2];
+		ans[l[i].X] -= sz[y][0] * sz[y][1] * sz[y][2];
+		sz[x][0] += sz[y][0];
+		sz[x][1] += sz[y][1];
+		sz[x][2] += sz[y][2];
+		ans[l[i].X] += sz[x][0] * sz[x][1] * sz[x][2];
+	}
+	for(int i = N - 1; i; --i)
+		ans[i - 1] += ans[i];
+	
+	int len = min(SZ(s1), SZ(s2));
+	len = min(len, SZ(s3));
+	for(int i = 1; i <= len; ++i)
+		cout << ans[i] << " ";
+	cout << "\n";
+	return 0;
+}

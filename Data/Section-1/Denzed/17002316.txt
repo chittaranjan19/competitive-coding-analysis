@@ -1,0 +1,79 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+template<class T>
+using v = vector<T>;
+
+using pii = pair<int, int>;
+using ll = long long;
+int n, k, b, c;
+
+
+struct cmp
+{
+    bool operator()(pii const &a, pii const &a2) const
+    {
+        int tgt = max(a.second, a2.second);
+        return a.first + (tgt - a.second) * b > a2.first + (tgt - a2.second);
+    }
+};
+
+multiset<pii, cmp> h[5];
+ll cost[5];
+ll lv[5];
+ll ans = 1e18;
+
+void insert(int x, int j)
+{
+//    cerr << x << " " << j << endl;
+    pii t;
+    int y = x + j;
+    t.first = j * c;
+    t.second = y;
+    int bs = y % 5;
+//    cerr << cost[bs] << endl;
+//    cerr << lv[bs] << endl;
+    cost[bs] += h[bs].size() * ll(y - lv[bs]) / 5 * b;
+//    cerr << cost[bs] << endl;
+    lv[bs] = y;
+    pii wst = *h[bs].begin();
+    if (cmp()(wst, t) || h[bs].size() < k)
+    {
+        cost[bs] += t.first;
+        h[bs].insert(t);
+//        cerr << "Insert: " << cost[bs] << endl;
+    }
+    if (h[bs].size() > k)
+    {
+        wst = *h[bs].begin();
+        h[bs].erase(h[bs].begin());
+        cost[bs] -= wst.first;
+        cost[bs] -= ll(lv[bs] - wst.second) / 5 * b;
+//        cerr << "Erase: " << cost[bs] << endl;
+    }
+    if (h[bs].size() == k)
+        ans = min(ans, cost[bs]);
+}
+
+int main()
+{
+    cin.tie(0);
+    ios_base::sync_with_stdio(0);
+
+    cin >> n >> k >> b >> c;
+    b = min(b, 5 * c);
+    v<int> t(n);
+    for (int i = 0; i < n; ++i)
+    {
+        cin >> t[i];
+        t[i] += 1e9;
+    }
+    sort(t.begin(), t.end());
+
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < 5; ++j)
+            insert(t[i], j);
+    }
+    cout << ans;
+}

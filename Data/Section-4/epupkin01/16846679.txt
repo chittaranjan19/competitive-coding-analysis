@@ -1,0 +1,114 @@
+#include <iostream>
+#include <string>       // string s; cin >> s;
+#include <cstring>      // memset(); strcpy(a1, a2); strcat(a1, a2);
+#include <cmath>
+#include <cstdio>       // without cin cout
+#include <cstdlib>      // rand(), max(), min()
+#include <ctime>        // rand(): srand(int(time(0)));
+#include <algorithm>    // std::sort(a + 0, a + n); a - массв, n - кол-во эл-тов
+#include <cstdlib>      // min() max()
+#include <iomanip>      // setw()
+#include <vector>
+#include <array>
+#include <fstream>      // file IO (input-output)
+#include <cctype>       // isupper()
+#define SRT srand(int(time(0)))
+typedef long long ll;
+typedef long double ld;
+typedef unsigned long long ull;
+using namespace std;
+int main(void)
+{
+    const int S = 100, A = 26;
+    char s[S][A + 1] {};
+    int n;
+    (cin >> n).get();
+    for (int i = 0; i < n; ++i)
+        cin >> s[i];
+    char to_r[A][A + 1] {}, to_l[A][A + 1] {};
+    for (char ch = 'a'; ch < 'a' + A; ++ch)
+    {
+        for (int i = 0; i < n; ++i)
+        {
+            for (int j = 0; j < A && s[i][j] != '\0'; ++j)
+            {
+                if (s[i][j] == ch)
+                {
+                    to_r[ch - 'a'][0] = ch;
+                    if (s[i][j + 1] != '\0')
+                        to_r[ch - 'a'][1] = s[i][j + 1];
+                    if (j > 0)
+                    {
+                        to_l[ch - 'a'][0] = s[i][j - 1];
+                        to_l[ch - 'a'][1] = s[i][j];
+                    }
+                    else if (to_l[ch - 'a'][1] == '\0')
+                    {
+                        to_l[ch - 'a'][0] = s[i][j];
+                    }
+                }
+            }
+        }
+    }
+    char ans[A + 1] {};
+    int ansi = 0;
+    for (int I = 0; I < A; ++I)
+    {
+        if (to_l[I][0] && to_l[I][1] == '\0')
+        {
+            char c = ans[ansi++] = to_r[I][0];
+            if (to_r[I][1] != '\0')
+                c = ans[ansi++] = to_r[I][1];
+            bool t = true;
+            for (int k = 0; t && k < A; ++k)
+            {
+                if (k % 2 == 0)
+                {
+                    // left
+                    for (int i = 0; i < A; ++i)
+                    {
+                        if (to_l[i][0] == '\0')
+                            continue;
+                        if (to_l[i][0] == c)
+                        {
+                            if (to_l[i][1] == '\0')
+                            {
+                                t = false;
+                                break;
+                            }
+                            else
+                            {
+                                c = ans[ansi++] = to_l[i][1];
+                                break;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // right
+                    for (int i = 0; i < A; ++i)
+                    {
+                        if (to_r[i][0] == '\0')
+                            continue;
+                        if (to_r[i][0] == c)
+                        {
+                            if (to_r[i][1] == '\0')
+                            {
+                                t = false;
+                                break;
+                            }
+                            else
+                            {
+                                c = ans[ansi++] = to_r[i][1];
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    cout << ans << '\n';
+    return 0;
+}

@@ -1,0 +1,83 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef pair<int, int> pii;
+
+vector<int> array, sorted;
+
+int calc_bad(int n, vector<int> a) {
+    int ans = 0;
+    int t = a[n];
+    bool state;
+    state = sorted[n] > t? false: true;
+    while(sorted[n] != t) {
+        ans++;
+        state? n++ : n--;
+    }
+
+    return ans;
+}
+
+int calc_fitness(vector<int> a) {
+    int ans = 0;
+    for (int i = 0; i < a.size(); ++i) {
+        if(sorted[i] != a[i])
+            ans += calc_bad(i, a);
+    }
+    return ans;
+}
+
+vector<int> swap(int a, int b, vector<int> vec) {
+    for (int i = a; i < b; i += 2) {
+        int t = vec[i];
+        vec[i] = vec[i+1];
+        vec[i+1] = t;
+    }
+    return vec;
+}
+
+int main() {
+    //freopen("input.in", "r", stdin);
+    //freopen("output.out", "w", stdout);
+    int n;
+    scanf("%d", &n);
+    array = vector<int>(n);
+    for (int i = 0; i < n; ++i) {
+        scanf("%d", &array[i]);
+    }
+    sorted = array;
+    sort(sorted.begin(), sorted.end());
+    //printf("sorted\n");
+    /*for (int i = 0; i < n; ++i) {
+        printf("%d ",sorted[i]);
+    }
+    printf("\n");*/
+    int current = calc_fitness(array);
+    while (current > 0) {
+        vector<int> final_best;
+        int best = current;
+        int start = 0, end = 0;
+        for (int i = 0; i < n; i++) {
+            for (int j = i+2; j <= n; j += 2) {
+                vector<int> t = swap(i, j, array);
+                /*printf("swapped %d %d\n", i, j);
+                for (int k = 0; k < n; ++k) {
+                    printf("%d ", t[k]);
+                }*/
+                int fitness = calc_fitness(t);
+                //printf("\nfitness %d\n", fitness);
+                if(fitness < best) {
+                    start = i;
+                    end = j;
+                    best = fitness;
+                    final_best = t;
+                }
+            }
+        }
+        array = final_best;
+        printf("%d %d\n", start+1, end);
+        current = best;
+    }
+    return 0;
+}

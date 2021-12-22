@@ -1,0 +1,78 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+const int MAXN = 100010;
+
+int N, M;
+unordered_map<ll, int> mem;
+
+struct union_find {
+	unordered_map<int, int> par, rnk;
+	int find (int x) {
+		int &p = par[x];
+		return x == p ? x : p = find(p);
+	}
+	void insert (int x) {
+		if (!par.count(x)) {
+			par[x] = x;
+			rnk[x] = 0;
+		}
+	}
+	void merge (int x, int y) {
+		insert(x);
+		insert(y);
+		x = find(x);
+		y = find(y);
+		if (x == y) {
+			return;
+		}
+		if (rnk[x] > rnk[y]) {
+			swap(x, y);
+		}
+		par[x] = y;
+		if (rnk[x] == rnk[y]) {
+			rnk[y]++;
+		}
+	}
+} uf[MAXN];
+
+unordered_set<int> colors[MAXN];
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d", &N, &M);
+	for (int i = 0, a, b, c; i < M; i++) {
+		scanf("%d %d %d", &a, &b, &c);
+		uf[c].merge(a, b);
+		colors[a].insert(c);
+		colors[b].insert(c);
+	}
+	int q, a, b;
+	for (scanf("%d", &q); q--; ) {
+		scanf("%d %d", &a, &b);
+		if (a > b) {
+			swap(a, b);
+		}
+		if (colors[a].size() > colors[b].size()) {
+			swap(a, b);
+		}
+		ll hsh = ll(1e6) * a + b;
+		if (!mem.count(hsh)) {
+			//just count it! yes!
+			int &ref = mem[hsh];
+			for (int c : colors[a]) {
+				if (colors[b].count(c)) {
+					//sm cmp?
+					ref += (uf[c].find(a) == uf[c].find(b));
+				}
+			}
+		}
+		printf("%d\n", mem[hsh]);
+	}
+}

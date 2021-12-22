@@ -1,0 +1,75 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+const int maxn = 300000 + 5;
+
+struct edge
+{
+    int to, next;
+
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxn];
+int head[maxn], tot, ans[maxn], sz[maxn], fa[maxn], son[maxn];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u]);
+    head[u] = tot++;
+    fa[v] = u;
+}
+
+void dfs(int u)
+{
+    sz[u] = 1;
+    son[u] = 0;
+    ans[u] = u;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        dfs(v);
+        sz[u] += sz[v];
+        if(sz[v] > sz[son[u]]) son[u] = v;
+    }
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        int p = ans[v];
+        while(p != u)
+        {
+            int pp = fa[p];
+            if(max(sz[son[p]], sz[u] - sz[p]) <= max(sz[son[pp]], sz[u] - sz[pp])) break;
+            p = pp;
+        }
+        if(max(sz[son[p]], sz[u] - sz[p]) < max(sz[ans[u]], sz[u] - sz[ans[u]])) ans[u] = p;
+    }
+}
+
+int main()
+{
+    int n, q;
+    init();
+    scanf("%d%d", &n, &q);
+    for(int i = 2; i <= n; ++i)
+    {
+        int p;
+        scanf("%d", &p);
+        addedge(p, i);
+    }
+    dfs(1);
+    while(q--)
+    {
+        int u;
+        scanf("%d", &u);
+        printf("%d\n", ans[u]);
+    }
+    return 0;
+}

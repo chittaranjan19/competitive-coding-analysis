@@ -1,0 +1,109 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+typedef long long ll;
+
+const int MAXN = 2e5 + 5;
+
+ll sum[MAXN];
+int a[MAXN], h[MAXN];
+
+struct segtree
+{
+    ll node[MAXN << 2][3][2];
+
+    void pushup(int rt, int l, int r, int k)
+    {
+        int lson = rt << 1, rson = rt << 1 | 1, m = (l + r) >> 1;
+        node[rt][0][k] = max(node[lson][2][k] + node[rson][1][k], max(node[lson][0][k], node[rson][0][k]));
+        node[rt][1][k] = max(node[lson][1][k], node[rson][1][k] + sum[m] - sum[l - 1]);
+        node[rt][2][k] = max(node[rson][2][k], node[lson][2][k] + sum[r] - sum[m]);
+    }
+
+    void build(int rt, int l, int r)
+    {
+        if(l == r)
+        {
+            node[rt][0][0] = (ll)a[l] + 2 * (h[l - 1] + h[l]);
+            node[rt][1][0] = (ll)a[l] + 2 * h[l];
+            node[rt][2][0] = (ll)a[l] + 2 * h[l - 1];
+            return;
+        }
+        int m = (l + r) >> 1;
+        build(rt << 1, l, m);
+        build(rt << 1 | 1, m + 1, r);
+        pushup(rt, l, r, 0);
+    }
+
+    ll query(int rt, int l, int r, int x, int y)
+    {
+        if(x <= l && r <= y)
+        {
+            for(int i = 0; i < 3; ++i)
+            {
+                node[rt][i][1] = node[rt][i][0];
+            }
+            return node[rt][0][0];
+        }
+        int m = (l + r) >> 1, ch = 0;
+        for(int i = 0; i < 3; ++i)
+        {
+            node[rt][i][1] = 0;
+        }
+        if(x <= m)
+        {
+            int lson = rt << 1;
+            node[rt][0][1] = query(lson, l, m, x, y);
+            node[rt][1][1] = node[lson][1][1];
+            node[rt][2][1] = node[lson][2][1];
+            ++ch;
+        }
+        if(m < y)
+        {
+            int rson = rt << 1 | 1;
+            node[rt][0][1] = query(rson, m + 1, r, x, y);
+            node[rt][1][1] = node[rson][1][1];
+            node[rt][2][1] = node[rson][2][1];
+            ++ch;
+        }
+        if(ch == 2)
+        {
+            pushup(rt, l, r, 1);
+        }
+        return node[rt][0][1];
+    }
+} tree;
+
+int main()
+{
+    int n, m;
+    while(~scanf("%d%d", &n, &m))
+    {
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", a + i);
+            a[i + n] = a[i];
+        }
+        for(int i = 1; i <= 2 * n; ++i)
+        {
+            sum[i] = sum[i - 1] + a[i];
+        }
+        for(int i = 0; i < n; ++i)
+        {
+            scanf("%d", h + i);
+            h[i + n] = h[i];
+        }
+        h[2 * n] = h[0];
+        tree.build(1, 1, n << 1);
+        while(m--)
+        {
+            int x, y;
+            scanf("%d%d", &x, &y);
+            printf("%I64d\n", tree.query(1, 1, n << 1, x <= y ? y + 1 : y + n + 1, x + n - 2));
+        }
+    }
+    return 0;
+}

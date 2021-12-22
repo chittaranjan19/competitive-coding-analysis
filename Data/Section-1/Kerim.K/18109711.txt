@@ -1,0 +1,91 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int dp[509][509];
+int arr[509],n;
+int rr[509],m,pos=-1;
+PII way[509][509];
+int rec(){
+	dp[0][0]=0;
+	for(int i=1;i<=n;i++){
+		dp[i][0]=0;
+		for(int j=1;j<=m;j++){
+			if(arr[i]!=rr[j])
+				dp[i][j]=dp[i][j-1],way[i][j]=mp(i,j-1);
+			else{
+				dp[i][j]=1;
+				for(int k=1;k<i;k++)
+					if(arr[i]>arr[k] and umax(dp[i][j],dp[k][j-1]+1))
+						way[i][j]=mp(k,j-1);
+			}
+		}
+	}
+	int ans=0;
+	for(int i=1;i<=n;i++)
+		if(umax(ans,dp[i][m]))
+			pos=i;
+	return ans;
+}
+void yaz(){
+	vector<int>v;int kos=m;
+	while(pos>=1 and kos>=1){
+		PII k=way[pos][kos];
+		if(arr[pos]==rr[kos])
+			v.pb(arr[pos]);
+		pos=k.ff;kos=k.ss;
+	}
+	for(int i=v.size()-1;i>=0;i--)
+		cout<<v[i]<<" ";
+	cout<<endl;	
+}
+int main(){
+	memset(dp,-1,sizeof(dp));
+	scanf("%d",&n);
+	for(int i=1;i<=n;i++)
+		scanf("%d",arr+i);
+	scanf("%d",&m);arr[0]=-1;
+	for(int i=1;i<=m;i++)
+		scanf("%d",rr+i);	
+	cout<<rec()<<endl;
+	yaz();	
+/*	for(int z=0;z<=n;z++)
+		for(int y=1;y<=m+1;y++)
+			dp[0][y][z]=0;	
+	int st=1,en=0;	
+	vector<int>vec;
+	for(int x=n;x>=1;x--){
+		for(int y=m;y>=1;y--)
+			for(int z=0;z<=n;z++){
+				int &ret=dp[st][y][z];
+				ret=dp[en][y][z];
+				umax(ret,dp[st][y+1][z]);
+				if(arr[x]==rr[y] and arr[x]>arr[z]){
+					if(umax(ret,dp[en][y+1][x]+1))
+						vec.pb(arr[x]);	
+				}
+			}
+		swap(st,en);
+	}
+	printf("%d\n",dp[en][1][0]);
+	tr(it,vec)
+		printf("%d ",*it);
+	printf("\n");*/	
+	return 0;
+}
+

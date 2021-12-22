@@ -1,0 +1,87 @@
+#include <bits/stdc++.h>
+using namespace std;
+ 
+#define pb push_back
+#define mp make_pair
+#define lli long long 
+
+vector< pair<char,int> > query;
+vector<int> ver;
+vector<int> hor;
+vector<long long> ans;
+pair<char,int> pc;
+vector<int>::iterator up,low;
+
+int main(){
+	int w,h,n;
+	char c;
+	int idx;
+	scanf("%d %d %d",&w,&h,&n);
+	ver.pb(0);
+	ver.pb(w);
+	hor.pb(0);
+	hor.pb(h);
+	for(int i=0;i<n;i++){
+		cin>>c>>idx;
+		if(c=='V'){
+			ver.pb(idx);
+		}
+		else{
+			hor.pb(idx);
+		}
+		query.pb({c,idx});
+	}
+	sort(ver.begin(),ver.end());
+	sort(hor.begin(),hor.end());
+	
+	/*for(int i=0;i<ver.size();i++)
+		cout<<ver[i]<<" ";
+	cout<<"\n";
+	for(int i=0;i<hor.size();i++)
+		cout<<hor[i]<<" ";
+	cout<<"\n";*/
+	int hl = 1,vl=1;
+	for(int i=1;i<=ver.size()-1;i++){
+		vl = max(vl,ver[i]-ver[i-1]);
+	}		
+	for(int i=1;i<=hor.size()-1;i++){
+		hl = max(hl,hor[i]-hor[i-1]);
+	}	
+	lli loc = (long long)vl*(long long)hl;
+	ans.pb(loc);
+	int sz = query.size();
+	sz--;
+	/*cout<<"hl "<<hl<<endl;
+	cout<<"vl "<<vl<<endl;*/
+	for(int i=sz;i>=0;i--){
+		pc = query[i];
+		if(pc.first=='V'){
+			up = upper_bound(ver.begin(),ver.end(),pc.second); 
+			low = lower_bound(ver.begin(),ver.end(),pc.second);
+			int pl = low-ver.begin();
+			int pu = up-ver.begin();
+			pl--;
+			vl = max(vl,ver[pu]-ver[pl]);
+			loc = max(loc,(long long)vl*(long long)hl);
+			ans.pb(loc);
+			ver.erase(ver.begin()+pl+1);
+		}
+		else{
+			up = upper_bound(hor.begin(),hor.end(),pc.second); 
+			low = lower_bound(hor.begin(),hor.end(),pc.second);
+			int pl = low-hor.begin();
+			int pu = up-hor.begin();
+			pl--;
+			hl = max(hl,hor[pu]-hor[pl]);
+			loc = max(loc,(long long)vl*(long long)hl);
+			ans.pb(loc);
+			hor.erase(hor.begin()+pl+1);
+		}
+	}
+	sz = ans.size();
+	sz--;
+	sz--;
+	for(int i=sz;i>=0;i--)
+		cout<<ans[i]<<"\n";
+	
+}

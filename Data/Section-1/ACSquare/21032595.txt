@@ -1,0 +1,94 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+#include <queue>
+using namespace std;
+const int MAX_n = 5000;
+
+
+struct edge
+{
+    int to,cost;
+    edge(){}
+    edge(int _to,int _cost): to(_to),cost(_cost) {}
+};
+
+vector<edge> G[MAX_n];
+
+const int INF = 0x3f3f3f3f;
+
+queue<int>  que;
+int d[MAX_n];
+
+int dp[MAX_n][MAX_n+1];
+int prevv[MAX_n][MAX_n+1];
+
+int path[MAX_n];
+
+
+int main()
+{
+    int n,m,T;
+    scanf("%d%d%d",&n,&m,&T);
+    for(int i = 0; i < m; ++i)
+    {
+        int u,v,t;
+        scanf("%d%d%d",&u,&v,&t);
+        G[u-1].push_back(edge(v-1, t));
+    }
+    memset(d, 0x3f, sizeof(d));
+    d[0] = 1;   que.push(0);
+    while (!que.empty())
+    {
+        int v = que.front();   que.pop();
+        for(int i = 0; i < G[v].size(); ++i)
+        {
+            edge &e = G[v][i];
+            if(d[e.to] != INF)  continue;
+            d[e.to] = d[v] + 1; que.push(e.to);
+        }
+    }
+    
+
+    
+    memset(dp, 0x3f, sizeof(dp));
+    memset(prevv, -1, sizeof(prevv));
+    dp[0][1] = 0;
+    for(int v = 0;v < n; ++v)
+    {
+        for(int t = d[v]; t <= n; ++t)
+        {
+            if(dp[v][t] == INF) continue;
+            for(int i = 0; i < G[v].size(); ++i)
+            {
+                edge &e = G[v][i];
+                if(dp[e.to][t+1] > dp[v][t] + e.cost)
+                {
+                    dp[e.to][t+1] = dp[v][t] + e.cost;
+                    prevv[e.to][t+1] = v;
+                }
+            }
+        }
+    }
+    
+    int tot = 0;
+    for(int t = n; t >= 0; --t)
+        if(dp[n-1][t] <= T)
+        {
+            tot = t;
+            break;
+        }
+    int sz = tot;
+    for(int i = 0,crt = n-1; i < tot - 1;++i )
+    {
+        path[sz-1] = crt;
+        crt = prevv[crt][sz];
+        --sz;
+    }
+    path[0] = 0;
+    
+    printf("%d\n",tot);
+    for(int i = 0; i < tot; ++i)
+        printf("%d%c",path[i]+1," \n"[i == tot-1]);
+}

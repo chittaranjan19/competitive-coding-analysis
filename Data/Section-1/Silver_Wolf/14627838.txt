@@ -1,0 +1,61 @@
+// in the name of allah
+
+#include<bits\stdc++.h>
+#define LL long long
+#define LB long double
+#define ALL(X) X.begin(),X.end()
+#define DD(X) cout<<#X<<' '<<X<<endl;
+using namespace std;
+
+const int MOD=1000*1000*1000+7;
+const int MAXN=500+10;
+const int MAXM=200+50;
+const int INF=1e8+9;
+
+const int dx[4]={0,0,-1,+1};
+const int dy[4]={+1,-1,0,0};
+
+int p[MAXN][MAXN];
+pair<int,int>dp[MAXN][MAXN];
+string s;
+pair<int,int>mn=make_pair(INF,0);
+void print(int i,int k){
+	if(k==0)return;
+	int j=dp[k][i].second;
+	print (j,k-1);
+	for(int t=j+1;t<=i;t++){
+		s[t]=s[min(i+j+1-t,t)];
+		cout<<s[t];
+	}
+	cout<<(k==mn.second?'\n':'+');
+}
+int main(){
+	
+	cin>>s;
+	int m,n=s.size();
+	cin>>m;
+	for(int i=0;i<n;i++)
+		for(int j=i;j<n;j++){
+			for(int k=i;k<=j;k++)if(s[k]!=s[i+j-k])p[i][j]++;
+			p[i][j]/=2;
+		}
+	for(int i=0;i<MAXN;i++)for(int j=0;j<MAXN;j++)dp[i][j].first=INF;
+	for(int i=0;i<n;i++)dp[1][i].first=p[0][i],dp[1][i].second=-1;
+	for(int k=2;k<=m;k++){
+		for(int i=k-1;i<n;i++){
+			for(int j=i;j>=k-1;j--){
+				
+				if(dp[k][i].first > p[j][i]+dp[k-1][j-1].first){
+					dp[k][i].first=p[j][i]+dp[k-1][j-1].first;
+					dp[k][i].second=j-1;
+				}
+				
+			}
+		}
+	}
+	
+	for(int i=1;i<=m;i++)
+		if(mn.first > dp[i][n-1].first)mn.first=dp[i][n-1].first,mn.second=i;
+	cout<<mn.first<<'\n';
+	print(n-1,mn.second);
+}

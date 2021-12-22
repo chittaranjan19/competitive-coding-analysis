@@ -1,0 +1,102 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<int> tree[500005];
+set<pair<LL, LL> > s[500005];
+int ch[500005];
+int lazy[500005];
+
+void solve(int node, int parent)
+{
+  bool leaf = true;
+  ch[node] = node;
+  for(auto x : tree[node])
+  {
+    if(x == parent) continue;
+    leaf = false;
+    solve(x, node);
+    if(s[ch[node]].size() < s[ch[x]].size())
+      ch[node] = ch[x];
+  }
+  if(leaf)
+  {
+    ch[node] = node;
+    s[node].insert(mp(1, 1));
+    return ;
+  }
+  int add = lazy[ch[node]];
+  for(auto x : tree[node])
+  {
+    if(x == parent) continue;
+    if(ch[node] == ch[x]) continue;
+    for(auto tmp : s[ch[x]])
+    {
+      tmp.f += lazy[ch[x]];
+      tmp.s += lazy[ch[x]];
+      auto it = s[ch[node]].lower_bound(mp(tmp.f - add, tmp.f - add));
+      if(it != s[ch[node]].begin())
+      {
+        it--;
+        if(!(tmp.f >= (*it).f + add && tmp.f <= (*it).s + add))
+          it++;
+        else
+        {
+          auto it2 = it;
+          it2++;
+          tmp = mp((*it).f + add, (*it).s + add + tmp.s - tmp.f + 1);
+          s[ch[node]].erase(it);
+          it = it2;
+        }
+      }
+      while(it != s[ch[node]].end() && (*it).f + add <= tmp.s)
+      {
+        auto it2 = it;
+        it2++;
+        tmp.s += (*it).s - (*it).f + 1;
+        s[ch[node]].erase(it);
+        it = it2;
+      }
+      s[ch[node]].insert(tmp);
+    }
+  }
+  lazy[ch[node]]++;
+}
+
+int main()
+{
+  int n, x, y;
+  cin >> n;
+  for(int i=0;i<n-1;i++)
+  {
+    scanf("%d %d", &x, &y);
+    tree[x].pb(y);
+    tree[y].pb(x);
+  }
+  LL res = 0;
+  for(auto x : tree[1])
+  {
+    solve(x, 1);
+    auto it = s[ch[x]].end();
+    it--;
+    res = max(res, (*it).s + lazy[ch[x]]);
+  }
+  cout << res;
+  return 0;
+}

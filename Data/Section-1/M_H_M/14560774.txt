@@ -1,0 +1,72 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 1000 * 1000 + 100;
+
+struct Fenwick{
+	int fen[N];
+	
+	void add(int p, int val){
+		for(p ++; p <= N; p += p & -p)
+			fen[p] += val;
+	}
+	
+	ll get(int p, int sum = 0){
+		for(; p; p -= p & -p)
+			sum += fen[p];
+		return sum;
+	}
+
+	Fenwick(){
+		memset(fen, 0, sizeof fen);
+	}
+};
+
+Fenwick f[2];
+int n, a[N], b[N];
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for(int i = 0; i < n; ++i){
+		cin >> a[i];
+		b[i] = a[i];
+	}
+	sort(b, b + n);
+	int sz = unique(b, b + n) - b;
+	for(int i = 0; i < n; ++i){
+		a[i] = lower_bound(b, b + sz, a[i]) - b;
+		f[1].add(a[i], 1);
+	}
+	ll ans = 0;
+	for(int i = 0; i < n; ++i){
+		f[1].add(a[i], -1);
+		ans += (f[0].get(N) - f[0].get(a[i] + 1)) * f[1].get(a[i]);
+		f[0].add(a[i], 1);
+	}
+	cout << ans << "\n";
+	return 0;
+}

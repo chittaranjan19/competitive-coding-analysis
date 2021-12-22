@@ -1,0 +1,100 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+set<int> mset;
+set<pair<int, int> > pset;
+set<int> :: iterator n, p, cur;
+set<pair<int, int> > :: iterator it;
+set<pair<int, int> > :: reverse_iterator rit;
+int pos[1000010];
+
+int main()
+{
+    int k, m, i, j, t, id, mid, temp;
+    scanf("%d%d", &k, &m);
+    pset.insert(make_pair(k-1, -1));
+    pset.insert(make_pair(k-1, -k));
+    for(i=1; i<=m; i++){
+        /*for(auto jt = mset.begin(); jt!=mset.end(); ++jt)
+            cout << *jt << " ";
+        cout << "\n";
+        //cout << "b\n";
+        for(auto jt = pset.begin(); jt!=pset.end(); ++jt)
+            cout << jt->first << " " << jt->second << "\n";
+        //cout << "c\n";*/
+        scanf("%d%d", &t, &id);
+        
+        if(t==1){
+            rit = pset.rbegin();
+            temp = rit->second*-1;
+            printf("%d\n", temp);
+            it = pset.find(make_pair(rit->first, rit->second));
+            pset.erase(it);
+            pos[id] = temp;
+            n = mset.upper_bound(temp);
+            //cout << "bitch " << *n << " ";
+            if(n==mset.end() && n==mset.begin()){
+                mset.insert(temp);
+                //it = pset.find(make_pair(rit->first, rit->second));
+                //pset.erase(it);
+                continue;
+            }
+            p = prev(n);
+            //cout << *p << "\n";
+            mid = (*p + temp)/2;
+            if(mid!=*p)
+                pset.insert(make_pair(mid-*p, -mid));
+            if(n!=mset.end()){
+                mid = (*n + temp)/2;
+                if(mid!=temp)
+                    pset.insert(make_pair(mid-temp, -mid));
+            }
+            mset.insert(temp);
+            
+        }
+        else{
+            temp = pos[id];
+            cur = mset.find(temp);
+            if(cur==mset.begin()){
+                n = next(cur);
+                if(n!=mset.end()){
+                    mid = (*cur + *n)/2;
+                    it = pset.find(make_pair(*n-mid, -mid));
+                    if(it!=pset.end())
+                        pset.erase(it);
+                    mid = (1+*n)/2;
+                    pset.insert(make_pair(mid, -mid));
+                }
+                mset.erase(cur);
+                continue;
+            }
+            p = prev(cur);
+            n = next(cur);
+            if(n==mset.end()){
+                mid = (*cur + *p)/2;
+                it = pset.find(make_pair(mid-*p, -mid));
+                pset.erase(it);
+                pset.insert(make_pair(k-*p, -k));
+                mset.erase(cur);
+                mid = (k+*p)/2;
+                pset.insert(make_pair(mid-*p, -mid));
+                continue;
+            }
+            mid = (*cur + *p)/2;
+            //cout << mid << " " << *p << " " << *n << "\n";
+            it = pset.find(make_pair(mid-*p, -mid));
+            pset.erase(it);
+            mid = (*cur + *n)/2;
+            //cout << mid << "\n";
+            it = pset.find(make_pair(mid-*cur, -mid));
+            pset.erase(it);
+            mid = (*n + *p)/2;
+            //cout << mid << "\n";
+            pset.insert(make_pair(mid-*p, -mid));
+            mset.erase(cur);
+        }
+
+    }
+    return 0;
+}

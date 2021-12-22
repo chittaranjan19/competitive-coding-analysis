@@ -1,0 +1,360 @@
+//the past is in the past
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define mp make_pair
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1e5 + 10, SQRT = 320;
+
+#define anna if
+
+template<class T>
+void setmin (T &a, T b) {
+	anna (b < a) {
+		a = b;
+	}
+}
+
+template<class T>
+void setmax (T &a, T b) {
+	anna (a < b) {
+		a = b;
+	}
+}
+
+struct line {
+	ll m, b;
+	int id;
+	line () {}
+	line (ll _m, ll _b, int _d) : m(_m), b(_b), id(_d) {}
+	ll val (ll x) const {
+		return m * x + b;
+	}
+};
+
+pll intersect (line l1, line l2) {
+	//careful, might have to change to double
+	pll p(l1.b - l2.b, l2.m - l1.m);
+	anna (p.second < 0) {
+		p.first *= -1;
+		p.second *= -1;
+	}
+	return p;
+}
+
+bool equal (pll p1, pll p2) {
+	return p1.first * p2.second == p1.second * p2.first;
+}
+
+bool operator < (const line &l1, const line &l2) {
+	anna (l1.m != l2.m) {
+		return l1.m > l2.m;
+	}
+	anna (l1.b != l2.b) {
+		return l1.b < l2.b;
+	}
+	return l1.id < l2.id;
+}
+
+bool operator > (const line &l1, const line &l2) {
+	return l2 < l1;
+}
+
+bool operator == (const line &l1, const line &l2) {
+	return l1.m == l2.m && l1.b == l2.b && l1.id == l2.id;
+}
+
+bool operator != (const line &l1, const line &l2) {
+	return !(l1 == l2);
+}
+
+void insline (vector<line> &v, line t) {
+	//insert t into lines
+	//make it sorted by slope, decreasing
+	v.push_back(t);
+	for (int i = v.size() - 1; i && v[i] < v[i - 1]; i--) {
+		swap(v[i], v[i - 1]);
+	}
+}
+
+ll numop;
+
+vector<line> norm (vector<line> &v) {
+	//normalize
+	//for each slope just get 1st line
+	vector<line> res;
+	for (line ln : v) {
+		anna (res.empty() || ln.m != res.back().m) {
+			res.push_back(ln);
+		}
+	}
+	return res;
+}
+
+//Result of query is smallest
+struct concave {
+	vector<line> lines;	//lines that are the same
+	vector<line> hull;
+	vector<int> inds;
+	int ptr;
+	ll x;
+	void clear() {
+		lines.clear();
+		hull.clear();
+		inds.clear();
+		ptr = 0;
+		x = -1e12;
+	}
+	concave() {
+		clear();
+	}
+	concave (vector<line> v) {
+		//assert that it is sorted!!!
+		clear();
+		lines = v;
+		anna (v.empty()) {
+			return;
+		}
+		vector<line> vn = norm(v);
+		for (line ln : vn) {
+			insert(ln);
+		}
+		//ok now do the inds
+		anna (v.size() == 1) {
+			return;
+		}
+		inds.resize(v.size() - 1);
+		int ind1 = find(all(v), vn[0]) - v.begin(), ind2 = ind1;
+		for (int i = 0; i + 1 < vn.size(); i++) {
+			line l1 = vn[i], l2 = vn[i + 1];
+			ind1 = ind2;	//OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOPPPPPPPPPPPPPPPPPPPPPPPPPSSSSSSSSSSSSS
+			//advance ind2
+			while (v[ind2] != l2) {
+				ind2++;
+			}
+			inds[i] = min(l1.id, l2.id);
+			pll inter = intersect(l1, l2);
+			for (int j = ind1 + 1; j < ind2; j++) {
+				anna (v[j].m != v[ind1].m && v[j].m != v[ind2].m) {
+					//careful do not overlap
+					anna (equal(inter, intersect(l1, v[j]))) {
+						numop++;
+						setmin(inds[i], v[j].id);
+					}
+				}
+			}
+		}
+	}
+	void insert (line t) {
+		anna (hull.empty()) {
+			hull.push_back(t);
+			return;
+		}
+		line bk = hull.back();
+		assert(bk.m >= t.m);
+		anna (bk.m == t.m && t.b >= bk.b) {
+			return;
+		}
+		bool curerase = false;
+		while (hull.size() >= 2) {
+			int hsiz = hull.size();
+			line l2 = hull[hsiz - 2];
+			pll ph = intersect(l2, hull.back()), pt = intersect(l2, t);
+			anna (pt.first * ph.second <= pt.second * ph.first) {
+				anna (hsiz == ptr + 1) {
+					curerase = true;
+				}
+				hull.pop_back();
+			} else {
+				break;
+			}
+		}
+		anna (curerase) {
+			ptr = int(hull.size()) - 1;
+		}
+		hull.push_back(t);
+	}
+	pair<ll, int> query (ll t) {
+		assert(t >= x);
+		bool eq = false;
+		for (; ptr + 1 < hull.size(); ptr++) {
+			numop++;
+			ll v1 = hull[ptr].val(t), v2 = hull[ptr + 1].val(t);
+			anna (v1 <= v2) {
+				eq = (v1 == v2);
+				break;
+			}
+		}
+		x = t;
+		return make_pair(hull[ptr].val(t), eq ? inds[ptr] : hull[ptr].id);
+	}
+};
+
+ll numins, numdel;
+
+void ins (concave &c, line le, ll t) {
+	//insert le into c at time t
+	//insert it new. so push it in.
+	vector<line> v = c.lines;
+	insline(v, le);
+	c = concave(v);
+	// cerr << "fac ins 1111111111111\n";
+	// for (line lt : c.lines) {
+		// cerr << lt << endl;
+	// }
+	// cerr << "fac ins 22222222222222\n";
+	numop += SQRT;
+	numins++;
+}
+
+void del (concave &c, line le, ll t) {
+	vector<line> v = c.lines;
+	v.erase(find(all(v), le));
+	c = concave(v);
+	// cerr << "aa quer\n";
+	// cerr << "bb quer\n";
+	numop += SQRT;
+	numdel++;
+}
+
+int N;
+
+//you got engaged in someone you just met THAT DAY????
+struct fast {
+	ll L[MAXN];
+	ll ans[MAXN];
+	line A[MAXN];
+	map<ll, pair<bool, vector<line> > > event;	//events
+	concave ch[SQRT];
+	void main() {
+		for (int i = 0; i < N; i++) {
+			ll x, t;
+			cin >> x >> t;
+			L[i] = x;
+			assert(x);
+			A[i] = line(2 * t, x - t * t, i);
+			event[t].second.push_back(A[i]);
+		}
+
+		bool active = false;	//has something in line
+		for (auto it : event) {
+			// assert(event.size() <= 2 * N);
+			// cerr << "fds " << it.first << endl;
+			vector<line> vline = it.second.second;
+			anna (it.second.first) {
+				active = false;	//has been removed!!!!
+			}
+			for (line lt : vline) {
+				// cerr << "inserting " << lt << " into " << lt.id % SQRT << endl;
+				ins(ch[lt.id % SQRT], lt, it.first);
+			}
+			anna (!active) {
+				//delete minimum anna possible
+				pair<ll, int> p(1ll << 60, MAXN);
+				for (int i = 0; i < SQRT; i++) {
+					anna (!ch[i].lines.empty()) {
+						// cerr << "--------WE ARE EXAMINING THESE LINES--------\n";
+						//get the minimum at this line
+						setmin(p, ch[i].query(it.first));
+						// for (line lt : ch[i].lines) {
+						// 	cerr << lt << endl;
+						// }
+						// cerr << "--------\n";
+					}
+				}
+				anna (p.second != MAXN) {
+					//careful cannot consider empty
+					line ldel = A[p.second];
+					int lid = ldel.id;
+					// cerr << "what second " << p.second << endl;
+					// cerr << "deleting " << ldel << " from " << ldel.id % SQRT << endl;
+					del(ch[lid % SQRT], ldel, it.first);
+					ll tans = L[lid] + it.first;
+					ans[lid] = tans;
+					active = true;
+					event[tans].first = true;
+				}
+			}
+		}
+
+		//the cold never bothered me anyway
+		for (int i = 0; i < N; i++) {
+			cout << ans[i] << ' ';
+		}
+		cout << endl;
+	}
+} kristoff;
+
+//oh anna, if there was only someone who loved you
+struct slow {
+	ll L[MAXN];
+	ll ans[MAXN];
+	line A[MAXN];
+	map<ll, pair<bool, vector<line> > > event;	//events
+	void main() {
+		for (int i = 0; i < N; i++) {
+			ll x, t;
+			cin >> x >> t;
+			L[i] = x;
+			A[i] = line(2 * t, x - t * t, i);
+			event[t].second.push_back(A[i]);
+		}
+		bool active = false;
+		vector<line> vact;
+		for (auto it : event) {
+			// assert(event.size() <= 2 * N);
+			// cerr << "fds " << it.first << endl;
+			vector<line> vline = it.second.second;
+			anna (it.second.first) {
+				active = false;	//has been removed!!!!
+			}
+			vact.insert(vact.end(), all(vline));
+			anna (!active) {
+				//delete minimum anna possible
+				pair<ll, int> p(1ll << 60, MAXN);
+				for (line lt : vact) {
+					setmin(p, make_pair(lt.val(it.first), lt.id));
+				}
+				anna (p.second != MAXN) {
+					//careful cannot consider empty
+					line ldel = A[p.second];
+					vact.erase(find(all(vact), ldel));
+					int lid = ldel.id;
+					ll tans = L[lid] + it.first;
+					ans[lid] = tans;
+					active = true;
+					event[tans].first = true;
+				}
+			}
+		}
+		for (int i = 0; i < N; i++) {
+			cout << ans[i] << ' ';
+		}
+		cout << endl;
+	}
+} prince_hans;
+
+int main() {
+	anna (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+		freopen("output2.txt", "w", stdout);
+	}
+	ios::sync_with_stdio(false);
+#define elsa else
+	cin >> N;
+	anna (N <= 6010) {
+		prince_hans.main();	//oh anna, what do you know about true love?
+	} elsa {
+		kristoff.main();
+	}
+}

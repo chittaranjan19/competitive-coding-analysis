@@ -1,0 +1,91 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define ll long long
+
+const ll mod = 1000000007;
+
+ll modpow(ll a, ll b)
+{
+    ll x=1ll, y=a;
+    while(b){
+        if(b%2)
+            x=(x*y)%mod;
+        y=(y*y)%mod;
+        b/=2;
+    }
+    return x;
+}
+
+ll dp[2100][2100], fact[2100], mfact[2100];
+int n, h, arr[2100];
+
+ll solve(int cur, int open)
+{
+    int req;
+    ll ret;
+    if(cur>=n){
+        if(open>1)
+            return 0;
+        else
+            return 1;
+    }
+    /*if(cur==(n-1)){
+        if(open>2 || ((h-arr[cur])>1) || arr[cur]>h)
+            return 0;
+        if(open==2){
+            if((h-arr[cur])==1)
+                return 1;
+            else
+                return 0;
+        }
+        else if(open==1 && (h-arr[cur]==1))
+            return 2;
+        else
+            return 1;
+    }*/
+    //cout << cur << "\n";
+    if(dp[cur][open]!=-1)
+        return dp[cur][open];
+    if(arr[cur]>h)
+        return 0;
+    if((h-arr[cur])>(open+1))
+        return 0;
+    req = h-arr[cur];
+    if((open-req)>1)
+        return 0;
+    if(req==(open+1)){
+        ret = solve(cur+1, req);
+    }
+    else if(req==open){
+        ret = (solve(cur+1, req)*(open + 1))%mod;
+    }
+    else{
+        ret = (solve(cur+1, req)*open)%mod;
+        //ret = (fact[open]*mfact[req])%mod;
+        //ret = (ret*mfact[open-req])%mod;
+
+        //ret = (ret*solve(cur+1, req))%mod;
+    }
+    
+    
+    //ret = (ret*solve(cur+1, req))%mod;
+    //cout << cur << " " << open << " " <<  ret << " " << req << "\n";
+    return dp[cur][open] = ret;
+}
+
+int main()
+{
+    ll i, j;
+    fact[0] = 1ll;
+    for(i=1; i<2100; i++)
+        fact[i] = (fact[i-1]*i)%mod, mfact[i] = modpow(fact[i], mod-2);
+    mfact[0] = mfact[1] = 1;
+    scanf("%d%d", &n, &h);
+    for(i=0; i<n; i++)
+        scanf("%d", &arr[i]);
+    memset(dp, -1, sizeof(dp));
+    printf("%I64d\n", solve(0, 0));
+    return 0;   
+}

@@ -1,0 +1,108 @@
+import java.util.*;
+
+public class MishkaAndInterestingSum {
+    static public class MySegmentTreeNode {
+
+        class Node {
+            private HashMap<Integer, Integer> hm;
+
+            private Node left;
+            private Node right;
+
+            Node() {
+                hm = new HashMap<>();
+                left = null;
+                right = null;
+            }
+
+        }
+
+        Node root;
+        int n;
+
+        public MySegmentTreeNode(int[] a) {
+            n = a.length;
+            root = new Node();
+            buildTree(a, 0, n - 1, root);
+        }
+
+        private HashMap<Integer, Integer> buildTree(int[] a, int begin, int end, Node node) {
+
+            if (begin == end) {
+                node.hm.put(a[begin], 1);
+            } else {
+                int mid = begin - (begin - end) / 2;
+                node.left = new Node();
+                HashMap<Integer, Integer> lhm = buildTree(a, begin, mid, node.left);
+                node.right = new Node();
+                HashMap<Integer, Integer> rhm = buildTree(a, mid + 1, end, node.right);
+
+                node.hm.putAll(lhm);
+                for (Map.Entry<Integer, Integer> e : rhm.entrySet()) {
+                    if (node.hm.containsKey(e.getKey())) {
+                        node.hm.put(e.getKey(), node.hm.get(e.getKey()) + e.getValue());
+                    } else {
+                        node.hm.put(e.getKey(), e.getValue());
+                    }
+                }
+            }
+            return node.hm;
+        }
+
+        public int getXOR(int begin, int end) {
+            int ans = 0;
+            HashMap<Integer, Integer> f = getXORUtil(0, n - 1, begin, end, root);
+            for (Map.Entry<Integer, Integer> e : f.entrySet()) {
+                if (e.getValue() % 2 == 0) {
+                    ans = ans ^ e.getKey();
+                }
+            }
+            return ans;
+        }
+
+        private HashMap<Integer, Integer> getXORUtil(int rangeBegin, int rangeEnd, int queryBegin, int queryEnd, Node treeNode) {
+            if (queryBegin <= rangeBegin && queryEnd >= rangeEnd)
+                return treeNode.hm;
+
+            if (queryEnd < rangeBegin || queryBegin > rangeEnd)
+                return new HashMap<Integer,Integer>();
+
+            int rangeMid = rangeBegin - (rangeBegin - rangeEnd) / 2;
+            HashMap<Integer, Integer> lhm = getXORUtil(rangeBegin, rangeMid, queryBegin, queryEnd, treeNode.left);
+            HashMap<Integer, Integer> rhm = getXORUtil(rangeMid + 1, rangeEnd, queryBegin, queryEnd, treeNode.right);
+            HashMap<Integer, Integer> ret = new HashMap<>();
+            ret.putAll(lhm);
+            for (Map.Entry<Integer, Integer> e : rhm.entrySet()) {
+                if (ret.containsKey(e.getKey())) {
+                    ret.put(e.getKey(), ret.get(e.getKey()) + e.getValue());
+                } else {
+                    ret.put(e.getKey(), e.getValue());
+                }
+            }
+            return ret;
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+
+        int n = in.nextInt();
+        int[] a = new int[n];
+        for (int i = 0; i < n; i++) {
+            a[i] = in.nextInt();
+        }
+
+        MySegmentTreeNode segTree = new MySegmentTreeNode(a);
+
+        int m = in.nextInt();
+        while (m-- > 0 - 0) {
+            int l = in.nextInt()-1;
+            int r = in.nextInt()-1;
+
+            System.out.println(segTree.getXOR(l, r));
+        }
+
+
+        in.close();
+    }
+}

@@ -1,0 +1,133 @@
+#include <bits/stdc++.h>
+#define ll long long
+
+using namespace std;
+
+const int MOD = (int)1e9 + 7;
+
+int a[100];
+int n;
+
+class Matrix
+{
+    public: int n;
+    public: int mod;
+    public: vector<vector<int> > matrix;
+
+    public: Matrix(int n, int mod)
+    {
+        this->n = n;
+        this->mod = mod;
+        matrix.resize(n);
+        for (int i = 0; i < n; i++)
+            matrix[i].resize(n, 0);
+    }
+
+    public: void mult(Matrix m)
+    {
+        vector<vector<int> > ans(n, vector<int> (n, 0));
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                for (int k = 0; k < n; k++)
+                    if (a[i] >= a[k] && a[k] >= a[j])
+                        ans[i][j] = max(ans[i][j], matrix[k][j] + m.matrix[i][k]);
+        swap(matrix, ans);
+    }
+
+    public: void mult()
+    {
+        vector<vector<int> > ans(n, vector<int> (n, 0));
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                for (int k = 0; k < n; k++)
+                    if (a[i] >= a[k] && a[k] >= a[j])
+                        ans[i][j] = max(ans[i][j], matrix[k][j] + matrix[i][k]);
+        swap(matrix, ans);
+    }
+
+    public: void binpow(int p)
+    {
+        Matrix tmp = Matrix(n, mod);
+        tmp.matrix = matrix;
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                matrix[i][j] = (i == j ? 0 : 0);
+        while (p)
+        {
+            if (p & 1)
+                mult(tmp);
+            tmp.mult();
+            p >>= 1;
+        }
+    }
+
+    public: void print()
+    {
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j < n; j++)
+                cout << matrix[i][j] << " ";
+            cout << endl;
+        }
+    }
+
+};
+
+class Vector
+{
+    public: int n;
+    public: int mod;
+    public: vector<int> vect;
+
+    public: Vector(int n, int mod)
+    {
+        this->n = n;
+        this->mod = mod;
+        vect.resize(n, 0);
+    }
+
+    public: void mult(Matrix m)
+    {
+        vector<int> ans(n, 0);
+        for (int i = 0; i < n; i++)
+            for (int k = 0; k < n; k++)
+                if (a[i] >= a[k])
+                    ans[i] = max(ans[i], vect[k] + m.matrix[i][k]);
+        swap(vect, ans);
+    }
+
+    public: void print()
+    {
+        for (int i = 0; i < n; i++)
+            cout << vect[i] << endl;
+    }
+
+};
+
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int t;
+    cin >> n >> t;
+    for (int i = 0; i < n; i++)
+        cin >> a[i];
+    Vector vect = Vector(n, 0);
+    Matrix matrix = Matrix(n, 0);
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+            if (a[i] >= a[j])
+                matrix.matrix[i][j] = max(matrix.matrix[i][j], 1);
+        for (int j = 0; j < i; j++)
+            if (a[i] >= a[j])
+                for (int k = 0; k < n; k++)
+                    if (a[j] >= a[k])
+                        matrix.matrix[i][k] = max(matrix.matrix[i][k], matrix.matrix[j][k] + 1);
+    }
+    matrix.binpow(t);
+    vect.mult(matrix);
+    int ans = 0;
+    for (int i = 0; i < n; i++)
+        ans = max(ans, vect.vect[i]);
+    cout << ans;
+}

@@ -1,0 +1,169 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define mp make_pair
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1.3e5;
+
+void setmax (int &a, int b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+int N, M;
+vector<int> adj[MAXN];
+bool A[MAXN];
+int ldown[MAXN];	//largest dist DOWN
+int ldist[MAXN];	//largest dist for real
+
+int dfsldown (int x, int p) {
+	if (A[x]) {
+		ldown[x] = 0;
+	}
+	for (int t : adj[x]) {
+		if (t != p) {
+			int res = dfsldown(t, x);
+			if (res != -1) {
+				setmax(ldown[x], res + 1);
+			}
+		}
+	}
+	return ldown[x];
+}
+
+void dfslup (int x, int p, int d) {
+	if (A[x]) {
+		setmax(d, 0);
+	}
+	printf("x = %d, d = %d\n", x, d);
+	ldist[x] = d;
+	vector<pii> dists;
+	for (int t : adj[x]) {
+		if (t != p) {
+			dists.push_back(pii(ldown[t], t));
+		}
+	}
+	auto mit = max_element(all(dists));
+	rep(it, dists) {
+		int mx = A[x] ? 0 : -1;
+		if (it == mit) {
+			rep(jt, dists) {
+				if (jt != it) {
+					setmax(mx, jt->first);
+				}
+			}
+		} else {
+			mx = mit->first;
+		}
+		if (mx != -1) {
+			mx++;
+		}
+		//the bug was right here :(
+		// printf("distance up from %d is %d\n", , d == -1 ? -1 : d + 1);
+		if (d != -1) {
+			setmax(mx, d + 1);
+		}
+		mx = max(mx, d);
+		// printf("x = %d, t = %d, mx = %d, d = %d\n", x, it->se, mx, d);
+		ldist[it->second] = mx;
+		dfslup(it->second, x, mx);
+	}
+}
+
+int sub[MAXN], dep[MAXN];
+
+int dfssub (int x, int p, int d) {
+	int &ref = sub[x];
+	ref = A[x];
+	dep[x] = d;
+	for (int t : adj[x]) {
+		if (t != p) {
+			ref += dfssub(t, x, d + 1);
+		}
+	}
+	return ref;
+}
+
+int tot[MAXN];
+
+int dfsreach1 (int x, int p) {
+	if ((A[x] && sub[x] == 1) || sub[x] == 0) {
+		return 0;
+	}
+	int res = 0;
+	for (int t : adj[x]) {
+		if (t != p && sub[t]) {
+			res += dfsreach1(t, x) + 2;
+		}
+	}
+	return res;
+}
+
+int reach[MAXN];
+
+void dfsreach2 (int x, int p, int d) {
+	// printf("reach[%d] = %d\n", x, d);
+	reach[x] = d;
+	for (int t : adj[x]) {
+		if (t == p) {
+			continue;
+		}
+		int nd = d;
+		if (sub[t] == M) {
+			nd -= 2;
+		} else if (sub[t] == 0) {
+			nd += 2;
+		}
+		dfsreach2(t, x, nd);
+	}
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 1, a, b; i < N; i++) {
+		cin >> a >> b;
+		adj[a].push_back(b);
+		adj[b].push_back(a);
+	}
+	for (int i = 0, x; i < M; i++) {
+		cin >> x;
+		A[x] = true;
+	}
+	fillchar(ldown, -1);
+	dfsldown(1, 0);
+	fillchar(ldist, -1);
+	dfslup(1, 0, -1);
+	for (int i = 1; i <= N; i++) {
+		setmax(ldist[i], ldown[i]);
+		// printf("ldist[%d] = %d, ldown[%d] = %d\n", i, ldist[i], i, ldown[i]);
+	}
+	//what about the total dist?
+	dfssub(1, 0, 0);
+	reach[1] = dfsreach1(1, 0);
+	// printf("reach = %d\n", reach[1]);
+	dfsreach2(1, 0, reach[1]);
+	int ans = INT_MAX, id = 0;
+	for (int i = 1; i <= N; i++) {
+		int r = reach[i] - ldist[i];
+		if (ans > r) {
+			ans = r;
+			id = i;
+		}
+	}
+	printf("%d\n%d\n", id, ans);
+}

@@ -1,0 +1,102 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 17, MAXLG = 17;
+
+struct node {
+	int size;
+	int lt, rt;
+	ll cnt;
+	bool full() const {
+		return lt == size;
+	}
+	node operator + (const node &r) const {
+		node n;
+		n.size = size + r.size;
+		n.lt = full() ? size + r.lt : lt;
+		n.rt = r.full() ? rt + r.size : r.rt;
+		n.cnt = cnt + r.cnt + ll(rt) * r.lt;
+		return n;
+	}
+} zero;
+
+bool testbit (int x, int b) {
+	return (x >> b) & 1;
+}
+
+int N, Q;
+bool A[MAXN][MAXLG];
+node tree[MAXLG][2 * MAXN];
+
+void update (int i, int x) {
+	node *tr = tree[i], &ref = tr[x += MAXN];
+	ref.lt = ref.rt = ref.cnt = !ref.lt;
+	while (x /= 2) {
+		tr[x] = tr[2 * x] + tr[2 * x + 1];
+	}
+}
+
+node query (int i, int a = 0, int b = N, int cur = 1, int l = 0, int r = MAXN) {
+	if (r <= a || b <= l) {
+		return zero;
+	}
+	if (a <= l && r <= b) {
+		return tree[i][cur];
+	}
+	int mid = (l + r) / 2;
+	return query(i, a, b, 2 * cur, l, mid) + query(i, a, b, 2 * cur + 1, mid, r);
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> Q;
+	for (int i = 0, x; i < N; i++) {
+		cin >> x;
+		for (int j = 0; j < MAXLG; j++) {
+			A[i][j] = testbit(x, j);
+		}
+	}
+	for (int i = 0; i < MAXLG; i++) {
+		//ok let's do it
+		node *tr = tree[i];
+		for (int j = 0; j < N; j++) {
+			node &ref = tr[j + MAXN];
+			ref.size = 1;
+			bool b = A[j][i];
+			ref.lt = ref.rt = ref.cnt = b;
+		}
+		for (int j = MAXN - 1; j; j--) {
+			tr[j] = tr[2 * j] + tr[2 * j + 1];
+		}
+	}
+	for (int p, v; Q--; ) {
+		cin >> p >> v;
+		p--;	//zero-based indexing. damn now i remember.
+		ll ans = 0;
+		for (int i = 0; i < MAXLG; i++) {
+			bool &b = A[p][i];
+			if (b != testbit(v, i)) {
+				// cerr << "upd " << i << endl;
+				update(i, p);
+				b ^= true;
+			}
+			ans += query(i).cnt << i;
+		}
+		cout << ans << '\n';
+	}
+	//thank you.
+}

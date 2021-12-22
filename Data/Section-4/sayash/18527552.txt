@@ -1,0 +1,85 @@
+#include<iostream>
+#include<vector>
+#include<climits>
+#include<queue>
+#include<utility>
+#include<algorithm>
+using namespace std;
+
+#define pii pair<int, int>
+#define mp make_pair
+#define pb push_back
+
+vector< pii > adjlist[100005];
+bool vis[100005];
+int dis[100005];
+//vector<int> visited[100005];
+int par[100005];
+class prioritize{  
+  public: bool operator()(pair<int, int> &p1, pair<int, int> &p2){
+    return p1.second > p2.second;
+  }
+};
+
+
+void dijkstra(int a, int b){
+  
+  for(int i = 0; i <= b; i++){
+    vis[i] = false;
+    dis[i] = INT_MAX;
+    //visited[i].clear();
+  }
+  
+  priority_queue<pii, vector<pii>, prioritize> pq;
+  
+  pq.push(mp(a, 0));
+  dis[a] = 0;
+  //visited[1].pb(1);
+  while(!pq.empty()){
+    pii cur = pq.top();
+    pq.pop();
+    int cv = cur.first;
+    int cw = cur.second;
+    if(vis[cv])continue;
+    vis[cv] = true;
+    for(pii x: adjlist[cv]){
+      if(!vis[x.first] && x.second + dis[cv] < dis[x.first]){
+	dis[x.first] = x.second + dis[cv];
+	pq.push(mp(x.first, dis[x.first]));
+	par[x.first] = cv;
+      }
+    }
+  }
+}
+
+int main(){
+
+  int n, m, v1, v2, w, i;
+
+  cin >> n >> m;
+
+  for(i = 0; i < m; i++){
+    cin >> v1 >> v2 >> w;
+    adjlist[v1].pb(mp(v2, w));
+    adjlist[v2].pb(mp(v1, w));
+  }
+
+  dijkstra(1,n);
+  if(dis[n] == INT_MAX){
+    cout << -1 << endl;
+    return 0;
+  }
+  vector<int> final;
+  i = n;
+  while(par[i] != 1){
+    final.pb(par[i]);
+    i = par[i];
+  }
+
+  final.pb(1);
+  reverse(final.begin(), final.end());
+  final.pb(n);
+  for(i = 0; i != final.size(); i++)cout << final[i] << ' ';
+    
+  return 0;
+}

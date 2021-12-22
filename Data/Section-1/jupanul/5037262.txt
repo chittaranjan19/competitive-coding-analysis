@@ -1,0 +1,103 @@
+#include<cstdio>
+#include<cmath>
+#include<iostream>
+#include<vector>
+#include<list>
+#include<cstring>
+#include<algorithm>
+using namespace std;
+vector<int> G[805];
+list<int> Q;
+int flux,C[805][805];
+double cost[805][805];
+int F[805][805];
+struct Point {int x,y;} a[405];int Drum;
+double Dist[805];
+int From[805];
+int U[805];
+double BellmanFord(int n)
+{
+    for(int i=1;i<=n;i++)
+    {
+        Dist[i]=1000000000.0;
+        From[i]=-1;
+    }
+    Dist[0]=0;
+    Q.clear();
+    memset(U,0,sizeof(U));
+    U[0]=1;
+    for(Q.push_back(0);!Q.empty();Q.pop_front())
+    {
+        for(vector<int>::iterator it=G[Q.front()].begin();it!=G[Q.front()].end();it++)
+            if(C[Q.front()][*it]-F[Q.front()][*it]>0 && Dist[Q.front()]+cost[Q.front()][*it]<Dist[*it])
+            {
+                Dist[*it] = Dist[Q.front()] + cost[Q.front()][*it];
+                From[*it] = Q.front();
+                if (!U[*it])
+                {
+                    Q.push_back(*it);
+                    U[*it] = 1;
+                }
+            }
+        U[Q.front()] = 0;
+    }
+    if (Dist[n] != 1000000000.0)
+    {
+        int Vmin = 1000000000;
+        Drum = 1;
+        for (int i = n; i != 0; i = From[i]) Vmin = min(Vmin, C[From[i]][i] - F[From[i]][i]);
+
+        for (int i = n; i != 0; i = From[i])
+        {
+            F[From[i]][i] += Vmin;
+            F[i][From[i]] -= Vmin;
+        }
+        flux+=Vmin;
+        return Vmin * Dist[n];
+    }
+
+    return 0;
+}
+pair<int,double> MaxFlowMinCost(int n)
+{
+    ///sursa 0, destinatia n:
+    double Rez=0;
+    Drum=true;
+    while(Drum)
+    {
+        Drum=false;
+        Rez+=BellmanFord(n);
+    }
+    return make_pair(flux,Rez);
+}
+int main()
+{
+    int n;
+    ///freopen("f.in","r",stdin);
+    cin>>n;
+    for(int i=1;i<=n;i++)
+        cin>>a[i].x>>a[i].y;
+    for(int i=1;i<=n;i++)
+        for(int j=1;j<=n;j++)
+            if(a[i].y>a[j].y)
+            {
+                G[i].push_back(n+j);
+                G[n+j].push_back(i);
+                C[i][n+j]=1;
+                cost[i][n+j]=sqrt(1.0*(a[i].x-a[j].x)*(a[i].x-a[j].x)+1.0*(a[i].y-a[j].y)*(a[i].y-a[j].y));
+                cost[n+j][i]=-cost[i][n+j];
+            }
+    for(int i=1;i<=n;i++)
+    {
+        G[0].push_back(i);
+        C[0][i]=2;
+        C[i+n][2*n+1]=1;
+        G[i+n].push_back(2*n+1);
+    }
+    pair<int,double> ans=MaxFlowMinCost(2*n+1);
+    if(ans.first!=n-1)
+        cout<<-1<<endl;
+    else
+        printf("%.14lf\n",ans.second);
+    return 0;
+}

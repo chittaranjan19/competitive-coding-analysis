@@ -1,0 +1,76 @@
+// In The Name Of ALLAH
+
+#include<bits/stdc++.h>
+#define LL long long
+#define LB long double
+#define ALL(X) X.begin(),X.end()
+#define DD(X) cout<<#X<<' '<<X<<endl;
+#define Speed_Up; ios_base::sync_with_stdio(0),cin.tie(0),cout.tie(0);
+
+using namespace std;
+
+const long long MOD=1000*1000*1000+7;
+const long long MAXN=223456+100;
+const long long MAXM=200+50;
+const long long INF=1e9+7;
+
+const long long dx[4]={0,0,-1,+1};
+const long long dy[4]={+1,-1,0,0};
+
+ifstream fin("input.txt");
+ofstream fout("output.txt");
+
+int val[MAXN];
+int par[MAXN][20];
+int s[MAXN];
+int f[MAXN];
+vector<int>ver[MAXN];
+vector<int>st[MAXN];
+vector<int>ft[MAXN];
+int T;
+int n;
+
+void dfs(int v=0,int dis=0){
+	val[v]=dis;
+	s[v]=T,st[dis].push_back(T++);
+	for(auto u:ver[v])dfs(u,dis+1);
+	f[v]=T,ft[dis].push_back(T++);
+	return ;
+}
+void Make_Dad(){
+	for(int i=1;i<20;i++)
+		for(int v=0;v<n;v++)
+			par[v][i]=par[par[v][i-1]][i-1];
+	return ;
+}
+int Find_Dad(int x,int y){
+	for(int i=0; y ;i++,y/=2)
+		if(y&1)x=par[x][i];
+	return x;	
+}
+int main(){
+	cin>>n;
+	n++;
+	
+	for(int i=1;i<n;i++){
+		int x;
+		cin>>x;
+		ver[x].push_back(i);
+		par[i][0]=x;
+	}
+	dfs();
+	Make_Dad();
+	int q;
+	cin>>q;
+	while(q--){
+		int x,y;
+		cin>>x>>y;
+		int dad=Find_Dad(x,y);
+		if(dad==0)cout<<0<<' ';
+		else{
+			int first=lower_bound(ALL(st[val[x]]),s[dad])-st[val[x]].begin();
+			int second=lower_bound(ALL(ft[val[x]]),f[dad])-ft[val[x]].begin();
+			cout<<second-first-1<<' ';
+		}
+	}
+}

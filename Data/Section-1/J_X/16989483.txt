@@ -1,0 +1,118 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 7e5 + 5;
+
+struct edge
+{
+    int to, next;
+
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[2][maxn << 1];
+int head[2][maxn], tot[2], has[2][maxn];
+int dfn[maxn], belong[maxn], low[maxn], st[maxn], st_cnt, bcc_cnt, clk;
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot[0] = tot[1] = 0;
+}
+
+void addedge(int u, int v, int k)
+{
+    G[k][tot[k]] = edge(v, head[k][u]);
+    head[k][u] = tot[k]++;
+    G[k][tot[k]] = edge(u, head[k][v]);
+    head[k][v] = tot[k]++;
+}
+
+void dfs1(int u, int fa)
+{
+    dfn[u] = low[u] = ++clk;
+    st[st_cnt++] = u;
+    for(int i = head[0][u]; ~i; i = G[0][i].next)
+    {
+        int v = G[0][i].to;
+        if(v == fa) continue;
+        if(!dfn[v])
+        {
+            dfs1(v, u);
+            low[u] = min(low[u], low[v]);
+        }
+        else if(low[u] > dfn[v])
+        {
+            low[u] = dfn[v];
+        }
+    }
+    if(dfn[u] == low[u])
+    {
+        int v;
+        has[1][++bcc_cnt] = 0;
+        do
+        {
+            v = st[--st_cnt];
+            belong[v] = bcc_cnt;
+            has[1][bcc_cnt] |= has[0][v];
+        } while(u != v);
+    }
+}
+
+void find_bcc(int n)
+{
+    memset(dfn, 0, sizeof(dfn));
+    clk = st_cnt = bcc_cnt = 0;
+    dfs1(1, 0);
+}
+
+int dfs2(int u, int fa)
+{
+    if(has[1][u] > 1) return has[1][u];
+    int ret = has[1][u];
+    for(int i = head[1][u]; ~i; i = G[1][i].next)
+    {
+        int v = G[1][i].to;
+        if(v == fa) continue;
+        int tmp = dfs2(v, u);
+        if(tmp == 3 || (ret == 1 && tmp == 2)) ret = 3;
+        else if(tmp == 2) ret = 2;
+    }
+    return ret;
+}
+
+int main()
+{
+    init();
+    int n, m, s, t;
+    scanf("%d%d", &n, &m);
+    int now = n;
+    for(int i = 0; i < m; ++i)
+    {
+        int u, v, w;
+        scanf("%d%d%d", &u, &v, &w);
+        if(w)
+        {
+            ++now;
+            addedge(u, now, 0);
+            addedge(v, now, 0);
+            has[0][now] = 1;
+        }
+        else addedge(u, v, 0);
+    }
+    scanf("%d%d", &s, &t);
+    has[0][t] |= 2;
+    find_bcc(now);
+    for(int i = 0; i < tot[0]; i += 2)
+    {
+        int u = G[0][i].to, v = G[0][i ^ 1].to;
+        if(belong[u] != belong[v])
+        {
+            addedge(belong[u], belong[v], 1);
+        }
+    }
+    puts(dfs2(belong[s], 0) == 3 ? "YES" : "NO");
+    return 0;
+}

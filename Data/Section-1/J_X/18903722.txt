@@ -1,0 +1,150 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#define ls rt << 1
+#define rs rt << 1 | 1
+#define lson ls, l, m
+#define rson rs, m + 1, r
+
+using namespace std;
+
+const int maxn = 1e6 + 5;
+
+int par[maxn], ran[maxn];
+struct edge
+{
+    int to, next;
+
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxn << 2;
+struct edge1
+{
+    int u, v, w, id;
+} G1[maxn];
+int head[maxn << 2], tot, p[maxn], cnt;
+
+bool operator < (const edge1 &a, const edge1 &b)
+{
+    return a.w < b.w;
+}
+
+bool cmp1(const edge1 &a, const edge1 &b)
+{
+    return a.id < b.id;
+}
+
+bool cmp2(int a, int b)
+{
+    return G1[a].w < G1[b].w;
+}
+
+void initp(int x)
+{
+    int u = G1[x].u, v = G1[x].v;
+    par[u] = u;
+    par[v] = v;
+    ran[u] = ran[v] = 0;
+}
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u]);
+    head[u] = tot++;
+}
+
+int findp(int x)
+{
+    if(x == par[x]) return x;
+    int y = findp(par[x]);
+    ran[x] ^= ran[par[x]];
+    par[x] = y;
+    return y;
+}
+
+int unite(int u, int v)
+{
+    int x = findp(u), y = findp(v);
+    if(x == y) return ran[u] == ran[v];
+    par[y] = x;
+    ran[y] = ran[u] ^ 1 ^ ran[v];
+    return -1;
+}
+
+void build(int rt, int l, int r)
+{
+    if(l == r)
+    {
+        addedge(rt, l);
+        return;
+    }
+    int m = (l + r) >> 1;
+    build(lson);
+    build(rson);
+    inplace_merge(G1 + l, G1 + m + 1, G1 + r + 1);
+    for(int i = l; i <= r; ++i) initp(i);
+    for(int i = r; i >= l; --i)
+    {
+        int u = G1[i].u, v = G1[i].v;
+        int flag = unite(u, v);
+        if(flag) addedge(rt, G1[i].id);
+        if(flag == 1) break;
+    }
+}
+
+void query(int rt, int l, int r, int x, int y)
+{
+    if(x <= l && r <= y)
+    {
+        for(int i = head[rt]; ~i; i = G[i].next)
+        {
+            int v = G[i].to;
+            p[cnt++] = v;
+            initp(v);
+        }
+        return;
+    }
+    int m = (l + r) >> 1;
+    if(x <= m) query(lson, x, y);
+    if(m < y) query(rson, x, y);
+}
+
+int main()
+{
+    int n, m, q;
+    init();
+    scanf("%d%d%d", &n, &m, &q);
+    for(int i = 1; i <= m; ++i)
+    {
+        scanf("%d%d%d", &G1[i].u, &G1[i].v, &G1[i].w);
+        G1[i].id = i;
+    }
+    build(1, 1, m);
+    sort(G1 + 1, G1 + m + 1, cmp1);
+    while(q--)
+    {
+        int l, r;
+        scanf("%d%d", &l, &r);
+        cnt = 0;
+        query(1, 1, m, l, r);
+        sort(p, p + cnt, cmp2);
+        int ans = -1;
+        for(int i = cnt - 1; i >= 0; --i)
+        {
+            int d = p[i];
+            if(unite(G1[d].u, G1[d].v) == 1)
+            {
+                ans = G1[d].w;
+                break;
+            }
+        }
+        printf("%d\n", ans);
+    }
+    return 0;
+}

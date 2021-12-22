@@ -1,0 +1,104 @@
+#include<bits/stdc++.h>
+#define MAXN 200009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+vector<int>adj[MAXN];
+char s[MAXN],t[MAXN];
+void add(int u,int v){
+	adj[u].pb(v);
+}
+int dis[MAXN],n,k,son;
+int flood(int x){
+	if(x==son)
+		return INF;
+	if(x%n==0)
+		return n;
+	return x%n;	
+}
+int main(){
+	scanf("%d%d",&n,&k);
+	scanf("%s",s+1);
+	scanf("%s",t+1);
+	son=2*n+1;
+	for(int i=1;i<=n;i++){
+		if(s[i]=='-' and s[i+1]!='X'){
+			if(i<n)
+				add(i,i+1);
+			else
+				add(i,son);	
+		}
+		if(s[i]=='-' and s[i-1]=='-' and i>1)
+			add(i,i-1);	
+		if(s[i]=='-' and t[i+k]!='X'){
+			if(i+k<=n)
+				add(i,n+i+k);
+			else
+				add(i,son);	
+		}
+		if(t[i]=='-' and t[i+1]!='X'){
+			if(i<n)
+				add(i+n,i+n+1);
+			else
+				add(i+n,son);	
+		}
+		if(t[i]=='-' and t[i-1]=='-' and i>1)
+			add(i+n,i+n-1);	
+		if(t[i]=='-' and s[i+k]!='X'){
+			if(i+k<=n)
+				add(n+i,i+k);	
+			else
+				add(n+i,son);	
+		}
+	}
+	fill(dis,dis+MAXN,INF);
+	dis[1]=0;
+	priority_queue<PII,vector<PII>,greater<PII> >q;
+	q.push(mp(0,1));
+	while(!q.empty()){
+		int u=q.top().ff;
+		int nd=q.top().ss;
+		q.pop();
+		if(nd==son)
+			break;
+		if(dis[nd]!=u)
+			continue;
+		for(int i=0;i<adj[nd].size();i++){
+			int to=adj[nd][i];
+			if(dis[to]>dis[nd]+1 and dis[nd]+1<flood(to)){
+				dis[to]=dis[nd]+1;
+				q.push(mp(dis[to],to));	
+			}
+		}
+	}
+	if(dis[son]!=INF)
+		printf("YES\n");
+	else
+		printf("NO\n");	
+	return 0;
+}
+/*
+7 3
+---X--X
+-X--XX-
+YES
+
+6 2
+--X-X-
+X--XX-
+NO
+*/

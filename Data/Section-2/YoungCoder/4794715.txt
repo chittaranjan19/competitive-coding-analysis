@@ -1,0 +1,79 @@
+# include <iostream>
+# include <cstdlib>
+# include <cstdio>
+
+using namespace std;
+
+const int N = 1000000;
+int n, m, l, r, x, a[N], d[N << 2];
+
+void build_tree (int v, int L, int R)
+{
+    if (L == R)
+    {
+        a[R] = v;
+        return;
+    }
+    int m = ((L + R) >> 1), nv = (v << 1);
+    build_tree (nv, L, m);
+    build_tree (nv ^ 1, m + 1, R);
+}
+
+void update (int v, int L, int R, int l, int r, int x)
+{
+    /*cout << v << " " << " " << L << " " << R << "\n";
+    system ("pause");*/
+    if (l <= L && R <= r)
+    {
+        if (d[v] == 0)
+            d[v] = x;
+        return;
+    }
+    if (L > r || R < l)
+        return;
+    int  m = ((L + R) >> 1), nv = (v << 1);
+    update (nv, L, m, l, r, x);
+    update (nv ^ 1, m + 1, R, l, r, x);
+}
+
+void push_down (int v, int L, int R)
+{
+    if (L == R)
+        return;
+
+    int nv = (v << 1), m = ((L + R) >> 1);
+
+    if (d[v] != 0)
+    {
+        if (d[nv] == 0)
+            d[nv] = d[v];
+        if (d[nv ^ 1] == 0)
+            d[nv ^ 1] = d[v];
+    }
+
+    push_down (nv, L, m);
+    push_down (nv ^ 1, m + 1, R);
+}
+
+int main ()
+{
+    cin >> n >> m;
+
+    build_tree (1, 1, n);
+
+    for (int i = 1; i <= m; ++i)
+    {
+        cin >> l >> r >> x;
+        if (x != l)
+            update (1, 1, n, l, x - 1, x);
+        if (x != r)
+            update (1, 1, n, x + 1, r, x);
+    }
+
+    push_down (1, 1, n);
+
+    for (int i = 1; i <= n; ++i)
+        cout << d[a[i]] << " ";
+
+    return 0;
+}

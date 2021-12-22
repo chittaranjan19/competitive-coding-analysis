@@ -1,0 +1,112 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define maxC 2000000007
+#define mn 100005
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int n, m, p, dp[301][301], a[301][301], r = 0, ans = maxC;
+pair< int, pair<int, int> > tem[301 * 301];
+struct interval
+{
+    int tree[1300];
+
+    void build()
+    {
+        FOR(i, 1, 1299)
+            tree[i] = maxC;
+    }
+
+    void update(int l, int r, int id, int x, int v)
+    {
+        if (l > x || r < x)
+            return;
+        if (l == r)
+        {
+            tree[id] = v;
+            return;
+        }
+        int g = ((l + r) >> 1);
+        update(l, g, id << 1, x, v);
+        update(g + 1, r, (id << 1) + 1, x, v);
+        tree[id] = min(tree[id << 1], tree[(id << 1) + 1]);
+    }
+
+    int get(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return maxC;
+        if (x <= l && r <= y)
+            return tree[id];
+        int g = ((l + r) >> 1);
+        int a = get(l, g, id << 1, x, y);
+        int b = get(g + 1, r, (id << 1) + 1, x, y);
+        return min(a, b);
+    }
+} tl[301], tr[301];
+
+void setup()
+{
+    cin >> n >> m >> p;
+    FOR(i, 1, n)
+    FOR(j, 1, m)
+    {
+        tl[i].build();
+        tr[i].build();
+        cin >> a[i][j];
+        tem[++ r] = mp(a[i][j], mp(i, j));
+    }
+    sort(tem + 1, tem + r + 1);
+}
+
+void xuly()
+{
+    tl[tem[r].S.F].update(1, m, 1, tem[r].S.S, - tem[r].S.S);
+    tr[tem[r].S.F].update(1, m, 1, tem[r].S.S, tem[r].S.S);
+    FORD(i, r - 1, 1)
+    {
+        while(tem[r].F > tem[i].F + 1)
+        {
+            int x = tem[r].S.F;
+            int y = tem[r].S.S;
+            tl[x].update(1, m, 1, y, maxC);
+            tr[x].update(1, m, 1, y, maxC);
+            r --;
+        }
+        int x = tem[i].S.F;
+        int y = tem[i].S.S;
+        dp[x][y] = maxC;
+        FOR(j, 1, x)
+        {
+            int valL = tl[j].get(1, m, 1, 1, y);
+            int valR = tr[j].get(1, m, 1, y + 1, m);
+            dp[x][y] = min(dp[x][y], min(x - j + y + valL, x - j + valR - y));
+        }
+        FOR(j, x + 1, n)
+        {
+            int valL = tl[j].get(1, m, 1, 1, y);
+            int valR = tr[j].get(1, m, 1, y + 1, m);
+            dp[x][y] = min(dp[x][y], min(j - x + y + valL, j - x + valR - y));
+        }
+        tl[x].update(1, m, 1, y, dp[x][y] - y);
+        tr[x].update(1, m, 1, y, dp[x][y] + y);
+        if (a[x][y] == 1)
+            ans = min(ans, x - 1 + y - 1 + dp[x][y]);
+    }
+    cout << ans;
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}
+

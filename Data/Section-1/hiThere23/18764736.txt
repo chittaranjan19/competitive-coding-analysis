@@ -1,0 +1,118 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 5005
+#define maxC 1000000007
+#define base 100007
+#define X first
+#define Y second
+#define mp make_pair
+
+using namespace std;
+int n, convex[mn << 1], r = 0, ba, bb, bc, nex[mn];
+long long s;
+pair<int, int> p[mn], ans[7];
+
+long long ccw(pair<int, int> a, pair<int, int> b, pair<int, int> c)
+{
+    return 1ll * (b.X - a.X) * (c.Y - b.Y) - 1ll * (b.Y - a.Y) * (c.X - b.X);
+}
+
+void setup()
+{
+    cin >> n >> s;
+    FOR(i, 1, n)
+        cin >> p[i].X >> p[i].Y;
+}
+
+void makeConvex()
+{
+    sort(p + 1, p + n + 1);
+    FOR(i, 1, n)
+    {
+        while(r >= 2 && ccw(p[convex[r - 1]], p[convex[r]], p[i]) <= 0)
+            r --;
+        convex[++ r] = i;
+    }
+    int top = r;
+    FORD(i, n - 1, 1)
+    {
+        while(r > top && ccw(p[convex[r - 1]], p[convex[r]], p[i]) <= 0)
+            r --;
+        convex[++ r] = i;
+    }
+    r --;
+}
+
+long long area(int x, int y, int z)
+{
+    long long re = 1ll * p[x].X * (p[y].Y - p[z].Y) + 1ll * p[y].X * (p[z].Y - p[x].Y) + 1ll * p[z].X * (p[x].Y - p[y].Y);
+    return (re < 0? - re : re);
+}
+
+void findBest()
+{
+    int a = convex[1];
+    int b = convex[2];
+    int c = convex[3];
+    while(true)
+    {
+        while(true)
+        {
+            while(area(a, b, c) <= area(a, b, nex[c]))
+                c = nex[c];
+            if (area(a, b, c) <= area(a, nex[b], c))
+                b = nex[b];
+            else
+                break;
+        }
+        if (area(a, b, c) > area(ba, bb, bc))
+            ba = a, bb = b, bc = c;
+        a = nex[a];
+        if (a == b)
+            b = nex[b];
+        if (b == c)
+            c = nex[c];
+        if (a == convex[1])
+            return;
+    }
+}
+
+pair< pair<int, int>, pair<int, int> > getPar(int a, int b, int c)
+{
+    int x = p[b].X - p[c].X;
+    int y = p[b].Y - p[c].Y;
+    return mp(mp(p[a].X - x, p[a].Y - y), mp(p[a].X + x, p[a].Y + y));
+}
+
+void xuly()
+{
+    makeConvex();
+    FOR(i, 1, r)
+        nex[convex[i]] = convex[i + 1];
+    ba = convex[1];
+    bb = convex[2];
+    bc = convex[3];
+    findBest();
+    pair< pair<int, int> , pair<int, int> > A = getPar(ba, bb, bc);
+    pair< pair<int, int> , pair<int, int> > B = getPar(bb, bc, ba);
+    pair< pair<int, int> , pair<int, int> > C = getPar(bc, ba, bb);
+    ans[1] = A.X;
+    ans[2] = A.Y;
+    ans[3] = B.X;
+    ans[4] = B.Y;
+    ans[5] = C.X;
+    ans[6] = C.Y;
+    sort(ans + 1, ans + 7);
+    cout << ans[1].X << ' ' << ans[1].Y << '\n' << ans[3].X << ' ' << ans[3].Y << '\n' << ans[5].X << ' ' << ans[5].Y;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

@@ -1,0 +1,105 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1010;
+
+int n, m, q, mat[maxn][maxn];
+int l[maxn][maxn], r[maxn][maxn], u[maxn][maxn], d[maxn][maxn];
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, t, x, y, k, ans, lmn, rmn, umn, dmn;
+	scanf("%d%d%d", &n, &m, &q);
+	for(i=1; i<=n; i++){
+		for(j=1; j<=m; j++){
+			scanf("%d", &mat[i][j]);
+			if(mat[i][j]){
+				l[i][j] = 1+l[i][j-1];
+				u[i][j] = 1+u[i-1][j];
+			}
+		}
+	}
+	for(i=n; i>=1; i--){
+		for(j=m; j>=1; j--){
+			if(mat[i][j]){
+				r[i][j] = 1+r[i][j+1];
+				d[i][j] = 1+d[i+1][j];
+			}
+		}
+	}
+	while(q--){
+		scanf("%d%d%d", &t, &x, &y);
+		if(t==1){
+			mat[x][y]^=1;
+			for(i=1; i<=m; i++){
+				if(mat[x][i])
+					l[x][i] = 1+l[x][i-1];
+				else
+					l[x][i] = 0;
+			}
+			for(i=m; i>=1; i--){
+				if(mat[x][i])
+					r[x][i] = 1+r[x][i+1];
+				else
+					r[x][i] = 0;
+			}
+			for(i=1; i<=n; i++){
+				if(mat[i][y])
+					u[i][y] = 1+u[i-1][y];
+				else
+					u[i][y] = 0;
+			}
+			for(i=n; i>=1; i--){
+				if(mat[i][y])
+					d[i][y] = 1+d[i+1][y];
+				else
+					d[i][y] = 0;
+			}
+		}
+		else{
+			ans = 0;
+			lmn = rmn = inf;
+			for(i=x; i<=n; i++){
+				lmn = min(lmn, l[i][y]);
+				rmn = min(rmn, r[i][y]);
+				ans = max(ans, (rmn+lmn-1)*(i-x+1));
+			}
+			lmn = rmn = inf;
+			for(i=x; i>=1; i--){
+				lmn = min(lmn, l[i][y]);
+				rmn = min(rmn, r[i][y]);
+				ans = max(ans, (rmn+lmn-1)*(x-i+1));
+			}
+			umn = dmn = inf;
+			for(i=y; i<=m; i++){
+				umn = min(umn, u[x][i]);
+				dmn = min(dmn, d[x][i]);
+				ans = max(ans, (dmn+umn-1)*(i-y+1));
+			}
+			umn = dmn = inf;
+			for(i=y; i>=1; i--){
+				umn = min(umn, u[x][i]);
+				dmn = min(dmn, d[x][i]);
+				ans = max(ans, (dmn+umn-1)*(y-i+1));
+			}
+			printf("%d\n", ans);
+		}
+	}
+	return 0;
+}

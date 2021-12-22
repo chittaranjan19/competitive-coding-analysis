@@ -1,0 +1,115 @@
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <cstdlib>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+#define LL long long
+
+using namespace std;
+
+const int Max = 1100000;
+
+const int MAXM = 1<<22;
+
+typedef struct node
+{
+    int L ,R;
+
+    int Id;
+}Point ;
+
+Point a[Max];
+
+LL sum[Max];
+
+LL ans[Max];
+
+int n,m;
+
+LL k;
+
+int L,R;
+
+LL cnt[MAXM],ant;
+
+bool cmp(Point b,Point c)//将区间分块排序
+{
+    if(b.L/400==c.L/400)
+    {
+        return b.R<c.R;
+    }
+    else
+    {
+        return b.L<c.L;
+    }
+}
+
+
+void Dec(LL s) //将多算的数目去除
+{
+    --cnt[s];
+
+    ant-=cnt[s^k];
+}
+
+void Inc(LL s)//将没有遍历的点对应的数目加上
+{
+    ant += cnt[s^k];
+
+    cnt[s]++;
+}
+
+int main()
+{
+    scanf("%d %d %I64d",&n,&m,&k);
+
+    LL data;
+
+    for(int i=1;i<=n;i++) //
+    {
+        scanf("%lld",&sum[i]);
+
+        sum[i]^=sum[i-1];
+
+    }
+
+    for(int i=1;i<=m;i++)
+    {
+        scanf("%d %d",&a[i].L,&a[i].R);
+        a[i].Id = i;
+        a[i].L--;// 在这里提前处理
+    }
+    sort(a+1,a+m+1,cmp);
+
+    L=0,R=0,cnt[0]=1,ant=0;
+
+    for(int i=1;i<=m;i++)
+    {
+        while(R<a[i].R)
+        {
+            Inc(sum[++R]);
+        }
+
+        while(R>a[i].R)
+        {
+            Dec(sum[R--]);
+        }
+        while(L<a[i].L)
+        {
+            Dec(sum[L++]);
+        }
+        while(L>a[i].L)
+        {
+            Inc(sum[--L]);
+        }
+
+        ans[a[i].Id]=ant;
+    }
+    for(int i=1;i<=m;i++)
+    {
+        printf("%I64d\n",ans[i]);
+    }
+    return 0;
+}

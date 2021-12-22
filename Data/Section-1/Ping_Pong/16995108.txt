@@ -1,0 +1,132 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+using namespace std;
+
+int main()
+{
+    long long n, m, s, d, last;
+    cin >> n >> m >> s >> d;
+    long long obstacle_point[n];
+    long long base_for_jump[n + 1];
+    base_for_jump[n] = m;
+    bool dp[n + 1];
+    long long prev[n + 1];
+    for (int i = 0; i < n; ++i)
+    {
+        dp[i] = false;
+        cin >> obstacle_point[i];
+        if (obstacle_point[i] < s + 1)
+        {
+            cout << "IMPOSSIBLE" << endl;
+            return 0;
+        }
+        base_for_jump[i] = obstacle_point[i] - (s + 1);
+    }
+    for (int i = 0; i < n; ++i)
+    {
+        cout << obstacle_point[i] << " ";
+    }
+    cout << endl;
+    for (int i = 0; i < n + 1; ++i)
+    {
+        cout << base_for_jump[i] << " ";
+    }
+    cout << endl;
+    sort(obstacle_point, obstacle_point + n);
+    sort(base_for_jump, base_for_jump + (n + 1));
+    dp[0] = true;
+    prev[0] = -1;
+    for (int i = 0; i < n; ++i)
+    {
+        cout << "i = " << i << endl;
+        if (dp[i] && ((i == 0) || (i == n) || (obstacle_point[i + 1] > base_for_jump[i])))
+        {
+            cout << "i = " << i << endl;
+            last = i;
+            for (int j = i + 1; j < n + 1; ++j)
+            {
+                if (base_for_jump[j] > base_for_jump[i] + s + d)
+                {
+                    if ((obstacle_point[i + 1] > base_for_jump[j]))
+                    {
+                        dp[j] = true;
+                        prev[j] = i;
+                    }
+                    break;
+                }
+                dp[j] = true;
+                last = j;
+                prev[j] = i;
+            }
+            cout << "last = " << last << endl;
+            if ((last < n) && base_for_jump[last + 1] < obstacle_point[last])
+            {
+                dp[last + 1] = true;
+                prev[last + 1] = i;
+            }
+        }
+        else
+        {
+            dp[i] = false;
+        }
+        for (int i = 0; i < n + 1; ++i)
+        {
+            cout << dp[i] << " ";
+        }
+        cout << endl;
+    }
+    if (!dp[n])
+    {
+        cout << "IMPOSSIBLE";
+        return 0;
+    }
+    vector <long long> way;
+    long long curr = n;
+    while (prev[curr] != -1)
+    {
+        way.push_back(curr);
+        curr = prev[curr];
+    }
+    way.push_back(0);
+    reverse(way.begin(), way.end());
+    long long dist = 0;
+    for (int i = 0; i < way.size(); ++i)
+    {
+        cout << way[i] << " ";
+    }
+    cout << endl;
+    for (int i = 0; i < way.size() - 1; ++i)
+    {
+        cout << "i = " << i << endl;
+        if (base_for_jump[way[i + 1]] < obstacle_point[way[i]])
+        {
+            cout << "RUN " << base_for_jump[way[i + 1]] - base_for_jump[way[i]] + dist << endl;
+        }
+        else
+        {
+            if (dist > 0)
+            {
+                cout << "RUN " << dist << endl;
+                dist = 0;
+            }
+            dist = base_for_jump[way[i]] + s + d - base_for_jump[way[i + 1]];
+            if (dist > 0)
+            {
+                cout << "JUMP " << -(dist - s - d) << endl;
+                dist = 0;
+            }
+            else
+            {
+                //cout << "kek";
+                cout << "JUMP " << s + d << endl;
+                dist = abs(dist);
+            }
+        }
+    }
+    //cout << "kek";
+    if(m - base_for_jump[way[way.size() - 1]] + dist > 0)
+        cout << "RUN " << m - base_for_jump[way[way.size() - 1]] + dist << endl;
+}

@@ -1,0 +1,68 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+char s[105][105];
+int g[30][30], c[100], topo[100], t;
+
+bool dfs(int u)
+{
+    c[u] = -1;
+    for(int v = 0; v < 26; v++)
+        if(g[u][v])
+        {
+            if(c[v] < 0)
+                return false;
+            else if(!c[v] && !dfs(v))
+                return false;
+        }
+    c[u] = 1;
+    topo[--t] = u;
+    return true;
+}
+
+bool toposort()
+{
+    t = 26;
+    memset(c, 0, sizeof(c));
+    for(int u = 25; u >= 0; u--)
+        if(!c[u])
+            if(!dfs(u))
+                return false;
+    return true;
+}
+
+int main()
+{
+    int n;
+    memset(g, 0, sizeof(g));
+    bool flag = true;
+    scanf("%d", &n);
+    for(int i = 0; i < n; i++)
+        scanf("%s", s[i]);
+    for(int i = 0; i < n && flag; i++)
+        for(int j = i + 1; j < n && flag; j++)
+            for(int k = 0; flag; k++)
+                if(s[j][k] == '\0')
+                {
+                    flag = false;
+                    break;
+                }
+                else if(s[i][k] == '\0')
+                    break;
+                else if(s[i][k] != s[j][k])
+                    {
+                        if(!g[s[i][k]-'a'][s[j][k]-'a'])
+                            g[s[i][k]-'a'][s[j][k]-'a'] = 1;
+                        break;
+                    }
+        if(flag && toposort())
+            for(int i = 0; i < 26; i++)
+                printf("%c", topo[i] + 'a');
+        else
+             printf("Impossible");
+        printf("\n");
+    return 0;
+}

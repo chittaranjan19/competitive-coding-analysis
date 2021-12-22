@@ -1,0 +1,74 @@
+import java.io.BufferedOutputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+/**
+ * Created by leen on 7/25/16.
+ */
+public class _599D {
+    static long[] g = new long[669434];
+    public static void main(String[] args) {
+
+        Scanner scan = new Scanner(System.in);
+        long x = scan.nextLong();
+
+        long current = 0;
+        for(int i = 2; i <= 669433; i++) {
+            current += i*i;
+            g[i] = current;
+        }
+
+        List<Pair> pairs = new ArrayList<Pair>();
+        for(int n = 1; n <= 669433; n++) {
+            long m = solveM(x, n);
+            if(m == -1L)
+                continue;
+            if(m == -2L)
+                break;
+            pairs.add(new Pair(n, m));
+        }
+
+        PrintWriter pw = new PrintWriter(new BufferedOutputStream(System.out, 1024 * 128));
+
+        Pair lastPair = pairs.get(pairs.size()-1);
+        if(lastPair.n == lastPair.m)
+            pw.println(pairs.size() * 2 - 1);
+        else
+            pw.println(pairs.size() * 2);
+
+        for(int i = 0; i < pairs.size(); i++) {
+            Pair pair = pairs.get(i);
+            pw.println(pair.n + " " + pair.m);
+        }
+
+        for(int i = pairs.size() - 1; i >= 0; i--) {
+            Pair pair = pairs.get(i);
+            if(pair.n != pair.m)
+                pw.println(pair.m + " " + pair.n);
+        }
+
+        pw.flush();
+    }
+
+    static long solveM(long x, int n) {
+        long a = (x+n-1 + n*(2+n)*(n-1)/2 - g[n]);
+        long b = ((2+n)*(n-1)/2 + 1);
+        if(a % b != 0L)
+            return -1L;
+        if(a / b < n)
+            return -2L;
+        return a / b;
+    }
+
+    static class Pair {
+        int n;
+        long m;
+
+        Pair(int n, long m) {
+            this.n = n;
+            this.m = m;
+        }
+    }
+}

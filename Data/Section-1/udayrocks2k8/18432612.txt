@@ -1,0 +1,49 @@
+#include <cstdio>
+#include <cassert>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+
+double dp[18][1 << 18];
+double prob[18][18];
+int n;
+
+double compute(int p, int curr) {
+  if (dp[p][curr] != -1) return dp[p][curr];
+	if (p == 0 && curr == 1) {
+		return dp[p][curr] = 1.0;
+  }
+  if ((curr & (curr - 1)) == 0) {
+    return dp[p][curr] = 0.0;
+  }
+  double ans = 0.0;
+  for (int i = 0; i < n; i++) if (i != p && (curr & (1 << i))) {
+    ans = max(ans, prob[p][i] * compute(p, curr & ~(1 << i)) + prob[i][p] * compute(i, curr & ~(1 << p)));
+  }
+  return dp[p][curr] = ans;
+}
+
+int main() {
+  scanf("%d", &n);
+  for (int i = 0; i < n; i++) {
+	  for (int j = 0; j < n; j++) {
+			scanf("%lf", &prob[i][j]);
+	  }
+  }
+
+  for (int i = 0; i < n; i++) {
+	  for (int j = 0; j < (1 << n); j++) {
+      dp[i][j] = -1;
+	  }
+  }
+
+	double ans = 0;
+  for (int i = 0; i < n; i++) {
+	  for (int j = 0; j < n; j++) if (i != j) {
+			ans = max(ans, compute(i, (1 << n) - 1));
+	  }
+  }
+	printf("%0.9lf\n", ans);
+	
+  return 0;
+}

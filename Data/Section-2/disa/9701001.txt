@@ -1,0 +1,100 @@
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <iomanip>
+#include <map>
+#include <windows.h>
+#pragma comment(linker, "/STACK:128000000")
+using namespace std;
+
+typedef long long ll;
+
+#if _DEBUG
+#include <fstream>
+ifstream cin("input.txt");
+ofstream cout("output.txt");
+#else
+#include <iostream>
+#endif
+
+
+vector < vector <int > > vv;
+
+
+vector <string> ss;
+
+int used[102];
+
+bool check(int v) {
+	used[v] = 1;
+	for(int i = 0; i < vv[v].size(); i++) {
+		int to = vv[v][i];
+		if(used[to] == 1)
+			return true;
+		if(used[to] == 0) {
+			if(check(to))
+				return true;
+		}
+	}
+	used[v] = 2;
+	return false;
+}
+
+void dfs(int v) {
+	cout << char(v + 'a');
+	used[v] = true;
+	for(int i = 0; i < vv[v].size(); i++) {
+		if(!used[vv[v][i]]) {
+			dfs(vv[v][i]);
+		}
+	}
+}
+
+
+int in[102];
+
+
+int main() {
+	int n;
+	cin >> n;
+	for(int i = 0; i < n; i++) {
+		string s;
+		cin >> s;
+		ss.push_back(s);
+	}
+	vv.resize(100);
+	for(int i = 0; i < ss.size(); i++) {
+		for(int j = i + 1; j < ss.size(); j++) {
+			int now = 0;
+			int maxx = min(ss[i].size(), ss[j].size());
+			while(now < maxx && ss[i][now] == ss[j][now])
+				now++;
+			int from, to;
+			if(now < maxx && ss[i][now] != ss[j][now]) {
+				from = ss[i][now] - 'a';
+				to = ss[j][now] - 'a';
+				in[to]++;
+				vv[from].push_back(to);
+			}
+			if(now == maxx && ss[i].size() > ss[j].size()) {
+				cout << "Impossible";
+				return 0;
+			}
+		}
+	}
+	for(int i = 0; i < vv.size(); i++) {
+		if(used[i] == 0) {
+			if(check(i)) {
+				cout << "Impossible";
+				return 0;
+			}
+		}
+	}
+	fill_n(used, 102, 0);
+	for(int i = 0; i < 26; i++) { 
+		if(in[i] == 0) {
+			dfs(i);
+		}
+	}
+	return 0;
+}

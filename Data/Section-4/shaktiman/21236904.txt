@@ -1,0 +1,239 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long int ll;
+typedef vector<int> vi;
+#define TRACE
+
+#ifdef TRACE
+#define trace1(x)                cerr << #x << ": " << x << endl;
+#define trace2(x, y)             cerr << #x << ": " << x << " | " << #y << ": " << y << endl;
+#define trace3(x, y, z)          cerr << #x << ": " << x << " | " << #y << ": " << y << " | " << #z << ": " << z << endl;
+#define trace4(a, b, c, d)       cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << endl;
+#define trace5(a, b, c, d, e)    cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << endl;
+#define trace6(a, b, c, d, e, f) cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << " | " << #f << ": " << f << endl;
+
+#else
+
+#define trace1(x)
+#define trace2(x, y)
+#define trace3(x, y, z)
+#define trace4(a, b, c, d)
+#define trace5(a, b, c, d, e)
+#define trace6(a, b, c, d, e, f)
+
+#endif
+std::vector<int> a(100000);
+int n,m,ans=0; 
+// Graph class represents a directed graph using adjacency list representation
+class Graph
+{
+    int V;    // No. of vertices
+    list<int> *adj;    // Pointer to an array containing adjacency lists
+    bool isCyclicUtil(int v, bool visited[], bool *rs);
+    void DFSUtil(int v, bool visited[],int ct);  // A function used by DFS
+    void topologicalSortUtil(int v, bool visited[], stack<int> &Stack);
+public:
+    Graph(int V);   // Constructor
+    bool isCyclic();
+    void addEdge(int v, int w);   // function to add an edge to graph
+    void DFS(int v,int ct);    // DFS traversal of the vertices reachable from v
+    void topologicalSort();
+};
+ 
+Graph::Graph(int V)
+{
+    this->V = V;
+    adj = new list<int>[V];
+}
+ 
+void Graph::addEdge(int v, int w)
+{
+    adj[v].push_back(w); // Add w to v’s list.
+}
+ 
+void Graph::DFSUtil(int v, bool visited[],int ct)
+{
+    // Mark the current node as visited and print it
+    visited[v] = true;
+ //   cout << v << " ";
+ 
+    // Recur for all the vertices adjacent to this vertex
+    list<int>::iterator i;
+    if(adj[v].begin()==adj[v].end())
+    {
+        //ct+=a[v];
+        trace2(v,ct);
+        if(ct <= m)
+        {
+            ans++;
+        }
+    }
+    for (i = adj[v].begin(); i != adj[v].end(); ++i)
+     {   if (!visited[*i])
+        {
+            int temp;
+            if(a[*i]==1)
+            {
+                temp=ct+1;
+            }
+            else
+            {
+                if(ct >m)
+                {
+                    temp=ct;
+                }
+                else
+                {
+                    temp=0;
+                }
+            }
+            DFSUtil(*i, visited,temp);
+        }
+    }
+}
+// DFS traversal of the vertices reachable from v. It uses recursive DFSUtil()
+void Graph::DFS(int v,int ct)
+{
+    // Mark all the vertices as not visited
+    bool *visited = new bool[V];
+    for (int i = 0; i < V; i++)
+        visited[i] = false;
+ 
+    // Call the recursive helper function to print DFS traversal
+    DFSUtil(v, visited,ct);
+}
+bool Graph::isCyclicUtil(int v, bool visited[], bool *recStack)
+{
+    if(visited[v] == false)
+    {
+        // Mark the current node as visited and part of recursion stack
+        visited[v] = true;
+        recStack[v] = true;
+ 
+        // Recur for all the vertices adjacent to this vertex
+        list<int>::iterator i;
+        for(i = adj[v].begin(); i != adj[v].end(); ++i)
+        {
+            if ( !visited[*i] && isCyclicUtil(*i, visited, recStack) )
+                return true;
+            else if (recStack[*i])
+                return true;
+        }
+ 
+    }
+    recStack[v] = false;  // remove the vertex from recursion stack
+    return false;
+}
+ 
+// Returns true if the graph contains a cycle, else false.
+// This function is a variation of DFS() in http://www.geeksforgeeks.org/archives/18212
+bool Graph::isCyclic()
+{
+    // Mark all the vertices as not visited and not part of recursion
+    // stack
+    bool *visited = new bool[V];
+    bool *recStack = new bool[V];
+    for(int i = 0; i < V; i++)
+    {
+        visited[i] = false;
+        recStack[i] = false;
+    }
+ 
+    // Call the recursive helper function to detect cycle in different
+    // DFS trees
+    for(int i = 0; i < V; i++)
+        if (isCyclicUtil(i, visited, recStack))
+            return true;
+ 
+    return false;
+}
+void Graph::topologicalSortUtil(int v, bool visited[], 
+                                stack<int> &Stack)
+{
+    // Mark the current node as visited.
+    visited[v] = true;
+ 
+    // Recur for all the vertices adjacent to this vertex
+    list<int>::iterator i;
+    for (i = adj[v].begin(); i != adj[v].end(); ++i)
+        if (!visited[*i])
+            topologicalSortUtil(*i, visited, Stack);
+ 
+    // Push current vertex to stack which stores result
+    Stack.push(v);
+}
+ 
+// The function to do Topological Sort. It uses recursive 
+// topologicalSortUtil()
+void Graph::topologicalSort()
+{
+    stack<int> Stack;
+ 
+    // Mark all the vertices as not visited
+    bool *visited = new bool[V];
+    for (int i = 0; i < V; i++)
+        visited[i] = false;
+ 
+    // Call the recursive helper function to store Topological
+    // Sort starting from all vertices one by one
+    for (int i = 0; i < V; i++)
+      if (visited[i] == false)
+        topologicalSortUtil(i, visited, Stack);
+ 
+    // Print contents of stack
+    while (Stack.empty() == false)
+    {
+        char c=Stack.top()+'a';
+        cout << c ;
+        Stack.pop();
+    }
+}
+int main()
+{
+    int k,n,state=0,vt=0;
+    cin >> n >> k;
+   // std::vector<std::vector<int> > a;
+   // a.resize(n, std::vector<int>(n, 0));
+    std::vector<int > sw(n);
+    if(k<(n/2+n%2))
+    {
+        cout << n*k << endl;
+       /* for (int i=0;i<n;i++)
+        {
+            int ct=0;
+            if(i<(n/2+n%2))
+            {
+                for(int j=i+1;j<n&&ct<k;j++)
+                {
+                    cout << i+1 << " " << j+1 << endl;
+                    ct++;
+                }   
+            }
+            else
+            {
+                for(int j=0;j<n&&ct<k;j++)
+                {
+                    cout << i+1 << " " << j+1 << endl;
+                    ct++;
+                }
+            }
+        } */
+       // int ct=1;
+        for(int i=1;i<=n;i++)
+        {
+            for(int j=1;j<=k;j++)
+            {
+                if((i+j)%(n+1))
+                    cout << i  << " "<< (i+j)%(n+1) << endl;
+                else
+                    cout << i << " " << "1" << endl;
+            }
+        }
+    }
+    else
+    {
+        cout << "-1" << endl;
+        
+    }
+    return 0;
+}

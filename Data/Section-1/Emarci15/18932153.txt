@@ -1,0 +1,121 @@
+#include <iostream>
+
+#define mod 1000000009
+
+using namespace std;
+
+long long F[300001];
+long long Fs[300001];
+
+long long sz[1000000];
+long long lazy[1000000][2];
+
+int maxt;
+
+void upd(int t, int k, int v) {
+    maxt = max(maxt,t);
+    if(k < v) {
+        lazy[t<<1][0] = (lazy[t<<1][0] + lazy[t][0]) % mod;
+        lazy[t<<1][1] = (lazy[t<<1][1] + lazy[t][1]) % mod;
+
+        int f((k+v)/2);
+        lazy[(t<<1)+1][0] = (lazy[(t<<1)+1][0] + F[f+1-k]*lazy[t][1] + F[f-k]*lazy[t][0]) % mod; //f+1
+        lazy[(t<<1)+1][1] = (lazy[(t<<1)+1][1] + F[f+2-k]*lazy[t][1] + F[f+1-k]*lazy[t][0]) % mod; //f+2
+    }
+
+    sz[t] = (sz[t] + F[(v-k)+1]*lazy[t][0] + Fs[v-k]*lazy[t][1]) % mod;
+    lazy[t][0] = lazy[t][1] = 0ll;
+}
+
+void update(int t, int k, int v) {
+    upd(t,k,v);
+    int f((k+v)/2);
+    upd(t<<1,k,f);
+    upd((t<<1)+1,f+1,v);
+
+    sz[t] = sz[t<<1] + sz[(t<<1)+1];
+}
+
+long long a[300000];
+void build(int t, int k, int v) {
+    if(k==v) {
+        sz[t] = a[k];
+    } else {
+        int f((k+v)/2);
+        build(t<<1,k,f);
+        build((t<<1)+1,f+1,v);
+        update(t,k,v);
+    }
+}
+
+long long query(int t, int k, int v, int l, int r) {
+    upd(t,k,v);
+    if((l<=k) && (v<=r)) return sz[t];
+
+    int f((k+v)/2);
+
+    long long ret(0ll);
+
+    if(l<=f) ret = (ret + query(t<<1,k,f,l,r)) % mod;
+    if(r>f) ret = (ret + query((t<<1)+1,f+1,v,l,r)) % mod;
+
+    return ret;
+}
+
+void updquery(int t, int k, int v, int l, int r) {
+    if((l<=k) && (v<=r)) {
+        lazy[t][0] = (lazy[t][0] + F[k+1-l]) % mod;
+        lazy[t][1] = (lazy[t][1] + F[k+2-l]) % mod;
+        return;
+    }
+    upd(t,k,v);
+
+    int f((k+v)/2);
+
+    if(l<=f) updquery(t<<1,k,f,l,r);
+    if(r>f) updquery((t<<1)+1,f+1,v,l,r);
+
+    update(t,k,v);
+}
+
+int n,m;
+
+int main()
+{
+    F[0] = Fs[0] = 0ll;
+    F[1] = Fs[1] = 1ll;
+    for(int i=2; i<=300000; i++) {
+        F[i] = (F[i-1] + F[i-2]) % mod;
+        Fs[i] = (Fs[i-1] + F[i]) % mod;
+    }
+
+    ios::sync_with_stdio(0);
+    cin.tie(NULL);
+    cin >> n >> m;
+    for(int i=0; i<n; i++) {
+        cin >> a[i];
+    }
+
+    build(1,0,n-1);
+
+    for(int i=0; i<m; i++) {
+        int t,l,r; cin >> t >> l >> r; l--; r--;
+        if(t==1) {
+            updquery(1,0,n-1,l,r);
+            //for(int j=1, k=l; k<=r; k++,j++) a[k] = (a[k] + F[j]) % mod;
+            /*if(n==300000) {
+                cout << t << " " << l << " " << r << endl;
+            }*/
+        } else {
+            cout << query(1,0,n-1,l,r) << endl;
+            //long long sol(0ll);
+            //for(int k=l; k<=r; k++) {}
+            /*if(n==300000) {
+                cout << t << " " << l << " " << r << endl;
+                return 0;
+            }*/
+        }
+    }
+
+    return 0;
+}

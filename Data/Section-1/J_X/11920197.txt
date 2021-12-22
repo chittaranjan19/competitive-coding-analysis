@@ -1,0 +1,106 @@
+#include <iostream>
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 5000 + 5;
+
+struct trie
+{
+    int sz, ch[4 * maxn][2], val[4 * maxn], l;
+    stack<char> st;
+
+    trie()
+    {
+        sz = 0;
+        memset(ch[0], 0, sizeof(ch[0]));
+        l = 0;
+    }
+
+    void add(string s)
+    {
+        int u = 0;
+        for(int i = 0; i < s.size(); ++i)
+        {
+            int c = s[i] - 'a';
+            if(!ch[u][c])
+            {
+                ch[u][c] = ++sz;
+                memset(ch[sz], 0, sizeof(ch[sz]));
+                val[sz] = 0;
+            }
+            u = ch[u][c];
+        }
+        ++val[u];
+    }
+
+    bool dfs(int k, int u, char c)
+    {
+        if(val[u])
+        {
+            l += val[u];
+            if(l >= k)
+            {
+                st.push(c);
+                return true;
+            }
+        }
+        if(ch[u][0] && dfs(k, ch[u][0], 'a'))
+        {
+            st.push(c);
+            return true;
+        }
+        if(ch[u][1] && dfs(k, ch[u][1], 'b'))
+        {
+            st.push(c);
+            return true;
+        }
+        return false;
+    }
+
+    void print()
+    {
+        while(!st.empty())
+        {
+            if(st.top() != ' ')
+            {
+                cout << st.top();
+            }
+            st.pop();
+        }
+        cout << endl;
+    }
+} T;
+
+bool check(string s)
+{
+    for(int i = 0; i < s.size() / 2; i += 2)
+    {
+        if(s[i] != s[s.size() - i - 1])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+int main()
+{
+    string s;
+    int k;
+    cin >> s >> k;
+    for(int i = 0; i < s.size(); ++i)
+    {
+        for(int j = 1; i + j <= s.size(); ++j)
+        {
+            string t = s.substr(i, j);
+            if(check(t))
+            {
+                T.add(t);
+            }
+        }
+    }
+    T.dfs(k, 0, ' ');
+    T.print();
+    return 0;
+}

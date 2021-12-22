@@ -1,0 +1,119 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <cstdio>
+#include <cstring>
+#include <cassert>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
+#include <algorithm>
+#include <vector>
+#include <string> 
+#include <map>
+#include <iostream>
+#include <queue>
+#include <time.h>
+#include <set>
+#include <bitset>
+#include <sstream>
+using namespace std;
+
+typedef long long ll;
+
+#define INF 1000000000
+#define eps 1e-7
+#define mod 1000000007
+#define SHIFT 100000
+
+char s[3005], t[3005], s2[3005];
+int suff[3005], suff2[3005];
+
+bool sort_f(int i, int j)
+{
+    return strcmp(s + i, s + j) == -1;
+}
+
+bool sort_f2(int i, int j)
+{
+    return strcmp(s2 + i, s2 + j) == -1;
+}
+
+vector <pair <int, int> > res;
+
+int main()
+{
+    gets(s);
+    gets(t);
+    int lens = strlen(s);
+    int lent = strlen(t);
+    for(int i = 0; i < lens; i++)
+        s2[i] = s[lens-i-1];
+    for(int i = 0; i < lens; i++)
+        suff[i] = suff2[i] = i;
+    sort(suff, suff + lens, sort_f);
+    sort(suff2, suff2 + lens, sort_f2);
+    for(int i = 0; i < lent; )
+    {
+        int maxv = 0, maxL = 0, maxR = 0;
+        int L = 0, R = lens - 1;
+        while(L <= R)
+        {
+            int C = (L + R) / 2;
+            int j;
+            for(j = 0; i + j < lent && suff[C] + j < lens; j++)
+                if(t[i+j] != s[suff[C]+j])
+                    break;
+            if(j > maxv)
+            {
+                maxv = j;
+                maxL = suff[C] + 1;
+                maxR = suff[C] + j;
+            }
+            if(i + j == lent)
+                break;
+            if(suff[C] + j == lens)
+                L = C + 1;
+            else
+                if(t[i+j] < s[suff[C]+j])
+                    R = C - 1;
+                else
+                    if(t[i+j] > s[suff[C]+j])
+                        L = C + 1;
+        }
+        L = 0, R = lens - 1;
+        while(L <= R)
+        {
+            int C = (L + R) / 2;
+            int j;
+            for(j = 0; i + j < lent && suff2[C] + j < lens; j++)
+                if(t[i+j] != s2[suff2[C]+j])
+                    break;
+            if(j > maxv)
+            {
+                maxv = j;
+                maxL = lens - suff2[C];
+                maxR = lens - suff2[C] - j + 1;
+            }
+            if(i + j == lent)
+                break;
+            if(suff2[C] + j == lens)
+                L = C + 1;
+            else
+                if(t[i+j] < s2[suff2[C]+j])
+                    R = C - 1;
+                else
+                    if(t[i+j] > s2[suff2[C]+j])
+                        L = C + 1;
+        }
+        if(maxv == 0)
+        {
+            puts("-1");
+            return 0;
+        }
+        res.push_back(make_pair(maxL, maxR));
+        i += maxv;
+    }
+    printf("%d\n", res.size());
+    for(int i = 0; i < res.size(); i++)
+        printf("%d %d\n", res[i].first, res[i].second);
+    return 0;
+}

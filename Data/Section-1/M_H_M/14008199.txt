@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+#define PB push_back
+#define MP make_pair
+#define X first
+#define Y second
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+
+const int N = 100 * 1000 + 100;
+
+int n;
+ll k;
+int a[N];
+
+ll L[20][N];
+ll R[20][N];
+ll sum[4 * N];
+
+ll ans;
+
+void mrg(int v, int d, int s, int e, ll x){
+	int mid = (s + e) / 2;
+	for(int i = s; i < mid; i++)
+		ans += (e - mid) - (upper_bound(L[d + 1] + mid, L[d + 1] + e, x - R[d + 1][i]) - (L[d + 1] + mid));
+	for(int i = mid; i < e; i++)
+		L[d + 1][i] += sum[2 * v + 0];
+	for(int i = s; i < mid; i++)
+		R[d + 1][i] += sum[2 * v + 1];
+
+	sum[v] = sum[2 * v + 0] + sum[2 * v + 1];
+	merge(L[d + 1] + s, L[d + 1] + mid, L[d + 1] + mid, L[d + 1] + e, L[d] + s);
+	merge(R[d + 1] + s, R[d + 1] + mid, R[d + 1] + mid, R[d + 1] + e, R[d] + s);
+	/*
+	cerr << " dg : " << s << " " << e << " " << sum[v] << "\n";
+	for(int i = s; i < e; ++i)
+		cerr << L[d][i] << " ";
+	cerr << "\n";
+	for(int i = s; i < e; ++i)
+		cerr << R[d][i] << " ";
+	cerr << "\n";
+	cerr << "done\n";
+*/
+}
+
+void build(int v, int d, int s, int e, ll x){
+	if(e - s == 1){
+		L[d][s] = a[s];
+		R[d][s] = a[s];
+		sum[v] = a[s];
+		if(a[s] > x) ans ++;
+		return;
+	}
+	int mid = (s + e) / 2;
+	build(2 * v + 0, d + 1, s, mid, x);
+	build(2 * v + 1, d + 1, mid, e, x);
+	mrg(v, d, s, e, x);
+}
+
+bool isval(ll x){
+	ans = 0;
+	build(1, 0, 0, n, x);
+//	cerr << "bug : " << x << " " << ans << "\n";
+	if(ans < k) return true;
+	return false;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> k;
+	for(int i = 0; i < n; ++i)
+		cin >> a[i];
+
+//	cout << isval(2) << "\n";
+//	/*
+	ll lo = -1e18, hi = 1e18;
+	while(hi - lo > 1){
+		ll mid = (lo + hi) / 2;
+		if(isval(mid))
+			hi = mid;
+		else 
+			lo = mid;
+	}
+//	cerr << isval(2) << "\n";
+	cout << hi << "\n";
+//*/
+	return 0;
+}

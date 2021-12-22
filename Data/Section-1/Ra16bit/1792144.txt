@@ -1,0 +1,46 @@
+#include <cstdio>
+#include <vector>
+#include <algorithm>
+using namespace std;
+int i,j,b,n,x[1515],y[1515],r[1515],k[1515*1500];
+vector <int> g[1515];
+bool u[1515];
+long long cx,cy,dx,dy;
+bool cmp(int i, int j) {
+  return dx*(y[i]-cy)-dy*(x[i]-cx)<dx*(y[j]-cy)-dy*(x[j]-cx);
+}
+void dfs(int v, int p, int i, int px, int py) {
+  r[i]=v+1;
+  u[i]=true;
+  cx=x[i]; dx=cx-px;
+  cy=y[i]; dy=cy-py;
+  int beg=i*n,fin=i*n+n;
+  sort(k+beg,k+fin,cmp);
+  int pnt=beg;
+  for (int j=0; j<g[v].size(); j++) {
+    int next=g[v][j];
+    if (next==p) continue;
+    while (u[k[pnt]]) pnt++;
+    dfs(next,v,k[pnt],x[i],y[i]);
+  }
+}
+int main() {
+  scanf("%d",&n);
+  for (i=1; i<n; i++) {
+    int x,y;
+    scanf("%d%d",&x,&y);
+    x--; y--;
+    g[x].push_back(y);
+    g[y].push_back(x);
+  }
+  for (i=0; i<n; i++) {
+    scanf("%d%d",&x[i],&y[i]);
+    if (i) {
+      if (y[i]<y[b] || (y[i]==y[b] && x[i]<x[b])) x[b]=i;
+    } else b=i;
+  }
+  for (i=0; i<n; i++) for (j=0; j<n; j++) k[i*n+j]=j;
+  dfs(0,-1,b,x[b]-1,y[b]);
+  for (i=0; i<n; i++) printf("%d%c",r[i],(i<n-1)?' ':'\n');
+  return 0;
+}

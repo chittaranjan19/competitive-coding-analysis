@@ -1,0 +1,127 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mp make_pair
+#define F first
+#define S second
+#define mn 100001
+#define mod 1000000007
+#define pb push_back
+#define modi(x) (x & (-x))
+
+using namespace std;
+int n, a[mn], h[mn], up[mn], dp[mn];
+pair<int, int> p[mn];
+struct inteval{
+    int t[mn * 4];
+
+    int getMax(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return 0;
+        if (x <= l && r << y)
+            return t[id];
+        int g = ((l + r) >> 1);
+        int a = getMax(l, g, id * 2, x, y);
+        int b = getMax(g + 1, r, id * 2 + 1, x, y);
+        return max(a, b);
+    }
+
+    int getSum(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return 0;
+        if (x <= l && r << y)
+            return (t[id] != 0);
+        int g = ((l + r) >> 1);
+        int a = getSum(l, g, id * 2, x, y);
+        int b = getSum(g + 1, r, id * 2 + 1, x, y);
+        return a + b;
+    }
+
+    void update(int l, int r, int id, int x, int w)
+    {
+        if (l > x || r < x)
+            return;
+        if (l == r)
+        {
+            t[id] = w;
+            return;
+        }
+        int g = ((l + r) >> 1);
+        update(l, g, id * 2, x, w);
+        update(g + 1, r, id * 2 + 1, x, w);
+        t[id] = max(t[id * 2], t[id * 2 + 1]);
+    }
+};
+inteval tree;
+
+void setup ()
+{
+    int id = 1, x;
+    cin >> n;
+    FOR(i, 1, n)
+    {
+        cin >> x;
+        p[i] = mp(x, i);
+    }
+    sort(p + 1, p + n + 1);
+    FOR(i, 1, n)
+    {
+        h[p[i].S] = i;
+        while(p[id].F <= p[i].F && id <= n)
+            id ++;
+        up[p[i].S] = id;
+    }
+    memset(tree.t, 0, sizeof(tree.t));
+}
+
+void chuanbi()
+{
+    FORD(i, n, 1)
+    {
+        int w = tree.getMax(1, n, 1, up[i], n);
+        dp[i] = w + 1;
+        tree.update(1, n, 1, h[i], dp[i]);
+        dp[0] = max(dp[0], dp[i]);
+    }
+    memset(tree.t, 0, sizeof(tree.t));
+    memset(up, 0, sizeof(up));
+    memset(a, 0, sizeof(a));
+}
+
+void xuly ()
+{
+    FOR(i, 1, n)
+    {
+        int s = tree.getSum(1, n, 1, dp[i] + 1, dp[0]);
+        if (s != dp[0] - dp[i])
+            continue;
+        up[i] = 1;
+        a[dp[i]] ++;
+        tree.update(1, n, 1, dp[i], 1);
+    }
+    FOR(i, 1, n)
+    {
+        if (!up[i])
+        {
+            cout << 1;
+            continue;
+        }
+        if (a[dp[i]] > 1)
+            cout << 2;
+        else
+            cout << 3;
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    chuanbi();
+    xuly ();
+    return 0;
+}

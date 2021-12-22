@@ -1,0 +1,129 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1000010;
+const int logn = 21;
+
+int mxv[logn][maxn], mnc[logn][maxn];
+double potential[maxn];
+int v[maxn], c[maxn], n, k;
+
+void pre()
+{
+    int i, j;
+    for(i=1; i<logn; i++){
+        for(j=1; j<=n; j++){
+            mxv[i][j] = max(mxv[i-1][j], mxv[i-1][min(n, j+(1<<(i-1)))]);
+            mnc[i][j] = min(mnc[i-1][j], mnc[i-1][min(n, j+(1<<(i-1)))]);
+        }
+    }
+}
+
+int find(int x, int y)
+{
+    if(x>y)
+        return 0;
+    int diff = y-x+1;
+    int lg = log2(diff);
+    int ret = min(mxv[lg][x], mnc[lg][y-(1<<lg)+1]);
+    return ret;
+}
+
+int findR(int x, int y)
+{
+    if(x>y)
+        return 0;
+    int diff = y-x+1;
+    int lg = log2(diff);
+    int ret = max(mxv[lg][x], mxv[lg][y-(1<<lg)+1]);
+    return ret;
+}
+
+int findC(int x, int y)
+{
+    if(x>y)
+        return 0;
+    int diff = y-x+1;
+    int lg = log2(diff);
+    int ret = min(mnc[lg][x], mnc[lg][y-(1<<lg)+1]);
+    return ret;
+}
+
+int find_cut(int x)
+{
+    int i, j;
+    int r1 = v[x]*100;
+    int r2 = c[x];
+    for(i=logn-1; i>=0; i--){
+        if(max(r1, mxv[i][x]) < min(r2, mnc[i][x])){
+            r1 = max(r1, mxv[i][x]);
+            r2 = min(r2, mnc[i][x]);
+            x = min(x + (1<<i), n);
+        }
+    }
+    return x;
+}
+
+double solve()
+{
+    int i, j;
+    double ret = 0, prev, num, den;
+    prev = (double)k/n;
+    ret = prev*potential[1];
+    num = n-k;
+    den = n-1;
+    for(i=2; i<=(n-k+1) && num>0 && den>0; i++){
+        prev = (prev*(num/den));
+        ret += (prev*potential[i]);
+        num--;
+        den--;
+    }
+    return ret;
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int i, j, cut, lo, mid, hi;
+    scanf("%d%d", &n, &k);
+    for(i=1; i<=n; i++){
+        scanf("%d", &v[i]);
+        mxv[0][i] = v[i]*100;
+    }    
+    for(i=1; i<=n; i++){
+        scanf("%d", &c[i]);
+        mnc[0][i] = c[i];
+    }
+    pre();
+    for(i=1; i<=n; i++){
+        lo = i;
+        hi = n;
+        while(lo<hi){
+            mid = (lo+hi)>>1;
+            if(findR(i, mid) < findC(i, mid))
+                lo = mid;
+            else
+                hi = mid-1;
+        }
+        potential[i] = max(find(i, lo), find(i, min(n, lo+1)));
+    }
+    sort(potential+1, potential+n+1);
+    double ans = solve();
+    printf("%.10lf\n", ans);
+    return 0;
+}

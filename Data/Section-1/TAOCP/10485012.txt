@@ -1,0 +1,101 @@
+/*
+*Rainto96
+*Beijing University of Posts and Telecommunications School of Software Engineering
+*http://blog.csdn.net/u011775691
+*/
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <queue>
+#include <cstring>
+#include <string>
+#include <cmath>
+#include <set>
+#include <map>
+#include <vector>
+#include <climits>
+#include <unordered_map>
+#include <unordered_set>
+using namespace std;
+#define DBL(x) (x)*(x)
+#define pb push_back
+#define ALL(x) x.begin(),x.end()
+#define VINT vector<ll>
+#define PII pair<ll,ll>
+#define MP(x,y) make_pair((x),(y))
+#define ll long long
+#define ull unsigned long long
+#define MEM(x,y) memset(x,y,sizeof(x))
+#define scand(x) scanf("%d",&x)
+#define Max(a,b) a=max(a,b)
+#define Min(a,b) a=min(a,b)
+const ll LLMAX=0x7fffffffffffffffLL;
+ll f[11111];
+ll half;
+ll n,k,S;
+ll ans=0;
+ll fac[20];
+unordered_map<ll,ll> ump[33];
+void dfs1(ll nth,ll sum,ll p){
+        if(nth>half){
+                ump[p][sum]++;
+                return;
+        }
+
+        ll now=f[nth];
+        if(now<=18 && p+1<=k && sum+fac[now]<=S)
+                dfs1(nth+1,sum+fac[now],p+1);
+        if(sum+now<=S)
+                dfs1(nth+1,sum+now,p);
+        dfs1(nth+1,sum,p);
+}
+//int path[1111];
+void dfs2(ll nth,ll sum,ll p){
+        if(nth>n){
+                for(ll i=0;i<=k-p;i++){
+                        if(ump[i].find(S-sum)!=ump[i].end()){
+                                ans+=ump[i][S-sum];
+//                                cout<<sum<<endl;
+//                                //cout<<half<<endl;
+//                                for(int j=half;j<=n;j++){
+//                                        cout<<path[j]<<" ";
+//                                }
+//                                cout<<endl;
+                        }
+                }
+                return;
+        }
+
+        ll now=f[nth];
+        if(now<=18 && p+1<=k && sum+fac[now]<=S){
+                //path[nth]=2;
+                dfs2(nth+1,sum+fac[now],p+1);
+        }
+        if(sum+now<=S){
+                //path[nth]=1;
+                dfs2(nth+1,sum+now,p);
+        }
+        //path[nth]=0;
+        dfs2(nth+1,sum,p);
+}
+int main(){
+        #ifndef ONLINE_JUDGE
+                freopen("in.txt","r",stdin);
+        #endif // ONLINE_JUDGE
+        cin>>n>>k>>S;
+
+        fac[0]=1;
+        for(ll i=1;i<=19;i++) fac[i]=fac[i-1]*i;
+
+        for(ll i=1;i<=n;i++){
+                cin>>f[i];
+        }
+
+        half=n/2;
+
+        dfs1(1,0,0);
+        dfs2(half+1,0,0);
+
+        cout<<ans<<endl;
+        return 0;
+}

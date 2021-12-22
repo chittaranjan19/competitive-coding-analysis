@@ -1,0 +1,137 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int MAX_N = 200000;
+const int MAX_L = 1000000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+int a[MAX_N];
+int len;
+
+typedef struct
+{
+	int l;
+	int r;
+	int num;
+
+	void quest(int l1, int r1, int num1)
+	{
+		l = l1;
+		r = r1;
+		num = num1;
+	}
+
+	void print()
+	{
+		cout << l << " " << r << " " << num << endl;
+	}
+
+}quest;
+
+bool comp(quest a, quest b)
+{
+	if (a.l / len < b.l / len)
+		return true;
+	else if (a.l / len > b.l / len)
+		return false;
+	else
+		return a.r < b.r;
+}
+
+quest q[MAX_N];
+long long kol[MAX_L + 1];
+int ans[MAX_N];
+
+int main()
+{
+	//ifstream ifs("input.in");
+	//ofstream ofs("output.out");
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+	int n, m;
+	scanf_s("%d %d", &n, &m);
+	len = round(sqrt(n));
+	for (int i = 0; i < n; i++)
+		scanf_s("%d", &a[i]);
+	for (int i = 0; i < m; i++)
+	{
+		int l, r;
+		scanf_s("%d %d", &l, &r);
+		q[i].quest(l - 1, r - 1, i);
+	}
+	sort(q, q + m, comp);
+	//for (int i = 0; i < m; i++)
+	//	q[i].print();
+	int currl, currr, currt = -1;
+	long long tmp;
+	for (int i = 0; i < m; i++)
+	{
+		while (currt < q[i].l / len)
+		{
+			currt++;
+			currl = -1;
+			currr = -1;
+			tmp = 0;
+		}
+		if (currl == -1 && currr == -1)
+		{
+			for (int i = 0; i <= MAX_L; i++)
+				kol[i] = 0;
+			currl = q[i].l;
+			currr = q[i].r;
+			for (int j = currl; j <= currr; j++)
+				kol[a[j]]++;
+			for (int j = 1; j <= MAX_L; j++)
+				tmp += kol[j] * kol[j] * j;
+			ans[q[i].num] = tmp;
+		}
+		else
+		{
+			while (currr < q[i].r)
+			{
+				currr++;
+				kol[a[currr]]++;
+				tmp += (kol[a[currr]] * kol[a[currr]] - (kol[a[currr]] - 1) * (kol[a[currr]] - 1)) * a[currr];
+			}
+			if (currl >= q[i].l)
+			{
+				while (currl > q[i].l)
+				{
+					currl--;
+					kol[a[currl]]++;
+					tmp += (kol[a[currl]] * kol[a[currl]] - (kol[a[currl]] - 1) * (kol[a[currl]] - 1)) * a[currl];
+				}
+			}
+			else
+			{
+				while (currl < q[i].l)
+				{
+					kol[a[currl]]--;
+					tmp += (kol[a[currl]] * kol[a[currl]] - (kol[a[currl]] + 1) * (kol[a[currl]] + 1)) * a[currl];
+					currl++;
+				}
+			}
+			ans[q[i].num] = tmp;
+		}
+	}
+	for (int i = 0; i < m; i++)
+		printf("%d\n", ans[i]);
+	return 0;
+}

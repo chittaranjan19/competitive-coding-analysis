@@ -1,0 +1,83 @@
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.PrintWriter;
+import java.util.*;
+
+/**
+ * Created by leen on 7/28/16.
+ */
+public class _596C {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024 * 64));
+        int n = scan.nextInt();
+
+        Map<Integer, PriorityQueue<Point>> s2p = new HashMap<Integer, PriorityQueue<Point>>();
+        Map<Integer, Map<Integer, Point>> map = new HashMap<Integer, Map<Integer, Point>>();
+
+        for(int i = 0; i < n; i++) {
+            Point p = new Point(scan.nextInt(), scan.nextInt());
+            int s = p.y - p.x;
+            PriorityQueue<Point> heap = s2p.get(s);
+            if(heap == null) {
+                heap = new PriorityQueue<Point>();
+                s2p.put(s, heap);
+            }
+
+            Map<Integer,Point> subMap = map.get(p.x);
+            if(subMap == null) {
+                subMap = new HashMap<Integer, Point>();
+                map.put(p.y, subMap);
+            }
+            subMap.put(p.y, p);
+
+            heap.add(p);
+        }
+
+        Point[] ans = new Point[n];
+
+        for(int i = 0; i < n; i++) {
+            int w = scan.nextInt();
+            PriorityQueue<Point> heap = s2p.get(w);
+            if(heap == null || heap.isEmpty()) {
+                System.out.println("NO");
+                return;
+            }
+            Point p = heap.poll();
+
+            if(p.x > 0 && !map.get(p.x-1).get(p.y).arranged) {
+                System.out.println("NO");
+                return;
+            }
+
+            if(p.y > 0 && !map.get(p.x).get(p.y-1).arranged) {
+                System.out.println("NO");
+                return;
+            }
+
+            p.arranged = true;
+            ans[i] = p;
+        }
+
+        PrintWriter pw = new PrintWriter(new BufferedOutputStream(System.out, 1024 * 64));
+        pw.println("YES");
+        for(Point p : ans)
+            pw.println(p.x + " " + p.y);
+        pw.flush();
+    }
+
+    static class Point implements Comparable<Point> {
+        final int x;
+        final int y;
+        boolean arranged;
+
+        Point(int x, int y) {
+            this.x = x ;
+            this.y = y;
+        }
+
+        @Override
+        public int compareTo(Point o) {
+            return x - o.x;
+        }
+    }
+}

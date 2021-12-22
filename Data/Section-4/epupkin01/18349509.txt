@@ -1,0 +1,86 @@
+#include <iostream>
+#include <climits>
+#include <string>       // string s; cin >> s;
+#include <cstring>      // memset(b, 0, sizeof(arr)); strcpy(a1, a2); strcat(a1, a2);
+#include <cmath>
+#include <cstdio>       // getchar(), gets()
+#include <cstdlib>      // rand(), max(), min()
+#include <ctime>        // rand(): srand(int(time(0)));
+#include <algorithm>    // std::sort(a + 0, a + n); n - amount; pair
+#include <iomanip>      // setw(4), setfill('.'), setprecision(2)
+#include <vector>
+#include <array>
+#include <fstream>      // file IO (input-output)
+#include <cctype>       // isupper()
+#include <memory>       // shared_ptr<>, uniqu_ptr<>
+#include <iterator>     // ostream_iterator<int, char> out_iter(cout, " ");
+#include <set>
+#include <map>
+#include <list>
+#include <queue>
+#include <functional>   // function
+#define SRT srand(int(time(0)))
+
+using namespace std;
+
+typedef long long ll;
+typedef long double ld;
+typedef unsigned long long ull;
+ld pi = 3.14159265358979323;
+int ten[8] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000};
+inline void eatline() { while (getchar() != '\n'); }
+
+typedef map<int, int> Map;
+typedef Map::iterator mIter;
+typedef pair<int, int> Pair;
+typedef set<int> Set;
+typedef Set::iterator sIter;
+typedef list<int> List;
+typedef List::iterator lIter;
+typedef deque<int> Deque;
+typedef Deque::iterator dIter;
+
+const int S = 2001;
+int n, m, dp[S][S], mod = 1000000007;
+
+int main()
+{
+    cin >> n >> m;
+    eatline();
+    
+    int mlp = 0, mle, opn = 0, cls = 0, amnt = n - m;
+    // mlp - min len of prefix, mle - min len of ending
+    for (int i = 0; i < m; ++i)
+    {
+        if ( getchar() == '(' )
+            ++opn;
+        else
+            ++cls;
+        
+        if (opn < cls)
+            ++mlp;
+    }
+    
+    mle = opn > cls ? opn - cls + mlp : 0;
+    
+    // dp[l][d] - module of bracket's amounts difference
+    // l - length of sequence, d - difference
+    dp[0][0] = 1;
+    for (int l = 1; l <= amnt; ++l)
+    {
+        dp[l][0] = dp[l-1][1];
+        for (int d = 1; d <= l; ++d)
+        {
+            dp[l][d] = (dp[l-1][d-1] + dp[l-1][d+1]) % mod;
+        }
+    }
+    
+    int sum = 0, pd, ed;
+    for (int lp = mlp, le = amnt - mlp; lp <= amnt && le >= mle; ++lp, --le)
+        for (pd = mlp, ed = mle; pd <= lp; ++pd, ++ed)
+            sum = ( sum + (ll) dp[lp][pd] * dp[le][ed] ) % mod;
+    
+    cout << sum << '\n';
+    
+    return 0;
+}

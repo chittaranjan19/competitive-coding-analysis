@@ -1,0 +1,36 @@
+#include <stdio.h>
+#include <string.h>
+#include <iostream>
+const int mx=200040,step=16,s2=2*step,mask=1<<(s2-1);
+int n,m,q,i,x,y,z,r;
+unsigned a[mx],b[mx],u;
+char e[1<<step],s[mx],t[mx];
+int main() {
+  for (i=1; i<(1<<step); i++) e[i]=e[i>>1]+(i&1);
+  scanf("%s",s); n=strlen(s);
+  scanf("%s",t); m=strlen(t);
+  for (i=n-1; i>=0; i--) a[i]=(a[i+1]>>1)+(s[i]-'0')*mask;
+  for (i=m-1; i>=0; i--) b[i]=(b[i+1]>>1)+(t[i]-'0')*mask;
+  scanf("%d",&q);
+  while (q--) {
+    scanf("%d%d%d",&x,&y,&z);
+    for (r=0, z+=x; x<z; x+=s2, y+=s2) {
+      u=a[x]^b[y];
+      r+=e[u>>step]+e[(u<<step)>>step];
+    }
+    x-=s2; y-=s2;
+    if (x>=0 && y>=0) {
+      u=a[x]^b[y];
+      r-=e[(u<<step)>>step];
+      if (z-x<=16) {
+        r-=e[u>>step];
+        r+=e[u>>(s2-z+x)];
+      } else {
+        r+=e[(u<<step)>>(s2+step-z+x)];
+      }
+    }
+    printf("%d\n",r);
+  }
+  return 0;
+}
+

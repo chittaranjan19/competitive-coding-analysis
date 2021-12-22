@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1000010;
+
+vector <pair <vector <int>, int> > vec;
+vector <int> temp;
+int n, c, l[maxn];
+
+int findMoves(int m, int x, int y) {
+    int p = -1;
+    for (int i = 0; i < vec[x].f.size(); i++) {
+        int p1 = vec[x].f[i] + m;
+        if (p1 > c)
+            p1 -= c;
+        int p2 = vec[y].f[i] + m;
+        if (p2 > c)
+            p2 -= c;
+        if (p1 < p2) {
+            p = i;
+            break;
+        }
+        if (p2 < p1)
+            return 0;
+    }
+    if (p == -1)
+        return 0;
+    int ret = c - vec[y].f[p] + 1;
+    return ret;
+}
+
+int main() {
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    scanf("%d%d", &n, &c);
+    for (int i = 1; i <= n; i++) {
+        scanf("%d", &l[i]);
+        temp.resize(l[i]);
+        for (int j = 0; j < l[i]; j++) {
+            scanf("%d", &temp[j]);
+        }
+        vec.pb(mp(temp, i));
+    }
+    sort(all(vec));
+    int cnt = 0, place;
+    for (int i = 1; i < n; i++) {
+        if (vec[i].s - vec[i-1].s != 1) {
+            cnt += 1;
+        }
+        if (vec[i].s == 1)
+            place = i;
+    }
+    if (cnt > 1 || place != n - 1) {
+        printf("-1\n");
+        return 0;
+    }
+    if (cnt == 0) {
+        printf("0\n");
+        return 0;
+    }
+    int ans = findMoves(0, 0, place);
+    for (int i = place + 1; i < n; i++) {
+        ans = max(ans, findMoves(ans, i - 1, i));
+    }
+    printf("%d\n", ans);
+    return 0;
+}

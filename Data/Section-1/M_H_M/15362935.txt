@@ -1,0 +1,77 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<ll, ll> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 1000;
+
+ll n, A, cf, cm, m;
+pii p[N];
+ll mn[N];
+ll a[N];
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> A >> cf >> cm >> m;
+	for(int i = 0; i < n; ++i)
+		cin >> p[i].X, p[i].Y = i;
+	sort(p, p + n);
+	reverse(p, p + n);
+	int id = 0;
+	ll ans = 0;
+	ll sum = 0;
+	mn[n + 1] = 2e9;
+	for(int i = n; i --;)
+		mn[i + 1] = min(mn[i + 2], p[i].X);
+	ans = min(A, (mn[n] + m / n))* cm;
+	for(int i = 1; i <= n; ++i){
+		sum += p[i - 1].X;
+		if(m >= i * A - sum){
+			ll t = i * cf; 
+			if(i != n) t += min(A, (mn[n - i] + (m - i * A + sum) / (n - i))) * cm;
+			else t += A * cm;
+			if(t > ans){
+				ans = t;
+				id = i;
+			}
+		}
+	}
+	sum = 0;
+	for(int i = 0; i < id; ++i){
+		sum += A - p[i].X;
+		p[i].X = A;
+		a[p[i].Y] = A;
+	}
+	m -= sum;
+	for(int i = id; i < n; ++i){
+		p[i].X += m / (n - id);
+		a[p[i].Y] = p[i].X;
+	}
+	cout << ans << "\n";
+	for(int i = 0; i < n; ++i)
+		cout << a[i] << " ";
+	cout << "\n";
+	return 0;
+}

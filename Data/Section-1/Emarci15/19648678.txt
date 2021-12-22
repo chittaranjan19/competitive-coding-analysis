@@ -1,0 +1,82 @@
+#include <cstdio>
+#include <algorithm>
+#include <map>
+
+using namespace std;
+
+int n,m;
+int a[1000000];
+pair<pair<int,int>,int> q[1000000];
+int sol[1000000];
+int sufs[1000001];
+
+map<int,int> lo;
+int b[1000000];
+
+int ne[1000000];
+
+int bit[1000001];
+
+void upd(int p, int x) {
+    int Bx = b[p]^x;
+    b[p] = x;
+    p++;
+    while(p <= n) {
+        bit[p] ^= Bx;
+        p += p&(-p);
+    }
+}
+
+int qry(int p) {
+    p++;
+    int ret(0);
+    while(p>0) {
+        ret ^= bit[p];
+        p -= p&(-p);
+    }
+
+    return ret;
+}
+
+int main()
+{
+    scanf("%d",&n);
+    for(int i=0; i<n; i++) scanf("%d",&a[i]);
+
+    scanf("%d",&m);
+    for(int i=0; i<m; i++) {
+        q[i].second = i;
+        scanf("%d%d",&q[i].first.first,&q[i].first.second);
+        q[i].first.first--; q[i].first.second--;
+    }
+    sort(q,q+m);
+
+    for(int i=n-1; i>=0; i--) {
+        sufs[i] = sufs[i+1]^a[i];
+        upd(i,a[i]);
+        auto it = lo.find(a[i]);
+        if(it != lo.end()) {
+            upd(it->second,0);
+            ne[i] = it->second;
+            it->second = i;
+        } else {
+            ne[i] = n;
+            lo.insert({a[i],i});
+        }
+    }
+
+    int I(0);
+    for(int i=0; i<m; i++) {
+        while(I<q[i].first.first) {
+            upd(I,0);
+            upd(ne[I],a[I]);
+            I++;
+        }
+
+        sol[q[i].second] = qry(q[i].first.second) ^ sufs[q[i].first.first] ^ sufs[q[i].first.second+1];
+    }
+
+    for(int i=0; i<m; i++) printf("%d\n",sol[i]);
+
+    return 0;
+}

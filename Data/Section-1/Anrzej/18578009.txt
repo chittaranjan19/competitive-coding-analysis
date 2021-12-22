@@ -1,0 +1,104 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+int gcd(int a, int b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+int _c(int k, int n){
+	int nm = 1, dm = 1;
+	while (k){
+		nm *= n;
+		dm *= k;
+		n--, k--;
+	}
+	return nm / dm;
+}
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 2e5 + 10, lg = 20;
+ll mod = 1e9 + 7;
+
+int n;
+vector<pair<int, ll > > g[N];
+int a[N];
+bool lst[N], deleted[N];
+int pr[N];
+ll cpr[N];
+queue<int> q;
+
+void dfs0(int v, ll dist = 0, int p = 0){
+	pr[v] = p;
+	cpr[v] = dist;
+	for (int i = 0; i < g[v].size(); i++){
+		int to = g[v][i].fs;
+		if (to == p) continue;
+		dfs0(to, g[v][i].sc, v);
+	}
+}
+void ddel(int v){
+	deleted[v] = 1;
+	for (int i = 0; i < g[v].size(); i++){
+		int to = g[v][i].fs;
+		if (to == pr[v]) continue;
+		ddel(to);
+	}
+}
+
+void dfs(int v, ll cur = 0){
+	if (a[v] < cur){
+		ddel(v);
+		return;
+	}
+	for (int i = 0; i < g[v].size(); i++){
+		int to = g[v][i].fs;
+		ll add = g[v][i].sc;
+		if (to == pr[v]) continue;
+		dfs(to, max(cur + add, add));
+	}
+}
+
+int main()
+{
+	cin >> n;
+	for (int i = 0; i < n; i++)
+		cin >> a[i + 1];
+	for (int i = 0; i < n-1; i++){
+		int v = i + 2;
+		int u, c;
+		cin >> u >> c;
+		g[v].push_back(mp(u, c));
+		g[u].push_back(mp(v, c));
+	}
+	memset(lst, 0, sizeof(lst));
+	dfs0(1);
+	dfs(1);
+	int ans = 0;
+	for (int i = 0; i < n; i++)
+		ans += deleted[i + 1];
+	cout << ans;
+	return 0;
+}

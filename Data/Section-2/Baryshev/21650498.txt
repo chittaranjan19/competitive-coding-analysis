@@ -1,0 +1,114 @@
+#include <string>
+#include <vector>
+#include <map>
+#include <list>
+#include <iterator>
+#include <cassert>
+#include <set>
+#include <queue>
+#include <iostream>
+#include <sstream>
+#include <stack>
+#include <deque>
+#include <cmath>
+#include <memory.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cctype>
+#include <algorithm>
+#include <utility>
+#include <time.h>
+#include <complex>
+#include <fstream>
+#include <tuple>
+#include <iomanip>
+
+using namespace std;
+
+#define forn(i, n) for (int i = 0; i < int(n); ++i)
+#define for1(i, n) for (int i = 1; i < int(n); ++i)
+#define ford(i, n) for (int i = int(n) - 1; i >= 0; --i)
+#define fore(i, l, r) for (int i = int(l); i <= int(r); ++i)
+#define all(a) a.begin(), a.end()
+#define sz(a) (int(a.size()))
+#define mp make_pair
+#define pb push_back
+#define ft first
+#define sc second
+#define g(a, b) get<a> (b)
+
+typedef long long ll;
+typedef long double ld;
+typedef pair<int, int> pt;
+
+const int MAX_N = 2e5 + 10;;
+const int mod = 1e9 + 7;
+
+int n, a[MAX_N], b[MAX_N], step[30], sparse_a[30][MAX_N], sparse_b[30][MAX_N], logg[MAX_N];
+
+int get_a(int L, int R){
+    int t = logg[R - L];
+    return max(sparse_a[t][L], sparse_a[t][R - step[t] + 1]);
+}
+
+int get_b(int L, int R){
+    int t = logg[R - L];
+    return min(sparse_b[t][L], sparse_b[t][R - step[t] + 1]);
+}
+
+int main(){
+    #if 0
+        freopen("cinemaholics.in", "r", stdin);
+        freopen("cinemaholics.out", "w", stdout);
+    #endif
+    //cout << setprecision(20);
+    int k = -1, e = 1;
+    for (int i = 1; i < MAX_N - 5; i++){
+        if (i == e) {k++; e*= 2;}
+        logg[i] = k;
+    }
+    step[0] = 1;
+    for (int i = 1; i < 25; i++) step[i] = 2 * step[i - 1];
+    scanf("%d", &n);
+    for (int i = 0; i < n; i++) scanf("%d", &a[i]);
+    for (int i = 0; i < n; i++) scanf("%d", &b[i]);
+    for (int i = 0; i < n; i++) sparse_a[0][i] = a[i];
+    for (int i = 0; i < n; i++) sparse_b[0][i] = b[i];
+    for (int sp = 1; sp < 25; sp++){
+        for (int i = 0; i < n; i++){
+            if (i + step[sp - 1] >= n)
+                sparse_a[sp][i] = sparse_a[sp - 1][i];
+            else {sparse_a[sp][i] = max(sparse_a[sp - 1][i], sparse_a[sp - 1][i + step[sp - 1]]);
+            }
+        }
+    }
+    for (int sp = 1; sp < 25; sp++){
+        for (int i = 0; i < n; i++){
+            if (i + step[sp] / 2 >= n)
+                sparse_b[sp][i] = sparse_b[sp - 1][i];
+            else sparse_b[sp][i] = min(sparse_b[sp - 1][i], sparse_b[sp - 1][i + step[sp - 1]]);
+        }
+    }
+    ll ans = 0;
+    for (int l = 0; l < n; l++){
+        int left = l - 1, right = n - 1;
+        while(right - left > 1){
+            int middle = (right + left) / 2;
+            if (get_a(l, middle) >= get_b(l, middle)) right = middle;
+            else left = middle;
+        }
+        if (right == n) continue;
+        if (get_a(l, right) != get_b(l, right)) continue;
+        int left1 = l, right1 = n;
+        while(right1 - left1 > 1){
+            int middle = (right1 + left1) / 2;
+            if (get_a(l, middle) > get_b(l, middle)) right1 = middle;
+            else left1 = middle;
+            //cout << 1;
+        }
+        ans += ll(right1 - right);
+        //cout << l<< " "<<right << " " << right1 << endl;
+    }
+    cout << ans;
+    return 0;
+}

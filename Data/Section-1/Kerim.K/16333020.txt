@@ -1,0 +1,142 @@
+#include<bits/stdc++.h>
+#define MAXN 500009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define lgN 25
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+string arr[MAXN],k,h;
+int s[lgN][MAXN],vec[MAXN],m,ans[MAXN],sg[MAXN<<2];
+PII que[MAXN];
+vector<pair<PII,int> >adj[2][MAXN];
+vector<int>key[MAXN];
+int tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return sg[nd];
+	int mid=(x+y)>>1;
+	int i1=tap(l,r,nd<<1,x,mid);
+	int i2=tap(l,r,nd<<1|1,mid+1,y);		
+	return i1+i2;
+}
+void upd(int p,int nd,int x,int y){
+	if(x==y){
+		sg[nd]++;
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,nd<<1,x,mid);
+	else
+		upd(p,nd<<1|1,mid+1,y);
+	sg[nd]=sg[nd<<1]+sg[nd<<1|1];		
+}
+int f1(int l,int r,int ind){
+	while(l<r){
+		int mid=(l+r)>>1;
+		if(vec[mid]+ind-1<=m and k[vec[mid]+ind-1]>=h[ind])
+			r=mid;
+		else
+			l=mid+1;	
+	}
+	return l;
+}
+int f2(int l,int r,int ind){
+	while(l<r){
+		int mid=(l+r)>>1;
+		if(vec[mid]+ind-1<=m and k[vec[mid]+ind-1]<=h[ind])
+			l=mid;
+		else
+			r=mid-1;	
+	}
+	if(vec[r]+ind-1<=m and k[vec[r]+ind-1]<=h[ind])
+		l=r;
+	return l;		
+}
+int main(){
+	int n,q;
+	scanf("%d%d",&n,&q);
+	k+="#";
+	for(int i=1;i<=n;i++){
+		cin>>arr[i];
+		k+=arr[i];
+			k+="}";
+	}
+	m=k.size()-1;
+	int lg=log2(m);
+	for(int i=1;i<=m;i++)
+		s[0][i]=k[i]-'a'+1;
+	for(int j=1;j<=lg;j++){
+		vector<pair<PII,int> >v;int c=1;
+		for(int i=1;i<=m;i++){
+			int l=s[j-1][i],r=-1;
+			if(i+(1<<(j-1))<=m)
+				r=s[j-1][i+(1<<(j-1))];
+			v.pb(mp(mp(l,r),i));	
+		}
+		sort(all(v));s[j][v[0].ss]=1;
+		for(int i=1;i<v.size();i++){
+			if(v[i].ff.ff!=v[i-1].ff.ff or
+				v[i].ff.ss!=v[i-1].ff.ss)c++;
+			s[j][v[i].ss]=c;
+		}
+	}
+	int c=1;
+	for(int i=1;i<=m;i++){
+		if(k[i]!='}')
+			key[c].pb(s[lg][i]);
+		else
+			++c;	
+	}
+	for(int i=1;i<=m;i++)
+		vec[s[lg][i]]=i;			
+	for(int i=1;i<=n;i++){
+		h="#"+arr[i];
+ 		int sz=h.size()-1,low=1,high=m;
+		for(int j=1;j<=sz;j++){
+			int st=f1(low,high,j);
+			int en=f2(low,high,j);
+			low=st;high=en;
+		}
+		que[i]=mp(low,high);
+	//	printf("%d %d\n",low,high);	
+	}
+	for(int i=1;i<=q;i++){
+		int l,r,f;
+		scanf("%d%d%d",&l,&r,&f);
+		adj[0][l].pb(mp(mp(que[f].ff,que[f].ss),i));
+		adj[1][r].pb(mp(mp(que[f].ff,que[f].ss),i));
+	}
+	for(int i=1;i<=n;i++){
+		for(int j=0;j<adj[0][i].size();j++){
+			pair<PII,int>to=adj[0][i][j];
+			ans[to.ss]-=tap(to.ff.ff,to.ff.ss,1,1,m);
+		}
+		//before//
+		for(int j=0;j<key[i].size();j++)
+			upd(key[i][j],1,1,m);
+		//afteru//	
+		for(int j=0;j<adj[1][i].size();j++){
+			pair<PII,int>to=adj[1][i][j];
+			ans[to.ss]+=tap(to.ff.ff,to.ff.ss,1,1,m);
+		}
+	}
+	for(int i=1;i<=q;i++)
+		printf("%d\n",ans[i]);
+	return 0;
+}
+

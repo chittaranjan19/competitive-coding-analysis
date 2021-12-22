@@ -1,0 +1,97 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll s[MAXN<<2],lazy[MAXN<<2],t[MAXN];
+void build(int nd,int x,int y){
+	if(x==y){
+		s[nd]=x;
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+}
+void upd(int nd,int x,int y,ll v,ll z){
+	lazy[nd]+=z;
+	t[nd]+=(y-x+1)*z;
+	s[nd]=v;
+}
+void shift(int nd,int x,int y){
+	if(s[nd]==0)
+		return;
+	int mid=(x+y)>>1;
+	upd(nd<<1,x,mid,s[nd],lazy[nd]);
+	upd(nd<<1|1,mid+1,y,s[nd],lazy[nd]);
+	s[nd]=lazy[nd]=0;	
+}
+void key(int nd,int x,int y,ll v){
+	if(s[nd]!=0){
+		t[nd]+=(y-x+1)*abs(s[nd]-v);
+		lazy[nd]+=abs(s[nd]-v);
+		return;
+	}
+	int mid=(x+y)>>1;
+	shift(nd,x,y);
+	key(nd<<1,x,mid,v);
+	key(nd<<1|1,mid+1,y,v);
+	t[nd]=t[nd<<1]+t[nd<<1|1];
+}
+void inc(int l,int r,ll v,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		key(nd,x,y,v);
+		upd(nd,x,y,v,0);
+		return;
+	}
+	shift(nd,x,y);
+	int mid=(x+y)>>1;
+	inc(l,r,v,nd<<1,x,mid);
+	inc(l,r,v,nd<<1|1,mid+1,y);
+	t[nd]=t[nd<<1]+t[nd<<1|1];
+}
+ll tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return t[nd];
+	shift(nd,x,y);	
+	int mid=(x+y)>>1;
+	ll i1=tap(l,r,nd<<1,x,mid);
+	ll i2=tap(l,r,nd<<1|1,mid+1,y);
+	return i1+i2;		
+}
+int main(){
+	int n,q;
+	scanf("%d%d",&n,&q);
+	build(1,1,n);
+	while(q--){
+		int type,l,r;
+		ll v;
+		scanf("%d%d%d",&type,&l,&r);
+		if(type==1){
+			scanf("%lld",&v);
+			inc(l,r,v,1,1,n);
+		}
+		else
+			printf("%lld\n",tap(l,r,1,1,n));
+	}
+	return 0;
+	
+}

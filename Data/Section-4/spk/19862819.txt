@@ -1,0 +1,176 @@
+#include<iostream>
+#include<cstdio>
+#include<map>
+#include<string>
+#include<cstring>
+#include<vector>
+#include<algorithm>
+#include<queue>
+#include<set>
+#include<stack>
+
+#define fill(a,val) memset(a, (val), sizeof a)
+#define pb push_back
+#define scantype int
+#define min(a,b) a<b?a:b
+#define max(a,b) a>b?a:b
+#define lli long long int
+#define N 100003
+
+lli powermod(lli _a,lli _b){lli _r=1;while(_b){if(_b%2==1)_r=(_r*_a);_b/=2;_a=(_a*_a);}return _r;}
+
+using namespace std;
+
+void scan(scantype &x);
+
+struct node{
+    node* next[2];
+}*root;
+
+int flag=1;
+
+node* create(node* pss)
+{
+    pss = new node();
+    (*pss).next[0]=(*pss).next[1]=NULL;
+    return pss;
+}
+
+void init()
+{
+    root = create(root);
+    node *curr = root;
+    for(int i=0;i<31;i++)
+    {
+         node* tmp = create(tmp);
+         (*curr).next[0]=tmp;
+         curr = tmp;
+    }
+}
+
+void add(int num)
+{
+    node* curr = root;
+    for(int i=30;i>=0;i--)
+    {
+         int target = (1<<i)&num;
+         if(target>0)target=1;
+
+         if((*curr).next[target]==NULL)
+         {
+             node* tmp = create(tmp);
+             (*curr).next[target] = tmp;
+         }
+         curr = (*curr).next[target];
+    }
+}
+
+int get(int num)
+{
+    node *curr=root;
+    int res=0;
+    for(int i=30;i>=0;i--)
+    {
+        int target = (1<<i)&num;
+        if(target>0)target=0;
+        else target=1;
+
+        if((*curr).next[target]!=NULL)
+        {
+            curr=(*curr).next[target];
+            res+= (1<<i);
+        }
+        else curr = (*curr).next[target==0?1:0];
+    }
+    return res;
+}
+
+void rem(node* curr,int num,int pos) //initially pos 30
+{
+     if(pos<0)
+        {
+           delete curr;
+           curr = NULL;
+           return;
+        }
+     int mt,dt;
+
+     mt = (1<<pos)&num;
+     if(mt>0)mt=1;
+
+     dt =  mt==1?0:1;
+     rem((*curr).next[mt],num,pos-1);
+
+     if(flag)
+         (*curr).next[mt]=NULL;
+
+     if(flag && (*curr).next[dt]!=NULL)
+         flag=0;
+     if(flag)
+     {
+         delete curr;
+         curr=NULL;
+     }
+}
+
+
+int main(void)
+{
+  init();
+
+  int q;
+  cin>>q;
+  map<int,int> mp;
+
+  while(q--)
+  {
+      string k;
+      cin>>k;
+      int x;
+      scan(x);
+      char c = k[0];
+
+      if(c=='+')
+      {
+          add(x);
+          mp[x]++;
+      }
+      else if(c=='-')
+      {
+          flag=1;
+          mp[x]--;
+          if(mp[x]==0)
+          rem(root,x,30);
+      }
+      else if(c=='?')
+      {
+          printf("%d\n",get(x));
+      }
+
+  }
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+void scan(scantype &x)
+{
+    /*register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}*/
+
+    register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x;
+}

@@ -1,0 +1,69 @@
+#include <iostream>
+#include <vector>
+#include <utility>
+#include <cstdio>
+
+using namespace std;
+
+typedef vector<bool> vb;
+typedef vector<int> vi;
+typedef vector<vector<int> > vvi;
+typedef pair<int, int> pii;
+
+int traverse(vvi &graph, vi &pi, int node, vb &visited)
+{
+    //cout<<node<<endl;
+    for(int a = 0; a < graph[node].size(); a++)
+    {
+    if(visited[graph[node][a]])
+        return node;
+    pi[graph[node][a]] = node;
+    visited[graph[node][a]] = true;
+    int t = traverse(graph, pi, graph[node][a], visited);
+    if(t != -1)
+        return t;
+    else
+        visited[graph[node][a]] = false;
+    }
+    return -1;
+}
+
+int main()
+{
+    //freopen("cycle.in", "r", stdin);
+    int l;
+    cin>>l;
+    vector<string> inp;
+    vvi graph(l);
+    vi ans;
+    bool exists = false;
+    for(int a = 0; a < l; a++)
+    {
+    string s;
+    cin>>s;
+    for(int b = 0; b < s.size(); b++)
+    {
+        if(s[b] == '1')
+        graph[a].push_back(b);
+    }
+    }
+    vb visited(l, false);
+    vi pi(l);
+    visited[0] = true;
+    int t = traverse(graph, pi, 0, visited);
+    //cout<<"out "<<t<<endl;
+    if(t == -1)
+    goto Jump;
+    //cout<<"here"<<endl;
+    for(int a = 0; a < 3; a++)
+    {
+    ans.push_back(t);
+    t = pi[t];
+    }
+Jump:
+    if(t == -1)
+    cout<<-1<<endl;
+    else
+    cout<<ans[2]+1<<" "<<ans[1]+1<<" "<<ans[0]+1<<endl;
+    return 0;
+}

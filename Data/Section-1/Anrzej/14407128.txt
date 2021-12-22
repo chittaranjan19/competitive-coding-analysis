@@ -1,0 +1,78 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+#define pb push_back
+
+string s[11111];
+ll n, m, a[4][1111][1111];
+int dx[4] = { 0, 1, 0, -1 };
+int dy[4] = { 1, 0, -1, 0 };
+
+void gett(int id)
+{
+	queue< pair<int, int> > q;
+	for (int i = 0; i < n; i++){
+		for (int j = 0; j < m; j++)
+		{
+			if ((s[i][j] - '0') == id)
+				q.push(mp(j, i)), a[id][i][j] = 0;
+		}
+	}
+	while (!q.empty())
+	{
+		int x0 = q.front().fs, y0 = q.front().sc, len = a[id][y0][x0];
+		q.pop();
+		for (int i = 0; i < 4; i++)
+		{
+			int nx = dx[i] + x0, ny = dy[i] + y0;
+			if (nx >= 0 && ny >= 0 && nx < m && ny < n && s[ny][nx] != '#')
+			{
+				int nlen = len + (s[ny][nx] == '.');
+				if (a[id][ny][nx] > nlen)
+				{
+					a[id][ny][nx] = nlen;
+					q.push(mp(nx, ny));
+				}
+			}
+		}
+	}
+}
+
+int main()
+{
+	cin >> n >> m;
+	for (int i = 0; i < n; i++)
+		cin >> s[i];
+	for (int i = 0; i < n; i++){
+		for (int j = 0; j < m; j++)
+			a[1][i][j] = a[3][i][j] = a[2][i][j] = 1e9;
+	}
+	ll ans = 1e9;
+	gett(1), gett(2), gett(3);
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < m; j++)
+			ans = min(ans, a[1][i][j] + a[2][i][j] + a[3][i][j] - 2*(s[i][j] == '.'));
+	}
+	if (ans > 1e6)
+		cout << -1;
+	else cout << ans;
+	return 0;
+}

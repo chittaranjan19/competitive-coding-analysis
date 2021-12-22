@@ -1,0 +1,91 @@
+#include <bits/stdc++.h>
+
+#define f       first
+#define s       second
+#define mp      make_pair
+#define rank    something_which_is_supposed_to_be_rank
+#define left    something_which_is_supposed_to_be_left
+#define right   something_which_is_supposed_to_be_right
+
+using namespace std;
+
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+
+const int N = 50, MOVES[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}, MOVE_COUNT = 4;
+
+int n, m, k, ans;
+string f[N];
+bool used[N][N];
+set<pair<int,pair<int,int>>> lakes;
+
+inline bool check(int x, int y) {
+    return (0 <= x && x < n && 
+            0 <= y && y < m &&
+            !used[x][y] &&
+            f[x][y] == '.');
+}
+
+int dfs(int x, int y) {
+    used[x][y] = 1;
+    bool is_lake = (0 < x && x < (n - 1) &&
+                    0 < y && y < (m - 1));
+    int res = 1;
+    for (int i = 0; i < MOVE_COUNT; ++i) {
+        int new_x = x + MOVES[i][0],
+            new_y = y + MOVES[i][1];
+        if (check(new_x, new_y)) {
+            int lake_tiles = dfs(new_x, new_y);
+            if (!lake_tiles) {
+                is_lake = false;
+            }
+            res += lake_tiles;
+        }
+    }
+    return (is_lake ? res : 0);
+}
+
+void fill_with_sand(int x, int y) {
+    f[x][y] = '*';
+    for (int i = 0; i < MOVE_COUNT; ++i) {
+        int new_x = x + MOVES[i][0],
+            new_y = y + MOVES[i][1];
+        if (check(new_x, new_y)) {
+            fill_with_sand(new_x, new_y);
+        }
+    }
+}
+
+int main() {
+    cin.sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n >> m >> k;
+    for (int i = 0; i < n; ++i) {
+        cin >> f[i];
+    }
+    for (int x = 0; x < n; ++x) {
+        for (int y = 0; y < m; ++y) {
+            if (check(x, y)) {
+                int lake_tiles = dfs(x, y);
+                if (lake_tiles) {
+                    lakes.insert({lake_tiles, {x, y}});
+                }
+            }
+        }
+    }
+    memset(used, 0, sizeof(used));
+    for (; (int) lakes.size() > k; ) {
+        auto lake = *lakes.begin();
+        ans += lake.f;
+        fill_with_sand(lake.s.f, lake.s.s);
+        lakes.erase(lakes.begin());
+    }
+    cout << ans << "\n";
+    for (int i = 0; i < n; ++i) {
+        cout << f[i] << "\n";
+    }
+    cerr << "Time elapsed: " << (ld) clock() / CLOCKS_PER_SEC << "\n";
+    return 0;
+}

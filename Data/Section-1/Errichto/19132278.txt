@@ -1,0 +1,105 @@
+#include<bits/stdc++.h>
+using namespace std;
+#define FOR(i,a,b) for(int i = (a); i <= (b); ++i)
+#define FORD(i,a,b) for(int i = (a); i >= (b); --i)
+#define RI(i,n) FOR(i,1,(n))
+#define REP(i,n) FOR(i,0,(n)-1)
+#define mini(a,b) a=min(a,b)
+#define maxi(a,b) a=max(a,b)
+#define mp make_pair
+#define pb push_back
+#define st first
+#define nd second
+#define sz(w) (int) w.size()
+typedef long long ll;
+typedef vector<int> vi;
+typedef pair<int,int> pii;
+const int nax = 1005;
+
+typedef double T;
+
+struct P {
+    int x, y;
+    void read() {
+        scanf("%d%d", &x, &y);
+    }
+    P operator - (P other) {
+        return P{x - other.x, y - other.y};
+    }
+    ll operator * (P other) {
+        return (ll) x * other.y - (ll) y * other.x;
+    }
+    T norm() {
+        return sqrt(T(x) * x + T(y) * y);
+    }
+};
+
+int n;
+P t[nax];
+P roz[nax];
+T inv_di[nax];
+bool ta[nax][nax];
+
+T interval(int from, int to, T x, T y) {
+    T r = -1;
+    FOR(i, from, to) {
+        T tmp = roz[i].x * (y - t[i].y) - roz[i].y * (x - t[i].x);
+        maxi(r, abs(tmp * inv_di[i]));
+    }
+    return r;
+}
+
+T best_x[nax][nax], best_y[nax][nax], val[nax][nax];
+
+int main() {
+    scanf("%d", &n);
+    REP(i, n) t[i].read();
+    REP(i, 2 * n) t[n+i] = t[i];
+    REP(i, 3 * n) roz[i] = t[i+1] - t[i];
+    REP(i, 3 * n) inv_di[i] = T(1) / roz[i].norm();
+    REP(start, n) FOR(end, start + 1, 10000) {
+        if(roz[start] * roz[end] < 0) {
+                //printf("%d %d\n", start, end);
+                break;
+        }
+        assert(end <= start + n);
+        int tu = start;
+        while(tu < end && interval(start, end, t[tu].x, t[tu].y) > interval(start, end, t[tu+1].x, t[tu+1].y))
+            ++tu;
+        //printf("%d %d\n", start, tu);
+        T low = 0, high = 1;
+        T dx = t[tu+1].x - t[tu].x;
+        T dy = t[tu+1].y - t[tu].y;
+        REP(_, 60) {
+            T one = (2 * low + high) / 3;
+            T two = (low + 2 * high) / 3;
+            if(one < 1e-11) break;
+            if(interval(start, end, t[tu].x+one*dx, t[tu].y+one*dy) >
+               interval(start, end, t[tu].x+two*dx, t[tu].y+two*dy))
+                low = one;
+            else
+                high = two;
+        }
+        T bb = (low + high) / 2;
+        best_x[start][end] = best_x[start+n][end+n] = t[tu].x + bb * dx;
+        best_y[start][end] = best_y[start+n][end+n] =  t[tu].y + bb * dy;
+        val[start][end] = val[start+n][end+n] = interval(start, end, best_x[start][end], best_y[start][end]);
+        ta[start][end] = ta[start+n][end+n] = true;
+    }
+    T v = 1e7;
+    T a,b,c,d;
+    REP(start, n) FOR(end, start + 1, start + n) if(ta[start][end] && ta[end+1][start+n-1]) {
+        T maybe = max(val[start][end], val[end+1][start+n-1]);
+        if(maybe < v) {
+            v = maybe;
+            a = best_x[start][end];
+            b = best_y[start][end];
+            c = best_x[end+1][start+n-1];
+            d = best_y[end+1][start+n-1];
+        }
+    }
+    printf("%.10lf\n", v);
+    printf("%.10lf %.10lf\n", a, b);
+    printf("%.10lf %.10lf\n", c, d);
+    return 0;
+}

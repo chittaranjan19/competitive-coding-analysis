@@ -1,0 +1,109 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 300010;
+
+int ft[maxn], a[maxn], b[maxn], p[maxn], q[maxn], ans[maxn], n;
+
+void update(int idx, int val)
+{
+	while(idx<=n){
+		ft[idx]+=val;
+		idx+=(idx&(-idx));
+	}
+}
+
+int query(int idx)
+{
+	int ret = 0;
+	while(idx>0){
+		ret+=ft[idx];
+		idx-=(idx&(-idx));
+	}
+	return ret;
+}
+
+int find(int x)
+{
+	int lo, hi, mid, ret, rsum;
+	lo = 1, hi = n;
+	while(lo<hi){
+		mid = (lo+hi)>>1;
+		rsum = query(mid-1);
+		//cout << rsum << " " << lo << " " << mid << " " << hi << " " << x << "\n";
+		if(rsum>x)
+			hi = mid;
+		else{
+			if(rsum==x)
+				ret = mid;
+			lo = mid+1;
+		}
+	}
+	if(query(lo-1)==x)
+		ret = lo;
+	//cout << ret << "\n";
+	return ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, x, temp;
+	sd(n);
+	for(i=1; i<=n; i++){
+		update(i, 1);
+		scanf("%d", &a[i]);
+		a[i]++;
+	}
+	for(i=1; i<=n; i++){
+		p[i] = query(a[i]-1);
+		//cout << p[i] << " ";
+		update(a[i], -1);
+	}
+	//cout << "\n";
+	for(i=1; i<=n; i++){
+		update(i, 1);
+		scanf("%d", &b[i]);
+		b[i]++;
+	}
+	for(i=1; i<=n; i++){
+		q[i] = query(b[i]-1);
+		//cout << q[i] << " ";
+		update(b[i], -1);
+	}
+	//cout << "\n";
+	for(i=1; i<=n; i++)
+		update(i, 1);
+	temp = 0;
+	for(i=n; i>=1; i--){
+		x = p[i]+q[i]+temp;
+		temp = (x/(n-i+1));
+		x = x-(temp*(n-i+1));
+		ans[i] = x;
+		//cout << ans[i] << " b ";
+	}
+	//cout << "\n";
+	for(i=1; i<=n; i++){
+		ans[i] = find(ans[i]);
+		update(ans[i], -1);
+	}
+	for(i=1; i<=n; i++)
+		printf("%d ", ans[i]-1);
+	printf("\n");
+	return 0;
+}

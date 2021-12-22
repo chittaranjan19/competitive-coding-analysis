@@ -1,0 +1,97 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll N = 100000;
+const ll inf = (ll)1e9;
+const ll MOD = (ll)1e9 + 7;
+const ld eps = 1e-6;
+const ll ABC = 26;
+const ll P = 239;
+
+vector<vector<int> > mi, ma;
+vector<int> log_2;
+
+void build(vector<int> &a)
+{
+    int n = a.size();
+    log_2.resize(n + 1);
+    log_2[1] = 0;
+    for (int i = 1; i <= n; i++)
+        if (i >= (1 << (log_2[i - 1] + 1)))
+            log_2[i] = log_2[i - 1] + 1;
+        else
+            log_2[i] = log_2[i - 1];
+    int sz = 0;
+    while ((1 << sz) <= n)
+        sz++;
+    mi.resize(n, vector<int> (sz));
+    ma.resize(n, vector<int> (sz));
+    for (int i = 0; i < n; i++)
+    {
+        mi[i][0] = a[i];
+        ma[i][0] = a[i];
+    }
+    for (int j = 1; j < sz; j++)
+        for (int i = 0; i < n; i++)
+            if (i + (1 << j) <= n)
+            {
+                mi[i][j] = min(mi[i][j - 1], mi[i + (1 << (j - 1))][j - 1]);
+                ma[i][j] = max(ma[i][j - 1], ma[i + (1 << (j - 1))][j - 1]);
+            }
+}
+
+int get_mi(int l, int r)
+{
+    int len = log_2[r - l];
+    return min(mi[l][len], mi[r - (1 << len)][len]);
+}
+
+int get_ma(int l, int r)
+{
+    int len = log_2[r - l];
+    return max(ma[l][len], ma[r - (1 << len)][len]);
+}
+
+int main()
+{
+    //freopen("refrain.in", "r", stdin);
+    //freopen("refrain.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, k;
+    cin >> n >> k;
+    vector<int> a(n);
+    for (int i = 0; i < n; i++)
+        cin >> a[i];
+    build(a);
+    int ans1 = 0;
+    vector<int> ans2;
+    for (int i = 0; i < n; i++)
+    {
+        int l = i, r = n, mid;
+        while (r - l > 1)
+        {
+            mid = (l + r) / 2;
+            if (get_ma(i, mid + 1) - get_mi(i, mid + 1) <= k)
+                l = mid;
+            else
+                r = mid;
+        }
+        if (l - i + 1 > ans1)
+        {
+            ans1 = l - i + 1;
+            ans2.clear();
+            ans2.push_back(i);
+        }
+        else if (l - i + 1 == ans1)
+            ans2.push_back(i);
+    }
+    cout << ans1 << " " << ans2.size() << endl;
+    for (int i : ans2)
+        cout << i + 1 << " " << i + ans1 << endl;
+    return 0;
+}

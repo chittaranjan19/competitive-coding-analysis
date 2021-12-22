@@ -1,0 +1,138 @@
+#include <cstdio>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <utility>
+#include <string>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+// end of template
+
+typedef unsigned long long ull;
+template <typename U> class Comparator {
+public:
+	bool operator() (const U lhs, const U rhs) {
+		// implement
+		return true;
+	}
+};
+// end of template
+string lowercase(string s) {
+	for (string::iterator it = s.begin(); it != s.end(); it++) {
+		if (*it <= 90)
+			(*it) += 32;
+	}
+	return s;
+}
+int count_r(string s) {
+	int ans = 0;
+	for (string::iterator it = s.begin(); it != s.end(); it++) {
+		if (*it == 114)
+			ans++;
+	}
+	return ans;
+}
+map<string, vector<string> > dictionary; // changable words, dp number of 'r's, dp length
+map<string, int> scc;
+map<int, ii > dp;
+map<string, bool> visited;
+
+int idx;
+void tarjan_dp(string str) {
+	visited[str] = true;
+
+	scc[str] = ++idx;
+	dp[scc[str]].a = 10001;
+	dp[scc[str]].b = 10001;
+	for (vector<string>::iterator it = dictionary[str].begin(); it != dictionary[str].end(); ++it) {
+		if (visited.count(*it)) { // it is inside the stack
+			scc[str] = scc[*it];
+		}
+		else if (!scc.count(*it)) {
+			tarjan_dp(*it);
+			if (scc[*it] < scc[str]) {
+				scc[str] = scc[*it];
+			}
+		}
+		if (dp[scc[(*it)]].a < dp[scc[str]].a) {
+			dp[scc[str]] = dp[scc[(*it)]];
+		}
+		else if ((dp[scc[(*it)]].a == dp[scc[str]].a) && (dp[scc[(*it)]].b < dp[scc[str]].b)) {
+			dp[scc[str]] = dp[scc[(*it)]];
+		}
+	}
+	// compare with itself
+	if (count_r(str) < dp[scc[str]].a) {
+		dp[scc[str]].a = count_r(str);
+		dp[scc[str]].b = str.length();
+	}
+	else if ((count_r(str) == dp[scc[str]].a) && (str.length() < dp[scc[str]].b)) {
+		dp[scc[str]].a = count_r(str);
+		dp[scc[str]].b = str.length();
+	}
+}
+
+int main() {
+	// freopen("467D.in", "r", stdin);
+	int m;
+	scanf("%d", &m);
+	vector<string> essay(m);
+	for (int it = 0; it < m; ++it) {
+		string str;
+		cin >> str;
+		essay[it] = lowercase(str);
+	}
+
+	int n;
+	scanf("%d", &n);
+	for (int it = 0; it < n; ++it) {
+		string str1, str2;
+		cin >> str1 >> str2;
+		str1 = lowercase(str1);
+		str2 = lowercase(str2);
+		if (!dictionary.count(str1)) {
+			vector<string> init;
+			dictionary[str1] = init;
+		}
+		dictionary[str1].push_back(str2);
+	}
+
+	idx = 0;
+	for (map<string, vector<string> >::iterator it = dictionary.begin(); it != dictionary.end(); ++it) {
+		if (!scc.count(it->first)) {
+			visited.clear();
+			tarjan_dp(it->first);
+		}
+	}
+
+	ii ans;
+	for (int it = 0; it < m; ++it) {
+		if (scc.count(essay[it])) {
+			ans.a += dp[scc[essay[it]]].a;
+			ans.b += dp[scc[essay[it]]].b;
+		}
+		else {
+			ans.a += count_r(essay[it]);
+			ans.b += essay[it].length();
+		}
+	}
+	printf("%d %d\n", ans.a, ans.b);
+	return 0;
+}

@@ -1,0 +1,99 @@
+//Coder: Vipin Singh
+#include<bits/stdc++.h>
+using namespace std;
+
+const int MAX = 10000001;
+#define lli long long
+#define pb push_back
+bool v[MAX];
+lli len , sp[MAX];
+
+const lli limit = 10000001;
+lli nume[limit];
+lli deno[limit];
+vector<lli> primes;
+bool visited[limit];
+
+void eras(){
+	for(lli i = 2;i*i<limit;i++){
+		if(!visited[i]){
+			primes.pb(i);
+			for(lli j=i*i;j<limit;j+=i)
+				visited[j]=true;
+		}
+	}
+}
+
+void Sieve(){
+	for (lli i = 2; i < MAX; i += 2)
+		sp[i] = 2;
+	for (lli i = 3; i < MAX; i += 2){
+		if (!v[i]){
+			sp[i] = i;
+			for (lli j = i; (j*i) < MAX; j += 2){
+				if (!v[j*i])	
+					v[j*i] = true, sp[j*i] = i;
+			}
+		}
+	}
+}
+
+void factorize1(lli num){
+	while(num>1){
+		nume[sp[num]]++;
+		num=num/(long long)sp[num];
+	}	
+}
+
+void factorize2(lli num){
+	while(num>1){
+		deno[sp[num]]++;
+		num=num/(long long)sp[num];
+	}	
+}
+
+int main(){
+	Sieve();
+	eras();
+	memset(nume,0,sizeof(nume));
+	memset(deno,0,sizeof(deno));
+	int n,m;
+	lli num;
+	scanf("%d %d",&n,&m);
+	for(int i=0;i<n;i++){
+		cin>>num;
+		factorize1(num);
+	}
+	for(int i=0;i<m;i++){
+		cin>>num;
+		factorize2(num);
+	}
+	vector<lli> anum,aden;
+	for(int i=2;i<limit;i++){
+		lli mn = min(nume[i],deno[i]);
+		nume[i] -= mn;
+		deno[i] -= mn;
+	}
+	lli numc = 0 , denc = 0; 
+	int sz = primes.size();
+	for(int i=0;i<sz;i++){
+		lli p = primes[i];
+		numc += nume[p];
+		denc += deno[p];
+	}
+	cout<<numc+1<<" "<<denc+1<<endl;
+	cout<<1<<" ";
+	for(int i=0;i<sz;i++){
+		lli p = primes[i];
+		for(int j=1;j<=nume[p];j++)
+			cout<<p<<" ";
+	}
+	cout<<"\n";
+	cout<<1<<" ";
+	for(int i=0;i<sz;i++){
+		lli p = primes[i];
+		for(int j=1;j<=deno[p];j++)
+			cout<<p<<" ";
+	}
+	cout<<"\n";
+}

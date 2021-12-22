@@ -1,0 +1,66 @@
+#include <cstdio>
+#include <vector>
+#include <algorithm>
+using namespace std;
+int n,q,i,x,y,z,r,a[100100],s[100100];
+long long now,c[100100],d[100100],e[100100];
+vector<int> g[100100],f[100100];
+void dfs(int i, int p) {
+  for (int j=0; j<g[i].size(); j++) {
+    int k=g[i][j];
+    if (k==p) continue;
+    dfs(k,i);
+    long long cur=d[k]+f[i][j];
+    if (cur>d[i]) {
+      e[i]=d[i]; d[i]=cur;
+    } else if (cur>e[i]) e[i]=cur;
+  }
+}
+void dfs2(int i, int p, long long up) {
+  for (int j=0; j<g[i].size(); j++) {
+    int k=g[i][j];
+    if (k==p) continue;
+    long long cur=d[k]+f[i][j];
+    dfs2(k,i,max(up,(cur==d[i]?e[i]:d[i]))+f[i][j]);
+  }
+  d[i]=max(d[i],up);
+}
+void sfs(int i, int p) {
+  s[i]=1;
+  for (int j=0; j<g[i].size(); j++) {
+    int k=g[i][j];
+    if (k==p) continue;
+    sfs(k,i);
+    s[i]+=s[k];
+  }
+}
+void rfs(int i, int p, int l, int b, long long cur) {
+  a[l]=s[i]; c[l]=d[i];
+  for (; c[l]-c[b]>now; b++) a[b]-=s[i];
+  for (int j=0; j<g[i].size(); j++) {
+    int k=g[i][j];
+    if (k==p) continue;
+    rfs(k,i,l+1,b,cur+f[i][j]);
+  }
+  r=max(r,a[l]);
+}
+int main() {
+  scanf("%d",&n);
+  for (i=1; i<n; i++) {
+    scanf("%d%d%d",&x,&y,&z);
+    g[x].push_back(y); f[x].push_back(z);
+    g[y].push_back(x); f[y].push_back(z);
+  }
+  dfs(1,0);
+  dfs2(1,0,0);
+  for (i=x=1; i<=n; i++) if (d[i]<d[x]) x=i;
+  sfs(x,0);
+  scanf("%d",&q);
+  while (q--) {
+    scanf("%I64d",&now);
+    r=0;
+    rfs(x,0,0,0,0);
+    printf("%d\n",r);
+  }
+  return 0;
+}

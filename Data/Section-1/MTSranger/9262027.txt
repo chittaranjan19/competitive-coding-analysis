@@ -1,0 +1,68 @@
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+typedef long long ll;
+
+struct rational_t { ll nu, de;
+  rational_t(const ll &n = 0, const ll &d = 1) {
+    ll g = __gcd(abs(n), abs(d)); nu = n / g; de = d / g;
+    if (de < 0) { nu = -nu; de = -de; } }
+  rational_t operator+(const rational_t& b) const
+  { return rational_t( nu*b.de+de*b.nu, de*b.de ); }
+  rational_t operator-(const rational_t& b) const
+  { return rational_t( nu*b.de-de*b.nu, de*b.de ); }
+  rational_t operator-() { return rational_t(-nu, de); }
+  rational_t operator*(const rational_t& b) const
+  { return rational_t( nu*b.nu, de*b.de ); }
+  rational_t operator/(const rational_t& b) const
+  { return rational_t( nu*b.de, de*b.nu ); }
+  bool operator== (const rational_t & b) const {return nu * b.de == b.nu * de;}
+  bool operator== (const int &k) const { return nu == k * de; }
+  bool operator< (const rational_t& b) const { return nu * b.de < b.nu * de; }};
+typedef struct rational_t rt;
+
+struct P {
+	rt x, y;
+	P(){}
+	P(rt lx, rt ly) { x = lx; y = ly; }
+};
+struct L {
+	P p, v;
+	L(){}
+	L(rt a, rt b, rt c) {
+		if (a == rt(0)) {
+			p = P(rt(0), -c/b);
+			v = P(rt(1), rt(0));
+		} else if (b == rt(0)) {
+			p = P(-c/a, rt(0));
+			v = P(rt(0), rt(1));
+		} else {
+			p = P(rt(0), -c/b);
+			v = P(-c/a, c/b);
+		}
+	}
+};
+
+P sub(P p1, P p2) {
+	return P(p1.x - p2.x, p1.y - p2.y);
+}
+rt cross(P p1, P p2) {
+	return p1.x * p2.y - p1.y * p2.x;
+}
+
+int main() {
+	ll x1, y1; cin >> x1 >> y1; P p1 = P(rt(x1), rt(y1));
+	ll x2, y2; cin >> x2 >> y2; P p2 = P(rt(x2), rt(y2));
+	int n; cin >> n;
+	int cnt = 0;
+	for (int i = 0; i < n; i++) {
+		ll a, b, c; cin >> a >> b >> c;
+		L line = L(rt(a), rt(b), rt(c));
+		if ((rt(0) < cross(sub(p1, line.p), line.v)) != 
+			(rt(0) < cross(sub(p2, line.p), line.v))) {
+			cnt++;
+		}
+	}
+	cout << cnt << endl;
+}

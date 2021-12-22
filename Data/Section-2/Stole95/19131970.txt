@@ -1,0 +1,202 @@
+import java.io.*;
+import java.util.*;
+
+public class Lorenzo_C {
+	public static void main(String[] args) throws IOException {
+		BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
+		
+		String line = bf.readLine();
+		
+		int q = Integer.parseInt(line);
+		
+		HashMap<Integer, HashMap<Integer, Integer>> newPrice = new HashMap<>();
+		
+		StringBuilder sb = new StringBuilder();
+		
+		
+		for(int i = 0 ; i < q ; i++){
+			line = bf.readLine();
+			String[] tmp = line.split(" ");
+			
+			int type = Integer.parseInt(tmp[0]);
+			
+			if(type == 1){
+				int v = Integer.parseInt(tmp[1]);
+				int u = Integer.parseInt(tmp[2]);
+				int w = Integer.parseInt(tmp[3]);
+				
+				ArrayList<Position> queue = new ArrayList<>();
+				
+				Position p = new Position(0, v);
+				p.lista.add(v);
+				queue.add(p);
+				
+				HashSet<Integer> visited = new HashSet<>();
+				
+				ArrayList<Integer> result = null;
+				
+				while(result == null && !queue.isEmpty()){
+					Position curr = queue.remove(0);
+
+					if(curr.poz / 2 == u){
+						result = curr.lista;
+						result.add(u);
+						queue.clear();
+					}
+					else if(curr.poz*2 == u || curr.poz*2 == u-1){
+						result = curr.lista;
+						result.add(u);
+						queue.clear();
+					}
+					else{
+						if(curr.poz < u){
+							int br = curr.poz * 2;
+
+							if(!visited.contains(br)){
+								Position pp = new Position(0, br);
+								pp.lista = new ArrayList<>(curr.lista);
+								pp.lista.add(br);
+								queue.add(pp);
+							}
+							
+							
+							br ++;
+
+							if(!visited.contains(br)){
+								Position pp = new Position(0, br);
+								pp.lista = new ArrayList<>(curr.lista);
+								pp.lista.add(br);
+								queue.add(pp);
+							}
+						}
+						
+						int br = curr.poz/2;
+
+						if(!visited.contains(br)){
+							Position pp = new Position(0, br);
+							pp.lista = new ArrayList<>(curr.lista);
+							pp.lista.add(br);
+							queue.add(pp);
+						}
+						                          
+					}
+					
+					visited.add(curr.poz);
+					
+				}
+
+				int size = result.size();
+				for(int k = 1 ; k < size; k++){
+					int a = result.get(k); // u
+					int b = result.get(k-1); // v
+					
+					HashMap<Integer, Integer> mapa = newPrice.get(a);
+					
+					if(mapa == null){
+						mapa = new HashMap<Integer, Integer>();
+						mapa.put(b, w);
+					}
+					else{
+						Integer it = mapa.get(b);
+						int price = w;
+						if(it!= null) price += it;
+						mapa.put(b, price);
+					}
+					
+					newPrice.put(a, mapa);
+					
+					mapa = newPrice.get(b);
+					if(mapa == null){
+						mapa = new HashMap<Integer, Integer>();
+						mapa.put(a, w);
+					}
+					else{
+						Integer it = mapa.get(a);
+						int price = w;
+						if(it!= null) price += it;
+						mapa.put(a, price);
+					}
+					
+					newPrice.put(b, mapa);
+				}
+				
+			}
+			else if(type == 2){
+				
+				int v = Integer.parseInt(tmp[1]);
+				int u = Integer.parseInt(tmp[2]);
+				
+				ArrayList<Position> queue = new ArrayList<>();
+				
+				queue.add(new Position(0, v));
+				int rez = 0;
+				
+				HashSet<Integer> visited = new HashSet<>();
+				
+				while(rez == 0 && !queue.isEmpty()){
+					Position curr = queue.remove(0);
+
+					if(curr.poz / 2 == u){
+						HashMap<Integer, Integer> mapa = newPrice.get(curr.poz);
+						rez = curr.price;
+						if(mapa != null){
+							if( mapa.containsKey(u)) rez += mapa.get(u); 
+						}
+						break;
+					}
+					else if(curr.poz*2 == u || curr.poz*2 == u-1){
+						HashMap<Integer, Integer> mapa = newPrice.get(curr.poz);
+						rez = curr.price;
+						if(mapa != null){
+							if(mapa.containsKey(u)) rez += mapa.get(u);
+						}
+						break;
+					}
+					else{
+						if(curr.poz < u){
+							int br = curr.poz * 2;
+
+							if(!visited.contains(br)) addToQueue(queue, br, newPrice, curr);
+							
+							br ++;
+							if(!visited.contains(br)) addToQueue(queue, br, newPrice, curr);
+						}
+						
+						
+						int br = curr.poz/2;
+						if(!visited.contains(br)) addToQueue(queue, br, newPrice, curr);
+					}
+					
+					visited.add(curr.poz);
+				}
+
+				sb.append(" " + rez);
+			}
+			
+
+		}
+		String vkp = sb.toString().substring(1, sb.toString().length());
+		System.out.println(vkp);
+	}
+
+	private static void addToQueue(ArrayList<Position> queue, int br,
+			HashMap<Integer, HashMap<Integer, Integer>> newPrice, Position curr) {
+		HashMap<Integer, Integer> mapa = newPrice.get(curr.poz);
+		int price = curr.price;
+		if(mapa != null && mapa.containsKey(br)) price += mapa.get(br); 
+		queue.add(new Position(price, br));
+		
+	}
+}
+
+class Position{
+	int price;
+	int poz;
+	ArrayList<Integer> lista;
+	
+	Position(int pr, int po){
+		price = pr;
+		poz = po;
+		lista = new ArrayList<>();
+	}
+}

@@ -1,0 +1,85 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 505, MAXS = 2 * MAXN;
+
+struct parcel {
+	int in, out, w, s, v;
+	void read() {
+		cin >> in >> out >> w >> s >> v;
+	}
+	bool operator < (const parcel &p) const {
+		return out < p.out;
+	}
+};
+
+int N, S;
+parcel arr[MAXN];
+int dp[MAXN][MAXS];
+bool ok[MAXN][MAXN];
+int prv[MAXN];	//prev
+
+int getdp (int x, int w) {
+	if (w < 0) {
+		return 0;
+	}
+	int &ref = dp[x][w];
+	if (ref != -1) {
+		return ref;
+	}
+	//sub-dp
+	vector<int> dp2(N + 1);
+	dp2[0] = arr[x].v;
+	for (int j = 0; j < N; j++) {
+		if (ok[x][j]) {
+			dp2[j + 1] = max(dp2[j], dp2[prv[j] + 1] + getdp(j, min(arr[j].s, w - arr[j].w)));
+		} else {
+			dp2[j + 1] = dp2[j];
+		}
+	}
+	return ref = dp2.back();
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> S;
+	arr[0].s = S;
+	arr[0].in = -1;
+	arr[0].out = MAXS;
+	for (int i = 1; i <= N; i++) {
+		arr[i].read();
+	}
+	N++;
+	sort(arr, arr + N);
+	for (int i = 0; i < N; i++) {
+		for (int j = i - 1; j >= 0; j--) {
+			if (arr[j].out <= arr[i].in) {
+				prv[i] = j;
+				break;
+			}
+		}
+	}
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < N; j++) {
+			if (i != j) {
+				ok[i][j] = (arr[i].in <= arr[j].in && arr[j].out <= arr[i].out);
+			}
+		}
+	}
+	fillchar(dp, -1);
+	cout << getdp(N - 1, S) << endl;
+}

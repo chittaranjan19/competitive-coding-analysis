@@ -1,0 +1,103 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 400005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, m, num[mn], low[mn], rig = 0;
+int numT = 0, belong[mn], st[mn], r = 0, can[mn];
+bool vis[mn];
+vector<int> tplt[mn];
+vector< pair<int, int> > g[mn];
+pair<int, int> edge[mn];
+
+void setup()
+{
+    cin >> n >> m;
+    int u, v;
+    FOR(i, 1, m)
+    {
+        cin >> u >> v;
+        g[u].pb(mp(v, i));
+        g[v].pb(mp(u, i));
+    }
+}
+
+void dfs(int u)
+{
+    num[u] = low[u] = ++ rig;
+    st[++ r] = u;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].F;
+        int id = g[u][i].S;
+        if (vis[id])
+            continue;
+        vis[id] = true;
+        edge[g[u][i].S] = mp(u, v);
+        if (num[v])
+            low[u] = min(low[u], num[v]);
+        else
+        {
+            dfs(v);
+            low[u] = min(low[u], low[v]);
+        }
+    }
+    if (num[u] == low[u])
+    {
+        numT ++;
+        while(true)
+        {
+            int v = st[r --];
+            belong[v] = numT;
+            tplt[numT].pb(v);
+            if (v == u)
+                break;
+        }
+        can[numT] = tplt[numT].size();
+    }
+}
+
+void xuly()
+{
+    dfs(1);
+    FOR(u, 1, n)
+    {
+        int tU = belong[u];
+        FOR(i, 0, int(g[u].size()) - 1)
+        {
+            int v = g[u][i].F;
+            int tV = belong[v];
+            if (tU == tV || v < u)
+                continue;
+            int id = g[u][i].S;
+            if (can[tU] < can[tV])
+                edge[id] = mp(u, v), can[tU] += can[tV];
+            else
+                edge[id] = mp(v, u), can[tV] += can[tU];
+        }
+    }
+    int down = can[1];
+    FOR(i, 2, numT)
+        down = min(down, can[i]);
+    cout << down << '\n';
+    FOR(i, 1, m)
+        cout << edge[i].F << ' ' << edge[i].S << '\n';
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+//    freopen("FILE.INP", "r", stdin);
+//    freopen("FILE.OUT", "w", stdout);
+    setup ();
+    xuly ();
+    return 0;
+}

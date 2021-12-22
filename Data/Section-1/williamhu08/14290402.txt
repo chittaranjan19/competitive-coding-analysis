@@ -1,0 +1,112 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define mp make_pair
+#define fi first
+#define se second
+
+using ll = long long;
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+const int MAXN = 2010;
+
+int N, H;
+double P;
+int X[MAXN];
+double dp[MAXN][MAXN][2][2];	//dp[left][right][dir_l][dir_r]
+int cov[MAXN][2];	//cover left, right
+
+double getdp (int lt, int rt, int dl, int dr) {
+	if (lt > rt) {
+		return 0;
+	}
+	double &ref = dp[lt][rt][dl][dr];
+	if (ref == ref) {
+		return ref;
+	}
+	ref = 0;
+	int nadd, ext;
+	//left side, falls left
+	if (dl) {
+		nadd = min(H, X[lt] - X[lt - 1] - H);
+	} else {
+		nadd = min(H, X[lt] - X[lt - 1]);
+	}
+	// printf("lt = %d, rt = %d, dl = %d, dr = %d. L FALL L is %d\n", lt, rt, dl, dr, nadd);
+	ref += 0.5 * P * (nadd + getdp(lt + 1, rt, 0, dr));
+	//left side, falls right
+	ext = min(cov[lt][1], rt);
+	if (dr) {
+		nadd = X[ext] - X[lt] + min(H, X[ext + 1] - X[ext]);
+	} else {
+		nadd = X[ext] - X[lt] + min(H, X[ext + 1] - X[ext] - H);
+	}
+	// printf("lt = %d, rt = %d, dl = %d, dr = %d. L FALL R is %d\n", lt, rt, dl, dr, nadd);
+	ref += 0.5 * (1 - P) * (nadd + getdp(ext + 1, rt, 1, dr));
+	//right side, falls left
+	ext = max(cov[rt][0], lt);
+	if (dl) {
+		nadd = X[rt] - X[ext] + min(H, X[ext] - X[ext - 1] - H);
+	} else {
+		nadd = X[rt] - X[ext] + min(H, X[ext] - X[ext - 1]);
+	}
+	// printf("lt = %d, rt = %d, dl = %d, dr = %d. R FALL L is %d\n", lt, rt, dl, dr, nadd);
+	ref += 0.5 * P * (nadd + getdp(lt, ext - 1, dl, 0));
+	//right side, falls right
+	if (dr) {
+		nadd = min(H, X[rt + 1] - X[rt]);
+	} else {
+		nadd = min(H, X[rt + 1] - X[rt] - H);
+	}
+	// printf("lt = %d, rt = %d, dl = %d, dr = %d. R FALL R is %d\n", lt, rt, dl, dr, nadd);
+	ref += 0.5 * (1 - P) * (nadd + getdp(lt, rt - 1, dl, 1));
+	// printf("dp[%d][%d][%d][%d] = %lf\n", lt, rt, dl, dr, ref);
+	return ref;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> H >> P;
+	for (int i = 1; i <= N; i++) {
+		cin >> X[i];
+	}
+	sort(X + 1, X + N + 1);
+	//add dummy trees
+	X[0] = -1e9;
+	X[N + 1] = 1e9;
+	//calc
+	for (int i = 1; i <= N; i++) {
+		for (int j = 0; j < 2; j++) {
+			int &ref = cov[i][j];
+			ref = i;
+			if (j) {
+				//go right
+				while (ref < N) {
+					if (X[ref + 1] - X[ref] >= H) {
+						break;
+					}
+					ref++;
+				}
+			} else {
+				//go left
+				while (ref > 1) {
+					if (X[ref] - X[ref - 1] >= H) {
+						break;
+					}
+					ref--;
+				}
+			}
+			// printf("cov[%d][%d] = %d\n", i, j, ref);
+		}
+	}
+	fillchar(dp, -1);	//to nan
+	cout << fixed << setprecision(15) << getdp(1, N, 0, 1) << endl;
+}

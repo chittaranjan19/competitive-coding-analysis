@@ -1,0 +1,54 @@
+#include <algorithm>
+#include <iostream>
+#include <set>
+
+#define hash djkndsjknjksdncjksdnjk
+
+typedef unsigned long long ll;
+
+using namespace std;
+
+const ll N = 1e5 + 179, M = 179, MOD = 1e9 + 7;
+
+ll hash[N], pows[N] = {1};
+vector<ll> v[3];
+vector<ll>::iterator past_the_end[2];
+
+inline ll mod(ll n) {
+    return (n % MOD + MOD) % MOD;
+}
+
+int n;
+string s;
+
+int main() {
+    cin >> n;
+    for (int i = 0; i <= n; ++i) {
+        pows[i + 1] = mod(pows[i] * M);
+    }
+    for (int str = 0; str < 2; ++str) {
+        cin >> s;
+        hash[0] = 0;
+        for (int i = 0; i < n; ++i) {
+            hash[i + 1] = mod(hash[i] * M + s[i] - 'a' + 1);
+        }
+        for (int l = 0; l < n + 1; ++l) {
+            for (char c = 'a'; c < 'z'; ++c) {
+                v[str].push_back(mod(hash[n] - hash[n - l] * pows[l] + mod((c - 'a' + 1) * pows[l]) + hash[n - l] * pows[l + 1]));
+            }
+        }
+        past_the_end[str] = unique(v[str].begin(), v[str].end());
+        v[str].resize(past_the_end[str] - v[str].begin());
+        sort(v[str].begin(), v[str].end());
+    }
+/*
+    for (int i = 0; i < 2; ++i) {
+        for (vector<ll>::iterator it = v[i].begin(); it != past_the_end[i]; ++it) {
+            cout << (*it) << " ";
+        }
+        cout << "\n";
+    }
+*/
+    set_intersection(v[0].begin(), v[0].end(), v[1].begin(), v[1].end(), back_inserter(v[3]));
+    cout << v[3].size() << "\n";
+}

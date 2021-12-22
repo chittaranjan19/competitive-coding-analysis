@@ -1,0 +1,154 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+
+public class ProblemD {
+    BufferedReader rd;
+
+    ProblemD() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int n = a[0];
+        int m = a[1];
+        int[] p = intarr();
+        char[] c = rd.readLine().toCharArray();
+
+        Node[] nodes = new Node[n];
+        nodes[0] = new Node(c[0], null, 1);
+        for(int i=0;i<n-1;i++) {
+            nodes[i+1] = new Node(c[i+1], nodes[p[i]-1], nodes[p[i]-1].depth + 1);
+        }
+        for(int i=1;i<n;i++) {
+            nodes[i].parent.children.add(nodes[i]);
+        }
+        for(int i=0;i<m;i++) {
+            int[] vh = intarr();
+            int v = vh[0] - 1;
+            int h = vh[1];
+            Node node = nodes[v];
+            if(node.depth <= h) {
+                int[] cnt = new int[26];
+                Queue<Node> toVisit = new LinkedList<>();
+                toVisit.add(node);
+                while(!toVisit.isEmpty()) {
+                    Node y = toVisit.poll();
+                    if(y.depth == h) {
+                        cnt[y.c]++;
+                    } else {
+                        for(Node child: y.children) {
+                            toVisit.add(child);
+                        }
+                    }
+                }
+                out(isPalin(cnt)?"Yes":"No");
+            } else {
+                out("Yes");
+            }
+        }
+    }
+
+    private boolean isPalin(int[] cnt) {
+        int odd = 0;
+        for(int i: cnt) {
+            if(i%2==1) {
+                odd++;
+                if(odd > 1) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private class Node {
+        int c;
+        Node parent;
+        int depth;
+        List<Node> children = new ArrayList<>();
+
+        private Node(char c, Node parent, int depth) {
+            this.c = c-'a';
+            this.parent = parent;
+            this.depth = depth;
+        }
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

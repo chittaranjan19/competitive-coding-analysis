@@ -1,0 +1,68 @@
+#include <iostream>
+#include <algorithm>
+#include <map>
+
+using namespace std;
+
+int n,m;
+int a[100000];
+
+int s;
+pair<pair<int,int>,int> q[100000];
+map<int,int> db;
+int prnt[100000];
+
+bool cmp(pair<pair<int,int>,int> x, pair<pair<int,int>,int> y) {
+    return ((x.first.first/s < y.first.first/s)
+        || ((x.first.first/s == y.first.first/s) && (x.first.second < y.first.second)));
+}
+
+int main()
+{
+    ios::sync_with_stdio(0);
+    cin.tie(NULL);
+    cin >> n >> m;
+    for(int i=0; i<n; i++) {
+        cin >> a[i];
+        db[a[i]] = 0;
+    }
+
+    for(int i=0; i<m; i++) {
+        cin >> q[i].first.first >> q[i].first.second; q[i].first.first--; q[i].first.second--;
+        q[i].second = i;
+    }
+
+    s = (int)sqrt(n);
+    sort(q,q+m,cmp);
+
+    int x(0),y(0);
+    int sol(a[0] == 1);
+    db[a[0]]++;
+    for(int i=0; i<m; i++) {
+        while(y<q[i].first.second) {
+            y++;
+            if(db[a[y]] == a[y]) sol--;
+            if(++db[a[y]] == a[y]) sol++;
+        }
+        while(y>q[i].first.second) {
+            if(db[a[y]] == a[y]) sol--;
+            if(--db[a[y]] == a[y]) sol++;
+            y--;
+        }
+        while(x<q[i].first.first) {
+            if(db[a[x]] == a[x]) sol--;
+            if(--db[a[x]] == a[x]) sol++;
+            x++;
+        }
+        while(x>q[i].first.first) {
+            x--;
+            if(db[a[x]] == a[x]) sol--;
+            if(++db[a[x]] == a[x]) sol++;
+        }
+        prnt[q[i].second] = sol;
+    }
+
+    for(int i=0; i<m; i++) cout << prnt[i] << endl;
+
+    return 0;
+}

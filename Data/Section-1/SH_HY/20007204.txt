@@ -1,0 +1,102 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+const int MAXN = 1010;
+
+bitset <MAXN> b[MAXN];
+vector <int> vec[100010];
+int ans[100010], F[100010];
+int n, m, q;
+struct on {
+    int type;
+    int j, k;
+}no[100010];
+
+int Find (int x) {
+    if (F[x] != x)
+        return F[x] = Find (F[x]);
+    else
+        return F[x];
+}
+
+void ret (int num, int pre) {
+    if (no[num].type == 1) {
+        if (ans[num] > ans[pre])    b[no[num].j][no[num].k] = 0;
+    } else if (no[num].type == 2) {
+        if (ans[num] < ans[pre])    b[no[num].j][no[num].k] = 1;
+    } else if (no[num].type == 3) {
+        b[no[num].k].flip ();
+    }
+}
+
+void DFS (int num, int pre) {
+    if (num > q)    return ;
+    if (pre != F[num]) {
+        if (no[num].type == 1) {
+            if (b[no[num].j][no[num].k])    ans[num] = ans[pre];
+            else    ans[num] = ans[pre] + 1;
+            b[no[num].j][no[num].k] = 1;
+        } else if (no[num].type == 2) {
+            if (b[no[num].j][no[num].k])    ans[num] = ans[pre] - 1;
+            else    ans[num] = ans[pre];
+            b[no[num].j][no[num].k] = 0;
+        } else if (no[num].type == 3) {
+            int cnt = b[no[num].k].count();
+            if (b[no[num].k][1005]) {
+                cnt -= (MAXN - m);
+            }
+            ans[num] = ans[pre] - cnt + m - cnt;
+            b[no[num].k].flip();
+        }
+    } else {
+        ans[num] = ans[pre];
+    }
+    /*
+    cout << num <<endl;
+    for (int i = 0; i <= n; i++) {
+        for (int j = 0; j <= m; j++) {
+            cout << b[i][j] << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+    */
+    for (int i = 0; i < vec[num].size (); i++) {
+        DFS (vec[num][i], num);
+    }
+    if (num + 1 != F[num + 1]) {
+        ret (num, pre);
+        return ;
+    } else {
+        DFS (num + 1, num);
+    }
+    ret (num, pre);
+}
+
+int main () {
+#ifdef LOCAL
+    freopen ("in.txt", "r", stdin);
+#endif // LOCAL
+    ios::sync_with_stdio (false);
+    cin >> n >> m >> q;
+    for (int i = 0; i <= q + 5; i++)    F[i] = i;
+    for (int i = 0; i <= n; i++)    b[i].reset();
+    for (int i = 1; i <= q; i++) {
+        cin >> no[i].type;
+        if (no[i].type == 1 || no[i].type == 2) {
+            cin >> no[i].j >> no[i].k;
+        } else {
+            cin >> no[i].k;
+            if (no[i].type == 4) {
+                F[i] = Find (no[i].k);
+                vec[F[i]].push_back (i);
+            }
+        }
+    }
+    ans[0] = 0;
+    DFS (0, 0);
+    for (int i = 1; i <= q; i++) {
+        cout << ans[i] << endl;
+    }
+    return 0;
+}

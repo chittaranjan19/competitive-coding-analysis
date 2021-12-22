@@ -1,0 +1,109 @@
+#include <bits/stdc++.h>
+#include <cstdlib>
+
+using namespace std;
+
+template<class T>
+using v = vector<T>;
+using ll = long long;
+
+using pii = pair<int, int>;
+
+const int MN = 1e5 + 100;
+
+map<pii, int> t_to_idx;
+map<int, int> a_to_idx;
+
+vector<int> ts[MN];
+
+vector<int> st[MN];
+
+void build(int idx, int v, int tl, int tr)
+{
+//    cerr << ts[idx].size() << endl;
+    if (v == 1)
+        st[idx] = vector<int>(4 * (ts[idx].size() + 20), 0);
+//    cerr << st[idx].size() << " " << ts[idx].size() << endl;
+}
+
+void add(int idx, int v, int tl, int tr, int pos, int val)
+{
+    if (tl == tr)
+    {
+        st[idx][v] += val;
+        return;
+    }
+    int mid = (tl + tr) / 2;
+    if (pos <= mid)
+        add(idx, 2 * v, tl, mid, pos, val);
+    else
+        add(idx, 2 * v + 1, mid + 1, tr, pos, val);
+    st[idx][v] += val;
+}
+
+int get(int idx, int v, int tl, int tr, int l, int r)
+{
+    if (l <= tl && tr <= r)
+        return st[idx][v];
+    int mid = (tl + tr) / 2;
+    int res = 0;
+    if (l <= mid)
+        res += get(idx, 2 * v, tl, mid, l, r);
+    if (r > mid)
+        res += get(idx, 2 * v + 1, mid + 1, tr, l, r);
+    return res;
+}
+
+int main()
+{
+    cin.tie(0);
+    ios_base::sync_with_stdio(0);
+
+    int n;
+    cin >> n;
+    vector<int> tp(n);
+    vector<int> tt(n);
+    vector<int> ta(n);
+
+    for (int i = 0; i < n; ++i)
+    {
+        cin >> tp[i] >> tt[i] >> ta[i];
+        if (a_to_idx.find(ta[i]) == a_to_idx.end())
+        {
+            int val = a_to_idx.size();
+            a_to_idx[ta[i]] = val;
+//            cerr << a_to_idx[ta[i]] << " " << ta[i] << endl;
+        }
+        ts[a_to_idx[ta[i]]].push_back(tt[i]);
+//        cerr << ts[a_to_idx[ta[i]]].size() << endl;
+    }
+
+    for (int i = 0; i < a_to_idx.size(); ++i)
+    {
+        sort(ts[i].begin(), ts[i].end());
+        for (int j = 0; j < ts[i].size(); ++j)
+            t_to_idx[make_pair(i, ts[i][j])] = j;
+        build(i, 1, 1, ts[i].size());
+    }
+
+    for (int i = 0; i < n; ++i)
+    {
+        int idx = a_to_idx[ta[i]];
+        if (tp[i] == 1)
+        {
+//            cerr << ts[idx].size() << " ";
+//            cerr << t_to_idx[make_pair(idx, tt[i])] << ta[i] << " " << idx << " " << st[idx].size();
+            add(idx, 1, 0, ts[idx].size() - 1, t_to_idx[make_pair(idx, tt[i])], 1);
+        }
+        if (tp[i] == 2)
+        {
+//            cerr << t_to_idx[make_pair(idx, tt[i])];
+            add(idx, 1, 0, ts[idx].size() - 1, t_to_idx[make_pair(idx, tt[i])], -1);
+        }
+        if (tp[i] == 3)
+        {
+//            cerr << t_to_idx[make_pair(idx, tt[i])];
+            cout << get(idx, 1, 0, ts[idx].size() - 1, 0, t_to_idx[make_pair(idx, tt[i])]) << "\n";
+        }
+    }
+}

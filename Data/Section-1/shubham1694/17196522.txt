@@ -1,0 +1,104 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1000010;
+
+int ok, cnt, moves, flip;
+string temp;
+
+void euclid(int a, int b)
+{
+    if(min(a, b)==0 && max(a, b)==1){
+        ok = 1;
+        return;
+    }
+    if(min(a, b)==0){
+        ok = 0;
+        return;
+    }
+    if(a>b){
+        moves+=(a/b);
+        cnt+=((a/b)-1);
+        euclid(a%b, b);
+    }
+    else{
+        moves+=(b/a);
+        cnt+=((b/a)-1);
+        euclid(a, b%a);
+    }
+}
+
+void generate(int a, int b)
+{
+    if(a==1 && b==1){
+        temp+='T';
+        return;
+    }
+    if(a>b){
+        temp+='T';
+        generate(a-b, b);
+    }
+    else{
+        temp+='B';
+        generate(a, b-a);
+    }
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int n, r, i, j, mcnt = inf, ind;
+    scanf("%d%d", &n, &r);
+    for(i=1; i<=r; i++){
+        ok = cnt = moves = 0;
+        euclid(r, i);
+        if(moves!=n)
+            continue;
+        if(mcnt > cnt){
+            mcnt = cnt;
+            ind = i;
+        }
+    }
+    if(mcnt==inf){
+        printf("IMPOSSIBLE\n");
+        return 0;
+    }
+    flip = 0;
+    temp = "";
+    generate(r, ind);
+    if(flip){
+        for(i=0; i<temp.size(); i++){
+            if(temp[i]=='T')
+                temp[i] = 'B';
+            else
+                temp[i] = 'T';
+        }
+    }
+    if(n>=2){
+        if(temp[n-1]==temp[n-2]){
+            if(temp[n-1]=='T')
+                temp[n-1] = 'B';
+            else
+                temp[n-1] = 'T';
+            mcnt--;
+        }
+    }
+    printf("%d\n", mcnt);
+    cout << temp << "\n";
+    return 0;
+}

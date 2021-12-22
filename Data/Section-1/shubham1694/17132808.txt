@@ -1,0 +1,161 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 500010;
+const ll a = 141;
+
+vector<pair<ll, int> > vs, vt;
+string s, t, concat, temp, str;
+int z[maxn];
+ll hsh[maxn], pa[maxn], mpa[maxn];
+
+ll modpow(ll a, ll b)
+{
+	ll x=1, y=a;
+	while(b){
+		if(b&1)
+			x = (x*y)%mod;
+		y = (y*y)%mod;
+		b/=2;
+	}
+	return x;
+}
+
+void compute_z()
+{
+	int i, L = 0, R = 0, n;
+	n = (int)concat.size();
+	for(i=1; i<n; i++){
+  		if(i>R){
+   	 		L = R = i;
+   	 		while(R<n && concat[R-L]==concat[R]) 
+   	 			R++;
+   	 		z[i] = R-L; 
+   	 		R--;
+  		} 
+  		else{
+    		int k = i-L;
+    		if(z[k]<R-i+1) 
+    			z[i] = z[k];
+    		else{
+      			L = i;
+      			while(R<n && concat[R-L]==concat[R]) 
+      				R++;
+      			z[i] = R-L; 
+      			R--;
+    		}
+  		}
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int n, m, i, j, c;
+	ll ans = 0, chsh, l, rhsh;
+	pa[0] = 1;
+	for(i=1; i<maxn; i++){
+		pa[i] = (pa[i-1]*a)%mod;
+		mpa[i] = modpow(pa[i], mod-2);
+	}
+	scanf("%d%d", &n, &m);
+	s = t = "";
+	for(i=1; i<=n; i++){
+		cin >> temp;
+		c = temp[temp.size()-1]-'a';
+		str = temp.substr(0, temp.size()-2);
+		l = stoll(str);
+		if(vt.empty()){
+			vt.pb(mp(l, c));
+			t+=(char)('a'+c);
+		}
+		else{
+			if(vt.back().s==c)
+				vt[vt.size()-1].f+=l;
+			else{
+				vt.pb(mp(l, c));
+				t+=(char)('a'+c);
+			}
+		}
+	}
+	for(i=1; i<=m; i++){
+		cin >> temp;
+		c = temp[temp.size()-1]-'a';
+		str = temp.substr(0, temp.size()-2);
+		l = stoi(str);
+		if(vs.empty()){
+			vs.pb(mp(l, c));
+			s+=(char)('a'+c);
+		}
+		else{
+			if(vs.back().s==c)
+				vs[vs.size()-1].f+=l;
+			else{
+				vs.pb(mp(l, c));
+				s+=(char)('a'+c);
+			}
+		}
+	}
+	n = vt.size();
+	m = vs.size();
+	/*for(i=0; i<n; i++)
+		cout << vt[i].f << " " << vt[i].s << "\n";
+	cout << "\n";
+	for(i=0; i<m; i++)
+		cout << vs[i].f << " " << vs[i].s << "\n";
+	cout << "\n";
+	cout << s << " " << t << "\n";*/
+	if(m==1){
+		for(i=0; i<n; i++){
+			if(vt[i].s==vs[0].s){
+				ans+=max(0ll, vt[i].f-vs[0].f+1ll);
+			}
+		}
+		printf("%lld\n", ans);
+		return 0;
+	}
+	rhsh = 0;
+	concat = s+t;
+	compute_z();
+	/*cout << "\n";
+	cout << concat << "\n";
+	for(i=0; i<n+m; i++)
+		cout << z[i] << " ";
+	cout << "\n";*/
+	for(i=0; i<n; i++)
+		hsh[i+1] = (hsh[i]+(pa[i+1]*1ll*vt[i].f)%mod)%mod;
+	for(i=1; i<m-1; i++)
+		rhsh = (rhsh+(pa[i]*1ll*vs[i].f)%mod)%mod;
+	//cout << rhsh << "\n";
+	for(i=m, j=0; i<(n+m); i++, j++){
+		if(z[i]>=m){
+			if(m==2){
+				if(vt[j].f>=vs[0].f && vt[j+1].f>=vs[1].f)
+					ans++;
+			}
+			else{
+				chsh = (hsh[j+m-1]-hsh[j+1]+mod)%mod;
+				chsh = (chsh*mpa[j+1])%mod;
+				if(chsh==rhsh)
+					ans++;
+			}
+		}
+	}
+	printf("%lld\n", ans);
+	return 0;
+}

@@ -1,0 +1,112 @@
+#include<bits/stdc++.h>
+#define MAXN 800009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+char s[MAXN],sr[MAXN];
+int lcp[MAXN],R[MAXN],L[MAXN],st[MAXN],belong[MAXN],sum[MAXN];
+int arr[MAXN],cs[MAXN],c[MAXN],S[MAXN][29],sir[MAXN];
+PII C[MAXN];
+bool cmp(int x,int y){
+	return (C[x]<C[y]);
+}
+int main(){
+	int a,sz=0;
+	scanf("%d",&a);
+	for(int i=1;i<=a;i++){
+		scanf("%s",&s);
+		arr[i]=strlen(s);sr[++sz]='#';
+		st[i]=sz+1;
+		for(int j=0;j<arr[i];j++)
+			sr[++sz]=s[j],belong[sz]=i;
+	}
+	for(int i=1;i<=a;i++)
+		scanf("%d",cs+i);
+	for(int i=1;i<=sz;i++)
+		S[i][0]=sr[i]-'a'+1;	
+	for(int j=1;j<20;j++){
+		for(int i=1;i<=sz;i++)
+			C[i]=mp(S[i][j-1],(i+(1<<j-1)<=sz?S[i+(1<<j-1)][j-1]:-1)),c[i]=i;
+		sort(c+1,c+sz+1,cmp);
+		for(int i=1;i<=sz;i++)
+			S[c[i]][j]=S[c[i-1]][j]+(C[c[i]]!=C[c[i-1]]);	
+	}
+	for(int i=1;i<=sz;i++)
+		sir[S[i][19]]=i;
+//	for(int i=1;i<=sz;i++){
+//		for(int j=sir[i];j<=sz;j++)
+//			cout<<sr[j];
+//		cout<<endl;
+//	}
+	/*
+	for(int i=2;i<=sz;i++){
+		int x=sir[i-1],y=sir[i];
+		for(int j=19;j>=0;j--)
+			if(x<=sz and y<=sz and S[x][j]==S[y][j]){
+				x+=(1<<j);y+=(1<<j);
+				lcp[i]+=(1<<j);
+			}
+	}
+	*/
+	int h=0;
+	for(int i=1;i<=sz;i++){
+		if(S[i][19]==1)
+			continue;
+		while(i+h<=sz and sir[S[i][19]-1]+h<=sz and sr[i+h]==sr[sir[S[i][19]-1]+h] and sr[i+h]!='#')
+			h++;
+		lcp[S[i][19]]=h;
+		if(h)
+			h--;		
+	}
+	stack<int>s,t;
+	for(int i=1;i<=sz;i++){
+		R[i]=sz;
+		while(!s.empty() and lcp[s.top()]>lcp[i])
+			R[s.top()]=i-1,s.pop();
+		while(!t.empty() and lcp[t.top()]>=lcp[i])
+			t.pop();	
+		if(!t.empty())
+			L[i]=t.top();
+		s.push(i);t.push(i);		
+	}
+	ll ans=0;
+	for(int i=1;i<=a;i++){
+		int ord=sir[st[i]];
+		if(lcp[ord]<arr[i] and arr[i]<lcp[ord+1]);
+			umax(ans,arr[i]*cs[i]*1LL);
+	}
+//	for(int i=1;i<=sz;i++)
+//		cout<<L[i]<<" "<<R[i]<<endl;	
+	for(int i=1;i<=sz;i++)
+		sum[i]=cs[belong[sir[i]]],sum[i]+=sum[i-1];
+	for(int i=1;i<=sz;i++)
+		if(lcp[L[i]]<lcp[i] and lcp[i]>lcp[R[i]+1]){
+			umax(ans,lcp[i]*(sum[R[i]]-sum[L[i]-1])*1LL);
+		}
+	printf("%d\n",ans);
+	return 0;
+}
+/*
+ex 2nd test
+0 2
+1 2
+0 5
+3 5
+3 5
+0 6
+*/

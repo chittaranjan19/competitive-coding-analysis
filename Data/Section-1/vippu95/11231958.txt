@@ -1,0 +1,72 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+const int limit = 5000005;
+lli cnt[limit];
+
+int get(lli num,lli div){
+    int ans = 0;
+    lli temp = num;
+
+    while(num%div==0){
+        ans++;
+        num = num/div;
+    }
+    return ans;
+}
+
+vector<bool> prime(limit,true);
+void seive(){
+	for(int i=2;i<limit;i++){
+		if(prime[i]){
+			for(int j=i;j<limit;j+=i){
+				prime[j]=false;
+				cnt[j] += get(j,i);
+            }
+		}
+	}
+	return;
+}
+
+lli bit[limit];
+void update(int idx,lli v){
+    while(idx < limit){
+        bit[idx] += v;
+        idx += idx & (-idx);
+    }
+    return;
+}
+
+lli query(int idx){
+    lli ans = 0;
+    while(idx > 0){
+        ans += bit[idx];
+        idx -= idx & (-idx);
+    }
+    return ans;
+}
+
+int main(){
+    memset(cnt,0,sizeof(cnt));
+    memset(bit,0,sizeof(bit));
+    seive();
+    for(int i=1;i<limit;i++){
+        update(i,cnt[i]);
+    }
+    int t;
+    scanf("%d",&t);
+    while(t--){
+        int a,b;
+        scanf("%d %d",&a,&b);
+        lli ans = query(a)-query(b);
+        printf("%lld\n",ans);
+    }
+}

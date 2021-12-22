@@ -1,0 +1,60 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+#define pb push_back
+#define mp make_pair
+#define ff first
+#define ss second
+#define NL "\n"
+#define pll pair<ll,ll>
+const ll mod = 1000000007ll;
+
+using namespace std;
+
+#define maxn 109
+ll ar[12];
+ll dp[maxn][12];
+ll C[maxn][maxn];
+
+int main()
+{
+	for (int i = 0; i < maxn; i++)
+		C[i][0] = C[i][i] = 1;
+	for (int i = 1; i < maxn; i++)
+	{
+		for (int j = 1; j < maxn; j++)
+		{
+			C[i][j] = C[i - 1][j] + C[i - 1][j - 1];
+			if (C[i][j] >= mod)
+				C[i][j] -= mod;
+		}
+	}
+	int n;
+	cin >> n;
+	for (int i = 0; i < 10; i++)
+		cin >> ar[i];
+	for (int i = 0; i <= n; i++)
+		dp[i][9] = (ar[9] <= i);
+	for (int i = 0; i <= n; i++)
+		for (int j = 8; j >= 1; j--)
+			for (int k = ar[j]; k + i <= n; k++)
+			{
+				dp[i + k][j] += (dp[i][j + 1] * C[i + k][k]) % mod;
+				dp[i + k][j] %= mod;
+			}
+	for (int i = 0; i <= n; i++)
+		for (int k = ar[0]; k + i <= n; k++)
+		{
+			dp[i + k][0] += (dp[i][1] * C[i + k - 1][k]) % mod;
+			dp[i + k][0] %= mod;
+		}
+	ll ans = 0;
+	for (int i = 0; i <= n; i++)
+	{
+		ans += dp[i][0];
+		if (ans >= mod)
+			ans -= mod;
+	}
+	cout << ans << NL;
+	return 0;
+}

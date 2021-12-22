@@ -1,0 +1,94 @@
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <cstdio>
+#include <memory>
+#include <algorithm>
+#include <iomanip>
+#include <vector>
+#include <list>
+#include <set>
+#include <map>
+#include <string>
+#include <memory.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef long double ld;
+typedef unsigned uint;
+
+const ll posinf = 1000000000000000001;
+const ll neginf = -1000000000000000001;
+
+struct logs
+{
+	ll cur;
+	list <pair<ll, ll> > lg;
+	logs ()
+	{
+		cur = 0;
+	}
+	void addev (ll time, ll scorediff)
+	{
+		cur += scorediff;
+		if (lg.empty ())
+			lg.push_back (make_pair (time, scorediff));
+		else
+			lg.push_back (make_pair (time, lg.back ().second + scorediff));
+	}
+	ll select (ll sc) const
+	{
+		for (const auto &kvp : lg)
+		{
+			if (kvp.second >= sc)
+				return kvp.first;
+		}
+		return -1;
+	}
+};
+
+ll n, i, sc, mx, t;
+map<string, logs> scores;
+string s, ms;
+
+int main ()
+{
+#ifdef CONTEST_ONME
+	freopen ("input.txt", "r", stdin);
+	freopen ("output.txt", "w", stdout);
+#endif
+
+	cin >> n;
+	t = 0;
+	for (i = 0; i < n; i++)
+	{
+		cin >> s; cin >> sc;
+		scores[s].addev (t, sc);
+		t++;
+	}
+	t++; mx = 0;
+	for (const auto &kvp : scores)
+	{
+		if (kvp.second.cur > mx)
+			mx = kvp.second.cur;
+	}
+	for (const auto &kvp : scores)
+	{
+		if (kvp.second.cur == mx)
+		{
+			ll t1 = kvp.second.select (mx);
+			if (t1 != -1 && t1 < t)
+			{
+				t = t1;
+				ms = kvp.first;
+			}
+		}
+	}
+	cout << ms << endl;
+
+#ifdef CONTEST_ONME
+	//system ("pause");
+#endif
+	return 0;
+}

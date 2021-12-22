@@ -1,0 +1,87 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 4e5 + 10;
+
+int N, M;
+int L[MAXN], R[MAXN];
+vector<pii> V[MAXN];
+int bit[MAXN], uncov[MAXN];
+
+void update (int x, int v) {
+	for (uncov[x] += v; x < MAXN; x += (x & -x)) {
+		bit[x] += v;
+	}
+}
+
+void uset (int x, int v) {
+	update(x, v - uncov[x]);
+}
+
+int query (int x) {
+	int s = 0;
+	for (; x; x &= x - 1) {
+		s += bit[x];
+	}
+	return s;
+}
+
+int query (int x, int y) {
+	return query(y) - query(x - 1);
+}
+
+int reach[MAXN];
+int ans[MAXN];
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 1; i <= N; i++) {
+		cin >> L[i] >> R[i];
+		R[i] += L[i];
+	}
+	cin >> M;
+	for (int i = 1, x, y; i <= M; i++) {
+		cin >> x >> y;
+		V[x].push_back(pii(i, y));
+	}
+	stack<int> stk;	//unknocked by anything
+	for (int i = N; i; i--) {
+		//update stack
+		int rx = R[i];	//reaching of x?
+		while (!stk.empty()) {
+			int tp = stk.top();
+			if (L[tp] > R[i]) {
+				//still a gap
+				break;
+			}
+			stk.pop();
+			uset(tp, 0);
+			rx = max(rx, reach[tp]);
+		}
+		if (!stk.empty()) {
+			//might need change val
+			int tp = stk.top();
+			uset(tp, L[tp] - rx);
+		}
+		stk.push(i);
+		reach[i] = rx;
+		for (pii p : V[i]) {
+			ans[p.first] = query(p.second);
+		}
+	}
+	for (int i = 1; i <= M; i++) {
+		cout << ans[i] << '\n';
+	}
+}

@@ -1,0 +1,143 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <climits>
+#ifdef DEBUG
+	#include <ctime>
+#endif
+using namespace std;
+
+// template
+
+// abbreviations
+#define vi vector<int>
+#define vl vector<long long>
+#define vb vector<bool>
+#define vs vector<string>
+#define ii pair<int, int>
+#define a first
+#define b second
+#define vii vector<ii>
+#define mii map<ii>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define rep(it, n) for(int it = 0; it < n; ++it)
+#define rep1(it, n) for(int it = 1; it <= n; ++it)
+#define loop(it, from, to) for(int it = (from); it <= (to); ++it)
+#define reverse_iterate(it, cont) for(__typeof((cont).rend()) it = (cont).rbegin(); it != (cont).rend(); ++it)
+#define iterate(it, cont) for(__typeof((cont).begin()) it = (cont).begin(); it != (cont).end(); ++it)
+#define all(cont) (cont).begin(), (cont).end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const int INF = INT_MAX;
+const int NINF = INT_MIN;
+const ll INF_LL = LLONG_MAX;
+const ll NINF_LL = LLONG_MIN;
+const double PI = acos(-1);
+
+#ifdef DEBUG
+	#define debug(fmt, args...) printf("Line %d, in %s\t: " fmt, __LINE__, __FUNCTION__, ##args)
+	#define rep_rt() printf("[Run time: %.3fs]\n",((double)clock())/CLOCKS_PER_SEC)
+#else
+	#define debug(...)
+#endif
+
+// end of template
+
+#define MOD 1000000007
+
+int main() {
+#ifdef DEBUG
+	freopen("691E.in", "r", stdin);
+#endif
+
+	int n;
+	ll bound;
+	cin >> n >> bound;
+    vl arr(n);
+    rep(idx, n) {
+    	cin >> arr[idx];
+    }
+    ll dp_comb[n][n][64] = {0};
+    rep(idx, n) {
+    	dp_comb[idx][idx][0] = 1;
+    }
+    for (int length_pow2 = 1; length_pow2 <= 60; ++length_pow2) {
+	    for (int i = 0; i < n; ++i) {
+	    	for (int j = 0; j < n; ++j) {
+	    		for (int k = 0; k < n; ++k) {
+	    			for (int l = 0; l < n; ++l) {
+			    		if ((arr[j]^arr[k]) % 3 == 0) { // valid
+			    			ll res = (dp_comb[i][j][length_pow2-1]*dp_comb[k][l][length_pow2-1]) % MOD;
+			    			dp_comb[i][l][length_pow2] += res;
+			    		}
+	    			}
+	    		}
+	    	}
+	    }
+    }	
+    ll dp_ans[n][n];
+    bool first_time = true;
+    for (int log2 = 0; bound; log2++, bound >>= 1) {
+    	if (bound&1) {
+    		if (first_time) {
+    			rep(i, n) {
+    				rep(j, n) {
+    					dp_ans[i][j] = dp_comb[i][j][log2];
+    				}
+    			}
+    			first_time = false;
+    		} else {
+    			ll dp_temp[n][n] = {0};
+    			rep(i, n) {
+    				rep(j, n) {
+    					rep(k, n) {
+    						rep(l, n) {
+			    				if ((arr[j]^arr[k]) % 3 == 0)
+    								dp_temp[i][l] += (dp_ans[i][j]*dp_comb[k][l][log2]) % MOD;
+    						}
+    					}
+    				}
+    			}
+    			rep(i, n) {
+    				rep(j, n) {
+    					dp_ans[i][j] = dp_temp[i][j];
+    				}
+    			}
+    		}
+    	}
+    }
+    ll ans = 0;
+    for (int i = 0; i < n; ++i) {
+    	for (int j = 0; j < n; ++j) {
+    		ans += dp_ans[i][j];
+    	}
+    }
+    cout << ans << endl;
+
+#ifdef DEBUG
+    rep_rt();
+#endif
+    return 0;
+}

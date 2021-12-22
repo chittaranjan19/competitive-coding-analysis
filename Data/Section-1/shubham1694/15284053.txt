@@ -1,0 +1,93 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 500000000;
+const int maxn = 510;
+
+int adj[maxn][maxn], cur[maxn][maxn], query[maxn];
+ll mat[maxn][maxn], dist[maxn], cache[maxn];
+vector<int> pres;
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int n, i, j, k, u, v;
+    ll ans, cdist;
+    sd(n);
+    for(i=1; i<=n; i++){
+        for(j=1; j<=n; j++){
+            sd(adj[i][j]);
+            mat[i][j] = (i==j)?0:1ll<<50;
+        }
+    }
+    for(i=1; i<=n; i++)
+        sd(query[i]);
+    priority_queue<pair<ll, int>, vector<pair<ll, int> >, greater<pair<ll, int> > > q;
+    for(i=n; i>=1; i--){
+        ans = 0;
+        for(j=1; j<=n; j++)
+            dist[j] = 1ll<<50;
+        pres.pb(query[i]);
+        for(j=0; j<pres.size(); j++){
+            for(k=0; k<pres.size(); k++){
+                u = pres[j];
+                v = pres[k];
+                cur[u][v] = adj[u][v];
+            }
+        }
+        dist[query[i]] = 0;
+        q.push(mp(0, query[i]));
+        while(!q.empty()){
+            cdist = q.top().f;
+            v = q.top().s;
+            q.pop();
+            if(dist[v] < cdist)
+                continue;
+            for(j=1; j<=n; j++){
+                if(!cur[v][j])
+                    continue;
+                if(dist[j] > cdist + cur[v][j]){
+                    dist[j] = cdist + cur[v][j];
+                    q.push(mp(dist[j], j));
+                }
+            }
+        }
+        /*for(j=1; j<=n; j++)
+            cout << dist[j] << " ";
+        cout << "\n";*/
+        for(j=0; j<pres.size(); j++){
+            u = pres[j];
+            mat[u][query[i]] = adj[u][query[i]];
+        }
+        for(j=1; j<=n; j++){
+            for(k=1; k<=n; k++)
+                mat[j][query[i]] = min(mat[j][query[i]], mat[j][k]+mat[k][query[i]]);
+        }
+        for(j=1; j<=n; j++){
+            for(k=1; k<=n; k++){
+                mat[j][k] = min(mat[j][k], mat[j][query[i]]+dist[k]);
+                if(mat[j][k] < 1ll<<50)
+                    ans+=mat[j][k];
+            }
+        }
+        cache[i] = ans;
+    }   
+    for(i=1; i<=n; i++)
+        printf("%lld ", cache[i]);
+    printf("\n");
+    return 0;
+}

@@ -1,0 +1,120 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <ctime>
+#include <stdio.h>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+int n;
+vector<int> gn[10];
+vector<vector<int> > all_var;
+
+void tt(int l, vector<int> pr)
+{
+    if (l == n)
+        all_var.push_back(pr);
+    for (int i = 0; i < gn[l].size(); i++)
+    {
+        vector<int> tmp = pr;
+        tmp.push_back(gn[l][i]);
+        tt(l + 1, tmp);
+    }
+}
+
+int GetP()
+{
+    all_var.clear();
+    vector<int> start, v;
+    tt(0, start);
+    int ans = 1e9;
+    for (int i = 0; i < all_var.size(); i++)
+    {
+        v = all_var[i];
+        pair<int, int> m[10];
+        for (int i = 0; i < n; i++)
+            m[i] = mp(v[i], i);
+        sort(m, m + n);
+        int pr[10];
+        for (int i = 0; i < n; i++)
+            pr[i] = m[i].sc;
+        int tmp = 0;
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = i+1; j < n; j++)
+            {
+                if (pr[i] > pr[j])
+                    tmp++;
+            }
+        }
+        ans = min(ans, tmp);
+    }
+    ans *= -1;
+    ans += 1;
+    ans += (n - 1)*n / 2;
+    return ans;
+}
+
+int main()
+{
+    cin >> n;
+    string t[100];
+    for (int i = 0; i < n; i++)
+        cin >> t[i];
+    int m;
+    cin >> m;
+    int ph = -1e9, num = -1;
+    for (int i = 0; i < m; i++)
+    {
+        string w[100];
+        int k;
+        cin >> k;
+        for (int j = 0; j < 10; j++)
+            gn[j].clear();
+        for (int i = 0; i < k; i++)
+        {
+            cin >> w[i];
+            for (int j = 0; j < n; j++)
+            {
+                if (w[i] == t[j])
+                    gn[j].push_back(i);
+            }
+        }
+        bool all = 1;
+        for (int j = 0; j < n; j++)
+        {
+            if (gn[j].size() == 0)
+                all = 0;
+        }
+        if (all)
+        {
+            int p = GetP();
+            if (p > ph)
+            {
+                ph = p;
+                num = i;
+            }
+        }
+    }
+    if (num == -1)
+        cout << "Brand new problem!";
+    else
+    {
+        cout << num+1 << endl;
+        cout << "[:";
+        for (int i = 0; i < ph; i++) cout << '|';
+        cout << ":]";
+    }
+    return 0;
+}

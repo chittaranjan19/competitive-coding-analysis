@@ -1,0 +1,74 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+const double eps=1.000000001-(1e-9);
+typedef pair<double,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int bad[MAXN],deg[MAXN],que[MAXN];
+double ans[MAXN];
+set<PII>s;
+set<int>adj[MAXN];
+int main(){
+	int n,m,k;
+	scanf("%d%d%d",&n,&m,&k);
+	for(int i=1;i<=k;i++)
+		scanf("%d",bad+i);
+	while(m--){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].insert(v);deg[u]++;
+		adj[v].insert(u);deg[v]++;
+	}
+	for(int i=1;i<=n;i++)
+		ans[i]=eps,s.insert(mp(eps,i));
+	for(int i=1;i<=k;i++){
+		int nd=bad[i];
+		tr(it,adj[nd]){
+			adj[*it].erase(adj[*it].find(nd));
+			s.erase(s.find(mp(ans[*it],*it)));
+			ans[*it]=double(adj[*it].size()/double(deg[*it]));
+			s.insert(mp(ans[*it],*it));
+		}
+		s.erase(s.find(mp(ans[nd],nd)));
+	}
+	double mx=1-eps;
+	int r=0,c=0;
+	for(int i=1;i<=n-k;i++){
+		int nd=s.begin()->ss;
+		r=nd;
+		tr(it,adj[nd]){
+			adj[*it].erase(adj[*it].find(nd));
+			s.erase(s.find(mp(ans[*it],*it)));
+			ans[*it]=double(adj[*it].size()/double(deg[*it]));
+			s.insert(mp(ans[*it],*it));
+		}
+		s.erase(s.find(mp(ans[nd],nd)));
+		if(s.size()==0)
+			break;
+		que[++c]=s.begin()->ss;
+		if(umax(mx,s.begin()->ff))
+			que[1]=que[c],c=1;
+	}
+	if(!c)
+		que[++c]=r;
+	printf("%d\n",c);
+	for(int i=1;i<=c;i++)
+		printf("%d ",que[i]);
+	printf("\n");	
+	return 0;
+}

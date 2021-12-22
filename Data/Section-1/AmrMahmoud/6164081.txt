@@ -1,0 +1,82 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define PI acos(-1.0)
+#define LL long long
+
+using namespace std;
+
+vector<vector<pair<int,int> > > graph(100005);
+bool visited[100005]={false};
+map<pair<int,int>,bool> edges;
+priority_queue<pair<LL,int> > dijkstra;
+LL counter=0,dist[100005];
+
+int main()
+{
+    int n,m,s,x,y,z,l;
+    scanf("%d%d%d",&n,&m,&s);
+    for(int i=0;i<m;i++)
+    {
+        scanf("%d%d%d",&x,&y,&z);
+        graph[x].push_back(make_pair(-z,y));
+        graph[y].push_back(make_pair(-z,x));
+    }
+    scanf("%d",&l);
+    if(l == 0)
+    {
+        printf("1");
+        return 0;
+    }
+    dijkstra.push(make_pair(0,s));
+    while(!dijkstra.empty())
+    {
+        int temp = dijkstra.top().second;
+        dijkstra.pop();
+        if(visited[temp])
+            continue;
+        visited[temp] = true;
+        if(-1 * dist[temp] == l)
+            counter++;
+        for(int i=0;i<graph[temp].size();i++)
+            if(!visited[graph[temp][i].second] && (graph[temp][i].first + dist[temp] > dist[graph[temp][i].second] || dist[graph[temp][i].second] == 0))
+            {
+                dist[graph[temp][i].second] = graph[temp][i].first + dist[temp];
+                dijkstra.push(make_pair(dist[graph[temp][i].second],graph[temp][i].second));
+            }
+    }
+    for(int i=1;i<=n;i++)
+        for(int j=0;j<graph[i].size();j++)
+            if(!edges[make_pair(i,graph[i][j].second)])
+            {
+                int x=graph[i][j].second;
+                edges[make_pair(i,graph[i][j].second)] = true;
+                edges[make_pair(graph[i][j].second,i)] = true;
+                if(dist[i] * -1 < l && -1 * graph[i][j].first > l + dist[i] && -1 * graph[i][j].first - (l + dist[i]) - dist[graph[i][j].second] > l)
+                    counter++;
+                if(dist[graph[i][j].second] * -1 < l && -1 * graph[i][j].first > l + dist[graph[i][j].second] && -1 * graph[i][j].first - (l + dist[graph[i][j].second]) - dist[i] > l)
+                    counter++;
+                if(dist[i] * -1 < l && dist[graph[i][j].second] * -1 && dist[i] * -1 - dist[graph[i][j].second] - graph[i][j].first == 2 * l && dist[i] * -1 != l && dist[graph[i][j].second] * -1 != l && graph[i][j].first * -1 != l)    // WTF :D
+                    counter++;
+            }
+    printf("%I64d",counter);
+    return 0;
+}

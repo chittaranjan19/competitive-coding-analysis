@@ -1,0 +1,96 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 305;
+
+int N, M;
+int comp[MAXN], curcomp;
+bool ans[MAXN];
+bool vis[MAXN];
+vector<pii> adj[MAXN];
+vector<int> dep[MAXN];	//dependency
+
+void calcdep (int x) {
+	vis[x] = true;
+	comp[x] = curcomp;
+	// cerr << "comp " << x << " = " << curcomp << endl;
+	bool r = x % 2;	//this is the state it has to modify
+	//original state = modifications
+	for (pii e : adj[x / 2]) {
+		int newnode = 2 * e.first + (e.second ^ r);
+		if (!vis[newnode]) {
+			// cerr << "adj " << x << ' ' << newnode << endl;
+			dep[x].push_back(newnode);
+			dep[newnode].push_back(x);
+			calcdep(newnode);
+		}
+	}
+}
+
+void findans (int x) {
+	int v = x / 2;
+	vis[v] = true;
+	if (x % 2) {
+		ans[v] = true;
+	}
+	for (int t : dep[x]) {
+		if (!vis[t / 2]) {
+			findans(t);
+		}
+	}
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 0, a, b, c; i < M; i++) {
+		cin >> a >> b >> c;
+		a--;
+		b--;
+		c ^= 1;
+		adj[a].push_back(pii(b, c));
+		adj[b].push_back(pii(a, c));
+	}
+	//ok let's calculate dependencies
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < 2; j++) {
+			int k = 2 * i + j;
+			if (!vis[k]) {
+				curcomp++;
+				calcdep(k);
+			}
+		}
+	}
+	for (int i = 0; i < N; i++) {
+		if (comp[2 * i] == comp[2 * i + 1]) {
+			cout << "Impossible\n";
+			return 0;
+		}
+	}
+	fillchar(vis, false);
+	for (int i = 0; i < N; i++) {
+		if (!vis[i]) {
+			findans(2 * i + rand() % 2);
+		}
+	}
+	cout << count(ans, ans + N, true) << endl;
+	for (int i = 0; i < N; i++) {
+		if (ans[i]) {
+			cout << i + 1 << ' ';
+		}
+	}
+}

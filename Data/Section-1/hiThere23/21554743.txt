@@ -1,0 +1,112 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 400005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, m, num[mn], low[mn], rig = 0;
+int numT = 0, belong[mn], can[mn];
+bool vis[mn], in[mn];
+vector<int> tplt[mn];
+stack<int> st;
+queue<int> qu;
+vector< pair<int, int> > g[mn];
+pair<int, int> edge[mn];
+
+void setup()
+{
+    cin >> n >> m;
+    int u, v;
+    FOR(i, 1, m)
+    {
+        cin >> u >> v;
+        g[u].pb(mp(v, i));
+        g[v].pb(mp(u, i));
+    }
+}
+
+void dfs(int u)
+{
+    num[u] = low[u] = ++ rig;
+    st.push(u);
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].F;
+        int id = g[u][i].S;
+        if (vis[id])
+            continue;
+        vis[id] = true;
+        edge[id] = mp(u, v);
+        if (num[v])
+            low[u] = min(low[u], num[v]);
+        else
+        {
+            dfs(v);
+            low[u] = min(low[u], low[v]);
+        }
+    }
+    if (num[u] == low[u])
+    {
+        numT ++;
+        while(true)
+        {
+            int v = st.top();
+            st.pop();
+            belong[v] = numT;
+            tplt[numT].pb(v);
+            if (v == u)
+                break;
+        }
+        can[numT] = tplt[numT].size();
+    }
+}
+
+void xuly()
+{
+    dfs(1);
+    int id = 1;
+    FOR(i, 2, numT)
+    if (can[i] > can[id])
+        id = i;
+    qu.push(id);
+    in[id] = true;
+    while(!qu.empty())
+    {
+        int z = qu.front();
+        qu.pop();
+        FOR(i, 0, int(tplt[z].size()) - 1)
+        {
+            int u = tplt[z][i];
+            FOR(j, 0, int(g[u].size()) - 1)
+            {
+                int v = g[u][j].F;
+                if (belong[u] == belong[v] || in[belong[v]])
+                    continue;
+                int id = g[u][j].S;
+                edge[id] = mp(v, u);
+                qu.push(belong[v]);
+                in[belong[v]] = true;
+            }
+        }
+    }
+    cout << can[id] << '\n';
+    FOR(i, 1, m)
+        cout << edge[i].F << ' ' << edge[i].S << '\n';
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+//    freopen("FILE.INP", "r", stdin);
+//    freopen("FILE.OUT", "w", stdout);
+    setup ();
+    xuly ();
+    return 0;
+}

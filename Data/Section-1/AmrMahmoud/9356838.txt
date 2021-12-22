@@ -1,0 +1,91 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int pos[1000005];
+int tree[1000005],MaxVal = 1000005;
+bool here[1000005];
+
+void update(LL idx, int val)
+{
+    if(idx <= 0) return;
+    while (idx <= MaxVal && idx > 0){
+        tree[idx] = tree[idx] + val;
+        idx = idx + (idx & -idx);
+    }
+}
+
+int read(LL idx)
+{
+    if(idx <= 0) return 0;
+    int sum = 0;
+    while (idx > 0 && idx <= MaxVal){
+        sum = sum + tree[idx];
+        idx = idx - (idx & -idx);
+    }
+    return sum;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int n, k, x;
+    cin >> n >> k;
+    set<int> s;
+    for(int i=0;i<n;i++)
+        cin >> x, pos[x] = i;
+    for(int i=0;i<k;i++)
+        cin >> x, here[x] = 1;
+    LL res = 0;
+    for(int i=1;i<=n;i++)
+    {
+        s.insert(pos[i]);
+        if(here[i]) continue;
+        set<int>::iterator it = s.lower_bound(pos[i]);
+        set<int>::iterator it2 = it, it3 = it;
+        int L , R;
+        it2++;
+        it3--;
+        if(it2 == s.end())
+            R = n - 1;
+        else R = *it2 - 1;
+        if(it == s.begin())
+            L = 0;
+        else L = *it3 + 1;
+        res+= R - L + 1 - read(R) + read(L - 1);
+        s.erase(it);
+        update(pos[i], 1);
+    }
+    cout << res;
+    return 0;
+}

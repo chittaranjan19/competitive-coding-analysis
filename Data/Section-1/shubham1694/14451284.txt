@@ -1,0 +1,77 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define ll long long
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define ds pair<int, pair<int, int> > 
+
+int mat[500][500], dp[500][500], dist[500][500];
+vector<int> adjt[500], adjb[500];
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    int n, m, i, j, u, v, cb, ct, cd;
+    scanf("%d%d", &n, &m);
+    for(i=0; i<m; i++){
+        scanf("%d%d", &u, &v);
+        adjt[u].pb(v);
+        adjt[v].pb(u);
+        mat[u][v] = mat[v][u] = 1;
+    }
+    for(i=1; i<=n; i++){
+        for(j=1; j<=n; j++){
+            dist[i][j] = INT_MAX;
+            if(mat[i][j] || mat[j][i])
+                continue;
+            adjb[i].pb(j);
+            adjb[j].pb(i);
+        }
+    }
+    priority_queue<ds, vector<ds>, greater<ds> > q;
+    q.push(mp(0, mp(1, 1)));
+    dist[1][1] = 0;
+    while(!q.empty()){
+        cd = q.top().f;
+        cb = q.top().s.f;
+        ct = q.top().s.s;
+        q.pop();
+        if(dist[cb][ct]<cd)
+            continue;
+        if(cb==n && ct==n)
+            break;
+        for(i=0; i<adjb[cb].size(); i++){
+            u = adjb[cb][i];
+            for(j=0; j<adjt[ct].size(); j++){
+                v = adjt[ct][j];
+                if(u==v)
+                    continue;
+                if(cd+1 < dist[u][v]){
+                    dist[u][v] = cd+1;
+                    q.push(mp(cd+1, mp(u, v)));
+                }
+                if(cb==n){
+                    if(cd+1 < dist[cb][v]){
+                        dist[cb][v] = cd+1;
+                        q.push(mp(cd+1, mp(cb, v)));
+                    }
+                }
+                if(ct==n){
+                    if(cd+1 < dist[u][ct]){
+                        dist[u][ct] = cd+1;
+                        q.push(mp(cd+1, mp(u, ct)));
+                    }
+                }
+            }
+        }
+    }
+    if(dist[n][n]==INT_MAX)
+        printf("-1\n");
+    else
+        printf("%d\n", dist[n][n]);
+    return 0;
+}

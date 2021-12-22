@@ -1,0 +1,85 @@
+#include<stdio.h>
+#define min(a,b) (a<b?a:b)
+#define max(a,b) (a>b?a:b)
+struct node
+{
+    int low,high,val;
+} tree[100005] ;
+int f;
+void init(int idx,int l,int r)
+{
+    tree[idx].val=0;
+    tree[idx].low=l;
+    tree[idx].high=r;
+    if(l<r)
+    {
+        int mid=(l+r)/2;
+        init(2*idx,l,mid);
+        init(2*idx+1,mid+1,r);
+    }
+}
+void update(int l,int r,int val1,int idx)
+{
+    if(l>r)
+        return;
+    //printf("idx=%d l=%d r=%d\n",idx,l,r);
+    if(tree[idx].low==l&&tree[idx].high==r)
+    {
+        tree[idx].val|=val1;
+        //printf("tree %d = %d\n",idx,tree[idx].val);
+    }
+    else
+    {
+        int mid=(tree[idx].low+tree[idx].high)/2;
+        if(r<=mid)
+            update(l,r,val1,2*idx);
+        else if(l>mid)
+            update(l,r,val1,2*idx+1);
+        else
+        {
+            update(l,mid,val1,2*idx);
+            update(mid+1,r,val1,2*idx+1);
+        }
+    }
+}
+void query(int l,int idx)
+{
+
+        f=max(f,tree[idx].val);
+        if(tree[idx].low==tree[idx].high)
+            return;
+        int mid=(tree[idx].low+tree[idx].high)/2;
+        if(l<=mid)
+            query(l,2*idx);
+        else
+            query(l,2*idx+1);
+
+}
+int visited[100005]={0};
+int main()
+{
+    int n,m,i;
+    scanf("%d%d",&n,&m);
+    init(1,1,n);
+    while(m--)
+    {
+        int l,r,val;
+        scanf("%d%d%d",&l,&r,&val);
+        //printf("%d %d\n",visited[l],visited[r]);
+        if((visited[l]&1)==1&&(visited[r]&2)==2)
+        {
+            printf("-1\n");
+            return 0;
+        }
+        visited[l]|=1;
+        visited[r]|=2;
+        update(l,r,val,1);
+    }
+    for(i=1;i<=n;i++)
+    {
+        f=0;
+        query(i,1);
+        printf("%d ",f);
+    }
+    return 0;
+}

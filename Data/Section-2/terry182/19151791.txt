@@ -1,0 +1,48 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+struct node{
+    vector<int> childs;
+    int total;
+    int father;
+    double delay;
+
+    node(){
+        total = 1; 
+        father = 1;
+        delay = .0;
+    }
+} a[100024];
+
+double dp[100024];
+
+void dfs(int x)
+{   int len = a[x].childs.size();
+    for (int i = 0; i < len; ++i)
+    {   dfs(a[x].childs[i]);
+        a[x].total += a[ a[x].childs[i] ].total;
+    }
+}
+
+void DFS(int x)
+{   int len = a[x].childs.size();
+    for (int i = 0; i < len; ++i)
+        dp[ a[x].childs[i] ]= dp[x] + 0.5 * (a[x].total-1 - a[a[x].childs[i]].total) + 1;
+    for (int i = 0; i < len; ++i)
+        DFS( a[x].childs[i] );
+}
+
+int main()
+{   int n;
+    cin >> n;
+    for (int i = 2; i <= n; ++i)
+    {   cin >> a[i].father;
+        a[ a[i].father ].childs.push_back(i);
+    }
+    dfs(1);
+    dp[1] = 1.0;
+    DFS(1);
+    for (int i = 1;  i <= n; ++i)
+        cout << dp[i] << " ";
+    cout << endl;
+}

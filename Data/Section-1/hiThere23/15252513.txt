@@ -1,0 +1,99 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define mn 2110
+#define base 31
+#define maxC 1000000007
+#define F first
+#define S second
+#define mp make_pair
+#define pb push_back
+
+using namespace std;
+int n, m, z, r = 0, dp[mn], trace[mn];
+string s, t;
+long long hashValF[mn], hashValR[mn], po[mn], hashValT[mn];
+map< long long, pair<int, int> > Map;
+pair<int, int> cut[mn], choose[mn];
+
+long long getHash(int l, int r, long long* hashVal)
+{
+    long long re = (hashVal[r] - hashVal[l - 1] * po[r - l + 1]) % maxC;
+    return (re + maxC) % maxC;
+}
+
+long long getRev(int l, int r)
+{
+    long long re = (hashValR[l] - hashValR[r + 1] * po[r - l + 1]) % maxC;
+    return (re + maxC) % maxC;
+}
+
+void setup()
+{
+    cin >> s >> t;
+    n = s.size();
+    m = t.size();
+    s = ' ' + s;
+    t = ' ' + t;
+    z = max(m, n);
+    po[0] = 1;
+    FOR(i, 1, z)
+        po[i] = (po[i - 1] * base) % maxC;
+    FOR(i, 1, n)
+        hashValF[i] = (hashValF[i - 1] * base + s[i] - 'a' + 1) % maxC;
+    FORD(i, n, 1)
+        hashValR[i] = (hashValR[i + 1] * base + s[i] - 'a' + 1) % maxC;
+    FOR(i, 1, m)
+        hashValT[i] = (hashValT[i - 1] * base + t[i] - 'a' + 1) % maxC;
+}
+
+void xuly()
+{
+    FOR(i, 1, n)
+    FOR(j, 1, n)
+    {
+        long long hashFro = getHash(i, j, hashValF);
+        long long hashRev = getRev(i, j);
+        Map[hashFro] = mp(i, j);
+        Map[hashRev] = mp(j, i);
+    }
+    FOR(i, 1, m)
+    {
+        dp[i] = maxC;
+        FORD(j, i, 1)
+        {
+            long long get = getHash(j, i, hashValT);
+            pair<int, int> x = Map[get];
+            if (x != mp(0, 0) && dp[i] > dp[j - 1] + 1)
+            {
+                dp[i] = dp[j - 1] + 1;
+                choose[i] = x;
+                trace[i] = j - 1;
+            }
+        }
+    }
+    if (dp[m] == maxC)
+        cout << -1;
+    else
+    {
+        cout << dp[m] << '\n';
+        int id = m;
+        while(id)
+        {
+            cut[++ r] = choose[id];
+            id = trace[id];
+        }
+        FORD(i, r, 1)
+            cout << cut[i].F << ' ' << cut[i].S << '\n';
+    }
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

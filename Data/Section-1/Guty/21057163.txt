@@ -1,0 +1,162 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+#include <valarray>
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+
+#define forn(i,n) for(tint i=0;i<(tint)(n); i++)
+#define forsn(i,s,n) for(tint i=(s);i<(tint)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) )
+		Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+struct Nodo
+{
+	tint indice,valorAbsoluto,valor;
+	Nodo (tint ii, tint vvAA, tint vv)
+	{
+		indice = ii;
+		valorAbsoluto = vvAA;
+		valor = vv;
+	}
+};
+
+bool operator < (Nodo n1, Nodo n2)
+{
+	return make_tuple(n1.valorAbsoluto,n1.valor,n1.indice) <  make_tuple(n2.valorAbsoluto,n2.valor,n2.indice);
+}
+
+
+int main()
+{
+	#ifdef ACMTUYO
+		assert(freopen("entrada.in", "r", stdin));
+	#endif
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	tint n,k,x;
+	while (cin >> n >> k >> x)
+	{
+		vector<tint> v (n);
+		vector<tint> vAbs(n);
+		forn(i,n)
+		{
+			cin >> v[i];
+			vAbs[i] = abs(v[i]);
+		}
+		tint miniIndy = 0, miniAbs = 99999999999999;
+		bool cambio = true;
+		forn(i,n)
+		{
+			if (v[i] < 0)
+				cambio = !cambio;
+			if (vAbs[i] < miniAbs)
+			{
+				miniIndy = i;
+				miniAbs = vAbs[i];
+			}
+		}
+		if (cambio)
+		{
+			if (v[miniIndy] > 0)
+			{
+				while (k > 0 && v[miniIndy] >= 0)
+				{
+					v[miniIndy] -= x;
+					k--;
+					//debug(k);
+				}			
+				//debug(k);	
+			}
+			else
+			{
+				while (k-- > 0 && v[miniIndy] <= 0)
+					v[miniIndy] += x;
+			}
+		}
+		//debug(k);
+		set<Nodo> ilMenore;
+		forn(i,n)
+			ilMenore.insert(Nodo(i,abs(v[i]),v[i]));
+		while(k-- > 0)
+		{
+			Nodo actual = *ilMenore.begin();
+			ilMenore.erase(actual);
+			if (actual.valor >= 0)
+			{
+				v[actual.indice] += x;
+				ilMenore.insert(Nodo(actual.indice,abs(v[actual.indice]),v[actual.indice]));
+			}
+			else
+			{
+				v[actual.indice] -= x;
+				ilMenore.insert(Nodo(actual.indice,abs(v[actual.indice]),v[actual.indice]));
+			}
+				
+		}
+		forn(i,n)
+			cout << v[i] << " ";
+		cout << "\n";
+		
+		
+		
+		
+	}
+	return 0;
+}
+
+
+

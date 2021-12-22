@@ -1,0 +1,43 @@
+#include <stdio.h>       // getchar(), gets()
+#include <algorithm>    // std::sort(a + 0, a + n); n - amount; pair
+#include <set>
+#include <list>
+#define _2 second
+#define _1 first
+
+using namespace std;
+typedef pair<int,int> P;
+
+const int S=1e5+1;
+list<P> tr[S];
+bool v[S];
+int a[S],n,f;
+set<long> st;
+
+void dfs(int i, long s=0)
+{
+    if (st.size() && (s > a[i] || s - *st.begin() > a[i]) ) return;
+    ++f;
+    v[i] = true;
+    for (auto x : tr[i])
+        if (!v[x._1])
+        {
+            auto pr_it=st.insert(s+x._2);
+            dfs(x._1,s+x._2);
+            if (pr_it._2) st.erase(pr_it._1);
+        }
+}
+int main()
+{
+    scanf("%d",&n);
+    for (int i=1; i<=n; ++i)
+        scanf("%d",a+i);
+    for (int i=2,p,r;i<=n;++i)
+    {
+        scanf("%d%d",&p,&r);
+        tr[i].push_back(P(p,r));
+        tr[p].push_back(P(i,r));
+    }
+    dfs(1);
+    printf("%d\n", n - f);
+}

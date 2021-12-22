@@ -1,0 +1,96 @@
+#include<cstdio>
+#include<cstring>
+#include<algorithm>
+#include<iostream>
+
+const int maxn = 200005;
+using namespace std;
+
+int first[maxn], fnext[maxn];
+int u[maxn], v[maxn];
+int flag[maxn];
+int ans = 0;
+int num1 = 0;
+int num2 = 0;
+int fn1[maxn];
+int fn2[maxn];
+int vis[maxn];
+
+void dfs(int now) {
+	vis[now] = 1;
+	if (ans == 1)
+		return;
+	for (int i = first[now];i != -1;i = fnext[i]) {
+		if (flag[v[i]] != -1) {
+			if (flag[u[i]] == flag[v[i]]) {
+				ans = 1;
+				return;
+			}
+		}
+
+		if (flag[u[i]] == -1) {
+			flag[u[i]] = 0;
+			fn1[++num1] = u[i];
+			flag[v[i]] = 1;
+			if(!vis[v[i]])
+			fn2[++num2] = v[i];
+		}
+		else if (flag[u[i]] == 1) {
+			flag[v[i]] = 0;
+			if(!vis[v[i]])
+			fn1[++num1] = v[i];
+		}
+		else if (flag[u[i]] == 0) {
+			flag[v[i]] = 1;
+			if(!vis[v[i]])
+			fn2[++num2] = v[i];
+		}
+		if(vis[v[i]]==0)
+		dfs(v[i]);
+	}
+	
+}
+
+int main() {
+	int n, m;
+	scanf("%d%d", &n, &m);
+	fill(first, first + m+5,-1);
+	fill(flag, flag + m + 5, -1);
+	memset(vis, 0, sizeof(vis));
+	int i, j;
+	for (i = 1;i <= m;i++){
+		int a, b;
+		scanf("%d%d", &a, &b);
+		u[2*i-1] = a;
+		v[2*i-1] = b;
+		fnext[2 * i - 1] = first[u[2 * i - 1]];
+		first[u[2 * i - 1]] = 2 * i - 1;
+
+		u[2 * i ] = b;
+		v[2 * i ] = a;
+		fnext[2 * i ] = first[u[2 * i ]];
+		first[u[2 * i ]] = 2 * i ;
+
+	}
+
+	for (i = 1;i <= n;i++){
+		if (flag[i] == -1&&first[i]!=-1)
+			dfs(i);
+		if (ans == 1)
+			break;
+	}
+	
+	if (ans == 1)
+		cout << "-1" << endl;
+	else {
+		cout << num1 << endl;
+		for (i = 1;i <= num1;i++)
+			cout << fn1[i] << " ";
+		cout << endl;
+		cout << num2 << endl;
+		for (i = 1;i <= num2;i++)
+			cout << fn2[i] << " ";
+		cout << endl;
+	}
+	return 0;
+}

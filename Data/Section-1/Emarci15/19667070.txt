@@ -1,0 +1,97 @@
+#include <iostream>
+#include <vector>
+#include <cstdlib>
+
+using namespace std;
+
+int n,m;
+vector<pair<int,bool> > h[100000];
+
+bool eler[100000];
+bool sz[100000];
+
+bool ok;
+vector<int> sz0,sz1;
+void dfs(int p) {
+    eler[p] = 1;
+    if(sz[p]) {
+        sz1.push_back(p);
+    } else sz0.push_back(p);
+    for(auto q:h[p]) {
+        if(eler[q.first]) {
+            if((sz[p]^sz[q.first]) != q.second) {
+                ok = 0;
+                return;
+            }
+        } else {
+            sz[q.first] = sz[p]^q.second;
+            dfs(q.first);
+            if(!ok) return;
+        }
+    }
+}
+
+bool v[100000];
+bool ok1, ok2;
+vector<int> sol,sol2;
+
+int main()
+{
+    ios::sync_with_stdio(0);
+    cin.tie(NULL);
+
+    cin >> n >> m;
+    for(int i=0; i<m; i++) {
+        int x,y; char c;
+        cin >> x >> y >> c; x--; y--;
+        h[x].push_back({y,(c=='B')});
+        h[y].push_back({x,(c=='B')});
+    }
+
+    ok = 1;
+    for(int i=0; i<n; i++) {
+        if(eler[i]) continue;
+        dfs(i);
+        if(!ok) break;
+        if(sz0.size() <= sz1.size()) {
+            for(int j:sz0) sol.push_back(j);
+        } else for(int j:sz1) sol.push_back(j);
+        sz0.clear();
+        sz1.clear();
+    }
+    ok1 = ok;
+
+    fill(eler,eler+n,0);
+    fill(sz,sz+n,0);
+    for(int i=0; i<n; i++) {
+        for(auto it = h[i].begin(); it<h[i].end(); it++) {
+            it->second ^= 1;
+        }
+    }
+
+    ok = 1;
+    for(int i=0; i<n; i++) {
+        if(eler[i]) continue;
+        dfs(i);
+        if(!ok) break;
+        if(sz0.size() <= sz1.size()) {
+            for(int j:sz0) sol2.push_back(j);
+        } else for(int j:sz1) sol2.push_back(j);
+        sz0.clear();
+        sz1.clear();
+    }
+    ok2 = ok;
+
+    if(!(ok1 || ok2)) {
+        cout << -1 << endl;
+        return 0;
+    }
+
+    if((!ok1) || ((ok2) && (sol2.size() < sol.size()))) swap(sol,sol2);
+
+    cout << sol.size() << endl;
+    for(int i:sol) cout << (i+1) << ' ';
+    cout << endl;
+
+    return 0;
+}

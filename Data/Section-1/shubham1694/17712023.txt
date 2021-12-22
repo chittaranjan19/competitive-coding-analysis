@@ -1,0 +1,109 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1000010;
+
+int n, m;
+vector<int> mat[maxn], ans[maxn];
+vector<pair<int, pii> > values;
+int row[maxn], col[maxn];
+int rnk[maxn], parent[maxn], maxval[maxn];
+
+int find(int x)
+{
+    if(parent[x]==x)
+        return x;
+    return parent[x] = find(parent[x]);
+}
+
+void merge(int x, int y)
+{
+    int rx, ry;
+    rx = find(x);
+    ry = find(y);
+    if(rx==ry)
+        return;
+    if(rnk[rx] < rnk[ry]){
+        parent[rx] = ry;
+        maxval[ry] = max(maxval[ry], maxval[rx]);
+    }
+    else if(rnk[ry] < rnk[rx]){
+        parent[ry] = rx;
+        maxval[rx] = max(maxval[ry], maxval[rx]);
+    }
+    else{
+        parent[ry] = rx;
+        rnk[rx]++;
+        maxval[rx] = max(maxval[ry], maxval[rx]);
+    }
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int i, j, k, x, y, val, temp;
+    scanf("%d%d", &n, &m);
+    for(i=0; i<n; i++){
+        mat[i].resize(m);
+        ans[i].resize(m);
+        for(j=0; j<m; j++){
+            scanf("%d", &mat[i][j]);
+            values.pb(mp(mat[i][j], mp(i, j)));
+        }
+        parent[i] = i;
+    }
+    for(i=n; i<n+m; i++)
+        parent[i] = i;
+    sort(all(values));
+    for(i=0; i<values.size(); ){
+        j = i;
+        while(j<values.size()){
+            if(values[j].f!=values[i].f)
+                break;
+            x = values[j].s.f;
+            y = values[j].s.s;
+            merge(x, y+n);
+            j++;
+        }
+        for(k=i; k<j; k++){
+            x = values[k].s.f;
+            y = values[k].s.s;
+            int root = find(x);
+            ans[x][y] = maxval[root] + 1;
+            row[x] = maxval[root] + 1;
+            col[y] = maxval[root] + 1;
+        }
+        for(k=i; k<j; k++){
+            x = values[k].s.f;
+            y = values[k].s.s;
+            parent[x] = x;
+            parent[n+y] = n+y;
+            maxval[x] = row[x];
+            maxval[n+y] = col[y];
+        }
+        //for(k=0; k<(n+m); k++)
+          //  cout << k << " " << maxval[k] << " " << parent[k] << "\n";
+        i = j;
+    }
+    for(i=0; i<n; i++){
+        for(j=0; j<m; j++)
+            printf("%d ", ans[i][j]);
+        printf("\n");
+    }
+    return 0;
+}

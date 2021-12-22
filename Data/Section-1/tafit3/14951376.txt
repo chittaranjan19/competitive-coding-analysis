@@ -1,0 +1,160 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.NavigableSet;
+import java.util.TreeSet;
+
+public class ProblemC {
+    BufferedReader rd;
+    Integer[] dp;
+    int[] c;
+    int[] s;
+    NavigableSet<Integer> ss = new TreeSet<>();
+    int first;
+
+    ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int n = pint();
+        dp = new Integer[1000100];
+        c = new int[1000100];
+        s = new int[1000100];
+        for(int i=0;i<n;i++) {
+            int[] a = intarr();
+            c[a[0]] = a[1];
+            add(a[0], 1);
+            ss.add(a[0]);
+        }
+        first = ss.first();
+        int dest = Integer.MAX_VALUE;
+        for(int i=0;i<=1000000;i++) {
+            int z = 0;
+            if(i+1<=1000000) {
+                z = sum(i+1, 1000000);
+            }
+            dest = Math.min(dest, d(i) + z);
+        }
+        out(dest);
+    }
+
+    private int d(int m) {
+        if(m < first) {
+            return 0;
+        }
+        m = ss.floor(m);
+        if(dp[m] == null) {
+            int q = 0;
+            int low = m - c[m];
+            if(low < 1) {
+                if(m - 1 >= 0) {
+                    q += sum(m - 1);
+                }
+            } else {
+                q += sum(low, m-1);
+            }
+            if(low-1 >= 0) {
+                q += d(low-1);
+            }
+            dp[m] = q;
+        }
+        return dp[m];
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    public int sum(int r) {
+        int ret = 0;
+        for (; r >= 0; r = (r & (r+1)) - 1)
+            ret += s[r];
+        return ret;
+    }
+
+    public void add(int idx, int delta) {
+        for (; idx < s.length; idx = idx | (idx+1))
+            s[idx] += delta;
+    }
+
+    public int sum(int l, int r) {
+        return sum(r) - sum(l-1);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

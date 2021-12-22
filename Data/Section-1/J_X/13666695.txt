@@ -1,0 +1,116 @@
+#include <iostream>
+#include <cstdio>
+#include <cctype>
+#include <cstring>
+#include <queue>
+
+using namespace std;
+
+typedef pair<int, int> P;
+typedef pair<P, int> PP;
+
+const int maxn = 100 + 5;
+
+char s[5][maxn];
+PP p[30];
+int n, k;
+int maze[3][maxn];
+bool used[3][maxn];
+
+bool ok(int x, int y)
+{
+    if(x < 0 || x > 2 || used[x][y]) return false;
+    for(int i = 0; i < 3; ++i)
+    {
+        if(maze[x][y + i]) return false;
+    }
+    return true;
+}
+
+bool bfs(int x, int y)
+{
+    queue<P> que;
+    que.push(P(x, y));
+    int now = 0;
+    while(!que.empty())
+    {
+        P q = que.front();
+        que.pop();
+        if(q.second == n - 1) return true;
+        if(q.second > now)
+        {
+            for(int i = 0; i < k; ++i)
+            {
+                if(p[i].first.second < 0) continue;
+                for(int j = 1; j < 3; ++j)
+                {
+                    int df = p[i].first.first - j, db = p[i].first.second - j + 1;
+                    int temp = p[i].second;
+                    if(df >= 0)
+                    {
+                        ++maze[temp][df];
+                    }
+                    if(db >= 0)
+                    {
+                        --maze[temp][db] = 0;
+                    }
+                }
+                p[i].first.first = max(p[i].first.first - 2, -1);
+                p[i].first.second = max(p[i].first.second - 2, -1);
+            }
+            ++now;
+        }
+        int dx = q.first, dy = q.second + 1;
+        if(!maze[dx][dy])
+        {
+            for(int i = -1; i < 2; ++i)
+            {
+                dx = q.first + i, dy = q.second + 1;
+                if(ok(dx, dy))
+                {
+                    used[dx][dy] = true;
+                    que.push(P(dx, dy));
+                }
+            }
+        }
+    }
+    return false;
+}
+
+int main()
+{
+    int T;
+    scanf("%d", &T);
+    while(T--)
+    {
+        memset(maze, 0, sizeof(maze));
+        memset(used, 0, sizeof(used));
+        scanf("%d%d", &n, &k);
+        int cnt = 0, x, y;
+        for(int i = 0; i < 3; ++i)
+        {
+            scanf("%s", s[i]);
+            for(int j = 0; j < n; ++j)
+            {
+                if(isupper(s[i][j]))
+                {
+                    int pos = j;
+                    maze[i][j] = 1;
+                    while(s[i][pos + 1] == s[i][j])
+                    {
+                        maze[i][++pos] = 1;
+                    }
+                    p[cnt++] = PP(P(j, pos), i);
+                    j = pos;
+                }
+                else if(islower(s[i][j]))
+                {
+                    x = i;
+                    y = j;
+                }
+            }
+        }
+        puts(bfs(x, y) ? "YES" : "NO");
+    }
+    return 0;
+}

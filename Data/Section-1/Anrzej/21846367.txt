@@ -1,0 +1,159 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+#define all(x) x.begin(), x.end()
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 5e3 + 10, lg = 31, MAXN = 1111;
+ll mod = 1e9 + 7;
+
+ll gcd(ll a, ll b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll _gcd(ll a, ll b, ll & x, ll & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	ll _x1, _y1;
+	ll d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+ll binpow(ll a, ll n) {
+	ll res = 1;
+	while (n) {
+		if (n & 1)
+			res *= a;
+		a *= a;
+		n >>= 1;
+		a %= mod;
+		res %= mod;
+	}
+	return res;
+}
+
+
+void term_res(string res){
+	cout << res;
+	exit(0);
+}
+
+struct edge{
+	int to, cap, cost, dual;
+	edge(){};
+	edge(int to, int cap, int cost, int dual) :to(to), cap(cap), cost(cost), dual(dual){};
+};
+
+int a[N], b[N], n, cp, cs, inf = 1e9, d[N], pr[N], prdual[N];
+bool used[N];
+vector<edge> g[N];
+
+void add_edge(int v, int to, int cap, int cost){
+	g[v].push_back(edge(to, cap, cost, g[to].size()));
+	g[to].push_back(edge(v, 0, -cost, g[v].size() - 1));
+}
+
+bool SPFA(int s, int t){
+	for (int i = 0; i < N; i++)
+		d[i] = inf, used[i] = 0;
+	queue<int> q;
+	q.push(s);
+	used[s] = 1;
+	d[s] = 0;
+	while (!q.empty()){
+		int cur = q.front();
+		used[cur] = 0;
+		q.pop();
+		for (int i = 0; i < g[cur].size(); i++){
+			edge e = g[cur][i];
+			int cost = d[cur] + e.cost;
+			if (e.cap > 0 && cost < d[e.to]){
+				d[e.to] = cost;
+				pr[e.to] = cur;
+				prdual[e.to] = i;
+				if (!used[e.to])
+					used[e.to] = 1, q.push(e.to);
+			}
+		}
+	}
+	return d[t] != inf;
+}
+
+int flow = 0, fcost = 0;
+
+void mcmf(int s, int t){
+	while (SPFA(s, t)){
+		int add = inf;
+		for (int v = t; v != s; v = pr[v]){
+			int to = prdual[v];
+			add = min(add, g[pr[v]][to].cap);
+		}
+		for (int v = t; v != s; v = pr[v]){
+			int to = prdual[v];
+			int dual = g[pr[v]][to].dual;
+			g[pr[v]][to].cap -= add;
+			g[v][dual].cap += add;
+		}
+		flow += add;
+		fcost += add*d[t];
+	}
+}
+
+int main()
+{
+	cin >> n >> cp >> cs;
+	for (int i = 0; i < n; i++)
+		cin >> a[i];
+	for (int i = 0; i < n; i++)
+		cin >> b[i];
+	int prog = n, sports = n + 1, start = n + 2, finish = n + 3;
+	for (int i = 0; i < n; i++){
+		add_edge(i, prog, 1, -a[i]);
+		add_edge(i, sports, 1, -b[i]);
+		add_edge(start, i, 1, 0);
+	}
+	add_edge(prog, finish, cp, 0);
+	add_edge(sports, finish, cs, 0);
+	mcmf(start, finish);
+	cout << -fcost << endl;
+	vector<int> p_team, s_team;
+	for (int i = 0; i < n; i++){
+		for (int j = 0; j < g[i].size(); j++){
+			edge e = g[i][j];
+			if (e.to == prog && e.cap == 0)
+				p_team.push_back(i);
+			if (e.to == sports && e.cap == 0)
+				s_team.push_back(i);
+		}
+	}
+	for (int i = 0; i < p_team.size(); i++) cout << p_team[i] + 1 << ' ';
+	cout << endl;
+	for (int i = 0; i < s_team.size(); i++) cout << s_team[i] + 1 << ' ';
+	return 0;
+}

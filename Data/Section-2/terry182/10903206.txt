@@ -1,0 +1,98 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+char b[55][55];
+bool done[55][55];
+int c[2510][2], a[2510][2];
+int cntc = 0, cnta = 0, n;
+using namespace std;
+bool check(int idxc)
+{
+    bool backup[55][55];
+    memcpy(backup, done, sizeof(done));
+    int di = c[idxc][0] - a[0][0];
+    int dj = c[idxc][1] - a[0][1];
+    for (int i = 0; i < cnta; i++)
+    {    if (a[i][0] + di < 0 || a[i][0] + di >= n)
+            continue;
+         if (a[i][1] + dj < 0 || a[i][1] + dj >= n)
+            continue;
+
+        if (b[a[i][0]+di][a[i][1] +dj] != 'x')
+        {   memcpy(done, backup, sizeof(backup));
+    //        cout << "failed in place " << a[i][0] +di << " " << a[i][1] + dj << endl;
+            return 0;
+        }
+        else
+        {   done[a[i][0]+di][a[i][1]+dj] = false;
+        }
+    }
+
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            if (done[i][j])
+            {
+                return 1;
+            }
+    return 2;
+}
+
+int main(void)
+{
+    scanf("%d", &n);
+    for (int i = 0; i < n; i++)
+        scanf("%s", b[i]);
+    memset(done, 0, sizeof(done));
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            if (b[i][j] == 'o')
+            {   a[cnta][0] = i;
+                a[cnta++][1] = j;
+            }
+            else if (b[i][j] == 'x')
+            {   c[cntc][0]  = i;
+                c[cntc++][1] = j;
+                done[i][j] = 1;
+            }
+
+    int ans[2510], cnt = 0;
+    bool ans_exist = 0;
+    for (int i = 0; i < cntc; i++)
+    {   int flag = check(i);
+        if (flag == 1)
+            ans[cnt++] = i;
+        else if (flag == 2){
+            ans[cnt++] = i;
+            break;
+        }
+    }
+    ans_exist = 1;
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            if (done[i][j])
+            {    ans_exist = 0;
+                break;
+            }
+    if (ans_exist)
+    {  char nb[55][55];
+        nb[n-1][n-1] = 'o';
+        for (int i = 0; i < cnt; i++){
+            int Di = c[ans[i]][0] - a[0][0], Dj = c[ans[i]][1] - a[0][1];
+            nb[n-1+Di][n-1+Dj] = 'x';
+        }
+        printf("YES\n");
+        for (int i = 0; i < n+n-1; i++)
+        {   for (int j = 0 ; j < n+n-1; j++)
+            {   if (nb[i][j] != 'x' && nb[i][j] != 'o')
+                    printf(".");
+                else
+                    printf("%c", nb[i][j]);
+            }
+            printf("\n");
+        }
+    }
+    else
+        cout << "NO" << endl;
+
+    return 0;
+}

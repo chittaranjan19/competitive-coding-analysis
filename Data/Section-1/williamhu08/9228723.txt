@@ -1,0 +1,101 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 50010;
+
+int sum[MAXN];
+bool online[MAXN];
+set<int> adj[MAXN];
+
+void add (int u, int v) {
+	if (adj[u].size() > adj[v].size()) {
+		swap(u, v);
+	}
+	adj[u].insert(v);
+	sum[v] += online[u];
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	int m, q, u, v;
+	cin >> m >> m >> q >> v;
+	while (v--) {
+		cin >> u;
+		online[u] = true;
+	}
+	while (m--) {
+		cin >> u >> v;
+		add(u, v);
+	}
+	while (q--) {
+		char c;
+		cin >> c >> u;
+		if (c == 'O') {
+			online[u] = true;
+			rep(it, adj[u]) {
+				sum[*it]++;
+			}
+		} else if (c == 'F') {
+			online[u] = false;
+			rep(it, adj[u]) {
+				sum[*it]--;
+			}
+		} else if (c == 'C') {
+			int ans = sum[u];
+			rep(it, adj[u]) {
+				ans += online[*it];
+			}
+			cout << ans << '\n';
+		} else {
+			cin >> v;
+			if (c == 'A') {
+				add(u, v);
+			} else {
+				//delete
+				if (adj[v].count(u)) {
+					swap(u, v);
+				}
+				adj[u].erase(v);
+				sum[v] -= online[u];
+			}
+		}
+	}
+}

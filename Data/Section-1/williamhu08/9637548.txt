@@ -1,0 +1,58 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1010;
+
+int N, K, M;
+int dp[MAXN][MAXN][2][2][2];	//dp[# of digits][mod][seen mod = 0 that is nonzero][is nonzero][first digit != 0]
+
+void add (int &x, int y) {
+	x = (x + y) % M;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> K >> M;
+	for (int i = 0; i < 10; i++) {
+		int r = i % K;
+		add(dp[1][r][(r == 0) && i][bool(i)][bool(i)], 1);
+	}
+	int p10 = 1;
+	for (int i = 1; i < N; i++) {
+		p10 = (p10 * 10ll) % K;
+		for (int j = 0; j < K; j++) {
+			for (int k = 0; k < 2; k++) {
+				for (int s = 0; s < 2; s++) {
+					for (int t = 0; t < 2; t++) {
+						for (int d = 0; d < 10; d++) {
+							int r = ((ll(p10) * d) % K + j) % K;
+							bool b = false, c = s || d;
+							if (c) {
+								b = (r == 0 || k);
+							}
+							add(dp[i + 1][r][b][c][bool(d)], dp[i][j][k][s][t]);
+						}
+					}
+				}
+			}
+		}
+	}
+	int ans = 0;
+	for (int j = 0; j < K; j++) {
+		add(ans, dp[N][j][1][1][1]);
+	}
+	cout << ans << endl;
+}

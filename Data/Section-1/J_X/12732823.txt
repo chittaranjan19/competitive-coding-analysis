@@ -1,0 +1,61 @@
+#include <iostream>
+#include <cstdio>
+#include <queue>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 3e5 + 5;
+const int maxk = 5000 + 5;
+const ll INF = 1LL << 60;
+
+ll dp[10][maxk];
+int a[maxn];
+
+int main()
+{
+    int n, k;
+    while(~scanf("%d%d", &n, &k))
+    {
+        for(int i = 0; i < n; ++i)
+        {
+            scanf("%d", a + i);
+        }
+        sort(a, a + n);
+        int cnt1 = n % k, cnt2 = k - cnt1;
+        for(int i = 0; i < 2; ++i)
+        {
+            fill(dp[i], dp[i] + cnt2 + 1, INF);
+        }
+        dp[0][0] = 0;
+        ll *now = dp[0], *nxt = dp[1];
+        for(int i = 0; i <= cnt1; ++i)
+        {
+            for(int j = 0; j <= cnt2; ++j)
+            {
+                if(i == cnt1 && j == cnt2)
+                {
+//                    printf("%I64d\n", dp[i & 1][j]);
+                    printf("%I64d\n", now[j]);
+                }
+                int temp = i * (n / k + 1) + j * (n / k);
+//                dp[i & 1 ^ 1][j] = min(dp[i & 1 ^ 1][j], dp[i & 1][j] + a[temp + n / k] - a[temp]);
+//                dp[i & 1][j + 1] = min(dp[i & 1][j + 1], dp[i & 1][j] + a[temp + n / k - 1] - a[temp]);
+//                dp[i & 1][j] = INF;
+                if(temp + n / k < n)
+                {
+                    nxt[j] = min(nxt[j], now[j] + a[temp + n / k] - a[temp]);
+                }
+                if(temp + n / k - 1 < n)
+                {
+                    now[j + 1] = min(now[j + 1], now[j] + a[temp + n / k - 1] - a[temp]);
+                }
+                now[j] = INF;
+            }
+            swap(now, nxt);
+        }
+    }
+    return 0;
+}

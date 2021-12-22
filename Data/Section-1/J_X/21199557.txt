@@ -1,0 +1,144 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 200 + 5;
+const int INF = 1 << 30;
+
+struct edge
+{
+    int to, cap, next;
+} G[maxn * maxn * 4];
+int head[maxn], tot, cur[maxn], d[maxn], que[maxn], in[maxn], out[maxn];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    memset(in, 0, sizeof(in));
+    memset(out, 0, sizeof(out));
+    tot = 0;
+}
+
+void addedge(int u, int v, int cap)
+{
+    G[tot].to = v;
+    G[tot].cap = cap;
+    G[tot].next = head[u];
+    head[u] = tot++;
+}
+
+bool bfs(int s, int t)
+{
+    int front = 0, rear = 0;
+    memset(d, -1, sizeof(d));
+    d[s] = 0;
+    que[rear++] = s;
+    while(front < rear)
+    {
+        int u = que[front++];
+        for(int i = head[u]; ~i; i = G[i].next)
+        {
+            edge e = G[i];
+            if(e.cap > 0 && d[e.to] == -1)
+            {
+                d[e.to] = d[u] + 1;
+                que[rear++] = e.to;
+            }
+        }
+    }
+    return ~d[t];
+}
+
+int dfs(int u, int t, int f)
+{
+    if(u == t) return f;
+    int ret = 0;
+    for(int &i = cur[u]; ~i; i = G[i].next)
+    {
+        edge &e = G[i];
+        if(e.cap > 0 && d[e.to] == d[u] + 1)
+        {
+            int tmp = dfs(e.to, t, min(f, e.cap));
+            if(tmp > 0)
+            {
+                e.cap -= tmp;
+                G[i ^ 1].cap += tmp;
+                f -= tmp;
+                ret += tmp;
+                if(!f) break;
+            }
+        }
+    }
+    return ret;
+}
+
+int Dinic(int s, int t)
+{
+    int ret = 0;
+    while(bfs(s, t))
+    {
+        memcpy(cur, head, sizeof(head));
+        ret += dfs(s, t, INF);
+    }
+    return ret;
+}
+
+int main()
+{
+    int T;
+    scanf("%d", &T);
+    while(T--)
+    {
+        init();
+        int n, m;
+        scanf("%d%d", &n, &m);
+        int s = 0, t = n + 1;
+        for(int i = 0; i < m; ++i)
+        {
+            int u, v;
+            scanf("%d%d", &u, &v);
+            addedge(u, v, 1);
+            addedge(v, u, 0);
+            ++out[u], ++in[v];
+        }
+        for(int i = 1; i <= n; ++i)
+        {
+            if(out[i] > in[i])
+            {
+                if((out[i] - in[i]) & 1) addedge(s, i, out[i] - in[i]);
+                else addedge(s, i, (out[i] - in[i]) / 2);
+                addedge(i, s, 0);
+            }
+            else if(out[i] < in[i])
+            {
+                if((in[i] - out[i]) & 1) addedge(i, t, in[i] - out[i]);
+                else addedge(i, t, (in[i] - out[i]) / 2);
+                addedge(t, i, 0);
+            }
+        }
+        Dinic(s, t);
+        int ans = 0;
+        for(int u = 1; u <= n; ++u)
+        {
+            int a = 0, b = 0;
+            for(int i = head[u]; ~i; i = G[i].next)
+            {
+                if(G[i].to == s || G[i].to == t) continue;
+                if(G[i].cap) ++b;
+                else ++a;
+            }
+            if(a == b) ++ans;
+        }
+        printf("%d\n", ans);
+        for(int i = 0; i < m; ++i)
+        {
+            int u = G[i << 1 | 1].to, v = G[i << 1].to;
+            if(G[i << 1].cap) printf("%d %d\n", u, v);
+            else printf("%d %d\n", v, u);
+        }
+    }
+    return 0;
+}

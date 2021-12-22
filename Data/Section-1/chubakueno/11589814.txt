@@ -1,0 +1,85 @@
+#include <bits/stdc++.h>
+using namespace std;
+int n2=0,n3=0,n5=0,n7=0,n11=0,n13=0;
+vector<int> vec;
+int k;
+bool check(){
+    return (n2>=0&&n3>=0&&n5>=0&&n7>=0&&n11>=0&&n13>=0&&vec.size()>=k);
+}
+int e2,e3,e5,e7,e11,e13;
+void insert(int lvl){
+    vec.push_back(e2*e3*e5*e7*e11*e13);
+    switch(lvl){
+        case 6:
+        n13+=1-2*(e13==1);
+        case 5:
+        n11+=1-2*(e11==1);
+        case 4:
+        n7+=1-2*(e7==1);
+        case 3:
+        n5+=1-2*(e5==1);
+        case 2:
+        n3+=1-2*(e3==1);
+        case 1:
+        n2+=1-2*(e2==1);
+    }
+}
+bool menor(){
+    return e2*e3*e5*e7*e11*e13<=2*k*k;
+}
+bool trycount(int lvl){
+    if(check()) return true;
+    vec.clear();
+    n2=n3=n5=n7=n11=n13=0;
+    e2=e3=e5=e7=e11=e13=1;
+    for(e2=1;menor();e2*=2){
+        if(lvl==1) {insert(lvl);continue;}
+        for(e3=1;menor();e3*=3){
+            if(lvl==2) {insert(lvl);continue;}
+            for(e5=1;menor();e5*=5){
+                if(lvl==3) {insert(lvl);continue;}
+                for(e7=1;menor();e7*=7){
+                    if(lvl==4) {insert(lvl);continue;}
+                    for(e11=1;menor();e11*=11){
+                        if(lvl==5) {insert(lvl);continue;}
+                        for(e13=1;menor();e13*=13){
+                            if(lvl==6) {insert(lvl);continue;}
+                        }
+                        e13=1;
+                    }
+                    e11=1;
+                }
+                e7=1;
+            }
+            e5=1;
+        }
+        e3=1;
+    }
+    e2=1;
+    return check();
+}
+int scoreit(int x){
+    return (x%2==0)+2*(x%3==0)+4*(x%5==0)+8*(x%7==0)+16*(x%11==0)+32*(x%13==0);
+}
+int main(){
+    cin>>k;
+    for(int i=1;i<=6;++i)
+        trycount(i);
+    int score=0;
+    int tam=vec.size();
+    vector<int> elim(vec.size(),0);
+    while(tam>k){
+        for(int i=0;i<vec.size();++i){
+            if(elim[i]==0&&scoreit(vec[i])==score){
+                elim[i]=1;
+                --tam;
+                if(tam<=k) break;
+            }
+        }
+        ++score;
+    }
+    for(int i=0;i<vec.size();++i)
+        if(!elim[i])
+            cout<<vec[i]<<" ";
+    return 0;
+}

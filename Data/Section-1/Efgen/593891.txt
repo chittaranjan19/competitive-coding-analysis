@@ -1,0 +1,99 @@
+import java.io.*;
+import java.util.*;
+import java.math.*;
+
+public class Main implements Runnable {
+class Query implements Comparable<Query> {
+	int a, b, id;
+	public Query(int x, int y, int i) {
+		a = x-1; b = y; id = i;
+	}
+	public int compareTo(Query o) {
+		return b-o.b;
+	}
+	
+}
+	void solve() throws IOException {
+		int n = nextInt();
+		int[] d = new int[n];
+		for (int i=0; i<n; i++) d[i] = nextInt();
+	
+		int q = nextInt();
+		Query[] Q = new Query[q];
+		for (int i=0; i<q; i++) {
+			Q[i] = new Query(nextInt(), nextInt(), i);
+		}
+		Arrays.sort(Q);
+		long[] res = new long[n];
+		long[] b = new long[n];
+		int max = (int)Math.sqrt(n);
+		int pr = -1;
+		for (Query qq:Q) {
+			if (qq.b==pr) {
+				res[qq.id] = b[qq.a];
+			} else {
+				if (pr>max) {
+					long r = 0;
+					for (int i=qq.a; i<n; i+=qq.b) r += d[i];
+					res[qq.id] = r;
+					continue;
+				}
+				pr = qq.b;
+				for (int i=n-1; i>=0; i--)
+					b[i] = d[i]+((i+pr>=n)?0:b[i+pr]);
+				res[qq.id] = b[qq.a];
+			}
+		}
+		for (int i=0; i<q; i++) out.println(res[i]);
+		
+		
+		
+		
+		
+	}
+
+	BufferedReader br;
+	StringTokenizer st;
+	PrintWriter out;
+
+	public void run() {
+		try {
+			br = new BufferedReader(new InputStreamReader(System.in));
+			out = new PrintWriter(System.out);
+			// br = new BufferedReader(new FileReader("input.txt"));
+			// out = new PrintWriter("output.txt");
+			solve();
+			br.close();
+			out.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.exit(123);
+		}
+	}
+
+	String next() throws IOException {
+		while (st == null || !st.hasMoreTokens()) {
+			String s = br.readLine();
+			if (s == null)
+				return null;
+			st = new StringTokenizer(s,", \t");
+		}
+		return st.nextToken();
+	}
+
+	double nextDouble() throws IOException {
+		return Double.parseDouble(next());
+	}
+
+	int nextInt() throws IOException {
+		return Integer.parseInt(next());
+	}
+
+	long nextLong() throws IOException {
+		return Long.parseLong(next());
+	}
+
+	public static void main(String[] args) {
+		new Thread(new Main()).start();
+	}
+}

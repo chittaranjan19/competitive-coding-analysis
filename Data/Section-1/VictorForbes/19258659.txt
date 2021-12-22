@@ -1,0 +1,108 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define N 200001
+
+int a[N];
+set<int> g[N];
+int seen[N];
+
+int dfs(int x, int color){
+	int ret;
+
+	seen[x] = color;
+
+	ret = 0;
+
+	for (auto it = g[x].begin(); it != g[x].end(); it++){
+		if (seen[*it] == color){
+			return x;
+		}
+		else if (!seen[*it]){
+			ret = max(ret, dfs(*it, color));
+		}
+	}
+
+	return ret;
+}
+
+int main(){
+	int root, ans, color, x, n, i;
+
+	scanf("%d", &n);
+
+	root = -1;
+
+	for (i = 1; i <= n; i++){
+		scanf("%d", a + i);
+
+		if (i == a[i]){
+			root = i;
+		}
+
+		// g[i].insert(a[i]);
+		g[a[i]].insert(i);
+	}
+
+	ans = 0;
+
+	if (root == -1){
+		color = 1;
+
+		for (i = 1; i <= n; i++){
+			if (!seen[i]){
+				root = dfs(i, color);
+
+				color++;
+
+				if (root){
+					// g[root].erase(a[root]);
+					g[a[root]].erase(root);
+
+					g[root].insert(root);
+
+					a[root] = root;
+
+					ans++;
+
+					break;
+				}
+			}
+		}
+	}
+
+	memset(seen, 0, sizeof(seen));
+
+	color = 1;
+
+	for (i = 1; i <= n; i++){
+		if (!seen[i]){
+			x = dfs(i, color);
+
+			color++;
+
+			if (x and x != root){
+				// g[x].erase(a[x]);
+				g[a[x]].erase(x);
+
+				// g[x].insert(root);
+				g[root].insert(x);
+
+				a[x] = root;
+
+				ans++;
+			}
+		}
+	}
+
+	printf("%d\n", ans);
+
+	for (i = 1; i <= n; i++){
+		printf("%d ", a[i]);
+	}
+
+	printf("\n");
+
+	return 0;
+}

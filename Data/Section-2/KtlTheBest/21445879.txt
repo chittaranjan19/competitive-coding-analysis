@@ -1,0 +1,67 @@
+#include <iostream>
+#include <map>
+#include <queue>
+#include <stack>
+using namespace std;
+
+int a, b;
+queue <int> q;
+stack <int> st;
+map <int, int> d;
+map <int, bool> u;
+
+void bfs(int a, int b){
+	q.push(a);
+	while(q.size()){
+		long long int x = q.front();
+		q.pop();
+		//cerr << x << '\n';
+		if(1ll * x * 2 <= b && !u[x * 2]){
+			d[x * 2] = d[x] + 1;
+			u[x * 2] = 1;
+			q.push(x * 2);
+		}
+		if(1ll * (x * 10) + 1 <= b && !u[x * 10 + 1]){
+			d[x * 10 + 1] = d[x] + 1;
+			u[x * 10 + 1] = 1;
+			q.push(x * 10 + 1);
+		}
+	}
+}
+
+void rec(int x, int y){
+	st.push(x);
+	while(x > y){
+		//cerr << x << ' ' << d[x] << ' ' << d[x / 2] << ' ' << d[(x - 1) / 10] << '\n';
+		if(x % 2 == 0 && d[x / 2] == d[x] - 1){
+		 	st.push(x / 2);
+		 	x /= 2;
+		} else
+		if((x - 1) % 10 == 0 && d[(x - 1) / 10] == d[x] - 1){
+			st.push((x - 1) / 10);
+			x /= 10;
+		}
+	}
+	while(st.size()){
+		cout << st.top() << ' ';
+		st.pop();
+	}
+}
+
+int main(){
+	cin >> a >> b;
+	d[a] = 1;
+	bfs(a, b);
+	if(!d.count(b)){
+		cout << "NO";
+		return 0;
+	}
+	cout << "YES\n";
+	cout << d[b] << '\n';
+	for(int i = a; i <= b; ++ i){
+		//cout << "i = " << i << ", d[i] = " << d[i] << '\n';
+	}
+	//cerr << d[2] << ' ' << d[4] << ' ' << d[8] << ' ' << d[16] << ' ' << d[81];
+	rec(b, a);
+	return 0;
+}

@@ -1,0 +1,76 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool checkMin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool checkMax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN],p[MAXN];
+vector<int>adj[MAXN];
+int bs(int k){
+	k=arr[k];
+	int st=0,en=INF;
+	while(st<en){
+		int mid=(st+en)>>1;
+		if(__gcd(arr[p[mid]],k)>1)
+			st=mid+1;
+		else
+			en=mid-1;	
+	}
+	if(en<0 or st<0 or __gcd(arr[p[st]],k)==1)
+		return -1;
+	return p[st];	
+}
+void dfs(int nd,int pr){
+	p[nd]=pr;
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to!=pr)	
+			dfs(to,nd);
+	}
+}
+int main(){
+	int n,m;
+	cin>>n>>m;
+	for(int i=1;i<=n;i++)
+		cin>>arr[i];
+	for(int i=1;i<n;i++){
+		int u,v;
+		cin>>u>>v;
+		adj[u].pb(v);
+		adj[v].pb(u);	
+	}
+	dfs(1,0);
+	while(m--){
+		int type,v,w;
+		scanf("%d%d",&type,&v);
+		if(type==1){
+			int k=arr[v];
+			v=p[v];
+			while(v!=0){
+				if(__gcd(k,arr[v])>1)
+					break;
+				v=p[v];
+			}
+			if(!v)
+				v--;
+			printf("%d\n",v);
+		}
+		else{
+			scanf("%d",&w);
+			arr[v]=w;
+		}
+	}
+	return 0;
+}

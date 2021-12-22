@@ -1,0 +1,132 @@
+#include <iostream>
+#include <string>
+#include <cstring>
+#include <cstdlib>
+#include <ctime>
+#include <cmath>
+#include <vector>
+#include <cstdio>
+#include <algorithm>
+#include <set>
+#include <stack>
+#include <queue>
+#include <iomanip>
+#include <map>
+#include <bitset>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 1 << 21;
+const int P = (479 << 21) + 1;
+const int G = 3;
+
+int x1[maxn], x2[maxn], wn[25];
+bool e[maxn], ans[maxn];
+
+int pow_mod(int x, int n, int p)
+{
+    int ret = 1;
+    while(n)
+    {
+        if(n & 1) ret = 1LL * ret * x % p;
+        x = 1LL * x * x % p;
+        n >>= 1;
+    }
+    return ret;
+}
+
+void getwn()
+{
+    for(int i = 1; i <= 23; ++i)
+    {
+        int t = 1 << i;
+        wn[i] = pow_mod(G, (P - 1) / t, P);
+    }
+}
+
+void change(int *y, int len)
+{
+    for(int i = 1, j = len / 2; i < len - 1; ++i)
+    {
+        if(i < j) swap(y[i], y[j]);
+        int k = len / 2;
+        while(j >= k)
+        {
+            j -= k;
+            k >>= 1;
+        }
+        j += k;
+    }
+}
+
+void ntt(int *y, int len, int on)
+{
+    change(y, len);
+    int id = 0;
+    for(int h = 2; h <= len; h <<= 1)
+    {
+        ++id;
+        for(int j = 0; j < len; j += h)
+        {
+            int w = 1;
+            for(int k = j; k < j + h / 2; ++k)
+            {
+                int u = y[k], t = 1LL * y[k + h / 2] * w % P;
+                y[k] = (u + t) % P;
+//                if(y[k] >= P) y[k] -= P;
+                y[k + h / 2] = (u - t + P) % P;
+//                if(y[k + h / 2] < 0) y[k + h / 2] += P;
+                w = 1LL * w * wn[id] % P;
+            }
+        }
+    }
+    if(on == -1)
+    {
+        reverse(y + 1, y + len);
+        int inv = pow_mod(len, P - 2, P);
+        for(int i = 0; i < len; ++i) y[i] = 1LL * y[i] * inv % P;
+    }
+}
+
+void conv(bool *a, bool *b, int len)
+{
+    for(int i = 0; i < len; ++i) x1[i] = (int)a[i], x2[i] = (int)b[i];
+    ntt(x1, len, 1);
+    ntt(x2, len, 1);
+    for(int i = 0; i < len; ++i) x1[i] = 1LL * x1[i] * x2[i] % P;
+    ntt(x1, len, -1);
+    for(int i = 0; i < len; ++i) a[i] = (bool)x1[i];
+}
+
+void solve(int len, int k)
+{
+    ans[0] = true;
+    while(k)
+    {
+        if(k & 1) conv(ans, e, len);
+        conv(e, e, len);
+        k >>= 1;
+    }
+}
+
+int main()
+{
+    getwn();
+    int n, k, _max = 0;
+    scanf("%d%d", &n, &k);
+    for(int i = 0; i < n; ++i)
+    {
+        int x;
+        scanf("%d", &x);
+        e[x] = true;
+        _max = max(_max, x);
+    }
+    _max *= k;
+    int len = 1;
+    while(len <= _max) len <<= 1;
+    solve(len, k);
+    for(int i = 1; i <= _max; ++i) if(ans[i]) printf("%d ", i);
+    return 0;
+}

@@ -1,0 +1,132 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+const int maxn = 1000000 + 5;
+const int maxm = 300000 + 20;
+const int INF = 1 << 30;
+
+struct edge
+{
+    int to, cap, next;
+    edge(int to = 0, int cap = 0, int next = 0) : to(to), cap(cap), next(next) {}
+} E[maxm << 2];
+int head[maxn], q[maxn], d[maxn], cur[maxn], cnt;
+
+void add_edge(int u, int v, int cap)
+{
+    E[cnt] = edge(v, cap, head[u]);
+    head[u] = cnt++;
+    E[cnt] = edge(u, 0, head[v]);
+    head[v] = cnt++;
+}
+
+bool bfs(int s, int t)
+{
+    int front = 0, rear = 0;
+    memset(d, -1, sizeof(d));
+    d[s] = 0;
+    q[rear++] = s;
+    while(front < rear)
+    {
+        int u = q[front++];
+        if(u == t)
+        {
+            return true;
+        }
+        for(int i = head[u]; ~i; i = E[i].next)
+        {
+            edge e = E[i];
+            if(e.cap > 0 && d[e.to] == -1)
+            {
+                d[e.to] = d[u] + 1;
+                q[rear++] = e.to;
+            }
+        }
+    }
+    return false;
+}
+
+int max_flow(int s, int t)
+{
+    int res = 0;
+    while(bfs(s, t))
+    {
+        memcpy(cur, head, sizeof(head));
+        int top = 0;
+        q[++top] = s;
+        while(top)
+        {
+            int u = q[top];
+            if(u != t)
+            {
+                while(~cur[u])
+                {
+                    edge e = E[cur[u]];
+                    if(e.cap > 0 && d[e.to] == d[u] + 1)
+                    {
+                        q[++top] = e.to;
+                        break;
+                    }
+                    cur[u] = e.next;
+                }
+                if(cur[u] == -1)
+                {
+                    --top;
+                    d[u] = -1;
+                }
+            }
+            else
+            {
+                int f = INF, temp;
+                for(int i = 1; i < top; ++i)
+                {
+                    int k = cur[q[i]];
+                    if(f > E[k].cap)
+                    {
+                        f = E[k].cap;
+                        temp = i;
+                    }
+                }
+                for(int i = 1; i < top; ++i)
+                {
+                    int k = cur[q[i]];
+                    E[k].cap -= f;
+                    E[k ^ 1].cap += f;
+                }
+                res += f;
+                top = temp;
+            }
+        }
+    }
+    return res;
+}
+
+int main()
+{
+    int n, m;
+    while(~scanf("%d%d", &n, &m))
+    {
+        memset(head, -1, sizeof(head));
+        cnt = 0;
+        int s, t;
+        scanf("%d%d", &s, &t);
+        for(int i = 1; i <= n; ++i)
+        {
+            int x;
+            scanf("%d", &x);
+            add_edge(i, i + n, x);
+        }
+        for(int i = 0; i < m; ++i)
+        {
+            int u, v;
+            scanf("%d%d", &u, &v);
+            add_edge(u + n, v, INF);
+            add_edge(v, u + n, INF);
+        }
+        printf("%d\n", max_flow(s, t + n));
+    }
+    return 0;
+}

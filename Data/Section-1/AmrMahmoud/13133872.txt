@@ -1,0 +1,117 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int arr[(1 << 20) + 2], tmp[(1 << 20) + 2], t[(1 << 20) + 2];
+LL cnt[22][2];
+bool ch[22];
+
+void merg(int i, int L1, int R1, int L2, int R2)
+{
+  int x = L1, y = L2, c = 0;
+  while(x <= R1)
+  {
+    if(y > R2)
+    {
+      x++;
+      cnt[i][0] += c;
+    }
+    else if(tmp[x] <= tmp[y])
+    {
+      x++;
+      cnt[i][0] += c;
+    }
+    else y++, c++;
+  }
+  x = L1, y = L2;
+  c = 0;
+  while(y <= R2)
+  {
+    if(x > R1)
+    {
+      y++;
+      cnt[i][1] += c;
+    }
+    else if(tmp[x] < tmp[y])
+      x++, c++;
+    else y++, cnt[i][1] += c;
+  }
+  x = L1, y = L2;
+  c = 0;
+  while(x <= R1 || y <= R2)
+  {
+    if(x > R1)
+      t[c++] = tmp[y++];
+    else if(y > R2)
+      t[c++] = tmp[x++];
+    else if(tmp[x] < tmp[y])
+      t[c++] = tmp[x++];
+    else t[c++] = tmp[y++];
+  }
+  for(int j=0;j<c;j++)
+    tmp[L1 + j] = t[j];
+}
+
+void solve(int i, int L, int R)
+{
+  if(i == 0) return;
+  int mid = L + (R - L) / 2;
+  solve(i - 1, L, mid);
+  solve(i - 1, mid + 1, R);
+  merg(i, L, mid, mid + 1, R);
+}
+
+int main()
+{
+  int n, q, x;
+  scanf("%d", &n);
+  for(int i=0;i<(1 << n);i++)
+    scanf("%d", &arr[i]), tmp[i] = arr[i];
+  scanf("%d", &q);
+  solve(n, 0, (1 << n) - 1);
+  while(q--)
+  {
+    scanf("%d", &x);
+    for(int i=1;i<=x;i++)
+      ch[i] = !ch[i];
+    LL res = 0;
+    for(int j=1;j<=n;j++)
+      res += cnt[j][ch[j]];
+    printf("%I64d\n", res);
+  }
+  return 0;
+}

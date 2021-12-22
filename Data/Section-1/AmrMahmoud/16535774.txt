@@ -1,0 +1,90 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<pair<LL, char> > a, b;
+int fail[200005];
+
+int main()
+{
+  int n, m;
+  int x;
+  char c;
+  scanf("%d %d", &n, &m);
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d-%c", &x, &c);
+    if(!a.empty() && a.back().s == c)
+      a.back().f += x;
+    else a.pb(mp(x, c));
+  }
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d-%c", &x, &c);
+    if(!b.empty() && b.back().s == c)
+      b.back().f += x;
+    else b.pb(mp(x, c));
+  }
+  if(b.size() == 1)
+  {
+    LL res = 0;
+    for(int i=0;i<n;i++)
+      if(a[i].s == b[0].s && a[i].f >= b[0].f)
+        res += a[i].f - b[0].f + 1;
+    cout << res;
+    return 0;
+  }
+  LL res = 0;
+  int k = 0;
+  for(int i=1;i<b.size();i++)
+  {
+    while(k > 0 && b[k] != b[i])
+      k = fail[k - 1];
+    if(b[k] == b[i]) k++;
+    fail[i] = k;
+  }
+  k = 0;
+  for(int i=0;i<a.size();i++)
+  {
+    while(k > 0)
+    {
+      if(b[k] == a[i]) break;
+      if(k == b.size() - 1 && b[k].s == a[i].s && b[k].f <= a[k].s) break;
+      k = fail[k - 1];
+    }
+    if(k == b.size() - 1)
+    {
+      if(b[k].s == a[i].s && b[k].f <= a[k].s)
+        k++;
+    }
+    else if(!k)
+    {
+      if(b[k].s == a[i].s && b[k].f <= a[i].f)
+        k++;
+    }
+    else if(b[k] == a[i]) k++;
+    if(k == b.size())
+    {
+      k = fail[k - 1];
+      res++;
+    }
+  }
+  cout << res;
+  return 0;
+}

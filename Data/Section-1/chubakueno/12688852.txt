@@ -1,0 +1,63 @@
+#include <bits/stdc++.h>
+#define MULT 1009LL
+#define MOD 100000000000031LL
+using namespace std;
+typedef long long ll;
+char input[2001], sInicio[2001], sFin[2001];
+ll inicio, fin, n, nInicio, nFin, hInicio, hFin, nVInicio, nVFin;
+ll M[2001][2001];
+unordered_set<ll> f;
+vector<int> vInicio, vFin;
+vector<int> q[2001];
+int main()
+{
+    
+    scanf("%s %s %s", input, sInicio, sFin);
+    n = strlen(input);
+    nInicio = strlen(sInicio);
+    nFin = strlen(sFin);
+    hInicio = 0;
+    for (int i = 0; i < nInicio; i++)
+        hInicio = ((hInicio * MULT) + sInicio[i]) % MOD;
+    hFin = 0;
+    for (int i = 0; i < nFin; i++)
+        hFin = ((hFin * MULT) + sFin[i]) % MOD;
+    ll aux = 0;
+    for (int i = 0; i < n; i++)
+    {
+        aux = 0;
+        for (int j = i; j < n; j++)
+        {
+            aux = ((aux * MULT) + input[j]) % MOD;
+            M[i][j] = aux;
+        }
+        if((i+nInicio-1)<n&&hInicio==M[i][i+nInicio-1]) vInicio.push_back(i);
+        if((i+nFin-1)<n&&hFin==M[i][i+nFin-1]) vFin.push_back(i);
+    }
+    nVInicio=vInicio.size();
+    nVFin=vFin.size();
+    int res = 0;
+    
+    for (int i = 0; i < nVInicio; i++)
+    {
+        int a=vInicio[i];
+        for (int j = 0; j < nVFin; j++)
+        {
+            int b=vFin[j];
+            if (a <= b&&a+nInicio<=b+nFin)
+                q[b+nFin-1-a].push_back(a);
+        }
+    }
+    for(int i=0;i<2000;++i){
+        f.clear();
+        for(int j=0;j<q[i].size();++j){
+            int a=q[i][j];
+            if (!f.count(M[a][a+i]))
+            {
+                res++;
+                f.insert(M[a][a+i]);
+            }
+        }
+    }
+    printf("%d\n", res);
+}

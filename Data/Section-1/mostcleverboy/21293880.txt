@@ -1,0 +1,109 @@
+program j01;
+const maxn=100086;
+type xx=record
+          st,xz,yz:longint;
+          bo:boolean;
+        end;
+var n,m,i,k,t,x,y,pre,ans,d,a,b,step,d1,d2:longint;
+    bx,by:boolean;
+    xb:boolean;
+    ba,bd:array[-2*maxn..2*maxn]of xx;
+    loc:array[0..maxn,1..2]of longint;
+
+function min(a,b:longint):longint;
+begin
+  if a=0 then exit(b);
+  if b=0 then exit(a);
+  if a<b then exit(a) else exit(b);
+end;
+
+begin
+  readln(n,m,k);
+  i:=0;
+  x:=0;y:=0;
+  fillchar(ba,sizeof(ba),0);
+  fillchar(bd,sizeof(bd),0);
+  pre:=0;
+  bx:=true;
+  by:=true;
+  step:=0;
+  if n<m then xb:=true else xb:=false;
+  while true do
+  begin
+    inc(i);
+    if i mod 2=1 then
+    begin
+      if bd[x-y].bo=false then
+      begin
+        bd[x-y].st:=step;
+        bd[x-y].xz:=x;
+        bd[x-y].yz:=y;
+        bd[x-y].bo:=true;
+      end else break
+    end
+    else
+    begin
+     if ba[x+y].bo=false then
+      begin
+        ba[x+y].st:=step;
+        ba[x+y].xz:=x;
+        ba[x+y].yz:=y;
+        ba[x+y].bo:=true;
+      end else break
+    end;
+    if (y=0)or(y=m) then
+    begin
+      if bx then d1:=n-x else d1:=x;
+      d:=min(d1,m);
+    end
+    else
+    begin
+      if by then d2:=m-y else d2:=y;
+      d:=min(d2,n);
+    end;
+    if (x=0)and(y=0) then d:=min(n,m);
+    pre:=d;
+    inc(step,d);
+    if ((x=0)or(x=n))and(not((x=0)and(y=0))) then
+    begin
+      bx:=not bx;
+      xb:=true;
+      if bx then x:=x+d else x:=x-d;
+      if by then y:=y+d else y:=y-d;
+    end
+    else
+    begin
+      if ((y=0)or(y=m))and(not((x=0)and(y=0))) then
+      begin
+        by:=not by;
+        xb:=false;
+        if bx then x:=x+d else x:=x-d;
+        if by then y:=y+d else y:=y-d;
+      end
+      else
+      begin
+        if (x=0)and(y=0) then
+        begin
+          x:=x+d;
+          y:=y+d;
+          xb:=not xb;
+        end;
+      end;
+    end;
+    if (x=n)and(y=m) then break;
+    if (x=0)and(y=m) then break;
+    if (x=n)and(y=0) then break;
+    if (x=0)and(y=0) then break;
+  end;
+  for i:=1 to k do
+  begin
+    readln(x,y);
+    if (x=0)and(y=0) then writeln(0);
+    if ba[x+y].bo=false then a:=0 else a:=ba[x+y].st+abs(x-ba[x+y].xz);
+    if bd[x-y].bo=false then b:=0 else b:=bd[x-y].st+abs(x-bd[x-y].xz);
+    if a=0 then ans:=b;
+    if b=0 then ans:=a;
+    if (a<>0)and(b<>0) then ans:=min(a,b);
+    if ans=0 then writeln(-1) else writeln(ans);
+  end;
+end.

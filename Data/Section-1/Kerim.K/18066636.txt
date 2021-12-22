@@ -1,0 +1,72 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+map<int,int>pm;
+int arr[MAXN],LOG[MAXN];
+vector<int>adj[MAXN];
+int M[MAXN][24];
+int tap(int x,int y){
+	int z=LOG[y-x+1];
+	return min(M[x][z],M[y-(1<<z)+1][z]);
+}
+vector<PII>ans;
+void solve(int x,int y,int v){
+//	cerr<<x<<" "<<y<<endl;
+	if(x>y)
+		return;
+	int k=tap(x,y);
+	for(int i=1;i<=k-v;i++)
+		ans.pb(mp(x,y));
+	int low=lower_bound(all(adj[k]),x)-adj[k].begin();	
+	int upp=upper_bound(all(adj[k]),y)-adj[k].begin();	
+	solve(x,adj[k][low]-1,k);
+	for(int i=low;i<upp-1;i++)
+		solve(adj[k][i]+1,adj[k][i+1]-1,k);
+	solve(adj[k][upp-1]+1,y,k);	
+}
+int main(){
+	int a;
+	scanf("%d",&a);
+	for(int i=1;i<=a;i++){
+		scanf("%d",arr+i),M[i][0]=arr[i];
+		LOG[i]=log2(i);
+	}
+	for(int j=1;j<18;j++)
+		for(int i=1;i<=a;i++)	
+			M[i][j]=min(M[i][j-1],M[i+(1<<(j-1))][j-1]);
+	for(int i=1;i<=a;i++)
+		adj[arr[i]].pb(i);
+	if(adj[0].size()!=0){
+		solve(1,adj[0][0]-1,0);
+		for(int i=0;i<adj[0].size()-1;i++)
+			solve(adj[0][i]+1,adj[0][i+1]-1,0);
+		solve(adj[0][adj[0].size()-1]+1,a,0);
+	}
+	else
+	   	solve(1,a,0);
+	printf("%d\n",int(ans.size()));
+	for(int i=0;i<ans.size();i++)
+		printf("%d %d\n",ans[i].ff,ans[i].ss);	
+	return 0;
+}
+/*
+5
+1 3 1 2 1
+*/
+

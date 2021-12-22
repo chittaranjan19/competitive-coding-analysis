@@ -1,0 +1,66 @@
+#include<bits/stdc++.h>
+#define ii long long int
+#define pi 2*acos(0.0)
+#define eps 1e-9
+#define mem(x,y) memset(x,y,sizeof(x))
+#define all(x) x.begin(), x.end()
+#define pb push_back
+#define sz(a) (int)a.size()
+#define inf 2147483640
+#define mx 1000010
+
+using namespace std;
+
+int a[mx];
+int n,m;
+vector <int> v;
+map <int,int> mp;
+int dp[1010][1010][2];
+
+const int debug= 0;
+
+bool call(int i,int mod,bool taken) {
+    if (!mod && taken) return true;
+    if (i==sz(v)) return false;
+    if (dp[i][mod][taken]!=-1) return dp[i][mod][taken];
+
+    bool ans= call(i+1,mod,taken);
+    if (ans) return dp[i][mod][taken]= ans;
+
+    int cnt= mp[v[i]],sum=0;
+    for (int j=1;j<=cnt;++j) {
+        sum+=v[i];
+        if (sum>=m) sum%=m;
+        ans= call(i+1,(mod+sum)%m,true);
+        if (ans) break;
+    }
+    return dp[i][mod][taken]= ans;
+}
+
+int main() {
+    //freopen("in.txt","r",stdin);
+    //freopen("out.txt","w",stdout);
+
+    while (cin>>n>>m) {
+        v.clear();
+        mp.clear();
+        mem(dp,-1);
+        int i;
+        bool hasZero= false;
+
+        for (i=1;i<=n;++i) {
+            cin>>a[i];
+            if (a[i]>=m) a[i]%=m;
+            if (!a[i]) hasZero= true;
+            if (mp.find(a[i])==mp.end()) v.pb(a[i]);
+            mp[a[i]]++;
+        }
+        if (hasZero) {puts("YES");continue;}
+
+        bool ans= call(0,0,0);
+        if (ans) puts("YES");
+        else puts("NO");
+    }
+
+    return 0;
+}

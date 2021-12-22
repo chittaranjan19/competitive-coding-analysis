@@ -1,0 +1,80 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 110, MAXS = MAXN * MAXN;
+
+void setmax (int &a, int b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+int N, M, S, T;
+int A[MAXS];
+int occ[MAXN], mxocc[MAXN][MAXN];
+int dp1[MAXS][MAXN], dp2[MAXS][MAXN];	//dp1[size][last element]...
+
+void getdp1() {
+	for (int i = 1; i <= S; i++) {
+		int val = A[i - 1];	//before i forget
+		copy_n(dp1[i - 1], N, dp1[i]);
+		setmax(dp1[i][val], *max_element(dp1[i - 1], dp1[i - 1] + val + 1) + 1);
+	}
+}
+
+void getdp2() {
+	for (int i = 1; i <= S; i++) {
+		int val = A[S - i];
+		copy_n(dp2[i - 1], N, dp2[i]);
+		setmax(dp2[i][val], *max_element(dp2[i - 1] + val, dp2[i - 1] + N) + 1);	//woops flipped it over...
+	}
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> T;
+	S = N * N;
+	vector<int> vall;
+	for (int i = 0; i < N; i++) {
+		cin >> A[i];
+		vall.push_back(A[i]);
+	}
+	sort(all(vall));
+	vall.resize(unique(all(vall)) - vall.begin());
+	for (int i = 0; i < N; i++) {
+		A[i] = lower_bound(all(vall), A[i]) - vall.begin();
+		occ[A[i]]++;
+		for (int j = i + N; j < S; j += N) {
+			A[j] = A[i];
+		}
+	}
+	for (int i = 0; i < N; i++) {
+		for (int j = i; j < N; j++) {
+			mxocc[i][j] = *max_element(occ + i, occ + j + 1);
+		}
+	}
+	getdp1();
+	getdp2();
+	int ans = 0;
+	for (int i = 0; i <= N; i++) {
+		for (int j = 0; j < N; j++) {
+			for (int k = 0; k <= min(N, T - i); k++) {
+				for (int m = j; m < N; m++) {
+					setmax(ans, dp1[N * i][j] + (T - i - k) * mxocc[j][m] + dp2[N * k][m]);
+				}
+			}
+		}
+	}
+	cout << ans << endl;
+}

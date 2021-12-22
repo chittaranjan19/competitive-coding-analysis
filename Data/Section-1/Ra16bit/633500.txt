@@ -1,0 +1,63 @@
+#include <cmath>
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+int n,ii,i,j,i2,j2,m,c,ki,kj,x[505][4],y[505][4],k[2020],p[2020];
+double A1,B1,C1,A2,B2,C2,L,E,xx,yy,z[4444000],r[505],X1[2020],X2[2020],eps=1e-9;
+bool u[505];
+inline void intersect(double xa1, double ya1, double xa2, double ya2, double xb1, double yb1, double xb2, double yb2) {
+  A1=ya2-ya1; B1=xa1-xa2; C1=-A1*xa1-B1*ya1;
+  A2=yb2-yb1; B2=xb1-xb2; C2=-A2*xb1-B2*yb1;
+  if (fabs(A1*B2-A2*B1)<eps) return;
+  if (ya2==ya1) {
+    L=-A1/B1;
+    E=-C1/B1;
+    xx=(-B2*E-C2)/(A2+B2*L);
+    yy=L*xx+E;
+  } else {
+    L=-B1/A1;
+    E=-C1/A1;
+    yy=(-A2*E-C2)/(B2+A2*L);
+    xx=L*yy+E;
+  }
+  if (min(xa1,xa2)-eps<xx && max(xa1,xa2)+eps>xx && min(xb1,xb2)-eps<xx && max(xb1,xb2)+eps>xx &&
+      min(ya1,ya2)-eps<yy && max(ya1,ya2)+eps>yy && min(yb1,yb2)-eps<yy && max(yb1,yb2)+eps>yy) z[m++]=yy;
+}
+inline void add(double xa, double ya, double xb, double yb) {
+  if (ya>yb) { swap(xa,xb); swap(ya,yb); }
+  if (ya-eps<z[ii-1] && yb+eps>z[ii]) {
+    E=(xb-xa)/(yb-ya);
+    X1[c]=xa+E*(z[ii-1]-ya);
+    X2[c]=xa+E*(z[ii]-ya);
+    k[c]=c; p[c++]=i;
+  }
+}
+bool cmp(int i, int j) { return X1[i]+X2[i]<X1[j]+X2[j]; }
+int main() {
+  scanf("%d",&n);
+  for (i=0; i<n; i++) for (j=0; j<4; j++) {
+    scanf("%d%d",&x[i][j],&y[i][j]);
+    z[m++]=y[i][j];
+  }
+  for (i=0; i<n; i++) for (j=0; j<4; j++) for (i2=0; i2<n; i2++) if (i!=i2) for (j2=0; j2<4; j2++)
+    intersect(x[i][j],y[i][j],x[i][(j+1)&3],y[i][(j+1)&3],x[i2][j2],y[i2][j2],x[i2][(j2+1)&3],y[i2][(j2+1)&3]);
+  sort(z,z+m); i2=0;
+  for (i=1; i<m; i++) if (fabs(z[i]-z[i2])>eps) z[++i2]=z[i];
+  for (ii=1; ii<=i2; ii++) {
+    for (c=i=0; i<n; i++) for (j=0; j<4; j++) add(x[i][j],y[i][j],x[i][(j+1)&3],y[i][(j+1)&3]);
+    sort(k,k+c,cmp);
+    L=z[ii]-z[ii-1];
+    for (j2=i=0; i<c; i++) {
+      ki=k[i];
+      if (u[p[ki]]) j2--; else j2++;
+      u[p[ki]]=!u[p[ki]];
+      if (j2>0) {
+        kj=k[i+1];
+        r[j2]+=(X1[kj]-X1[ki]+X2[kj]-X2[ki])*L;
+      }
+    }
+  }
+  for (E=L=0, i=1; i<=n; i++) { L+=r[i]; E+=i*r[i]; }
+  printf("%.8lf\n",E/L);
+  return 0;
+}

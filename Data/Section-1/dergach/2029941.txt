@@ -1,0 +1,97 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <algorithm>
+using namespace std;
+
+#define eps 1e-8
+
+int a[50], i, j, k, n, r, res = 1234567890;
+string s, best, tmp;
+
+void solve(int up, int down, int i, int glub)
+{
+    if(glub > 10)
+        return;
+    if((r - up) / down == n - i && (r - up) % down == 0)
+    {
+        tmp = s;
+        for(int j = 0; j < n - i - 1; j++)
+            tmp += 'T';
+        if(n - i > 0)
+        {
+            if(tmp[tmp.size()-1] == 'T')
+                tmp += 'B';
+            else
+                tmp += 'T';
+        }
+        int cnt = 0;
+        for(int j = 1; j < n; j++)
+            if(tmp[j] == tmp[j-1])
+                cnt++;
+        if(cnt < res)
+        {
+            res = cnt;
+            best = tmp;
+        }
+    }
+    if((r - down) / up == n - i && (r - down) % up == 0)
+    {
+        tmp = s;
+        for(int j = 0; j < n - i - 1; j++)
+            tmp += 'B';
+        if(n - i > 0)
+        {
+            if(tmp[tmp.size()-1] == 'T')
+                tmp += 'B';
+            else
+                tmp += 'T';
+        }
+        int cnt = 0;
+        for(int j = 1; j < n; j++)
+            if(tmp[j] == tmp[j-1])
+                cnt++;
+        if(cnt < res)
+        {
+            res = cnt;
+            best = tmp;
+        }
+        //return;
+    }
+    if(up + down <= r)
+    {
+        s += 'T';
+        solve(down + up, down, i + 1, glub + 1);
+        s.erase(s.size()-1);
+        s += 'B';
+        solve(up, down + up, i + 1, glub + 1);
+        s.erase(s.size()-1);
+    }
+}
+
+int main()
+{
+    a[0] = a[1] = 1;
+    for(i = 2; a[i-1] <= 1000000; i++)
+        a[i] = a[i-1] + a[i-2];
+    cin >> n >> r;
+    if((n <= 30 && r > a[n]) || r < n)
+    {
+        puts("IMPOSSIBLE");
+        return 0;
+    }
+    s = "T";
+    solve(1, 1, 1, 0);
+    printf("%d\n", res);
+    puts(best.c_str());
+    return 0;
+}

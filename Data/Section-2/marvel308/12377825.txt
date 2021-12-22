@@ -1,0 +1,65 @@
+#include<stdio.h>
+#include<set>
+using namespace std;
+int bit[200005]={0},other[200005]={0};
+void update(int idx,int val)
+{
+    for(;idx<=200000;idx+=(idx&-idx))
+        bit[idx]+=val;
+}
+int query(int idx)
+{
+    int sum=0;
+    for(;idx>0;idx-=(idx&-idx))
+        sum+=bit[idx];
+    return sum;
+}
+int main()
+{
+    int n,k,a,limit=0;
+    scanf("%d%d%d",&n,&k,&a);
+    limit=n/a-k;
+    int m,i;
+    scanf("%d",&m);
+    set<int> s1;
+    s1.insert(1);
+    other[1]=n;
+    update(n,n/a);
+    set<int>::iterator it;
+    //printf("start: %d\n",query(200000));
+    for(i=1;i<=m;i++)
+    {
+        int x;
+        scanf("%d",&x);
+        it=s1.lower_bound(x);
+        if(*it!=x || it==s1.end())
+        {
+            it--;
+        }
+        int val=*it;
+        int y=other[val];
+        s1.erase(val);
+        other[val]=0;
+        update(y-val+1,-(y-val+1)/a);
+        if(val!=x)
+        {
+            s1.insert(val);
+            other[val]=x-1;
+            update(x-val,(x-val)/a);
+        }
+        if(y!=x)
+        {
+            s1.insert(x+1);
+            other[x+1]=y;
+            update(y-x,(y-x)/a);
+        }
+        if(query(200000)-query(a-1)<k)
+        {
+            printf("%d\n",i);
+            return 0;
+        }
+        //printf("val=%d other=%d --%d\n",val,y,query(3));
+    }
+    printf("-1\n");
+    return 0;
+}

@@ -1,0 +1,100 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setDP(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59};
+
+int DP[101][(1 << 17) + 5];
+int ch[101][(1 << 17) + 5];
+int arr[105], sum[105], sol[105];
+int masks[61];
+vector<int> cans[(1 << 17) + 5];
+int n;
+
+int solve(int ind, int mask)
+{
+    if(ind == n) return 0;
+    int &temp = DP[ind][mask];
+    if(temp != -1) return temp;
+    if(mask == ((1 << 17) - 1)) return sum[ind];
+    temp = solve(ind + 1, mask) + arr[ind] - 1;
+    ch[ind][mask] = 1;
+    for(int i=0;i<cans[mask].size();i++)
+    {
+        int x = solve(ind + 1, (masks[cans[mask][i]] | mask));
+        if(x + abs(arr[ind] - cans[mask][i]) < temp)
+            ch[ind][mask] = cans[mask][i], temp = x + abs(arr[ind] - cans[mask][i]);
+    }
+    return temp;
+}
+
+void get(int ind, int mask)
+{
+    if(ind == n) return;
+    sol[ind] = ch[ind][mask];
+    get(ind + 1, masks[ch[ind][mask]] | mask);
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    setDP(DP);
+    cin >> n;
+    for(int i=0;i<n;i++)
+        cin >> arr[i];
+    for(int i=n-1;i>=0;i--)
+        sum[i] = sum[i - 1] + arr[i] - 1;
+    for(int i=2;i<=60;i++)
+    {
+        int temp = i, res = 0;
+        for(int j=0;j<16 && temp != 1;j++)
+        {
+            while(temp % primes[j] == 0)
+                temp/=primes[j], res|=(1 << j);
+        }
+        masks[i] = res;
+    }
+    for(int i=0;i<(1 << 17);i++)
+    {
+        for(int j=2;j<60;j++)
+        {
+            if((masks[j] & i) == 0) // no intersection
+                cans[i].pb(j);
+        }
+    }
+    solve(0, 0);
+    get(0, 0);
+    for(int i=0;i<n;i++)
+        cout << sol[i] << " ";
+    return 0;
+}

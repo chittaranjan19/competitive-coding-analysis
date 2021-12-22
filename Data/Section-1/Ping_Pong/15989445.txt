@@ -1,0 +1,92 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const long long inf = (long long)2 * 1e9;
+const long long MOD = (long long)1e8;
+const long long P = 239;
+const long long MAX_N = 200000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+long long a[MAX_N + 1];
+long long ans[MAX_N + 1][2];
+long long n;
+
+void dfs(long long x, long long t)
+{
+    if (t == 0)
+    {
+        if (x + a[x] > n)
+            ans[x][0] = a[x];
+        else
+        {
+            if (ans[x + a[x]][1] == 0)
+            {
+                ans[x][0] = -2;
+                dfs(x + a[x], 1);
+            }
+            if (ans[x + a[x]][1] == -1 || ans[x + a[x]][1] == -2)
+                ans[x][0] = -1;
+            else
+                ans[x][0] = ans[x + a[x]][1] + a[x];
+        }
+    }
+    if (t == 1)
+    {
+        if (x - a[x] < 1)
+            ans[x][1] = a[x];
+        else
+        {
+            if (ans[x - a[x]][0] == 0)
+            {
+                ans[x][1] = -2;
+                dfs(x - a[x], 0);
+            }
+            if (ans[x - a[x]][0] == -1 || ans[x - a[x]][0] == -2)
+                ans[x][1] = -1;
+            else
+                ans[x][1] = ans[x - a[x]][0] + a[x];
+        }
+    }
+}
+
+int main()
+{
+    //ifstream ifs("input.in");
+    //ofstream ofs("output.out");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n;
+    for (long long i = 2; i <= n; i++)
+        cin >> a[i];
+    for (long long i = 1; i <= n; i++)
+    {
+        ans[i][0] = 0;
+        ans[i][1] = 0;
+    }
+    ans[1][0] = -1;
+    ans[1][1] = 0;
+    for (long long i = 2; i <= n; i++)
+    {
+        if (ans[i][0] == 0)
+            dfs(i, 0);
+        if (ans[i][1] == 0)
+            dfs(i, 1);
+    }
+    for (long long i = 1; i < n; i++)
+        cout << (ans[i + 1][1] != -1 ? ans[i + 1][1] + i : -1) << endl;
+    return 0;
+}

@@ -1,0 +1,49 @@
+#include <cstdio>
+#include <string>
+#include <vector>
+#include <utility>
+#include <algorithm>
+using namespace std;
+int n,m,i,j,j1,j2,k,e,all,f[1111][16],md=1000000009;
+pair <string, int> a[1010];
+vector <int> b[16],c[16];
+char st[16];
+string s[16],z;
+bool cmp(string x, string y) { return x.length()>y.length(); }
+int main() {
+  scanf("%d%d",&n,&m);
+  for (i=0; i<m; i++) { scanf("%s",st); s[i]=st; }
+  sort(s,s+m,cmp);
+  for (i=0; i<m; i++) {
+    z=s[i]; all=0;
+    for (k=0; k<m; k++) {
+      for (e=0; e<=z.length(); e++) {
+        j1=e; j2=0;
+        while (j1<z.length() && j2<s[k].length() && z[j1]==s[k][j2]) j1++,j2++;
+        if (j1==z.length() && j2<s[k].length()) a[all++]=make_pair(z+s[k].substr(j2),k);
+      }
+    }
+    sort(a,a+all);
+    for (j=0; j<all; j++) {
+      if (j>0 && a[j].first.length()>=a[j-1].first.length() && a[j].first.substr(0,a[j-1].first.length())==a[j-1].first) continue;
+      b[i].push_back(a[j].second);
+      c[i].push_back(a[j].first.length()-z.length());
+    }
+  }
+  for (i=0; i<m; i++) {
+    for (j=i+1; j<m; j++) if (s[i].substr(0,s[j].length())==s[j]) break;
+    if (j>=m) f[s[i].length()][i]=1;
+  }
+  for (i=1; i<n; i++) for (j=0; j<m; j++) if (f[i][j]>0) {
+    for (k=0; k<b[j].size(); k++) {
+      f[i+c[j][k]][b[j][k]]+=f[i][j];
+      if (f[i+c[j][k]][b[j][k]]>=md) f[i+c[j][k]][b[j][k]]-=md;
+    }
+  }
+  for (i=e=0; i<m; i++) {
+    e+=f[n][i];
+    if (e>=md) e-=md;
+  }
+  printf("%d\n",e);
+  return 0;
+}

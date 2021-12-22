@@ -1,0 +1,135 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<ll, ll> pii;
+typedef pair<pii, int> piii;
+
+const int N = 500 * 1000 + 100;
+const int SQ = 710;
+
+ll sum[SQ];
+ll a[N];
+int n, q;
+vector <pii> s[SQ];
+
+inline int readInt(){
+	int _integer=0;
+	char _char=0;
+	while(_char<48)
+		_char=getchar();
+	while(_char>=48)
+	{
+		_integer = (_integer << 1) + (_integer << 3) + (_char-48);
+		_char = getchar();
+	}
+	return _integer;
+}
+
+vector <pii> tmp;
+
+inline void add(ll l, ll r, ll val){
+	int t1 = l / SQ, t2 = r / SQ;
+	tmp.clear();
+	for(int i = 0; i < SZ(s[t1]); ++i){
+		if(s[t1][i].Y < l)
+			tmp.PB(s[t1][i]);
+		else
+			tmp.PB(MP(s[t1][i].X + val, s[t1][i].Y));
+	}
+	sort(tmp.begin(), tmp.end());
+	for(int i = 0; i < SZ(s[t1]); ++i)
+		s[t1][i] = tmp[i];
+	
+	tmp.clear();
+	for(int i = 0; i < SZ(s[t2]); ++i){
+		if(s[t2][i].Y >= r)
+			tmp.PB(s[t2][i]);
+		else
+			tmp.PB(MP(s[t2][i].X + val, s[t2][i].Y));
+	}
+	sort(tmp.begin(), tmp.end());
+	for(int i = 0; i < SZ(s[t2]); ++i)
+		s[t2][i] = tmp[i];
+	
+	for(; l < r; l += SQ)
+		sum[l / SQ] += val; 
+}
+
+inline int get(int x){
+	int k = 0;
+	int l = -1, r = -1;
+	for(int i = 0; i < n; i += SQ){
+		if(l == -1 && SZ(s[k])){	
+			auto it = lower_bound(s[k].begin(), s[k].end(), MP(x - sum[k], 0LL));
+			if(it != s[k].end() && it -> X == x - sum[k]){
+				l = it -> Y;
+				break;
+			}
+		}
+		k ++;
+	}
+	if(n % SQ == 0)
+		k = n / SQ;
+	else
+		k = n / SQ + 1;
+	while(k --){
+		if(!SZ(s[k])) continue;
+		auto it = lower_bound(s[k].begin(), s[k].end(), MP(x + 1 - sum[k], 0LL));
+		if(it != s[k].begin()) it --;
+		if(it -> X == x - sum[k]){
+			r = it -> Y;
+			break;
+		}
+	}
+	if(l == -1) return -1;
+	return r - l;
+}
+
+int main(){
+	n = readInt();
+	q = readInt();
+	for(int i = 0; i < n; ++i){
+		a[i] = readInt();
+		s[i / SQ].PB(MP(a[i], i));
+	}
+	for(int i = 0; i < SQ; ++i)
+		sort(s[i].begin(), s[i].end());
+	for(int i = 0; i < q; ++i){
+		int t;
+		t = readInt();
+		if(t == 1){
+			int l, r, x;
+			l = readInt();
+			r = readInt();
+			x = readInt();	
+			l --;
+			add(l, r, x);
+		}
+		else{
+			int x;
+			x = readInt();
+			cout << get(x) << "\n";
+		}
+	}
+	return 0;
+}

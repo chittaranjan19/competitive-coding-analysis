@@ -1,0 +1,62 @@
+#include<bits/stdc++.h>
+using namespace std;
+priority_queue<long long> pq;
+int pre[100010];
+int p[100010];
+long long sum[100010],a[100010],ans[100010];
+int findx(int x)
+{
+    int r=x;
+    while(pre[r]!=r)
+        r=pre[r];
+    int i=x,j;
+    while(i!=r)
+    {
+        j=pre[i];
+        pre[i]=r;
+        i=j;
+    }
+    return r;
+    /*return pre[x]==x?x:findx(pre[x]);*/
+}
+void join(int x,int y)
+{
+    int fx=findx(x),fy=findx(y);
+    if (fx!=fy)
+        pre[fx]=fy;
+}
+int main()
+{
+     int n,i,father;
+     scanf("%d",&n);
+     for(i=1;i<=n;i++)
+        scanf("%lld",&a[i]);
+     for(i=1;i<=n;i++)
+     {
+        scanf("%d",&p[i]);
+        pre[i]=i;
+     }
+     memset(sum,0,sizeof(sum));
+     memset(ans,0,sizeof(ans));
+     for(i=n;i>=1;i--)
+     {
+        sum[p[i]]=a[i];
+        if (p[i]>1)
+        {
+             father=findx(p[i]-1);
+             sum[p[i]]+=sum[father];
+             pre[father]=p[i];
+        }
+        if (p[i]<n)
+        {
+            father=findx(p[i]+1);
+            sum[p[i]]+=sum[father];
+            pre[father]=p[i];
+        }
+        pq.push(sum[p[i]]);
+        ans[i]=pq.top();
+     }
+     for(i=1;i<=n;i++)
+        printf("%lld\n",ans[i]);
+     return 0;
+}

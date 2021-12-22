@@ -1,0 +1,66 @@
+ # include <iostream>
+ # include <cstdio>
+ # include <vector>
+ 
+ using namespace std;
+ 
+ const int N = 1 << 22;
+ 
+ int n, t[N], a[N], Max;
+ vector <int> res[N];
+ 
+ int gcd (int A, int B) {
+     if (B == 0) return A;
+     return gcd (B, A % B);
+ }
+ 
+ void build (int v, int L, int R) {
+      if (L == R) {t[v] = a[L]; return;}
+      int m = (L + R) >> 1;
+      build (v + v, L, m);
+      build (v + v + 1, m + 1, R);
+      t[v] = gcd (t[v + v], t[v + v + 1]);
+ }
+ 
+ int get (int v, int l, int r, int L, int R) {
+     if (L > r || R < l) return 0;
+     if (l <= L && r >= R) return t[v];
+     int m = (L + R) >> 1;    
+     return gcd (get (v + v, l, r, L, m), get (v + v + 1, l, r, m + 1, R));
+ }
+ 
+ int main () {
+     scanf ("%d", &n);
+     for (int i = 1; i <= n; ++i)
+     scanf ("%d", &a[i]);
+     int p = 1;
+     while (p < n) p <<= 1;
+     build (1, 1, p);
+   //  cout << get (1, 2, 3, 1, p);
+     for (int i = 1; i <= n; ++i) {
+         int L = i, R = i, l = 1, r = i;
+         while (l <= r) {
+              int m = (l + r) >> 1;
+              if (get (1, m, i, 1, p) == a[i]) {
+                      r = m - 1;
+                      L = m;
+              }
+              else l = m + 1;      
+         }
+         l = i, r = n;
+         while (l <= r) {  
+              int m = (l + r) >> 1;
+              if (get (1, i, m, 1, p) == a[i]) {
+                      l = m + 1;
+                      R = m;
+              }
+              else r = m - 1;      
+         }      
+         Max = max (Max, R - L);
+         res[R - L].push_back (L);
+     }
+     cout << res[Max].size () << ' ' << Max << endl;
+     for (int tt = 0; tt < res[Max].size (); ++tt)
+     cout << res[Max][tt] << ' ';
+     return 0;
+ }

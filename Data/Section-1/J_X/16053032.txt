@@ -1,0 +1,49 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 2e5 + 5;
+
+int a[maxn];
+ll sum[maxn];
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        for(int i = 1; i <= n; ++i) scanf("%d", a + i);
+        sort(a + 1, a + n + 1);
+        a[n + 1] = 0;
+        for(int i = 1; i <= n + 1; ++i) sum[i] = sum[i - 1] + a[i];
+        long double ans = -maxn;
+        int pos = 0, len = 0;
+        for(int i = 1; i <= n; ++i)
+        {
+            int l = 0, r =  min(i - 1, n - i) + 1;
+            while(r - l > 1)
+            {
+                int mid = (l + r) >> 1;
+                if(max((2LL * mid - 1), 0LL) * (a[i - mid] + a[n - mid + 1]) >= 2 * (sum[n + 1] - sum[n - mid + 1] + sum[i] - sum[i - mid])) l = mid;
+                else r = mid;
+            }
+            long double tmp = (sum[n + 1] - sum[n - l] + sum[i] - sum[i - l - 1]) / (2.0 * l + 1) - a[i];
+            if(tmp > ans)
+            {
+                ans = tmp;
+                pos = i;
+                len = l;
+            }
+        }
+        printf("%d\n", len * 2 + 1);
+        for(int i = pos - len; i <= pos; ++i) printf("%d ", a[i]);
+        for(int i = n - len + 1; i <= n; ++i) printf("%d ", a[i]);
+        puts("");
+    }
+    return 0;
+}

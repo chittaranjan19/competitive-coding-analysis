@@ -1,0 +1,104 @@
+{$inline on}
+program powerful_array;
+
+const
+  tfi = '';
+  tfo = '';
+
+var
+  sum : int64;
+  n,m,t : longint;
+  res : array [1..200000] of int64;
+  a,l,r,p : array [1..200000] of longint;
+  c : array [1..1000000] of longint; 
+  fi,fo : text;
+
+procedure input; inline;
+  var i : longint;
+  begin
+    assign(fi,tfi);
+    reset(fi);
+    read(fi,n,m);
+    for i := 1 to n do read(fi,a[i]);
+    for i := 1 to m do read(fi,l[i],r[i]);
+    for i := 1 to m do p[i] := i;
+    t := trunc(sqrt(n));
+    close(fi);
+  end;
+
+procedure swap(var x,y : longint); inline;
+  var z : longint;
+  begin
+    z := x;
+    x := y;
+    y := z;
+  end;
+
+procedure sort(lo,hi : longint);
+  var i,j,x,lx,rx : longint;
+  begin
+    i := lo;
+    j := hi;
+    x := random(hi - lo + 1) + lo;
+    lx := l[x] div t;
+    rx := r[x];
+    repeat
+      while (l[i] div t < lx) or ((l[i] div t = lx) and (r[i] < rx)) do inc(i);
+      while (l[j] div t > lx) or ((l[j] div t = lx) and (r[j] > rx)) do dec(j);
+      if i <= j then
+        begin
+          swap(l[i],l[j]);
+          swap(r[i],r[j]);
+          swap(p[i],p[j]);
+          inc(i);
+          dec(j);
+        end;
+    until i > j;
+    if lo < j then sort(lo,j);
+    if i < hi then sort(i,hi);
+  end;
+
+procedure push(x : longint); inline;
+  begin
+    sum := sum + int64(2*c[x] + 1)*x;
+    inc(c[x]);
+  end;
+
+procedure pop(x : longint); inline;
+  begin
+    sum := sum + int64(-2*c[x] + 1)*x;
+    dec(c[x]);
+  end;
+
+procedure process; inline;
+  var i,lt,rt : longint;
+  begin
+    sort(1,m);
+    lt := l[1];
+    sum := 0;
+    for rt := lt to r[1] do push(a[rt]);
+    res[p[1]] := sum;
+    for i := 2 to m do
+      begin
+        for lt := l[i-1] to l[i]-1 do pop(a[lt]);
+        for lt := l[i-1]-1 downto l[i] do push(a[lt]);
+        for rt := r[i-1]+1 to r[i] do push(a[rt]);
+        for rt := r[i-1] downto r[i]+1 do pop(a[rt]);
+        res[p[i]] := sum;
+      end;
+  end;
+
+procedure output; inline;
+  var i : longint;
+  begin
+    assign(fo,tfo);
+    rewrite(fo);
+    for i := 1 to m do writeln(fo,res[i]);
+    close(fo);
+  end;
+
+begin
+  input;
+  process;
+  output;
+end.

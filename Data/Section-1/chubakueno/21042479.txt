@@ -1,0 +1,63 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> ii;
+vector<vector<ii> > g;
+vector<ll> topo;
+vector<ll> vis;
+const int INF=1e9+5;
+void dfs(ll x){
+	if(vis[x]) return;
+	vis[x]=true;
+	for(auto tmp: g[x]){
+		ll w,v;
+		tie(w,v)=tmp;
+		dfs(v);
+	}
+	topo.push_back(x);
+}
+int main() {
+    ll n,m,T;
+	cin>>n>>m>>T;
+	g.resize(n);
+    for(ll i=0,u,v,w;i<m;++i){
+        cin>>u>>v>>w;--u;--v;
+		g[u].emplace_back(w,v);
+    }
+	vis.resize(n,0);
+	dfs(0);
+	reverse(topo.begin(),topo.end());
+	vector<vector<int> > dp(n+5,vector<int>(n+5,INF));
+	vector<vector<int> > par(n+5,vector<int>(n+5,-1));
+	dp[topo[0]][0]=0;
+	for(ll i=0;i<n;++i){
+		ll u=topo[i];
+		for(ll depth=0;depth<n;++depth){
+			if(dp[u][depth]>T) continue;
+			for(auto p: g[u]){
+				ll w,v;
+				tie(w,v)=p;
+				ll res=dp[u][depth]+w;
+				if(dp[v][depth+1]>res){
+					dp[v][depth+1]=res;
+					par[v][depth+1]=u;
+				}
+			}
+		}
+	}
+	for(ll i=n-1;i>=0;--i){
+		if(dp[n-1][i]<=T){
+			cout<<i+1<<endl;
+			vector<ll> ans;
+			ll ti=i;
+			ll tmp=n-1;
+			while(ti>=0){
+				ans.push_back(tmp);
+				tmp=par[tmp][ti--];
+			}
+			reverse(ans.begin(),ans.end());
+			for(ll tmp: ans) cout<<tmp+1<<" ";
+			break;
+		}
+	}	
+}

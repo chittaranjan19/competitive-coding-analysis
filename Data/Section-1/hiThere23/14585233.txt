@@ -1,0 +1,113 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000500007
+#define base 100007
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int n, m, w, h[mn], minH = maxC, dif[mn];
+struct interval
+{
+    int f[mn << 2];
+
+    void push(int l, int r, int id)
+    {
+        if (l == r)
+            return;
+        f[id << 1] += f[id];
+        f[(id << 1) + 1] += f[id];
+        f[id] = 0;
+    }
+
+    void update(int l, int r, int id, int x, int y, int val)
+    {
+        push(l, r, id);
+        if (l > y || r < x)
+            return;
+        if (x <= l && r <= y)
+        {
+            f[id] = val;
+            return;
+        }
+        int g = ((l + r) >> 1);
+        update(l, g, id << 1, x, y, val);
+        update(g + 1, r, (id << 1) + 1, x, y, val);
+    }
+
+    int get(int l, int r, int id, int x)
+    {
+        push(l, r, id);
+        if (l > x || r < x)
+            return 0;
+        if (l == r)
+            return f[id];
+        int g = ((l + r) >> 1);
+        int a = get(l, g, id << 1, x);
+        int b = get(g + 1, r, (id << 1) + 1, x);
+        return a + b;
+    }
+}t;
+
+void setup()
+{
+    cin >> n >> m >> w;
+    FOR(i, 1, n)
+    {
+        cin >> h[i];
+        minH = min(minH, h[i]);
+    }
+}
+
+bool ok(int x)
+{
+    int mm = m;
+    memset(t.f, 0, sizeof(t.f));
+    FOR(i, 1, n - w + 1)
+    {
+        int k = x - h[i] - t.get(1, n, 1, i);
+        if (k > 0)
+        {
+            if (k > mm)
+                return false;
+            t.update(1, n, 1, i, i + w - 1, k);
+            mm -= k;
+        }
+    }
+    t.update(1, n, 1, n - w + 1, n, mm);
+    FOR(i, n - w + 2, n)
+    {
+        int k = x - h[i] - t.get(1, n, 1, i);
+        if (k > 0)
+            return false;
+    }
+    return true;
+}
+
+void xuly ()
+{
+    int l = minH, r = maxC;
+    while(r - l > 1)
+    {
+        int g = ((l + r) >> 1);
+        if (ok(g))
+            l = g;
+        else
+            r = g;
+    }
+    cout << l;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

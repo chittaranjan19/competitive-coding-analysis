@@ -1,0 +1,67 @@
+#include <iostream>
+#include <algorithm>
+#include <bitset>
+#include <vector>
+
+using namespace std;
+
+string input[20];
+int dp[21][1<<20]; // dp[k][mask] = number of columns differ from mask at k bits
+
+int cols[1<<20];
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	// read input
+	int n, m; cin >> n >> m;
+	string input[20];
+	for (int i = 0; i < n; i++) {
+		cin >> input[i];
+	}
+
+	// get bitmask of each column
+	for (int i = 0; i < m; i++) {
+		int x = 0;
+		for (int j = 0; j < n; j++) {
+			x = x * 2 + (int)(input[j][i] - '0');
+		}
+		cols[i] = x;
+	}
+
+	// reset
+	for (int k = 0; k <= n; k++) {
+		for (int mask = 0; mask < (1 << n); mask++) {
+			dp[k][mask] = 0;
+		}
+	}
+
+	// dp[0][mask] = # columns exactly equals mask
+	for (int i = 0; i < m; i++) {
+		dp[0][cols[i]]++;
+	}
+
+	// dp[k][mask]
+	for (int k = 1; k <= n; k++) {
+		for (int mask = 0; mask < (1 << n); mask++) {
+			for (int p = 0; p < n; p++) {
+				dp[k][mask] += dp[k-1][mask ^ (1 << p)];
+			}
+			if (k >= 2) {
+				dp[k][mask] += (k-2-n) * dp[k-2][mask];
+			}
+			dp[k][mask] /= k;
+		}
+	}
+
+	int bestAns = n*m;
+	for (int mask = 0; mask < (1 << n); mask++) {
+		int ans = 0;
+		for (int k = 0; k <= n; k++) {
+			ans += dp[k][mask] * min(k, n-k);
+		}
+		bestAns = min(ans, bestAns);
+	}
+	cout << bestAns << endl;
+}

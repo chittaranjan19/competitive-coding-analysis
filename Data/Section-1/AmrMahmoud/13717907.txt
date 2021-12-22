@@ -1,0 +1,107 @@
+#include <stdio.h>
+#include <string.h>
+#include <string>
+#include <iostream>
+#include <vector>
+#include <set>
+#include <map>
+#include <math.h>
+#include <algorithm>
+using namespace std;
+
+#define mp make_pair
+#define f first
+#define s second
+#define LL long long
+
+pair<int, pair<int, int> > emp[200005], days[200005];
+int res[200005];
+LL tree[200005], tree2[200005];
+
+bool sorter(pair<int, pair<int, int> > a, pair<int, pair<int, int> > b)
+{
+	return a.s.f > b.s.f;
+}
+
+void update(int ind, int val)
+{
+	while(ind < 200005)
+	{
+		tree[ind] += val;
+		ind += (ind & (-ind));
+	}
+}
+
+LL read(int ind)
+{
+	LL res = 0;
+	while(ind > 0)
+	{
+		res += tree[ind];
+		ind -= (ind & (-ind));
+	}
+	return res;
+}
+
+
+void update2(int ind, int val)
+{
+	while(ind < 200005)
+	{
+		tree2[ind] += val;
+		ind += (ind & (-ind));
+	}
+}
+
+int read2(int ind)
+{
+	int res = 0;
+	while(ind > 0)
+	{
+		res += tree2[ind];
+		ind -= (ind & (-ind));
+	}
+	return res;
+}
+
+int main () {
+	int n, m, x, y;
+	scanf ("%d %d", &m, &n);
+	for(int i=0;i<n;i++)
+	{
+		scanf("%d", &x);
+		days[i] = mp(i, mp(x, 0));
+	}
+	for(int i=0;i<m;i++)
+	{
+		scanf("%d %d", &x, &y);
+		emp[i] = mp(i, mp(x, y));
+	}
+	sort(days, days + n, sorter);
+	sort(emp, emp + m, sorter);
+	x = 0, y = 0;
+	while(y < m)
+	{
+		while(x < n && days[x].s.f > emp[y].s.f)
+			update(days[x].f + 1, days[x].s.f), update2(days[x].f + 1, 1), x++;
+		int L = 1, R = n;
+		if(read(R) - read2(R) * 1LL * emp[y].s.f < emp[y].s.s)
+		{
+			res[emp[y].f] = 0;
+			y++;
+			continue;
+		}
+		while(R > L)
+		{
+			int mid = L + (R - L) / 2;
+			if(read(mid) - read2(mid) * 1LL * emp[y].s.f >= emp[y].s.s)
+				R = mid;
+			else L = mid + 1;
+		}
+		res[emp[y].f] = R;
+		y++;
+	}
+	for(int i=0;i<m;i++)
+		printf("%d ", res[i]);
+	return 0;
+}

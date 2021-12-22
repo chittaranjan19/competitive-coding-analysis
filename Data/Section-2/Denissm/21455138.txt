@@ -1,0 +1,119 @@
+#include <stdio.h>
+#include <vector>
+#include <string.h>
+#include <algorithm>
+#include <queue>
+#include <functional>
+using namespace std;
+typedef unsigned long long ull;
+
+struct Pair {
+	int index;
+	int value;
+	Pair(int index, int value) :index(index), value(value) {}
+	bool operator<(const Pair &other) const {
+		return value < other.value;
+	}
+	bool operator>(const Pair &other) const {
+		return value > other.value;
+	}
+};
+
+struct Tuple {
+	int a;
+	int b;
+	int c;
+	Tuple(int a, int b, int c) : a(a), b(b), c(c) {}
+	bool operator<(const Tuple &other) const {
+		return c < other.c;
+	}
+	bool operator>(const Tuple &other) const {
+		return c > other.c;
+	}
+};
+
+struct Wrap {
+	int* index;
+	Wrap(int* index) : index(index) {}
+	bool operator<(const Wrap&other) const {
+		return (*index) < (*other.index);
+	}
+	bool operator>(const Wrap&other) const {
+		return (*index) > (*other.index);
+	}
+};
+int world[52][52];
+int lake_size[52];
+int n, m, k;
+bool visited[52][52];
+
+int dfs(int i, int j, int value, int new_value) {
+	if (world[i][j] != value || i < 0 || j < 0 || i >= n || j >= m || visited[i][j]) {
+		return 0;
+	}
+	visited[i][j] = true;
+	world[i][j] = new_value;
+	int result = 1;
+	result += dfs(i - 1, j, value, new_value);
+	result += dfs(i + 1, j, value, new_value);
+	result += dfs(i, j - 1, value, new_value);
+	result += dfs(i, j + 1, value, new_value);
+	return result;
+}
+int main() {
+	char ch;
+	priority_queue<Tuple, vector<Tuple>, greater<Tuple> > q;
+	scanf("%d %d %d", &n, &m, &k);
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < m; j++) {
+			scanf(" %c", &ch);
+			if (ch == '.') {
+				world[i][j] = 1;
+			}
+			else {
+				world[i][j] = 0;
+			}
+		}
+	}
+	memset(visited, false, sizeof(visited));
+	for (int i = 0; i < n; i++) {
+		if (world[i][0] && !visited[i][0]) {
+			dfs(i, 0, 1, -1);
+		}
+		if(world[i][m - 1] && !visited[i][m - 1]) {
+			dfs(i, m - 1, 1, -1);
+		}
+	}
+	for (int j = 0; j < m; j++) {
+		if (world[0][j] && !visited[0][j]) {
+			dfs(0, j, 1, -1);
+		}
+		if (world[n-1][j] && !visited[n - 1][j]) {
+			dfs(n - 1, j, 1, -1);
+		}
+	}
+	int lake_count = 1;
+	for (int i = 1; i < n; i++) {
+		for (int j = 1; j < m; j++)
+		if (world[i][j] == 1 && !visited[i][j]) {
+			int lake_size = dfs(i, j, 1, 1);
+			q.push(Tuple(i, j, lake_size));
+			lake_count++;
+		}
+	}
+	int result = 0;
+	memset(visited, false, sizeof(visited));
+	while (--lake_count > k) {
+		Tuple t = q.top();
+		result += dfs(t.a, t.b, 1, 0);
+		q.pop();
+	}
+	printf("%d\n", result);
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < m; j++) {
+			printf("%c", world[i][j] ? '.': '*');
+		}
+		printf("\n");
+	}
+	return 0;
+}

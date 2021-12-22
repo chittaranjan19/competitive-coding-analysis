@@ -1,0 +1,76 @@
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <iomanip>
+#include <map>
+#include <set>
+using namespace std;
+
+typedef long long ll;
+
+
+#if _DEBUG
+#include <fstream>
+ifstream cin("input.txt");
+ofstream cout("output.txt");
+#else
+#include <iostream>
+#endif
+
+map<int, int> col, peo;
+
+vector < set <int> > vv;
+
+vector <int> all;
+
+int main() {
+	int cnt = 1;
+	int n, k;
+	cin >> n >> k;
+	vv.resize(2 * n + 2);
+	for (int i = 0; i < n; i++)  {
+		int x, y;
+		cin >> x >> y;
+		if (col.find(x) == col.end()) {
+			all.push_back(x);
+			col[x] = cnt;
+			peo[cnt] = x;
+			cnt++;
+		}
+		if (col.find(y) == col.end()) {
+			all.push_back(y);
+			col[y] = cnt;
+			peo[cnt] = x;
+			cnt++;
+		}
+		int f1 = col[x];
+		int f2 = col[y];
+		vv[f1].insert(f2);
+		vv[f2].insert(f1);
+	}
+	sort(all.begin(), all.end());
+	vector <int> ans;
+	for (int i = 0; i < all.size(); i++) {
+		ans.clear();
+		for (int j = 0; j < all.size(); j++) {
+			int f1 = col[all[i]];
+			int f2 = col[all[j]];
+			if (vv[f1].find(f2) != vv[f1].end() || all[i] == all[j]) continue;
+			int count = 0;
+			for (auto d : vv[f1]) {
+				if (vv[d].find(f2) != vv[d].end())
+					count++;
+			}
+			int sz = vv[f1].size();
+			if (count * 100 >= sz * k)
+				ans.push_back(all[j]);
+		}
+		cout << all[i] << ":";
+		cout << ' ' << ans.size();
+		for (int j = 0; j < ans.size(); j++) {
+			cout << ' ' << ans[j];
+		}
+		cout << '\n';
+	}
+	return 0;
+}

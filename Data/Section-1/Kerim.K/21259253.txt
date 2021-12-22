@@ -1,0 +1,102 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+vector<pair<PII,PII> >v;
+int dp[52][104][52][52],n,m,k;
+int rec(int last,int cof,int pos,int take){
+	//~ cout<<last<<" "<<cof<<" "<<pos<<" "<<take<<endl;
+	if(take>n)
+		return -INF;
+	if(pos>m){
+		if(take==n)
+			return 0;
+		return -INF;	
+	}
+	int &ret=dp[last][cof][pos][take];
+	if(~ret)
+		return ret;ret=-INF;
+	umax(ret,rec(last,cof,pos+1,take));
+	int l=v[pos].ff.ss;
+	int r=v[pos].ss.ff;
+	int now=v[pos].ff.ff;
+	if(!last){
+		for(int i=l;i<=r;i++)
+			umax(ret,rec(pos,i-l,pos+1,take+1)+i);
+	}
+	else{
+		if(v[last].ff.ff<now){
+			int need=v[last].ff.ss+cof;
+			if(need+k>=l and need+k<=r)
+				umax(ret,rec(pos,(need+k)-l,pos+1,take+1)+need+k);
+			if(need*k>=l and need*k<=r)
+				umax(ret,rec(pos,(need*k)-l,pos+1,take+1)+need*k);
+		}
+	}
+	return ret;
+}
+void go(int last,int cof,int pos,int take){
+	if(pos>m)
+		return;
+	int ret=dp[last][cof][pos][take];
+	if(ret==rec(last,cof,pos+1,take))
+		go(last,cof,pos+1,take);
+	else{	
+		int l=v[pos].ff.ss;
+		int r=v[pos].ss.ff;
+		printf("%d",v[pos].ss.ss);
+		if(!last){
+			for(int i=l;i<=r;i++)
+				if(ret==rec(pos,i-l,pos+1,take+1)+i){
+					printf(" %d\n",i);
+					go(pos,i-l,pos+1,take+1);
+				}
+		}
+		else{
+			int need=v[last].ff.ss+cof;
+			if(need+k>=l and need+k<=r and ret==rec(pos,(need+k)-l,pos+1,take+1)+need+k){
+				printf(" %d\n",need+k);
+				go(pos,(need+k)-l,pos+1,take+1);
+			}
+			if(need*k>=l and need*k<=r and ret==rec(pos,(need*k)-l,pos+1,take+1)+need*k){
+				printf(" %d\n",need*k);
+				go(pos,(need*k)-l,pos+1,take+1);
+			}
+		}
+	}	
+}
+int main(){
+	memset(dp,-1,sizeof dp);
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	scanf("%d%d%d",&n,&m,&k);
+	v.pb(mp(mp(0,0),mp(0,0)));
+	for(int i=1;i<=m;i++){
+		int a,b,c;
+		scanf("%d%d%d",&a,&b,&c);
+		v.pb(mp(mp(c,a),mp(b,i)));
+	}
+	sort(all(v));
+	if(rec(0,0,1,0)<0){
+		printf("NO\n");
+		return 0;
+	}
+	printf("YES\n");
+	go(0,0,1,0);	
+	return 0;
+}

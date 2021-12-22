@@ -1,0 +1,63 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+char b[60][60];
+int dir[4][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
+int n, m;
+bool flag;
+int v[60][60];
+
+bool ok(int i, int j, char c)
+{
+    if(i >= 0 && i < n && j >= 0 && j < m && b[i][j] == c)
+        return true;
+    return false;
+}
+
+void dfs(int i, int j, int er, int ec, char c)
+{
+    if(flag)
+        return;
+    for(int k = 0; k < 4; k++)
+    {
+        int x = i + dir[k][0];
+        int y = j + dir[k][1];
+        if(!v[i][j] && x == er && y == ec)
+        {
+            flag = true;
+            break;
+        }
+        if(ok(x, y, c))
+        {
+            if(i == er && j == ec)
+                v[x][y] = 1;
+            b[x][y] = '#';
+            dfs(x, y, er, ec, c);
+            b[x][y] = c;
+            v[x][y] = 0;
+        }
+    }
+}
+
+int main()
+{
+    scanf("%d%d", &n, &m);
+    memset(v, 0, sizeof(v));
+    for(int i = 0; i < n; i++)
+            scanf("%s", b[i]);
+    flag = false;
+    for(int i = 0; i < n && !flag; i++)
+        for(int j = 0; j < m && !flag; j++)
+            if(b[i][j] != '#')
+            {
+                char c = b[i][j];
+                b[i][j] = '#';
+                dfs(i, j, i, j, c);
+                b[i][j] = c;
+            }
+    printf("%s\n", flag ? "Yes" : "No");
+    return 0;
+}

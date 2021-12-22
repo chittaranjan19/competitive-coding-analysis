@@ -1,0 +1,77 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+const int maxn = 1e6 + 5;
+
+struct node
+{
+    int x, r, c;
+
+    bool operator < (const node &a) const
+    {
+        return x < a.x;
+    }
+} nn[maxn];
+int r[maxn], c[maxn], par[maxn], lastr[maxn], lastc[maxn], _max[maxn];
+vector<int> ans[maxn];
+
+int findp(int x)
+{
+    return par[x] ? par[x] = findp(par[x]) : x;
+}
+
+void unite(int u, int v)
+{
+    u = findp(u), v = findp(v);
+    if(u == v) return;
+    par[v] = u;
+    _max[u] = max(_max[u], _max[v]);
+}
+
+int main()
+{
+    int n, m, cnt = 0;
+    scanf("%d%d", &n, &m);
+    for(int i = 0; i < n; ++i)
+    {
+        ans[i].resize(m);
+        for(int j = 0; j < m; ++j)
+        {
+            scanf("%d", &nn[++cnt].x);
+            nn[cnt].r = i, nn[cnt].c = j;
+        }
+    }
+    sort(nn + 1, nn + cnt + 1);
+    for(int i = 1, j = 1; i <= cnt; i = j)
+    {
+        while(j <= cnt && nn[i].x == nn[j].x)
+        {
+            int row = nn[j].r, col = nn[j].c;
+            _max[j] = max(r[row], c[col]);
+            if(lastr[row] >= i) unite(lastr[row], j);
+            if(lastc[col] >= i) unite(lastc[col], j);
+            lastr[row] = lastc[col] = j;
+            ++j;
+        }
+        for(int k = i; k < j; ++k)
+        {
+            int row = nn[k].r, col = nn[k].c, p = findp(k);
+            ans[row][col] = _max[p] + 1;
+            r[row] = _max[p] + 1, c[col] = _max[p] + 1;
+        }
+    }
+    for(int i = 0; i < n; ++i)
+    {
+        for(int j = 0; j < m; ++j)
+        {
+            printf("%d ", ans[i][j]);
+        }
+        puts("");
+    }
+    return 0;
+}

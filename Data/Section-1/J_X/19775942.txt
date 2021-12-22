@@ -1,0 +1,62 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const ll INF = 1LL << 60;
+const int maxn = 5000 + 5;
+
+ll dp[2][maxn];
+int x[maxn], a[maxn], b[maxn], c[maxn], d[maxn];
+
+int main()
+{
+    int n, s, e;
+    scanf("%d%d%d", &n, &s, &e);
+    for(int i = 1; i <= n; ++i) scanf("%d", x + i);
+    for(int i = 1; i <= n; ++i) scanf("%d", a + i);
+    for(int i = 1; i <= n; ++i) scanf("%d", b + i);
+    for(int i = 1; i <= n; ++i) scanf("%d", c + i);
+    for(int i = 1; i <= n; ++i) scanf("%d", d + i);
+    int now = 0, nxt = 1;
+    fill(dp[0], dp[0] + n, INF);
+    dp[now][0] = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        for(int j = 0; j < n; ++j)
+        {
+            dp[nxt][j] = INF;
+            if(e == i)
+            {
+                if(j && i != 1) dp[nxt][j] = min(dp[nxt][j], dp[now][j - 1] + x[i] + a[i]);
+                if(i != n) dp[nxt][j] = min(dp[nxt][j], dp[now][j] - x[i] + b[i]);
+            }
+            else if(s == i)
+            {
+                if(j && i != 1) dp[nxt][j] = min(dp[nxt][j], dp[now][j - 1] + x[i] + c[i]);
+                if(i != n) dp[nxt][j] = min(dp[nxt][j], dp[now][j] - x[i] + d[i]);
+            }
+            else
+            {
+                for(int k = 0; k < 2; ++k)
+                {
+                    if((i == 1 && k) || (i == n && !k)) continue;
+                    int tmp1 = k ? x[i] + a[i] : -x[i] + b[i];
+                    for(int l = 0; l < 2; ++l)
+                    {
+                        if(j < k + l || (i == 1 && l) || (i == n && !l) || (i == 2 && k && l) || (i == n - 1 && !k && !l)) continue;
+                        int tmp2 = l ? x[i] + c[i] : -x[i] + d[i];
+                        dp[nxt][j] = min(dp[nxt][j], dp[now][j - k - l] + tmp1 + tmp2);
+                    }
+                }
+            }
+        }
+        swap(now, nxt);
+    }
+    printf("%I64d\n", dp[now][n - 1]);
+    return 0;
+}

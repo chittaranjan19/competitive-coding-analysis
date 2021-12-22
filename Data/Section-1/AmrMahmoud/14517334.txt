@@ -1,0 +1,153 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+#include <complex>
+
+typedef complex<double> point;
+
+#define X real()
+#define Y imag()
+#define polar(r, t) (r * exp(point(0, t)))
+#define length(a) hypot(a.X, a.Y)
+#define angle(a) atan2(a.Y, a.X)
+#define vec(a, b) (b - a)
+#define dot(a, b) ((conj(a) * b).X)
+#define cross(a, b) ((conj(a) * b).Y)
+#define lengthsqr(a) dot(a, a)
+#define vec_rot(v, t) (v * exp(point(0, t)))
+#define vec_rot_around(v, t, a) (vec_rot(vec(a, v), t) + a)
+#define reflect(v, m) (conj(v / m) * m)
+#define normalize(v) (v / length(v))
+#define ccw(a, b, c) (cross(vec(a, b), vec(a, c)) > EPS)
+#define same(a, b) (lengthsqr(vec(a, b)) < EPS)
+
+double angle_between_three_points(const point &a, const point &b, const point &c)
+{
+  double ang = dot(vec(a, b), vec(a, c));
+  ang /= length(vec(a, b));
+  ang /= length(vec(a, c));
+  return acos(ang);
+}
+
+inline LL abss(LL x)
+{
+  if(x < 0) x *= -1;
+  return x;
+}
+
+vector<point> circle_circle_intersection(point a, LL r1, point b, LL r2)
+{
+  vector<point> res;
+  if(fabs(a.X - b.X) < EPS && fabs(a.Y - b.Y) < EPS)
+  {
+    if(fabs(r1 - r2) < EPS)
+    {
+      if(r1 < EPS && r2 < EPS)
+        res.pb(a);
+      else
+      {
+        res.pb(point(0, 0));
+        res.pb(point(0, 0));
+        res.pb(point(0, 0));
+      }
+    }
+    return res;
+  }
+  if(r1 < r2)
+  {
+    swap(a, b);
+    swap(r1, r2);
+  }
+  LL d = (a.X - b.X) * 1LL * (a.X - b.X) + (a.Y - b.Y) * 1LL * (a.Y - b.Y);
+  if(abss((r1 + r2) * (r1 + r2) - d) <= EPS)
+  {
+    double t = r1 / (r1 + r2);
+    res.pb(a + t * (b - a));
+    return res;
+  }
+  if(abss((r1 - r2) * (r1 - r2) - d) <= EPS)
+  {
+    double t = r1 / (r1 - r2);
+    res.pb(a + t * (b - a));
+    return res;
+  }
+  if((r1 + r2) * (r1 + r2) < d || (r1 - r2) * (r1 - r2) > d) return res;
+  point v = vec(a, b);
+  v *= r1 / sqrt(d);
+  double theta = acos((r1 * r1 + d - r2 * r2) / (2.0 * sqrt(d) * r1));
+  res.pb(a + vec_rot(v, theta));
+  res.pb(a + vec_rot(v, -theta));
+  return res;
+}
+
+int main()
+{
+  int x, y, r;
+  int xx, yy, rr;
+  scanf("%d %d %d", &x, &y, &r);
+  scanf("%d %d %d", &xx, &yy, &rr);
+  if(abs(x - xx) * 1LL * abs(x - xx) + abs(y - yy) * 1LL * abs(y - yy) >= (r + rr) * 1LL * (rr + r))
+  {
+    printf("0.00000000");
+    return 0;
+  }
+  point c1 = point(x, y);
+  point c2 = point(xx, yy);
+  vector<point> res = circle_circle_intersection(c1, r, c2, rr);
+  if(res.size() > 2)
+  {
+    printf("%.14lf", PI * r * r);
+  }
+  else if(res.size() == 1)
+  {
+    r = min(r, rr);
+    printf("%.14lf", PI * r * r);
+  }
+  else
+  {
+    double d = abs(x - xx) * 1LL * abs(x - xx) + abs(y - yy) * 1LL * abs(y - yy);
+    d = sqrt(d);
+    if(r > rr)
+      swap(r, rr);
+    double area = r*1.0*r*acos((d*1.0*d + r*1.0*r - rr*1.0*rr)/(2*d*1.0*r));
+    area += rr*1.0*rr*acos((d*1.0*d + rr*1.0*rr - r*1.0*r)/(2*d*1.0*rr));
+    area -= 0.5 * sqrt((-d+r+rr)*1.0*(d+r-rr)*1.0*(d-r+rr)*1.0*(d+r+rr));
+    printf("%.14lf", area);
+  }
+  return 0;
+}

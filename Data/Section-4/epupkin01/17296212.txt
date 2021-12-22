@@ -1,0 +1,159 @@
+#include <iostream>
+#include <string>       // string s; cin >> s;
+#include <cstring>      // memset(); strcpy(a1, a2); strcat(a1, a2);
+#include <cmath>
+#include <cstdio>       // getchar()
+#include <cstdlib>      // rand(), max(), min()
+#include <ctime>        // rand(): srand(int(time(0)));
+#include <algorithm>    // std::sort(a + 0, a + n); a - массв, n - кол-во эл-тов
+#include <cstdlib>      // min() max()
+#include <iomanip>      // setw()
+#include <vector>
+#include <array>
+#include <fstream>      // file IO (input-output)
+#include <cctype>       // isupper()
+#define SRT srand(int(time(0)))
+typedef long long ll;
+typedef long double ld;
+typedef unsigned long long ull;
+using namespace std;
+const int S = 200000;
+int n, m, ansi = 0;
+ll l1, r1, l2, r2;
+struct ValInd
+{
+    int ind;
+    ll val;
+    bool is_used;
+} b[S], ans[S];
+struct Couple
+{
+    int ind;
+    ll val1;
+    ll val2;
+} coup[S];
+void QuickSort(ValInd *arr, long max_ind);
+void QuickSort(Couple *arr, long max_ind);
+long BinarSrch(ValInd *arr, long siz, ll elem);
+int main()
+{
+    cin >> n >> m;
+    scanf("%I64d%I64d", &l1, &r1);
+    for (int i = 0; i < n-1; ++i)
+    {
+        scanf("%I64d%I64d", &l2, &r2);
+        coup[i].val1 = l2 - r1;
+        coup[i].val2 = r2 - l1;
+        coup[i].ind = i + 1;
+        l1 = l2;
+        r1 = r2;
+    }
+    for (int i = 0; i < m; ++i)
+    {
+        scanf("%I64d", &b[i].val);
+        b[i].ind = i + 1;
+        b[i].is_used = false;
+    }
+    QuickSort(b, m-1);
+    QuickSort(coup, n-2);
+    /*
+    for (int i = 0; i < m; ++i)
+        cout << b[i].val << '[' << b[i].ind << "] ";
+    cout << '\n';
+    for (int i = 0; i < n-1; ++i)
+        cout << coup[i].val1 << ' ' << coup[i].val2 << ", [" << coup[i].ind << "]\n";
+    */
+    long coor;
+    for (int i = 0; i < n-1; ++i)
+    {
+        coor = BinarSrch(b, m, coup[i].val1);
+        while (b[coor].val <= coup[i].val2 && b[coor].is_used)
+            ++coor;
+        if (coor < m && (b[coor].val > coup[i].val2 || b[coor].val < coup[i].val1))
+        {
+            cout << "No\n";
+            return 0;
+        }
+        else
+        {
+            b[coor].is_used = true;
+            ans[coup[i].ind - 1] = b[coor];
+        }
+    }
+    cout << "Yes\n";
+    for (int i = 0; i < n-1; ++i)
+        printf("%d ", ans[i].ind);
+    cout << endl;
+    return 0;
+}
+void QuickSort(ValInd *arr, long max_ind)
+{
+    long l = 0, r = max_ind;
+    ll p = arr[r >> 1].val;
+    ValInd temp;
+    do
+    {
+        while (p > arr[l].val)
+            ++l;
+        while (p < arr[r].val)
+            --r;
+        if (l <= r)
+        {
+            temp = arr[r];
+            arr[r] = arr[l];
+            arr[l] = temp;
+            ++l;
+            --r;
+        }
+    } while (l <= r);
+    if (r > 0)
+        QuickSort(arr, r);
+    if (l < max_ind)
+        QuickSort(arr + l, max_ind - l);
+}
+void QuickSort(Couple *arr, long max_ind)
+{
+    long l = 0, r = max_ind;
+    ll p = arr[r >> 1].val2;
+    Couple temp;
+    do
+    {
+        while (p > arr[l].val2)
+            ++l;
+        while (p < arr[r].val2)
+            --r;
+        if (l <= r)
+        {
+            if (arr[l].val2 == arr[r].val2 && arr[l].val1 <= arr[r].val1)
+            {
+                ++l;
+                --r;
+            }
+            else
+            {
+                temp = arr[r];
+                arr[r] = arr[l];
+                arr[l] = temp;
+                ++l;
+                --r;
+            }
+        }
+    } while (l <= r);
+    if (r > 0)
+        QuickSort(arr, r);
+    if (l < max_ind)
+        QuickSort(arr + l, max_ind - l);
+}
+long BinarSrch(ValInd *arr, long siz, ll elem)
+{
+    long r = siz, l = 0, mid = (siz - 1) / 2;
+    while (mid > l)
+    {
+        if (elem < arr[mid].val)
+            r = mid;
+        else
+            l = mid;
+        mid = (r + l) / 2;
+    }
+    return mid;
+}

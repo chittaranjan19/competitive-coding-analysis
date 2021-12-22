@@ -1,0 +1,148 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+bool porMayor (tint a, tint b)
+{
+	return a > b;
+}
+
+tint gcd (tint a, tint b)
+{
+	if (a > b)
+		return gcd(b,a);
+	else if (a == 0)
+		return b;
+	else
+		return gcd(b % a, a);
+}
+
+tint esCuadrado(tint x)
+{
+	tint a = 0;
+	tint b = 100000001;
+	while (b-a > 1)
+	{
+		tint c = (a+b)/2;
+		if (c*c <= x)
+			a = c;
+		else
+			b = c;
+	}
+	if (a*a == x)
+		return a;
+	else
+		return -1;
+}
+
+
+int main()
+{
+	int n;
+	cin >> n;
+	set<tint> s;
+	vector<tint> a (n*n);
+	map<tint, tint> q;
+	forn(i,n*n)
+	{
+		cin >> a[i];
+		q[a[i]]++;
+		s.insert(a[i]);
+	}		
+	
+	vector<tint> p;
+	reverse(p.begin(),p.end());
+	//imprimirVector(p);
+	int m = p.size();
+	vector<tint> k (m);
+	int rr  = 0;
+	forn(i,m)
+	{	
+		if (i >= 1)
+		{
+			
+			//debug(p[i]);
+			//debug(q[p[i]]);
+			tint total = 0;
+			forn(j,i)
+				if (gcd(p[i],p[j]) == p[i])
+					total += k[j];
+			
+			while (esCuadrado(q[p[i]]) == -1)
+			{
+				if (q[p[i]] < 0)
+					break;
+				q[p[i]] -= 2*total;
+			}
+		}
+		k[i] = esCuadrado(q[p[i]]);
+		rr += k[i];
+		if (rr >= n)
+			break;
+		forn(j,i)
+		if (gcd(p[i],p[j]) != p[i])
+			q[gcd(p[i],p[j])] -= 2*k[i]*k[j];
+	}
+	int r = 0;
+	forn(i,m)
+	{
+		forn(j,k[i])
+		{
+			if (r < n)
+			{
+				cout << p[i] << " ";
+				r++;
+			}
+		}
+	}
+	
+	cout << endl;
+	
+	
+	
+	return 0;
+}
+
+
+

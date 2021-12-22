@@ -1,0 +1,160 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+typedef long long ll;
+
+const int MAXN = 4e5 + 5;
+const int MAXM = 62;
+
+struct edge
+{
+    int to, next;
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[MAXN << 1];
+int head[MAXN], tot, ch[MAXN][2], clk, fp[MAXN], a[MAXN], ans[MAXM];
+struct segtree
+{
+    ll node[MAXN << 2];
+    int lazy[MAXN << 2];
+
+    void modify(int rt, int c)
+    {
+        lazy[rt] = c;
+        node[rt] = 1LL << c;
+    }
+
+    void pushup(int rt)
+    {
+        int lson = rt << 1, rson = rt << 1 | 1;
+        node[rt] = node[lson] | node[rson];
+    }
+
+    void pushdown(int rt)
+    {
+        if(lazy[rt])
+        {
+            modify(rt << 1, lazy[rt]);
+            modify(rt << 1 | 1, lazy[rt]);
+            lazy[rt] = 0;
+        }
+    }
+
+    void build(int rt, int l, int r)
+    {
+        lazy[rt] = 0;
+        if(l == r)
+        {
+            node[rt] = 1LL << a[fp[l]];
+            return;
+        }
+        int m = (l + r) >> 1;
+        build(rt << 1, l, m);
+        build(rt << 1 | 1, m + 1, r);
+        pushup(rt);
+    }
+
+    void update(int rt, int l, int r, int x, int y, int c)
+    {
+        if(x <= l && r <= y)
+        {
+            modify(rt, c);
+            return;
+        }
+        pushdown(rt);
+        int m = (l + r) >> 1;
+        if(x <= m)
+        {
+            update(rt << 1, l, m, x, y, c);
+        }
+        if(m < y)
+        {
+            update(rt << 1 | 1, m + 1, r, x, y, c);
+        }
+        pushup(rt);
+    }
+
+    int query(int rt, int l, int r, int x, int y)
+    {
+        if(x <= l && r <= y) return node[rt];
+        pushdown(rt);
+        int m = (l + r) >> 1;
+        ll ret = 0;
+        if(x <= m)
+        {
+            ret |= query(rt << 1, l, m, x, y);
+        }
+        if(m < y)
+        {
+            ret |=query(rt << 1 | 1, m + 1, r, x, y);
+        }
+        return ret;
+    }
+} tree;
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = clk = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u]);
+    head[u] = tot++;
+    G[tot] = edge(u, head[v]);
+    head[v] = tot++;
+}
+
+void dfs(int u, int fa)
+{
+    ch[u][0] = ++clk;
+    fp[clk] = u;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(v == fa) continue;
+        dfs(v, u);
+    }
+    ch[u][1] = clk;
+}
+
+int main()
+{
+    int n, q;
+    while(~scanf("%d%d", &n, &q))
+    {
+        init();
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", a + i);
+        }
+        for(int i = 1; i < n; ++i)
+        {
+            int u, v;
+            scanf("%d%d", &u, &v);
+            addedge(u, v);
+        }
+        dfs(1, 0);
+        tree.build(1, 1, n);
+        while(q--)
+        {
+            int op, x, c;
+            scanf("%d", &op);
+            if(op == 1)
+            {
+                scanf("%d%d", &x, &c);
+                tree.update(1, 1, n, ch[x][0], ch[x][1], c);
+            }
+            else
+            {
+                scanf("%d", &x);
+                printf("%d\n", __builtin_popcount(tree.query(1, 1, n, ch[x][0], ch[x][1])));
+            }
+        }
+
+    }
+    return 0;
+}

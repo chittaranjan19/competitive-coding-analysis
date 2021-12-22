@@ -1,0 +1,91 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int Node,Need;
+
+struct cone{
+	
+	int16_t prev;
+	int val;
+	cone *poi;
+
+};
+
+cone DP[5050][5050];
+vector< array<int,2> > connec[5050];
+int topo[5050];
+stack<int16_t> Q;
+
+int main(){
+	
+	int i,j,k,l,v;
+	
+	for(i=0;i<5050;i++)
+		for(j=0;j<5050;j++){
+			
+			DP[i][j].val = INT_MAX;
+			DP[i][j].poi = nullptr;
+			
+		}
+		
+	cin >> Node >> l >> Need;
+	
+	while(l--){
+		
+		cin >> i >> j >> k;
+		connec[j].push_back({i,k});
+		topo[i]++;
+	
+	}
+	
+	Q.push(Node);
+	DP[Node][1] = {-1,0,nullptr};
+	
+	while(!Q.empty()){
+		
+		int16_t now = Q.top(); Q.pop();
+		
+		for(v=1;v<Need;v++){
+			for( const array<int,2> & nex : connec[now] ){
+				
+				if( --topo[nex[0]] == 0 ) Q.push(nex[0]);
+		
+				if( DP[now][v].val!=INT_MAX && DP[now][v].val+nex[1] < DP[nex[0]][v+1].val ){
+					
+					DP[nex[0]][v+1] = { now, DP[now][v].val + nex[1], &DP[now][v] } ; 
+					
+					
+				}
+			}
+		}
+		
+	}
+	
+	/*
+	for(i=1;i<=Node;i++){
+		
+		for(j=1;j<=7;j++) cout << DP[i][j].val << ' ';
+		cout << endl;
+	}*/
+	
+	cone *poiter = max_element(DP[1]+1,DP[1]+5000,[](cone &a,cone &b){ return a.val >= b.val && b.val!=INT_MAX; });
+	
+	vector<int> ANS{1};
+	
+	
+	while( poiter != nullptr ){
+		
+		ANS.push_back((int)poiter->prev);
+		poiter = poiter->poi;
+		
+	};	ANS.pop_back();
+	
+	cout << ANS.size() << endl;
+	for(int ii : ANS) cout << ii << ' ';
+	
+	
+}
+
+
+
+

@@ -1,0 +1,92 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+pair<pair<ll, ll>, int> dx[222222], dy[222222];
+int n, k;
+
+int cmpy(pair<pair<ll, ll>, int> a, pair<pair < ll, ll>, int> b)
+{
+	return a.fs.sc < b.fs.sc;
+}
+
+ll ans = 2e18;
+
+void solve(multiset<pair<ll, ll> > s, int lvl = 0, int x = 0, int rx = n - 1, int y = 0, int ry = n - 1)
+{
+	if (lvl == k)
+	{
+		int cur = 0;
+		while (y > 0 || s.count(dy[cur].fs) != 0)
+		{
+			pair<ll, ll> a = dy[cur].fs;
+			if (s.count(a) != 0)
+			{
+				s.erase(s.find(a));
+			}
+			else y--;
+			cur++;
+		}
+		int rcur = n - 1;
+		while (ry < n - 1 || s.count(dy[rcur].fs) != 0)
+		{
+			pair<ll, ll> a = dy[rcur].fs;
+			if (s.count(a) != 0)
+				s.erase(s.find(a));
+			else ry++;
+			rcur--;
+		}
+		ll lx = (dx[x].fs.fs - dx[rx].fs.fs);
+		ll ly = (dy[cur].fs.sc - dy[rcur].fs.sc);
+		if (lx == 0)
+			lx = 1;
+		if (ly == 0)
+			ly = 1;
+		ans = min(ans, abs(lx*ly));
+		return;
+	}
+	else
+	{
+		multiset < pair <ll, ll> > god = s, gor = s;
+		god.insert(dx[x].fs);
+		gor.insert(dx[rx].fs);
+		solve(god, lvl + 1, x + 1, rx, y, ry);
+		solve(gor, lvl+1, x, rx - 1, y, ry);
+		solve(s, lvl + 1, x, rx, y + 1, ry);
+		solve(s, lvl + 1, x, rx, y, ry - 1);
+	}
+}
+
+int main()
+{
+	cin >> n >> k;
+	for (int i = 0; i < n; i++)
+	{
+		int x, y, x1, y1;
+		scanf_s("%d%d%d%d", &x, &y, &x1, &y1);
+		dx[i] = mp(mp((x1 + x) >> 1, (y + y1) >> 1), i);
+		dy[i] = dx[i];
+	}
+	sort(dx, dx + n);
+	sort(dy, dy + n, cmpy);
+	multiset<pair<ll, ll> > gogo;
+	solve(gogo);
+	cout << ans;
+	return 0;
+}

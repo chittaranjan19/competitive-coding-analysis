@@ -1,0 +1,124 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include <queue>
+#include <deque>
+#include <bitset>
+#include <iterator>
+#include <list>
+#include <stack>
+#include <map>
+#include <set>
+#include <functional>
+#include <numeric>
+#include <utility>
+#include <limits>
+#include <time.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <assert.h>
+using namespace std;
+
+#define INF (1 << 30)
+#define INFL (1LL << 60)
+#define pb push_back
+#define loop_it(it, elements) for(auto it = elements.begin(); it != elements.end(); it++)
+#define loop(i, l, r) for(auto i = l; i < r; i++)
+#define loop_r(i, r, l) for(auto i = r; i >= l; i--)
+#define loop_k(i, l, r, k) for(auto i = l; i < r; i+=k)
+#define test_cases int test_cases;scanf("%d", &test_cases);for (int tc_0 = 1; tc_0 <= test_cases; tc_0++)
+
+typedef long long i64;
+typedef set<int> si;
+typedef vector<int> vi;
+typedef vector<i64> vi64;
+typedef vector<vi> vvi;
+typedef vector<vi64> vvi64;
+typedef pair<int, int> pii;
+typedef pair<i64, int> pi64i;
+typedef set<pii> spii;
+typedef vector<pii> vpii;
+typedef map<pii, vi> mpiivi;
+typedef map<int, int> mii;
+typedef map<int, vi> mivi;
+
+int main() {
+	i64 n, k, x;
+	cin >> n >> k >> x;
+	vector<i64> a(n);
+	loop(i, 0, n) {
+		cin >> a[i];
+	}
+	int cn = 0;
+	loop(i, 0, n) if (a[i] < 0) {
+		cn++;
+	}
+	if (cn % 2 == 0) {
+		i64 max_neg = -INFL, min_pos = INFL;
+		loop(i, 0, n) {
+			if (a[i] < 0) {
+				max_neg = max(max_neg, a[i]);	
+			}
+			if (a[i] >= 0) {
+				min_pos = min(min_pos, a[i]);	
+			}
+		}
+		if (abs(max_neg) < abs(min_pos)) {
+			loop(i, 0, n) if (a[i] == max_neg) {
+				i64 new_num = x + (a[i] % x);
+				if (k >= (new_num - a[i]) / x) {
+					k -= (new_num - a[i]) / x;
+					a[i] = new_num;
+					cn--;
+					break;
+				}
+			}
+		} else {
+			loop(i, 0, n) if (a[i] == min_pos) {
+				i64 new_num = (a[i] % x) - x;
+
+				if (k >= (a[i] - new_num) / x) {
+					k -= (a[i] - new_num) / x;
+					a[i] = new_num;
+					cn++;
+					break;
+				}
+			}			
+		}
+	}
+	if (cn % 2 != 0) {
+		i64 min_abs = INFL;
+		loop(i, 0, n) min_abs = min(min_abs, abs(a[i]));
+		if (min_abs == 0) {
+			loop(i, 0, n) if (k && min_abs == abs(a[i])) {
+				a[i] += x;
+				k--;
+			}
+		}	
+		loop(i, 0, n) min_abs = min(min_abs, abs(a[i]));
+		loop(i, 0, n) if (min_abs == abs(a[i])) {
+			if (a[i] < 0) a[i] -= (k * x);
+			else a[i] += (k * x);
+			k = 0;
+		}	
+	} else {
+		i64 min_abs = INFL;
+		loop(i, 0, n) if (a[i] != 0) {
+			min_abs = min(min_abs, abs(a[i]));
+		}
+		loop(i, 0, n) if (min_abs == abs(a[i])) {
+			if (a[i] < 0) a[i] += (k * x);
+			else if (a[i] > 0) a[i] -= (k * x);
+			k = 0;
+		}	
+	}
+	loop(i, 0, n) {
+		cout << a[i] << " ";
+	}		
+	cout << "\n";
+	return 0;
+}

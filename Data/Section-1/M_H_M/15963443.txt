@@ -1,0 +1,126 @@
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+const int LG = 20;
+
+int n;
+vector <int> g[N];
+int par[N][LG];
+int st[N];
+int ft[N];
+int h[N];
+int T;
+vector <pii> v;
+vector <pii> slc;
+int mark[N];
+
+void dfs(int v, int p){
+	h[v] = h[p] + 1;
+	st[v] = T ++;
+	par[v][0] = p;
+	for(int i = 1; i < LG; ++i)
+		par[v][i] = par[par[v][i - 1]][i - 1];
+	for(int u : g[v]){
+		if(u != p) dfs(u, v);
+	}
+	ft[v] = T;
+}
+
+int get_par(int v, int k){
+	for(int i = 0; i < LG; ++i){
+		if((k >> i) & 1)
+			v = par[v][i];
+	}
+	return v;
+}
+
+int lca(int v, int u){
+	if(h[u] < h[v]) swap(u, v);
+	u = get_par(u, h[u] - h[v]);
+	if(u == v) return v;
+	for(int i = LG; i --;)
+		if(par[v][i] != par[u][i]) v = par[v][i], u = par[u][i];
+	return par[v][0];
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for(int i = 0; i < n - 1; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; v --;
+		g[u].PB(v);
+		g[v].PB(u);
+	}
+	dfs(0, 0);
+	int q;
+	cin >> q;
+	for(int i = 0; i < q; ++i){
+		int k; cin >> k;
+		v.clear();
+		slc.clear();
+		for(int j = 0; j < k; ++j){
+			int t; cin >> t; t --;
+			mark[t] = i + 1;
+			v.PB({st[t], t});
+		}
+		sort(v.begin(), v.end());
+		bool flag = false;
+		for(int j = 0; j < SZ(v); ++j)
+			if(v[j].Y && mark[par[v[j].Y][0]] == i + 1){
+				cout << "-1\n";
+				flag = true;
+				break;
+			} 
+		if(flag) continue;
+		int ans = 0;
+		for(int j = 0; j < SZ(v) - 1; ++j){
+			int w = lca(v[j].Y, v[j + 1].Y);
+			if(mark[w] == i + 1){
+				ans ++;
+				continue;
+			}
+			slc.PB(v[j]);
+		}
+		vector <pii> tmp;
+		for(int j = 0; j < SZ(slc) - 1; ++j){
+			int w = lca(slc[j].Y, slc[j + 1].Y);
+			tmp.PB({ft[w], st[w]});
+		}
+		sort(tmp.begin(), tmp.end());
+		int lst = -1;
+		for(int j = 0; j < SZ(tmp); ++j){
+			if(tmp[j].Y > lst){
+				lst = tmp[j].X;
+				ans ++;
+			}
+		}
+		cout << ans << "\n";
+	}
+	return 0;
+}

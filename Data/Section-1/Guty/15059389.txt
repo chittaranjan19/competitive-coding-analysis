@@ -1,0 +1,206 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+struct Segmento
+{
+	tint inicio,fin,coordenada;
+	Segmento(tint ii, tint ff, tint cc)
+	{
+		inicio = ii;
+		fin = ff;
+		coordenada = cc;
+	}
+};
+
+bool operator < (Segmento s1, Segmento s2)
+{
+	return make_tuple(s1.inicio, s1.fin) < make_tuple(s2.inicio,s2.fin);
+}
+
+bool porCierre (Segmento s1, Segmento s2)
+{
+	return make_tuple(s1.fin, s1.inicio) < make_tuple(s2.fin,s2.inicio);
+}
+
+int main()
+{
+	#ifdef ACMTUYO
+		if (!freopen("Dnew.in", "r", stdin)) return 1;
+	#endif
+	ios_base::sync_with_stdio(0);
+	tint n;
+	while(cin >> n)
+	{
+		tint ans = 0;
+		map<tint, vector<Segmento> > h;
+		map<tint, vector<Segmento> > v;
+		forn(i,n)
+		{
+			tint x1,y1,x2,y2;
+			cin >> x1 >> y1 >> x2 >> y2;
+			if (x1 == x2) // Vertical
+				v[x1].push_back(Segmento(min(y1,y2),max(y1,y2), x1));
+			else // Horizontal
+				h[y1].push_back(Segmento(min(x1,x2),max(x1,x2), y1));
+		}
+		
+		vector<Segmento> hUnited;
+		vector<Segmento> vUnitedInicio;
+		if (!h.empty())
+		{
+			for(auto c : h)
+			{
+				sort(c.second.begin(),c.second.end());
+				Segmento f = c.second[0];
+				tint inicio = f.inicio,fin = f.fin, l = c.second.size();
+				forsn(i,1,l)
+				{
+					Segmento s = c.second[i];
+					if (s.inicio <= fin)
+						fin = s.fin;
+					else
+					{
+						hUnited.push_back(Segmento(inicio,fin,c.first));
+						ans += fin - inicio + 1;
+						inicio = s.inicio;
+						fin = s.fin;
+					}
+				}
+				hUnited.push_back(Segmento(inicio,fin,c.first));
+				ans += fin - inicio + 1;
+			}
+		}
+		if (v.empty())
+		{
+			cout << ans << endl;
+			return 0;
+		}
+		for(auto c : v)  
+		{
+			sort(c.second.begin(),c.second.end());
+			Segmento f = c.second[0];
+			tint inicio = f.inicio,fin = f.fin, l = c.second.size();
+			forsn(i,1,l)
+			{
+				Segmento s = c.second[i];
+				if (s.inicio <= fin)
+					fin = s.fin;
+				else
+				{
+					vUnitedInicio.push_back(Segmento(inicio,fin,c.first));
+					ans += fin - inicio + 1;
+					inicio = s.inicio;
+					fin = s.fin;
+				}
+			}
+			vUnitedInicio.push_back(Segmento(inicio,fin,c.first));
+			ans += fin - inicio + 1;
+		}
+		
+		
+		
+		sort(vUnitedInicio.begin(),vUnitedInicio.end());
+		vector<Segmento> vUnitedCierre = vUnitedInicio;
+		sort(vUnitedCierre.begin(),vUnitedCierre.end(),porCierre);
+		for(auto sh : hUnited)
+		{
+			// Tienen inicio despues de coordenada
+			tint csup = vUnitedInicio.size(), cinf = 0, abajo = 0, arriba = vUnitedInicio.size();
+			if (vUnitedInicio[cinf].inicio <= sh.coordenada)
+			{
+				while (csup - cinf > 1)
+				{
+					tint c = (csup + cinf) / 2;
+					if (vUnitedInicio[c].inicio <= sh.coordenada)
+						cinf = c;
+					else
+						csup = c;
+				}
+				abajo = cinf + 1;
+				arriba -= abajo;
+			}
+			// Tienen cierre despues de coordenada
+			tint csup2 = vUnitedInicio.size(), cinf2 = 0, abajoNew = 0, arribaNew = vUnitedCierre.size();
+			if (vUnitedCierre[cinf2].fin < sh.coordenada)
+			{
+				while (csup2 - cinf2 > 1)
+				{
+					tint c = (csup2 + cinf2) / 2;
+					if (vUnitedCierre[c].fin < sh.coordenada)
+						cinf2 = c;
+					else
+						csup2 = c;
+				}
+				abajoNew = cinf2 + 1;
+				arribaNew -= abajoNew;
+			}
+			tint l = vUnitedInicio.size();
+			ans -= l - arriba - abajoNew;
+		}
+		cout << ans << endl;
+	}
+	
+	return 0;
+}
+
+
+

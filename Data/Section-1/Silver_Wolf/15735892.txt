@@ -1,0 +1,82 @@
+//INOG
+//how many problem are you solve ?!
+#include<bits/stdc++.h>
+using namespace std;
+
+#define mp make_pair
+#define ll long long
+#define int long long
+#define lb long double
+#define pb(x) push_back(x)
+#define all(x) x.begin(),x.end()
+
+const long long MAXN=1e6;
+const long long MAXM=1e3;
+const long long MOD=1e9+7;
+const long long INF=1e15+5040;
+
+bool f=false;
+bool vis[MAXM];
+bool col[MAXM];
+vector<int>ver[MAXM],v[MAXM];
+int val[MAXM][MAXM];
+queue<int>q;
+
+
+void bfs(int s,int *g){
+    fill(g,g+MAXM,INF);
+    g[s]=0;
+    q.push(s);
+    while(q.size()){
+        int v=q.front();
+        q.pop();
+        for(auto u:ver[v])
+            if(g[u]>g[v]+1){
+                g[u]=g[v]+1;
+                q.push(u);
+            }
+    }
+}
+
+void dfs(int V,int k){
+    vis[V]=true;
+    v[k].push_back(V);
+    for(auto u:ver[V])
+        if(vis[u])f=f||(col[V]==col[u]);
+        else{
+            col[u]=!col[V];
+            dfs(u,k);
+        }
+}
+
+main(){
+    ios_base::sync_with_stdio(false);
+    cin.tie(false),cout.tie(false);
+    
+    int n,m;
+    cin>>n>>m;
+    for(int i=0;i<m;i++){
+        int x,y;
+        cin>>x>>y;
+        x--,y--;
+        ver[x].push_back(y);
+        ver[y].push_back(x);
+    }
+    int cnt=0;
+    for(int i=0;i<n;i++)
+        if(!vis[i])dfs(i,cnt++);
+    if(f)return cout<<-1,0;
+    for(int i=0;i<n;i++)bfs(i,val[i]);
+    int ans=0;
+    for(int i=0;i<cnt;i++){
+        int mx=0;
+        for(auto V:v[i])
+            for(auto u:v[i])
+                mx=max(mx,val[u][V]);
+    	mx++;
+        ans+=mx-1;
+    }
+    cout<<ans;
+    
+    
+}

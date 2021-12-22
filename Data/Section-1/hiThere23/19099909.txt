@@ -1,0 +1,171 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define maxC 2000000007
+#define mn 305
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+struct node
+{
+    int val, l, r, u, d;
+    vector<node*> child;
+
+    node()
+    {
+        val = l = r = u = d = 0;
+        child.clear();
+    }
+
+    node(int _val, int _l, int _r, int _u, int _d)
+    {
+        val = _val;
+        l = _l;
+        r = _r;
+        u = _u;
+        d = _d;
+        child.clear();
+    }
+} top[4];
+
+void build(node* u)
+{
+    int lef = u -> l;
+    int rig = u -> r;
+    int up = u -> u;
+    int dow = u -> d;
+    int g1 = ((lef + rig) >> 1);
+    int g2 = ((up + dow) >> 1);
+    if (lef == rig && up == dow)
+        return;
+    if (lef == rig)
+    {
+        u -> child.pb(new node(maxC, lef, rig, up, g2));
+        u -> child.pb(new node(maxC, lef, rig, g2 + 1, dow));
+    }
+    if (up == dow)
+    {
+        u -> child.pb(new node(maxC, lef, g1, up, dow));
+        u -> child.pb(new node(maxC, g1 + 1, rig, up, dow));
+    }
+    if (lef != rig && up != dow)
+    {
+        u -> child.pb(new node(maxC, lef, g1, up, g2));
+        u -> child.pb(new node(maxC, g1 + 1, rig, up, g2));
+        u -> child.pb(new node(maxC, lef, g1, g2 + 1, dow));
+        u -> child.pb(new node(maxC, g1 + 1, rig, g2 + 1, dow));
+    }
+    FOR(i, 0, int(u -> child.size()) - 1)
+        build(u -> child[i]);
+}
+
+void update(node* u, int x, int y, int val)
+{
+    int lef = u -> l;
+    int rig = u -> r;
+    int up = u -> u;
+    int dow = u -> d;
+    if (lef > y || rig < y || up > x || dow < x)
+        return;
+    if (lef == rig && up == dow)
+    {
+        u -> val = val;
+        return;
+    }
+    u -> val = maxC;
+    FOR(i, 0, int(u -> child.size()) - 1)
+    {
+        update(u -> child[i], x, y, val);
+        u -> val = min(u -> val, u -> child[i] -> val);
+    }
+}
+
+int getMin(node* x, int l, int r, int u, int d)
+{
+    int lef = x -> l;
+    int rig = x -> r;
+    int up = x -> u;
+    int dow = x -> d;
+    if (rig < l || lef > r || dow < u || up > d)
+        return maxC;
+    if (l <= lef && rig <= r && u <= up && dow <= d)
+        return x -> val;
+    int re = maxC;
+    FOR(i, 0, int(x -> child.size()) - 1)
+        re = min(re, getMin(x -> child[i], l, r, u, d));
+    return re;
+}
+
+int n, m, p, a[mn][mn], d[mn][mn];
+vector< pair<int, int> > g[mn * mn];
+
+void setup()
+{
+    cin >> n >> m >> p;
+    FOR(i, 1, n)
+    FOR(j, 1, m)
+    {
+        cin >> a[i][j];
+        g[a[i][j]].pb(mp(i, j));
+    }
+    FOR(i, 0, 3)
+    {
+        top[i] = node(maxC, 1, m, 1, n);
+        build(&top[i]);
+    }
+}
+
+void xuly()
+{
+    FORD(q, p - 1, 1)
+    {
+        FOR(i, 0, int(g[q + 2].size()) - 1)
+        {
+            int x = g[q + 2][i].F;
+            int y = g[q + 2][i].S;
+            FOR(j, 0, 3)
+                update(&top[j], x, y, maxC);
+        }
+        FOR(i, 0, int(g[q + 1].size()) - 1)
+        {
+            int x = g[q + 1][i].F;
+            int y = g[q + 1][i].S;
+            update(&top[0], x, y, d[x][y] - x - y);
+            update(&top[1], x, y, d[x][y] - x + y);
+            update(&top[2], x, y, d[x][y] + x - y);
+            update(&top[3], x, y, d[x][y] + x + y);
+        }
+        FOR(i, 0, int(g[q].size()) - 1)
+        {
+            int x = g[q][i].F;
+            int y = g[q][i].S;
+            int aa = getMin(&top[0], 1, y, 1, x) + x + y;
+            int bb = getMin(&top[1], y, m, 1, x) + x - y;
+            int cc = getMin(&top[2], 1, y, x, n) - x + y;
+            int dd = getMin(&top[3], y, m, x, n) - x - y;
+            d[x][y] = min(min(aa, bb), min(cc, dd));
+        }
+    }
+    int ans = maxC;
+    FOR(i, 0, int(g[1].size()) - 1)
+    {
+        int x = g[1][i].F;
+        int y = g[1][i].S;
+        ans = min(ans, d[x][y] + x + y - 2);
+    }
+    cout << ans;
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}
+

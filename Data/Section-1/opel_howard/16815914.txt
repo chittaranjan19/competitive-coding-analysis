@@ -1,0 +1,235 @@
+#define DEBUG
+
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <climits>
+#include <ctime>
+#include <cassert>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define vl vector <long long>
+#define vb vector <bool>
+#define vs vector <string>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define lsone(value) (value)&(-value)
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define loop(i, n) for(int i = 0; i < n; ++i)
+#define loop1(i, n) for(int i = 1; i <= n; ++i)
+#define reverse_iterate(a, b) for(__typeof(b.rend()) a = b.rbegin(); a != b.rend(); ++a)
+#define iterate(a, b) for(__typeof(b.begin()) a = b.begin(); a != b.end(); ++a)
+#define all(i) i.begin(), i.end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const double PI = acos(-1);
+
+#ifdef DEBUG
+	#define debug(...) printf(__VA_ARGS__)
+	#define GetTime() fprintf(stderr,"Running time: %.3lf second\n",((double)clock())/CLOCKS_PER_SEC)
+#else
+	#define debug(...) 
+	#define GetTime() 
+#endif
+
+// end of template
+
+class DisjointSet {
+private:
+	vector<int> id;
+
+	int find(int i) {
+		if (i != id[i]) {
+			return id[i] = find(id[i]);
+		}
+		return i;
+	}
+public:
+	explicit DisjointSet(int n) {
+		id.resize(n+1);
+		for (int it = 0; it < n+1; ++it) {
+			id[it] = it;
+		}
+	}
+
+	void join(int i, int j) {
+		int par_i = find(i), par_j = find(j);
+		if (par_i != par_j) {
+			if (par_i < par_j) {
+				id[par_j] = par_i;
+			} else {
+				id[par_i] = par_j;
+			}
+		}
+	}
+
+	bool is_same(int i, int j) {
+		return find(i) == find(j);
+	}
+};
+
+struct Edge {
+	int from, to, cost;
+};
+
+bool s_mst_weight(Edge a, Edge b) {
+	return a.cost < b.cost;
+}
+
+struct NodeT {
+	int depth;
+	vi dp_lca;
+
+	vi max_weight;
+	NodeT() {
+		depth = -1;
+		dp_lca.resize(18, -1);
+		max_weight.resize(18, 0);
+	}
+};
+
+void create_tree(int node_idx, vector<vii> &neighbors, vector<NodeT> &nodes) {
+	// cout << node_idx << ": " << nodes[node_idx].depth << ", " << nodes[node_idx].dp_lca[0] << endl;
+	// fflush(stdout);
+	iterate(neighbor_p, neighbors[node_idx]) {
+		ii &neighbor = *neighbor_p;
+
+		NodeT &child = nodes[neighbor.a];
+		if (child.depth != -1) {
+			continue;
+		}
+		child.depth = nodes[node_idx].depth+1;
+
+		child.dp_lca[0] = node_idx;
+		child.max_weight[0] = neighbor.b;
+		for (int level = 1; level < 18; ++level) {
+			NodeT &anc = nodes[child.dp_lca[level-1]];
+			child.max_weight[level] = max(child.max_weight[level-1], anc.max_weight[level-1]);
+			child.dp_lca[level] = anc.dp_lca[level-1];
+		}
+
+		// TODO: hasn't done the dp for weight
+		create_tree(neighbor.a, neighbors, nodes);
+	}
+}
+
+pair<ll, vector<Edge> > get_mst_weight(int n_node, vector<Edge> edges) {
+	sort(all(edges), s_mst_weight);
+
+	DisjointSet ds(n_node);
+	ll ans = 0;
+	vector<Edge> tree_edges;
+	iterate(edge, edges) {
+		if (!ds.is_same(edge->from, edge->to)) {
+			ds.join(edge->from, edge->to);
+			ans += edge->cost;
+			tree_edges.pub(*edge);
+		}
+	}
+	return mp(ans, tree_edges);
+}
+
+int main() {
+    // freopen("609E.in", "r", stdin);
+    
+    int n, m;
+    scanf("%d %d", &n, &m);
+    vector<Edge> edges(m);
+    iterate(edge, edges) {
+    	scanf("%d %d %d", &edge->from, &edge->to, &edge->cost);
+    }
+    pair<ll, vector<Edge> > mst = get_mst_weight(n, edges);
+
+    ll mst_weight = mst.a;
+    vector<vii> neighbors(n+1);
+    iterate(edge, mst.b) {
+    	neighbors[edge->from].pub(mp(edge->to, edge->cost));
+    	neighbors[edge->to].pub(mp(edge->from, edge->cost));
+    }
+
+    vector<NodeT> nodes(n+1); // node in the tree
+
+    // initialization for node 1
+    NodeT &node1 = nodes[1];
+    node1.depth = 0;
+    for (int level = 0; level < 18; ++level)
+    	node1.dp_lca[level] = 1;
+
+    create_tree(1, neighbors, nodes);
+
+    iterate(edge_p, edges) {
+    	Edge &edge = *edge_p;
+    	// get the lca first
+    	int x = edge.from, y = edge.to;
+
+    	NodeT node_x = nodes[x], node_y = nodes[y];
+    	int max_weight = 0;
+    	if (node_x.depth != node_y.depth) {
+    		if (node_y.depth > node_x.depth) {
+    			swap(node_x, node_y);
+    			swap(x, y);
+    		}
+
+    		for (int level = 17; level >= 0; level--) {
+    			NodeT &anc = nodes[node_x.dp_lca[level]];
+    			if (anc.depth >= node_y.depth) {
+    				x = node_x.dp_lca[level];
+    				max_weight = max(max_weight, node_x.max_weight[level]);
+    				node_x = anc;
+    			}
+    		}
+    	}
+    	if (x != y) {
+    		for (int level = 17; level >= 0; --level) {
+    			int anc_x = node_x.dp_lca[level], anc_y = node_y.dp_lca[level];
+    			if (anc_x != anc_y) {
+    				max_weight = max(max_weight, node_x.max_weight[level]);
+    				max_weight = max(max_weight, node_y.max_weight[level]);
+    				x = anc_x;
+    				y = anc_y;
+    				node_x = nodes[x];
+    				node_y = nodes[y];
+    			}
+    		}
+    		if (x != y) {
+				max_weight = max(max_weight, node_x.max_weight[0]);
+				max_weight = max(max_weight, node_y.max_weight[0]);
+    		}
+    	}
+    	// already get the lca
+    	ll ans = mst_weight+edge.cost-max_weight;
+    	printf("%I64d\n", ans);
+    }
+
+    return 0;
+}

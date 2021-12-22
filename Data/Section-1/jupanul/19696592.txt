@@ -1,0 +1,64 @@
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+using namespace std;
+const int MAX_N = 300005;
+
+long long x[MAX_N];
+long long a[MAX_N];
+long long b[MAX_N];
+long long c[MAX_N];
+long long d[MAX_N];
+
+long long cost2(int i, int j) {
+    if (x[i] > x[j]) {
+        return x[i] - x[j] + c[i] + b[j];
+    }
+    return x[j] - x[i] + d[i] + a[j];
+}
+long long cost(int i, int j, int k, int l) {
+    return cost2(i, j) + cost2(j, k) + cost2(k, l);
+}
+
+int main() {
+    int n, s, e;
+    cin >> n >> s >> e;
+    for (int i = 1; i <= n; ++ i) {
+        cin >> x[i];
+    }
+    for (int i = 1; i <= n; ++ i) {
+        cin >> a[i];
+    }
+    for (int i = 1; i <= n; ++ i) {
+        cin >> b[i];
+    }
+    for (int i = 1; i <= n; ++ i) {
+        cin >> c[i];
+    }
+    for (int i = 1; i <= n; ++ i) {
+        cin >> d[i];
+    }
+    vector<int> v(1, s);
+    for (int i = 1; i <= n; ++ i) {
+        if (i != e && i != s) {
+            v.push_back(i);
+        }
+    }
+    v.push_back(e);
+    bool flag;
+    do {
+        flag = true;
+        for (int i = 1; i + 2 < n; ++ i) {
+            if (cost(v[i - 1], v[i], v[i + 1], v[i + 2]) > cost(v[i - 1], v[i + 1], v[i], v[i + 2])) {
+                flag = false;
+                swap(v[i], v[i + 1]);
+            }
+        }
+    } while (!flag);
+    long long total = 0;
+    for (int i = 1; i < n; ++ i) {
+        total += cost2(v[i - 1], v[i]);
+    }
+    cout << total << "\n";
+    return 0;
+}

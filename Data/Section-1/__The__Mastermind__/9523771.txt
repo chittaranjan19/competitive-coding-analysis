@@ -1,0 +1,67 @@
+program math_lecture;
+
+const
+  tfi = '';//'507d.inp';
+  tfo = '';//'507d.out';
+
+var
+  n,k,base : longint;
+  f : array [0..1000,0..99,0..1] of longint;
+  dd : array [0..1000,0..99,0..1] of boolean;
+  fi,fo : text;
+
+procedure input;
+  begin
+    assign(fi,tfi);
+    reset(fi);
+    read(fi,n,k,base);
+    close(fi);
+  end;
+
+function power(i,modul : longint) : longint;
+  var tmp : longint;
+  begin
+    if i = 0 then exit(1);
+    tmp := power(i div 2,modul);
+    tmp := int64(tmp)*tmp mod modul;
+    if i mod 2 = 1 then tmp := int64(tmp)*10 mod modul;
+    exit(tmp);
+  end;
+
+function cal(i,t,xh : longint) : longint;
+  var d,j,xh1 : longint;
+  begin
+    if not dd[i,t,xh] then
+      begin
+        dd[i,t,xh] := true;
+        if i = n then
+          begin
+            if (t = 0) and (xh = 1) then f[i,t,xh] := 1;
+          end
+        else
+        if (i > 0) and (t = 0) and (xh = 1) then f[i,t,xh] := int64(power(n-i-1,base))*9 mod base
+        else
+          begin
+            if i = n-1 then d := 1 else d := 0;
+            for j := d to 9 do
+              begin
+                if (xh = 0) and (j = 0) then xh1 := 0 else xh1 := 1;
+                f[i,t,xh] := (f[i,t,xh] + cal(i+1,(t + j*power(i,k)) mod k,xh1)) mod base;
+              end;
+          end;
+      end;
+    exit(f[i,t,xh]);
+  end;
+
+procedure output;
+  begin
+    assign(fo,tfo);
+    rewrite(fo);
+    write(fo,cal(0,0,0));
+    close(fo);
+  end;
+
+begin
+  input;
+  output;
+end.

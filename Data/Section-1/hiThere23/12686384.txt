@@ -1,0 +1,129 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 101000
+#define maxC 1000000007
+#define modi(x) (x & (-x))
+#define task "CANDIES"
+#define p2 pair<int, int>
+#define p3 pair<int, p2 >
+#define F first
+#define S second
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+vector <int> g[mn];
+int n, m, pa[mn][20], h[mn], ch[mn];
+
+void setup ()
+{
+    int u, v;
+    cin >> n;
+    FOR (i, 1, n - 1)
+    {
+        cin >> u >> v;
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+    cin >> m;
+}
+
+void dfs(int u, int he)
+{
+    h[u] = he;
+    ch[u] = 1;
+    FOR (i, 0, int(g[u].size() - 1))
+    {
+        int v = g[u][i];
+        if (v == pa[u][0])
+            continue;
+        pa[v][0] = u;
+        dfs(v, he + 1);
+        ch[u] += ch[v];
+    }
+}
+
+void rmq()
+{
+    FOR (i, 1, 18)
+    FOR (j, 1, n)
+    pa[j][i] = pa[pa[j][i - 1]][i - 1];
+}
+
+int lca(int a, int b)
+{
+    if (h[a] < h[b])
+        swap(a, b);
+    int dif = h[a] - h[b];
+    FORD(i, 18, 0)
+    if ((dif >> i) & 1)
+        a = pa[a][i];
+    if (a == b)
+        return a;
+    FORD(i, 18, 0)
+    if (pa[a][i] != pa[b][i])
+    {
+        a = pa[a][i];
+        b = pa[b][i];
+    }
+    return pa[a][0];
+}
+
+p3 mid(int a, int b)
+{
+    int l = lca(a, b);
+    int leng = abs(h[a] - h[l]) + abs(h[b] - h[l]);
+    if (leng & 1)
+        return mp(0, mp(0, 0));
+    leng >>= 1;
+    leng --;
+    int u = a, v = b;
+    FORD(i, 18, 0)
+    if ((leng >> i) & 1)
+    {
+        a = pa[a][i];
+        b = pa[b][i];
+    }
+    if (h[u] > h[v])
+        return mp(pa[a][0], mp(a, 0));
+    if (h[u] < h[v])
+        return mp(pa[b][0], mp(b, 0));
+    return mp(pa[b][0], mp(a, b));
+}
+
+void xuly ()
+{
+    dfs(1, 1);
+    rmq();
+    int a, b;
+    FOR (i, 1, m)
+    {
+        cin >> a >> b;
+        if (a == b)
+        {
+            cout << n << "\n";
+            continue;
+        }
+        p3 l = mid(a, b);
+        if (l.F == 0)
+        {
+            cout << "0\n";
+            continue;
+        }
+        if (l.S.F && l.S.S)
+            cout << n - ch[l.S.F] - ch[l.S.S] << "\n";
+        else
+            cout << ch[l.F] - ch[l.S.F] << "\n";
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

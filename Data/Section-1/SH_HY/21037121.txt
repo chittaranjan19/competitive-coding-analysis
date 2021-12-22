@@ -1,0 +1,99 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<int> ve[5010], ed[5010];
+vector<int> d[5010], ti[5010], pre[5010], pe[5010];
+map<int, int> mp[5010];
+int h[5010], e[5010], vis[5010];
+int as[5010];
+int n, m, T;
+
+int main () {
+    scanf ("%d%d%d", &n, &m, &T);
+    memset (h, 0, sizeof h);
+    memset (e, 0, sizeof e);
+    memset (vis, 0, sizeof vis);
+    for (int i = 1; i <= m; i++) {
+        int u, v, t;
+        scanf ("%d%d%d", &u, &v, &t);
+        ve[u].push_back (v);
+        ed[u].push_back (t);
+        h[v]++;
+    }
+    for (int i = 0; i < ve[1].size(); i++) {
+        if (ed[1][i] <= T) {
+            d[ve[1][i]].push_back (1);
+            ti[ve[1][i]].push_back (ed[1][i]);
+            pre[ve[1][i]].push_back (1);
+            pe[ve[1][i]].push_back (1);
+            mp[ve[1][i]][1] = 1;
+            e[ve[1][i]]++;
+        }
+    }
+    vis[1] = 1;
+    for (int i = 2; i <= n; i++) {
+        int now = -1;
+        for (int j = 1; j <= n; j++) {
+            if (!vis[j] && e[j] == h[j]) {
+                now = j;
+                break;
+            }
+        }
+        //cout << now << endl;
+        if (now == -1)  break;
+        vis[now] = 1;
+        int si1 = d[now].size(), si2 = ve[now].size();
+        for (int j = 0; j < si1; j++) {
+            for (int k = 0; k < si2; k++) {
+                if (ti[now][j] + ed[now][k] <= T) {
+                    if (mp[ve[now][k]][d[now][j] + 1]) {
+                        int ppp = mp[ve[now][k]][d[now][j] + 1];
+                        if (ti[ve[now][k]][ppp - 1] > ti[now][j] + ed[now][k]) {
+                            ti[ve[now][k]][ppp - 1] = ti[now][j] + ed[now][k];
+                            pre[ve[now][k]][ppp - 1] = now;
+                            pe[ve[now][k]][ppp - 1] = j;
+                        }
+                    } else {
+                        mp[ve[now][k]][d[now][j] + 1] = d[ve[now][k]].size() + 1;
+                        d[ve[now][k]].push_back (d[now][j] + 1);
+                        ti[ve[now][k]].push_back (ti[now][j] + ed[now][k]);
+                        pre[ve[now][k]].push_back (now);
+                        pe[ve[now][k]].push_back (j);
+                    }
+                }
+            }
+        }
+        for (int j = 0; j < si2; j++)   e[ve[now][j]]++;
+    }
+//    for (int i = 1; i <= n; i++) {
+//        for (int j = 0; j < d[i].size(); j++) {
+//            cout << d[i][j] << " ";
+//        }
+//        cout << endl;
+//    }
+    int id = -1, ans = 0;
+    for (int i = 0; i < d[n].size(); i++) {
+        if (d[n][i] > ans) {
+            id = i, ans = d[n][i];
+        }
+    }
+    if (id == -1) {
+        printf ("0\n");
+    } else {
+        printf ("%d\n", ans + 1);
+        int he = 1, now = n, low = id;
+        as[he++] = n;
+        while (now != 1) {
+            int hh = pre[now][low];
+            int ll = pe[now][low];
+            now = hh, low = ll;
+            as[he++] = now;
+        }
+        for (int i = he - 1; i >= 1; i--) {
+            printf ("%d", as[i]);
+            if (i == 1) printf ("\n");
+            else    printf (" ");
+        }
+    }
+    return 0;
+}

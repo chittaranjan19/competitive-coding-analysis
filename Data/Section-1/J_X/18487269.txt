@@ -1,0 +1,78 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+typedef pair<long double, long double> pdd;
+typedef long long ll;
+
+const int maxn = 1e5 + 5;
+const long double eps = 1e-10;
+const long double PI = acos(-1.0);
+
+pdd p[maxn << 1];
+
+int dcmp(long double x)
+{
+    if(fabs(x) < eps) return 0;
+    return x > eps ? 1 : -1;
+}
+
+ll dis(ll x1, ll y1, ll x2, ll y2)
+{
+    return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+}
+
+int main()
+{
+    int x0, y0, n, v, t, tot = 0;
+    scanf("%d%d%d%d%d", &x0, &y0, &v, &t, &n);
+    ll b = (ll)v * t;
+    bool flag = false;
+    for(int i = 0; i < n; ++i)
+    {
+        int x, y, r;
+        scanf("%d%d%d", &x, &y, &r);
+        x -= x0, y -= y0;
+        long double d = sqrt(dis(0, 0, x, y));
+        if(dcmp(d - r) <= 0) flag = true;
+        else if(dcmp(d - r - b) < 0)
+        {
+            long double a = atan2(y, x), a1;
+            if(dcmp(sqrt(d * d - r * r) - b) <= 0) a1 = asin(r / d);
+            else a1 = acos((d * d + b * b - r * r) / (2 * d * b));
+            if(a - a1 + PI < -eps)
+            {
+                p[tot++] = pdd(-PI, a + a1);
+                p[tot++] = pdd(a - a1 + 2 * PI, PI);
+            }
+            else if(a + a1 - PI > eps)
+            {
+                p[tot++] = pdd(-PI, a + a1 - 2 * PI);
+                p[tot++] = pdd(a - a1, PI);
+            }
+            else p[tot++] = pdd(a - a1, a + a1);
+        }
+    }
+    if(flag) puts("1.0000000000");
+    else
+    {
+        long double ans = 0;
+        sort(p, p + tot);
+        for(int i = 0, j = 0; i < tot; i = j)
+        {
+            long double r = p[i].second;
+            while(j < tot && dcmp(r - p[j].first) >= 0)
+            {
+                r = max(p[j].second, r);
+                ++j;
+            }
+            ans += r - p[i].first;
+        }
+        printf("%.10f\n", double(ans / (2 * PI)));
+    }
+    return 0;
+}

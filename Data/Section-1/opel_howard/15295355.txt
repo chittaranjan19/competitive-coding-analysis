@@ -1,0 +1,128 @@
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <climits>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define vl vector <long long>
+#define vb vector <bool>
+#define vs vector <string>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define lsone(value) (value)&(-value)
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define loop(i, n) for(int i = 0; i < n; ++i)
+#define loop1(i, n) for(int i = 1; i <= n; ++i)
+#define reverse_iterate(a, b) for(__typeof(b.rend()) a = b.rbegin(); a != b.rend(); ++a)
+#define iterate(a, b) for(__typeof(b.begin()) a = b.begin(); a != b.end(); ++a)
+#define all(i) i.begin(), i.end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const double PI = acos(-1);
+
+// end of template
+
+int main() {
+    // freopen("616C.in", "r", stdin);
+    
+    int n, m;
+    scanf("%d %d", &n, &m);
+    string grid[n];
+    loop(i, n) {
+    	cin >> grid[i];
+    }
+
+    vector<vi> count(n, vi(m, -1));
+    vector<vb> visited(n, vb(m, false));
+    int x_mov[] = {1, 0, -1, 0};
+    int y_mov[] = {0, 1, 0, -1};
+    int n_flood = 0;
+    map<int, int> flood;
+    loop(i, n) {
+    	loop(j, m) {
+    		if (grid[i][j] != '.')
+    			continue;
+    		if (visited[i][j])
+    			continue;
+    		vii contiguous;
+    		que<ii> q;
+    		q.pu(mp(i, j));
+    		visited[i][j] = true;
+    		int c = 0;
+    		while (!q.empty()) {
+    			ii curr_pos = q.front();
+    			contiguous.pub(curr_pos);
+    			c++;
+    			q.po();
+    			loop(mov_idx, 4) {
+    				ii pos(curr_pos.a+y_mov[mov_idx], curr_pos.b+x_mov[mov_idx]);
+    				if (((0 <= pos.a) and (pos.a < n)) and ((0 <= pos.b) and (pos.b < m))) {
+    					if ((grid[pos.a][pos.b] == '.')  and (!visited[pos.a][pos.b])) {
+    						visited[pos.a][pos.b] = true;
+    						q.pu(pos);
+    					}
+    				}
+    			}
+    		}
+    		iterate(pos, contiguous) {
+    			count[pos->a][pos->b] = n_flood;
+    		}
+    		flood[n_flood] = c;
+    		n_flood++;
+    	}
+    }
+    loop(i, n) {
+    	loop(j, m) {
+    		if (grid[i][j] == '.') {
+    			printf(".");
+    			continue;
+    		}
+    		set<int> unq;
+    		if ((i) and (grid[i-1][j] == '.'))
+    			unq.insert(count[i-1][j]);
+    		if ((j) and (grid[i][j-1] == '.'))
+    			unq.insert(count[i][j-1]);
+    		if ((i < n-1) and (grid[i+1][j] == '.'))
+    			unq.insert(count[i+1][j]);
+    		if ((j < m-1) and (grid[i][j+1] == '.'))
+    			unq.insert(count[i][j+1]);
+    		int ans = 0;
+    		iterate(val, unq) {
+    			ans += flood[*val];
+    		}
+    		printf("%d", (ans+1)%10);
+    	}
+    	printf("\n");
+    }
+
+    return 0;
+}

@@ -1,0 +1,75 @@
+#include<cstring>
+#include<cassert>
+#include<string>
+#include<cstdio>
+#include<algorithm>
+using namespace std;
+int d[105][105][105];
+char s1[105],s2[105],virus[105];
+struct REC
+{
+	int x,y,z;
+	REC() {x=y=z=-1;}
+	REC(int xx,int yy,int zz) {x=xx;y=yy;z=zz;}
+} p[105][105][105];
+int main()
+{
+	int N,M,K;
+	gets(s1);N=strlen(s1);
+	gets(s2);M=strlen(s2);
+	gets(virus);K=strlen(virus);
+	for(int i=0;i<N;i++)
+		for(int j=0;j<M;j++)
+			for(int k=0;k<K;k++)
+			{
+				if(d[i+1][j][k]<d[i][j][k])
+					d[i+1][j][k]=d[i][j][k],
+					p[i+1][j][k]=REC(i,j,k);
+				if(d[i][j+1][k]<d[i][j][k])
+					d[i][j+1][k]=d[i][j][k],
+					p[i][j+1][k]=REC(i,j,k);
+				if(s1[i]==s2[j])
+					if(s1[i]==virus[k])
+					{
+						if(d[i+1][j+1][k+1]<d[i][j][k]+1)
+							d[i+1][j+1][k+1]=d[i][j][k]+1,
+							p[i+1][j+1][k+1]=REC(i,j,k);
+					}
+					else
+					{
+						if(d[i+1][j+1][0]<d[i][j][k])
+							d[i+1][j+1][0]=d[i][j][k]+1,
+							p[i+1][j+1][0]=REC(i,j,k);
+					}
+			}
+	//for(int i=1;i<=N;i++)
+		//for(int j=1;j<=M;j++)
+			//for(int k=0;k<=K;k++)
+				//printf("%d %d %d-> %d\n",i,j,k,d[i][j][k]);;
+	int x,y,z;
+	x=N;y=M;z=0;
+	for(int i=1;i<=N;i++)
+		for(int j=1;j<=M;j++)
+			for(int k=0;k<K;k++)
+				if(d[x][y][z]<d[i][j][k])
+					x=i,y=j,z=k;
+	string ans;
+	while(d[x][y][z]!=0)
+	{
+		if(s1[x-1]==s2[y-1])
+			//fprintf(stderr,"%c",s1[x-1]),
+			ans+=s1[x-1];
+		int nx,ny,nz;
+		nx=p[x][y][z].x;
+		ny=p[x][y][z].y;
+		nz=p[x][y][z].z;
+		x=nx;y=ny;z=nz;
+	}
+	reverse(ans.begin(),ans.end());
+	//assert(ans.empty());
+	if(ans.empty())
+		printf("0\n");
+	else
+		puts(ans.c_str());
+	return 0;
+}

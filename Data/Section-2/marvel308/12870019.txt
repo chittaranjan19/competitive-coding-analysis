@@ -1,0 +1,100 @@
+#include <iostream>
+#include <fstream>
+#include <cstdio>
+#include <math.h>
+#include <vector>
+#include <string.h>
+#include <algorithm>
+#include <climits>
+#include <stack>
+#include <queue>
+#include <set>
+#include <map>
+#define MAX(a,b) a>b?a:b
+#define MIN(a,b) a>b?b:a
+#define FOR(i,n) for(i=0;i<n;i++)
+#define FOR_X(i,x,n) for(i=x;i<n;i++)
+#define BACK(i,n) for(i=n;i>=0;i--)
+#define BACK_X(i,n,x) for(i=n;i>=x;i--)
+#define fill(a,v) memset(a,v,sizeof(a))
+#define gcd(a,b) __gcd(a,b)
+#define lcm(a,b) a*b/gcd(a,b)
+#define pb push_back
+#define pp pair<int,int>
+typedef long long int lld;
+using namespace std;
+const lld inf = 1e14;
+lld dp[2][10005];
+pp a[5002];
+lld L[10005],R[10005];
+set<lld> st;
+map< lld,lld> mp1;
+lld mp2[10005];
+int main()
+{
+    ios_base::sync_with_stdio(0); //dont use with EOF
+//  cout<<inf<<endl;
+    lld n,x,i,j;
+    cin>>n>>x;
+    st.insert(x);
+    FOR(i,n){
+        cin>>a[i].first>>a[i].second;
+        st.insert( a[i].first);
+        st.insert( a[i].second);
+    }
+    lld ct=0;
+    for( set<lld> :: iterator it= st.begin(); it!=st.end(); it++)
+    {
+        mp1[*it]=ct;
+        mp2[ct]= *it;
+        ct++;
+    }
+    x=mp1[x];
+    FOR(i,n)
+    {
+        a[i].first= mp1[ a[i].first ];
+        a[i].second= mp1[ a[i].second ];
+//      cout<<i<<" : "<<a[i].first<<" "<<a[i].second<<endl;
+    }
+    for(i=0;i<ct;i++)
+        dp[0][i]=inf;
+    dp[0][x]=0;
+    
+    L[0]=dp[0][0];
+    for(i=1;i<ct;i++)
+        L[i]= MIN(dp[0][i] , L[i-1]+ mp2[i] - mp2[i-1] );
+    R[ct-1]=dp[0][ct-1];
+    for(i=ct-2;i>=0;i--)
+        R[i]= MIN(dp[0][i] , R[i+1]+ mp2[i+1] - mp2[i] );
+//  for( i=0 ;i<ct;i++)
+//      cout<<i<<" : "<<L[i]<<" "<<R[i]<<endl;
+    for( i=1;i<=n;i++)
+    {
+        for(j=0;j<ct;j++)
+        {
+            lld xxx= mp2[j]- mp2[ a[i-1].first ];
+            if(xxx<0) xxx= -xxx;
+            lld yyy= mp2[j]- mp2[ a[i-1].second ];
+            if(yyy<0) yyy= -yyy;
+            lld tmp= MIN( xxx,yyy);
+            if( a[i-1].first<=j && a[i-1].second>=j )tmp=0;
+            dp[i%2][j]= MIN( L[j]+ tmp , R[j]+tmp );
+//          cout<<dp[i%2][j]<<" ";
+        }
+    //  cout<<endl;
+        L[0]=dp[i%2][0];
+        for(j=1;j<ct;j++)
+            L[j]= MIN(dp[i%2][j] , L[j-1]+ mp2[j] - mp2[j-1] );
+        
+        R[ct-1]=dp[i%2][ct-1];
+        for(j=ct-2;j>=0;j--)
+            R[j]= MIN(dp[i%2][j] , R[j+1]+ mp2[j+1] - mp2[j] );
+    }
+    lld ans=inf;
+    for(i=0;i<ct;i++){
+        ans= MIN(ans,L[i]);
+        ans= MIN(ans,R[i]);
+    }
+    cout<<ans<<endl;
+    return 0;
+}

@@ -1,0 +1,78 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+vector < pair <int ,  pair < int , int > >  > p ;
+int dp [5000 + 10];
+int n , w , h, tem1 , tem2;
+vector <int> v;
+
+int rec (int index){
+
+    if(index == n) return 0;
+
+    int &st = dp[index];
+    if(st != -1) return st;
+    int ans = 0;
+    for(int i = index + 1; i < n; i++){
+        if( p[i].second.first > p[index].second.first && p[i].first > p[index].first ){
+            ans = max( ans ,  rec(i) + 1 );
+        }
+    }
+    return st = ans;
+
+}
+
+void rec2 (int index){
+
+    if(index == n) return ;
+
+    int &st = dp[index];
+    int ans = 0, in = -1;
+    int y = -1;
+    for(int i = index + 1; i < n; i++){
+        if( p[i].second.first > p[index].second.first && p[i].first > p[index].first  ){
+            int e = rec(i) + 1;
+            if(e > ans){
+                ans = e;
+                in = p[i].second.second;
+                y = i;
+            }
+        }
+    }
+    if(y != -1) rec2(y);
+    if(in != -1) v.push_back(in + 1);
+
+}
+
+
+
+int main()
+{
+
+    memset(dp , -1 , sizeof dp);
+    scanf("%d%d%d", &n ,&w , &h);
+    for(int i  = 0; i < n; i++){
+        scanf("%d%d", &tem1, &tem2);
+        p.push_back( {tem1 , {tem2, i} } );
+    }
+    int ans = 0;
+    sort( p.begin() , p.end());
+    int in = -1, y = -1;
+    for(int i = 0; i < n; i++){
+        if(w >=  p[i].first || h >= p[i].second.first ) continue;
+        else if(w >  p[i].first || h > p[i].second.first) break;
+        int e = rec(i) + 1;
+        if(e > ans){
+            ans = e;
+            in = i;
+            y = p[i].second.second;
+        }
+    }
+    printf("%d\n", ans);
+    if(in != -1) {printf("%d ", y + 1);rec2(in);}
+    for(int i = (int)v.size() - 1;i >= 0; i--){
+        printf("%d ", v[i]);
+    }
+    return 0;
+}

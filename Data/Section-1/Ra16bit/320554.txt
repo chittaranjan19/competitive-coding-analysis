@@ -1,0 +1,79 @@
+#include <cstdio>
+#include <vector>
+using namespace std;
+int n,m,x,y,z,it,p,i,j,e,cur,last,ff,fi,r[20002000],v[200200];
+vector <int> g[200200],f[200200];
+bool u[200200],o[400400],q=true;
+void dfs(int i) {
+  u[i]=true; last=e; r[e++]=i;
+  for (int j=0; j<g[i].size(); j++) if ((!o[f[i][j]]) && (!u[g[i][j]])) {
+    dfs(g[i][j]); r[e++]=i;
+  }
+}
+void dfs2(int i) {
+  r[e++]=i; v[i]=0;
+  for (int j=0; j<g[i].size(); j++) if (f[i][j]<m && (!o[f[i][j]])) v[i]++;
+  for (int j=0; j<g[i].size(); j++) if (f[i][j]<m && (!o[f[i][j]])) { ff=i; fi=j; return; }
+  for (int j=0; j<g[i].size(); j++) if (!o[f[i][j]]) {
+    dfs(g[i][j]);
+    if (ff!=-1) return;
+    r[e++]=i;
+  }
+}
+int main() {
+  scanf("%d%d",&n,&m);
+  for (i=0; i<m; i++) {
+    scanf("%d%d",&x,&y);
+    g[x].push_back(y); f[x].push_back(i);
+    g[y].push_back(x); f[y].push_back(i);
+  }
+  for (it=cur=j=1; ; it++) {
+    dfs(cur); e=last+1;
+    for (; j<=n; j++) if (g[j].size()>0 && (!u[j])) break;
+    if (j>n) break;
+    x=r[e-1]; y=-1;
+    for (p=0; p<g[x].size(); p++) if (f[x][p]<m && (!o[f[x][p]])) { y=p; break; }
+    if (y==-1) { puts("NO"); return 0; }
+    z=f[x][y]+1; cur=g[x][y]; o[z-1]=true;
+    r[e++]=cur; r[e++]=-z; r[e++]=cur; r[e++]=j;
+    g[cur].push_back(j); f[cur].push_back(z-1+m);
+    g[j].push_back(cur); f[j].push_back(z-1+m);
+  }
+  for (i=2; i<=n; i++) if (g[i].size()==0) {
+    ff=-1; dfs2(cur);
+    if (ff==-1) { puts("NO"); return 0; }
+    if (v[ff]>1) {
+      z=f[ff][fi]+1;
+      o[z]=true;
+      r[e++]=-z;
+      r[e++]=ff;
+      r[e++]=i;
+      r[e++]=ff;
+      r[e++]=i;
+      cur=ff;
+    } else {
+      r[e++]=g[ff][fi];
+      z=f[ff][fi]+1;
+      o[z]=true;
+      ff=r[e-1];
+      r[e++]=-z;
+      r[e++]=ff;
+      r[e++]=i;
+      cur=ff;
+    }
+  }
+  puts("YES");
+  for (i=0; i<e; i++) if (r[i]<0) {
+    printf("\n%d %d %d\n",-r[i],r[i+1],r[i+2]);
+    i+=2; q=true;
+  } else {
+    if (q) {
+      q=false;
+      for (j=i; j<e; j++) if (r[j]<0) break;
+      printf("%d",j-i);
+    }
+    printf(" %d",r[i]);
+  }
+  puts("");
+  return 0;
+}

@@ -1,0 +1,125 @@
+program cf730C;
+type store=record k,p:int64;end;
+const maxn=5000+10;
+var dis,last,q,ls:array[0..maxn] of longint;
+    heap:array[0..maxn] of store;
+    ed:array[0..maxn*2] of record o,next:longint;end;
+    st:array[0..maxn] of record k,p,next:longint;end;
+    size,n,m,w,ques,i,c,tot,u,v,g,r,lim:longint;
+    nownum,nowpr:int64;
+procedure add(u,v:longint);
+begin
+  inc(tot);
+  ed[tot].o:=v;
+  ed[tot].next:=last[u];
+  last[u]:=tot;
+end;
+procedure swap(var a,b:store);
+var t:store;
+begin
+  t:=a;a:=b;b:=t;
+end;
+procedure push(k,p:int64);
+var i:longint;
+begin
+  inc(size);
+  heap[size].k:=k;
+  heap[size].p:=p;
+  nownum:=nownum+k;
+  nowpr:=nowpr+int64(k)*p;
+  i:=size;
+  while(i>1)and(heap[i].p>heap[i shr 1].p) do
+  begin
+    swap(heap[i],heap[i shr 1]);
+    i:=i shr 1;
+  end;
+end;
+procedure del(x:longint);
+var i:longint;
+begin
+  nownum:=nownum-heap[x].k;
+  nowpr:=nowpr-int64(heap[x].p)*heap[x].k;
+  heap[x]:=heap[size];
+  dec(size);
+  while x*2<=size do
+  begin
+    i:=x*2;
+    if (i<size)and(heap[i+1].p>heap[i].p) then inc(i);
+    if heap[i].p>heap[x].p then
+    begin
+      swap(heap[i],heap[x]);
+      x:=i;
+    end else exit;
+  end;
+end;
+procedure join(x:longint);
+var i:longint;
+begin
+  i:=ls[x];
+  while i>0 do
+  begin
+    push(st[i].k,st[i].p);
+    i:=st[i].next;
+  end;
+  while nownum>r do
+  begin
+    if nownum-heap[1].k>=r then del(1) else
+    begin
+      heap[1].k:=heap[1].k-(nownum-r);
+      nowpr:=nowpr-(nownum-r)*heap[1].p;
+      nownum:=r;
+    end;
+  end;
+end;
+procedure fill(x:longint);
+var beg,en,i:longint;
+begin
+  fillchar(dis,sizeof(longint)*(n+1),$3f);
+  dis[x]:=0;
+  beg:=1;en:=1;
+  q[1]:=x;
+  size:=0;
+  nownum:=0;
+  nowpr:=0;
+  join(x);
+  while beg<=en do
+  begin
+    i:=last[q[beg]];
+    while i>0 do
+    begin
+      if dis[q[beg]]+1<dis[ed[i].o] then
+      begin
+        dis[ed[i].o]:=dis[q[beg]]+1;
+        join(ed[i].o);
+        inc(en);
+        q[en]:=ed[i].o;
+        if (nownum=r)and(nowpr<=lim) then begin writeln(dis[q[en]]);exit;end;
+      end;
+      i:=ed[i].next;
+    end;
+    inc(beg);
+  end;
+  writeln(-1);
+end;
+begin
+  readln(n,m);
+  for i:=1 to m do
+  begin
+    readln(u,v);
+    add(u,v);
+    add(v,u);
+  end;
+  readln(w);
+  for i:=1 to w do
+  begin
+    readln(c,st[i].k,st[i].p);
+    st[i].next:=ls[c];
+    ls[c]:=i;
+  end;
+  readln(ques);
+  for i:=1 to ques do
+  begin
+    readln(g,r,lim);
+    fill(g);
+  end;
+end.

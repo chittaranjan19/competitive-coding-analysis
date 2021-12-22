@@ -1,0 +1,117 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define MAX (1+(1<<22))
+
+int tree[MAX];
+int lazy[MAX];
+int ARR[300005];
+
+void build_tree(int node, int a, int b) 
+{
+    if(a > b) return;
+    
+    if(a == b) 
+    {
+        tree[node] = 0;
+        return;
+    }
+    
+    build_tree(node*2, a, (a+b)/2);
+    build_tree(node*2+1, 1+(a+b)/2, b);
+}
+
+void update_tree(int node, int a, int b, int i, int j, int value) 
+{  
+    if (i > j)
+        return;
+    if(lazy[node] != 0) 
+    {
+        if (tree[node] == 0)
+            tree[node] = lazy[node];
+
+        if(a != b) 
+        {
+            if (lazy[node*2] == 0)
+                lazy[node*2] = lazy[node];
+            if (lazy[node*2+1] == 0)
+                lazy[node*2+1] = lazy[node];
+        }
+        lazy[node] = 0;
+    }
+  
+    if(a > b || a > j || b < i)
+        return;
+    
+    if(a >= i && b <= j) 
+    {
+        if (tree[node] == 0)
+            tree[node] = value;
+        if(a != b) 
+        {
+            if (lazy[node*2] == 0)
+                lazy[node*2] = value;
+            if (lazy[node*2+1] == 0)
+                lazy[node*2+1] = value;
+        }
+
+        return;
+    }
+
+    update_tree(node*2, a, (a+b)/2, i, j, value);
+    update_tree(1+node*2, 1+(a+b)/2, b, i, j, value);
+}
+
+void query_tree(int node, int a, int b) 
+{
+    if(lazy[node] != 0) 
+    {
+        if (tree[node] == 0)
+            tree[node] = lazy[node];
+
+        if(a != b) 
+        {
+            if (lazy[node*2] == 0)
+                lazy[node*2] = lazy[node];
+            if (lazy[node*2+1] == 0)
+                lazy[node*2+1] = lazy[node];
+        }
+
+        lazy[node] = 0;
+    }
+
+    if (a == b)
+    {
+        if (tree[node] != -1)
+            ARR[a] = tree[node];
+        return;
+    }
+    query_tree(node*2, a, (a+b)/2);
+    query_tree(1+node*2, 1+(a+b)/2, b);
+}
+
+int main(int argc, char *argv[])
+{
+    //freopen("in", "r", stdin);
+    int n, m;
+    cin >> n >> m;
+
+    build_tree(1, 0, n-1);
+    for (int i = 0; i < m; i++)
+    {
+        int L, R, X;
+        cin >> L >> R >> X;
+        L--;
+        R--;
+        X--;
+        update_tree(1, 0, n-1, L, X-1, X+1);
+        update_tree(1, 0, n-1, X+1, R, X+1);
+    }
+    query_tree(1, 0, n-1);
+
+    for (int i = 0; i < n; i++)
+        cout << ARR[i] << " ";
+    cout << '\n';
+    return 0;
+}

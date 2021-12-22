@@ -1,0 +1,107 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 1003
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+#define ex 0.000001
+
+using namespace std;
+int n, m, a[mn][mn], sz[mn][mn], mark[mn][mn];
+int addX[] = {0, 0, -1, 1};
+int addY[] = {-1, 1, 0, 0};
+int table[mn][mn];
+pair<int, int> d[mn][mn];
+pair< int, pair<int, int> > val[mn * mn];
+long long k, num;
+
+pair<int, int> root(int x, int y)
+{
+    if (d[x][y].F)
+        return (d[x][y] = root(d[x][y].F, d[x][y].S));
+    return mp(x, y);
+}
+
+void setup()
+{
+    cin >> n >> m >> k;
+    FOR(i, 1, n)
+    FOR(j, 1, m)
+    {
+        cin >> a[i][j];
+        sz[i][j] = 1;
+        val[m * (i - 1) + j] = mp(a[i][j], mp(i, j));
+    }
+    sort(val + 1, val + m * n + 1);
+}
+
+void bfs(int x, int y, int w)
+{
+    if (num == 0)
+        return;
+    if (a[x][y] >= w)
+    {
+        table[x][y] = w;
+        num --;
+    }
+    mark[x][y] = 2;
+    FOR(i, 0, 3)
+    {
+        int _x = x + addX[i];
+        int _y = y + addY[i];
+        if (_x < 1 || _y < 1 || _x > n || _y > m || mark[_x][_y] == 2)
+            continue;
+        bfs(_x, _y, w);
+    }
+}
+
+void xuly()
+{
+    FORD(i, m * n, 1)
+    {
+        int x = val[i].S.F;
+        int y = val[i].S.S;
+        int w = val[i].F;
+        mark[x][y] = 1;
+        FOR(j, 0, 3)
+        {
+            int _x = x + addX[j];
+            int _y = y + addY[j];
+            if (!mark[_x][_y])
+                continue;
+            pair<int, int> rt = root(_x, _y);
+            if (rt == mp(x, y))
+                continue;
+            d[rt.F][rt.S] = mp(x, y);
+            sz[x][y] += sz[rt.F][rt.S];
+        }
+        if (k % w)
+            continue;
+        num = k / w;
+        if (num > sz[x][y])
+            continue;
+        bfs(x, y, w);
+        cout << "YES\n";
+        FOR(q, 1, n)
+        {
+            FOR(l, 1, m)
+                cout << table[q][l] << ' ';
+            cout << '\n';
+        }
+        return;
+    }
+    cout << "NO";
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

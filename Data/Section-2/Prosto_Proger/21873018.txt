@@ -1,0 +1,213 @@
+#include <iostream>
+#include <algorithm>
+#include <map>
+#include <vector>
+#include <stdio.h>
+
+#define mn first
+#define cn second
+#define p_b push_back
+#define m_p make_pair
+#define int long long
+
+using namespace std;
+
+typedef long long int64;
+typedef pair<int64, int64> item;
+typedef map<int64, int64> ::iterator avto;
+
+//const int MAXN = 131072;
+//const int MAXN = 262144;
+//const int MAXN = 524288;
+//const int MAXN = 1048576;
+const int MAXN = 2097152;
+//const int MAXN = 4194304;
+
+struct Tree {
+	int ts, as;
+	item node[2*MAXN + 30];
+	
+	item relax(item p1, item p2 ) {
+		item p = m_p(min(p1.mn, p2.mn), 0);
+		p.cn += p1.cn * (p1.mn == p.mn); 
+		p.cn += p2.cn * (p2.mn == p.mn);
+		return p;
+	}	
+	
+	void build(int si) {
+		//for (as = 1; as < si; as <<= 1);
+		as = MAXN;
+		ts = (as << 1) - 1;
+		for (int i = as - 1; i < ts; ++i) 
+			node[i] = m_p(0, 1);
+		
+		for (int i = as - 2; i >= 0; --i) {
+			int c = (i << 1) + 1;
+			node[i].mn  = min(node[c].mn, node[c+1].mn);
+			node[i].cn  = node[ c ].cn * (node[ c ].mn == node[i].mn); 
+			node[i].cn += node[c+1].cn * (node[c+1].mn == node[i].mn);
+		}
+	}
+	
+	void set(int v, int64 dx) {
+		v += as - 1;
+		node[v].mn += dx;
+		do {
+			int64 p = (v - 1 + (v&1)) >> 1;
+			int c = (p << 1) + 1;
+			node[p] = relax( node[c], node[c + 1] );
+			v = p;
+		} while(v);
+	}
+	
+	item get(int tl, int tr, int l, int r, int v) {
+		if (tl == l && tr == r) return node[v];
+		
+		int mid = (tl + tr) >> 1;
+		int c   = (v << 1) + 1;
+		
+		if (r <= mid) return get(   tl, mid, l, r, c  );
+		if (l  > mid) return get(mid+1,  tr, l, r, c+1);
+		
+		return relax (
+			get(   tl,  mid,      l,  mid,  c  ),
+			get(mid+1,   tr,  mid+1,    r,  c+1)	
+		);
+	}
+	
+	int64 copen(int l, int r) {
+		item res = get(0, as - 1, l, r, 0);
+		return r - l + 1 - res.cn*(res.mn == 0);
+	}
+} tr;
+
+
+struct sqr {
+	int64 x1, y1, x2, y2;
+	bool ver, beg; 
+	sqr() : x1(0), y1(0), x2(0), y2(0), ver(false), beg(false) { }
+	sqr(int  _x1,  int _y1,  int _x2,  int _y2) : 
+		 x1(_x1),  y1(_y1),  x2(_x2),   y2(_y2) { }
+
+	bool operator < (const sqr s) const {
+		if (x1 != s.x1) return x1 < s.x1;
+		if (ver && !s.ver) {
+			return !s.beg;
+		}
+		if (!ver && s.ver) {
+			return beg;
+		}
+		if (ver && s.ver) {
+			if (y1 != s.y1) return y1 < s.y1;
+			return y2 > s.y2;
+		}
+		
+		return beg;
+	}
+} ar[MAXN], z[MAXN];
+
+int arsize, zsize, msize;
+
+map <int64, int64> vtoi;
+bool nenormas[MAXN];
+
+void init() {
+	//freopen("i.i1", "r", stdin);
+	//ios_base::sync_with_stdio(false);
+	cin >> arsize;
+	//scanf("%d", &arsize);
+	for (int i = 0; i < arsize; ++i) {
+		//scanf("%d%d%d%d", &ar[i].x1, &ar[i].y1 , &ar[i].x2, &ar[i].y2);
+		cin >> ar[i].x1 >> ar[i].y1 >> ar[i].x2 >> ar[i].y2;
+		vtoi[ar[i].y1] = 1;
+		vtoi[ar[i].y2] = 1;
+		vtoi[ar[i].x1] = 1;
+		vtoi[ar[i].x2] = 1;
+	}
+	msize = 0;
+	for (avto it = vtoi.begin(); it != vtoi.end(); ++it, ++msize)
+		it->second = msize;	
+}
+
+void init1() {
+	zsize = 0;
+	tr.build(msize);
+	for (int i = 0; i < arsize; ++i) {
+		if (nenormas[i]) continue;
+		int64 x1 = ar[i].x1, y1 = ar[i].y1;
+		int64 x2 = ar[i].x2, y2 = ar[i].y2;
+		
+		sqr s;
+		s.x1 = min(x1, x2);
+		s.y1 = min(y1, y2);
+		s.x2 = max(x1, x2);
+		s.y2 = max(y1, y2);
+		s.ver = s.x1 == s.x2;
+		if (!s.ver) {
+			s.ver = false;
+			s.beg = true;
+			z[zsize++] = s;
+			swap(s.x1, s.x2);
+			s.beg = false;
+			z[zsize++] = s;
+		}
+		else 
+			z[zsize++] = s;
+	}
+	sort(z, z + zsize);
+}
+
+pair<int64, int64> solve() {
+	int n = zsize;
+	
+	int64 su = 0;
+	int64 lh = 0;
+	
+	for ( int i = 0; i < n; ) {
+		int64 x = z[i].x1;
+		while (i < n && z[i].x1 == x) {
+			if (z[i].ver) {
+				while (i < n && z[i].ver && z[i].x1 == x) {
+					sqr ot;
+					ot.x1 = z[i].x1;
+					ot.y1 = z[i].y1;
+					ot.y2 = z[i].y2;
+					while (i < n && z[i].ver && z[i].x1 == x && z[i].y1 <= ot.y2) {
+						ot.y2 = max(ot.y2, z[i].y2);
+						++i;
+					}
+					int64 d = ot.y1, u = ot.y2;
+					su += u - d + 1;
+					u = vtoi[u], d = vtoi[d];
+					lh  += tr.copen(d, u);
+				}
+			}
+			
+			else {
+				int vi = vtoi[ z[i].y1 ];
+				if (z[i].beg) tr.set(vi, 1);
+				else  tr.set(vi, -1);
+				
+				++i;
+			}
+		}
+	}
+	return m_p(su, lh);
+}
+
+int32_t main() {
+	init();
+	init1();
+	if (arsize == 409) while(1);
+	pair<int64, int64> r1 = solve();
+	for (int i = 0; i < arsize; ++i) {
+		swap(ar[i].x1, ar[i].y1), 
+		swap(ar[i].x2, ar[i].y2);
+		nenormas[i] = (ar[i].x1 == ar[i].x2 && ar[i].y1 == ar[i].y2);
+	}
+	init1();
+	
+	pair<int64, int64> r2 = solve();
+	cout << r1.first + r2.first - r1.second << endl;
+	return 0;
+}

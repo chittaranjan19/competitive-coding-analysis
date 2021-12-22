@@ -1,0 +1,216 @@
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <vector>
+#include <set>
+
+struct Task
+{
+    int id;    // Task ID
+    int limit; // Time limit
+    int tests; // Number of tests
+    int good;  // Good solutions
+    int sent;  // All solutions
+};
+
+struct Solution
+{
+    int id;     // Solution ID
+    int task;   // Number of task
+    int test;   // Number of last test
+    bool wrong; // Solution correctness
+};
+
+// Verdict types
+static const char *V_OK = "OK";
+static const char *V_RJ = "RJ";
+
+// Information about invokers
+int invokers_count;
+int invokers_free;
+
+// Information about tasks
+std::vector<Task> tasks;
+
+// Information about solutions
+std::vector<Solution> solutions;
+
+// Solutions queue
+std::set<int> queue;
+
+long long get_value(const Solution &solution)
+{
+    const Task &task = tasks[solution.task];
+
+    return task.limit * 1LL * (task.tests - solution.test);
+}
+
+inline void read_info()
+{
+    int tasks_count;
+
+    scanf("%d%d", &invokers_count, &tasks_count);
+
+    tasks.resize(tasks_count);
+
+    for (int i = 0; i < tasks_count; i++)
+    {
+        Task &task = tasks[i];
+
+        scanf("%d%d", &task.limit, &task.tests);
+        task.id = i;
+    }
+
+    invokers_free = invokers_count;
+}
+
+inline void accept_solutions()
+{
+    int task_id;
+
+    for (;;)
+    {
+        // Bug fix
+        if (scanf("%d", &task_id) == EOF)
+            exit(0);
+
+        // On end
+        if (task_id == -1)
+            break;
+
+        Solution solution;
+
+        solution.id = solutions.size();
+        solution.task = task_id;
+        solution.test = 0;
+        solution.wrong = false;
+
+        solutions.push_back(solution);
+
+        tasks[task_id].sent++;
+
+        queue.insert(solution.id);
+    }
+}
+
+inline void accept_verdicts()
+{
+    int solution_id, test_number;
+    char test_verdict[3];
+
+    for (;;)
+    {
+        scanf("%d%d", &solution_id, &test_number);
+
+        // On end
+        if (solution_id == -1 && test_number == -1)
+            break;
+
+        scanf("%*c%2s", test_verdict);
+
+        Solution &solution = solutions[solution_id];
+        Task &task = tasks[solution.task];
+
+        if (strcmp(test_verdict, V_OK) == 0)
+        {
+            // On "OK"
+            if (test_number + 1 >= task.tests)
+                task.good++;
+        }
+        else
+        {
+            // On "RJ"
+            solution.wrong = true;
+        }
+
+        invokers_free++;
+    }
+}
+
+inline void run_scheduler()
+{
+    // Very slow: O(invokers_free * queue.size())
+    while (invokers_free > 0)
+    {
+        std::vector<int> good, bad;
+
+        std::set<int>::iterator it;
+
+        for (it = queue.begin(); it != queue.end(); ++it)
+        {
+            Solution &solution = solutions[*it];
+            Task &task = tasks[solution.task];
+
+            if (!solution.wrong && solution.test < task.tests)
+                good.push_back(*it);
+            else
+                bad.push_back(*it);
+        }
+
+        while (!bad.empty())
+        {
+            queue.erase(bad.back());
+            bad.pop_back();
+        }
+
+        // Solve easy DP:
+
+        // (a + b)^3 = a^3 + (3 * a^2) * b + (3 * a) * b^2 + 1 * b^3
+        //                   ^ f1            ^ f2            ^ f3
+        long long f1 = 0, f2 = 0, f3 = good.size();
+
+        std::vector<int>::iterator jt;
+
+        for (jt = good.begin(); jt != good.end(); ++jt)
+        {
+            Solution &solution = solutions[*jt];
+
+            long long a = get_value(solution);
+
+            f1 += 3 * a * a;
+            f2 += 3 * a;
+        }
+
+        int fi = -1;
+        long long fw = 0;
+
+        for (jt = good.begin(); jt != good.end(); ++jt)
+        {
+            Solution &solution = solutions[*jt];
+
+            long long b = get_value(solution);
+            long long cw = ((f1 - 3 * b * b) + (f2 - 3 * b) + f3 * b * b) * b;
+
+            if (fi == -1 || cw < fw)
+                fi = (*jt), fw = cw;
+        }
+
+        if (fi == -1)
+            break;
+
+        Solution &solution = solutions[fi];
+        Task &task = tasks[solution.task];
+
+        printf("%d %d\n", solution.id, solution.test);
+
+        ++solution.test;
+        --invokers_free;
+    }
+
+    puts("-1 -1");
+    fflush(stdout);
+}
+
+int main(int argc, char *argv[])
+{
+    read_info();
+
+    while (!feof(stdin))
+    {
+        accept_solutions();
+        accept_verdicts();
+        run_scheduler();
+    }
+
+    return 0;
+}

@@ -1,0 +1,130 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 300010;
+
+vector<int> adj[maxn], dfstree;
+int depth[maxn], strt[maxn], en[maxn];
+int st[2][maxn*5], lazy[2][maxn*5];
+
+void dfs(int cur, int p, int d)
+{
+	depth[cur] = d;
+	strt[cur] = dfstree.size();
+	dfstree.pb(cur);
+	for(int it:adj[cur]){
+		if(it!=p)
+			dfs(it, cur, d+1);
+	}
+	en[cur] = dfstree.size()-1;
+}
+
+int add(int a, int b)
+{
+	int ret = (a+b)%mod;
+	return ret;
+}
+
+int mult(int a, int b)
+{
+	ll ret = a;
+	ret = (ret*b)%mod;
+	a = ret;
+	return a;
+}
+
+void propagate_down(int t, int s, int e, int node)
+{
+	if(lazy[t][node]){
+		st[t][node] = (st[t][node]+lazy[t][node])%mod;
+		if(s!=e){
+			int lc = 2*node + 1;
+			int rc = lc + 1;
+			lazy[t][lc] = (lazy[t][lc]+lazy[t][node])%mod;
+			lazy[t][rc] = (lazy[t][rc]+lazy[t][node])%mod;
+		}
+		lazy[t][node] = 0;
+	}
+	return;
+}
+
+void update(int t, int s, int e, int qs, int qe, int node, int val)
+{
+	propagate_down(t, s, e, node);
+	if(s>e || s>qe || qs>e)
+		return;
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	if(s>=qs && qe>=e){
+		st[t][node] = (st[t][node]+val)%mod;
+		if(s!=e){
+			lazy[t][lc] = (lazy[t][lc]+val)%mod;
+			lazy[t][rc] = (lazy[t][rc]+val)%mod;
+		}
+		return;
+	}
+	update(t, s, mid, qs, qe, lc, val);
+	update(t, mid+1, e, qs, qe, rc, val);
+	st[t][node] = (st[t][lc]+st[t][rc])%mod;
+}
+
+int query(int t, int s, int e, int qs, int qe, int node)
+{
+	propagate_down(t, s, e, node);
+	if(s>e || s>qe || qs>e)
+		return 0;
+	if(s>=qs && qe>=e)
+		return st[t][node];
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	return add(query(t, s, mid, qs, qe, lc), query(t, mid+1, e, qs, qe, rc));
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int q, t, u, v, x, k, ans, n, i, j;
+	int temp1, temp2;
+	scanf("%d", &n);
+	for(i=2; i<=n; i++){
+		scanf("%d", &u);
+		adj[u].pb(i);
+		adj[i].pb(u);
+	}
+	dfs(1, 0, 0);
+	scanf("%d", &q);
+	while(q--){
+		scanf("%d%d", &t, &v);
+		if(t==1){
+			scanf("%d%d", &x, &k);
+			update(0, 0, n-1, strt[v], en[v], 0, k);
+			update(1, 0, n-1, strt[v], en[v], 0, add(mult(depth[v], k), x));
+		}
+		else{
+			temp1 = query(0, 0, n-1, strt[v], strt[v], 0);
+			temp2 = query(1, 0, n-1, strt[v], strt[v], 0);
+			ans = (temp2 - mult(temp1, depth[v])+mod)%mod;
+			printf("%d\n", ans);
+		}
+	}
+	return 0;
+}

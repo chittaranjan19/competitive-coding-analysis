@@ -1,0 +1,89 @@
+#include<bits/stdc++.h>
+#define X first
+#define Y second
+using namespace std;
+pair<int,int> d[2][1005],p[2][1005];
+int a[10005],b[10005],c[10005];
+vector<pair<int,int> > vec[1005];
+priority_queue<tuple<int,int,int,int> > pq;
+int main()
+{
+    int n,m,l,s,t,e,w,u,i,op,f,kb;
+    scanf("%d%d%d%d%d",&n,&m,&l,&s,&t);
+    for(i=0;i<n;i++)
+        d[0][i]={1000000005,1000000005},d[1][i]={1000000005,1000000005};
+    for(i=1;i<=m;i++)
+    {
+        scanf("%d%d%d",&a[i],&b[i],&c[i]);
+        vec[a[i]].emplace_back(b[i],i);
+        vec[b[i]].emplace_back(a[i],i);
+    }
+    pq.emplace(0,0,0,s);
+    d[0][s]={0,0};
+    while(!pq.empty())
+    {
+        tie(e,w,op,u)=pq.top();
+        e*=-1;w*=-1;
+        pq.pop();
+
+
+        for(i=0;i<vec[u].size();i++)
+        {
+            if(c[vec[u][i].Y]==0)
+            {
+                if(d[1][vec[u][i].X].X>e+1||(d[1][vec[u][i].X].X==e+1&&d[1][vec[u][i].X].Y>w))
+                {
+                    d[1][vec[u][i].X]={e+1,w};
+                    p[1][vec[u][i].X]={op,vec[u][i].Y};
+                    pq.emplace(-(e+1),-w,1,vec[u][i].X);
+                }
+            }
+            else
+            {
+                if(d[op][vec[u][i].X].X>e||(d[op][vec[u][i].X].X==e&&d[op][vec[u][i].X].Y>w+c[vec[u][i].Y]))
+                {
+                    d[op][vec[u][i].X]={e,w+c[vec[u][i].Y]};
+                    p[op][vec[u][i].X]={op,vec[u][i].Y};
+                    pq.emplace(-e,-(w+c[vec[u][i].Y]),op,vec[u][i].X);
+                }
+            }
+        }
+    }
+    if(d[0][t].Y==l)
+    {
+        printf("YES\n");
+        for(i=1;i<=m;i++)
+        {
+            if(c[i]==0) printf("%d %d 1000000000000000000\n",a[i],b[i]);
+            else printf("%d %d %d\n",a[i],b[i],c[i]);
+        }
+        return (0-0);
+    }
+    if(d[0][t].Y<l||d[1][t].X+d[1][t].Y>l)
+    {
+        printf("NO\n");
+        return (0-0);
+    }
+    u=t;
+    op=1;
+    f=1;
+    while(u!=s)
+    {
+        if(c[p[op][u].Y]==0)
+        {
+            if(f) c[p[op][u].Y]=l-d[op][t].X-d[op][t].Y+1,f=0;
+            else c[p[op][u].Y]=1;
+        }
+        kb=op;
+        op=p[kb][u].X;
+        if(u==a[p[kb][u].Y]) u=b[p[kb][u].Y];
+        else u=a[p[kb][u].Y];
+    }
+    printf("YES\n");
+    for(i=1;i<=m;i++)
+    {
+        if(c[i]==0) printf("%d %d 1000000000000000000\n",a[i],b[i]);
+        else printf("%d %d %d\n",a[i],b[i],c[i]);
+    }
+
+}

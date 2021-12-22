@@ -1,0 +1,74 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1010;
+
+int N, A[MAXN];
+bool vis[MAXN];
+
+int getleft (int x, int info) {
+	while (--x) {
+		if (!vis[x] && A[x] <= info) {
+			return x;
+		}
+	}
+	return -1;
+}
+
+int getright (int x, int info) {
+	while (++x <= N) {
+		if (!vis[x] && A[x] <= info) {
+			return x;
+		}
+	}
+	return -1;
+}
+
+int solve (bool dir) {
+	fillchar(vis, false);
+	int cur = dir ? N + 1 : 0;
+	int ans = 0;
+	for (int hack = 0; hack < N; hack++) {
+		int nxt = -1;
+		if (dir) {
+			//get the left
+			nxt = getleft(cur, hack);
+			if (nxt == -1) {
+				ans++;
+				dir ^= true;
+				nxt = getright(cur, hack);
+			}
+		} else {
+			nxt = getright(cur, hack);
+			if (nxt == -1) {
+				ans++;
+				dir ^= true;
+				nxt = getleft(cur, hack);
+			}
+		}
+		assert(nxt != -1);
+		vis[cur = nxt] = true;
+	}
+	return ans;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 1; i <= N; i++) {
+		cin >> A[i];
+	}
+	//whoops next to computer 1...
+	cout << solve(false) << endl;
+}

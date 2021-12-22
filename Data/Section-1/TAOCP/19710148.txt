@@ -1,0 +1,139 @@
+/*
+*Rainto96
+*Beijing University of Posts and Telecommunications School of Software
+Engineering
+*http://blog.csdn.net/u011775691
+*/
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <queue>
+#include <cstring>
+#include <string>
+#include <cmath>
+#include <set>
+#include <map>
+#include <vector>
+#include <climits>
+#include <bitset>
+using namespace std;
+#define pb push_back
+#define ALL(x) x.begin(),x.end()
+#define PII pair<int,int>
+#define MP(x,y) make_pair((x),(y))
+#define ll long long
+#define ull unsigned ll
+#define scan(x) scanf("%d",&(x))
+#define scan2(x,y) scanf("%d%d",&(x),&(y))
+#define scan3(x,y,z) scanf("%d%d%d",&(x),&(y),&(z))
+#define scan4(x,y,z,k) scanf("%d%d%d%d",&(x),&(y),&(z),&(k))
+#define Max(a,b) a=max(a,b)
+#define Min(a,b) a=min(a,b)
+#define fuck(x) cout<<#x<<" "<<x<<endl
+
+const ll MX = 5055;
+ll g[MX][MX], x[MX], a[MX], b[MX], c[MX], d[MX];
+struct Node{
+    ll pre,nxt,val;
+}nd[MX];
+void link(ll i, ll j){
+    nd[i].nxt = j;
+    nd[j].pre = i;
+}
+inline void insert(ll i,ll j,ll k){
+    nd[i].nxt = j;
+    nd[j].nxt = k;
+    nd[k].pre = j;
+    nd[j].pre = i;
+}
+inline void cut(ll i,ll j,ll k){
+    nd[i].nxt = k;
+    nd[k].pre = i;
+    nd[j].pre = nd[j].nxt = -1;
+}
+
+int main(){
+	//freopen("/home/rainto96/in.txt","r",stdin);
+	ll n,s,e;
+	cin>>n>>s>>e;
+	for(ll i=1;i<=n;i++){
+        cin>>x[i];
+	}
+	for(ll i=1;i<=n;i++){
+        cin>>a[i];
+	}
+	for(ll i=1;i<=n;i++){
+        cin>>b[i];
+	}
+	for(ll i=1;i<=n;i++){
+        cin>>c[i];
+	}
+	for(ll i=1;i<=n;i++){
+        cin>>d[i];
+	}
+	for(ll i=1;i<=n;i++){
+        for(ll j=1;j<=n;j++){
+            if(i==j) continue;
+            else{
+                if(j<i) g[i][j] = abs(x[i] - x[j]) + c[i] + b[j];
+                else g[i][j] = abs(x[i] - x[j]) + d[i] + a[j];
+            }
+        }
+	}
+	if(n==2){
+        ll sum =g[s][e];
+        cout<<sum<<endl;
+        return 0;
+	}else if(n==3){
+        ll sum =g[s][6-s-e] + g[6-s-e][e];
+        cout<<sum<<endl;
+        return 0;
+	}
+	vector<ll> vc;
+	vc.pb(s);
+    ll sum=0;
+    for(ll i=1;i<=n;i++){
+        if(i==s || i==e) continue;
+        vc.pb(i);
+    }
+    vc.pb(e);
+    for(ll i=1;i<vc.size();i++){
+        sum += g[vc[i-1]][vc[i]];
+    }
+    nd[0] = (Node){-1,-1,s};
+    for(ll i=1;i<vc.size();i++){
+        nd[i] = (Node){-1,-1,vc[i]};
+        link(i-1,i);
+    }
+    ll lastsum = sum;
+    ll times = 25000000;
+    //ll times = 100000;
+    while(times--){
+        bool con=false;
+        for(ll i=1;i+1<n;i++){
+            ll id1 = nd[nd[i].pre].val, cur = nd[i].val, id3 = nd[nd[i].nxt].val;
+            ll ori = g[id1][cur] + g[cur][id3] - g[id1][id3];
+            ll minn = 0x7fffffffffffffffLL;
+            ll mid = -1;
+            cut(nd[i].pre,i,nd[i].nxt);
+            for(ll j=0;nd[j].nxt != -1;j=nd[j].nxt){
+                ll id1 = nd[j].val, id3 = nd[nd[j].nxt].val;
+                if(-ori + g[id1][cur] + g[cur][id3] - g[id1][id3] < minn){
+                    minn = -ori + g[id1][cur] + g[cur][id3]  - g[id1][id3];
+                    mid = j;
+                }
+            }
+            insert(mid, i, nd[mid].nxt);
+            sum = sum + minn;
+            if(sum < lastsum) {
+                lastsum = sum;
+                con=true;
+                break;
+            }
+        }
+        if(con) continue;
+        else break;
+    }
+    cout<<sum<<endl;
+    return 0;
+}

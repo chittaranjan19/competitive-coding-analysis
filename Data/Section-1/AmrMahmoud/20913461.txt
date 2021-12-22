@@ -1,0 +1,154 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-5
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<pair<int, int> > g[100005];
+int p[100005], sz[100005], m;
+bool done[100005];
+
+int EulerPhi(int n)
+{
+  int ans = n;
+  for(int i=2;i <= n / i;i++)
+  {
+    if(n % i == 0)
+      ans = ans - (ans / i);
+    while(n % i == 0)
+      n /= i;
+  }
+  if(n != 1)
+    ans = ans - (ans / n);
+  return ans;
+}
+
+int power(int a, int b)
+{
+  if(b == 0) return 1;
+  int temp = power(a, b / 2);
+  temp = (temp * 1LL * temp) % m;
+  if(b & 1) temp = (temp * 1LL * a) % m;
+  return temp;
+}
+
+int dfs(int node, int parent = -1)
+{
+  sz[node] = 1;
+  for(int i=0;i<g[node].size();i++)
+  {
+    if(g[node][i].f == parent || done[g[node][i].f]) continue;
+    sz[node] += dfs(g[node][i].f, node);
+  }
+  return sz[node];
+}
+
+int findcenter(int node, int parent, int total)
+{
+  int ans = -1, x;
+  if(sz[node] > total) ans = node;
+  for(int i=0;i<g[node].size();i++)
+  {
+    if(g[node][i].f == parent || done[g[node][i].f]) continue;
+    x = findcenter(g[node][i].f, node, total);
+    if(x != -1 && (ans == -1 || sz[ans] > sz[x]))
+      ans = x;
+  }
+  return ans;
+}
+
+vector<int> m1, m2;
+
+void calc(int node, int parent, int down, int up, int po, int depth = 1)
+{
+  m1.pb(up);
+  m2.pb((down * 1LL * p[depth]) % m);
+  for(pair<int, int> pa : g[node])
+  {
+    if(done[pa.f] || pa.f == parent) continue;
+    calc(pa.f, node, (down * 10LL + pa.s) % m, (up + pa.s * 1LL * po) % m, (po * 10LL) % m, depth + 1);
+  }
+}
+
+LL solve(int node)
+{
+  LL ans = 0;
+  dfs(node);
+  if(sz[node] == 1) return 0;
+  int center = findcenter(node, -1, sz[node] / 2);
+  done[center] = true;
+  map<int, int> up, tmp;
+  vector<int> down;
+  for(int i=0;i<g[center].size();i++)
+  {
+    if(done[g[center][i].f]) continue;
+    m1.clear();
+    m2.clear();
+    tmp.clear();
+    calc(g[center][i].f, center, g[center][i].s % m, g[center][i].s % m, 10 % m);
+    for(int p : m1)
+      up[p]++, tmp[p]++;
+    for(int p : m2)
+    {
+      down.pb(p);
+      if(p == 0) ans++;
+      int x = m - p;
+      if(x == m) x = 0;
+      if(tmp.find(x) != tmp.end())
+        ans -= tmp[x];
+    }
+  }
+  ans += up[0];
+  for(int p : down)
+  {
+    int x = m - p;
+    if(x == m) x = 0;
+    if(up.find(x) != up.end())
+      ans += up[x];
+  }
+  up.clear();
+  down.clear();
+  tmp.clear();
+  for(int i=0;i<g[center].size();i++)
+  {
+    if(done[g[center][i].f]) continue;
+    ans += solve(g[center][i].f);
+  }
+  return ans;
+}
+
+int main()
+{
+  int n, x, y, z;
+  cin >> n >> m;
+  if(m == 1)
+  {
+    cout << n * 1LL * (n - 1);
+    return 0;
+  }
+  for(int i=0;i<n-1;i++)
+  {
+    scanf("%d %d %d", &x, &y, &z);
+    g[x].pb(mp(y, z));
+    g[y].pb(mp(x, z));
+  }
+  p[0] = 1;
+  p[1] = power(10 % m, EulerPhi(m) - 1);
+  for(int i=2;i<=n;i++)
+    p[i] = (p[i - 1] * 1LL * p[1]) % m;
+  cout << solve(0);
+  return 0;
+}

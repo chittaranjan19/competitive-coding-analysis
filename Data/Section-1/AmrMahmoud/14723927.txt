@@ -1,0 +1,184 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<int> g[100005];
+
+struct disjointset
+{
+	vector<int> rank, parent, sz;
+	int subtrees;
+
+	disjointset(int n)
+	{
+		subtrees = n;
+		for(int i=0;i<n;i++)
+			rank.pb(1),parent.pb(i), sz.pb(1);
+	}
+
+	int find_set(int x)
+	{
+		if(x == parent[x])
+			return x;
+		return parent[x] = find_set(parent[x]);
+	}
+
+	void link(int x,int y)
+	{
+		if(rank[x] > rank[y])
+			swap(x, y);
+		parent[x] = y;
+		g[y].pb(x);
+		sz[y] += sz[x];
+		if(rank[x] == rank[y])
+			rank[y]++;
+	}
+
+	bool union_sets(int x,int y)
+	{
+		x = find_set(x),y = find_set(y);
+		if(x != y)
+		{
+			link(x,y);
+			subtrees--;
+		}
+		return x != y;
+	}
+
+	bool same_set(int x,int y)
+	{
+		return find_set(x) == find_set(y);
+	}
+};
+
+pair<pair<int, bool>, int> arr[100005];
+
+bool sorter(pair<pair<int, bool>, int> a, pair<pair<int, bool>, int> b)
+{
+  if(a.f.f == b.f.f) return a.f.s > b.f.s;
+  return a.f.f < b.f.f;
+}
+
+vector<int> want[100005];
+pair<int, int> res[100005];
+set<pair<LL, int> > s, all;
+vector<int> v;
+set<pair<int, int> > done;
+
+void get(int node, int parent, int root)
+{
+  for(int j=0;j<v.size() && want[root].size();j++)
+  {
+    if(parent == v[j] || done.find(mp(node, v[j])) != done.end()) continue;
+    int x = want[root].back();
+    want[root].pop_back();
+    res[arr[x].s] = mp(node, v[j]);
+    done.insert(mp(node, v[j]));
+    done.insert(mp(v[j], node));
+  }
+  if(!want[root].size()) return;
+  v.pb(node);
+  for(int i=0;i<g[node].size() && want[root].size();i++)
+    get(g[node][i], node, root);
+}
+
+int main()
+{
+  //freopen("seaport.in", "r", stdin);
+  //freopen("seaport.out", "w", stdout);
+  int n, m;
+  scanf("%d %d", &n, &m);
+  disjointset tmp(n + 2);
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d %d", &arr[i].f.f, &arr[i].f.s);
+    arr[i].s = i;
+  }
+  sort(arr, arr + m, sorter);
+  for(int i=0;i<n;i++)
+    all.insert(mp(0, i));
+  bool test = true;
+  for(int i=0;i<m && test;i++)
+  {
+    if(!arr[i].f.s)
+    {
+      if(!s.size()) test = false;
+      else
+      {
+        pair<LL, int> x = *(s.begin());
+        s.erase(x);
+        all.erase(x);
+        x.f--;
+        want[x.s].pb(i);
+        all.insert(x);
+        if(x.f) s.insert(x);
+      }
+    }
+    else
+    {
+      pair<LL, int> x = *(all.begin());
+      all.erase(x);
+      if(x.f) s.erase(x);
+      pair<LL, int> y = *(all.begin());
+      all.erase(y);
+      if(y.f) s.erase(y);
+      x.s = tmp.find_set(x.s);
+      y.s = tmp.find_set(y.s);
+      get(x.s, x.s, x.s);
+      get(y.s, y.s, y.s);
+      pair<LL, int> z;
+      z.f = x.f + y.f + (tmp.sz[x.s] * 1LL * tmp.sz[y.s]) - 1;
+      tmp.union_sets(x.s, y.s);
+      done.insert(mp(x.s, y.s));
+      done.insert(mp(y.s, x.s));
+      z.s = tmp.find_set(x.s);
+      res[arr[i].s] = mp(x.s, y.s);
+      all.insert(z);
+      if(z.f) s.insert(z);
+    }
+  }
+  for(int i=0;i<n && test;i++)
+    get(i, i, i);
+  if(!test)
+  {
+    printf("-1");
+    return 0;
+  }
+  for(int i=0;i<m;i++)
+    printf("%d %d\n", res[i].f + 1, res[i].s + 1);
+  return 0;
+}

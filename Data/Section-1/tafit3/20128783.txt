@@ -1,0 +1,169 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+
+public class ProblemD3 {
+    public static final String IMP = "Impossible";
+    BufferedReader rd;
+
+    ProblemD3() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        long[] a = longarr();
+        out(solve(a));
+    }
+
+    private String solve(long[] a) {
+        if(a[0] != 0 || a[3] != 0) {
+            if(a[1] == 0 && a[2] == 0) {
+                if (a[0] == 0) {
+                    Long ones = count(a[3]);
+                    if (ones != null) {
+                        return rep('1', ones);
+                    }
+                } else if (a[3] == 0) {
+                    Long zeros = count(a[0]);
+                    if (zeros != null) {
+                        return rep('0', zeros);
+                    }
+                }
+            }
+
+            Long zeros = count(a[0]);
+            Long ones = count(a[3]);
+            if (zeros != null && ones != null) {
+                long s = a[1] + a[2];
+                if (zeros * ones == s) {
+                    return solve(zeros, ones, a[1], a[2]);
+                }
+            }
+        } else if(a[1] == 0 && a[2] == 0) {
+            return "0";
+        } else if(a[1] == 0 && a[2] == 1) {
+            return "10";
+        } else if(a[1] == 1 && a[2] == 0) {
+            return "01";
+        }
+        return IMP;
+    }
+
+    private String rep(char x, long c) {
+        int len = (int)c;
+        char[] v = new char[len];
+        Arrays.fill(v,x);
+        return new String(v);
+    }
+
+    private String solve(long zeros, long ones, long a01, long a10) {
+        int len = (int)(zeros + ones);
+        char[] c = new char[len];
+        long u = a01 / zeros;
+        int p = len-1;
+        int d = 0;
+        int firstOne = -Integer.MAX_VALUE / 3;
+        while(p >= 0) {
+            if(d < u) {
+                c[p] = '1';
+            } else if(d < u + zeros) {
+                c[p] = '0';
+            } else {
+                firstOne = Math.max(firstOne, p);
+                c[p] = '1';
+            }
+            p--;
+            d++;
+        }
+        int v = (int)(a01 % zeros);
+        if(v != 0) {
+            int dest = firstOne + v;
+            c[dest] = '1';
+            c[firstOne] = '0';
+        }
+        return new String(c);
+    }
+
+    private Long count(long x) {
+        for(long u=1;u<=1000000;u++) {
+            long d = (u*(u-1))/2;
+            if(d == x) {
+                return u;
+            }
+        }
+        return null;
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD3();
+    }
+}

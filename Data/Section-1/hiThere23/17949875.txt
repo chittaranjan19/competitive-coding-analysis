@@ -1,0 +1,131 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define maxC 2000000007
+#define mn 100005
+#define pb push_back
+#define mp make_pair
+#define base 29
+
+using namespace std;
+int n, a[mn], p[mn][20], h[mn], node[mn], temp[mn];
+map<int, int> Map;
+struct bitTree
+{
+    int tree[mn];
+
+    void update(int x)
+    {
+        for(; x < mn; x += (x & (-x)))
+            tree[x] ++;
+    }
+
+    int get(int x)
+    {
+        int re = 0;
+        for(; x; x -= (x & (-x)))
+            re += tree[x];
+        return re;
+    }
+} t;
+
+void setup()
+{
+    cin >> n;
+    FOR(i, 1, n)
+    {
+        cin >> a[i];
+        temp[i] = a[i];
+    }
+    sort(temp + 1, temp + n + 1);
+    FOR(i, 1, n)
+        Map[temp[i]] = i;
+    FOR(i, 1, n)
+        a[i] = Map[a[i]];
+}
+
+int lca(int a, int b)
+{
+    if (h[a] > h[b])
+        swap(a, b);
+    int dif = h[b] - h[a];
+    FOR(i, 0, 17)
+    if ((dif >> i) & 1)
+        b = p[b][i];
+    if (a == b)
+        return a;
+    FORD(i, 17, 0)
+    if (p[a][i] != p[b][i])
+    {
+        a = p[a][i];
+        b = p[b][i];
+    }
+    return p[a][0];
+}
+
+void attach(int u, int v)
+{
+    cout << Map[v] << ' ';
+    h[u] = h[node[v]] + 1;
+    p[u][0] = node[v];
+    FOR(j, 1, 17)
+        p[u][j] = p[p[u][j - 1]][j - 1];
+}
+
+void xuly()
+{
+    node[a[1]] = 1;
+    h[1] = 1;
+    t.update(a[1]);
+    FOR(i, 2, n)
+    {
+        node[a[i]] = i;
+        int x = t.get(a[i]);
+        int l = -1, r = n + 1;
+        while(r - l > 1)
+        {
+            int g = (l + r) / 2;
+            if (t.get(g) < x)
+                l = g;
+            else
+                r = g;
+        }
+        int lef = r;
+        l = 0, r = n + 1;
+        while(r - l > 1)
+        {
+            int g = ((l + r) >> 1);
+            if (t.get(g) > x)
+                r = g;
+            else
+                l = g;
+        }
+        int rig = r;
+        t.update(a[i]);
+        if (lef == 0)
+        {
+            attach(i, rig);
+            continue;
+        }
+        if (rig == n + 1)
+        {
+            attach(i, lef);
+            continue;
+        }
+        int k = a[lca(node[lef], node[rig])];
+        if (k > a[i])
+            attach(i, lef);
+        else
+            attach(i, rig);
+    }
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

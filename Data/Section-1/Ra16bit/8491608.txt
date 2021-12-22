@@ -1,0 +1,55 @@
+#include <cstdio>
+#include <set>
+using namespace std;
+typedef set<pair<int,int> > sp;
+typedef sp::iterator spi;
+int n,i,r,x[100100],y[100100];
+sp sx,sy;
+pair<int,int> mp(int i, int c) {
+  return make_pair(c?x[i]:y[i],i);
+}
+void solve(sp& sx, sp& sy, int cnt) {
+  if (cnt==2) { r++; return; }
+  sp zx,zy;
+  for (spi it=sx.begin(), jt=--sx.end(); it!=jt; --jt) {
+    spi nxt=it; nxt++;
+    if (nxt->first>it->first+1) {
+      for (spi ii=sx.begin(); ii!=nxt; ii++) {
+        zx.insert(*ii);
+        spi cur=sy.find(mp(ii->second,cnt));
+        zy.insert(*cur);
+        sy.erase(cur);
+      }
+      for (spi ii=zx.begin(); ii!=zx.end(); ii++) sx.erase(*ii);
+      solve(sx,sy,0);
+      solve(zx,zy,0);
+      return;
+    }
+    if (++it==jt) break;
+    nxt=jt; nxt--;
+    if (nxt->first<jt->first-1) {
+      for (spi ii=--sx.end(); ii!=nxt; ii--) {
+        zx.insert(*ii);
+        spi cur=sy.find(mp(ii->second,cnt));
+        zy.insert(*cur);
+        sy.erase(cur);
+      }
+      for (spi ii=zx.begin(); ii!=zx.end(); ii++) sx.erase(*ii);
+      solve(sx,sy,0);
+      solve(zx,zy,0);
+      return;
+    }
+  }
+  solve(sy,sx,cnt+1);
+}
+int main() {
+  scanf("%d",&n);
+  for (i=0; i<n; i++) {
+    scanf("%d%d",&x[i],&y[i]);
+    sx.insert(make_pair(x[i],i));
+    sy.insert(make_pair(y[i],i));
+  }
+  solve(sx,sy,0);
+  printf("%d\n",r);
+  return 0;
+}

@@ -1,0 +1,94 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 13;
+
+void setmin (int &a, int b) {
+	if (a > b) {
+		a = b;
+	}
+}
+
+void setmax (int &a, int b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+int N, R[MAXN];
+vector<int> adj[MAXN];
+int best[MAXN], least[MAXN];
+int ans;
+
+void dfs (int x, int p) {
+	setmax(ans, best[x]);
+	rep(it, adj[x]) {
+		int t = *it;
+		if (t != p) {
+			int ind = lower_bound(least, least + MAXN, R[t]) - least;
+			best[t] = ind;
+			int &ref = least[ind], temp = ref;
+			setmin(ref, R[t]);
+			dfs(t, x);
+			ref = temp;
+		}
+	}
+}
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces490F.in", "r", stdin);
+#endif
+	scanf("%d", &N);
+	for (int i = 1; i <= N; i++) {
+		scanf("%d", &R[i]);
+	}
+	for (int i = 1, a, b; i < N; i++) {
+		scanf("%d %d", &a, &b);
+		adj[a].push_back(b);
+		adj[b].push_back(a);
+	}
+	memset(least, 63, sizeof(least));
+	for (int i = 1; i <= N; i++) {
+		best[i] = 1;
+		least[1] = R[i];
+		dfs(i, -1);
+		least[1] = 0x3f3f3f3f;
+	}
+	printf("%d\n", ans);
+}

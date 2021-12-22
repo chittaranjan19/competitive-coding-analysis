@@ -1,0 +1,61 @@
+program j01;
+type xx=record
+          num,id,nm:longint;
+        end;
+var heap:array[0..200086]of xx;
+    ans:array[0..200086]of longint;
+    x,k,n,i:longint;
+    bo:boolean;
+
+procedure swap(var a,b:xx);
+var c:xx;
+begin
+  c:=a;a:=b;b:=c;
+end;
+
+procedure build(i:longint);
+begin
+  while i>1 do
+  begin
+    if heap[i].num<heap[i div 2].num then swap(heap[i],heap[i div 2])
+    else exit;
+    i:=i div 2;
+  end;
+end;
+
+procedure new(i:longint);
+begin
+  while i*2<=n do
+  begin
+    i:=i*2;
+    if (i+1<n)and(heap[i+1].num<heap[i].num) then inc(i);
+    if heap[i].num<heap[i div 2].num then swap(heap[i],heap[i div 2])
+    else exit;
+  end;
+end;
+
+begin
+  readln(n,k,x);
+  bo:=true;
+  for i:=1 to n do
+  begin
+    read(heap[i].nm);
+    bo:=bo xor (heap[i].nm<0);
+    heap[i].num:=abs(heap[i].nm);
+    heap[i].id:=i;
+    build(i);
+  end;
+  for i:=1 to k do
+  begin
+    if bo then dec(heap[1].nm,x) else inc(heap[1].nm,x);
+    bo:=bo xor (heap[i].nm<0);
+    heap[i].num:=abs(heap[i].nm);
+    swap(heap[1],heap[n]);
+    dec(n);
+    new(1);
+    inc(n);
+    build(n);
+  end;
+  for i:=1 to n do ans[heap[i].id]:=heap[i].nm;
+  for i:=1 to n do write(ans[i],' ');
+end.

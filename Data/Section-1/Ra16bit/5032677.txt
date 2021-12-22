@@ -1,0 +1,58 @@
+#include <cstdio>
+#include <set>
+#include <algorithm>
+using namespace std;
+set<pair<int,int> > ss;
+int num,i,j,k,n,x,b[1111111][27],cnt[1111111],wh[1111111],e[1111111],f[1111111],qx[1111111],qy[1111111],qz[1111111],ff[22][22],fi,fr;
+char s[22][22];
+bool w[1111111],u[1111111];
+void add(int k, int i, int j) {
+  int c=s[i][j]-'a';
+  if (b[k][c]==0) b[k][c]=++num;
+  cnt[b[k][c]]++; wh[b[k][c]]=fr;
+  qx[fr]=i; qy[fr]=j; qz[fr++]=b[k][c];
+}
+void dfs(int i) {
+  if (cnt[i]==1) { f[i]=ff[qx[wh[i]]][qy[wh[i]]]; return; }
+  if (u[i]) return;
+  for (int j=0; j<26; j++) if (b[i][j]!=0) {
+    dfs(b[i][j]);
+    if (!u[i]) {
+      u[i]=true;
+      f[i]=f[b[i][j]];
+    } else if (w[i]) f[i]=max(f[i],f[b[i][j]]); else f[i]=min(f[i],f[b[i][j]]);
+  }
+  u[i]=true;
+  f[i]+=e[i];
+}
+int main() {
+  scanf("%d",&n);
+  for (i=0; i<n; i++) scanf("%s",s[i]);
+  e[0]=int(s[0][0]=='a')-int(s[0][0]=='b');
+  for (i=n-1; i>=0; i--) for (j=n-1; j>=0; j--) {
+    bool fi=((i+j)&1);
+    if (i==n-1) {
+      if (j<n-1) x=ff[i][j+1]; else x=0;
+    } else {
+      x=ff[i+1][j];
+      if (j<n-1) {
+        if (fi) x=max(x,ff[i][j+1]); else x=min(x,ff[i][j+1]);
+      }
+    }
+    ff[i][j]=x+int(s[i][j]=='a')-int(s[i][j]=='b');
+  }
+  fi=0; fr=1;
+  while (fi<fr) {
+    i=qx[fi];  j=qy[fi]; k=qz[fi++]; 
+    if (cnt[k]==1) continue;
+    if (ss.find(make_pair(k,i*100+j))!=ss.end()) continue;
+    w[k]=(i+j)&1;
+    ss.insert(make_pair(k,i*100+j));
+    e[k]=int(s[i][j]=='a')-int(s[i][j]=='b');
+    if (i<n-1) add(k,i+1,j);
+    if (j<n-1) add(k,i,j+1);
+  }
+  dfs(0);
+  if (f[0]==0) puts("DRAW"); else puts(f[0]>0?"FIRST":"SECOND");
+  return 0;
+}

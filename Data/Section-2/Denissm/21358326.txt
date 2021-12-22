@@ -1,0 +1,67 @@
+#include <stdio.h>
+#include <vector>
+#include <string.h>
+#include <queue>
+#include <algorithm>
+using namespace std;
+typedef unsigned long long ull;
+typedef long long ll;
+
+int INF = 1000000002;
+
+struct Pair {
+    int first;
+    int second;
+    Pair(){}
+    Pair(int first, int second): first(first), second(second){}
+    bool operator>(const Pair &other) const {
+        return first > other.first;
+    }
+
+    bool operator<(const Pair &other) const {
+        return first < other.first;
+    }
+};
+
+Pair light_segments[100002];
+
+int main() {
+    int l, n, p, t;
+    scanf("%d %d %d %d", &l, &n, &p, &t);
+    for (int i = 0; i < n; i++) {
+        scanf("%d %d", &light_segments[i].first, &light_segments[i].second);
+    }
+    sort(light_segments, light_segments + n);
+    int dist, dist1;
+    int rem;
+    int result = 0;
+    for (int i = 0; i < n - 1; i++) {
+        dist = light_segments[i].second - light_segments[i].first;
+        if (dist == 0 && p == 1) {
+            result++;
+            continue;
+        }
+        if (dist < p) {
+            if (i != 0) {
+                light_segments[i] = light_segments[i - 1];
+            } else {
+                light_segments[i].second = 0;
+            }
+        } else {
+            rem = (light_segments[i].second - light_segments[i].first) % p;
+            light_segments[i].second -= rem;
+            result += dist / p;
+            dist = light_segments[i + 1].first - light_segments[i].second;
+            if (dist < t) {
+                light_segments[i + 1].first += t - dist;
+            }
+        }
+    }
+    if (light_segments[n - 1].second - light_segments[n - 1].first > p) {
+        result += (light_segments[n - 1].second - light_segments[n - 1].first) / p;
+    } else if (light_segments[n - 1].second == light_segments[n - 1].first && p == 1) {
+        result++;
+    }
+    printf("%d", result);
+	return 0;
+}

@@ -1,0 +1,60 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#define ls rt << 1
+#define rs rt << 1 | 1
+#define lson rt << 1, l, m
+#define rson rt << 1 | 1, m + 1, r
+
+using namespace std;
+
+const int maxn = 2e5 + 5;
+
+struct segtree
+{
+    int node[maxn << 2];
+
+    void pushup(int rt)
+    {
+        node[rt] = node[ls] == node[rs] ? node[ls] : -1;
+    }
+
+    void build(int rt, int l, int r)
+    {
+        if(l == r)
+        {
+            scanf("%d", node + rt);
+            return;
+        }
+        int m = (l + r) >> 1;
+        build(lson);
+        build(rson);
+        pushup(rt);
+    }
+
+    int query(int rt, int l, int r, int x, int y, int c)
+    {
+        if(~node[rt] && node[rt] == c) return -1;
+        if(l == r) return l;
+        int m = (l + r) >> 1, ret = -1;
+        if(x <= m) ret = query(lson, x, y, c);
+        if(m < y && ret == -1) ret = query(rson, x, y, c);
+        return ret;
+    }
+} tree;
+
+int main()
+{
+    int n, q;
+    while(~scanf("%d%d", &n, &q))
+    {
+        tree.build(1, 1, n);
+        while(q--)
+        {
+            int l, r, c;
+            scanf("%d%d%d", &l, &r, &c);
+            printf("%d\n", tree.query(1, 1, n, l, r, c));
+        }
+    }
+    return 0;
+}

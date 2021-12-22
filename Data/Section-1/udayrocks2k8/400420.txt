@@ -1,0 +1,79 @@
+#include<cstdio>
+#include<map>
+#include<string>
+#include<vector>
+#include<iostream>
+#include<algorithm>
+using namespace std;
+bool likes[7][7];
+int getlikes(int p)
+{
+	int ans=0;
+	for(int i=0;i<7;i++)
+	if(p&(1<<i))
+	for(int j=0;j<7;j++)
+	if(p&(1<<j))
+	ans+=likes[i][j];
+	return ans;
+}
+typedef pair<long long int,int> pii;
+#define x first
+#define y second
+bool cmp(pii a,pii b)
+{
+	if(a.x==b.x) return a.y<b.y;
+	return a.x>b.x;
+}
+long long int mod(long long int a)
+{
+	return a<0?-a:a;
+}
+
+int main()
+{
+	map<string,int> mp;
+	mp["Anka"]=0;
+	mp["Chapay"]=1;
+	mp["Cleo"]=2;
+	mp["Troll"]=3;
+	mp["Dracul"]=4;
+	mp["Snowy"]=5;
+	mp["Hexadecimal"]=6;
+
+	int n;
+	scanf("%d",&n);
+	string st1,dump,st2;
+	while(n--)
+	{
+		cin>>st1;
+		cin>>dump;
+		cin>>st2;
+		likes[mp[st1]][mp[st2]]=true;
+	}
+	long long int a,b,c;
+	int l0,l1,l2;
+	scanf("%lld%lld%lld",&a,&b,&c);
+	vector<pii> ans;
+	int bc[1<<7];
+	bc[0]=0;
+	for(int i=1;i<(1<<7);i++)
+	bc[i]=bc[i&(i-1)]+1;
+	for(int i=1;i<(1<<7);i++)
+	for(int j=1;j<(1<<7);j++)
+	if((i&j)==0)
+	{
+
+		int k=((1<<7)-1)^(i|j);
+		if(k==0) continue;
+		l0=getlikes(i);
+		l1=getlikes(j);
+		l2=getlikes(k);
+		long long int mini=mod(a/bc[i]-b/bc[j]);
+		mini=max(mini,mod(b/bc[j]-c/bc[k]));
+		mini=max(mini,mod(c/bc[k]-a/bc[i]));
+		ans.push_back(pii(mini,l0+l1+l2));
+	}
+	pii ab=*max_element(ans.begin(),ans.end(),cmp);
+	cout<<ab.x<<" "<<ab.y<<endl;
+	return 0;
+}

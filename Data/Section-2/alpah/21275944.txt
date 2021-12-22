@@ -1,0 +1,110 @@
+#include <cstdio>
+#include <vector>
+using namespace std;
+
+int G[200010], s, t, ds, dt, n, m, z=0;
+vector<int> E[200010];
+vector<pair<int, int>> R;
+
+int find(int x){
+	if(G[x]==x)
+		return x;
+	G[x]=find(G[x]);
+	return G[x];
+}
+void unite(int x, int y){
+	if(find(x)!=find(y))
+		G[G[x]]=G[y];
+}
+pair<int, int> dfs(int v, int p){
+	pair<int, int> res (0, 0);
+	for(auto i : E[v]){
+		if(i==s)
+			res.first = v;
+		else if(i==t)
+			res.second = v;
+		else if(i!=p&&find(i)==i&&i!=G[v]){
+			unite(i, v);
+			pair<int, int> tmp (dfs(i, v));
+			if(tmp.first!=0)	res.first=tmp.first;
+			if(tmp.second!=0)	res.second=tmp.second;
+			R.push_back(pair<int, int>(i, v));
+		}
+	}
+	return res;
+}
+
+bool f(){
+	for(auto i : E[t])
+		if(i==s)
+			return true;
+	return false;
+}
+
+int main(){
+	scanf("%d%d", &n, &m);
+	for(int i=0; i<m; i++){
+		int a, b;
+		scanf("%d%d", &a, &b);
+		E[a].push_back(b);
+		E[b].push_back(a);
+	}
+	scanf("%d%d%d%d", &s, &t, &ds, &dt);
+	for(int i=0; i<=n; i++)
+		G[i]=i;
+
+	for(int i=1; i<=n; i++){
+		if(i!=s&&i!=t&&find(i)==i){
+			pair<int, int> tmp(dfs(i, 0));
+			if(tmp.first==0){
+				if(tmp.second==0){
+					puts("No");
+					return 0;
+				}
+				else{
+					dt--;
+					R.push_back(pair<int, int>(t, tmp.second));
+				}
+			}
+			else{
+				if(tmp.second==0){
+					ds--;
+					R.push_back(pair<int, int>(s, tmp.first));
+				}
+				else{
+					z=tmp.second;
+					if(ds>0){
+						ds--;
+						R.push_back(pair<int, int>(s, tmp.first));
+					}
+					else{
+						dt--;
+						R.push_back(pair<int, int>(t, tmp.second));
+					}
+				}
+			}
+		}
+	}
+	if(z!=0)
+		R.push_back(pair<int, int>(t, z));
+	else{
+		if(f()){
+			R.push_back(pair<int, int>(t, s));
+			ds--;
+			dt--;
+		}
+		else{
+			puts("No");
+			return 0;
+		}
+	}
+
+	if(ds<0||dt<0){
+		puts("No");
+		return 0;
+	}
+	puts("Yes");
+	for(auto p : R)
+		printf("%d %d\n", p.first, p.second);
+	return 0;
+}

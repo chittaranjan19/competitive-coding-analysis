@@ -1,0 +1,163 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1 << 19;
+
+#define fi first
+#define se second
+
+struct line {
+	ll m, b;
+	line() {}
+	line (ll _m, ll _b) {
+		m = _m;
+		b = _b;
+	}
+	line operator - () const {
+		return line(-m, -b);
+	}
+	pll inter (const line &l) const {
+		ll db = b - l.b, dm = l.m - m;
+		if (dm < 0) {
+			db *= -1;
+			dm *= -1;
+		}
+		return pll(db, dm);
+	}
+	bool operator < (const line &l) const {
+		return m < l.m || (m == l.m && b < l.b);
+	}
+	bool operator > (const line &l) const {
+		return l < (*this);
+	}
+	bool operator == (const line &l) const {
+		return m == l.m && b == l.b;
+	}
+	bool operator != (const line &l) const {
+		return !((*this) == l);
+	}
+	ll eval (ll x) const {
+		return m * x + b;
+	}
+};
+
+bool less_than (pll p1, pll p2) {
+	return p1.fi * p2.se < p2.fi * p1.se;
+}
+
+struct convex {
+	vector<line> dq;
+
+	void insert (line n) {
+		if (!dq.empty() && dq.back().m == n.m && dq.back().b >= n.b) {
+			return;
+		}
+
+		while (dq.size() > 1 && ((dq.back().m == n.m && dq.back().b < n.b) || less_than(dq[dq.size() - 2].inter(n), dq[dq.size() - 2].inter(dq.back())))) {
+			dq.pop_back();
+		}
+		
+		dq.push_back(n);
+	}
+
+	ll query (ll p) {
+		if (dq.empty()) {
+			return LLONG_MIN;
+		}
+		int lo = -1, hi = dq.size() - 1;	//hi is >= line
+		while (hi - lo > 1) {
+			int mid = lo + (hi - lo) / 2;
+			if (less_than(pll(p, 1), dq[mid].inter(dq[mid + 1]))) {
+				hi = mid;
+			} else {
+				lo = mid;
+			}
+		}
+		return dq[hi].eval(p);
+	}
+
+	bool empty() {
+		return dq.empty();
+	}
+
+	void clear() {
+		dq.clear();
+	}
+};
+
+int N;
+int last[MAXN];
+int T[MAXN], qval[MAXN];
+line L[MAXN];
+vector<line> lines[2 * MAXN];
+convex tree[2 * MAXN];
+
+void update (int a, int b, line n, int cur = 1, int lt = 0, int rt = MAXN) {
+	if (rt <= a || b <= lt) {
+		return;
+	}
+
+	if (a <= lt && rt <= b) {
+		lines[cur].push_back(n);
+		return;
+	}
+
+	int mid = (lt + rt) / 2;
+	update(a, b, n, 2 * cur, lt, mid);
+	update(a, b, n, 2 * cur + 1, mid, rt);
+}
+
+ll query (int pos, ll x) {
+	ll ans = LLONG_MIN;
+	for (pos += MAXN; pos; pos /= 2) {
+		ans = max(ans, tree[pos].query(x));
+	}
+	return ans;
+}
+
+int main() {
+	scanf("%d", &N);
+	fill_n(last, N, N);
+	for (int i = 0; i < N; i++) {
+		int a, b;
+		scanf("%d", &T[i]);
+		if (T[i] == 1) {
+			scanf("%d %d", &a, &b);
+			L[i] = line(a, b);
+		} else if (T[i] == 2) {
+			scanf("%d", &a);
+			last[a - 1] = i;
+		} else {
+			scanf("%d", &qval[i]);
+		}
+	}
+
+	for (int i = 0; i < N; i++) {
+		if (T[i] == 1) {
+			update(i, last[i], L[i]);
+		}
+	}
+
+	for (int i = 1; i < 2 * MAXN; i++) {
+		sort(lines[i].begin(), lines[i].end());
+		for (line n : lines[i]) {
+			tree[i].insert(n);
+		}
+	}
+
+	for (int i = 0; i < N; i++) {
+		if (T[i] == 3) {
+			ll ans = query(i, qval[i]);
+			if (ans == LLONG_MIN) {
+				puts("EMPTY SET");
+			} else {
+				printf("%lld\n", ans);
+			}
+		}
+	}
+	//while (1);
+}

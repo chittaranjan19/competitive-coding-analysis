@@ -1,0 +1,85 @@
+#include <vector>
+#include <cassert>
+#include <iostream>
+#include <ctime>
+
+#define f       first
+#define s       second
+#define mp      make_pair
+#define rank    something_which_is_supposed_to_be_rank
+#define left    something_which_is_supposed_to_be_left
+#define right   something_which_is_supposed_to_be_right
+
+using namespace std;
+
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef double ld;
+
+const int N = 128, K = 7;
+
+typedef vector<vector<ld>> matrix;
+
+int n, x;
+matrix p(1, vector<ld>(N)), m(N, vector<ld>(N));
+
+matrix operator*(matrix a, matrix b) {
+	assert(a[0].size() == b.size());
+	int n = a.size(), m = a[0].size(), k = b[0].size();
+	matrix res(n, vector<ld>(k, 0));
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j < k; ++j) {
+			for (int l = 0; l < m; ++l) {
+				res[i][j] += a[i][l] * b[l][j];
+			}
+		}
+	}
+	return res;
+}
+
+matrix pow(matrix a, int n) {
+	assert(a.size() == a[0].size());
+	if (!n) {
+		matrix res(a.size(), vector<ld>(a.size()));
+		for (size_t i = 0; i < a.size(); ++i) {
+			res[i][i] = 1;
+		}
+		return res;
+	}
+	matrix tmp = pow(a, n >> 1);
+	if (n & 1) {
+		return tmp * tmp * a;
+	}
+	return tmp * tmp;
+}
+/*
+ostream &operator<<(ostream &o, matrix m) {
+	for (auto line : m) {
+		for (auto elem : line) {
+			o << elem << " ";
+		}
+		o << "\n";
+	}
+	return o;
+}*/
+
+int main() {
+	cin.sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> x;
+	for (int i = 0; i <= x; ++i) {
+		cin >> p[0][i];
+	}
+	for (int i = 0; i < N; ++i) {
+		for (int j = 0; j < N; ++j) {
+			m[i][j] = p[0][i ^ j];
+		}
+	}
+//	cout << pow(m, 1);
+	p = p * pow(m, n - 1);
+	cout.precision(8);
+	cout << fixed << (1 - p[0][0]) << "\n";
+	cerr << "Time elapsed: " << (ld)clock() / CLOCKS_PER_SEC << "\n";
+	return 0;
+}

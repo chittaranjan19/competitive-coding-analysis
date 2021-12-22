@@ -1,0 +1,87 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define base1 5
+#define base2 7
+#define mn 600001
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+#define maxC 1000000007
+
+using namespace std;
+int n, m, k;
+map< pair<long long, long long> , int> Map;
+long long hashVal1[mn], hashVal2[mn], po1[mn], po2[mn];
+string s;
+
+void setup()
+{
+    cin >> n >> m;
+    po1[0] = po2[0] = 1;
+    FOR(i, 1, mn - 1)
+    {
+        po1[i] = (po1[i - 1] * base1) % maxC;
+        po2[i] = (po2[i - 1] * base2) % maxC;
+    }
+    long long val1, val2;
+    FOR(i, 1, n)
+    {
+        val1 = val2 = 0;
+        cin >> s;
+        FOR(j, 0, int(s.size()) - 1)
+        {
+            val1 = (val1 * base1 + s[j] - 'a' + 1) % maxC;
+            val2 = (val2 * base2 + s[j] - 'a' + 1) % maxC;
+        }
+        Map[mp(val1, val2)] = 1;
+    }
+}
+
+long long getHash(int l, int r, long long* hashVal, long long* po)
+{
+    if (l > r)
+        return 0;
+    long long re = (hashVal[r] - hashVal[l - 1] * po[r - l + 1]) % maxC;
+    re = (re + maxC) % maxC;
+    return re;
+}
+
+void xuly ()
+{
+    cin >> s;
+    k = s.size();
+    s = " " + s;
+    FOR(i, 1, k)
+    {
+        hashVal1[i] = (hashVal1[i - 1] * base1 + s[i] - 'a' + 1) % maxC;
+        hashVal2[i] = (hashVal2[i - 1] * base2 + s[i] - 'a' + 1) % maxC;
+    }
+    FOR(i, 1, k)
+    FOR(j, 'a', 'c')
+    if (j != s[i])
+    {
+        long long newVal1 = ((getHash(1, i - 1, hashVal1, po1) * po1[k - (i - 1)]) % maxC + ((j - 'a' + 1) * po1[k - (i - 1) - 1]) % maxC + getHash(i + 1, k, hashVal1, po1)) % maxC;
+        long long newVal2 = ((getHash(1, i - 1, hashVal2, po2) * po2[k - (i - 1)]) % maxC + ((j - 'a' + 1) * po2[k - (i - 1) - 1]) % maxC + getHash(i + 1, k, hashVal2, po2)) % maxC;
+        newVal1 = (newVal1 + maxC) % maxC;
+        newVal2 = (newVal2 + maxC) % maxC;
+        if (Map[mp(newVal1, newVal2)])
+        {
+            cout << "YES\n";
+            return;
+        }
+    }
+    cout << "NO\n";
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    FOR(i, 1, m)
+    xuly();
+    return 0;
+}

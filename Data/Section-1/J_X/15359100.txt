@@ -1,0 +1,114 @@
+#include <iostream>
+#include <cstdio>
+#include <cmath>
+
+using namespace std;
+
+const int MAXN = 100000 + 5;
+const double PI = acos(-1);
+const double INF = 1e16;
+const double eps = 1e-10;
+
+int ox, oy;
+struct Point
+{
+    double x, y;
+    Point(double x = 0, double y = 0) : x(x), y(y) {}
+} pp[MAXN];
+typedef Point Vector;
+
+Vector operator + (Vector A, Vector B)
+{
+    return Vector(A.x + B.x, A.y + B.y);
+}
+
+Vector operator - (Vector A, Vector B)
+{
+    return Vector(A.x - B.x, A.y - B.y);
+}
+int dcmp(double x)
+{
+    if(fabs(x) < eps) return 0;
+    return x < 0 ? -1 : 1;
+}
+
+bool operator == (const Point &a, const Point &b)
+{
+    return dcmp(a.x - b.x) == 0 && dcmp(a.y - b.y) == 0;
+}
+
+double Dot(Vector A, Vector B)
+{
+    return A.x * B.x + A.y * B.y;
+}
+
+double Cross(Vector A, Vector B)
+{
+    return A.x * B.y - A.y * B.x;
+}
+
+
+bool OnSegment(Point p, Point a1, Point a2)
+{
+    return dcmp(Cross(a1 - p, a2 - p)) == 0 && dcmp(Dot(a1 - p, a2 - p)) <= 0;
+}
+
+//int isPointInPolygon(Point p, int n)
+//{
+//    int wn = 0;
+//    for(int i = 0; i < n; ++i)
+//    {
+//        if(OnSegment(p, pp[i], pp[(i + 1) % n])) return -1;
+//        int k = dcmp(Corss(pp[(i + 1) % n] - pp[i], p - pp[i]));
+//        int d1 = dcmp(pp[i].y - p.y);
+//        int d2 = dcmp(pp[(i + 1) % n].y - p.y);
+//        if(k > 0 && d1 <= 0 && d2 > 0) ++wn;
+//        if(k < 0 && d2 <= 0 && d1 > 0) --wn;
+//    }
+//    return wn != 0;
+//}
+
+double dis(double x, double y)
+{
+    return sqrt(1.0 * (ox - x) * (ox - x) + 1.0 * (oy - y) * (oy - y));
+}
+
+double Length(Vector A)
+{
+    return sqrt(Dot(A, A));
+}
+
+double Distance(Point P, int i, int j)
+{
+    Point A = Point(pp[i].x, pp[i].y), B = Point(pp[j].x, pp[j].y);
+    if(A == B) return Length(P - A);
+    Vector v1 = B - A, v2 = P - A, v3 = P - B;
+    if(dcmp(Dot(v1, v2)) < 0) return Length(v2);
+    else if(dcmp(Dot(v1, v3)) > 0) return Length(v3);
+    else return fabs(Cross(v1, v2)) / Length(v1);
+}
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        double maxs = 0, mins = INF;
+        scanf("%d%d", &ox, &oy);
+        Point O = Point(ox, oy);
+        for(int i = 0; i < n; ++i)
+        {
+            scanf("%lf%lf", &pp[i].x, &pp[i].y);
+            double tmp = dis(pp[i].x, pp[i].y);
+            tmp = PI * tmp * tmp;
+            maxs = max(maxs, tmp);
+        }
+        for(int i = 0; i < n; ++i)
+        {
+            double tmp = Distance(O, i, (i + 1) % n);
+            mins = min(mins, PI * tmp * tmp);
+        }
+        printf("%.10f\n", maxs - mins);
+    }
+    return 0;
+}

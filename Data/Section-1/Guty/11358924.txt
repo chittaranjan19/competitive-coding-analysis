@@ -1,0 +1,113 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+int movimientoX[4] = {1,-1,0,0}; // (x,y) -> [(x+1,y),(x-1,y),(x,y+1),(x,y-1)]
+int movimientoY[4] = {0,0,1,-1}; // Leer por columnas :-)
+
+struct posicion // Voy a estar trabajando con posiciones, es solo para que el codigo quede lindo y ordenado
+{
+	int x,y;
+};
+
+void imprimirVector (vector<char> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+void colorear(vector<posicion> &posicionesParaAnalizar, vector<vector<char> > &mapa, vector<vector<bool> > &valido, const int &n, const int &m)
+{
+	while (!posicionesParaAnalizar.empty()) // Mientras haya posiciones para analizar
+	{
+		posicion actual = posicionesParaAnalizar.back();				// Elijo una posicion para analizar
+		posicionesParaAnalizar.pop_back();	// La saco del conjunto de posiciones
+		forn(i,4)
+		{
+			posicion nueva;							//
+			nueva.x = actual.x + movimientoX[i];	// Creo la nueva posicion a analizar
+			nueva.y = actual.y + movimientoY[i];	//
+			if (nueva.x >= 1 && nueva.x <= n && nueva.y >= 1 && nueva.y <= m) // Si la nueva posicion esta en rango:
+			{
+				if (valido[nueva.x][nueva.y] == false)						  	// Si todavia no pase (esto lo puedo meter adentro del otro if, pero creo que asi es mas claro):
+				{
+					valido[nueva.x][nueva.y] = true;									// Puedo llegar a esta posicion
+					if (mapa[nueva.x][nueva.y] == '.')								// Ahora, si el hielo estaba intacto:
+						posicionesParaAnalizar.push_back(nueva);							// Agrego la posicion para analizar al conjunto (pues voy a poder seguir caminando)
+				}
+			}	
+		}
+	}
+}
+
+bool alMenos2Vecinos (posicion &pos, const int &n,const int &m, vector<vector<char> > &mapa)
+{
+	int qvec = 0;
+	forn(i,4)
+		{
+			posicion nueva;						//
+			nueva.x = pos.x + movimientoX[i];	// Creo la nueva posicion a analizar
+			nueva.y = pos.y + movimientoY[i];	//
+			if (nueva.x >= 1 && nueva.x <= n && nueva.y >= 1 && nueva.y <= m && mapa[nueva.x][nueva.y] == '.') // Si la nueva posicion esta en rango y tiene como vecino un hielo intacto:
+				qvec++;																							// Sumo uno a la cantidad de vecinos
+		}
+	return qvec >= 2; // Devuelvo si es mayor o igual que 2 la cantidad de vecinos
+}
+
+int main()
+{
+	int n,m;
+	cin >> n >> m;
+	vector <vector<char> >  mapa (n+1, vector<char> (m+1)); 	// Aca voy a tener el mapa original, voy a indexar desde 1, HARDCORE (por eso los +1. La primer fila y la primer columna no las voy a tocar)
+	vector <vector<bool> > valido (n+1, vector<bool> (m+1,false)); 	// Aca voy a ir coloreando las posiciones a las que puedo llegar (1 = true si puedo llegar, y 0 = false si no)
+	forsn(i,1,n+1)										//
+		forsn(j,1,m+1)									// Aca leo 
+			cin >> mapa[i][j];							// la 
+	posicion posIn, posFin;								// entrada
+	cin >> posIn.x >> posIn.y >> posFin.x >> posFin.y;	// 
+	vector<posicion> posicionesParaAnalizar;	// En este set voy a ir metiendo las posiciones que todavia no coloree
+	posicionesParaAnalizar.push_back(posIn);	// Meto la posicion inicial desde donde empiezo a colorear
+	colorear(posicionesParaAnalizar,mapa,valido,n,m); // Coloreo las posiciones que puedo alcanzar
+	if ( (mapa[posFin.x][posFin.y] == 'X') or (mapa[posFin.x][posFin.y] == '.' && alMenos2Vecinos(posFin,n,m,mapa) )) // Si en la posicion final hay una 'X' o un '.' con al menos dos vecinos intactos
+	{		
+		if (valido[posFin.x][posFin.y]) // Si pude alcanzar la posicion:
+			cout << "YES" << endl;			// Imprimo "YES"
+		else  							// Si no:	
+			cout << "NO" << endl;			// Imprimo "NO"
+	}
+	else 								// En caso contrario, si en la posicion final hay un '.' con menos de dos vecinos intactos, entonces no es posible
+		cout << "NO" << endl; 				// Imprimo "NO"
+		
+	return 0;
+}

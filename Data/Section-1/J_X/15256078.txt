@@ -1,0 +1,96 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <vector>
+#include <algorithm>
+#include <map>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int, int> P;
+typedef map<ll, int> mp;
+
+const ll mod = 1e9 + 7;
+const int b = 10000007;
+const int MAXN = 2100 + 5;
+
+char s[MAXN], t[MAXN];
+int dp[MAXN], p[MAXN];
+vector<P> ans;
+mp a;
+
+void myhash(int st, int nd)
+{
+    ll sum = 0;
+    for(int i = st; i <= nd; ++i)
+    {
+        sum = (sum * b + s[i]) % mod;
+        a[sum] = st * MAXN + i;
+    }
+    sum = 0;
+    for(int i = st; i; --i)
+    {
+        sum = (sum * b + s[i]) % mod;
+        a[sum] = st * MAXN + i;
+    }
+}
+
+int main()
+{
+    p[0] = 1;
+    for(int i = 1; i < MAXN; ++i)
+    {
+        p[i] = (1LL * p[i - 1] * b) % mod;
+    }
+    while(~scanf("%s%s", s + 1, t + 1))
+    {
+        ans.clear();
+        a.clear();
+        int len1 = strlen(s + 1), len2 = strlen(t + 1);
+        for(int i = 1; i <= len1; ++i)
+        {
+            myhash(i, len1);
+        }
+        for(int i = 1; i <= len2; ++i)
+        {
+            dp[i] = MAXN;
+            ll sum = 0;
+            for(int j = i; j; --j)
+            {
+                sum = (1LL * t[j] * p[i - j] + sum) % mod;
+                if(a[sum])
+                {
+                    dp[i] = min(dp[i], dp[j - 1] + 1);
+                }
+            }
+        }
+        if(dp[len2] == MAXN)
+        {
+            puts("-1");
+        }
+        else
+        {
+            printf("%d\n", dp[len2]);
+            int nd = len2;
+            ll sum = 0;
+            for(int st = len2; st; --st)
+            {
+                sum = (1LL * t[st] * p[nd - st] + sum) % mod;
+                int tmp = a[sum];
+                if(tmp && dp[st - 1] + 1 == dp[nd])
+                {
+                    ans.push_back(P(tmp / MAXN, tmp % MAXN));
+                    sum = 0;
+                    nd = st - 1;
+                }
+            }
+            reverse(ans.begin(), ans.end());
+            for(int i = 0; i < ans.size(); ++i)
+            {
+                printf("%d %d\n", ans[i].first, ans[i].second);
+            }
+        }
+    }
+    return 0;
+}

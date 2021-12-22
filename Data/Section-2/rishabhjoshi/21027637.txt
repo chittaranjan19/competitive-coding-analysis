@@ -1,0 +1,120 @@
+#include <bits/stdc++.h>
+#define LL long long
+#define FOR(i,c) for(__typeof(c.begin()) i = c.begin(); i != c.end(); i++)
+#define F first
+#define S second
+using namespace std;
+
+const LL mod = 1e9 + 7;
+
+template<typename T> T gcd(T a, T b) { return b == 0?a: gcd(b, a % b); }
+template<typename T> T LCM(T a, T b) { return a*(b/gcd(a, b)); }
+template<typename T, typename S> T expo(T b, S e, const T &m){if(e <= 1)return e == 0?1: b;\
+	return (e&1) == 0?expo((b*b)%m, e>>1, m): (b*expo((b*b)%m, e>>1, m))%m;}
+template<typename T, typename S> T expo(T b, S e){if(e <= 1)return e == 0?1: b;\
+	return (e&1) == 0?expo((b*b), e>>1): (b*expo((b*b), e>>1));}
+template<typename T, typename S> T modinv(T a, S mod) { return expo(a, mod-2, mod); }
+template<class T, class S> std::ostream& operator<<(std::ostream &os, const std::pair<T, S> &t) {
+	os<<"("<<t.first<<", "<<t.second<<")";
+	return os;
+}
+template<class T> std::ostream& operator<<(std::ostream &os, const std::vector<T> &t) {
+	os<<"["; FOR(it,t) { if(it != t.begin()) os<<", "; os<<*it; } os<<"]";
+	return os;
+}
+
+const int MAXN = 5e3 + 3;
+int n, m;
+LL T;
+int indeg[MAXN];
+vector<pair<int, LL> > temp_adj[MAXN];
+vector<pair<int, LL> > adj[MAXN];
+LL dp[MAXN][MAXN];
+int track[MAXN][MAXN];
+bool vis[MAXN];
+
+void dfs(int r) {
+    if(vis[r]) return ;
+    vis[r] = true;
+    for(auto &elem: temp_adj[r]) {
+        if(vis[elem.F] == false) {
+            dfs(elem.F);
+        }
+    }
+}
+
+void fix() { // TODO : remove bad vertices
+    dfs(1);
+    for(int i = 1; i <= n; i++) {
+        if(vis[i]) {
+            for(auto &elem: temp_adj[i]) {
+                if(vis[elem.F]) {
+                    adj[i].push_back({elem.F, elem.S});
+                    indeg[elem.F]++;
+                }
+            }
+        }
+    }
+}
+
+void solve() {
+    queue<int> q;
+    q.push(1);
+    indeg[1] = 0;
+    for(int i = 0; i <= n; i++) for(int j = 0; j <= n; j++) {
+        dp[i][j] = T + 1;
+    }
+    dp[1][1] = 0;
+    while(q.size()) {
+        auto f = q.front();
+        q.pop();
+        if(f == n) {
+            break;
+        }
+        for(auto &elem: adj[f]) {
+            indeg[elem.F]--;
+            for(int j = 1; j <= n; j++) {
+                if(dp[elem.F][j] > dp[f][j-1] + elem.S) {
+                    track[elem.F][j] = f;
+                }
+                dp[elem.F][j] = min(dp[f][j-1] + elem.S, dp[elem.F][j]);
+            }
+            if(indeg[elem.F] == 0) {
+                q.push(elem.F);
+            }
+        }
+    }
+    vector<int> res;
+    int maxim = 0, st;
+    for(int i = 1; i <= n; i++) {
+        if(dp[n][i] <= T) {
+            maxim = i;
+        }
+    }
+    st = n;
+    while(st != 1) {
+        res.push_back(st);
+        st = track[st][maxim];
+        maxim--;
+    }
+    res.push_back(1);
+    reverse(res.begin(), res.end());
+    cout << res.size() << '\n';
+    for(auto &elem: res) {
+        cout << elem << ' ';
+    }
+    cout << '\n';
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    int a, b, c;
+    cin >> n >> m >> T;
+    while(m--) {
+        cin >> a >> b >> c;
+        temp_adj[a].push_back({b, c});
+    }
+    fix();
+    solve();
+    return 0;
+}

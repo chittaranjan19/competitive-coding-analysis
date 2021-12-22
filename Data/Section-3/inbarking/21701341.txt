@@ -1,0 +1,103 @@
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <memory.h>
+
+int main()
+{
+    std::string line;
+    std::cin>>line;
+    for (int i = 0; i< 26;++i) {
+        if (line[i] == line[i+1]) {
+            std::cout << "Impossible\n";
+            return 0;
+        }        
+    }
+
+    int letter[26], pos1, pos2;
+    memset(letter, -1, sizeof(letter));
+    for (int i = 0; i< 27;++i) {
+        int c = line[i] - 'A';
+        if (letter[c] == -1) {
+            letter[c] = i;
+        } else {
+            pos1 = letter[c];
+            pos2 = i;
+            //std::cout << pos1 << " " << pos2 << "\n";
+        }
+    }
+
+    if (pos1 == 0 && pos2 == 26) {
+        std::cout << line.substr(0, 13) << "\n";
+        std::string last = line.substr(13, 13);
+        reverse(last.begin(), last.end());
+        std::cout << last << "\n";
+        return 0;
+    }
+    
+    int len = (pos2 - pos1 - 1) / 2;
+    char grid[2][13];
+    grid[0][len] = line[pos1];
+    //position the letters between the 2 occurences
+    int grid_row = 0;
+    int grid_col = len - 1;
+    bool left = true;
+    for (int i = pos1 + 1; i < pos2; ++i) {
+		if (grid_col < 0) {
+    		grid_col = 0;
+    		grid_row = 1;
+    		left = !left;
+    	}
+    	grid[grid_row][grid_col] = line[i];
+ 	   //std::cout<< "put " << line[i] << " to grid " << grid_row << " " << grid_col << "\n";
+    	if (left) {
+    		grid_col--;
+    	} else {
+    		grid_col++;
+    	}
+    }
+    // the first part
+    left = false;
+    grid_row = 0;
+    grid_col = len + 1;
+    for (int i = pos1 - 1; i >= 0; --i) {
+		if (grid_col > 12) {
+    		grid_col = 12;
+    		grid_row = 1;
+    		left = !left;
+    	}
+    	grid[grid_row][grid_col] = line[i];
+ 	   //std::cout<< "put " << line[i] << " to grid " << grid_row << " " << grid_col << "\n";
+    	if (left) {
+    		grid_col--;
+    	} else {
+    		grid_col++;
+    	}
+   }
+   // the last
+    left = false;
+    grid_row = 1;
+    grid_col = len + (pos2 - pos1 - 1) % 2;
+    for (int i = pos2 + 1; i < 27; ++i) {
+		if (grid_col > 12) {
+    		grid_col = 12;
+    		grid_row = 0;
+    		left = !left;
+    	}
+    	grid[grid_row][grid_col] = line[i];
+ 	   //std::cout<< "put " << line[i] << " to grid " << grid_row << " " << grid_col << "\n";
+    	if (left) {
+    		grid_col--;
+    	} else {
+    		grid_col++;
+    	}
+   }
+
+   for (int i = 0; i < 13; ++i)
+     std::cout<< grid[0][i];
+   std::cout << "\n";
+   for (int i = 0; i < 13; ++i)
+     std::cout<<grid[1][i];
+   std::cout << "\n";
+   return 0;
+}

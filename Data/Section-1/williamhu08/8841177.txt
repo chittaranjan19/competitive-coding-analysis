@@ -1,0 +1,103 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 6010;
+
+void setmax (int &a, int b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+int N, R[MAXN];
+vector<pii> adj[MAXN];
+int A[MAXN], B[MAXN];
+int dp[MAXN];
+
+bool ok (int x, int y) {
+	//ok to go from x -> y
+	return R[x] < R[y];
+}
+
+int getdp (int x) {
+	int &ref = dp[x];
+	if (ref != -1) {
+		return ref;
+	}
+	int u = A[x], v = B[x];
+	if (R[u] == R[v]) {
+		return ref = 1;
+	}
+	if (!ok(u, v)) {
+		swap(u, v);
+	}
+	//ok now let's do this
+	ref = 2;
+	rep(it, adj[v]) {
+		int t = it->first;
+		if (t != u) {
+			//ok now let's think about it
+			if (ok(v, t)) {
+				//how many ends can it take?
+				setmax(ref, getdp(it->second) + 1);
+			}
+		}
+	}
+	return ref;
+}
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces490F.in", "r", stdin);
+#endif
+	scanf("%d", &N);
+	for (int i = 1; i <= N; i++) {
+		scanf("%d", &R[i]);
+	}
+	for (int i = 1; i < N; i++) {
+		scanf("%d %d", &A[i], &B[i]);
+		adj[A[i]].push_back(pii(B[i], i));
+		adj[B[i]].push_back(pii(A[i], i));
+	}
+	memset(dp, -1, sizeof(dp));
+	int ans = 1;
+	for (int i = 1; i < N; i++) {
+		setmax(ans, getdp(i));
+	}
+	printf("%d\n", ans);
+}

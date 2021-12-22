@@ -1,0 +1,138 @@
+#include<iostream>
+#include<algorithm>
+#include<vector>
+#include<cstring>
+#include<iomanip>
+using namespace std;
+#define ll long long
+#define ld long double
+#define vi vector<int>
+#define pb push_back
+#define pii pair<int,int>
+#define mp make_pair
+#define st first
+#define nd second
+#define mini(a,b) a=min(a,(b))
+#define maxi(a,b) a=max(a,(b))
+#define RE(i,n) for(int i=0,_n=(n);i<_n;++i)
+#define RI(i,n) for(int i=1,_n=(n);i<=_n;++i)
+const int inf=1e9+5, nax=1e6+5;
+
+char sl[55][55];
+int pomik[55][55];
+int n, dl;
+vi odw[5000];
+bool rozroz[5000];
+int licz_rozro = 0;
+ld pot[55];
+bool vis[1 << 20];
+ld sil[55];
+bool koniec[1 << 20];
+ld nowe[1 << 20];
+ld nt[55][55];
+
+#define vvi vector<vector<int> >
+vvi ja;
+
+void F(int m) {
+	if(vis[m]) return;
+	vis[m] = true;
+	//cout << m << "--\n";
+	for(auto a : ja) {
+		//for(auto b : a) cout << b << " ";
+		//cout << ">\n";
+	}
+	//cout <<"\n\n";
+	for(auto a : ja) if(a.size() == 1) nowe[m]++;
+	if(ja.size() == n) koniec[m] = true;
+	int hehe = __builtin_popcount(m);
+	RE(bit, dl) if(!(  m & (1 << bit)   )) if(!vis[m | ( 1 << bit)]) {
+		vvi pamietaj = ja;
+		RE(i, ja.size()) if((int)ja[i].size() > 1) {
+			// ja[i]
+			for(auto a : ja[i])
+				odw[ pomik[a][bit] ].pb(a);
+			vvi tel;
+			for(auto a : ja[i]){
+				int cy = pomik[a][bit];
+				if(!odw[cy].empty()) {
+					tel.pb(odw[cy]);
+					odw[cy].clear();
+				}
+			}
+			ja[i] = tel[0];
+			RI(j, (int) tel.size() - 1) ja.pb(tel[j]);
+		}
+		F(m | (1 << bit));
+		ja = pamietaj;
+	}
+}
+		/*	
+				odw[ pomik[a][bit] ]++;
+			for(auto
+		vi w;
+		RE(i, n) if(!rozroz[i])
+			odw[ pomik[i][bit] ]++;
+		
+		RE(i, n) if(!rozroz[i]) if(odw[ pomik[i][bit] ] == 1) {
+			licz_rozro++;
+			if(licz_rozro == n) koniec[m | (1 << bit)] = true;
+			rozroz[i] = true;
+			w.pb(i);
+		}
+		
+		RE(i, n) if(!rozroz[i])
+			odw[ pomik[i][bit] ]--;
+		for(auto a : w) odw[ pomik[a][bit] ]--;
+		
+		F(m + (1 << bit));
+		
+		for(auto a : w) {
+			rozroz[a] = false;
+			licz_rozro--;
+		}
+	}
+}*/
+
+int main()
+{
+	ios_base::sync_with_stdio(0);
+	
+	pot[0] = 1;
+	RI(i, 51) pot[i] = pot[i - 1] * 2.0L;
+	
+	sil[0] = 1;
+	RI(i, 51) sil[i] = sil[i-1] * i;
+	
+	RE(i, 52) RE(j, i + 1) nt[i][j] = sil[i] / sil[j] / sil[i - j];
+	
+	cin >> n;
+	RE(i, n) cin >> sl[i];
+	dl = strlen(sl[0]);
+	RE(i, n) RE(j, dl) pomik[i][j] = (int) sl[i][j];
+	vi cyk;
+	RE(i, n) cyk.pb(i);
+	ja.pb(cyk);
+	F(0);
+	
+	ld res = 0;
+	
+	//cout << nt[5][5] << "\n";
+	
+	RE(m, (1 << dl)) {
+		int zapalone = __builtin_popcount(m);
+		ld licz = nowe[m];
+		RE(bit, dl) if((m & (1 << bit))) licz -= nowe[m - (1 << bit)] / (ld) zapalone;// if(koniec[m | (1 << bit)]) licz++;
+		res += licz * zapalone / ((ld)n) / nt[dl][zapalone];
+		// licz to liczba dobrych wyjsc stad
+		//ld bity = dl - __builtin_popcount(m); // liczba jakichkolwiek
+		//res += licz / bity * sil[__builtin_popcount(m)] * sil[dl - __builtin_popcount(m)] / sil[dl] * (__builtin_popcount(m) + 1);
+		//cout << res << "\n";
+		//cout << licz << "\n";
+	}
+	cout << setprecision(30) << res;
+	
+	//cout << res << " " << licz << "\n";
+	//cout << res / licz;
+	return 0;
+}

@@ -1,0 +1,71 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) (( (int)x.size() ) )
+
+using namespace std;
+typedef long long ll;
+const int N = 400 * 1000 + 10;
+
+int n , m ,u ,dist[N], P[N],prev[N];
+ll sum;
+vector < vector<pair<int , int > > > v;
+set <pair<int , int> > s;
+vector <pair <int , int> > edg;
+
+void Dikstra(int x){
+    dist[x] = 0;
+    prev[x] = 0;
+    s.insert(make_pair(0 , x));
+    for(int i = 0; i < n; ++i){
+        if(i != x){
+            dist[i] = N * 100;
+            prev[i] = -1;
+            s.insert(make_pair(dist[i] , i));
+        }
+    }
+    while(!s.empty()){
+        int y = s.begin()->second;
+        s.erase(s.begin());
+        for(int i = 0; i < SZ(v[y]); ++i){
+            int z = v[y][i].second;
+            int l = v[y][i].first;
+            if(dist[y] + l < dist[z]){
+                s.erase(make_pair(dist[z] , z));
+                dist[z] = dist[y] + l;
+                prev[z] = y;
+                s.insert(make_pair(dist[z] , z));
+            }
+        }
+    }
+}
+
+int main(){
+    cin >> n;
+    v.resize(n);
+    cin >> m;
+    for(int i = 0; i < m; ++i){
+        int t1,t2,w;
+        cin >> t1 >> t2 >> w;
+        t1--;t2--;
+        v[t1].push_back(make_pair(t2 , w));
+        v[t2].push_back(make_pair(t1 , w));
+        edg.push_back(make_pair(t1 , t2));
+        P[i] = w;
+    }
+    cin >> u;
+    u--;
+    Dikstra(u);
+    for(int i = 0; i < m; ++i){
+        if(prev[edg[i] . first ] == edg[i] . second || prev[edg[i] . second ] == edg[i] . first){
+            sum += P[i];
+        }
+    }
+    cout << sum << "\n";
+    for(int i = 0; i < m; ++i){
+        if(prev[edg[i] . first ] == edg[i] . second || prev[edg[i] . second ] == edg[i] . first){
+            cout << i + 1 << " ";
+        }
+    }
+    cout << "\n";
+    return 0;
+}

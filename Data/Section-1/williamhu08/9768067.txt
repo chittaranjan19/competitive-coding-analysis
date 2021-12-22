@@ -1,0 +1,97 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+
+int N, L[8], R[8];
+
+double probless (int lt, int rt, int v) {
+	//check the number of #s which are < v in [lt, rt]
+	if (v > rt) {
+		return 1;
+	}
+	if (v <= lt) {
+		return 0;
+	}
+	return (v - lt) / double(rt - lt + 1);
+}
+
+double probmore (int lt, int rt, int v) {
+	if (v < lt) {
+		return 1;
+	}
+	if (v >= rt) {
+		return 0;
+	}
+	return (rt - v) / double(rt - lt + 1);
+}
+
+double probeq (int lt, int rt, int v) {
+	return (lt <= v && v <= rt) / double(rt - lt + 1);
+}
+
+bool testbit (int x, int b) {
+	return (x >> b) & 1;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 0; i < N; i++) {
+		cin >> L[i] >> R[i];
+	}
+	double ans = 0;
+	for (int i = 1; i <= 10000; i++) {
+		for (int j = 0; j < N; j++) {
+			//say this is the one that has higher
+			for (int k = 1; k < (1 << N); k++) {
+				//this is the rest of the set
+				if (testbit(k, j)) {
+					continue;
+				}
+				int rest = ((1 << N) - 1) ^ (1 << j) ^ k;
+				//ok calculate each probability
+				//j has > i, each thing in k = i, each thing in rest has < i
+				double prob = probmore(L[j], R[j], i);
+				for (int m = 0; m < N; m++) {
+					if (testbit(k, m)) {
+						prob *= probeq(L[m], R[m], i);
+					} else if (testbit(rest, m)) {
+						prob *= probless(L[m], R[m], i);
+					}
+				}
+				ans += prob * i;
+			}
+		}
+		//or nobody has higher. that means that __builtin_popcount(set) >= 2
+		for (int j = 3; j < (1 << N); j++) {
+			if (__builtin_popcount(j) < 2) {
+				continue;
+			}
+			double prob = 1;
+			for (int k = 0; k < N; k++) {
+				if (j & (1 << k)) {
+					//then that means they are equal to i
+					prob *= probeq(L[k], R[k], i);
+				} else {
+					prob *= probless(L[k], R[k], i);
+				}
+			}
+			ans += prob * i;
+		}
+	}
+	cout << setprecision(10) << ans << endl;
+}

@@ -1,0 +1,62 @@
+#include <iostream>
+#include <vector>
+#include <set>
+#include <cstring>
+
+#define SZ(x) (( int(x.size()) ))
+
+using namespace std;
+
+const int maxn = 100 * 1000 + 10;
+const int INF = 1000 * 1000 * 1000 + 10;
+
+vector< vector < pair<int , int> > > vec;
+int n,m,v,u,w;
+int d[maxn],par[maxn];
+set <pair <int , int> > s;
+
+void dijkstra(int x){
+    memset(d,INF,sizeof(d));
+    memset(par , - 1 , sizeof(par));
+    d[x] = 0;
+    s.insert(make_pair(d[x],x));
+    while(!s.empty()){
+        v = s.begin()->second;
+        s.erase(s.begin());
+        for(int i = 0; i < SZ(vec[v]); ++i){
+            u = vec[v][i].first;
+            w = vec[v][i].second;
+            if(d[u] > d[v] + w){
+                s.erase(make_pair(d[u],u));
+                d[u] = d[v] + w;
+                s.insert(make_pair(d[u],u));
+                par[u] = v;
+            }
+        }
+    }
+}
+
+int main(){
+    int a,b,w;
+    cin >> n >> m;
+    vec.resize(n);
+    for(int i = 0; i < m; ++i){
+        cin >> a >> b >> w;
+        a--;b--;
+        vec[a].push_back(make_pair(b,w));
+        vec[b].push_back(make_pair(a,w));
+    }
+    dijkstra(n-1);
+    int t = 0;
+    if(par[t] == -1){
+        cout << -1 << endl;
+        return 0;
+    }
+    while(par[t] != n-1){
+        cout << t+1 << " ";
+        t = par[t];
+    }
+    cout << t+1 << " ";
+    cout << n << endl;
+    return 0;
+}

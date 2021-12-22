@@ -1,0 +1,149 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define mn 300005
+#define maxC 2000000000
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+struct trie
+{
+    trie* child[26];
+    trie()
+    {
+        FOR(i, 0, 25)
+            child[i] = NULL;
+    }
+} t[mn];
+long long num[mn], tsz[mn], maxV = -1;
+int n, sz[mn], ans, maxSz[mn], pa[mn];
+vector<int> g[mn];
+char c[mn];
+queue<int> q;
+bool mark[mn];
+
+void setup()
+{
+    cin >> n;
+    FOR(i, 1, n)
+        cin >> num[i];
+    FOR(i, 1, n)
+        cin >> c[i];
+    int u, v;
+    FOR(i, 1, n - 1)
+    {
+        cin >> u >> v;
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+}
+
+void preDfs(int u)
+{
+    bool leaf = true;
+    sz[u] = 1;
+    maxSz[u] = 0;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        if (v == pa[u])
+            continue;
+        leaf = false;
+        pa[v] = u;
+        preDfs(v);
+        sz[u] += sz[v];
+        maxSz[u] = max(maxSz[u], sz[v]);
+    }
+    if (leaf)
+        q.push(u);
+}
+
+void dfs(int u, int root, trie *p)
+{
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        if (v == pa[u])
+            continue;
+        if (p -> child[c[v] - 'a'] == NULL)
+        {
+            p -> child[c[v] - 'a'] = new trie;
+            tsz[root] ++;
+        }
+        dfs(v, root, p -> child[c[v] - 'a']);
+    }
+}
+
+void check(int u)
+{
+    trie* p = &t[u];
+    p -> child[c[u] - 'a'] = new trie;
+    p = p -> child[c[u] - 'a'];
+    tsz[u] = 1;
+    int pass = -1;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        if (v == pa[u])
+            continue;
+        if (sz[v] == maxSz[u])
+        {
+            pass = v;
+            p -> child[c[v] - 'a'] = t[v].child[c[v] - 'a'];
+            tsz[u] += tsz[v];
+            break;
+        }
+    }
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        if (v == pa[u] || v == pass)
+            continue;
+        if (p -> child[c[v] - 'a'] == NULL)
+        {
+            p -> child[c[v] - 'a'] = new trie;
+            tsz[u] ++;
+        }
+        dfs(v, u, p -> child[c[v] - 'a']);
+    }
+    if (num[u] + tsz[u] > maxV)
+    {
+        maxV = num[u] + tsz[u];
+        ans = 1;
+    }
+    else
+    if (num[u] + tsz[u] == maxV)
+        ans ++;
+}
+
+void xuly()
+{
+    preDfs(1);
+    while(!q.empty())
+    {
+        int u = q.front();
+        q.pop();
+        if (u == 0)
+            break;
+        check(u);
+        if (!mark[pa[u]])
+        {
+            mark[pa[u]] = true;
+            q.push(pa[u]);
+        }
+    }
+    cout << maxV << '\n' << ans;
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

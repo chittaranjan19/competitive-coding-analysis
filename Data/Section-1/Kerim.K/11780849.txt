@@ -1,0 +1,72 @@
+/*
+PROG:kerim
+LANG:C++
+*/
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define ff first
+#define ss second
+#define all(x) (x.begin(),x.end())
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,int> PII;
+template<class T> bool checkMin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool checkMax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN],tim,maxlvl;
+vector<int>adj[MAXN],v[MAXN];
+vector<PII>lvl[MAXN];
+void dfs(int now,int pre)
+{
+	lvl[tim].pb(mp(now,pre));
+	maxlvl=max(maxlvl,tim);
+	for(int i=0;i<adj[now].size();i++)
+	{
+		int to=adj[now][i];
+		if(pre==to)
+		continue;
+		tim++;
+		dfs(to,now);
+		tim--;
+	}
+}
+int main()
+{
+	int a;
+	cin>>a;
+	for(int i=1;i<=a;i++)
+		cin>>arr[i];
+	for(int i=0;i<a-1;i++)
+	{
+		int u,w;	
+		cin>>u>>w;
+		adj[u].pb(w);
+	}
+	dfs(1,0);
+	int sum=0;
+	for(int i=maxlvl;i>=1;i--)
+	{
+		memset(v,0,maxlvl+1);
+		for(int j=0;j<lvl[i].size();j++)
+			v[lvl[i][j].ss].pb(lvl[i][j].ff);
+		for(int j=1;j<=maxlvl;j++)
+			if(v[j].size())
+			{
+				int mini=INF;
+				for(int k=0;k<v[j].size();k++)
+					mini=min(mini,arr[v[j][k]]);
+				for(int k=0;k<v[j].size();k++)
+					sum+=arr[v[j][k]]-mini,arr[v[j][k]]=mini;	
+				arr[j]+=(mini*v[j].size());	
+			}
+	}	
+	cout<<sum<<endl;
+	return 0;
+}

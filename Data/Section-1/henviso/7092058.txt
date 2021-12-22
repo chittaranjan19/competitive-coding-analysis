@@ -1,0 +1,135 @@
+#include <iostream>
+#include <cstdio>
+#include <string>
+#include <cstring>
+#include <cstdlib>
+#include <stack>
+#include <algorithm>
+#include <cctype>
+#include <vector>
+#include <queue>
+#include <tr1/unordered_map>
+#include <cmath>
+#include <map>
+#include <bitset>
+#include <set>
+using namespace std;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef vector<int> vi;
+typedef pair<int,int> ii;
+///////////////////////////////UTIL/////////////////////////////////
+#define ALL(x) (x).begin(),x.end()
+#define CLEAR0(v) memset(v, 0, sizeof(v))
+#define CLEAR(v, x) memset(v, x, sizeof(v))
+#define INRANGE0(x, n) ((x) > -1 && (x) < n)
+#define INRANGE(x, a, b) ((x) >= a && (x) <= b)
+#define COPY(a, b) memcpy(a, b, sizeof(a))
+#define CMP(a, b) memcmp(a, b, sizeof(a))
+#define REP(i,n) for(int i = 0; i<n; i++)
+#define REPP(i,a,n) for(int i = a; i<n; i++)
+#define REPD(i,n) for(int i = n-1; i>-1; i--)
+#define REPDP(i,a,n) for(int i = n-1; i>=a; i--)
+#define pb push_back
+#define pf push_front
+#define sz size()
+#define mp make_pair
+/////////////////////////////NUMERICAL//////////////////////////////
+#define INCMOD(a,b,c) (((a)+b)%c)
+#define DECMOD(a,b,c) (((a)+c-b)%c)
+#define ROUNDINT(a) (int)((double)(a) + 0.5)
+#define INF 100000000000000000LL
+#define EPS 1e-11
+/////////////////////////////BITWISE////////////////////////////////
+#define CHECK(S, j) (S & (1 << j))
+#define CHECKFIRST(S) (S & (-S))  //PRECISA DE UMA TABELA PARA TRANSFORMAR EM INDICE
+#define SET(S, j) S |= (1 << j)
+#define SETALL(S, j) S = (1 << j)-1  //J PRIMEIROS
+#define UNSET(S, j) S &= ~(1 << j)
+#define TOOGLE(S, j) S ^= (1 << j)
+///////////////////////////////64 BITS//////////////////////////////
+#define LCHECK(S, j) (S & (1ULL << j))
+#define LSET(S, j) S |= (1ULL << j)
+#define LSETALL(S, j) S = (1ULL << j)-1ULL  //J PRIMEIROS
+#define LUNSET(S, j) S &= ~(1ULL << j)
+#define LTOOGLE(S, j) S ^= (1ULL << j)
+//scanf(" %d ", &t);
+
+ll a[1100][1100];
+ll n, m, k, p;
+ll r[1100];
+ll c[1100];
+
+int main(){
+    cin >> n >> m >> k >> p;
+    CLEAR0(r);
+    CLEAR0(c);
+    REP(i, n){
+        REP(j, m){
+            cin >> a[i][j];
+            r[i] += a[i][j];
+            c[j] += a[i][j];
+        }
+    }
+    ll rd = 0LL, cd = 0LL;
+    priority_queue< pair< ll, int> > rows;
+    priority_queue< pair< ll, int> > cols;
+    REP(i, n) rows.push(pair< ll, int >(r[i], i));
+    REP(i, m) cols.push(pair< ll, int >(c[i], i));
+    ll ans = 0LL;
+    while(k--){
+        if(rows.top().first - (rd * p) > cols.top().first - (cd * p)){
+            pair< ll, int > x = rows.top(); rows.pop();
+            ans += (x.first - (rd * p));
+            x.first -= m*p;
+            rows.push(x);
+            cd++;
+        }
+        else if(rows.top().first - (rd * p) < cols.top().first - (cd * p)){
+            pair< ll, int > x = cols.top(); cols.pop();
+            ans += (x.first - (cd * p));
+            x.first -= n*p;
+            cols.push(x);
+            rd++;
+        }
+        else{
+            pair< ll, int > x = rows.top(); rows.pop();
+            x.first -= m*p;
+            cd++;
+            
+            ll aux = (rows.empty())? -INF : rows.top().first;
+            ll a = max(max(x.first, aux) - (rd * p), cols.top().first - (cd * p));
+            
+            x.first += m*p;
+            cd--;
+            rows.push(x);
+            
+            x = cols.top(); cols.pop();
+            x.first -= n*p;
+            rd++;
+            
+            aux = (cols.empty())? -INF : cols.top().first;
+            ll b = max(max(x.first, aux) - (cd * p), rows.top().first - (rd * p));
+            
+            x.first += n*p;
+            rd--;
+            cols.push(x);
+            
+            if(a >= b){
+                pair< ll, int > x = rows.top(); rows.pop();
+                ans += (x.first - (rd * p));
+                x.first -= m*p;
+                rows.push(x);
+                cd++;
+            }
+            else{
+                pair< ll, int > x = cols.top(); cols.pop();
+                ans += (x.first - (cd * p));
+                x.first -= n*p;
+                cols.push(x);
+                rd++;
+            }
+        }
+    }
+    cout << ans << endl;
+}

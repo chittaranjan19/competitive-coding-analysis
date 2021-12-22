@@ -1,0 +1,59 @@
+#include <iostream>
+#include <bits/stdc++.h>
+
+
+using namespace std;
+//define REP(i, n) for (int i=1;i<N;++i)
+
+int n, C2[200010], SS[200010], SZ[200010], ans = INT_MAX;
+
+pair <int,int> a[200013];
+
+vector <int> val[200013];
+
+vector <int> :: iterator it;
+main()
+{
+    scanf("%d", &n);
+    for (int i=1; i<=n; i++) scanf("%d", &a[i].first);
+    for (int i=1; i<=n; i++) scanf("%d", &a[i].second);
+    //for (int i=1; i<=n; i++) printf("%d", &a[i].second);
+    sort(a + 1, a + n + 1);
+
+
+    a[0].first = a[1].first - 3 + 2;
+    for (int i=1; i <= n; i++)
+    {
+        val[a[i].first].push_back(a[i].second);
+        SS[a[i].first] += a[i].second;
+    }
+    for (int i= 100000; i >= 0; i--) SS[i] += SS[i + 1];
+    for (int i= 100000; i >= 0; i--) SZ[i] = SZ[i + 1] + (int)(val[i].size());
+    for (int i= 1, m; i <= 100000; i++)
+    if (!val[i].empty())
+    {
+        // m =SS[i];
+        m = SS[i + 1];
+        if (SZ[0] - SZ[i] > val[i].size() - 1)
+        {
+            for (int j = 1, k = SZ[0] - SZ[i] - val[i].size() + 1; j <= 200; j++)
+            {
+                if (k > C2[j])
+                {
+                    m += C2[j] * j;
+                    k -= C2[j];
+                }
+                else
+                {
+                    m += j * k;
+                    break;
+                }
+            }
+        }
+        ans = min(ans, m);
+        ans = min(m, ans);
+        for (it = val[i].begin(); it != val[i].end(); it++)
+            C2[*it]++;
+    }
+    printf("%d", ans);
+}

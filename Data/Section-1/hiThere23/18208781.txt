@@ -1,0 +1,159 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define maxC 2000000007
+#define mn 100005
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int n, m, p, r = 0, dp[301][301], ans = maxC;
+pair< int, pair<int, int> > a[mn];
+
+struct node
+{
+    int val, tl, tr, dl, dr;
+    node()
+    {
+        val = maxC;
+        tl = tr = dl = dr = -1;
+    }
+};
+
+struct interval
+{
+    node tree[1250 * 1250];
+    int rig;
+
+    int build(int l, int r, int t, int d)
+    {
+        int re = ++ rig;
+        int g1 = (l + r) / 2;
+        int g2 = (t + d) / 2;
+        if (l != r && t == d)
+        {
+            tree[re].tl = build(l, g1, t, t);
+            tree[re].tr = build(g1 + 1, r, t, t);
+        }
+        if (l == r && t != d)
+        {
+            tree[re].tl = build(l, l, t, g2);
+            tree[re].dl = build(l, l, g2 + 1, d);
+        }
+        if (l != r && t != d)
+        {
+            tree[re].tl = build(l, g1, t, g2);
+            tree[re].tr = build(g1 + 1, r, t, g2);
+            tree[re].dl = build(l, g1, g2 + 1, d);
+            tree[re].dr = build(g1 + 1, r, g2 + 1, d);
+        }
+        return re;
+    }
+
+    int update(int l, int r, int t, int d, int id, int x, int y, int v)
+    {
+        if (l > x || r < x || t > y || d < y || id == -1)
+            return maxC;
+        if (l == r && t == d)
+        {
+            tree[id].val = v;
+            return v;
+        }
+        int g1 = ((l + r) >> 1);
+        int g2 = ((t + d) >> 1);
+        int a1 = update(l, g1, t, g2, tree[id].tl, x, y, v);
+        int b1 = update(g1 + 1, r, t, g2, tree[id].tr, x, y, v);
+        int c1 = update(l, g1, g2 + 1, d, tree[id].dl, x, y, v);
+        int d1 = update(g1 + 1, r, g2 + 1, d, tree[id].dr, x, y, v);
+        return tree[id].val = min(min(a1, b1), min(c1, d1));
+
+    }
+
+    int get(int l, int r, int t, int d, int id, int l1, int r1, int t1, int d1)
+    {
+        if (r < l1 || r1 < l || d1 < t || d < t1 || id == -1)
+            return maxC;
+        if (l1 <= l && r <= r1 && t1 <= t && d <= d1)
+            return tree[id].val;
+        int g1 = ((l + r) >> 1);
+        int g2 = ((t + d) >> 1);
+        int a2 = get(l, g1, t, g2, tree[id].tl, l1, r1, t1, d1);
+        int b2 = get(g1 + 1, r, t, g2, tree[id].tr, l1, r1, t1, d1);
+        int c2 = get(l, g1, g2 + 1, d, tree[id].dl, l1, r1, t1, d1);
+        int d2 = get(g1 + 1, r, g2 + 1, d, tree[id].dr, l1, r1, t1, d1);
+        return min(min(a2, b2), min(c2, d2));
+    }
+} tTL, tTR, tDL, tDR;
+
+void setup()
+{
+    cin >> n >> m >> p;
+    FOR(i, 1, n)
+    FOR(j, 1, m)
+    {
+        cin >> a[++ r].F;
+        a[r].S = mp(i, j);
+    }
+    sort(a + 1, a + r + 1);
+}
+
+void update(int u)
+{
+    int x = a[u].S.F;
+    int y = a[u].S.S;
+    tTL.update(1, n, 1, m, 1, x, y, dp[x][y] - x - y);
+    tTR.update(1, n, 1, m, 1, x, y, dp[x][y] - x + y);
+    tDL.update(1, n, 1, m, 1, x, y, dp[x][y] + x - y);
+    tDR.update(1, n, 1, m, 1, x, y, dp[x][y] + x + y);
+}
+
+void remov(int u)
+{
+    int x = a[u].S.F;
+    int y = a[u].S.S;
+    tTL.update(1, n, 1, m, 1, x, y, maxC);
+    tTR.update(1, n, 1, m, 1, x, y, maxC);
+    tDL.update(1, n, 1, m, 1, x, y, maxC);
+    tDR.update(1, n, 1, m, 1, x, y, maxC);
+}
+
+void xuly()
+{
+    tTL.rig = tTR.rig = tDL.rig = tDR.rig = 0;
+    tTL.build(1, n, 1, m);
+    tTR.build(1, n, 1, m);
+    tDL.build(1, n, 1, m);
+    tDR.build(1, n, 1, m);
+    update(r);
+    int rig = r;
+    FORD(i, r - 1, 1)
+    {
+        while(a[r].F > a[i].F + 1)
+            remov(r --);
+        while(a[rig - 1].F == a[i].F + 1)
+            update(-- rig);
+        int x = a[i].S.F;
+        int y = a[i].S.S;
+        int a1 = tTL.get(1, n, 1, m, 1, 1, x, 1, y) + x + y;
+        int b1 = tTR.get(1, n, 1, m, 1, 1, x, y + 1, m) + x - y;
+        int c1 = tDL.get(1, n, 1, m, 1, x + 1, n, 1, y) - x + y;
+        int d1 = tDR.get(1, n, 1, m, 1, x + 1, n, y + 1, m) - x - y;
+        dp[x][y] = min(min(a1, b1), min(c1, d1));
+        if (a[i].F == 1)
+            ans = min(ans, dp[x][y] + x + y - 2);
+    }
+    cout << ans;
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}
+

@@ -1,0 +1,65 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+typedef pair<int, int> P;
+
+const int maxn = 4000 + 5;
+const int INF = 1 << 30;
+
+struct edge
+{
+    int to, next;
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} E[maxn << 1];
+P p[maxn];
+int num[maxn], vis[maxn], head[maxn], tot;
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    E[tot] = edge(v, head[u]);
+    head[u] = tot++;
+    E[tot] = edge(u, head[v]);
+    head[v] = tot++;
+}
+
+int main()
+{
+    int n, m;
+    scanf("%d%d", &n, &m);
+    init();
+    for(int i = 1; i <= m; ++i)
+    {
+        int u, v;
+        scanf("%d%d", &u, &v);
+        addedge(u, v);
+        ++num[u], ++num[v];
+        p[i] = P(u, v);
+    }
+    int ans = INF;
+    for(int i = 1; i <= n; ++i)
+    {
+        int u = p[i].first, v = p[i].second;
+        for(int j = head[u]; ~j; j = E[j].next)
+        {
+            vis[E[j].to] = i;
+        }
+        for(int j = head[v]; ~j; j = E[j].next)
+        {
+            if(vis[E[j].to] == i)
+            {
+                ans = min(ans, num[u] + num[v] + num[E[j].to] - 6);
+            }
+        }
+    }
+    printf("%d\n", ans != INF ? ans : -1);
+    return 0;
+}

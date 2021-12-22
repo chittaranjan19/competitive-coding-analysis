@@ -1,0 +1,100 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <map>
+
+using namespace std;
+
+typedef vector<int> vec;
+
+const int maxn = 1e5 + 5;
+
+struct edge
+{
+    int to, next;
+} G[maxn << 1];
+vec E[maxn];
+map<vec, int> mp;
+int now, head[maxn], tot, h[maxn], deg[maxn], ans;
+bool used[maxn * 3];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    now = tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot].to = v;
+    G[tot].next = head[u];
+    head[u] = tot++;
+}
+
+void dfs1(int u, int fa)
+{
+    E[u].resize(4, 0);
+    int cnt = 0;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(v == fa) continue;
+        dfs1(v, u);
+        E[u][cnt++] = h[v];
+    }
+    sort(E[u].begin(), E[u].end());
+    if(mp.find(E[u]) == mp.end()) mp[E[u]] = ++now;
+    h[u] = mp[E[u]];
+}
+
+void dfs2(int u, int fa)
+{
+    if(deg[u] < 4 && !used[h[u]])
+    {
+        ++ans;
+        used[h[u]] = true;
+    }
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(v == fa) continue;
+        int tmp = h[v];
+        for(int j = 0; j < E[u].size(); ++j)
+        {
+            if(E[u][j] == h[v])
+            {
+                E[u][j] = 0;
+                break;
+            }
+        }
+        sort(E[u].begin(), E[u].end());
+        if(mp.find(E[u]) == mp.end()) mp[E[u]] = ++now;
+        E[v][0] = mp[E[u]];
+        sort(E[v].begin(), E[v].end());
+        if(mp.find(E[v]) == mp.end()) mp[E[v]] = ++now;
+        h[v] = mp[E[v]];
+        dfs2(v, u);
+        E[u][0] = tmp;
+    }
+}
+
+int main()
+{
+    init();
+    int n;
+    scanf("%d", &n);
+    for(int i = 1; i < n; ++i)
+    {
+        int u, v;
+        scanf("%d%d", &u, &v);
+        addedge(u, v);
+        addedge(v, u);
+        ++deg[u], ++deg[v];
+    }
+    ans = 0;
+    dfs1(1, 0);
+    dfs2(1, 0);
+    printf("%d\n", ans);
+    return 0;
+}

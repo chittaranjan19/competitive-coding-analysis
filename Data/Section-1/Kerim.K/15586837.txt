@@ -1,0 +1,130 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 300009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+PII far[MAXN][3];
+int vis[MAXN],ata[MAXN],farnd,que[MAXN],civ[MAXN];
+vector<int>adj[MAXN];
+void dfs(int nd,int pr){
+	vis[nd]=1;far[nd][0].ss=nd;
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to!=pr){
+			dfs(to,nd);
+			if(far[to][0].ff+1>far[nd][0].ff){
+				swap(far[nd][0],far[nd][1]);
+				far[nd][0]=mp(far[to][0].ff+1,far[to][0].ss);
+			}
+			else if(far[to][0].ff+1>far[nd][1].ff)
+				far[nd][1]=mp(far[to][0].ff+1,far[to][0].ss);
+		}
+	}
+}
+int dfs2(int nd,int pr){
+	vis[nd]=1;
+	if(pr!=0){
+		PII tmp=far[pr][0];
+		if(tmp.ss==far[nd][0].ss)
+			tmp=far[pr][1];
+		tmp.ff++;
+		if(tmp.ff>far[nd][0].ff){
+			swap(far[nd][0],far[nd][1]);
+			far[nd][0]=tmp;
+		}
+		else if(tmp.ff>far[nd][1].ff)
+			far[nd][1]=tmp;
+	}
+	umax(farnd,far[nd][0].ff);	
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to!=pr)	
+			dfs2(to,nd);
+	}
+}
+void dfs3(int nd,int pr,int x,int y){
+	vis[nd]=1;ata[nd]=x;civ[nd]=y;
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to!=pr)
+			dfs3(to,nd,x,y);
+	}
+}
+int tap(int x){
+	if(ata[x]==x)
+		return x;
+	ata[x]=tap(ata[x]);	
+}
+int _add(int x,int y){
+	return (x+1)/2+(y+1)/2+1;
+}
+int main(){
+	int n,m,q;
+	scanf("%d%d%d",&n,&m,&q);
+	for(int i=0;i<m;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	for(int i=1;i<=n;i++)
+		if(!vis[i])
+			dfs(i,0);	
+	int c=0;	
+	fill(vis,vis+MAXN,0);
+	for(int i=1;i<=n;i++)
+		if(!vis[i]){
+			dfs2(i,0);	
+			que[++c]=farnd;
+		}
+	//for(int i=1;i<=n;i++)
+	//	printf("%d-%d %d %d %d\n",i,far[i][0].ff,far[i][0].ss,far[i][1].ff,far[i][1].ss);
+	//printf("\n");						
+	fill(vis,vis+MAXN,0);c=0;	
+	for(int i=1;i<=n;i++)
+		if(!vis[i])
+			c++,dfs3(i,0,i,que[c]);
+	while(q--){
+		int type;
+		scanf("%d",&type);
+		if(type==2){
+			int u,v;
+			scanf("%d%d",&u,&v);
+			int ud=tap(u);
+			int vd=tap(v);
+			if(ud!=vd){
+				ata[vd]=ud;
+				civ[ud]=_add(civ[ud],civ[vd]);
+			}
+		}
+		else{
+			int u;	
+			scanf("%d",&u);
+			printf("%d\n",civ[tap(u)]);
+		}
+	}
+	return 0;
+}
+/*
+6 5 0
+1 2
+3 4
+5 6
+3 2
+5 3
+*/

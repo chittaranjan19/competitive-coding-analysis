@@ -1,0 +1,102 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+const int lmt = 505;
+char tmp[lmt][lmt];
+char grid[lmt][lmt];
+lli dp[lmt][lmt];
+
+
+int cnt(int x,int y,int r,int c){
+    if(grid[x][y]=='#') return 0;
+    int ans = 0;
+    if(y+1<=c && grid[x][y+1]=='.') ans++;
+    if(x+1<=r && grid[x+1][y]=='.') ans++;
+    return ans;
+}
+
+int main(){
+    memset(dp,0,sizeof(dp));
+    int r,c;
+    cin>>r>>c;
+    for(int i=0;i<r;i++){
+        scanf("%s",tmp[i]);
+    }
+    for(int i=0;i<r;i++){
+        for(int j=0;j<c;j++)
+            grid[i+1][j+1] = tmp[i][j];
+    }
+    for(int i=1;i<=r;i++){
+        for(int j=1;j<=c;j++){
+            dp[i][j]=dp[i][j-1]+dp[i-1][j]-dp[i-1][j-1];
+            dp[i][j] += cnt(i,j,r,c);
+        }
+    }
+//    for(int i=1;i<=r;i++){
+//        for(int j=1;j<=c;j++)
+//            cout<<dp[i][j]<<" ";
+//        cout<<endl;
+//    }
+    int q,xa,ya,xb,yb;
+    scanf("%d",&q);
+    while(q--){
+        scanf("%d %d %d %d",&xa,&ya,&xb,&yb);
+        int ans = 0;
+        ans += dp[xb][yb];
+//        DEBUG(ans);
+        ans -= dp[xa][yb];
+//        DEBUG(ans);
+        ans -= dp[xb][ya];
+//        DEBUG(ans);
+        ans += dp[xa][ya];
+//        DEBUG(ans);
+        for(int i=ya+1;i<=yb;i++)
+            ans -= cnt(xb,i,r,c);
+        for(int i=xa+1;i<=xb;i++)
+            ans -= cnt(i,yb,r,c);
+        ans += cnt(xb,yb,r,c);
+//        DEBUG(ans);
+        //upper
+        for(int i=ya;i<=yb;i++){
+            ans += cnt(xa,i,xb,yb);
+//            DEBUG(ans);
+            ans += cnt(xb,i,xb,yb);
+//            DEBUG(ans);
+        }
+//        cout<<endl;
+        for(int i=xa;i<=xb;i++){
+            ans += cnt(i,ya,xb,yb);
+//            DEBUG(ans);
+            ans += cnt(i,yb,xb,yb);
+//            DEBUG(ans);
+        }
+//        DEBUG(ans);
+        ans -= cnt(xa,ya,xb,yb);
+        ans -= cnt(xa,yb,xb,yb);
+        ans -= cnt(xb,ya,xb,yb);
+        ans -= cnt(xb,yb,xb,yb);
+//        DEBUG(ans);
+//        xa++;
+//        ya++;
+//        xb--;
+//        yb--;
+//        if(xb>=xa && yb>=yb){
+//            ans += dp[xb][yb];
+//            ans -= dp[xa][ya];
+//            cout<<xa<<" "<<ya<<" "<<xb<<" "<<yb<<endl;
+//            int tmp = dp[xb][yb]-dp[xa][ya];
+//            DEBUG(tmp);
+//            ans += cnt(xa,ya,xb,yb);
+//        }
+        printf("%d\n",ans);
+    }
+    return 0;
+}

@@ -1,0 +1,78 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+#include <stack>
+using namespace std;
+
+typedef long long ll;
+#define mod 1000000007
+#define INF mod
+#define pi acos(-1.0)
+#define LINF 1000000000000000000LL
+#define eps 1e-10
+
+const int BUCKET_SZ = 400;
+int n, k, a, b, q;
+int orders[300005];
+int bad[300005/BUCKET_SZ+5], good[300005/BUCKET_SZ+5];
+
+int main()
+{
+	cin >> n >> k >> a >> b >> q;
+	while(q--)
+	{
+		int t;
+		scanf("%d", &t);
+		if(t == 1)
+		{
+			int d, cnt;
+			scanf("%d %d", &d, &cnt); d--;
+			if(orders[d] < b)
+				bad[d/BUCKET_SZ] += min(orders[d] + cnt, b) - orders[d];
+			if(orders[d] < a)
+				good[d/BUCKET_SZ] += min(orders[d] + cnt, a) - orders[d];
+			orders[d] += cnt;
+		}
+		else
+		{
+			int d;
+			scanf("%d", &d); d--;
+			int res = 0;
+			int i = 0;
+			while(i + BUCKET_SZ <= d)
+			{
+				res += bad[i/BUCKET_SZ];
+				i += BUCKET_SZ;
+			}
+			while(i < d)
+			{
+				res += min(orders[i], b);
+				i++;
+			}
+			i = d + k;
+			while(i % BUCKET_SZ != 0)
+			{
+				res += min(orders[i], a);
+				i++;
+			}
+			while(i < n)
+			{
+				res += good[i/BUCKET_SZ];
+				i += BUCKET_SZ;
+			}
+			printf("%d\n", res);
+		}
+	}
+	return 0;
+}

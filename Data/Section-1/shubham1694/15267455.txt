@@ -1,0 +1,135 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 300010;
+
+int arr[maxn], st[maxn*5], lazy[maxn*5], nxt[maxn], prv[maxn];
+stack<int> stk; 
+
+void update(int s, int e, int qs, int qe, int node, int val)
+{
+    int lc, rc, mid;
+    mid = (s+e)>>1;
+    lc = 2*node + 1;
+    rc = lc+1;
+    if(lazy[node]){
+        st[node] = max(st[node], lazy[node]);
+        if(s!=e){
+            lazy[lc] = max(lazy[lc], lazy[node]);
+            lazy[rc] = max(lazy[rc], lazy[node]);
+        }
+        lazy[node] = 0;
+    }
+    if(s>e || qs>e || s>qe)
+        return;
+    if(s>=qs && qe>=e){
+        st[node] = max(st[node], val);
+        if(s!=e){
+            lazy[lc] = max(lazy[lc], val);
+            lazy[rc] = max(lazy[rc], val);
+        }
+        return;
+    }
+    update(s, mid, qs, qe, lc, val);
+    update(mid+1, e, qs, qe, rc, val);
+    st[node] = max(st[lc], st[rc]);
+}
+
+int query(int s, int e, int q, int node)
+{
+
+    int lc, rc, mid;
+    mid = (s+e)>>1;
+    lc = 2*node + 1;
+    rc = lc+1;
+    if(lazy[node]){
+        st[node] = max(st[node], lazy[node]);
+        if(s!=e){
+            lazy[lc] = max(lazy[lc], lazy[node]);
+            lazy[rc] = max(lazy[rc], lazy[node]);
+        }
+        lazy[node] = 0;
+    }
+    if(s==e)
+        return st[node];
+    int x;
+    if(q<=mid)
+        x = query(s, mid, q, lc);
+    else
+        x =  query(mid+1, e, q, rc);
+    st[node] = max(st[node], x);
+    return x;
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int n, i, j, lo, mid, hi, ans, mn, l, r;
+    scanf("%d", &n);
+    for(i=0; i<n; i++){
+        //arr[i] = 1 + rand()%mod;
+        scanf("%d", &arr[i]);
+        nxt[i] = n;
+        prv[i] = -1;
+    }
+    for(i=0; i<n; i++){
+        if(stk.empty()){
+            stk.push(i);
+            continue;
+        }
+        while(!stk.empty()){
+            j = stk.top();
+            if(arr[j]>arr[i]){
+                nxt[j] = i;
+                stk.pop();
+            }
+            else{
+                stk.push(i);
+                break;
+            }
+        }
+    }
+    while(!stk.empty())
+        stk.pop();
+    for(i=n-1; i>=0; i--){
+        if(stk.empty()){
+            stk.push(i);
+            continue;
+        }
+        while(!stk.empty()){
+            j = stk.top();
+            if(arr[j]>arr[i]){
+                prv[j] = i;
+                stk.pop();
+            }
+            else{
+                stk.push(i);
+                break;
+            }
+        }
+    }
+    for(i=n-1; i>=0; i--){
+        l = 0;
+        r = nxt[i]-prv[i]-1;
+        update(0, n-1, l, r, 0, arr[i]);
+    }
+    for(i=0; i<n; i++)
+        printf("%d ", query(0, n-1, i, 0));
+    printf("\n");
+    return 0;
+}

@@ -1,0 +1,99 @@
+#include <iostream>
+#include <cstdio>
+#include <ctime>
+#include <cstdlib>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <bitset>
+#include <cstring>
+#include <set>
+#include <map>
+
+using namespace std;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef vector<int> vi;
+typedef pair<int,int> ii;
+typedef vector< ii > vii;
+///////////////////////////////UTIL/////////////////////////////////
+#define ALL(x) (x).begin(),x.end()
+#define CLEAR0(v) memset(v, 0, sizeof(v))
+#define CLEAR(v, x) memset(v, x, sizeof(v))
+#define COPY(a, b) memcpy(a, b, sizeof(a))
+#define CMP(a, b) memcmp(a, b, sizeof(a))
+#define REP(i,n) for(int i = 0; i<n; i++)
+#define REPP(i,a,n) for(int i = a; i<n; i++)
+#define REPD(i,n) for(int i = n-1; i>-1; i--)
+#define REPDP(i,a,n) for(int i = n-1; i>=a; i--)
+#define MOD 1000000007LL
+#define PI 3.1415926535897932384626
+#define MAX_PRIME 11111
+#define INF 1000000000
+
+typedef long long unsigned hash;
+
+#define MAXS 10100
+#define MAXN 100100
+#define B 33ULL
+#define C 5381ULL
+
+ull power[MAXS];
+hash p[MAXS];
+map< hash, int > word;
+string pat;
+string txt[MAXN];
+int t, n;
+vi ans;
+bool found = false;
+
+void precalc(){
+	power[0] = 1ULL;
+	REPP(i, 1, MAXS) power[i] = power[i-1]*B;
+	p[0] = 0ULL;
+	REP(j, t) p[j+1] = p[j]*B + pat[j];
+	REP(i, n){
+		hash h = 0ULL;
+		int T = txt[i].length();
+		REP(j, T) h = h*B + tolower(txt[i][T-1-j]);
+		word[h] = i;
+	}
+}
+
+hash calc_phash(int a, int b){
+	//for(int i = a; i<=b; i++) printf("%c", pat[i]);
+	//printf("\n");
+	if(a > b) return 0;
+	return p[b+1] - p[a] * power[b-a+1];
+}
+
+
+void bt(int col){
+	if(col >= pat.length()){
+		found = true;
+		return; 
+	}
+	REP(i, 1000){
+		hash x = calc_phash(col, col+i);
+		if(word.count(x)){
+			ans.push_back(word[x]);
+			bt(col+i+1);
+			if(found) return;
+			ans.pop_back();
+		}
+	}
+}
+
+int main(){
+	cin >> t;
+	cin >> pat;
+	cin >> n;
+	REP(i, n) cin >> txt[i];
+	precalc();
+	bt(0);
+	cout << txt[ans[0]];
+	REPP(i, 1, ans.size()) cout << " " << txt[ans[i]];
+	cout << endl;
+}

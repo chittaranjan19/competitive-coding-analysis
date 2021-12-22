@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define mn 5010
+#define base 13
+#define maxC 1000000007
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n;
+long long po[mn], hashVal[mn], dp[mn][mn], sumDp[mn][mn];
+char digit[mn];
+
+long long add(long long a, long long b)
+{
+    a += b;
+    return (a >= maxC? a - maxC : a);
+}
+
+long long getHash(int l, int r)
+{
+    long long re = (hashVal[r] - hashVal[l - 1] * po[r - l + 1]) % maxC;
+    return (re < 0? re + maxC : re);
+}
+
+void setup()
+{
+    scanf("%d", &n);
+    gets(digit + 1);
+    po[0] = 1;
+    FOR(i, 1, n)
+    {
+        scanf("%c", digit + i);
+        po[i] = (po[i - 1] * base) % maxC;
+        hashVal[i] = add(hashVal[i - 1] * base, digit[i] - '0' + 1);
+    }
+}
+
+bool ok(int l1, int l2)
+{
+    int l = l1 - 1, r = l2;
+    while(r - l > 1)
+    {
+        int g1 = ((l + r) >> 1);
+        int g2 = l2 + (g1 - l1);
+        if (getHash(l1, g1) == getHash(l2, g2))
+            l = g1;
+        else
+            r = g1;
+    }
+    if (l == l2 - 1)
+        return false;
+    int g2 = l2 + (l - l1);
+    return digit[l + 1] < digit[g2 + 1];
+}
+
+void xuly()
+{
+    FOR(i, 0, n)
+        sumDp[0][i] = 1;
+    FOR(j, 1, n)
+    {
+        FORD(i, j, 1)
+        if (digit[i] != '0')
+        {
+            dp[i][j] = sumDp[i - 1][j - i];
+            int pos = i - (j - i + 1);
+            if (pos > 0)
+            {
+                if (ok(pos, i))
+                    dp[i][j] = add(dp[i][j], dp[pos][i - 1]);
+            }
+        }
+
+        FOR(i, 1, n)
+        {
+            sumDp[j][i] = sumDp[j][i - 1];
+            if (i <= j)
+                sumDp[j][i] = add(sumDp[j][i], dp[j - i + 1][j]);
+        }
+    }
+    printf("%I64d", sumDp[n][n]);
+}
+
+int main()
+{
+    setup();
+    xuly();
+    return 0;
+}

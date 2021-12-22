@@ -1,0 +1,82 @@
+#include<cstdio>
+#include<vector>
+#include<algorithm>
+using namespace std;
+struct Edge
+{
+    int x,y,l,r;
+    inline bool operator<(const Edge &other) const
+    {
+        return l<other.l;
+    }
+} a[3005];
+class DisjointSets
+{
+private:
+    vector<int> t,h;
+    inline int f(int x)
+    {
+        if(x==t[x])
+            return x;
+        return t[x]=f(t[x]);
+    }
+public:
+    DisjointSets() {}
+    DisjointSets(int n)
+    {
+        t.assign(1,0);
+        h.assign(n+1,1);
+        for(int i=1;i<=n;i++)
+            t.push_back(i);
+    }
+    void unite(int x,int y)
+    {
+        x=f(x);y=f(y);
+        if(x==y) return;
+        if(h[x]==h[y])
+        {
+            h[x]++;
+            t[y]=x;
+        }
+        else if(h[x]>h[y])
+            t[y]=x;
+        else
+            t[x]=y;
+    }
+    inline bool united(int x,int y)
+    {
+        return f(x)==f(y);
+    }
+};
+int main()
+{
+    ///freopen("f.in","r",stdin);
+    ///freopen("f.out","w",stdout);
+    int n,m;
+    scanf("%d%d",&n,&m);
+    for(int i=1;i<=m;i++)
+        scanf("%d%d%d%d",&a[i].x,&a[i].y,&a[i].l,&a[i].r);
+    sort(a+1,a+m+1);
+    int ans=0;
+    for(int i=1;i<=m;i++)
+    {
+        DisjointSets S(n);
+        for(int j=1;j<=m;j++)
+            if(a[j].r>=a[i].r)
+            {
+                if(a[j].l>a[i].r)
+                    break;
+                S.unite(a[j].x,a[j].y);
+                if(S.united(1,n))
+                {
+                    ans=max(ans,a[i].r-a[j].l+1);
+                    break;
+                }
+            }
+    }
+    if(ans==0)
+        printf("Nice work, Dima!\n");
+    else
+        printf("%d\n",ans);
+    return 0;
+}

@@ -1,0 +1,94 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int dp[11][11][2],digit,bal[11];
+vector<int>elec;
+ll mod(ll x){
+	return ll(x)%INF;
+}
+int rec(int x,int y,int z){
+	if(y<0)
+		return 0;
+	if(x==digit)
+		return (!y);
+	int &ret=dp[x][y][z];
+	if(ret!=-1)
+		return ret;ret=0;	
+	for(int i=(x==0);i<=9;i++){
+		if(z and i>elec[x])
+			i=i;
+		else if(z and i==elec[x])	
+			ret=ret+rec(x+1,y-(i==4 or i==7),z);
+		else if(z and i<elec[x])
+			ret=ret+rec(x+1,y-(i==4 or i==7),z^1);	
+		else
+			ret=ret+rec(x+1,y-(i==4 or i==7),z&1);	
+	}
+	return ret;					
+}
+void dig(int x){
+	while(x>=1){
+		elec.pb(x%10);
+		x/=10;
+	}
+	reverse(all(elec));
+	//LooK aT mY COde ONlinE +_+
+}
+PII pre[8];
+ll ans=0,mx=0;
+void fun(int S,int x){
+	if(x==6){
+		int cur=0;ll res=1;
+		for(int i=0;i<6;i++)
+			cur+=pre[i].ff;
+		if(cur>=S)
+			return;	
+		for(int i=0;i<6;i++)
+			res=mod(res*pre[i].ss);
+		ans=mod(ans+res);	
+		return;
+	}
+	for(int i=0;i<=digit;i++){
+		if(!bal[i])
+			continue;
+		pre[x]=mp(i,bal[i]);
+		bal[i]--;
+		fun(S,x+1);
+		bal[i]++;
+	}
+}
+int main(){
+	int m;cin>>m;dig(m);
+	for(int i=1;i<=elec.size();i++)
+		for(int j=0;j<=i;j++){
+			memset(dp,-1,sizeof(dp));
+			digit=i;
+			bal[j]=mod(bal[j]+rec(0,j,1&(i==(int)elec.size())));
+		}
+	int n=elec.size();
+	for(int i=1;i<=n;i++){
+		digit=i;bal[i]--;
+		ans=0;fun(i,0);
+		bal[i]++;mx=mod(mx+ans*bal[i]);
+	}
+	printf("%lld\n",mx);
+	return 0;
+}
+

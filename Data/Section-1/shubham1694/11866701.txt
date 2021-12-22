@@ -1,0 +1,67 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 100010;
+
+struct node{
+    int ht, d;
+    bool operator<(const node&n) const{
+        if(ht==n.ht)
+            return (d<n.d);
+        return (ht<n.ht);
+    }
+};
+
+node arr[maxn];
+int b[maxn], e[maxn];
+int c[210];
+
+int main()
+{
+    int n, i, j, k, m_l, cnt, csum, ans, cur, r, req;
+    ans = INT_MAX;
+    memset(c, 0, sizeof(c));
+    scanf("%d", &n);
+    for(i=0; i<n; i++)
+        scanf("%d", &arr[i].ht);
+    for(i=0; i<n; i++)
+        scanf("%d", &arr[i].d);
+    sort(arr, arr+n);
+    b[0] = arr[0].d;
+    for(i=1; i<n; i++)
+        b[i] = b[i-1]+arr[i].d;
+    e[n] = 0;
+    for(i=n-1; i>=0; i--)
+        e[i] = e[i+1]+arr[i].d;
+    for(i=0; i<n; ){
+        j = i+1;
+        cnt = 1;
+        while(j<n){
+            if(arr[j].ht!=arr[i].ht)
+                break;
+            j++;
+            cnt++;
+        }
+        r = j;
+        m_l = cnt*2 - 1;
+        csum = e[j];
+        //cout << csum << " " << j << " " << m_l << "\n";
+        if(j>m_l){
+            req = j-m_l;
+            for(k=1; k<=200; k++){
+                cur = min(req, c[k]);
+                req-=cur;
+                csum+=(k*cur);
+                if(req==0)
+                    break;
+            }
+        }
+        for(k=i; k<r; k++)
+            c[arr[k].d]++;
+        i = r;
+        ans = min(ans, csum);
+    }
+    printf("%d\n", ans);
+    return 0;
+}

@@ -1,0 +1,43 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) (( (int)x.size() ) )
+
+using namespace std;
+typedef long long ll;
+const int N = 500 + 10;
+
+int dp[2][N][N], mod,n,m,b,a[N];
+int sum;
+
+int main(){
+    cin >> n >> m >> b >> mod;
+
+    for(int i = 1; i <= n; ++i){
+        cin >> a[i];
+    }
+
+    dp[1][0][0] = 1;
+    for(int i = a[1]; i <= b; i += a[1])
+        dp[1][i / a[1]][i] = 1;
+
+    for(int i = 2; i <= n; ++i){
+        for(int j = 0; j <= m; ++j){
+            for(int k = 0; k <= b; ++k){
+                if(a[i] == 0 && j > 0){
+                    dp[i % 2][j][k] = dp[i % 2][j - 1][k];
+                    continue;
+                }
+                dp[i % 2][j][k] = 0;
+                for(int t = j; t >= 0; --t)
+                if(k - (j - t) * a[i] >= 0)
+                    dp[i % 2][j][k] = (dp[i % 2][j][k] + dp[(i + 1)%2][t][k - (j - t) * a[i]]) % mod;
+                else
+                    break;
+             }
+        }
+    }
+    for(int i = 0; i <= b; ++i)
+        sum = (sum + dp[n % 2][m][i]) % mod;
+    cout << sum << "\n";
+    return 0;
+}

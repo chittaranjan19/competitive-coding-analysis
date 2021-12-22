@@ -1,0 +1,129 @@
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+
+using namespace std;
+
+typedef long long ll;
+
+struct P {
+	ll x; ll y; ll z;
+	P(){}
+	P(ll lx, ll ly, ll lz) {
+		x = lx; y = ly; z = lz;
+	}
+};
+
+const int N = 100005;
+ll x[N];
+ll y[N];
+ll z[N];
+int n;
+
+ll solX, solY, solZ;
+bool possible(ll r) {
+	/*
+	   |xi - x| + |yi - y| + |zi - z| <= R
+
+	   xi - x + yi - y + zi - z <= R
+	   x - xi + y - yi + z - zi <= R
+
+	   x - xi + yi - y + zi - z <= R
+	   xi - x + y - yi + z - zi <= R
+
+	   xi - x + y - yi + zi - z <= R
+	   x - xi + yi - y + z - zi <= R
+
+	   x - xi + y - yi + zi - z <= R
+	   xi - x + yi - y + z - zi <= R
+
+	   +xi+yi+zi-R <= +x+y+z = a+b+c <= +xi+yi+zi+R
+	   -xi+yi+zi-R <= -x+y+z = a     <= -xi+yi+zi+R
+	   +xi-yi+zi-R <= +x-y+z = b     <= -xi+yi+zi+R
+	   +xi+yi-zi-R <= +x+y-z = c     <= +xi+yi-zi+R
+
+	   x = (b+c)/2
+	   y = (a+c)/2
+	   z = (a+b)/2
+	*/
+	ll minABC = x[0] + y[0] + z[0] - r;
+	ll minA = -x[0] + y[0] + z[0] - r;
+	ll minB = +x[0] - y[0] + z[0] - r;
+	ll minC = +x[0] + y[0] - z[0] - r;
+
+	ll maxABC = x[0] + y[0] + z[0] + r;
+	ll maxA = -x[0] + y[0] + z[0] + r;
+	ll maxB = +x[0] - y[0] + z[0] + r;
+	ll maxC = +x[0] + y[0] - z[0] + r;
+
+	for (int i = 0; i < n; i++) {
+		minABC = max(minABC, x[0] + y[0] + z[0] - r);
+		minA = max(minA, -x[0] + y[0] + z[0] - r);
+		minB = max(minB, +x[0] - y[0] + z[0] - r);
+		minC = max(minC, +x[0] + y[0] - z[0] - r);
+
+		maxABC = min(maxABC, x[0] + y[0] + z[0] + r);
+		maxA = min(maxA, -x[0] + y[0] + z[0] + r);
+		maxB = min(maxB, +x[0] - y[0] + z[0] + r);
+		maxC = min(maxC, +x[0] + y[0] - z[0] + r);
+	}
+
+	if (minA > maxA || minB > maxB || minC > maxC ||
+			maxA+maxB+maxC < minABC || minA+minB+minC > maxABC) {
+		return false;
+	} else {
+		ll a = minA, b = minB, c = minC;
+		if (a+b+c < minABC) a += min(maxA-minA, minABC-a-b-c);
+		if (a+b+c < minABC) b += min(maxB-minB, minABC-a-b-c);
+		if (a+b+c < minABC) c += min(maxC-minC, minABC-a-b-c);
+
+		ll x0 = (b+c)/2, y0 = (a+c)/2, z0 = (a+b)/2;
+		for (ll xx = x0-2; xx <= x0+2; xx++) {
+		for (ll yy = y0-2; yy <= y0+2; yy++) {
+		for (ll zz = z0-2; zz <= z0+2; zz++) {
+			bool good = true;
+			for (int i = 0; i < n; i++) {
+				ll dist = abs(x[i] - xx) + abs(y[i] - yy) + abs(z[i] - zz);
+				if (dist > r) {
+					good = false;
+					break;
+				}
+			}
+			if (good) {
+				solX = xx; solY = yy; solZ = zz;
+				return true;
+			}
+		}
+		}
+		}
+		return false;
+	}
+}
+
+void solve() {
+	cin >> n;
+	for (int i = 0; i < n; i++) {
+		cin >> x[i] >> y[i] >> z[i];
+	}
+
+	ll lo = -1;
+	ll hi = 3000000000000000001LL;
+	while (hi - lo > 4) {
+		ll mid = lo + (hi-lo)/2;
+		if (possible(mid)) hi = mid;
+		else lo = mid;
+	}
+	while (possible(hi-1)) hi--;
+	cout << solX << " " << solY << " " << solZ << endl;
+}
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	int ncase; cin >> ncase;
+	for (int csnum = 0; csnum < ncase; csnum++) {
+		solve();
+	}
+}

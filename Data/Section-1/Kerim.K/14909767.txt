@@ -1,0 +1,160 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define lg(x) ceil(log2(x))
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define lgN 18
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int P[MAXN][lgN+9],no,c,sub[MAXN],chain[MAXN],ata[MAXN],pos[MAXN],s[MAXN*4],lvl[MAXN],a;
+PII arr[MAXN];
+vector<int>adj[MAXN];
+void dfs(int nd,int pr){
+	lvl[nd]=lvl[pr]+1;
+	P[nd][0]=pr;
+	sub[nd]=1;
+	tr(v,adj[nd])
+		if(*v!=pr){
+			dfs(*v,nd);
+			sub[nd]+=sub[*v];
+		}
+}
+void build(){
+	for(int j=1;j<lgN;j++)
+		for(int i=1;i<=a;i++)
+			if(P[i][j-1]!=-1)
+				P[i][j]=P[P[i][j-1]][j-1];	
+}
+void hld(int nd,int pr){
+	if(ata[no]==-1)
+		ata[no]=nd;
+	c++;	
+	pos[nd]=c;
+	chain[nd]=no;	
+	int mx=-1,yer=-1;
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to!=pr and sub[to]>=mx){
+			mx=sub[to];
+			yer=i;
+		}
+	}
+	if(yer!=-1)
+		hld(adj[nd][yer],nd);	
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to!=pr and i!=yer)
+			no++,hld(to,nd);
+	}
+}
+int LCA(int x,int y){
+	if(lvl[x]<lvl[y])
+		swap(x,y);
+	for(int i=lgN;i>=0;i--)
+		if(lvl[x]-(1<<i)>=lvl[y])
+			x=P[x][i];
+	if(x==y)
+		return x;
+	for(int i=lgN;i>=0;i--)
+		if(P[x][i]!=-1 and P[x][i]!=P[y][i])
+			x=P[x][i],y=P[y][i];
+	return P[x][0];		
+}
+int tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return s[nd];
+	int mid=(x+y)>>1;
+	return tap(l,r,nd*2,x,mid)+tap(l,r,nd*2+1,mid+1,y);
+}
+void upd(int p,int nd,int x,int y){
+//	cout<<p<<endl;
+	if(x==y and x==p){
+		s[nd]=!s[nd];
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,nd*2,x,mid);
+	else	
+		upd(p,nd*2+1,mid+1,y);
+	s[nd]=s[nd*2]+s[nd*2+1];	
+}
+int bul(int x,int y){
+	if(x==y)
+		return 0;
+	int ans=0;	
+	while(1){
+		if(chain[x]==chain[y]){
+			if(x==y)
+				return ans;
+			ans+=tap(pos[y]+1,pos[x],1,1,c);
+			return ans;
+		}
+		int number=chain[x];
+		ans+=tap(pos[ata[number]],pos[x],1,1,c);
+	//	cout<<ans<<"$#"<<endl;
+		x=ata[number];
+		x=P[x][0];	
+	}		
+	return ans;
+}
+int main(){
+	memset(P,-1,sizeof(P));
+	memset(ata,-1,sizeof(ata));
+	cin>>a;
+	for(int i=0;i<a-1;i++){
+		int u,v;
+		cin>>u>>v;
+		arr[i]=mp(u,v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	dfs(1,0);
+	build();
+	hld(1,0);
+//	for(int i=1;i<=a;i++)
+//		cout<<pos[i]<<" ";
+//	cout<<endl;	
+	int m;
+	cin>>m;
+	while(m--){
+		int type;
+		cin>>type;
+		if(type==1 or type==2){
+			int ind;
+			cin>>ind;ind--;
+			int u=arr[ind].ff,v=arr[ind].ss;
+			if(P[u][0]==v){
+				cout<<pos[u]<<endl;
+				upd(pos[u],1,1,c);
+			}
+			else		
+				upd(pos[v],1,1,c);
+		}
+		if(type==3){
+			int u,v;
+			cin>>u>>v;
+			int z=LCA(u,v);
+			if(bul(u,z)+bul(v,z))
+				cout<<"-1"<<endl;
+			else
+				cout<<(lvl[u]-lvl[z])+(lvl[v]-lvl[z])<<endl;	
+		}
+	}
+	return 0;
+}

@@ -1,0 +1,142 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 300005
+#define maxC 1000000007
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int n, q, sz[mn], ans[mn], root[mn], pos[mn], en[mn], num = 0;
+vector<int> g[mn];
+pair<int, int> p[mn];
+
+struct node
+{
+    int val, id, l, r;
+
+    node()
+    {
+        val = maxC;
+        id = l = r = 0;
+    }
+};
+
+struct persistentTree
+{
+    node tree[mn * 30];
+
+    int update(int l, int r, int id, int x, int u, int val)
+    {
+        if (l == r)
+        {
+            tree[++ num].val = val;
+            tree[num].id = u;
+            return num;
+        }
+        int re = ++ num;
+        int g = ((l + r) >> 1);
+        if (x <= g)
+        {
+            tree[re].l = update(l, g, tree[id].l, x, u, val);
+            tree[re].r = tree[id].r;
+        }
+        else
+        {
+            tree[re].l = tree[id].l;
+            tree[re].r = update(g + 1, r, tree[id].r, x, u, val);
+        }
+        if (tree[tree[re].l].val < tree[tree[re].r].val)
+        {
+            tree[re].val = tree[tree[re].l].val;
+            tree[re].id = tree[tree[re].l].id;
+        }
+        else
+        {
+            tree[re].val = tree[tree[re].r].val;
+            tree[re].id = tree[tree[re].r].id;
+        }
+        return re;
+    }
+
+    pair<int, int> get(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return mp(maxC, 0);
+        if (x <= l && r <= y)
+            return mp(tree[id].val, tree[id].id);
+        int g = ((l + r) >> 1);
+        pair<int, int> a = get(l, g, tree[id].l, x, y);
+        pair<int, int> b = get(g + 1, r, tree[id].r, x, y);
+        return min(a, b);
+    }
+} t;
+
+void dfs(int u)
+{
+    sz[u] = 1;
+    pos[u] = ++ num;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        dfs(v);
+        sz[u] += sz[v];
+    }
+    en[u] = num;
+    p[u] = mp(sz[u], u);
+}
+
+void setup()
+{
+    int u;
+    cin >> n >> q;
+    FOR(i, 2, n)
+    {
+        cin >> u;
+        g[u].pb(i);
+    }
+}
+
+int getAns(int x)
+{
+    int val = ((sz[x] + 1) >> 1);
+    int l = 0, r = n;
+    while(r - l > 1)
+    {
+        int g = ((l + r) >> 1);
+        if (p[g].F >= val)
+            r = g;
+        else
+            l = g;
+    }
+    return t.get(1, n, root[r], pos[x], en[x]).S;
+}
+
+void xuly()
+{
+    dfs(1);
+    sort(p + 1, p + n + 1);
+    num = 0;
+    FORD(i, n, 1)
+        root[i] = t.update(1, n, root[i + 1], pos[p[i].S], p[i].S, p[i].F);
+    int x;
+    FOR(i, 1, q)
+    {
+        cin >> x;
+        if (ans[x] == 0)
+            ans[x] = getAns(x);
+        cout << ans[x] << '\n';
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

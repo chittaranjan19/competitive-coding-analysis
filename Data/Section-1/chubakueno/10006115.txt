@@ -1,0 +1,33 @@
+#include <bits/stdc++.h>
+typedef long long ll;
+using namespace std;
+double dp[2001][2001];
+int n,t;
+double p;
+double getprob(int total, int suben){
+	double res=0;
+	if(suben>total) res=0;
+	else if(dp[total][suben]>=0) res=dp[total][suben];
+	else res=p*getprob(total-1,suben-1)+(1-p)*getprob(total-1,suben);
+	return (dp[total][suben]=res);
+}
+int main(){
+	cin>>n>>p>>t;
+	for(int i=0;i<2001;++i)
+		for(int j=0;j<=i;++j)
+			dp[i][j]=-1;
+	for(int i=0;i<2001;++i){
+		dp[i][0]=pow(1-p,i);
+		dp[i][i]=pow(p,i);
+	}
+	double expected=0;
+	for(int i=1;i<=min(n,t);++i){
+		for(int j=1;j<=t;++j){
+			double prob=(1-p)*getprob(j-1,i-1);
+			if(i!=n) prob*=pow(1-p,t-j);
+			expected+=i*prob;
+		}
+	}
+	cout<<std::fixed;
+	cout<<setprecision(10)<<expected;
+}

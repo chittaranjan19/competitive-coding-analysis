@@ -1,0 +1,32 @@
+#include <stdio.h>
+const int MX=200;
+int n,m,i,j;
+double cur,r,fact[100010],pp[100010],np[100010],p[100010][MX],f[100010][MX],s[MX];
+int main() {
+  for (i=1; i<MX; i++) s[i]=s[i-1]+i;
+  for (i=1; i<MX; i++) s[i]/=i;
+  scanf("%d%d",&n,&m);
+  p[0][1]=fact[0]=pp[0]=np[0]=1;
+  for (i=0; i<n; i++) {
+    fact[i+1]=fact[i]*(i+1.);
+    pp[i+1]=pp[i]/m;
+    np[i+1]=np[i]*(m-1.)/m;
+    for (j=1; j<MX; j++) if (p[i][j]) {
+      cur=p[i][j]*j/(j+1.);
+      p[i+1][j]+=cur;
+      f[i+1][j]+=cur*(f[i][j]/p[i][j]+s[j]);
+      if (j+1<MX) {
+        cur=p[i][j]/(j+1.);
+        p[i+1][j+1]+=cur;
+        f[i+1][j+1]+=cur*(f[i][j]/p[i][j]+j);
+      }
+    }
+  }
+  for (i=0; i<=n; i++) {
+    cur=fact[i]*fact[n-i];
+    cur=fact[n]/cur*pp[i]*np[n-i];
+    for (j=0; j<MX; j++) r+=cur*f[i][j];
+  }
+  printf("%.11lf\n",r*m);
+  return 0;
+}

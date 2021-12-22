@@ -1,0 +1,61 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int, int> P;
+
+const int maxn = 1e6 + 5;
+const int mod = 1000000007;
+
+ll dp[3][maxn];
+P pp[maxn];
+
+int main()
+{
+    int n, k;
+    ll l;
+    scanf("%d%I64d%d", &n, &l, &k);
+    for(int i = 0; i < n; ++i)
+    {
+        scanf("%d", &pp[i].first);
+        pp[i].second = i;
+    }
+    ll ans = 0;
+    ll p = l / n, q = l % n;
+    sort(pp, pp + n);
+    ll *now = dp[0], *nxt = dp[1];
+    for(int i = 0; i < n; ++i)
+    {
+        nxt[1] = 1;
+        if(p)
+        {
+            ans = (ans + nxt[1] * p % mod) % mod;
+        }
+        if(pp[i].second < q)
+        {
+            ans = (ans + nxt[1]) % mod;
+        }
+        for(int j = 2; j <= k; ++j)
+        {
+            nxt[j] = (now[j - 1] + nxt[j - 1]) % mod;
+            if(p >= j)
+            {
+                ans = (ans + nxt[j] * (p - j + 1) % mod) % mod;
+            }
+            if(p >= j - 1 && pp[i].second < q)
+            {
+                ans = (ans + nxt[j]) % mod;
+            }
+        }
+        for(int j = 1; j <= k; ++j)
+        {
+            nxt[j] = (nxt[j] + now[j]) % mod;
+        }
+        swap(now, nxt);
+    }
+    printf("%I64d\n", ans);
+    return 0;
+}

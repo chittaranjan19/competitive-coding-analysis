@@ -1,0 +1,67 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define MOD 100000000
+#define inf 1000000000
+#define maxn 1000000
+
+#define ll long long
+#define pii pair<int, int>
+#define pb push_back
+#define sin scanint
+#define bitcount(x) __builtin_popcount(x)
+#define fill(s, p) memset(s, p, sizeof(s));
+
+#ifdef ONLINE_JUDGE
+#define gc getchar
+#endif
+
+#ifndef ONLINE_JUDGE
+#define gc getchar
+//freopen("input.txt", "r", stdin)
+//freopen("output.txt", "w", stdout)
+#endif
+
+void scanint(int &x)
+{
+    register int c = gc();
+    x = 0;
+    for(;(c<48 || c>57);c = gc());
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+}
+
+ll dp[210][110][110][2];
+int k1, k2, n, m;
+
+ll solve(int curp, int curh, int curf, int cur)
+{
+    if(curp==(n+m) && curh==0 && curf==0)
+        return 1;
+    if(curh<0 || curf<0 || curp>=(n+m))
+        return 0;
+    if(dp[curp][curh][curf][cur]!=-1)
+        return dp[curp][curh][curf][cur];
+
+    int i, st;
+    ll ret=0;
+    if(cur==0)
+        st = k1;
+    else
+        st = k2;
+    for(i=st; i>0; i--){
+        if(cur==0)
+            ret = (ret+solve(curp+i, curh-i, curf, 1))%MOD;
+        else
+            ret = (ret+solve(curp+i, curh, curf-i, 0))%MOD;
+    }
+    return dp[curp][curh][curf][cur] = ret;
+}
+
+int main()
+{
+    fill(dp, -1);
+    cin >> n >> m >> k1 >> k2;
+    cout << (solve(0, n, m, 0) + solve(0, n, m, 1))%MOD << endl;
+    return 0;
+}

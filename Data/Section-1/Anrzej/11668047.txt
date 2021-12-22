@@ -1,0 +1,82 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+#include <cstring>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+
+using namespace std;
+string s;
+
+int gcd(int a, int b)
+{
+    int temp = min(a, b);
+    a = max(a, b);
+    b = temp;
+    if (b == 0) return a;
+    else 
+        return gcd(b, a%b);
+}
+
+int m[2000000];
+
+int main()
+{
+    //25 -2 -2 -2 -1 -2 0 -2 1 -2 2 -1 -2 -1 -1 -1 0 -1 1 -1 2 0 -2 0 -1 0 0 0 1 0 2 1 -2 1 -1 1 0 1 1 1 2 2 -2 2 -1 2 0 2 1 2 2
+    int n, ans;
+    pair<int, int> mas[3000];
+    vector<pair<int, int> > line;
+    cin >> n;
+    for (int i = 0; i < n; i++)
+    {
+        int x, y;
+        cin >> x >> y;
+        mas[i] = mp(x, y);
+    }
+    int count = 0;
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = i + 1; j < n; j++)
+        {
+            int a = abs(mas[i].first - mas[j].first)*(mas[i].second - mas[j].second);
+            a = abs(a);
+            int b = (mas[i].first - mas[j].first)*(mas[i].first*mas[j].second - mas[i].second*mas[j].first);
+            b = abs(b);
+            int c = gcd(a, b);
+            if (c == 0) c = 1;
+            line.push_back(mp(a/c, b/c));
+            count++;
+        }
+    }
+    memset(m, 0, sizeof(m));
+    for (int i = 0; i < n; i++)
+        m[i*(i - 1)/2] = i;
+    sort(line.begin(), line.end());
+    ans = n*(n - 1)*(n - 2) / 6;
+    int d = 0, k;
+    line.push_back(mp(-1, -1));
+    for (int i = 0; i < count; i++)
+    {
+        k = i;
+        if (d == 0)
+        {
+            while (line[k] == line[i++])
+                d++;
+            d = m[d];
+            if (d > 2)
+                ans -= d*(d - 1)*(d - 2) / 6;
+            i-=2;
+            d = 0;
+        }
+    }
+    cout << ans;
+}

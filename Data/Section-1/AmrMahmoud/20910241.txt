@@ -1,0 +1,172 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-5
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+const int MAXN = 50010;
+
+struct Dinic
+{
+  struct edge {
+    int a, b, cap, flow;
+  };
+
+  int n, d[MAXN], ptr[MAXN], q[MAXN];
+  vector<edge> e;
+  vector<int> g[MAXN];
+
+  Dinic() {}
+  Dinic(int N) : n(N) {}
+
+  void AddEdge(int a, int b, int cap)
+  {
+    edge e1 = {a, b, cap, 0};
+    edge e2 = {b, a, 0, 0};
+    g[a].pb((int) e.size());
+    e.pb(e1);
+    g[b].pb((int) e.size());
+    e.pb(e2);
+  }
+
+  bool bfs(int s, int t)
+  {
+    int qh = 0, qt = 0;
+    q[qt++] = s;
+    memset (d, -1, n * sizeof d[0]);
+    d[s] = 0;
+    while(qh < qt && d[t] == -1)
+    {
+      int v = q[qh++];
+      for(size_t i=0; i<g[v].size(); ++i)
+      {
+        int id = g[v][i], to = e[id].b;
+        if(d[to] == -1 && e[id].flow < e[id].cap)
+        {
+          q[qt++] = to;
+          d[to] = d[v] + 1;
+        }
+      }
+    }
+    return d[t] != -1;
+  }
+
+  int dfs(int v, int flow, int t)
+  {
+    if(!flow) return 0;
+    if(v == t) return flow;
+    for(;ptr[v]<(int)g[v].size();++ptr[v])
+    {
+      int id = g[v][ptr[v]], to = e[id].b;
+      if(d[to] != d[v] + 1) continue;
+      int pushed = dfs(to, min(flow, e[id].cap - e[id].flow), t);
+      if(pushed)
+      {
+        e[id].flow += pushed;
+        e[id^1].flow -= pushed;
+        return pushed;
+      }
+    }
+    return 0;
+  }
+
+  int GetMaxFlow(int s, int t)
+  {
+    int flow = 0;
+    while(bfs(s, t))
+    {
+      memset(ptr, 0, n * sizeof ptr[0]);
+      while(int pushed = dfs(s, INF, t))
+        flow += pushed;
+    }
+    return flow;
+  }
+};
+
+set<pair<int, int> > g[10005];
+bool inq[10005];
+bool done[10005];
+vector<pair<int, int> > tmp;
+Dinic solve;
+int idx;
+
+int dfs(int node)
+{
+  if(inq[node])
+  {
+    vector<pair<int, int> > t;
+    while(1)
+    {
+      t.pb(tmp.back());
+      tmp.pop_back();
+      if(t.back().f == node) break;
+    }
+    int id = idx++;
+    solve.AddEdge(0, id, t.size() - 1);
+    for(int i=0;i<t.size();i++)
+    {
+      solve.AddEdge(id, idx, 1);
+      solve.AddEdge(idx, t[i].s, 1);
+      idx++;
+    }
+    return node;
+  }
+  inq[node] = true;
+  while(!g[node].empty())
+  {
+    pair<int, int> p = *g[node].begin();
+    g[node].erase(g[node].begin());
+    g[p.f].erase(mp(node, p.s));
+    tmp.pb(mp(node, p.s));
+    int t = dfs(p.f);
+    if(t == -1)
+    {
+      tmp.pop_back();
+      if(!done[p.s])
+      {
+        solve.AddEdge(0, p.s, 1);
+        done[p.s] = true;
+      }
+    }
+    else if(t != node)
+    {
+      inq[node] = false;
+      return t;
+    }
+  }
+  inq[node] = false;
+  return -1;
+}
+
+int main()
+{
+  int n, m, x, y, z;
+  cin >> n >> m;
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d %d %d", &x, &y, &z);
+    g[x].insert(mp(y, z));
+    g[y].insert(mp(x, z));
+  }
+  solve = Dinic(3 * m + 4);
+  idx = m + 2;
+  for(int i=2;i<=m+1;i++)
+    solve.AddEdge(i, 1, 1);
+  for(int i=1;i<=n;i++)
+    dfs(i);
+  cout << solve.GetMaxFlow(0, 1);
+  return 0;
+}

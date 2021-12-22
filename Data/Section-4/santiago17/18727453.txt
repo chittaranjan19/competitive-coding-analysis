@@ -1,0 +1,48 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+vector<int> vectors[6];
+
+int memo[1005], pos[6][1005];
+
+int LCS(int n, int k) {
+    int ans = 0;
+    for (int i = n; i >= 1; i--) {
+        for (int j = i-1; j >= 1; j--) {
+            bool test = true;
+            for (int l = 1; l <= k && test; ++l) {
+                test = pos[l][vectors[1][i]] > pos[l][vectors[1][j]];
+            }
+            int t1, t2;
+            t1 = memo[vectors[1][j]];
+            t2 = memo[vectors[1][i]];
+            memo[vectors[1][j]] = test? max(t1, t2+1): max(t1, t2);
+            ans = max(ans, memo[vectors[1][j]]);
+        }
+    }
+    return ans;
+
+}
+
+void init() {
+    for (int i = 0; i < 1005; ++i)
+        memo[i] = 1;
+}
+
+int main() {
+    //freopen("perm.in", "r", stdin);
+    init();
+    int n, k;
+    scanf("%d %d", &n, &k);
+    for (int i = 1; i <= k; ++i) {
+        vector<int> t(n+1);
+        for (int j = 1; j <= n; ++j) {
+            scanf("%d", &t[j]);
+            pos[i][t[j]] = j;
+        }
+        vectors[i] = t;
+    }
+    printf("%d", LCS(n, k));
+    return 0;
+}

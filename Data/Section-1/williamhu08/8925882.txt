@@ -1,0 +1,112 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1e6 + 10;
+
+int N, M, dx, dy;
+int phiN, invx, invy;
+vector<pii> cat[MAXN];
+
+int gcd (int a, int b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+int add (int x, int y) {
+	return (x + y) % N;
+}
+
+int subtr (int x, int y) {
+	return (x -= y) < 0 ? x + N : x;
+}
+
+int mult (int x, int y) {
+	return (1ll * x * y) % N;
+}
+
+void multeq (int &x, int y) {
+	x = mult(x, y);
+}
+
+int power (int x, int y) {
+	int res = 1;
+	for (int cur = x; y; y >>= 1) {
+		if (y & 1) {
+			multeq(res, cur);
+		}
+		multeq(cur, cur);
+	}
+	return res;
+}
+
+int inv (int x) {
+	//x^-1 mod N
+	return power(x, phiN - 1);
+}
+
+int main() {
+	//why are you stalking me?
+	ios_base::sync_with_stdio(false);
+#ifndef ONLINE_JUDGE
+	freopen("codeforces492E.in", "r", stdin);
+#endif
+	cin >> N >> M >> dx >> dy;
+	if (N == 1) {
+		//special case!!
+		cout << "0 0\n";
+		return 0;
+	}
+	for (int i = 1; i < N; i++) {
+		phiN += (gcd(i, N) == 1);
+	}
+	invx = inv(dx);
+	invy = inv(dy);
+	for (int i = 0, a, b; i < M; i++) {
+		cin >> a >> b;
+		int d = mult(a, invx);	//a / dx
+		cat[subtr(b, mult(d, dy))].push_back(pii(a, b));
+	}
+	int maxsize = 0, ans;
+	for (int i = 0; i < MAXN; i++) {
+		int cs = cat[i].size();
+		if (cs > maxsize) {
+			maxsize = cs;
+			ans = i;
+		}
+	}
+	pii pat = cat[ans][0];
+	cout << pat.first << ' ' << pat.second << endl;
+}

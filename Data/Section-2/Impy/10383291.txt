@@ -1,0 +1,118 @@
+type
+  MAGIC = record
+    data, posf: array of longint;
+    id: longint;
+  end;
+
+var
+  a: array[1 .. 200] of MAGIC;
+  x, d, kl: array[0 .. 200] of longint;
+  m, k, c, i, j, z, k2, last, a1, b1, bk1, bk2: longint;
+  f: boolean;
+
+procedure swap(var a, b: longint);
+var
+  t: longint;
+begin
+  t := a;
+  a := b;
+  b := t;
+end;
+
+function find(x: longint): longint;
+var
+  ind, i: longint;
+begin
+  ind := -1;
+  for i := 1 to last do
+    if a[i].id = x then
+      ind := i;
+  if ind = -1 then
+    begin
+      inc(last);
+      a[last].id := x;
+      ind := last;
+    end;
+  exit(ind);
+end;
+
+procedure add(x, y: longint);
+var
+  q1, q2: longint;
+begin
+  q1 := find(x);
+  q2 := find(y);
+  setlength(a[q1].data, length(a[q1].data) + 1);
+  a[q1].data[length(a[q1].data) - 1] := q2;
+  setlength(a[q2].data, length(a[q2].data) + 1);
+  a[q2].data[length(a[q2].data) - 1] := q1;
+end;
+
+procedure addPos(x, y: longint);
+begin
+  setlength(a[x].posf, length(a[x].posf) + 1);
+  a[x].posf[length(a[x].posf) - 1] := a[y].id;
+end;
+
+begin
+  last := 0;
+  read(m, k2);
+  for i := 1 to m do
+    begin
+      read(a1, b1);
+      add(a1, b1);
+    end;
+  for i := 1 to last do
+    for j := 1 to last do
+      if (i <> j) then
+      begin
+        c := 0;
+        f := TRUE;
+        for z := 0 to length(a[i].data) - 1 do
+          if a[i].data[z] = j then
+            f := FALSE;
+        if f then
+        begin
+        for z := 0 to length(a[i].data) - 1 do
+          for k := 0 to length(a[j].data) - 1 do
+            if a[i].data[z] = a[j].data[k] then
+              inc(c);
+        if (length(a[i].data) * k2) <= (c * 100) then
+          addPos(i, j);
+        end;
+      end;
+  for i := 1 to last do
+    begin
+      x[i] := a[i].id;
+      d[i] := i;
+    end;
+  for i := 1 to last do
+    for j := i to last do
+      if x[j] < x[i] then
+        begin
+          swap(x[i], x[j]);
+          swap(d[i], d[j]);
+        end;
+  for i := 1 to last do
+    begin
+      write(x[i], ': ', length(a[d[i]].posf), ' ');
+      
+      for j := 0 to length(a[d[i]].posf) - 1 do
+        kl[j] := a[d[i]].posf[j];
+      for bk1 := 0 to length(a[d[i]].posf) - 1 do
+        for bk2 := bk1 to length(a[d[i]].posf) - 1 do
+          if kl[bk1] > kl[bk2] then
+            swap(kl[bk1], kl[bk2]);
+      for j := 0 to length(a[d[i]].posf) - 1 do
+        write(kl[j] , ' ');
+      writeln();
+    end;
+  {writeln();
+  for i := 1 to last do
+    begin
+      write(i, ': ');
+      for j := 0 to length(a[i].data) - 1 do
+        write(a[i].data[j], ' ');
+      writeln();
+    end;}
+end.

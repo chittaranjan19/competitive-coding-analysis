@@ -1,0 +1,60 @@
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+typedef long long ll;
+
+const int N = 5000;
+ll x[N];
+ll a[N];
+ll b[N];
+ll c[N];
+ll d[N];
+
+int ss[N];
+
+ll dist(int i, int j) {
+	if (x[i] < x[j]) return x[j] - x[i] + d[i] + a[j];
+	return x[i] - x[j] + c[i] + b[j];
+}
+
+int main() {
+	int n, s, e; cin >> n >> s >> e; s--; e--;
+	for (int i = 0; i < n; i++) cin >> x[i];
+	for (int i = 0; i < n; i++) cin >> a[i];
+	for (int i = 0; i < n; i++) cin >> b[i];
+	for (int i = 0; i < n; i++) cin >> c[i];
+	for (int i = 0; i < n; i++) cin >> d[i];
+
+	ss[0] = s;
+	ss[n-1] = e;
+	int cnt = 1;
+	for (int i = 0; i < n; i++) {
+		if (i == s || i == e) continue;
+		ss[cnt] = i; cnt++;
+	}
+	bool done = false;
+	while (!done) {
+		done = true;
+		for (int i = 1; i < n-2; i++) {
+			int s0 = ss[i-1];
+			int s1 = ss[i];
+			int s2 = ss[i+1];
+			int s3 = ss[i+2];
+			ll cost1 = dist(s0, s1) + dist(s1, s2) + dist(s2, s3);
+			ll cost2 = dist(s0, s2) + dist(s2, s1) + dist(s1, s3);
+			if (cost1 > cost2) {
+				ss[i] = s2;
+				ss[i+1] = s1;
+				done = false;
+			}
+		}
+	}
+	ll sum = 0;
+	for (int i = 0; i < n-1; i++) {
+		int s1 = ss[i];
+		int s2 = ss[i+1];
+		sum += dist(s1, s2);
+	}
+	cout << sum << endl;
+}

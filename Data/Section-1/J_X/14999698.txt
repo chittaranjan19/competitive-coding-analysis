@@ -1,0 +1,73 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+typedef long long ll;
+
+const int mod = 1e9 + 7;
+const int MAXN = 1e5 + 5;
+
+ll sum[MAXN], f[MAXN];
+char s[MAXN];
+
+ll fast_pow(ll x, int n)
+{
+    ll ret = 1;
+    while(n)
+    {
+        if(n & 1)
+        {
+            ret = ret * x % mod;
+        }
+        x = x * x % mod;
+        n >>= 1;
+    }
+    return ret;
+}
+
+ll C(int down, int up)
+{
+    return f[down] * fast_pow(f[up], mod - 2) % mod * fast_pow(f[down - up], mod - 2) % mod;
+}
+
+int main()
+{
+    f[0] = 1;
+    for(int i = 1; i < MAXN; ++i)
+    {
+        f[i] = i * f[i - 1] % mod;
+    }
+    int n, k;
+    while(~scanf("%d%d", &n, &k))
+    {
+        scanf("%s", s);
+        ll ans = 0;
+        if(!k)
+        {
+            for(int i = 0; i < n; ++i)
+            {
+                ans = (ans * 10 + s[i] - '0') % mod;
+            }
+        }
+        else
+        {
+            ans = ((s[n - 1] - '0') * C(n - 1, k)) % mod;
+            sum[k - 1] = fast_pow(10, n - k - 1);
+            for(int i = k; i < n - 1; ++i)
+            {
+                ll tmp = C(i, k - 1) * fast_pow(10, n - i - 2) % mod;
+                sum[i] = (sum[i - 1] + tmp) % mod;
+            }
+            for(int i = 0; i < n - 1; ++i)
+            {
+                int j = max(i, k - 1);
+                ll tmp = j >= k ? sum[n - 2] - sum[j - 1] : sum[n - 2];
+                ans = (ans + (s[i] - '0') * tmp) % mod;
+            }
+        }
+        printf("%I64d\n", ans);
+    }
+    return 0;
+}

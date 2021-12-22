@@ -1,0 +1,133 @@
+#include "bits/stdc++.h"
+#define MAXN 300009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+struct interval{
+	ll a,b,st,en;
+	void yasa(ll x,ll y,ll z,ll t){
+		a=x;b=y;st=z;en=t;
+	}
+}q[MAXN];
+ll ans[MAXN];
+const ll B=-2e18;
+struct CHT{
+	vector<ll>m,b;
+	ll point;
+	ll intersect(ll l1,ll l2,ll l3){
+		ll x1=(b[l2]-b[l1])/(m[l1]-m[l2]);
+		ll x2=(b[l3]-b[l1])/(m[l1]-m[l3]);
+		if(x1<x2)
+			return 0;//l2 line has gowy
+		return 1;//l3 line has gowy
+	}
+	void init(vector<PII> solve){
+		sort(all(solve));
+		point=0;
+		m.resize(0);
+		b.resize(0);
+		for(ll i=0;i<ll(solve.size());i++){
+            while(i+1<int(solve.size()) and solve[i+1].ff==solve[i].ff) 
+				i++;
+			ll x=solve[i].ff;
+			ll y=solve[i].ss;
+			m.pb(x);b.pb(y);
+			while(m.size()>2 and intersect(m.size()-3,m.size()-2,m.size()-1)){//l3 line has gowy bolsa
+				m.erase(m.end()-2);//l2 linyn slopyny poz
+				b.erase(b.end()-2);//l2 linyn y-axisy poz
+			}
+		}
+	}
+	ll tap(ll x){
+		if(point>=ll(m.size()))
+			point=m.size()-1;
+		while(point+1<ll(m.size()) and m[point]*x+b[point]<m[point+1]*x+b[point+1])	
+			point++;
+		if(point<0 or point>=ll(m.size()))
+			return B;
+		return m[point]*x+b[point];	
+	}
+}s[MAXN<<1];
+ll id[MAXN];
+vector<PII>T[MAXN<<1];
+void dfs(ll l,ll r,ll a,ll b,ll nd,ll x,ll y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		T[nd].pb(mp(a,b));
+		return;
+	}
+	ll mid=(x+y)>>1;
+	dfs(l,r,a,b,nd<<1,x,mid);
+	dfs(l,r,a,b,nd<<1|1,mid+1,y);
+}
+void tap(ll p,ll v,ll ind,ll nd,ll x,ll y){
+	umax(ans[ind],s[nd].tap(v));
+	if(x==y)
+		return;
+	ll mid=(x+y)>>1;
+	if(p<=mid)
+		tap(p,v,ind,nd<<1,x,mid);
+	else
+		tap(p,v,ind,nd<<1|1,mid+1,y);
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	ll n,c=0,num=0;
+	scanf("%lld",&n);
+	vector<pair<ll,PII> >v;
+	for(ll i=1;i<=n;i++){
+		ll type;
+		scanf("%lld",&type);
+		if(type==1){
+			ll x,y;
+			scanf("%lld%lld",&x,&y);
+			q[++c].yasa(x,y,i,n);
+			id[i]=c;
+		}
+		else if(type==2){
+			ll t;
+			scanf("%lld",&t);
+			q[id[t]].en=i-1;
+		}
+		else{num++;
+			ll q;
+			scanf("%lld",&q);
+			v.pb(mp(q,mp(i,num)));
+		}
+	}
+	for(ll i=1;i<=c;i++)
+		dfs(q[i].st,q[i].en,q[i].a,q[i].b,1,1,n);
+	for(ll i=1;i<(MAXN<<1);i++){
+		if(T[i].size()==0)
+			continue;
+		s[i].init(T[i]);
+	}
+	sort(all(v));
+	fill(ans,ans+MAXN,B);
+	for(ll i=0;i<ll(v.size());i++)
+		tap(v[i].ss.ff,v[i].ff,v[i].ss.ss,1,1,n);
+	for(ll i=1;i<=num;i++){
+		if(ans[i]==B){
+			printf("EMPTY SET\n");
+			continue;
+		}
+		printf("%lld\n",ans[i]);
+	}
+	return 0;
+}

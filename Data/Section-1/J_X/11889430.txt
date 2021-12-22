@@ -1,0 +1,56 @@
+#include <iostream>
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef pair<int, int> P;
+
+const int maxn = 1e5 + 5;
+
+P p[maxn];
+int a[maxn], amount[maxn];
+vector<int> v[205];
+
+int cal(int k, int n)
+{
+    int l = p[k].first, res = 0, cnt = max(0, k - amount[l] + 1);
+    for(int i = 1; i <= 200; ++i)
+    {
+        int lb = lower_bound(v[i].begin(), v[i].end(), l) - v[i].begin();
+        int ub = upper_bound(v[i].begin(), v[i].end(), l) - v[i].begin();
+        int m = min(cnt, lb);
+        res += (v[i].size() - ub + m) * i;
+        cnt -= m;
+    }
+    return res;
+}
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        for(int i = 0; i < n; ++i)
+        {
+            scanf("%d", &p[i].first);
+            ++amount[p[i].first];
+        }
+        for(int i = 0; i < n; ++i)
+        {
+            scanf("%d", &p[i].second);
+            v[p[i].second].push_back(p[i].first);
+        }
+        sort(p, p + n);
+        for(int i = 1; i <= 200; ++i)
+        {
+            sort(v[i].begin(), v[i].end());
+        }
+        int ans = cal(0, n);
+        for(int i = amount[p[0].first]; i < n; i += amount[p[i].first])
+        {
+            ans = min(ans, cal(i, n));
+        }
+        printf("%d\n", ans);
+    }
+    return 0;
+}

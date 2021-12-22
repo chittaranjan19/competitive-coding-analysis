@@ -1,0 +1,107 @@
+program a;
+
+const
+  tfi = '';//'547a.inp';
+  tfo = '';//'547a.out';
+
+var
+  res : int64;
+  m,h1,h2,a1,a2,x1,x2,y1,y2 : longint;
+  f1,f2 : array [0..1000001] of longint;
+
+procedure enter;
+  begin
+    assign(input,tfi);
+    reset(input);
+    read(m,h1,a1,x1,y1,h2,a2,x2,y2);
+    close(input);
+  end;
+
+procedure process;
+  var i,t,a,aa1,aa2,bb1,bb2,key1,key2,tta,ttb : longint;
+  begin
+    fillchar(f1,sizeof(f1),$FF);
+    fillchar(f2,sizeof(f2),$FF);
+    t := -1;
+    a := h1;
+    repeat
+      inc(t);
+      f1[a] := t;
+      a := (int64(a)*x1 + y1) mod m;
+    until f1[a] <> - 1;
+    key1 := f1[a] - 1; bb1 := f1[a1]; aa1 := t - key1;
+    //if (key1 = -1) and (aa1 = 1) then aa1 := 0;
+    t := -1;
+    a := h2;
+    repeat
+      inc(t);
+      f2[a] := t;
+      a := (int64(a)*x2 + y2) mod m;
+    until f2[a] <> - 1;
+    key2 := f2[a] - 1; bb2 := f2[a2]; aa2 := t - key2;
+    //if (key2 = -2) and (aa2 = 1) then aa2 := 0;
+    tta := aa1 - aa2;
+    ttb := bb2 - bb1;
+    if (f1[a1] = -1) or (f2[a2] = -1) then
+      begin
+        res := -1;
+        exit;
+      end;
+    if aa1 = 1 then
+      begin
+        res := bb2;
+        exit;
+      end;
+    if aa2 = 1 then
+      begin
+        res := bb1;
+        exit;
+      end;
+    if (bb1 <= key1) and (bb2 <= key2) then
+      begin
+        if bb1 = bb2 then res := bb1 else res := -1;
+        exit;
+      end;
+    if bb1 <= key1 then
+      begin
+        if aa1 = 0 then
+          begin
+            if bb1 = bb2 then res := bb1 else res := -1
+          end
+        else
+        if (ttb > 0) and (ttb mod aa1 = 0) then res := bb1 else res := -1;
+        exit;
+      end;
+    if bb2 <= key2 then
+      begin
+        if aa2 = 0 then
+          begin
+            if bb1 = bb2 then res := bb2 else res := -1
+          end
+        else
+        if (ttb > 0) and (ttb mod aa2 = 0) then res := bb2 else res := -1;
+        exit;
+      end;
+    if tta = 0 then
+      begin
+        if ttb = 0 then res := bb1 else res := -1;
+      end
+    else
+    if (ttb mod tta = 0) and (ttb div tta >= 0) then res := int64(ttb div tta)*aa1 + bb1
+    else res := -1;
+  end;
+
+procedure print;
+  begin
+    assign(output,tfo);
+    rewrite(output);
+    write(res);
+    close(output);
+  end;
+
+begin
+  enter;
+  process;
+  print;
+end.
+

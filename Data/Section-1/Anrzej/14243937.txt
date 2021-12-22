@@ -1,0 +1,94 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+double pi = acos(-1);
+
+double get_arc(int x, int y)
+{
+	if (y == 0)
+	{
+		if (x > 0)
+			return pi / 2.0;
+		else return pi*3.0 / 2.0;
+	}
+	if (x == 0)
+	{
+		if (y >= 0)
+			return 0;
+		else return pi;
+	}
+	if (x > 0){
+		if (y > 0)
+			return atan((double)x / (double)y);
+		else return pi/2.0 + atan((double)-y / (double)x);
+	}
+	if (x < 0)
+	{
+		if (y > 0)
+			return pi*3.0 / 2.0 + atan((double)y / (double)-x);
+		else return pi*3.0/2.0 - atan((double)y / (double)x);
+		
+	}
+}
+
+struct d
+{
+	int x, y;
+
+	bool operator < (d a) const
+	{
+		return get_arc(x, y) < get_arc(a.x, a.y);
+	}
+};
+
+pair<d, int> p[111111];
+
+int main()
+{
+	int n;
+	cin >> n;
+	for (int i = 0; i < n; i++)
+	{
+		int x, y;
+		cin >> x >> y;
+		d a;
+		a.x = x, a.y = y;
+		p[i] = mp(a, i);
+	}
+	sort(p, p + n);
+	p[n] = p[0];
+	pair<int, int> ans = mp(0, 1); double anss = 1e9;
+	for (int i = 0; i < n; i++)
+	{
+		double arc1 = get_arc(p[i].fs.x, p[i].fs.y), arc2 = get_arc(p[i + 1].fs.x, p[i + 1].fs.y);
+		arc1 = abs(arc1 - arc2);
+		arc1 = min(acos(-1) * 2 - arc1, arc1);
+		if (anss > arc1)
+			anss = arc1, ans = mp(p[i].sc, p[i+1].sc);
+	}
+	double arc1 = get_arc(p[n - 1].fs.x, p[n - 1].fs.y);
+	arc1 = acos(-1) * 2 - arc1;
+	double arc2 = get_arc(p[0].fs.x, p[0].fs.y);
+	arc1 += arc2;
+	if (anss > arc1)
+		ans = mp(p[0].sc, p[n - 1].sc);
+	cout << ans.fs+1 << ' ' << ans.sc+1;
+	return 0;
+}

@@ -1,0 +1,71 @@
+#include <bits/stdc++.h>
+#define FORE(i, a, b) for(long long i = a; i <= b; i++)
+#define FORD(i, a, b) for(long long i = a; i >= b; i--)
+#define FOR(i, a, b) for(long long i = a; i < b; i++)
+const long long MAXN = 1e5 * 5;
+const long long INF = 1e9 + 7;
+
+using namespace std;
+void add(long long &a, long long b)
+{
+    a += b;
+    if (a >= INF) a -= INF;
+}
+
+long long f[MAXN];
+struct data{
+    long long l, r;
+    bool operator<(const data &op) const
+    {
+        return (r != op.r ? r < op.r : l < op.l);
+    }
+} a[MAXN];
+long long n, m;
+long long s[MAXN];
+int main()
+{
+    ios::sync_with_stdio(0); cin.tie(0);
+    #ifndef ONLINE_JUDGE
+    freopen("101B.inp", "r", stdin);
+    freopen("101B.out", "w", stdout);
+    #endif //MIKELHPDATKE
+    cin >> n >> m;
+    FORE(i, 1, m) cin >> a[i].l >> a[i].r;
+    sort(a + 1, a + m + 1);
+    FORE(i, 1, m){
+        bool ok = 1;
+        if (a[i].l == 0) f[i] = 1;
+        long long d = 1, c = i - 1, g, fin = -1;
+        while (d <= c){
+            g = (d + c) / 2;
+            if (a[g].r >= a[i].l){
+                fin = g;
+                c = g - 1;
+            }
+            else d = g + 1;
+        }
+        if (fin == -1){
+            ok = 0;
+        }
+        long long dau = fin;
+        d = 1, c = i - 1, g, fin = -1;
+        while (d <= c){
+            g = (d + c) / 2;
+            if (a[g].r < a[i].r){
+                fin = g;
+                d = g + 1;
+            }
+            else c = g - 1;
+        }
+        long long cuoi = fin;
+        if (dau > cuoi) ok = 0;
+
+        if (ok) add(f[i], (s[cuoi] - s[dau - 1] + INF + INF) % INF);
+        s[i] = (s[i - 1] + f[i]) % INF;
+    }
+    long long ans = 0;
+    FORE(i, 1, m) if (a[i].r == n) add(ans, f[i]);
+    cout << ans;
+    return 0;
+}
+

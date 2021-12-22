@@ -1,0 +1,85 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 405, MAXA = 160005;
+
+void setmax (int &a, int b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+int N, M, A[MAXN][MAXN];
+int up[MAXN][MAXN];
+short prv[MAXA][MAXN];	//f**k it
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 1; i <= N; i++) {
+		for (int j = 1; j <= M; j++) {
+			cin >> A[i][j];
+		}
+	}
+	int ans = 1;
+	for (int i = 1; i <= N; i++) {
+		//do it in order by length dude
+		for (int j = 1; j <= M; j++) {
+			for (int lt = 1, rt = j; rt <= M; lt++, rt++) {
+				int &ref = up[lt][rt];
+				// cout << "i = " << i << ", up[" << lt << "][" << rt << "] = " << up[lt][rt] << endl;
+				if (j == 1) {
+					setmax(ref, prv[A[i][lt]][lt]);
+				} else if (A[i][lt] == A[i][rt]) {
+					ref = i;
+				} else {
+					setmax(ref, max(max(up[lt][rt - 1], up[lt + 1][rt]), (int) max(prv[A[i][lt]][rt], prv[A[i][rt]][lt])));
+				}
+				setmax(ans, j * (i - ref));
+			}
+		}
+		//change the indices properly
+		for (int j = 1; j <= M; j++) {
+			prv[A[i][j]][j] = i;
+		}
+	}
+	cout << ans << endl;
+}

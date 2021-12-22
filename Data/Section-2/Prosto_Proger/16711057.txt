@@ -1,0 +1,124 @@
+#include <bits/stdc++.h>
+#define int int64_t
+using namespace std;
+
+struct Node {
+    int val, max, ind;
+    Node(int _val, int _max, int _ind) {
+        val = _val;
+        max = _max;
+		ind = _ind;
+    }
+};
+
+struct max_queue {
+    vector<Node> st_pop, st_push;
+    int size;
+    max_queue() { size = 0; }
+    void push(int x, int ind) {
+        ++size;
+        if (st_push.empty()) st_push.push_back(Node(x, x, ind));
+        else st_push.push_back(Node(x, std::max(st_push.back().max, x), ind));
+    }
+    void pop() {
+        if (st_pop.empty()) {
+            while (!st_push.empty()) {
+                int x = st_push.back().val;
+				int ind = st_push.back().ind;
+                if (st_pop.empty()) st_pop.push_back(Node(x, x, ind));
+                else st_pop.push_back(Node(x, std::max(st_pop.back().max, x), ind));
+                st_push.pop_back();
+            }
+        }
+        st_pop.pop_back();
+        --size;
+    }
+	Node back() {
+        if (st_pop.empty()) {
+            while (!st_push.empty()) {
+                int x = st_push.back().val;
+				int ind = st_push.back().ind;
+                if (st_pop.empty()) st_pop.push_back(Node(x, x, ind));
+                else st_pop.push_back(Node(x, std::max(st_pop.back().max, x), ind));
+                st_push.pop_back();
+            }
+        }
+        return st_pop.back();
+    }
+    int max() {
+        if (st_push.empty()) return st_pop.back().max;
+        if (st_pop.empty()) return st_push.back().max;
+        return std::max(st_push.back().max, st_pop.back().max);
+    }
+	int maxind() {
+        if (st_push.empty()) return st_pop.back().ind;
+        if (st_pop.empty()) return st_push.back().ind;
+		if (st_push.back().max > st_pop.back().max) return st_push.back().ind;
+		else return st_pop.back().ind;
+    }
+    bool empty() { return size == 0; }
+};
+
+
+struct niga {
+	int x, left, right, pot, parent;
+	niga(int _x) {
+		x = _x;
+		left = _x - 1;
+		right = _x + 1;
+		parent = -1;
+	}
+};
+
+bool cmp(const niga &a, const niga &b) {
+	return a.x < b.x;
+}
+
+int32_t main() {
+	int n, m, s, d;
+	cin >> n >> m >> s >> d;
+	vector<niga> a;
+	for (int i = 0; i < n; ++i) {
+		int x;
+		cin >> x;
+		a.push_back(niga(x));
+	}
+	sort(a.begin(), a.end(), cmp);
+	int l = -1;
+	for (int i = 0; i < n; ++i) {
+		int r = a[i].x;
+		a[i].pot = (r - l - 2);
+		l = r;
+		//cout << a[i].pot << ' ';
+	}
+	max_queue q;
+	for (int i = 0; i < n; ++i) {
+		q.push(a[i].pot, i);
+		while (!q.empty() && a[q.back().ind].left < a[i].right - d) q.pop();
+		if (q.empty() || q.max() < s) a[i].parent = -1;
+		else a[i].parent = q.maxind();
+		//cout << a[i].parent << ' ';
+	}
+	vector<pair<string, int> > v;
+    int near = n - 1, pos = m;
+	while (near > -1) {
+		int x = a[near].x;
+		//cout << "RUN" << ' ' << pos - x - 1 << endl;
+		if (pos - x - 1 > 0) v.push_back(make_pair("RUN", pos - x - 1));
+		pos = x + 1;
+		if (a[near].parent == -1) {
+			cout << "IMPOSSIBLE";
+			return 0;
+		}
+		int jump = a[a[near].parent].left;
+		// cout << "JUMP" << ' ' << pos - jump << endl;
+		if (pos - jump > 0) v.push_back(make_pair("JUMP", pos - jump));
+		pos = jump;
+		near = a[near].parent - 1;
+	}
+	//cout << "RUN" << ' ' << pos;
+	if (pos > 0) v.push_back(make_pair("RUN", pos));
+	reverse(v.begin(), v.end());
+	for (auto i : v) cout << i.first << ' ' << i.second << endl;
+	return 0;
+}

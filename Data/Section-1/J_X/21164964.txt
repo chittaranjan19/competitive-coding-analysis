@@ -1,0 +1,50 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 1e5 + 5;
+const int INF = 1e9 + 5;
+
+int dp[maxn], l[maxn], r[maxn], f[maxn];
+
+int main()
+{
+    int len, n, p, t;
+    scanf("%d%d%d%d", &len, &n, &p, &t);
+    int ans = 0, id = 0, front = 0, rear = 1;
+    dp[0] = 0;
+    f[0] = l[0] = r[0] = -INF;
+    for(int i = 1; i <= n; ++i)
+    {
+        scanf("%d%d", l + i, r + i);
+        int q = l[i] + (r[i] - l[i]) % p;
+        while(rear < i && f[rear] + t <= r[i])
+        {
+            ++rear;
+        }
+        while(front < rear && f[front] + t <= q)
+        {
+            if(dp[front] > dp[id]) id = front;
+            ++front;
+        }
+        int k = max(f[id] + t, l[i]), tmp = (r[i] - k) / p;
+        dp[i] = dp[id] + tmp;
+        f[i] = k + tmp * p;
+        for(int j = front; j < rear; ++j)
+        {
+            k = f[j] + t, tmp = (r[i] - k) / p;
+            int tmpd = dp[j] + tmp, tmpf = k + tmp * p;
+            if(dp[i] < tmpd || dp[i] == tmpd && f[i] > tmpf)
+            {
+                dp[i] = tmpd;
+                f[i] = tmpf;
+            }
+        }
+        ans = max(ans, dp[i]);
+    }
+    printf("%d\n", ans);
+    return 0;
+}

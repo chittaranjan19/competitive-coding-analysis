@@ -1,0 +1,45 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+int n,i,k,m,a[1000100],b[1000100],all[1000100],ck[2000100],l[2000100],cnt,cur,last,now,best=-1000000000;
+pair<int,int> e[2000100];
+char s[2000100];
+bool cmp(int i, int j) { return e[i]<e[j]; }
+int main() {
+  scanf("%s",s+1);
+  n=strlen(s+1);
+  for (i=1; i<=n; i++) {
+    a[i]=a[i-1]+(s[i]=='('?1:-1);
+    b[i]=min(b[i-1],a[i]);
+    s[i+n]=s[i];
+  }
+  for (i=1; i<=2*n; i++) {
+    l[i-1]=1+int(s[i]==')');
+    ck[i-1]=i-1;
+  }
+  for (i=n; i>0; i--) {
+    now=min(0,min(b[i]+last,cur));
+    if (now>best) { best=now; m=0; }
+    if (now==best) all[m++]=i;
+    if (s[i]==')') {
+      last--; cur=min(cur-1,-1);
+    } else {
+      last++; cur++;
+    }
+  }
+  for (i=0; i<-best; i++) { putchar('('); cnt++; }
+  for (k=0; k<20; k++) {
+    for (i=0; i<2*n; i++) e[i]=make_pair(l[i],((i+(1<<k))>=2*n)?0:l[i+(1<<k)]);
+    sort(ck,ck+2*n,cmp);
+    for (i=0; i<2*n; i++) l[i]=lower_bound(ck,ck+2*n,i,cmp)-ck+1;
+  }
+  for (i=k=0; i<m; i++) if (l[all[k]]>l[all[i]]) k=i;
+  for (i=0; i<n; i++) {
+    char ch=s[all[k]+i+1];
+    cnt+=(ch=='('?1:-1);
+    putchar(ch);
+  }
+  for (; cnt>0; cnt--) putchar(')');
+  return 0;
+}

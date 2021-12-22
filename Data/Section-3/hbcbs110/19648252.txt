@@ -1,0 +1,134 @@
+#include <set>
+#include <map>
+#include <queue>
+#include <math.h>
+#include <vector>
+#include <string>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <iostream>
+#include <cctype>
+#include <algorithm>
+#include <time.h>
+#define eps 1e-10
+#define pi acos(-1.0)
+#define inf 107374182
+#define inf64 1152921504606846976
+#define lc l,m,tr<<1
+#define rc m + 1,r,tr<<1|1
+#define zero(a) fabs(a)<eps
+#define iabs(x)  ((x) > 0 ? (x) : -(x))
+#define clear1(A, X, SIZE) memset(A, X, sizeof(A[0]) * (min(SIZE,sizeof(A))))
+#define clearall(A, X) memset(A, X, sizeof(A))
+#define memcopy1(A , X, SIZE) memcpy(A , X ,sizeof(X[0])*(SIZE))
+#define memcopyall(A, X) memcpy(A , X ,sizeof(X))
+#define max( x, y )  ( ((x) > (y)) ? (x) : (y) )
+#define min( x, y )  ( ((x) < (y)) ? (x) : (y) )
+using namespace std;
+
+int n,k;
+struct node
+{
+    int max1,min1;
+} treenode[100000<<2];
+
+void build(int l,int r,int tr)
+{
+    if(l==r)
+    {
+        if(l!=n+1)
+        {
+            scanf("%d",&treenode[tr].max1);
+            treenode[tr].min1=treenode[tr].max1;
+        }
+        else
+        {
+            treenode[tr].max1=0;
+            treenode[tr].min1=inf;
+        }
+
+        return ;
+    }
+    int m=(l+r)>>1;
+    build(l,m,tr<<1);
+    build(m+1,r,tr<<1|1);
+    treenode[tr].max1=max(treenode[tr<<1].max1,treenode[tr<<1|1].max1);
+    treenode[tr].min1=min(treenode[tr<<1].min1,treenode[tr<<1|1].min1);
+
+}
+
+node query(int L,int R,int l,int r ,int tr)
+{
+    if(L<=l&&r<=R)
+    {
+        return treenode[tr];
+    }
+    node ans1,temp;
+    if(l==r)
+    {
+        temp.max1=0;
+        temp.min1=inf;
+        return temp;
+    }
+    int m=(l+r)>>1;
+
+    ans1.max1=0,
+         ans1.min1=inf;
+    if(L<=m)
+    {
+        temp = query(L,R,l,m,tr<<1);
+        ans1.max1=max(ans1.max1,temp.max1);
+        ans1.min1=min(ans1.min1,temp.min1);
+    }
+    if(m<R)
+    {
+        temp = query(L,R,m+1,r,tr<<1|1);
+        ans1.max1=max(ans1.max1,temp.max1);
+        ans1.min1=min(ans1.min1,temp.min1);
+    }
+    return ans1;
+}
+int ans[100005][2];
+int main()
+{
+    scanf("%d%d",&n,&k);
+    build(1,n,1);
+    int maxlength=0,cnt=0;
+    node tempx,tempy;//= query(1,n,1,n,1);
+    // cout<<tempx.max1<<tempx.min1;
+    for(int i=1; i<=n; i++)
+    {
+        int l=i,r=n+1;
+        while(r>l+1)
+        {
+            //if(r==n+1)r--;
+            int m = (l+r)>>1;
+            tempx =query(i,m+1,1,n,1);
+            if(tempx.max1-tempx.min1>k)r=m;
+            else  l=m;
+
+        }
+        tempx=query(i,l,1,n,1);
+        tempy=query(i,r,1,n,1);
+        if(tempx.max1-tempx.min1<=tempy.max1-tempy.min1&&tempy.max1-tempy.min1<=k&&l<n)l++;
+        if(maxlength<l-i+1)
+        {
+            maxlength=l-i+1;
+            ans[0][0]=i;
+            ans[0][1]=l;
+            cnt=1;
+        }
+        else if(maxlength==l-i+1)
+        {
+            ans[cnt][0]=i;
+            ans[cnt++][1]=l;
+        }
+    }
+    printf("%d %d\n",maxlength,cnt);
+    for(int i=0; i<cnt; i++)
+    {
+        printf("%d %d\n",ans[i][0],ans[i][1]);
+    }
+    return 0;
+}

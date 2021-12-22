@@ -1,0 +1,88 @@
+#include <iostream>
+#include <iomanip>
+#include <cstring>
+#include <cmath>
+
+using namespace std;
+typedef long long ll;
+typedef double ld;
+
+ld dp[5001][5001];	// dp[k][j] = P(reach k songs at time j)
+ld prob[5001];
+ld EPS = 1e-20;
+int times[5001];
+int n;
+int maxtime;
+
+int main() {
+	// read input
+	cin >> n >> maxtime;
+	for (int i = 0; i < n; i++) {
+		int p, t; cin >> p >> t;
+		prob[i] = p / 100.0;
+		times[i] = t;
+	}
+
+	// perform dp to compute dp[k][j] = P(reach kth song exactly on step j)
+	memset(dp, 0, sizeof dp);
+	for (int j = 1; j <= min(times[0]-1, maxtime); j++) {
+		dp[1][j] = pow(1 - prob[0], j-1) * prob[0];
+		if (dp[1][j] < EPS) dp[1][j] = 0;
+	}
+	if (times[0] <= maxtime) {
+		dp[1][times[0]] = pow(1 - prob[0], times[0] - 1);
+		if (dp[1][times[0]] < EPS) dp[1][times[0]] = 0;
+	}
+
+	ld add[maxtime+2];
+	ld remove[maxtime+2];
+	for (int k = 2; k <= n; k++) {
+		memset(add, 0, sizeof add);
+		memset(remove, 0, sizeof remove);
+
+		ld curr = 0;
+		ld p = prob[k-1];
+		ld q = 1 - prob[k-1];
+		int t = times[k-1];
+		for (int j = 1; j <= maxtime; j++) {
+			dp[k][j] = curr;
+			curr -= remove[j];
+			curr *= q;
+			curr += add[j];
+
+			if (t > 1) {
+				curr += dp[k-1][j] * prob[k-1];
+				int endt = j + times[k-1] - 1;
+				if (endt <= maxtime) {
+					ld qpow = pow(q, t-2); if (qpow < EPS) qpow = 0;
+					remove[endt] += dp[k-1][j] * qpow * p;
+
+					qpow *= q;
+					add[endt] = dp[k-1][j] * qpow;
+					remove[endt+1] += add[endt];
+				}
+			} else {
+				curr += dp[k-1][j];
+				remove[j+1] += dp[k-1][j];
+			}
+
+			if (curr < EPS) curr = 0;
+		}
+	}
+
+	// compute answer = sum(k * sum(P(reach kth song on step j) * P(not reach k+1 on maxtime)))
+	ld ans = 0;
+	for (int k = 1; k <= n; k++) {
+		ld sum = 0;
+		for (int j = 1; j <= maxtime; j++) {
+			if (k == n) {
+				sum += dp[k][j];
+			} else if (maxtime - j < times[k]) {
+				ld p = pow(1 - prob[k], maxtime - j); if (p < EPS) p = 0;
+				sum += dp[k][j] * p;
+			}
+		}
+		ans += k * sum;
+	}
+	cout << setprecision(10) << fixed << ans << endl;
+}

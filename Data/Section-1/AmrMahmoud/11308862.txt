@@ -1,0 +1,114 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+#include <fstream>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int cnt[500005];
+bool here[200005];
+vector<int> primes, v[500005];
+
+void get_primes(LL MAX)
+{
+  bool visited[MAX + 10];
+  setzero(visited);
+  for(LL x = 2; x <= MAX; x++)
+    if(!visited[x])
+    {
+      primes.push_back(x);
+      for(LL j = x*x; j <= MAX; j += x)
+        visited[j] = true;
+    }
+}
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  int m, q, x, n;
+  cin >> m >> q;
+  get_primes(710);
+  for(int i=0;i<m;i++)
+  {
+    cin >> x;
+    for(int j=0;primes[j] * 1LL * primes[j] <= x;j++)
+    {
+      if(x % primes[j] == 0)
+        v[i].push_back(primes[j]);
+      while(x % primes[j] == 0) x/=primes[j];
+    }
+    if(x != 1) v[i].pb(x);
+  }
+  LL res = 0;
+  m = 0;
+  while(q--)
+  {
+    cin >> x;
+    x--;
+    n = v[x].size();
+    int c = 0;
+    for(int i=1;i<(1 << n);i++)
+    {
+      bool s = (__builtin_popcount(i) & 1);
+      int y = 1;
+      for(int j=0;j<n;j++)
+      {
+        if((i & (1 << j)) == 0) continue;
+        y*=v[x][j];
+      }
+      if(s) c+=cnt[y];
+      else c-=cnt[y];
+    }
+    for(int i=1;i<(1 << n);i++)
+    {
+      int y = 1;
+      for(int j=0;j<n;j++)
+      {
+        if((i & (1 << j)) == 0) continue;
+        y*=v[x][j];
+      }
+      if(here[x]) cnt[y]--;
+      else cnt[y]++;
+    }
+    if(v[x].size() == 0 && here[x]) c++;
+    c = m - c;
+    if(here[x]) res-=c;
+    else res+=c;
+    if(here[x]) m--;
+    else m++;
+    here[x] = !here[x];
+    cout << res << "\n";
+  }
+  return 0;
+}

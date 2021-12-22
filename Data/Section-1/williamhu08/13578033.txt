@@ -1,0 +1,79 @@
+//Am I seriously the only one who misinterpreted the problem??
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 105;
+
+int N;
+char A[3][10 * MAXN];
+bool dp[3 * MAXN][3][MAXN];
+
+bool in (int x, int y) {
+	return 0 <= x && x < 3 && 0 <= y && y < N;
+}
+
+bool ok (int x, int y, int t) {
+	return in(x, y) && !isalpha(A[x][y + 2 * t]);
+}
+
+bool trans (int x, int y, int t) {
+	//t = old time.
+	return in(x, y) && !isalpha(A[x][y + 2 * t + 1]) && !isalpha(A[x][y + 2 * t + 2]);
+}
+
+void solve() {
+	fillchar(dp, 0);
+	fillchar(A, 0);
+	scanf("%d %*d", &N);
+	for (int i = 0; i < 3; i++) {
+		scanf("%s", A[i]);
+		for (int j = 0; j < N; j++) {
+			if (A[i][j] == 's') {
+				dp[0][i][j] = true;
+				A[i][j] = '.';
+			}
+		}
+	}
+	for (int t = 0; t < 3 * MAXN; t++) {
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < N; j++) {
+				if (!dp[t][i][j]) {
+					continue;
+				}
+				// printf("%d %d %d\n", t, i, j);
+				if (j == N - 1) {
+					puts("YES");
+					return;
+				}
+				if (ok(i, j + 1, t)) {
+					for (int k = -1; k <= 1; k++) {
+						if (ok(i + k, j + 1, t)) {
+							if (trans(i + k, j + 1, t)) {
+								dp[t + 1][i + k][j + 1] = true;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	puts("NO");
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	int tt;
+	for (scanf("%d", &tt); tt--; ) {
+		solve();
+	}
+}

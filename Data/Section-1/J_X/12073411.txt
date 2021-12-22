@@ -1,0 +1,98 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll, ll> P;
+
+const int maxn = 1e5 + 5;
+
+P a[maxn], q[maxn];
+
+bool ok(int l1, int r1, int l2, int r2)
+{
+    return l1 <= r2 && l2 <= r1;
+}
+
+int main()
+{
+    int h, k;
+    scanf("%d%d", &h, &k);
+    int cnt = 0;
+    ll l = 1, r = 1;
+    for(int i = 1; i < h; ++i)
+    {
+        l <<= 1, (r <<= 1) |= 1;
+    }
+    q[cnt++] = P(l, r);
+    while(k--)
+    {
+        int c, b;
+        ll x, y;
+        scanf("%d%I64d%I64d%d", &c, &x, &y, &b);
+        for(int i = c; i < h; ++i)
+        {
+            x <<= 1, (y <<= 1) |= 1;
+        }
+        if(b)
+        {
+            int amount = 0;
+            for(int i = 0; i < cnt; ++i)
+            {
+                P p = q[i];
+                if(ok(p.first, p.second, x, y))
+                {
+                    a[amount++] = P(max(p.first, x), min(p.second, y));
+                }
+            }
+            for(int i = 0; i < amount; ++i)
+            {
+                q[i] = a[i];
+            }
+            cnt = amount;
+        }
+        else
+        {
+            int amount = 0;
+            for(int i = 0; i < cnt; ++i)
+            {
+                P p = q[i];
+                if(ok(p.first, p.second, l, x - 1))
+                {
+                    a[amount++] = P(max(p.first, l), min(p.second, x - 1));
+                }
+                if(ok(p.first, p.second, y + 1, r))
+                {
+                    a[amount++] = P(max(p.first, y + 1), min(p.second, r));
+                }
+            }
+            for(int i = 0; i < amount; ++i)
+            {
+                q[i] = a[i];
+            }
+            cnt = amount;
+        }
+    }
+    if(cnt == 0)
+    {
+        puts("Game cheated!");
+        return 0;
+    }
+    for(int i = 0; i < cnt; ++i)
+    {
+        P p = q[i];
+        if(ok(l, r, p.first, p.second))
+        {
+            l = max(p.first, l), r = min(p.second, r);
+        }
+    }
+    if(l == r)
+    {
+        printf("%I64d\n", l);
+    }
+    else
+    {
+        puts("Data not sufficient!");
+    }
+    return 0;
+}

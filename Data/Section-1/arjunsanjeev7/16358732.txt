@@ -1,0 +1,141 @@
+/*	 Hello World!	*/
+
+#include <bits/stdc++.h>
+
+#define pb push_back
+#define pf push_front
+#define mp make_pair
+#define f first
+#define s second
+#define let(x,a) __typeof(a) x(a)
+#define all(a) (a).begin(),(a).end() 
+#define endl '\n'
+#define present(c,x) ((c).find(x) != (c).end()) 
+#define tr(v,it) for( let(it,v.begin()) ; it != v.end() ; it++)
+#define rtr(v,it) for( let(it,v.rbegin()) ; it != v.rend() ; it++)
+#define rep1(i,n) for(int i=0; i<(int)n;i++)
+#define rep2(i,a,b) for(int i=(int)a; i<=(int)b; i++)
+
+#define trace1(x)                cerr << #x << ": " << x << endl;
+#define trace2(x, y)             cerr << #x << ": " << x << " | " << #y << ": " << y << endl;
+#define trace3(x, y, z)          cerr << #x << ": " << x << " | " << #y << ": " << y << " | " << #z << ": " << z << endl;
+#define trace4(a, b, c, d)       cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << endl;
+#define trace5(a, b, c, d, e)    cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << endl;
+#define trace6(a, b, c, d, e, f) cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << " | " << #f << ": " << f << endl;
+
+#define LL long long int
+#define PII pair<int,int>
+#define VI vector<int>
+#define inf INT_MAX
+
+using namespace std;
+
+void FastIO()
+{
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	cout.tie(NULL);
+}
+
+string str;
+
+class Trie
+{
+public:
+	char ch;
+	Trie *next[26];
+	int pos;
+	Trie(char c)
+	{
+		ch=c;
+		rep1(i,26)
+		{
+			next[i]=NULL;
+		}
+		pos=-1;
+	}
+};
+
+Trie start('*');
+Trie *root=&start;
+
+void addToTrie(string s, int pos)	// To add string s to trie
+{
+	Trie *node=root;
+	for(int i=0;i<s.length();i++)
+	{
+		char c=s[i];
+		if(node->next[c-'a']==NULL)
+		{
+			node->next[c-'a']=new Trie(c);
+		}
+		node=node->next[c-'a'];
+	}
+	node->pos=pos;
+}
+
+vector<int> ans,dp(10001,-1);
+
+int foo(int pos, vector<int> V)
+{
+	if(dp[pos] != -1)
+	{
+		return dp[pos];
+	}
+	if(pos==str.length())
+	{
+		ans=V;
+		return 1;
+	}
+	dp[pos]=0;
+	Trie *node=root;
+	for(int i=pos;i<str.length();i++)
+	{
+		char c=str[i];
+		if(node->next[c-'a']==NULL)
+		{
+			break;
+		}
+		else
+		{
+			node=node->next[c-'a'];
+			if(node->pos!=-1)
+			{
+				V.pb(node->pos);
+				dp[pos] |= foo(i+1,V);
+				V.pop_back();
+			}
+		}
+	}
+	return dp[pos];
+}
+
+int main()
+{
+	FastIO();
+	int n,m;
+	string s;
+	cin>>n;
+	cin>>str;
+	cin>>m;
+	vector< string > V;
+	for(int i=0;i<m;i++)
+	{
+		cin>>s;
+		string temp=s;
+		reverse(all(temp));
+		for(int j=0;j<s.length();j++)
+		{
+			temp[j]=tolower(temp[j]);
+		}
+		addToTrie(temp,i);
+		V.pb(s);
+	}
+	foo(0,vector<int>());
+	for(int i=0;i<ans.size();i++)
+	{
+		cout<<V[ans[i]]<<" ";
+	}
+	cout<<endl;
+	return 0;
+}

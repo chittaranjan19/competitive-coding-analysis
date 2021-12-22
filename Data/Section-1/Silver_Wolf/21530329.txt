@@ -1,0 +1,51 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+const int MAXN=1e6+10;
+
+
+bool vis[MAXN]; int h[MAXN];
+vector<int>com[MAXN],ng[MAXN],ver[MAXN],topol;
+vector<pair<int,int>>edge;
+void sfd(int v,int c){
+    vis[v]=true;   com[c].push_back(v);
+    for(auto u:ng[v])if(!vis[u])sfd(u,c);
+}
+void dfs(int v){
+    vis[v]=true;
+    for(auto u:ver[v])if(!vis[u])h[u]=h[v]+1,dfs(u);
+    topol.push_back(v);
+}
+
+int main(){
+    int n,m;    cin>>n>>m;
+    for(int i=0;i<m;i++){
+        int x,y;    cin>>x>>y;
+        ver[x].push_back(y);
+        ver[y].push_back(x);
+        edge.push_back({x,y});
+    }
+    dfs(1);
+    for(auto e:edge){
+        if(h[e.first]>h[e.second])swap(e.first,e.second);
+        if(h[e.second]-h[e.first]!=1)ng[e.first].push_back(e.second);else ng[e.second].push_back(e.first);
+    }
+    fill(vis,vis+MAXN,0);
+    int cnt=0;
+    while(topol.size()){
+        sfd(topol.back(),cnt++);
+        while(topol.size() && vis[topol.back()])topol.pop_back();
+    }
+    int id=0;
+    for(int i=1;i<cnt;i++)
+        if(com[id].size()<com[i].size())id=i;
+
+    fill(vis,vis+MAXN,0);
+    h[com[id][0]]=0;
+    dfs(com[id][0]);
+    cout<<com[id].size()<<'\n';
+    for(auto e:edge){
+        if(h[e.first]>h[e.second])swap(e.first,e.second);
+        if(h[e.second]-h[e.first]!=1)cout<<e.first<<' '<<e.second<<'\n';else cout<<e.second<<' '<<e.first<<'\n';
+    }
+}

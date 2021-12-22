@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll N = 100000;
+const ll inf = (ll)1e9;
+const ll MOD = (ll)1e9 + 7;
+const ld eps = 1e-6;
+const ll ABC = 26;
+const ll P = 239;
+
+ll add(ll x, ll y, ll m)
+{
+    x += y;
+    if (x >= m)
+        x -= m;
+    return x;
+}
+
+int main()
+{
+    //freopen("refrain.in", "r", stdin);
+    //freopen("refrain.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    ll n, k, m;
+    cin >> n >> k >> m;
+    ll dp[n][k][10][2];
+    for (ll i = 0; i < n; i++)
+        for (ll j = 0; j < k; j++)
+            for (ll l = 0; l < 10; l++)
+                for (ll t = 0; t < 2; t++)
+                    dp[i][j][l][t] = 0;
+    for (ll j = 0; j < 10; j++)
+        if (j > 0 && j % k == 0)
+            dp[0][j % k][j][1] = add(dp[0][j % k][j][1], 1, m);
+        else
+            dp[0][j % k][j][0] = add(dp[0][j % k][j][0], 1, m);
+    ll curr = 10 % k;
+    for (ll i = 0; i < n - 1; i++, curr = (curr * 10) % k)
+        for (ll j = 0; j < k; j++)
+            for (ll l = 0; l < 10; l++)
+                for (ll x = 0; x < 10; x++)
+                {
+                    if (j == 0 && l == 0 && x == 0)
+                        dp[i + 1][(curr * x + j) % k][x][0] = add(dp[i + 1][(curr * x + j) % k][x][0], dp[i][j][l][0], m);
+                    if ((curr * x + j) % k == 0)
+                        dp[i + 1][(curr * x + j) % k][x][1] = add(dp[i + 1][(curr * x + j) % k][x][1], dp[i][j][l][0], m);
+                    else
+                        dp[i + 1][(curr * x + j) % k][x][0] = add(dp[i + 1][(curr * x + j) % k][x][0], dp[i][j][l][0], m);
+                }
+    ll ans = 0;
+    curr = 1;
+    for (ll i = n - 1; i >= 0; i--)
+    {
+        for (ll l = 1; l < 10; l++)
+            ans = add(ans, dp[i][0][l][1] * curr % m, m);
+        if (i == n - 1)
+            curr = curr * 9 % m;
+        else
+            curr = curr * 10 % m;
+    }
+    cout << ans;
+    return 0;
+}

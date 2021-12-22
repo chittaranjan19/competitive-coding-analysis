@@ -1,0 +1,80 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <algorithm>
+using namespace std;
+
+#define eps 1e-8
+
+int N, M, i, j, k, res;
+char a[55][55];
+int used[55][55];
+
+void bfs(int i, int j)
+{
+    used[i][j] = 1;
+    if(i > 0 && a[i-1][j] == '#' && !used[i-1][j])
+        bfs(i-1, j);
+    if(i < N - 1 && a[i+1][j] == '#' && !used[i+1][j])
+        bfs(i+1, j);
+    if(j > 0 && a[i][j-1] == '#' && !used[i][j-1])
+        bfs(i, j-1);
+    if(j < M - 1 && a[i][j+1] == '#' && !used[i][j+1])
+        bfs(i, j+1);
+}
+
+int solve(int cnt)
+{
+    if(cnt > 2) return 1234567890;
+    int i, j, k, res = 1234567890;
+    memset(used, 0, sizeof(used));
+    for(i = 0; i < N; i++)
+        for(j = 0; j < M; j++)
+            if(a[i][j] == '#')
+            {
+                bfs(i, j);
+                goto METKA;
+            }
+METKA:
+    for(i = 0; i < N; i++)
+        for(j = 0; j < M; j++)
+        {
+            if(a[i][j] == '#' && used[i][j] == 0)
+                goto METKA2;
+        }
+METKA2:
+    if(i < N)
+        res = min(res, cnt);
+    for(i = 0; i < N; i++)
+        for(j = 0; j < M; j++)
+            if(a[i][j] == '#')
+            {
+                a[i][j] = '.';
+                res = min(res, solve(cnt+1));
+                a[i][j] = '#';
+            }
+    return res;
+}
+
+int main()
+{
+    
+    scanf("%d %d", &N, &M);
+    for(i = 0; i < N; i++)
+        scanf("%s", a[i]);
+    res = solve(0);
+    if(res == 1234567890)
+        printf("-1\n");
+    else
+        printf("%d\n",  res);
+    return 0;
+}

@@ -1,0 +1,283 @@
+#include "bits/stdc++.h"
+
+#define mp make_pair
+#define pb push_back
+#define ppb pop_back
+#define db puts("*****")
+#define N 200007
+#define mid(x , y) ((x+y)>>1)
+#define ff first
+#define ss second
+#define ll long long
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define sz(x) int(x.size())
+#define tr(i , c) for(__typeof(c.begin()) it = (c.begin()); it != (c.end(); it++))
+#define pii pair <ll , pair <ll , ll> >
+
+using namespace std;
+
+ll a , b , c , in[N] , out[N] , note , notice , d[N] , n , m , H[N] , lvl[N] , P[N][19] , chain[N] , ata[N] , cell[N] , rr[N] , t;
+vector <ll> E[N];
+ll pos , cn , lz[N<<2] , type , k , a1 , b1;
+set <pii> ms[N];
+pii T[N<<2];
+
+void dfs(ll x , ll y)
+{
+	P[x][0] = y;
+	lvl[x] = (~y?lvl[y]+1 : 1);
+	d[x] = 1;
+	
+	for(ll i : E[x])
+		if(i != y)
+			dfs(i , x) , d[x] += d[i];
+}
+
+void HLD(ll x , ll y)
+{
+	if(ata[cn] == -1) ata[cn] = x;
+	
+	H[x] = ++pos;
+	in[x] = pos;
+	cell[pos] = x;
+	chain[x] = cn;
+	
+	ll aa = 0 , bb = -1;
+	
+	for(ll i : E[x])
+		if(i ^ y)
+			if(aa < d[i])
+				aa = d[i] , bb = i;
+	
+	if(~bb)	HLD(bb , x);
+	
+	for(ll i : E[x])
+		if(i ^ y && i ^ bb)
+			++cn , HLD(i , x);	
+	
+	out[x] = pos;
+}
+
+void FORM_LCA()
+{
+	for(ll j = 1 ; j <= 17 ; j++)
+		for(ll i = 1 ; i <= n ; i++)
+			if(~P[i][j-1])
+				P[i][j] = P[P[i][j-1]][j-1];
+}
+
+ll LCA(ll x , ll y)
+{
+	if(lvl[x] < lvl[y])	swap(x , y);
+	
+	for(ll i = 17 ; i >= 0 ; i--)
+		if(lvl[x] - (1 << i) >= lvl[y])
+			x = P[x][i];
+	
+	if(x == y)	return x;
+	
+	for(ll i = 17 ; i >= 0 ; i--)
+		if(~P[x][i] && P[x][i] != P[y][i])
+			x - P[x][i] , y = P[y][i];
+	
+	return P[x][0];
+}
+
+void form_tree(ll l , ll r , ll v)
+{
+	if(l == r)
+	{
+		T[v] = (!sz(ms[cell[l]]) ? mp(LLINF , mp(LLINF , LLINF)) : *ms[cell[l]].begin());
+//		printf("%lld ; cell : %lld values : %lld %lld %lld\n" , v , cell[l] , T[v].ff , T[v].ss.ff , T[v].ss.ss);
+		return;
+	}
+	
+	form_tree(l , mid(l , r) , v<<1);
+	form_tree(mid(l , r)+1 , r , v<<1|1);
+	
+	if(T[v<<1].ff <= T[v<<1|1].ff)
+		T[v] = T[v<<1];
+	else
+		T[v] = T[v<<1|1];
+	
+//	printf("index : %lld ; %lld %lld %lld\n" , v , T[v].ff , T[v].ss.ff , T[v].ss.ss);
+}
+
+void push(ll l , ll r , ll v)
+{
+	if(!lz[v])	return;
+	
+	if(T[v<<1].ff != LLINF)
+	{
+		T[v<<1].ff += lz[v];
+		lz[v<<1] += lz[v];
+	}
+	else
+		lz[v<<1] = 0;
+	
+	if(T[v<<1|1].ff != LLINF)
+	{
+		T[v<<1|1].ff += lz[v];
+		lz[v<<1|1] += lz[v];
+	}
+	else
+		lz[v<<1|1] = 0;
+	
+	lz[v] = 0;
+}
+
+void upd(ll x , ll y , ll z , ll l , ll r , ll v)
+{
+	if(y < l || r < x)
+		return;
+	
+	if(x <= l && r <= y)
+	{	
+		if(T[v].ff != LLINF)
+		{
+			T[v].ff += z;
+			lz[v] += z;
+		}
+		return;
+	}
+	
+	push(l , r , v);
+	
+	upd(x , y , z , l , mid(l , r) , v<<1);
+	upd(x , y , z , mid(l , r)+1 , r , v<<1|1);
+	
+	if(T[v<<1].ff <= T[v<<1|1].ff)
+		T[v] = T[v<<1];
+	else
+		T[v] = T[v<<1|1];
+}
+
+void upd1(ll x , ll l , ll r , ll v)
+{
+	if(l == r)
+	{
+//		printf("!! %d %d %d\n" , T[v].ff , T[v].ss.ff , T[v].ss.ss);
+		ms[cell[l]].erase(*ms[cell[l]].begin());
+		T[v] = (!sz(ms[cell[l]]) ? mp(LLINF , mp(LLINF , LLINF)) : *ms[cell[l]].begin());
+//		printf("?? %d %d %d\n" , T[v].ff , T[v].ss.ff , T[v].ss.ss);
+		return;
+	}
+	
+	push(l , r , v);
+	
+	if(x <= mid(l , r))
+		upd1(x , l , mid(l , r) , v<<1);
+	else
+		upd1(x , mid(l , r)+1 , r , v<<1|1);
+	
+	if(T[v<<1].ff <= T[v<<1|1].ff)
+		T[v] = T[v<<1];
+	else
+		T[v] = T[v<<1|1];
+}
+
+pii bul(int x , int y , int l , int r, int v)
+{
+//	printf("coor : %d %d %d %d %d\n" , x , y , l , r , v);
+	if(y < l || r < x)
+		return {LLINF , {LLINF , LLINF}};
+	
+	if(x <= l && r <= y)
+		return T[v];
+	
+	push(l , r , v);
+	
+	auto rt = min(bul(x , y , l , mid(l, r), v<<1) , bul(x , y , mid(l , r)+1 , r, v<<1|1));
+	
+//	printf("??? %lld %lld %lld\n" , rt.ff , rt.ss.ff , rt.ss.ss);
+	
+	return rt;
+}
+
+int main()
+{
+	memset(ata , -1 , sizeof ata);
+	memset(P , -1 , sizeof P);
+	
+	scanf("%lld%lld%lld" , &n , &m , &t);
+	
+	for(ll i = 1 ; i < n ; i++)
+	{
+		scanf("%lld%lld" , &a , &b);
+		
+		E[a].pb(b);
+		E[b].pb(a);
+	}
+	
+	for(ll i = 1 ; i <= m ; i++)	scanf("%lld" , rr + i) , ms[rr[i]].insert({i , {i , rr[i]}});
+	
+	dfs(1 , -1);
+	HLD(1 , -1);
+	FORM_LCA();
+	form_tree(1 , pos , 1);
+//	printf("### %lld %lld %lld\n" , T[1].ff , T[1].ss.ff , T[1].ss.ss);
+	
+	while(t--)
+	{
+		scanf("%lld" , &type);
+		
+		if(type == 2)
+		{
+			scanf("%lld%lld" , &a , &b);
+			
+			upd(in[a] , out[a] , b , 1 , pos , 1);
+		}
+		else
+		{
+			vector <ll> v(0);
+			
+			scanf("%lld%lld%lld" , &a , &b , &k);
+			
+			a1 = a , b1 = b;
+			
+			ll tr = LCA(a , b);
+//			db;
+//			printf("%lld\n" , tr);
+			
+			while(k--)
+			{
+				a = a1 , b = b1;
+				pii ans = {LLINF , {LLINF , LLINF}};
+				note = 0;
+				
+//				printf("%lld %lld %lld\n" , ans.ff , ans.ss.ff , ans.ss.ss);
+				
+//				printf("1:\n");
+				while(chain[a] != chain[tr])
+					ans = min(ans , bul(H[ata[chain[a]]] , H[a] , 1 , pos , 1)) , a = P[ata[chain[a]]][0];
+				auto pp = bul(H[tr] , H[a] , 1 , pos , 1);
+				ans = min(ans , bul(H[tr] , H[a] , 1 , pos , 1));
+				
+//				printf("%lld %lld %lld\n" , pp.ff , pp.ss.ff , pp.ss.ss);
+				
+//				printf("2:\n");
+				while(chain[b] != chain[tr])
+					ans = min(ans , bul(H[ata[chain[b]]] , H[b] , 1 , pos , 1)) , b = P[ata[chain[b]]][0];
+				ans = min(ans , bul(H[tr] , H[b] , 1 , pos , 1));
+				
+//				printf("%lld %lld %lld\n" , ans.ff , ans.ss.ff , ans.ss.ss);
+				
+				if(ans.ff == LLINF)	break;
+				
+				v.pb(ans.ss.ff);
+				
+				upd1(H[ans.ss.ss] , 1 , pos , 1);
+			}
+			
+			printf("%d " , sz(v));
+			
+			for(ll j : v)
+				printf("%lld " , j);
+			puts("");
+		}
+	}
+	
+	return 0;
+}
+

@@ -1,0 +1,78 @@
+#include <cstdio>
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+struct Nodo{
+	int u, t;
+}m[20][20];
+
+bool estatodolleno = false;
+int tiempo = 0;
+
+void repartir(){
+	tiempo++;
+	int n = 1; bool estafilapuedetenerexceso = true;
+	m[1][1].u += 512;
+	while( n <= 10 && estafilapuedetenerexceso ){
+		estafilapuedetenerexceso = false;
+		for( int k=1; k<=n; k++ )
+			if( m[n][k].u > 512 ){
+				estafilapuedetenerexceso = true;
+				int exc = m[n][k].u - 512;
+				m[n][k].u 	  = 512;
+				m[n+1][k].u   += exc / 2;
+				m[n+1][k+1].u += exc / 2;
+				if( m[n+1][k].t   == 0 && m[n+1][k].u   >= 512 ) m[n+1][k].t   = tiempo;
+				if( m[n+1][k+1].t == 0 && m[n+1][k+1].u >= 512 ) m[n+1][k+1].t = tiempo;
+			}
+		n++;
+		if( m[10][1].u == 512 ) estatodolleno = true;
+	}
+
+}
+
+void mostrarunidades(){
+	for(int i=1; i<=10; i++){
+		for(int k=1; k<=i; k++)
+			cout<<"\\"<<m[i][k].u<<"/ ";
+		printf("\n");	
+	}
+}
+
+void mostrartiempos(){
+	for(int i=1; i<=10; i++){
+		for(int k=1; k<=i; k++)
+			cout<<"["<<m[i][k].t<<"] ";
+		printf("\n");	
+	}
+}
+
+int cuantos( int n, int d ){
+	int cont = 0;
+	for(int i=1; i<=n; i++)
+		for(int k=1; k<=i; k++)
+			if( m[i][k].t <= d )
+				cont++;
+	return cont;
+}
+
+int main(){
+	int n, d;
+	for(int i=0; i<20; i++)
+		for(int k=0; k<20; k++)
+		{ m[i][k].u=0; m[i][k].t=0; }
+
+	m[1][1].t = 1;
+	while( !estatodolleno ){
+		repartir();
+		// mostrarunidades();
+		// mostrartiempos();
+	}
+
+	scanf("%d %d", &n, &d);
+	printf("%d\n", cuantos(n, d) );
+
+	return 0;
+}

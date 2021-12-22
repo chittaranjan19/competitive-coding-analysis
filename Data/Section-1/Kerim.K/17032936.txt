@@ -1,0 +1,94 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[7],rr[21],n,m,r[7];
+short dp[21][11][11][11][11][11][11];
+short cp[21][11][11][11][11][11][11];
+vector<int>durum[7];
+char ans[7][22];
+int black(int x,int y){
+	return ((x&(1<<y))>0);
+}
+int white(int x,int y){
+	return (!(x&(1<<y)));
+}
+int component(int x){
+	int con=0;
+	for(int i=0;i<n;i++)
+		if(black(x,i) and white(x,i+1))
+			con++;
+	return con;		
+}
+short rec(int x,int q1,int q2,int q3,int q4,int q5,int y){
+	if(q1<0 or q2<0 or q3<0 or q4<0 or q5<0)
+		return 0;
+	if(x==m+1)
+		return (!(q1+q2+q3+q4+q5));
+	short &ret=dp[x][q1][q2][q3][q4][q5][y];
+	if(ret!=-1)
+		return ret;ret=0;
+	for(int i=0;i<durum[rr[x]].size();i++){
+		int mask=durum[rr[x]][i],lmask=durum[rr[x-1]][y];
+		r[1]=q1,r[2]=q2,r[3]=q3,r[4]=q4,r[5]=q5;
+		for(int j=0;j<5;j++)
+			if(white(lmask,j) and black(mask,j))
+				r[j+1]--;
+		ret|=rec(x+1,r[1],r[2],r[3],r[4],r[5],i);	
+		if(ret==1){
+			cp[x][q1][q2][q3][q4][q5][y]=i;	
+			break;
+		}
+	}
+	return ret;
+}
+int main(){
+	memset(dp,-1,sizeof(dp));
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;i++)
+		scanf("%d",arr+i);
+	for(int i=1;i<=m;i++)
+		scanf("%d",rr+i);	
+	for(int i=0;i<(1<<n);i++)
+		durum[component(i)].pb(i);
+	rec(1,arr[1],arr[2],arr[3],arr[4],arr[5],0);
+	short nono=0,ind=0;
+	int r1=arr[1],r2=arr[2],r3=arr[3],r4=arr[4],r5=arr[5],lmask=0;
+	while(nono!=-1 and ind<=m){
+		nono=cp[++ind][r1][r2][r3][r4][r5][nono];
+		int mask=durum[rr[ind]][nono];
+		for(int j=0;j<n;j++)
+			ans[j+1][ind]=(black(mask,j)?'*':'.');
+		for(int j=0;j<5;j++)
+			if(white(lmask,j) and black(mask,j)){
+				if(j==0)r1--;
+				if(j==1)r2--;
+				if(j==2)r3--;
+				if(j==3)r4--;
+				if(j==4)r5--;
+			}
+		lmask=mask;	
+	}
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=m;j++)
+			printf("%c",ans[i][j]);
+		puts("");	
+	}
+	return 0;
+}

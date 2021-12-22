@@ -1,0 +1,128 @@
+# include <iostream>
+# include <cstdlib>
+# include <cstdio>
+# include <cstring>
+
+using namespace std;
+
+const int N = 2009;
+
+int dx[] = {1, -1, 0, 0};
+int dy[] = {0, 0, 1, -1};
+int one[] =   {'^', 'v', '<', '>'};
+int two[] =   {'v', '^', '>', '<'};
+
+int n, m, d[N][N], x, y, X, Y;
+char p[N][N], a[N][N];
+int qx[N*N], qy[N*N], qxs, qys;
+bool v[N][N][4];
+
+int f (int x)
+{
+    return x - (x % 2) + ((x + 1) % 2);
+}
+
+int main ()
+{
+    cin >> n >> m;
+
+    for (int i = 1; i <= n; ++i)
+        for (int j = 1; j <= m; ++j)
+        {
+            p[i][j] = '*';
+            cin >> a[i][j];
+        }
+    //b, t, r, l
+    for (int i = 1; i <= n; ++i)
+        for (int j = 1; j <= m; ++j)
+            if (a[i][j] == '.')
+            {
+                for (int k = 0; k < 4; ++k)
+                {
+                    x = i + dx[k];
+                    y = j + dy[k];
+                    if (x >= 1 && x <= n && y >= 1 && y <= m && a[x][y] == '.')
+                    {
+                        ++d[i][j];
+                        v[i][j][k] = true;
+                    }
+                }
+                if (d[i][j] == 1)
+                {
+                    qx[++qxs] = i;
+                    qy[++qys] = j;
+                }
+            }
+
+    while (qxs)
+    {
+        x = qx[qxs--];
+        y = qy[qys--];
+
+        if (a[x][y] == '*') continue;
+
+        for (int k = 0; k < 4; ++k)
+        {
+            X = x + dx[k];
+            Y = y + dy[k];
+            if (X >= 1 && X <= n && Y >= 1 && Y <= m && a[X][Y] == '.')
+            {
+                a[x][y] = a[X][Y] = '*';
+                p[x][y] = one[k];
+                p[X][Y] = two[k];
+                break;
+            }
+        }
+
+        for (int k = 0; k < 4; ++k)
+        {
+            x = X + dx[k];
+            y = Y + dy[k];
+            if (x >= 1 && x <= n && y >= 1 && y <= m && v[X][Y][k])
+            {
+                //b, t, r, l
+                v[X][Y][k] = false;
+                v[x][y][f (k)] = false;
+                --d[x][y];
+                --d[X][Y];
+                if (d[x][y] == 1 && a[x][y] != '*')
+                {
+                    qx[++qxs] = x;
+                    qy[++qys] = y;
+                }
+            }
+        }
+
+        for (int k = 0; k < 4; ++k)
+        {
+            X = x + dx[k];
+            Y = y + dy[k];
+            if (X >= 1 && X <= n && Y >= 1 && Y <= m && v[x][y][k] == '.')
+            {
+                v[x][y][k] = false;
+                v[x][y][f (k)] = false;
+                --d[X][Y];
+                --d[x][y];
+                if (d[X][Y] == 1 && a[X][Y] != '*')
+                {
+                    qx[++qxs] = X;
+                    qy[++qys] = Y;
+                }
+            }
+        }
+    }
+
+    for (int i = 1; i <= n; ++i)
+        for (int j = 1; j <= m; ++j)
+            if (a[i][j] != '*')
+            {
+                cout << "Not unique\n";
+                return 0;
+            }
+
+    for (int i = 1; i <= n; ++i)
+        for (int j = 1; j <= m; ++j)
+            cout << p[i][j] << (j < m ? "" : "\n");
+
+    return 0;
+}

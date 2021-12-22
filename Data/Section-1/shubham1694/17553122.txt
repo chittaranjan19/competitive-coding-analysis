@@ -1,0 +1,152 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 500010;
+
+vector<int> adj[maxn], dfstree;
+int st[maxn*5], lazy[maxn*5], strt[maxn], en[maxn];
+int n, m;
+
+void dfs(int cur, int p)
+{
+	strt[cur] = dfstree.size();
+	dfstree.pb(cur);
+	for(int it:adj[cur]){
+		if(it!=p)
+			dfs(it, cur);
+	}
+	en[cur] = dfstree.size() - 1;
+}
+
+void init(int s, int e, int node)
+{
+	if(s==e){
+		st[node] = 1;
+		lazy[node] = 0;
+		return;
+	}
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	init(s, mid, lc);
+	init(mid+1, e, rc);
+	st[node] = e-s+1;
+	lazy[node] = 0;
+}
+
+void propagate_down(int s, int e, int node)
+{
+	if(lazy[node]){
+		st[node] = 0;
+		if(s!=e){
+			int lc = 2*node + 1;
+			int rc = lc + 1;
+			lazy[lc] = lazy[rc] = 1;
+		}
+		lazy[node] = 0;
+	}
+}
+
+void update1(int s, int e, int qs, int qe, int node)
+{
+	propagate_down(s, e, node);
+	if(s>e || s>qe || qs>e)
+		return;
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	if(s>=qs && qe>=e){
+		st[node] = 0;
+		lazy[node] = 0;
+		if(s!=e)
+			lazy[lc] = lazy[rc] = 1;
+		return;
+	}
+	update1(s, mid, qs, qe, lc);
+	update1(mid+1, e, qs, qe, rc);
+	st[node] = st[lc] + st[rc];
+}
+
+void update2(int s, int e, int q, int node)
+{
+	propagate_down(s, e, node);
+	if(s>e || s>q || q>e)
+		return;
+	if(s==e){
+		st[node] = 1;
+		return;
+	}
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	if(q<=mid)
+		update2(s, mid, q, lc);
+	else
+		update2(mid+1, e, q, rc);
+	st[node] = st[lc] + st[rc];
+}
+
+int query(int s, int e, int qs, int qe, int node)
+{
+	propagate_down(s, e, node);
+	if(s>e || s>qe || qs>e)
+		return 0;
+	if(s>=qs && qe>=e)
+		return st[node];
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	return query(s, mid, qs, qe, lc) + query(mid+1, e, qs, qe, rc);
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int t, u, v, i, j, rs, re, ans;
+	scanf("%d", &n);
+	for(i=1; i<n; i++){
+		scanf("%d%d", &u, &v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	dfs(1, 0);
+	init(0, dfstree.size()-1, 0);
+	scanf("%d", &m);
+	while(m--){
+		scanf("%d%d", &t, &u);
+		rs = strt[u];
+		re = en[u];
+		if(t==1)	
+			update1(0, dfstree.size()-1, rs, re, 0);
+		else if(t==2)
+			update2(0, dfstree.size()-1, rs, 0);
+		else{
+			ans = query(0, dfstree.size()-1, rs, re, 0);
+			if(ans>0)
+				ans = 0;
+			else
+				ans = 1;
+			printf("%d\n", ans);
+		}
+	}
+	return 0;
+}

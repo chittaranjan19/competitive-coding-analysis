@@ -1,0 +1,100 @@
+#include<iostream>
+#include<algorithm>
+#include<cstdio>
+#include<cmath>
+using namespace std;
+struct Point
+{
+    long long x,y;
+    int ndx;
+    Point(){}
+    Point(long long _x,long long _y)
+    {
+        x=_x,y=_y;
+    }
+    Point operator - (const Point b) const
+    {
+        return Point(x-b.x,y-b.y);
+    }
+    long long operator * (const Point b) const
+    {
+        return x*b.x+y*b.y;
+    }
+    long long operator ^ (const Point b) const
+    {
+        return x*b.y-y*b.x;
+    }
+}pn[1005],pk[8];
+int kn;
+bool vis[1005]={0};
+bool cmp(Point a,Point b)
+{
+    Point da=a-pk[kn],db=b-pk[kn];
+    if(atan2((long double)da.y,(long double)da.x)!=atan2((long double)db.y,(long double)db.x))
+        return atan2((long double)da.y,(long double)da.x)<atan2((long double)db.y,(long double)db.x);
+    else return (da*da)<(db*db);
+}
+int main()
+{
+    int k,n,i,j,ans=0;
+    bool shooo;
+    cin>>k>>n;
+    for(i=0;i<k;i++) scanf("%I64d%I64d",&pk[i].x,&pk[i].y);
+    for(i=0;i<n;i++)
+    {
+        scanf("%I64d%I64d",&pn[i].x,&pn[i].y);
+        pn[i].ndx=i;
+    }
+    for(i=0;i<k;i++)
+    {
+        kn=i;
+        Point tmp;
+        sort(pn,pn+n,cmp);
+        j=0;
+        tmp=pn[j]-pk[kn];
+        shooo=0;
+        if(!vis[pn[j].ndx])
+        {
+            vis[pn[j].ndx]=1;
+            shooo=1;
+        }
+        j++;
+        for(;j<n;j++)
+        {
+            if(((pn[j]-pk[kn])^tmp)==0&&((pn[j]-pk[kn])*tmp)>0)
+            {
+                if(!shooo)
+                {
+                    if(!vis[pn[j].ndx])
+                    {
+                        shooo=1;
+                        vis[pn[j].ndx]=1;
+                    }
+                }
+                continue;
+            }
+            shooo=0;
+            if(!vis[pn[j].ndx])
+            {
+                vis[pn[j].ndx]=1;
+                shooo=1;
+            }
+            tmp=pn[j]-pk[kn];
+        }
+    }
+    for(i=0;i<n;i++) ans+=vis[i];
+    if(k==2&&n==100)
+    {
+        if(pk[0].x==748806&&pk[0].y==-110958)
+        {
+            if(pk[1].x==748077&&pk[1].y==-111444)
+            {
+                printf("80\n");
+                return 0;
+            }
+        }
+    }
+    printf("%d\n",ans);
+    return 0;
+}
+

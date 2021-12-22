@@ -1,0 +1,170 @@
+#include <iostream>
+#include <cstdio>
+#include <string>
+#include <cstring>
+#include <cstdlib>
+#include <stack>
+#include <algorithm>
+#include <cctype>
+#include <vector>
+#include <queue>
+#include <tr1/unordered_map>
+#include <cmath>
+#include <map>
+#include <bitset>
+#include <set>
+#include <iomanip>
+using namespace std;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef vector<int> vi;
+typedef pair<int,int> ii;
+typedef vector< ii > vii;
+///////////////////////////////UTIL/////////////////////////////////
+#define ALL(x) (x).begin(),x.end()
+#define CLEAR0(v) memset(v, 0, sizeof(v))
+#define CLEAR(v, x) memset(v, x, sizeof(v))
+#define COPY(a, b) memcpy(a, b, sizeof(a))
+#define CMP(a, b) memcmp(a, b, sizeof(a))
+#define REP(i,n) for(int i = 0; i<n; i++)
+#define REPP(i,a,n) for(int i = a; i<n; i++)
+/////////////////////////////NUMERICAL//////////////////////////////
+#define INF 0x3f3f3f3f
+#define EPS 1e-9
+#define MOD 1000000007LL
+//__builtin_popcount(m)
+//scanf(" %d ", &t);
+
+int n, m;
+int ans[100010];
+int l[100010], r[100010], q[100010];
+
+#define inf 0x7fffffff
+ 
+int arr[100010];
+int t[30][300010];
+int la[30][300010];
+int *tree, *lazy;
+
+void build_tree(int node, int a, int b) {
+    if(a > b) return; // Out of range
+    
+    if(a == b) { // Leaf node
+            tree[node] = arr[a]; // Init value
+        return;
+    }
+    
+    build_tree(node*2, a, (a+b)/2); // Init left child
+    build_tree(node*2+1, 1+(a+b)/2, b); // Init right child
+    
+    tree[node] = max(tree[node*2], tree[node*2+1]); // Init root value
+}
+ 
+void update_tree(int node, int a, int b, int i, int j, int value) {
+  
+    if(lazy[node] != 0) { // This node needs to be updated
+        tree[node] += lazy[node]; // Update it
+ 
+        if(a != b) {
+            lazy[node*2] += lazy[node]; // Mark child as lazy
+                lazy[node*2+1] += lazy[node]; // Mark child as lazy
+        }
+ 
+        lazy[node] = 0; // Reset it
+    }
+  
+    if(a > b || a > j || b < i) // Current segment is not within range [i, j]
+        return;
+    
+    if(a >= i && b <= j) { // Segment is fully within range
+            tree[node] += value;
+ 
+        if(a != b) { // Not leaf node
+            lazy[node*2] += value;
+            lazy[node*2+1] += value;
+        }
+ 
+            return;
+    }
+ 
+    update_tree(node*2, a, (a+b)/2, i, j, value); // Updating left child
+    update_tree(1+node*2, 1+(a+b)/2, b, i, j, value); // Updating right child
+ 
+    tree[node] = max(tree[node*2], tree[node*2+1]); // Updating root with max value
+}
+
+int query_tree(int node, int a, int b, int i, int j) {
+    
+    if(a > b || a > j || b < i) return -inf; // Out of range
+ 
+    if(lazy[node] != 0) { // This node needs to be updated
+        tree[node] += lazy[node]; // Update it
+ 
+        if(a != b) {
+            lazy[node*2] += lazy[node]; // Mark child as lazy
+            lazy[node*2+1] += lazy[node]; // Mark child as lazy
+        }
+ 
+        lazy[node] = 0; // Reset it
+    }
+ 
+    if(a >= i && b <= j) // Current segment is totally within range [i, j]
+        return tree[node];
+ 
+    int q1 = query_tree(node*2, a, (a+b)/2, i, j); // Query left child
+    int q2 = query_tree(1+node*2, 1+(a+b)/2, b, i, j); // Query right child
+ 
+    int res = max(q1, q2); // Return final result
+    
+    return res;
+}
+
+int main(){
+    cin >> n >> m;
+    
+    CLEAR0(arr);
+    REP(i, 30){
+        tree = &t[i][0];
+        lazy = &la[i][0];
+        build_tree(1, 0, n-1);
+    }
+
+    bool pos = true;
+    REP(i, m){
+        cin >> l[i] >> r[i] >> q[i]; l[i]--; r[i]--;
+        REP(j, 30) if(q[i]&(1<<j)){
+            tree = &t[j][0];
+            lazy = &la[j][0];
+            update_tree(1, 0, n-1, l[i], r[i], -1);
+        }
+    }
+    REP(i, m){
+        REP(j, 30){
+            if(q[i]&(1<<j));
+            else{
+                tree = &t[j][0];
+                lazy = &la[j][0];
+                if(query_tree(1, 0, n-1, l[i], r[i]) < 0){
+                    pos = false;
+                    break;
+                }
+            }
+        }
+        if(!pos) break;
+    }
+    if(!pos) cout << "NO\n";
+    else{
+        cout << "YES\n";
+        REP(i, n){
+            int x = 0;
+            REP(j, 30){
+                tree = &t[j][0];
+                lazy = &la[j][0];
+                if(query_tree(1, 0, n-1, i, i) < 0) x |= (1 << j);
+            }
+            cout << x;
+            if(i < n-1) cout << " ";
+        }
+        cout << endl;
+    }
+}

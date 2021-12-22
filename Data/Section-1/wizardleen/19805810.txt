@@ -1,0 +1,71 @@
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.PrintWriter;
+import java.util.*;
+
+/**
+ * Created by leen on 8/12/16.
+ */
+public class _706B {
+    public static void main(String[] args) {
+        Scanner scan  = new Scanner(new BufferedInputStream(System.in, 1024 * 128));
+        int n = scan.nextInt();
+        int[] x = new int[n];
+        for(int i = 0; i < n; i++)
+            x[i] = scan.nextInt();
+
+        Arrays.sort(x);
+
+        List<Node> nodes = new ArrayList<Node>();
+        Node lastNode = null;
+        for(int i = 0; i < n; i++) {
+            int v = x[i];
+            if(lastNode != null && lastNode.value == v) {
+                lastNode.num++;
+                lastNode.sum++;
+            }
+            else {
+                Node node = new Node(v);
+                if(lastNode != null)
+                    node.sum = lastNode.sum + 1;
+                nodes.add(node);
+                lastNode = node;
+            }
+        }
+
+        int q = scan.nextInt();
+        PrintWriter pw = new PrintWriter(new BufferedOutputStream(System.out, 1024 * 128));
+        for(int i = 0; i < q; i++) {
+            int m = scan.nextInt();
+            int idx = Collections.binarySearch(nodes, new Node(m));
+            if(idx >= 0)
+                pw.println(nodes.get(idx).sum);
+            else {
+                idx = -idx - 1;
+                if(idx == 0)
+                    pw.println(0);
+                else
+                    pw.println(nodes.get(idx-1).sum);
+            }
+        }
+        pw.flush();
+    }
+
+    static class Node implements Comparable<Node> {
+        final int value;
+        int num;
+        int sum;
+
+        Node(int value) {
+            this.value = value;
+            num = 1;
+            sum = 1;
+        }
+
+        @Override
+        public int compareTo(Node o) {
+            return value - o.value;
+        }
+    }
+
+}

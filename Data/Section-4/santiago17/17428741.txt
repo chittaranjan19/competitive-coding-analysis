@@ -1,0 +1,182 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+
+class Edge;
+const int MAX = 100010;
+
+ll dist[2][MAX];
+vector<Edge> graph[2][MAX];
+short edge_type[MAX];//1 = good, 2 = bad, 3 = can be improved
+vector<bool> visited(MAX, false);
+vector<bool> gets_target(MAX, false);
+ll counts[2][MAX];
+
+class Edge {
+public:
+    int n, o, w, id;
+    ll imp;
+    Edge(int n, int w, int id) : n(n), w(w), id(id){}
+    Edge(int n, int o, int w, int id) : n(n), o(o), w(w), id(id){}
+    Edge(){}
+};
+
+Edge edges[MAX];
+
+class Compare {
+public:
+    bool operator()(pair<int,ll> a, pair<int, ll> b) {
+        return a.second > b.second;
+    }
+};
+
+void dijkstra(int start, int type) {
+    visited = vector<bool>(MAX, false);
+    priority_queue<pair<int, ll> , vector<pair<int, ll> >, Compare> pq;
+    dist[type][start] = 0;
+    pq.push(make_pair(start, 0));
+    while(!pq.empty()) {
+        pair<int, ll> pout = pq.top();
+        pq.pop();
+        int p = pout.first;
+        ll cdist = pout.second;
+        //printf("in %d size %d w %d\n", p, pq.size(), cdist);
+        if(visited[p])
+            continue;
+        visited[p] = true;
+        for (int i = 0; i < graph[type][p].size(); ++i) {
+            int t = graph[type][p][i].n;
+            int weight = graph[type][p][i].w;
+            //printf("current %d\n", t);
+            if(!visited[t]) {
+                if(cdist + weight < dist[type][t]) {
+                    dist[type][t] = cdist + weight;
+                    //printf("pused t %d w %d\n", t, cdist+weight);
+                    pq.push(make_pair(t, dist[type][t]));
+                }
+            }
+        }
+    }
+}
+
+void calc_counts(int N) {
+    //printf("in calc\n");
+    for (int i = 1; i <= N; ++i) {
+        int ct1 = 0, ct2 = 0;
+        for (int j = 0; j < graph[1][i].size(); ++j) {
+            Edge t = graph[1][i][j];
+            if(dist[0][t.n] + t.w == dist[0][i])
+                ct1++;
+        }
+        for (int j = 0; j < graph[0][i].size(); j++) {
+            Edge t = graph[0][i][j];
+            if(dist[1][t.n] + t.w == dist[1][i])
+                ct2++;
+        }
+        counts[0][i] = ct1;
+        counts[1][i] = ct2;
+    }
+}
+
+void DFS_reach(int node, int target) {
+    bool ans = false;
+    visited[node] = true;
+    if(node == target)
+        gets_target[node] = true;
+    for (int i = 0; i < graph[0][node].size(); ++i) {
+        Edge t =graph[0][node][i];
+        if(!visited[t.n])
+            DFS_reach(t.n, target);
+        if(gets_target[t.n]) {
+            gets_target[node] = true;
+            edge_type[t.id] = 1;
+        }
+    }
+}
+
+void proc_edges(int M, int start, int target) {
+    for (int i = 0; i < M; ++i) {
+
+        Edge t = edges[i];
+        ll d1, d2;
+        if(dist[0][t.n] < dist[0][t.o]) {
+            d1 = dist[0][t.n];
+            d2 = dist[1][t.o];
+        }
+        else {
+            d1 = dist[0][t.o];
+            d2 = dist[1][t.n];
+        }
+        //printf("Edge %d d1 %lld d2 %lld\n", i, d1, d2);
+        if(d1 + d2 + t.w == dist[0][target]) {
+            ll c1, c2;
+
+            if(dist[0][t.n] < dist[0][t.o]) {
+                c1 = counts[1][t.n];
+                c2 = counts[0][t.o];
+            }
+            else {
+                c1 = counts[1][t.o];
+                c2 = counts[0][t.n];
+            }
+            //printf("c1 %lld c2 %lld\n", c1, c2);
+            if(c1 != c2) {
+                ll x = d1+d2+t.w+1-dist[0][target];
+                if(t.w == 1)
+                    edge_type[t.id] = 2;
+                else {
+                    edge_type[t.id] = 3;
+                    edges[t.id].imp = 1;
+                }
+            }
+        }
+        else {
+            ll x = d1+d2+t.w+1-dist[0][target];
+            if(t.w - x < 1)
+                edge_type[t.id] = 2;
+            else {
+                edges[t.id].imp = x;
+                edge_type[t.id] = 3;
+            }
+        }
+    }
+}
+
+int main() {
+    //freopen("president.in", "r", stdin);
+    //freopen("president.out", "w", stdout);
+    int N, M, start, target;
+    scanf("%d %d %d %d", &N, &M, &start, &target);
+    for (int i = 1; i <= N; ++i) {
+        dist[0][i] = 1ll<<62ll;
+        dist[1][i] = 1ll<<62ll;
+    }
+    for (int i = 0; i < M; ++i) {
+        int a, b, l;
+        scanf("%d %d %d", &a, &b, &l);
+        graph[0][a].push_back(Edge(b, l, i));
+        graph[1][b].push_back(Edge(a, l, i));
+        edges[i] = Edge(a, b, l, i);
+        edge_type[i] = 2;
+    }
+    DFS_reach(start, target);
+    dijkstra(start, 0);
+    dijkstra(target, 1);
+    calc_counts(N);
+    proc_edges(M, start, target);
+    /*for (int i = 1; i <= N; ++i) {
+        printf("i %d c1 %lld c2 %lld d1 %lld d2 %lld\n", i, counts[0][i], counts[1][i], dist[0][i], dist[1][i]);
+    }*/
+    for (int i = 0; i < M; ++i) {
+        //printf("edge i %d %d\n", i, edge_type[i]);
+        if(edge_type[i] == 1)
+            printf("YES\n");
+        if(edge_type[i] == 2)
+            printf("NO\n");
+        if(edge_type[i] == 3)
+            printf("CAN %I64d\n", edges[i].imp);
+    }
+    return 0;
+}

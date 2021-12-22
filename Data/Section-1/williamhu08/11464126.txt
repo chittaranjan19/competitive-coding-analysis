@@ -1,0 +1,64 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<double, double> pdd;
+
+int grid[2][2];
+
+pdd range (double lo1, double hi1, double lo2, double hi2) {
+	//calculate the range of products
+		return pdd(min(min(lo1 * lo2, lo1 * hi2), min(hi1 * lo2, hi1 * hi2)),
+			max(max(lo1 * lo2, lo1 * hi2), max(hi1 * lo2, hi1 * hi2)));
+}
+
+double lo[2][2], hi[2][2];
+
+bool moo (double g) {
+	for (int i = 0; i < 2; i++) {
+		for (int j = 0; j < 2; j++) {
+			lo[i][j] = grid[i][j] - g;
+			hi[i][j] = grid[i][j] + g;
+		}
+	}
+	//aite is it possible?
+	//calcualte min/max prods for each SIGN (you may include zero)
+	//does it include zero
+	// cerr << "g = " << g << endl;
+	pdd r1 = range(lo[0][0], hi[0][0], lo[1][1], hi[1][1]);
+	// cerr << r1.first << ' ' << r1.second << endl;
+	pdd r2 = range(lo[0][1], hi[0][1], lo[1][0], hi[1][0]);
+	// cerr << r2.first << ' ' << r2.second << endl;
+	//let's consider each of them
+	return !(r1.second < r2.first || r2.second < r1.first);
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	for (int i = 0; i < 2; i++) {
+		for (int j = 0; j < 2; j++) {
+			scanf("%d", &grid[i][j]);
+		}
+	}
+	if (grid[0][0] * ll(grid[1][1]) == grid[0][1] * ll(grid[1][0])) {
+		puts("0.0000000000");
+		return 0;
+	}
+	// pdd p = range(1, 6, 2, 8);
+	// cout << p.first << ' ' << p.second << endl;
+	//binary search
+	double lo = 0, hi = 2e9;
+	for (int i = 0; i < 2000; i++) {
+		// cerr << "lo = " << lo << ", hi = " << hi << ", diff = " << hi - lo << endl;
+		double mid = (lo + hi) / 2;
+		if (moo(mid)) {
+			hi = mid;
+		} else {
+			lo = mid;
+		}
+	}
+	printf("%.10lf\n", hi);
+}

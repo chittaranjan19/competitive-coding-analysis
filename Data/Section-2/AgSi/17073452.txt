@@ -1,0 +1,94 @@
+#include<iostream>
+#include<cstdio>
+#include<cstring>
+#include<algorithm>
+#define maxn 200005
+
+int first[maxn],next[maxn];
+int from [maxn],to[maxn];
+int visb[maxn];
+int visd[maxn];
+int fang[maxn];
+
+int num=0;
+int m,n;
+int eid=0;
+
+void init()
+{
+    num=0;
+    memset(fang,0,sizeof(fang));
+    memset(visd,0,sizeof(visd));
+    memset(visb,0,sizeof(visb));
+    eid=0;
+    int i,j;
+    for(i=0;i<=n;i++)
+        first[i]=-1;
+}
+
+void addedge(int f , int t )
+{
+    eid++;
+    to[eid]=t;
+    next[eid]=first[f];
+    first[f]=eid;
+
+    eid++;
+    to[eid]=f;
+    next[eid]=first[t];
+    first[t]=eid;
+}
+
+
+void dfs(int st)
+{
+    fang[st]=1;
+    //printf("%d\n",st);
+    int i,j;
+    for(j=first[st];j!=-1;j=next[j])
+    {
+        if(visb[j])
+            continue;
+        if(j%2==0)
+        {
+            if(visb[j-1])
+                continue;
+        }
+        else
+        {
+            if(visb[j+1])
+                continue;
+        }
+        int t=to[j];
+        if(visd[t]==0)
+            num++;
+        visd[t]=1;
+        visb[j]=1;
+
+        dfs(t);
+    }
+    return ;
+}
+
+int main()
+{
+
+    while(scanf("%d%d",&n,&m)!=EOF)
+    {
+        init();
+        int i,j;
+        for(i=1;i<=m;i++)
+        {
+            int f1,f2;
+            scanf("%d%d",&f1,&f2);
+            addedge(f1,f2);
+        }
+        for(i=1;i<=n;i++)
+        {
+            if(!fang[i])
+            dfs(i);
+        }
+        printf("%d\n",n-num);
+    }
+    return 0;
+}

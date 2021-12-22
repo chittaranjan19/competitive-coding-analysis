@@ -1,0 +1,124 @@
+#include <fstream>
+#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <cmath>
+#include <complex>
+#include <map>
+#include <set>
+#include <cstring>
+
+#define mp make_pair
+#define pb push_back
+#define problem "test"
+
+typedef long long ll;
+typedef long double ld;
+typedef unsigned int ui;
+typedef unsigned long long ull;
+const int z = 55555;
+const double eps = 1e-9;
+const int inf = int(1e9);
+const ll llinf = ll(1e18);
+
+using namespace std;
+
+int n, m, k, used[z], v, u;
+vector <vector <int> > e;
+vector <pair <int, int> > edges;
+
+void dfs0(int v)
+{
+    used[v] = 1;
+    for (ui i = 0; i < e[v].size(); i++)
+    {
+        int u = e[v][i];
+        if (!used[u])
+        {
+            edges.pb(mp(v, u));
+            dfs0(u);
+        }
+    }
+}
+
+
+vector<vector<int>> ans;
+
+bool used2[z];
+bool color[z];
+
+vector<int> dfs1(int v)
+{
+    used2[v] = true;
+    vector<int> cur;
+    if (color[v])
+        cur.push_back(v);
+    for (int u : e[v]) {
+        if (used2[u])
+            continue;
+        vector<int> tmp = dfs1(u);
+        if (tmp.empty())
+            continue;
+        if (!cur.empty())
+        {
+            for (auto it = tmp.rbegin(); it != tmp.rend(); ++it)
+                cur.push_back(*it);
+            ans.push_back(move(cur));
+            cur.clear();
+            continue;
+        }
+        cur = move(tmp);
+        cur.push_back(v);
+    }
+    return cur;
+}
+
+
+int main()
+{
+    cin.tie(0);
+    ios_base::sync_with_stdio(0);
+    //freopen(problem".in", "r", stdin);
+    //freopen(problem".out", "w", stdout);
+    cin >> n >> m >> k;
+    e.assign(n, vector <int>());
+    for (int i = 0; i < m; i++)
+    {
+        cin >> v >> u;
+        e[--v].pb(--u);
+        e[u].pb(v);
+    }
+    for (int i = 0; i < n; i++)
+        if (!used[i])
+            dfs0(i);
+    e.assign(n, vector <int>());
+    for (ui i = 0; i < edges.size(); i++)
+    {
+        v = edges[i].first;
+        u = edges[i].second;
+        e[v].pb(u);
+        e[u].pb(v);
+    }
+    
+    for (int i = 0; i < k; ++i)
+    {
+        cin >> v;
+        color[--v] = true;
+    }
+
+    for (int i = 0; i < n; ++i)
+    {
+        if (!used2[i])
+            dfs1(i);
+    }
+        
+    cout << ans.size() << '\n';
+    for (int i = 0; i < ans.size(); ++i)
+    {
+        cout << ans[i].size() - 1 << ' ';
+        for (int v : ans[i])
+            cout << ++v << ' ';
+        cout << '\n';
+    }
+    return 0;
+}

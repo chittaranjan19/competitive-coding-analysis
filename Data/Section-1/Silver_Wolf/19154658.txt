@@ -1,0 +1,45 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MAXN=2e6+1;
+const int MOD=1e9+7;
+
+int fen[MAXN];
+void update(int x,int a){for(int y=x;y<MAXN;y+=y&-y)fen[y]=max(a,fen[y]);}
+int query(int x){int res=0;for(int y=x;y>0;y-=y&-y)res=max(fen[y],res);return res;}
+
+pair<pair<int,int>,int>p[MAXN];
+vector<int>v;
+int main(){
+    int n;
+    cin>>n;
+    for(int i=0;i<n;i++){cin>>p[i].first.first;v.push_back(p[i].first.first);}
+    for(int i=0l;i<n;i++){cin>>p[i].first.second;v.push_back(p[i].first.second);}
+    for(int i=0;i<n;i++){cin>>p[i].second;v.push_back(p[i].second);}
+
+    sort(v.begin(),v.end());
+    v.resize(unique(v.begin(),v.end())-v.begin());
+    for(int i=0;i<n;i++){
+        p[i].first.first=lower_bound(v.begin(),v.end(),p[i].first.first)-v.begin();
+        p[i].first.second=lower_bound(v.begin(),v.end(),p[i].first.second)-v.begin();
+        p[i].second=lower_bound(v.begin(),v.end(),p[i].second)-v.begin();
+    }
+
+    sort(p,p+n);
+    reverse(p,p+n);
+
+    int ans=0;
+    for(int i=0;i<n;i++){
+        int k=query(3*n-p[i].first.second-1);
+        //cout<<"****"<<k<<'\n';
+        if(k>p[i].second)ans++;
+        while(p[i+1].first.first==p[i].first.first && i+1!=n){
+            i++;
+            int k=query(3*n-p[i].first.second-1);
+            if(k>p[i].second)ans++;
+        }
+        update(3*n-p[i].first.second,p[i].second);
+    }
+    cout<<ans;
+}

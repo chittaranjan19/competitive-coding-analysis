@@ -1,0 +1,131 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <climits>
+#ifdef DEBUG
+	#include <ctime>
+#endif
+using namespace std;
+
+// template
+
+// abbreviations
+#define vi vector<int>
+#define vl vector<ll>
+#define vb vector<bool>
+#define vs vector<string>
+#define ii pair<int, int>
+#define a first
+#define b second
+#define vii vector<ii>
+#define mii map<ii>
+#define vvi vector<vi>
+#define vvl vector<vl>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define sz(var) ((int) var.size())
+#define rep(it, n) for(int it = 0; it < n; ++it)
+#define rep1(it, n) for(int it = 1; it <= n; ++it)
+#define loop(it, from, to) for(int it = (from); it <= (to); ++it)
+#define iter(it, cont) for(__typeof((cont).begin()) it = (cont).begin(); it != (cont).end(); ++it)
+#define riter(it, cont) for(__typeof((cont).rbegin()) it = (cont).rbegin(); it != (cont).rend(); ++it)
+#define all(cont) (cont).begin(), (cont).end()
+#define memclr(var) memset(var, 0, sizeof(var))
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const int INF = INT_MAX;
+const int NINF = INT_MIN;
+const ll INF_LL = LLONG_MAX;
+const ll NINF_LL = LLONG_MIN;
+const double PI = acos(-1.0);
+const int MOD = 1e9+7;
+
+#ifdef DEBUG
+	#define debug(fmt, args...) printf("Line %d, in %s\t: " fmt, __LINE__, __FUNCTION__, ##args)
+	#define rep_rt() printf("[Run time: %.3fs]\n", ((double) clock()) / CLOCKS_PER_SEC)
+#else
+	#define debug(...)
+#endif
+
+// end of template
+
+#define N (int) (1e5)
+#define LOG2_MAX_K 33
+
+struct DP {
+	int to;
+	int min;
+	ll tot_length;
+} dp[N + 2][LOG2_MAX_K + 1];
+
+bool bit_on[LOG2_MAX_K + 1];
+
+int main() {
+#ifdef DEBUG
+	freopen("702E.in", "r", stdin);
+#endif
+    
+    int n;
+    ll k;
+    scanf("%d %I64d", &n, &k);
+    rep(idx, n) {
+    	scanf("%d", &dp[idx][0].to);
+    }
+
+    rep(idx, n) {
+    	int w;
+    	scanf("%d", &w);
+    	dp[idx][0].tot_length = dp[idx][0].min = w;
+    }
+
+    for (int len2 = 1; len2 <= LOG2_MAX_K; ++len2) {
+    	rep(idx, n) {
+    		dp[idx][len2].min = min(dp[idx][len2 - 1].min, dp[dp[idx][len2 - 1].to][len2 - 1].min);
+    		dp[idx][len2].to = dp[dp[idx][len2 - 1].to][len2 - 1].to;
+    		dp[idx][len2].tot_length = dp[idx][len2 - 1].tot_length + dp[dp[idx][len2 - 1].to][len2 - 1].tot_length;	
+    	}
+    }
+    rep(idx, n) {
+    	DP ans;
+    	ans.to = idx;
+    	ans.min = INF;
+    	ans.tot_length = 0;
+    	for (int len2 = LOG2_MAX_K; len2 >= 0; --len2) {
+    		bit_on[len2] = ((k & (1LL << len2)) > 0);
+    	}
+    	for (int len2 = 0; len2 <= LOG2_MAX_K; ++len2) {
+    		if (bit_on[len2]) {
+	    		ans.min = min(ans.min, dp[ans.to][len2].min);
+	    		ans.tot_length += dp[ans.to][len2].tot_length;
+	    		ans.to = dp[ans.to][len2].to;	
+    		}
+    	}
+    	printf("%I64d %d\n", ans.tot_length, ans.min);
+    }
+
+#ifdef DEBUG
+    rep_rt();
+#endif
+    return 0;
+}

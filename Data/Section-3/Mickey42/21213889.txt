@@ -1,0 +1,190 @@
+#include<fstream>
+#include<string.h>
+#include<ctype.h>
+#include<iostream>
+#include<algorithm>
+#include<map>
+#include<unordered_map>
+#include<array>
+#include<deque>
+#include<math.h>
+#include<unordered_set>
+#include<set>
+#include<iomanip>
+#include<bitset>
+using namespace std;
+int mat[55][55],temp[55][55], n, m, k, i, j;
+char c;
+struct point 
+{
+	int x;
+	int y;
+};
+deque<point>deq;
+multimap<int, point>mp;
+multimap<int, point>::iterator it;
+void leefill(point p)
+{
+	deq.push_back(p);
+	while (deq.size() != 0)
+	{
+		for (i = 1; i <= deq.size(); i++)
+		{
+			point el = *deq.begin();
+			temp[el.x][el.y] = 0;
+			deq.pop_front();
+			if (temp[el.x-1][el.y] == 1)
+			{
+				point lee;
+				lee.x = el.x-1;
+				lee.y = el.y;
+				deq.push_back(lee);
+			}
+			if (temp[el.x+1][el.y] == 1)
+			{
+				point lee;
+				lee.x = el.x+1;
+				lee.y = el.y;
+				deq.push_back(lee);
+			}
+			if (temp[el.x][el.y+1] == 1)
+			{
+				point lee;
+				lee.x = el.x;
+				lee.y = el.y+1;
+				deq.push_back(lee);
+			}
+			if (temp[el.x][el.y-1] == 1)
+			{
+				point lee;
+				lee.x = el.x;
+				lee.y = el.y-1;
+				deq.push_back(lee);
+			}
+		}
+	}
+}
+void leecount(point p)
+{
+	int nr = 0;
+	deq.push_back(p);
+	while (deq.size() != 0)
+	{
+		for (i = 1; i <= deq.size(); i++)
+		{
+			point el = *deq.begin();
+			temp[el.x][el.y] = 0;
+			deq.pop_front();
+			nr++;
+			if (temp[el.x - 1][el.y] == 1)
+			{
+				point lee;
+				lee.x = el.x - 1;
+				lee.y = el.y;
+				deq.push_back(lee);
+			}
+			if (temp[el.x + 1][el.y] == 1)
+			{
+				point lee;
+				lee.x = el.x + 1;
+				lee.y = el.y;
+				deq.push_back(lee);
+			}
+			if (temp[el.x][el.y + 1] == 1)
+			{
+				point lee;
+				lee.x = el.x;
+				lee.y = el.y + 1;
+				deq.push_back(lee);
+			}
+			if (temp[el.x][el.y - 1] == 1)
+			{
+				point lee;
+				lee.x = el.x;
+				lee.y = el.y - 1;
+				deq.push_back(lee);
+			}
+		}
+	}
+	mp.insert(make_pair(nr, p));
+}
+int main()
+{
+	point q;
+	cin >> n >> m >> k;
+	for (i = 1; i <= n; i++)
+		for (j = 1; j <= m; j++)
+		{
+			cin >> c;
+			if (c == '.')
+			{
+				mat[i][j] = 1;
+				temp[i][j] = 1;
+			}
+			else
+			{
+				mat[i][j] = 0;
+				temp[i][j] = 0;
+			}
+		}
+	for (i = 1; i <= n; i++)
+	{
+		if (temp[i][m] == 1)
+		{
+			q.x = i;
+			q.y = m;
+			leefill(q);
+		}
+		if (temp[i][1] == 1)
+		{
+			q.x = i;
+			q.y = 1;
+			leefill(q);
+		}
+	}
+	for (i = 1; i <= m; i++)
+	{
+		if (temp[1][i] == 1)
+		{
+			q.x = 1;
+			q.y = i;
+			leefill(q);
+		}
+		if (temp[n][i] == 1)
+		{
+			q.x = n;
+			q.y = i;
+			leefill(q);
+		}
+	}
+	for (i = 1; i <= n; i++)
+		for (j = 1; j <= m; j++)
+			if (temp[i][j] == 1)
+			{
+				q.x = i;
+				q.y = j;
+				leecount(q);
+			}
+	int rez = 0;
+	for (i = 1; i <= n; i++)
+		for (j = 1; j <= m; j++)
+			temp[i][j] = mat[i][j];
+	while(mp.size()!=k)
+	{
+		it = mp.begin();
+		rez += it->first;
+		leefill(it->second);
+		mp.erase(it);
+	}
+	cout << rez << '\n';
+	for (i = 1; i <= n; i++)
+	{
+		for (j = 1; j <= m; j++)
+			if (temp[i][j] == 0)
+				cout << '*';
+			else
+				cout << '.';
+		cout << '\n';
+	}
+	return 0;
+}

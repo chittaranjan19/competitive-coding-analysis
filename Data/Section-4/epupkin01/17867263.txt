@@ -1,0 +1,135 @@
+#include <iostream>
+#include <climits>
+#include <string>       // string s; cin >> s;
+#include <cstring>      // memset(b, 0, sizeof(arr)); strcpy(a1, a2); strcat(a1, a2);
+#include <cmath>
+#include <cstdio>       // getchar(), gets()
+#include <cstdlib>      // rand(), max(), min()
+#include <ctime>        // rand(): srand(int(time(0)));
+#include <algorithm>    // std::sort(a + 0, a + n); a - массв, n - кол-во эл-тов
+#include <iomanip>      // setw(4), setfill('.'), setprecision(2)
+#include <vector>
+#include <array>
+#include <fstream>      // file IO (input-output)
+#include <cctype>       // isupper()
+#include <memory>       // shared_ptr<>, uniqu_ptr<>
+#include <iterator>     // ostream_iterator<int, char> our_iter(cout, " ");
+#include <set>
+#include <map>
+#include <list>
+#include <queue>
+#define SRT srand(int(time(0)))
+
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef unsigned long long ull;
+ld pi = 3.14159265358979323;
+int ten[8] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000};
+
+typedef map<int, int> Map;
+typedef Map::iterator mIter;
+typedef pair<const int, int> mPair;
+typedef pair<double, int> Pair;
+typedef set<int> Set;
+typedef Set::iterator sIter;
+typedef list<int> List;
+typedef List::iterator lIter;
+
+inline ld Dist(int x1, int y1, int x2, int y2)
+{
+    return sqrt( (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) );
+}
+
+const int S = 100000;
+Pair a[S], a2[S], b[S], b2[S], t[S], t2[S];
+
+int main()
+{
+    int ax, ay, bx, by, tx, ty, n;
+    cin >> ax >> ay >> bx >> by >> tx >> ty >> n;
+    
+    int na = 0, nb = 0;
+    ld da = 0.0, db = 0.0, difA, difB;
+    for (int i = 0, x, y; i < n; ++i)
+    {
+        scanf("%d%d", &x, &y);
+        
+        a[i].second = b[i].second = t[i].second = i;
+        
+        a[i].first = Dist(x, y, ax, ay) + Dist(x, y, tx, ty);
+        b[i].first = Dist(x, y, bx, by) + Dist(x, y, tx, ty);
+        t[i].first = 2 * Dist(x, y, tx, ty);
+        
+        difA = t[i].first - a[i].first;
+        difB = t[i].first - b[i].first;
+        
+        if (da < difA && db < difB)
+        {
+            if (difA < difB)
+            {
+                db = difB;
+                nb = i;
+            }
+            else
+            {
+                da = difA;
+                na = i;
+            }
+        }
+        else
+        {
+            if (da < difA)
+            {
+                da = difA;
+                na = i;
+            }
+            if (db < difB)
+            {
+                db = difB;
+                nb = i;
+            }
+        }
+    }
+    
+    ld sum = 0;
+    int i = 0;
+    
+    if (na == 0 && nb == 0)
+    {
+        if (a[0].first < b[0].first)
+            sum += a[0].first;
+        else
+            sum += b[0].first;
+        ++i;
+    }
+    else if (na == 0 && nb != 0)
+    {
+        if (t[0].first < a[0].first)
+            sum += t[0].first;
+        else
+            sum += a[0].first;
+        ++i;
+    }
+    else if (nb == 0 && na != 0)
+    {
+        if (t[0].first < b[0].first)
+            sum += t[0].first;
+        else
+            sum += b[0].first;
+        ++i;
+    }
+    
+    for ( ; i < n; ++i)
+    {
+        if (na == i)
+            sum += a[i].first;
+        else if (nb == i)
+            sum += b[i].first;
+        else
+            sum += t[i].first;
+    }
+    
+    cout << setprecision(17) << sum << '\n';
+    return 0;
+}

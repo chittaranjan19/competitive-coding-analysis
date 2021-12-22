@@ -1,0 +1,101 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+class trie
+{
+  trie* child[2];
+
+  public :trie()
+  {
+    memset( child , 0 , sizeof(child) );
+  };
+
+  void insert(LL x, int ind)
+  {
+    if(ind == -1)
+      return;
+    else
+    {
+      bool nxt = ((x & (1LL << ind)) != 0);
+      if(child[nxt] == 0)
+        child[nxt] = new trie();
+      child[nxt]->insert(x, ind - 1);
+    }
+  }
+
+  LL get(LL x, int ind)
+  {
+    if(ind == -1)
+      return 0;
+    else
+    {
+      bool nxt = ((x & (1LL << ind)) == 0);
+      if(child[nxt] == 0)
+        nxt = !nxt;
+      if(nxt)
+        return child[nxt]->get(x, ind - 1) | (1LL << ind);
+      else return child[nxt]->get(x, ind - 1);
+    }
+  }
+};
+
+int arr[100005];
+
+int main()
+{
+  int n;
+  scanf("%d", &n);
+  LL tmp = 0, res = 0, t2 = 0;
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d", &arr[i]);
+    tmp ^= arr[i];
+  }
+  res = tmp;
+  trie *sol = new trie();
+  sol->insert(0, 40);
+  for(int i=0;i<n;i++)
+  {
+    tmp ^= arr[i];
+    t2 ^= arr[i];
+    sol->insert(t2, 40);
+    res = max(res, tmp ^ sol->get(tmp, 40));
+  }
+  printf("%I64d", res);
+  return 0;
+}

@@ -1,0 +1,127 @@
+#include <iostream>
+#include <climits>
+#include <string>       // string s; cin >> s;
+#include <cstring>      // memset(b, 0, sizeof(arr)); strcpy(a1, a2); strcat(a1, a2);
+#include <cmath>
+#include <cstdio>       // getchar(), gets()
+#include <cstdlib>      // rand(), max(), min()
+#include <ctime>        // rand(): srand(int(time(0)));
+#include <algorithm>    // std::sort(a + 0, a + n); a - массв, n - кол-во эл-тов
+#include <iomanip>      // setw(4), setfill('.'), setprecision(2)
+#include <vector>
+#include <array>
+#include <fstream>      // file IO (input-output)
+#include <cctype>       // isupper()
+#include <memory>       // shared_ptr<>, uniqu_ptr<>
+#include <iterator>     // ostream_iterator<int, char> our_iter(cout, " ");
+#include <set>
+#include <map>
+#include <list>
+#include <queue>
+#define SRT srand(int(time(0)))
+
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef unsigned long long ull;
+ld pi = 3.14159265358979323;
+int ten[8] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000};
+
+const int S = 200001;
+struct Segment
+{
+    short t;    // type, 0 - left, 1 - bridge, 2 - right
+    ll d;
+    ll r;
+    int i;
+} s[3 * S];
+bool by_d(Segment &s1, Segment &s2)
+{
+    if (s1.d < s2.d)
+        return true;
+    else if (s1.d == s2.d && s1.t < s2.t)
+        return true;
+    return false;
+}
+
+typedef map<int, int> Map;
+typedef Map::iterator mIter;
+typedef pair<const int, int> mPair;
+typedef pair<ll, int> Pair;
+typedef set<Pair> Set;
+typedef Set::iterator sIter;
+typedef list<int> List;
+typedef List::iterator lIter;
+
+int main()
+{
+    int n, m, t = 0;
+    ll l1, r1, l2, r2;
+    
+    cin >> n >> m >> l1 >> r1;
+    for (int i = 0; i < n - 1; ++i)
+    {
+        scanf("%I64d%I64d", &l2, &r2);
+        
+        s[t].t = 0;     // 0 - left
+        s[t].d = l2 - r1;
+        s[t].r = r2 - l1;
+        s[t++].i = i;
+        
+        s[t].t = 2;     // 2 - right
+        s[t].d = r2 - l1;
+        s[t++].i = i;
+        
+        l1 = l2;
+        r1 = r2;
+    }
+    for (int i = 1; i <= m; ++i)
+    {
+        s[t].t = 1;     // 1 - bridge
+        scanf("%I64d", &s[t].d);
+        s[t++].i = i;
+    }
+    
+    sort(s, s + t, by_d);
+    
+    int ans[S] = {0};
+    Set st;
+    sIter it;
+    
+    for (int i = 0; i < t; ++i)
+    {
+        switch (s[i].t)
+        {
+            case 0:
+                st.insert(Pair(s[i].r, s[i].i));
+                break;
+            case 1:
+                it = st.begin();
+                if (it != st.end())
+                {
+                    ans[(*it).second] = s[i].i;
+                    st.erase(it);
+                }
+                break;
+            case 2:
+                st.erase(Pair(s[i].d, s[i].i));
+                break;
+        }
+    }
+    
+    for (int i = 0; i < n - 1; ++i)
+    {
+        if (ans[i] == 0)
+        {
+            cout << "No\n";
+            return 0;
+        }
+    }
+    
+    cout << "Yes\n";
+    for (int i = 0; i < n - 1; ++i)
+        printf("%d ", ans[i]);
+    cout << '\n';
+    
+    return 0;
+}

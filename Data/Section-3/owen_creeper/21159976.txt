@@ -1,0 +1,124 @@
+#include <iostream>
+#include <algorithm>
+#include <cstdio>
+#include <cmath>
+#include <cstring>
+#include <string>
+#include <cctype>
+using namespace std;
+int n,m,k,sz,lakesz[100],lakex[100],lakey[100];
+bool u[100][100],a[100][100];
+const int f1[4]={1,-1,0,0};
+const int f2[4]={0,0,1,-1};
+bool cj(int x1,int y1)
+{
+	if(x1<0)return 0;
+	if(x1>n)return 0;
+	if(y1<0)return 0;
+	if(y1>m)return 0;
+	return 1;
+}
+bool dfs(int x,int y)
+{
+	bool b = 0;
+	u[x][y] = 1;sz++;
+	for(int i = 0; i<4; i++)
+		if (!u[x+f1[i]][y+f2[i]] && 
+			!a[x+f1[i]][y+f2[i]])
+		{
+			if(!cj(x+f1[i], y+f2[i]))return 0;
+			dfs(x+f1[i],y+f2[i]);
+		}
+	return 1;
+}
+void dfs2(int x,int y)
+{
+	u[x][y] = 1;a[x][y] = 1;
+	for(int i = 0; i<4; i++)
+		if (!u[x+f1[i]][y+f2[i]] && 
+			!a[x+f1[i]][y+f2[i]])
+		{
+			dfs(x+f1[i],y+f2[i]);
+		}
+	return;
+}
+void output()
+{
+	for(int i = 1; i<=n; i++)
+	{
+		for (int j = 1; j <= m; j++)
+		{
+			if (a[i][j])
+			{
+				printf("*");
+			}else
+			{
+				printf(".");
+			}
+		}
+		printf("\n");
+	}
+}
+int main()
+{
+//	freopen("in.txt","r",stdin);
+	scanf("%d%d%d", &n, &m, &k);
+	char ch;
+	for(int i = 1; i<=n; i++)
+	{
+		while((ch = getchar())!='.' && ch!='*');
+		if(ch == '*')a[i][1] = 1;
+		for(int j = 2; j<=m; j++)
+		{
+			ch = getchar();
+			if (ch == '*')
+			{
+				a[i][j] = 1;
+			}
+		}
+	}
+	int o = 0;
+	for(int i = 1; i<=n; i++)
+	{
+		for(int j = 1; j<=m; j++)
+		{
+			if (!a[i][j] && !u[i][j])
+			{
+				sz = 0;
+				if(dfs(i,j))
+				{
+					lakesz[++o] = sz;
+					lakex[o] = i;
+					lakey[o] = j;
+				}
+			}
+		}
+	}
+	for(int i = 1; i<o; i++)
+		for(int j = i+1; j<=o; j++)
+			if (lakesz[i]>lakesz[j])
+			{
+				int temp = lakesz[i];
+				lakesz[i] = lakesz[j];
+				lakesz[j] = temp;
+				
+				temp = lakex[i];
+				lakex[i] = lakex[j];
+				lakex[j] = temp;
+
+				temp = lakey[i];
+				lakey[i] = lakey[j];
+				lakey[j] = temp;
+			}
+	int h = 0,ans = 0;
+	memset(u,0,sizeof(u));
+	while(h+k<o)
+	{
+		h++;
+		dfs2(lakex[h],lakey[h]);
+		ans += lakesz[h];
+	}
+	printf("%d\n", ans);
+	output();
+	return 0;
+} 

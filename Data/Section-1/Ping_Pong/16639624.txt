@@ -1,0 +1,85 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+using namespace std;
+
+const int inf = (int)1e9;
+const int MOD = (int)1e9 + 7;
+const int p = 239;
+const int MAX_N = 100000;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+int init[MAX_N], goal[MAX_N];
+vector<vector<int> > graph;
+vector<int> arr;
+
+int dfs(int x, int par, int num, bool b1, bool b2)
+{
+    int ans = 0;
+    if (num % 2 == 0)
+    {
+        if (init[x] == goal[x] && b1 || init[x] != goal[x] && !b1)
+        {
+            ans++;
+            arr.push_back(x + 1);
+            b1 = !b1;
+        }
+        for (int i = 0; i < graph[x].size(); i++)
+            if (graph[x][i] != par)
+                ans += dfs(graph[x][i], x, num + 1, b1, b2);
+    }
+    else
+    {
+        if (init[x] == goal[x] && b2 || init[x] != goal[x] && !b2)
+        {
+            ans++;
+            arr.push_back(x + 1);
+            b2 = !b2;
+        }
+        for (int i = 0; i < graph[x].size(); i++)
+            if (graph[x][i] != par)
+                ans += dfs(graph[x][i], x, num + 1, b1, b2);
+    }
+    return ans;
+}
+
+int main()
+{
+    //ifstream ifs("input.txt");
+    //ofstream ofs("output.txt");
+    //freopen("candies.in", "r", stdin);
+    //freopen("candies.out", "w", stdout);
+    //ios_base::sync_with_stdio(0);
+    //cin.tie(0);
+    int n;
+    scanf("%d", &n);
+    graph.resize(n);
+    for (int i = 0; i < n - 1; i++)
+    {
+        int s, f;
+        scanf("%d %d", &s, &f);
+        graph[s - 1].push_back(f - 1);
+        graph[f - 1].push_back(s - 1);
+    }
+    for (int i = 0; i < n; i++)
+        scanf("%d", &init[i]);
+    for (int i = 0; i < n; i++)
+        scanf("%d", &goal[i]);
+    printf("%d\n", dfs(0, -1, 0, false, false));
+    for (int i = 0; i < arr.size(); i++)
+        printf("%d\n", arr[i]);
+    return 0;
+}

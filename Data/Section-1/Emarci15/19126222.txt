@@ -1,0 +1,96 @@
+#include <cstdio>
+
+#define mod 1000000007
+
+using namespace std;
+
+int k;
+
+void mul(long long a[3][3], long long b[3][3], long long c[3][3]) {
+    for(int i=0; i<3; i++) {
+        for(int j=0; j<3; j++) {
+            c[i][j] = 0ll;
+            for(int k=0; k<3; k++) {
+                c[i][j] = (c[i][j]+(a[i][k]*b[k][j])) % mod;
+            }
+        }
+    }
+}
+
+void cpy(long long a[3][3], long long b[3][3]) {
+    for(int i=0; i<3; i++) {
+        for(int j=0; j<3; j++) b[i][j] = a[i][j];
+    }
+}
+
+void identity(long long m[3][3]) {
+    for(int i=0; i<3; i++) {
+        for(int j=0; j<3; j++) {
+            m[i][j] = (i==j);
+        }
+    }
+}
+
+long long mm[3][3];
+long long M[3][3];
+void mpow(long long p, long long m[3][3]) {
+    if(p==0) {
+        identity(m);
+        return;
+    }
+
+    if(p%2) {
+        mpow(p-1,m);
+        mul(m,M,mm);
+        cpy(mm,m);
+    } else {
+        mpow(p>>1,m);
+        mul(m,m,mm);
+        cpy(mm,m);
+    }
+}
+
+long long ppow(long long x, long long p) {
+    if(p==0) return 1ll;
+
+    if(p%2) return (x*ppow(x,p-1)) % mod;
+    x = ppow(x,p>>1);
+    x = (x*x) % mod;
+    return x;
+}
+
+long long mc[3][3];
+
+bool notone;
+
+long long x;
+
+int main()
+{
+    scanf("%d",&k);
+    long long denom(2ll);
+    for(int i=0; i<3; i++) {
+        for(int j=0; j<3; j++) {
+            M[i][j] = (i+j)!=2;
+        }
+    }
+    for(int i=0; i<k; i++) {
+        scanf("%I64d",&x);
+        notone |= (x!=1ll);
+        mpow(x,mc);
+        cpy(mc,M);
+
+        denom = ppow(denom,x);
+    }
+
+    if(!notone) {
+        printf("0/1\n");
+        return 0;
+    }
+
+    M[1][1] = (M[1][1]*ppow(2ll,mod-2)) % mod;
+    denom = (denom*ppow(2ll,mod-2)) % mod;
+    printf("%I64d/%I64d\n",M[1][1],denom);
+
+    return 0;
+}

@@ -1,0 +1,94 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 2010;
+
+int N, M;
+ll A[MAXN], B[MAXN];
+
+vector<pair<ll, pii> > twosum (ll *arr, ll sa, int sz) {
+	// puts("TWTWTWTWTWTWTW");
+	vector<pair<ll, pii> > ans;
+	ans.reserve(sz * (sz - 1) / 2);
+	for (int i = 0; i < sz; i++) {
+		for (int j = i + 1; j < sz; j++) {
+			ans.push_back(make_pair(sa - 2 * (arr[i] + arr[j]), pii(i, j)));
+			// printf("anss %lld\n", sa - 2 * (arr[i] + arr[j]));
+		}
+	}
+	sort(all(ans));
+	return ans;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d", &N);
+	for (int i = 0; i < N; i++) {
+		scanf("%lld", &A[i]);
+	}
+	scanf("%d", &M);
+	for (int i = 0; i < M; i++) {
+		scanf("%lld", &B[i]);
+	}
+	ll suma = accumulate(A, A + N, 0ll), sumb = accumulate(B, B + M, 0ll);
+	ll diff = suma - sumb;
+	ll dist = llabs(diff);
+	vector<pii> ans;
+
+	//swap 1
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < M; j++) {
+			ll dst = llabs(diff - 2 * (A[i] - B[j]));
+			if (dst < dist) {
+				dist = dst;
+				ans = {pii(i, j)};
+			}
+		}
+	}
+
+	//swap 2
+	vector<pair<ll, pii> > asum = twosum(A, suma, N), bsum = twosum(B, sumb, M);
+	for (auto &p : bsum) {
+		p.se.fi += MAXN;
+		p.se.se += MAXN;
+	}
+	vector<pair<ll, pii> > comb(asum.size() + bsum.size());
+	merge(all(asum), all(bsum), comb.begin());
+	for (int i = 0; i + 1 < comb.size(); i++) {
+		auto p1 = comb[i], p2 = comb[i + 1];
+		if ((p1.se.fi < MAXN) ^ (p2.se.fi < MAXN)) {
+			ll dst = p2.fi - p1.fi;
+			if (dst < dist) {
+				dist = dst;
+				ans = {pii(p1.se.fi, p2.se.fi), pii(p1.se.se, p2.se.se)};
+				for (pii &p : ans) {
+					if (p.fi >= MAXN) {
+						p.fi -= MAXN;
+					}
+					if (p.se >= MAXN) {
+						p.se -= MAXN;
+					}
+				}
+			}
+		}
+	}
+
+	printf("%lld\n%lu\n", dist, ans.size());
+	for (pii p : ans) {
+		printf("%d %d\n", p.fi + 1, p.se + 1);
+	}
+}

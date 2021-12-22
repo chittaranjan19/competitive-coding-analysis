@@ -1,0 +1,73 @@
+#include<bits/stdc++.h>
+
+using namespace std;
+long long p[105][105];
+long long dp[105][105][105];
+int ini[105];
+int main() {
+    ios::sync_with_stdio(false);
+    int N, K, m;
+    cin >> N >> m >> K;
+    for (int i = 1; i <= N; i++)
+	cin >> ini[i];
+    for (int i = 1; i <= N; i++)
+	for (int j = 1; j <= m; j++)
+	    cin >> p[i][j];
+
+
+    dp[0][0][0] = 0;
+    for (int i = 0; i <= max(N,m); i++)
+	    dp[0][0][i] = 0;
+    for (int i = 1; i <= max(N,m); i++)
+	for (int j = 1; j <= max(N,m); j++){
+	    dp[0][i][j] = -1;
+	    dp[i][0][j] = -1;
+	}
+    for (int i = 1; i <= N; i++) {
+	for (int k = 1; k <= N; k++) {
+	    for (int j = 1; j <= m; j++){
+		dp[i][k][j] = -1;
+		if (ini[i] != 0 && j != ini[i]) continue;
+		if (ini[i] != 0) {
+		    dp[i][k][j] = dp[i-1][k][j];
+		    for (int x = 1; x <= m; x++){
+			if (x == j) continue;
+			if (dp[i-1][k-1][x] != -1 )
+			    if (dp[i][k][j] != -1)
+				dp[i][k][j] = min(dp[i][k][j], dp[i-1][k-1][x]);
+			    else
+				dp[i][k][j] = dp[i-1][k-1][x];
+		    }
+		}
+		else {		 
+		    for (int x = 1; x <= m; x++){
+			if (x == j && dp[i-1][k][j] != -1)
+			    if (dp[i][k][j] != -1)
+				dp[i][k][j] = min(dp[i][k][j], dp[i-1][k][x] + p[i][j]);
+			    else
+				dp[i][k][j] = dp[i-1][k][x] + p[i][j];
+			else if (dp[i-1][k-1][x] != -1 && x != j) {
+			    if (dp[i][k][j] != -1)
+				dp[i][k][j]= min(dp[i][k][j], dp[i-1][k-1][x] + p[i][j]);
+			    else 
+				dp[i][k][j] = dp[i-1][k-1][x] + p[i][j];			
+			}
+		    }
+	
+		}
+
+	    }
+	}
+    }
+
+    long long mi = 10000000000000000;
+    for (int i = 1; i <= m; i++){
+	if (dp[N][K][i] != -1)
+	    mi = min(mi, dp[N][K][i]);	
+    }
+    if (mi >= 1000000000000000 || K > N) mi = -1;
+    cout << mi << endl;
+}
+	
+		    
+    

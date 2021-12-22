@@ -1,0 +1,86 @@
+const
+  tfi = '';//'b.inp';
+  tfo = '';//'b.out';
+
+type matrix = array [1..100,1..100] of longint;
+
+var
+  n,m : longint;
+  a,b : matrix;
+  r,c : array [1..100] of boolean;
+  fi,fo : text;
+
+procedure input;
+  var i,j : longint;
+  begin
+    assign(fi,tfi);
+    reset(fi);
+    read(fi,n,m);
+    for i := 1 to n do
+      for j := 1 to m do
+        begin
+          read(fi,a[i,j]);
+          if a[i,j] = 0 then
+            begin
+              r[i] := true;
+              c[j] := true;
+            end;
+        end;
+    close(fi);
+  end;
+
+function check(x,y : matrix) : boolean;
+  var i,j : longint;
+  begin
+    for i := 1 to n do
+      for j := 1 to m do
+        if x[i,j] <> y[i,j] then exit(false);
+    exit(true);
+  end;
+
+function f(x : matrix) : matrix;
+  var
+    i,j,k : longint;
+    g : matrix;
+  begin
+    for i := 1 to n do
+      for j := 1 to m do
+        begin
+          g[i,j] := 0;
+          for k := 1 to n do g[i,j] := g[i,j] or x[k,j];
+          for k := 1 to m do g[i,j] := g[i,j] or x[i,k];
+        end;
+    exit(g);
+  end;
+
+procedure process;
+  var i,j : longint;
+  begin
+    for i := 1 to n do
+      for j := 1 to m do
+        if not (r[i] or c[j]) then b[i,j] := 1;
+  end;
+
+procedure output;
+  var i,j : longint;
+  begin
+    assign(fo,tfo);
+    rewrite(fo);
+    if check(f(b),a) then
+      begin
+        writeln(fo,'YES');
+        for i := 1 to n do
+          begin
+            for j := 1 to m do write(fo,b[i,j],' ');
+            writeln(fo);
+          end;
+      end
+    else writeln(fo,'NO');
+    close(fo);
+  end;
+
+begin
+  input;
+  process;
+  output;
+end.

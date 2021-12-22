@@ -1,0 +1,108 @@
+/*
+*Rainto96
+*Beijing University of Posts and Telecommunications School of Software Engineering
+*http://blog.csdn.net/u011775691
+*/
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <queue>
+#include <cstring>
+#include <string>
+#include <cmath>
+#include <set>
+#include <map>
+#include <vector>
+#include <climits>
+#include <bitset>
+using namespace std;
+#define pb push_back
+#define ALL(x) x.begin(),x.end()
+#define VINT vector<int>
+#define PII pair<int,int>
+#define MP(x,y) make_pair((x),(y))
+#define ll long long
+#define ull unsigned long long
+#define MEM0(x)  memset(x,0,sizeof(x))
+#define MEM(x,val) memset((x),val,sizeof(x))
+#define scan(x) scanf("%d",&(x))
+#define scan2(x,y) scanf("%d%d",&(x),&(y))
+#define scan3(x,y,z) scanf("%d%d%d",&(x),&(y),&(z))
+#define scan4(x,y,z,k) scanf("%d%d%d%d",&(x),&(y),&(z),&(k))
+#define Max(a,b) a=max(a,b)
+#define Min(a,b) a=min(a,b)
+#define fuck(x) cout<<#x<<" - "<<x<<endl
+const long long MAXN = 1010000;
+int c[MAXN+10];
+bool isprm[MAXN + 10];
+int prm[MAXN + 10];
+bool visP[MAXN + 10];
+int pn;
+vector<int> cprm[MAXN+10];
+void getPrm(){
+    for(int i=2;i<=MAXN;i++){
+        if(!visP[i]){
+            prm[pn++] = i;
+            isprm[i] = true;
+            for(int j=i;j<=MAXN ;j+=i) {
+                visP[j] = true;
+                cprm[j].pb(i);
+            }
+        }
+    }
+}
+bool check(int k){
+    for(int i=2;i*i<=k;i++){
+        if(k%(i*i)==0) return false;
+    }
+    return true;
+}
+set<int> has[MAXN+10];
+int main(){
+    getPrm();
+    //freopen("in.txt","r",stdin);
+    int n,k;
+    scan2(n,k);
+    set<int> prmset;
+    for(int i=1;i<=n;i++) {
+        scan(c[i]);
+        if(isprm[c[i]]) prmset.insert(c[i]);
+        for(auto x:cprm[c[i]]){
+            int tmp = c[i];
+            int times=0;
+            while(tmp%c[i] == 0){
+                tmp/=c[i];
+                times++;
+            }
+            has[x].insert(times);
+        }
+    }
+    bool containAll = true;
+    for(auto x : cprm[k]){
+        int times=0;
+        int tmp = k;
+        while(tmp%x == 0){
+            tmp/=x;
+            times++;
+        }
+        if(has[x].find(times) == has[x].end()) containAll = false;
+    }
+    if(containAll){
+        cout<<"Yes"<<endl;
+        return 0;
+    }
+
+    bool cant = check(k);
+    if(cant){
+        bool allcontain = true;
+        for(auto x: cprm[k]){
+            if(prmset.find(x) == prmset.end()) allcontain=false;
+        }
+        if(allcontain){
+            cout<<"Yes"<<endl;
+            return 0;
+        }
+    }
+    cout<<"No"<<endl;
+    return 0;
+}

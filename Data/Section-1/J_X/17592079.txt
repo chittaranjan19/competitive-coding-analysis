@@ -1,0 +1,158 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 3000 + 5;
+
+int tot, head[maxn], d[maxn][maxn], n, m, ans[5], tmp[5], in_max[maxn][5], out_max[maxn][5], now;
+struct edge
+{
+    int to, next;
+
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxn << 1];
+
+bool cmp1(int a, int b)
+{
+    return d[a][now] < d[b][now];
+}
+
+bool cmp2(int a, int b)
+{
+    return d[now][a] < d[now][b];
+}
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u]);
+    head[u] = tot++;
+}
+
+void bfs(int s)
+{
+    queue<int> que;
+    memset(d[s], -1, sizeof(d[s]));
+    que.push(s);
+    d[s][s] = 0;
+    while(!que.empty())
+    {
+        int u = que.front();
+        que.pop();
+        for(int i = head[u]; ~i; i = G[i].next)
+        {
+            int v = G[i].to;
+            if(d[s][v] == -1)
+            {
+                d[s][v] = d[s][u] + 1;
+                que.push(v);
+            }
+        }
+    }
+}
+
+int solve1(int b, int c)
+{
+    int a, e;
+    for(int i = 4; i; --i)
+    {
+        if(in_max[b][i] != c)
+        {
+            a = in_max[b][i];
+            break;
+        }
+    }
+    if(!a) return 0;
+    for(int i = 4; i; --i)
+    {
+        if(out_max[c][i] != a && out_max[c][i] != b)
+        {
+            e = out_max[c][i];
+            break;
+        }
+    }
+    if(!e) return 0;
+    tmp[0] = a, tmp[1] = b, tmp[2] = c, tmp[3] = e;
+    return d[a][b] + d[b][c] + d[c][e];
+}
+int solve2(int b, int c)
+{
+    int a, e;
+    for(int i = 4; i; --i)
+    {
+        if(out_max[c][i] != b)
+        {
+            e = out_max[c][i];
+            break;
+        }
+    }
+    if(!e) return 0;
+    for(int i = 4; i; --i)
+    {
+        if(in_max[b][i] != c && in_max[b][i] != e)
+        {
+            a = in_max[b][i];
+            break;
+        }
+    }
+    if(!a) return 0;
+    tmp[0] = a, tmp[1] = b, tmp[2] = c, tmp[3] = e;
+    return d[a][b] + d[b][c] + d[c][e];
+}
+
+int main()
+{
+    scanf("%d%d", &n, &m);
+    init();
+    for(int i = 0; i < m; ++i)
+    {
+        int u, v;
+        scanf("%d%d", &u, &v);
+        addedge(u, v);
+    }
+    for(int i = 1; i <= n; ++i) bfs(i);
+    for(int i = 1; i <= n; ++i)
+    {
+        now = i;
+        for(int j = 1; j <= n; ++j)
+        {
+            if(i == j) continue;
+            in_max[i][0] = j;
+            out_max[i][0] = j;
+            sort(in_max[i], in_max[i] + 5, cmp1);
+            sort(out_max[i], out_max[i] + 5, cmp2);
+        }
+    }
+    int dis = -1;
+    for(int i = 1; i <= n; ++i)
+    {
+        for(int j = 1; j <= n; ++j)
+        {
+            if(d[i][j] > 0)
+            {
+                int tt = solve1(i, j);
+                if(tt > dis)
+                {
+                    dis = tt;
+                    memcpy(ans, tmp, sizeof(tmp));
+                }
+                tt = solve2(i, j);
+                if(tt > dis)
+                {
+                    dis = tt;
+                    memcpy(ans, tmp, sizeof(tmp));
+                }
+            }
+        }
+    }
+    for(int i = 0; i < 4; ++i) printf("%d ", ans[i]);
+    puts("");
+    return 0;
+}

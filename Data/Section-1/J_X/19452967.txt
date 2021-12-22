@@ -1,0 +1,142 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 1e3 + 5;
+const int maxm = 3e4 + 5;
+const int INF = (1U << 31) - 1;
+
+struct edge
+{
+    int to, w, next, used;
+
+    edge(int to = 0, int w = 0, int next = 0, int used = 0) : to(to), w(w), next(next), used(used) {}
+} G[maxm << 1];
+int que[maxn], head[maxn], tot, clk, tmp, road;
+int dfn[maxn], low[maxn], a[2];
+bool vis[maxn];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    memset(vis, 0, sizeof(vis));
+    tot = 0;
+}
+
+void addedge(int u, int v, int w)
+{
+    G[tot] = edge(v, w, head[u], 0);
+    head[u] = tot++;
+    G[tot] = edge(u, w, head[v], 0);
+    head[v] = tot++;
+}
+
+void bfs(int s)
+{
+    int front = 0, rear = 0;
+    vis[s] = true;
+    que[rear++] = s;
+    while(front < rear)
+    {
+        int u = que[front++];
+        for(int i = head[u]; ~i; i = G[i].next)
+        {
+            int v = G[i].to;
+            if(vis[v]) continue;
+            vis[v] = true;
+            que[rear++] = v;
+            G[i].used = G[i ^ 1].used = 1;
+        }
+    }
+}
+
+bool dfs(int u, int t, int fa)
+{
+    bool ret = false;
+    low[u] = dfn[u] = ++clk;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        if((i ^ fa) == 1 || G[i].used == 2) continue;
+        edge e = G[i];
+        if(!dfn[e.to])
+        {
+            ret |= dfs(G[i].to, t, i);
+            low[u] = min(low[u], low[G[i].to]);
+        }
+        else if(dfn[G[i].to] < low[u]) low[u] = dfn[G[i].to];
+    }
+    if(u == t) ret = true;
+    if(ret && low[u] == dfn[u] && fa != -1 && tmp > G[fa].w)
+    {
+        tmp = G[fa].w;
+        road = fa;
+    }
+    return ret;
+}
+
+int main()
+{
+    int n, m, s, t;
+    init();
+    scanf("%d%d%d%d", &n, &m, &s, &t);
+    for(int i = 0; i < m; ++i)
+    {
+        int u, v, w;
+        scanf("%d%d%d", &u, &v, &w);
+        addedge(u, v, w);
+    }
+    bool flag = false;
+    for(int i = 1; i <= n; ++i)
+    {
+        if(!vis[i])
+        {
+            bfs(i);
+            if(vis[s] != vis[t]) flag = true;
+        }
+    }
+    if(flag) puts("0\n0");
+    else
+    {
+        int ans = INF, cnt = 0;
+        for(int i = 0; i < m << 1; i += 2)
+        {
+            if(!G[i].used) continue;
+            memset(dfn, 0, sizeof(dfn));
+            G[i].used = G[i ^ 1].used = 2;
+            clk = 0;
+            tmp = INF;
+            bool res = dfs(s, t, -1);
+            if(!res)
+            {
+                if(G[i].w < ans)
+                {
+                    ans = G[i].w;
+                    cnt = 0;
+                    a[cnt++] = i >> 1;
+                }
+            }
+            else if(tmp < INF)
+            {
+                if(G[i].w + tmp < ans)
+                {
+                    ans = G[i].w + tmp;
+                    cnt = 0;
+                    a[cnt++] = i >> 1;
+                    a[cnt++] = road >> 1;
+                }
+            }
+            G[i].used = G[i ^ 1].used = 1;
+        }
+        if(ans < INF)
+        {
+            sort(a, a + cnt);
+            printf("%d\n%d\n", ans, cnt);
+            for(int i = 0; i < cnt; ++i) printf("%d%c", a[i] + 1, " \n"[i == cnt - 1]);
+        }
+        else puts("-1");
+    }
+    return 0;
+}

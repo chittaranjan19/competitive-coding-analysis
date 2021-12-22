@@ -1,0 +1,148 @@
+#include <iostream>
+#include <string>
+#include <cstring>
+
+using namespace std;
+const int max_N = 1e6;
+const int K = 27;
+
+struct vertex
+{
+    int link;
+    int p;
+    char pch;
+
+    int go[K];
+    int next[K];
+
+    int trian;
+
+    int cnt = 0;
+    int sqr;
+};
+
+vertex t[max_N];
+int sz = 1;
+
+void init()
+{
+    memset (t[0].next, 255, sizeof t[0].next);
+    memset (t[0].go  , 255, sizeof t[0].go);
+    t[0].p = t[0].link  = t[0].trian = 0;
+    sz = 1;
+}
+
+void add_vertex(int ind_p, char c)
+{
+    memset (t[sz].next, 255, sizeof t[sz].next);
+    memset (t[sz].go  , 255, sizeof t[sz].go);
+    t[sz].link = -1;
+    t[sz].p = ind_p;
+    t[sz].pch = c;
+
+    t[sz].trian = -1;
+    t[sz].cnt = 1;
+    t[ind_p].next[c] = sz++;
+}
+
+void upd(int v);
+
+void add_string(const string &s)
+{
+    int v = 0;
+    for (int i = 0; i < s.size(); ++i)
+    {
+        char c = s[i] - 'a';
+        if (t[v].next[c] == -1)
+        {
+            add_vertex(v, c);
+            upd(t[v].next[c]);
+        }
+
+        v = t[v].next[c];
+        ++t[v].cnt;
+    }
+
+    t[v].trian = -1;
+    ++t[v].sqr;
+}
+
+void del_string(const string &s)
+{
+    int v = 0;
+    for (int i = 0; i < s.size(); ++i)
+    {
+        v = t[v].next[s[i] - 'a'];
+        --t[v].cnt;
+        upd(v);
+    }
+
+    --t[v].sqr;
+}
+
+
+int go(int v, char c);
+
+int get_link(int v)
+{
+    if (t[v].link == -1 or t[t[v].link].cnt == 0)
+        if (t[v].p == 0)  t[v].link = 0;
+        else              t[v].link = go( get_link(t[v].p), t[v].pch );
+
+    return t[v].link;
+}
+
+int go(int v, char c)
+{
+    if (t[v].go[c] == -1)
+        if (t[v].next[c] != -1)
+            t[v].go[c] = t[v].next[c];
+        else
+            t[v].go[c] = (v == 0 ? 0 : go(get_link(v), c) );
+
+    return t[v].go[c];
+}
+
+int get_trian(int v)
+{
+    if (t[v].trian == -1 or t[t[v].trian].cnt == 0)
+        if (t[ t[v].link ].sqr != 0 || t[v].p == 0)
+            t[v].trian = t[v].link;
+        else
+            t[v].trian = get_trian(t[v].link);
+
+    return t[v].trian;
+}
+
+void upd(int v)
+{
+    if (t[v].cnt != 0)
+        get_link(v), get_trian(v);
+}
+
+int main()
+{
+    init();
+    int m;
+    cin >> m;
+    for (int i = 0; i < m; ++i)
+    {
+        string s;
+        int z;
+        cin >> z >> s;
+        if (z == 1) add_string(s);
+        else if (z == 2) del_string(s);
+        else
+        {
+            int v = 0;
+            int ans = 0;
+            for (int i = 0; i < s.size(); ++i)
+            {
+                v = go(v, s[i] - 'a');
+                ans += t[v].sqr;
+            }
+            cout << ans << endl;
+        }
+    }
+    return 0;
+}

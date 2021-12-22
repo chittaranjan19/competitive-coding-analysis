@@ -1,0 +1,107 @@
+#include<stdio.h>
+#include<vector>
+#include<map>
+using namespace std;
+vector<int> G[100005];
+#define pp pair<int,int>
+map<pp,int> m1;
+int depth[100005]={0},LCA[100005][20]={0},ans[100005]={0},val[100005]={0};
+void dfs(int u)
+{
+    int si=G[u].size(),i;
+    for(i=0;i<si;i++)
+    {
+        int v=G[u][i];
+        if(v==LCA[u][0])
+            continue;
+        depth[v]=depth[u]+1;
+        LCA[v][0]=u;
+        dfs(v);
+    }
+}
+void swap(int &x,int &y)
+{
+    int temp=x;
+    x=y;
+    y=temp;
+}
+int getlca(int a,int b)
+{
+    if(depth[a]>depth[b])
+    {
+        swap(a,b);
+    }
+    int i;
+    for(i=19;i>=0;i--)
+    {
+        if(depth[LCA[b][i]]>=depth[a])
+        {
+            b=LCA[b][i];
+        }
+    }
+    if(a==b)
+    {
+        return a;
+    }
+    for(i=19;i>=0;i--)
+    {
+        if(LCA[a][i]!=LCA[b][i])
+        {
+            a=LCA[a][i];
+            b=LCA[b][i];
+        }
+    }
+    return LCA[a][0];
+}
+int getans(int u)
+{
+    int si=G[u].size(),i,sum=val[u];
+    for(i=0;i<si;i++)
+    {
+        int v=G[u][i];
+        if(v!=LCA[u][0])
+        {
+            sum+=getans(v);
+        }
+    }
+    ans[m1[pp(u,LCA[u][0])]]+=sum;
+    return sum;
+}
+int main()
+{
+    int n,i,j;
+    scanf("%d",&n);
+    for(i=1;i<n;i++)
+    {
+        int u,v;
+        scanf("%d%d",&u,&v);
+        G[u].push_back(v);
+        G[v].push_back(u);
+        m1[pp(u,v)]=i;
+        m1[pp(v,u)]=i;
+    }
+    depth[1]=1;
+    dfs(1);
+    for(i=1;i<20;i++)
+    {
+        for(j=1;j<=n;j++)
+        {
+            LCA[j][i]=LCA[LCA[j][i-1]][i-1];
+        }
+    }
+    int q;
+    scanf("%d",&q);
+    while(q--)
+    {
+        int a,b;
+        scanf("%d%d",&a,&b);
+        int L=getlca(a,b);
+        val[L]-=2;
+        val[a]++;
+        val[b]++;
+    }
+    getans(1);
+    for(i=1;i<n;i++)
+        printf("%d ",ans[i]);
+    return 0;
+}

@@ -1,0 +1,152 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+namespace ConsoleApplication2
+{
+    public class Frag
+    {
+        public string Row { get; set; }
+        public bool Used;
+        public int Length
+        {
+            get { return Row.Length; }
+        }
+    }
+
+    class Program
+    {
+        public static void Glue(int currentIndex, ref List<Frag> res)
+        {
+            Regex begRow;
+            Regex endRow;
+            string st1Temp = string.Empty;
+            string st2Temp = string.Empty;
+
+            bool begFlag = false;
+            bool endFlag = false;
+            if (!res[currentIndex].Used)
+            {
+                begRow = new Regex(res[currentIndex].Row);
+                for (int j = currentIndex + 1; j < res.Count; j++)
+                {
+                    if (!res[j].Used)
+                    {
+
+                        if (begRow.IsMatch(res[j].Row))
+                        {
+                            res[currentIndex].Used = true;
+                        }
+                    }
+                }
+            }
+
+            if (!res[currentIndex].Used)
+            {
+
+                int startCount = res.Count;
+                for (int i = 1; i < res[currentIndex].Row.Length; i++)
+                {
+
+                    st1Temp = res[currentIndex].Row.Substring(i);
+                    st2Temp = res[currentIndex].Row.Substring(0, res[currentIndex].Row.Length - i);
+                    begRow = new Regex("^" + st1Temp);
+                    endRow = new Regex(st2Temp + "$");
+                    for (int j = currentIndex + 1; j < startCount; j++)
+                    {
+                        if (!res[j].Used && begRow.IsMatch(res[j].Row))
+                        {
+                            res.Add(new Frag()
+                            {
+                                Row = res[currentIndex].Row + res[j].Row.Replace(st1Temp, ""),
+                                Used = false
+                            });
+                            begFlag = true;
+                        }
+                        if (!res[j].Used && endRow.IsMatch(res[j].Row))
+                        {
+                            res.Add(new Frag()
+                            {
+                                Row = res[j].Row.Replace(st2Temp, "") + res[currentIndex].Row,
+                                Used = false
+                            });
+                            endFlag = true;
+                        }
+                    }
+                }
+                if (endFlag || begFlag)
+                {
+                    res[currentIndex].Used = true;
+                }
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            int n = int.Parse(Console.ReadLine());
+            string str = String.Empty;
+            List<Frag> gen = new List<Frag>();
+            for (int j = 0; j < n; j++)
+            {
+                str = Console.ReadLine();
+                gen.Add(new Frag() { Row = str, Used = false });
+            }
+
+            Regex regex;
+            string temp = string.Empty;
+            List<Frag> res = gen.OrderBy(a => a.Length).ToList();
+            for (int i = 0; i < res.Count; i++)
+            {
+                for (int j = i; j < res.Count; j++)
+                {
+                    if (i != j && !res[i].Used)
+                    {
+                        regex = new Regex(res[i].Row);
+                        if (regex.IsMatch(res[j].Row))
+                        {
+                            res[i].Used = true;
+                        }
+                    }
+                }
+            }
+            int startCount = res.Count;
+            for (int i = 0; i < startCount; i++)
+            {
+                if (!res[i].Used)
+                {
+                    Glue(i, ref res);
+                }
+            }
+
+            for (int i = 0; i < res.Count; i++)
+            {
+                for (int j = i; j < res.Count; j++)
+                {
+                    if (i != j && !res[i].Used)
+                    {
+                        regex = new Regex(res[i].Row);
+                        if (regex.IsMatch(res[j].Row))
+                        {
+                            res[i].Used = true;
+                        }
+                    }
+                }
+            }
+
+            string result = string.Empty;
+            for (int i = res.Count - 1; i >= 0; i--)
+            {
+                if (!res[i].Used && !result.Contains(res[i].Row))
+                {
+                    result = res[i].Row + result;
+                }
+            }
+            Console.WriteLine(result);
+
+            //Console.ReadLine();
+        }
+    }
+}

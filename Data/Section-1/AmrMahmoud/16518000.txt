@@ -1,0 +1,113 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<int> g[200005];
+int arr[200005], cnt[200005], maxi;
+int n;
+bool bad[200005], done[200005];
+
+int init(int node, int parent = -1)
+{
+  bool leaf = !bad[node];
+  for(int x : g[node])
+  {
+    if(x == parent || done[x]) continue;
+    cnt[node] += init(x, node);
+    if(!done[x]) leaf = false;
+    else cnt[x] = 0;
+  }
+  if(leaf && parent != -1)
+  {
+    done[node] = true;
+    return cnt[node];
+  }
+  return 0;
+}
+
+int dfs(int node, int val, int parent = -1)
+{
+  done[node] = true;
+  int r1 = cnt[node];
+  int r2 = cnt[node];
+  for(int x : g[node])
+  {
+    if(x == parent || arr[x] < val) continue;
+    int tmp = dfs(x, val, node) + cnt[node];
+    if(tmp > r1)
+    {
+      r2 = r1;
+      r1 = tmp;
+    }
+    else if(tmp > r2)
+      r2 = tmp;
+  }
+  maxi = max(maxi, r1 + r2 - cnt[node]);
+  return r1;
+}
+
+void get(int x)
+{
+  for(int i=1;i<=n;i++)
+  {
+    if(arr[i] < x)
+    {
+      done[i] = true;
+      continue;
+    }
+    bad[i] = done[i] = false;
+    cnt[i] = 1;
+    for(int y : g[i])
+      if(arr[y] < x)
+        bad[i] = true;
+  }
+  maxi = 0;
+  for(int i=1;i<=n;i++)
+  {
+    if(done[i] || !bad[i]) continue;
+    init(i);
+    dfs(i, x);
+  }
+  if(!done[1]) init(1), dfs(1, x);
+}
+
+int main()
+{
+  int k, x, y;
+  cin >> n >> k;
+  for(int i=1;i<=n;i++)
+    scanf("%d", &arr[i]);
+  for(int i=0;i<n - 1;i++)
+  {
+    scanf("%d %d", &x, &y);
+    g[x].pb(y);
+    g[y].pb(x);
+  }
+  int L = 1, R = 1000005;
+  while(R > L)
+  {
+    int mid = L + (R - L + 1) / 2;
+    get(mid);
+    if(maxi >= k)
+      L = mid;
+    else R = mid - 1;
+  }
+  cout << L;
+  return 0;
+}

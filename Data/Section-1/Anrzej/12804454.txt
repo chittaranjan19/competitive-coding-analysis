@@ -1,0 +1,131 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+#include <cstring>
+#include <map>
+#include <unordered_map>
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <ctime>
+
+using namespace std;
+#define ll long long
+#define db double
+#define fs first
+#define sc second
+#define mp make_pair
+
+pair<ll, ll> h[100000], w[100000];
+ll n, q, gh[100000], gw[100000], have[100000];
+
+ll calc()
+{
+    vector<pair<int, int> > v;
+    for (int i = 0; i < n; i++)
+        v.push_back(w[i]);
+    ll ans = 0;
+    if (n == 2)
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            for (int j = 0; j < 2; j++)
+            if (w[i].sc != h[j].sc)
+                ans += w[i].fs*h[j].fs;
+        }
+        return ans;
+    }
+    for (int i = n-1; i > 2; i--)
+    {
+        int k = i;
+        while (v[k].sc == h[i].sc)
+            k--;
+        ans += v[k].fs*h[i].fs;
+        v.erase(v.begin() + k);
+    }
+    bool ok = 1;
+    ok &= v[0].sc == h[0].sc;
+    if (!ok)
+    {
+        for (int i = 3 - 1; i > -1; i--)
+        {
+            int k = i;
+            while (v[k].sc == h[i].sc)
+                k--;
+            ans += v[k].fs*h[i].fs;
+            v.erase(v.begin() + k);
+        }
+    }
+    else
+    {
+        int kk = 18;
+        int a[3];
+        for (int i = 0; i < 3; i++)
+            a[i] = h[i].sc;
+        ll dd = -1000;
+        while (kk--)
+        {
+            ll tmp = 0;
+            ok = 1;
+            for (int i = 0; i < 3; i++)
+            {
+                if(h[a[i]].sc == v[i].sc)
+                    ok = 0;
+                tmp += v[i].fs*h[a[i]].fs;
+            }
+            if (ok)
+                dd = max(dd, tmp);
+            next_permutation(a, a + 3);
+        }
+        ans += dd;
+    }
+    return ans;
+}
+
+int main()
+{
+    //ios::sync_with_stdio(false);
+    //freopen("exam.in", "r", stdin);
+    //freopen("exam.out", "w", stdout);
+    cin >> n >> q;
+    for (int i = 0; i < n; i++)
+    {
+        int t; cin >> t;
+        w[i] = mp(t, i);
+    }
+    for (int i = 0; i < n; i++)
+    {
+        int t; cin >> t;
+        h[i] = mp(t, i);
+    }
+    sort(w, w + n);
+    sort(h, h + n);
+    for (int i = 0; i < n; i++)
+    {
+        gw[w[i].sc] = i;
+        gh[h[i].sc] = i;
+        have[i] = h[i].sc;
+    }
+    while (q--)
+    {
+        int a, b;
+        cin >> a >> b;
+        a--; b--;
+        //int p1 = gw[a], p2 = gw[b];
+        //w[p1].sc = b;
+        //w[p2].sc = a;
+        int h1 = gh[a], h2 = gh[b];
+        swap(gh[a], gh[b]);
+        h[h1].sc = b;
+        h[h2].sc = a;
+        cout << calc() << endl;
+    }
+    return 0;
+}

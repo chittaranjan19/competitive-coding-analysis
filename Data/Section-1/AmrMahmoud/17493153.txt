@@ -1,0 +1,100 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-12
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+map<int, int> m1, m2;
+pair<int, pair<int, int> > op[1000005];
+vector<int> quer[1000005];
+
+const int MaxVal = 1000002;
+int tree[1000005], ans[1000005];
+
+inline void update(int idx, int val)
+{
+  if(idx <= 0) return;
+  while (idx <= MaxVal && idx > 0){
+    tree[idx] = tree[idx] + val;
+    idx = idx + (idx & -idx);
+  }
+}
+
+inline int read(int idx)
+{
+  if(idx <= 0) return 0;
+  int sum = 0;
+  while (idx > 0 && idx <= MaxVal){
+    sum = sum + tree[idx];
+    idx = idx - (idx & -idx);
+  }
+  return sum;
+}
+
+int main()
+{
+  int q;
+  scanf("%d", &q);
+  vector<int> v1, v2;
+  for(int i=0;i<q;i++)
+  {
+    scanf("%d %d %d", &op[i].f, &op[i].s.f, &op[i].s.s);
+    v1.pb(op[i].s.f);
+    v2.pb(op[i].s.s);
+  }
+  sort(v1.begin(), v1.end());
+  sort(v2.begin(), v2.end());
+  int id1 = 1, id2 = 0;
+  for(int i=0;i<q;i++)
+  {
+    if(i == 0 || v1[i] != v1[i - 1])
+      m1[v1[i]] = id1++;
+    if(i == 0 || v2[i] != v2[i - 1])
+      m2[v2[i]] = id2++;
+  }
+  for(int i=0;i<q;i++)
+  {
+    op[i].s.f = m1[op[i].s.f];
+    op[i].s.s = m2[op[i].s.s];
+    quer[op[i].s.s].pb(i);
+  }
+  for(int _=0;_<id2;_++)
+  {
+    for(int ind : quer[_])
+    {
+      if(op[ind].f == 1)
+        update(op[ind].s.f, 1);
+      else if(op[ind].f == 2)
+        update(op[ind].s.f, -1);
+      else ans[ind] = read(op[ind].s.f);
+    }
+    for(int ind : quer[_])
+    {
+      if(op[ind].f == 1)
+        update(op[ind].s.f, -1);
+      else if(op[ind].f == 2)
+        update(op[ind].s.f, 1);
+    }
+  }
+  for(int i=0;i<q;i++)
+  {
+    if(op[i].f == 3)
+    {
+      printf("%d\n", ans[i]);
+    }
+  }
+  return 0;
+}

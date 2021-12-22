@@ -1,0 +1,90 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int arr[10];
+
+LL com[105][105],DP[105][11];
+
+LL solve2(int n,int k)
+{
+    if(n < k) return 0;
+    if(k == 0) return 1;
+    LL &temp = com[n][k];
+    if(temp != -1) return temp;
+    temp = 0;
+    temp+=solve2(n-1, k);
+    temp%=mod;
+    temp+=solve2(n-1, k-1);
+    temp%=mod;
+    return temp;
+}
+
+LL solve(int n,int ind)
+{
+    if(ind == 10 && n == 0) return 1;
+    if(ind == 10) return 0;
+    if(arr[ind] > n) return 0;
+    LL &temp = DP[n][ind];
+    if(temp != -1) return temp;
+    temp = 0;
+    for(int i=arr[ind];i<=(ind == 0 ? n - 1 : n);i++)
+    {
+        temp+=solve(n - i,ind + 1) * solve2((ind == 0 ? n - 1 : n), i);
+        temp%=mod;
+    }
+    return temp;
+}
+
+int main()
+{
+    int n,k = 0;
+    cin >> n;
+    for(int i=0;i<10;i++)
+        scanf("%d",&arr[i]),k+=arr[i];
+    if(k > n || arr[0] == k)
+    {
+        printf("0");
+        return 0;
+    }
+    setdp(DP);
+    setdp(com);
+    LL sum = 0;
+    for(int i=k;i<=n;i++)
+    {
+        sum+=solve(i, 0);
+        sum%=mod;
+    }
+    cout << sum;
+    return 0;
+}

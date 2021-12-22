@@ -1,0 +1,67 @@
+import java.io.*;
+import java.util.*;
+
+
+
+public class Main {
+    static int query(int a, int b, SegmentTree tree)
+    {
+        if(a == tree.begin && b == tree.end)
+            return tree.sum;
+        if(b <= tree.l.end)
+            return query(a, b, tree.l);
+        if(a >= tree.r.begin)
+            return query(a, b, tree.r);
+        return query(a, tree.l.end, tree.l) + query(tree.r.begin, b, tree.r);
+    }
+
+    public static void main(String[] args) throws IOException{
+        
+        BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
+        int s, t, count = 0;
+        String st = bf.readLine();
+        String[] aux = st.split(" ");
+        s = Integer.parseInt(aux[0]);
+        t = Integer.parseInt(aux[1]);
+        ArrayList<Integer> list = new ArrayList<>();
+        aux = bf.readLine().split(" ");
+        for(int a = 0; a < s; a++)
+            list.add(Integer.parseInt(aux[a]));
+        SegmentTree sup = new SegmentTree(0, s-1, list);
+        for(int a = 0; a < s; a++)
+        {
+            for(int b = a; b < s; b++)
+            {
+                int res = query(a, b, sup);
+                if(res > t)
+                    break;
+                if(b-a+1 > count)
+                    count = b-a+1;
+            }
+        }
+        System.out.println(count);
+    }
+}
+
+class SegmentTree
+{
+    SegmentTree l, r;
+    int begin, end, sum;
+    SegmentTree(int a, int b, ArrayList<Integer> values)
+    {
+        if(a == b)
+        {
+            begin = end = a;
+            l = r = null;
+            sum = values.get(a);
+        }
+        else
+        {
+            l = new SegmentTree(a, (a+b)/2, values);
+            r = new SegmentTree( ((a+b) / 2) +1, b, values);
+            begin = a;
+            end = b;
+            sum = l.sum + r.sum;
+        }
+    }
+}

@@ -1,0 +1,89 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 2010;
+
+double dp[maxn][maxn][2][2], p;
+int nxt[maxn], prv[maxn], x[maxn], h, n;
+
+/*
+	0: left
+	1: right
+*/
+
+double solve(int l, int r, int pl, int pr)
+{
+	if(l>r)
+		return 0;
+	if(dp[l][r][pl][pr]!=-1)
+		return dp[l][r][pl][pr];
+	double ret = 0;
+	int lend, rend, k;
+	lend = x[l-1] + h*pl;// - h*(pl^1);
+	rend = x[r+1] - h*(pr^1);
+	//cout << l << " " << r << " " << lend << " " << rend << "\n";
+	//left wala left
+	ret = p*.5*((x[l]-max(x[l]-h, lend)) + solve(l+1, r, 0, pr));
+	//cout << ret << "\n";
+	//left wala right
+	k = min(r, nxt[l]);
+	ret = ret + (1-p)*.5*((min(x[k]+h, rend)-x[l]) + solve(k+1, r, 1, pr));
+	//cout << ret << "\n";
+	//right wala left
+	k = max(l, prv[r]);
+	ret = ret + p*.5*((x[r] - max(x[k]-h, lend)) + solve(l, k-1, pl, 0));
+	//right wala right
+	ret = ret + (1-p)*.5*((min(x[r]+h, rend)-x[r]) + solve(l, r-1, pl, 1));
+	//cout << l << " " << r << " " << ret << "\n";
+	return dp[l][r][pl][pr] = ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, pos;
+	scanf("%d%d%lf", &n, &h, &p);
+	for(i=1; i<=n; i++)
+		scanf("%d", &x[i]);
+	sort(x+1, x+n+1);
+	x[0] = -1e9;
+	x[n+1] = 1e9;
+	pos = n+1;
+	nxt[n] = pos;
+	for(i=n-1; i>=1; i--){
+		if(x[i+1]-x[i]>=h)
+			pos = i;
+		nxt[i] = pos;
+	}
+	pos = 0;
+	prv[1] = 0;
+	for(i=2; i<=n; i++){
+		if(x[i]-x[i-1]>=h)
+			pos = i;
+		prv[i] = pos;
+	}
+	//for(i=1; i<=n; i++)
+	//	cout << i << " " << prv[i] << " " << nxt[i] << "\n";
+	for(i=0; i<=n; i++){
+		for(j=0; j<=n; j++)
+			dp[i][j][0][0] = dp[i][j][0][1] = dp[i][j][1][0] = dp[i][j][1][1] = -1;
+	}
+	double ans = solve(1, n, 0, 0);
+	printf("%.10lf\n", ans);
+	return 0;
+}

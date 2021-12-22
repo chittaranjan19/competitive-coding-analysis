@@ -1,0 +1,122 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define maxC 1000000007
+#define mn 1003
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int rotat(int x)
+{
+    int l = (x >> 3) & 1;
+    return (x << 1) | l;
+}
+
+struct node
+{
+    int state[4];
+
+    node()
+    {
+        FOR(i, 0, 3)
+            state[i] = 0;
+    }
+
+    node(char code)
+    {
+        if (code == '*') state[0] = 0;
+        if (code == '^') state[0] = 1;
+        if (code == '>') state[0] = 2;
+        if (code == 'v') state[0] = 4;
+        if (code == '<') state[0] = 8;
+        if (code == '-') state[0] = 10;
+        if (code == '|') state[0] = 5;
+        if (code == 'U') state[0] = 14;
+        if (code == 'L') state[0] = 13;
+        if (code == 'D') state[0] = 11;
+        if (code == 'R') state[0] = 7;
+        if (code == '*') state[0] = 0;
+        if (code == '+') state[0] = 15;
+        FOR(i, 1, 3)
+            state[i] = rotat(state[i - 1]);
+    }
+} table[mn][mn];
+int m, n, d[mn][mn][4], xt, yt, xm, ym;
+priority_queue< pair<int, pair< pair<int, int>, int > > > p;
+
+void setup()
+{
+    cin >> n >> m;
+    char c;
+    FOR(i, 1, n)
+    FOR(j, 1, m)
+    {
+        cin >> c;
+        table[i][j] = node(c);
+        FOR(k, 0, 3)
+            d[i][j][k] = maxC;
+    }
+    cin >> xt >> yt >> xm >> ym;
+    d[xt][yt][0] = 0;
+}
+
+void xuly()
+{
+    p.push(mp(0, mp(mp(xt, yt), 0)));
+    while(!p.empty())
+    {
+        int w = - p.top().F;
+        int x = p.top().S.F.F;
+        int y = p.top().S.F.S;
+        int u = p.top().S.S;
+        p.pop();
+        if (d[x][y][u] != w)
+            continue;
+        if (x == xm && y == ym)
+        {
+            cout << w;
+            return;
+        }
+        int nex = (u == 3? 0 : u + 1);
+        if (w + 1 < d[x][y][nex])
+        {
+            d[x][y][nex] = w + 1;
+            p.push(mp(- d[x][y][nex], mp(mp(x, y), nex)));
+        }
+        int state = table[x][y].state[u];
+        if ((state & 1) && ((table[x - 1][y].state[u] >> 2) & 1) && d[x - 1][y][u] > w + 1)
+        {
+            d[x - 1][y][u] = w + 1;
+            p.push(mp(- d[x - 1][y][u], mp(mp(x - 1, y), u)));
+        }
+        if (((state >> 1) & 1) && ((table[x][y + 1].state[u] >> 3) & 1) && d[x][y + 1][u] > w + 1)
+        {
+            d[x][y + 1][u] = w + 1;
+            p.push(mp(- d[x][y + 1][u], mp(mp(x, y + 1), u)));
+        }
+        if (((state >> 2)) && ((table[x + 1][y].state[u] & 1)) && d[x + 1][y][u] > w + 1)
+        {
+            d[x + 1][y][u] = w + 1;
+            p.push(mp(- d[x + 1][y][u], mp(mp(x + 1, y), u)));
+        }
+        if (((state >> 3) & 1) && ((table[x][y - 1].state[u] >> 1) & 1) && d[x][y - 1][u] > w + 1)
+        {
+            d[x][y - 1][u] = w + 1;
+            p.push(mp(- d[x][y - 1][u], mp(mp(x, y - 1), u)));
+        }
+    }
+    cout << -1;
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

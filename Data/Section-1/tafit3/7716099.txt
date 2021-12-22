@@ -1,0 +1,101 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class ProblemB2 {
+    long t2;
+
+    private ProblemB2() throws IOException {
+        BufferedReader rd = new BufferedReader(new InputStreamReader(System.in));
+        long[][] p = new long[8][3];
+        long[][] p2 = new long[8][3];
+        for(int i=0;i<8;i++) {
+            String h = rd.readLine();
+            String[] q = h.split("\\s+");
+            for(int j=0;j<3;j++) {
+                p[i][j] = Long.parseLong(q[j]);
+            }
+        }
+        int[][] perm = new int[][] { {0,1,2},{0,2,1},{1,0,2},{1,2,0},{2,0,1},{2,1,0} };
+        int[] state = new int[8];
+        boolean carry = false;
+        while(!carry) {
+            for(int i=0;i<8;i++) {
+                for(int j=0;j<3;j++) {
+                    p2[i][j] = p[i][perm[state[i]][j]];
+                }
+            }
+            if(isCube(p2)) {
+                out("YES");
+                for(int i=0;i<8;i++) {
+                    for(int j=0;j<3;j++) {
+                        if(j > 0) {
+                            System.out.print(' ');
+                        }
+                        System.out.print(p2[i][j]);
+                    }
+                    System.out.println();
+                }
+                return;
+            }
+
+            int pos = 0;
+            state[pos]++;
+            while(state[pos] == 6) {
+                state[pos] = 0;
+                pos++;
+                if(pos < 8) {
+                    state[pos]++;
+                } else {
+                    carry = true;
+                    break;
+                }
+            }
+        }
+        out("NO");
+    }
+
+    private boolean isCube(long[][] p2) {
+        long min = 9000000000000000000L;
+        int pcount = 0;
+        int left = 28;
+        for(int i=0;i<8;i++) {
+            for(int j=i+1;j<8;j++) {
+                if(pcount+left < 12) {
+                    return false;
+                }
+                boolean eq = true;
+                for(int k=0;k<3;k++) {
+                    if(p2[i][k] != p2[j][k]) {
+                        eq = false;
+                        break;
+                    }
+                }
+                if(eq) {
+                    return false;
+                }
+                long len = len(p2[i],p2[j]);
+                if(len < min) {
+                    pcount = 1;
+                    min = len;
+                } else if(len == min) {
+                    pcount++;
+                }
+                left--;
+            }
+        }
+        return pcount == 12;
+    }
+
+    private long len(long[] a, long[] b) {
+        return (a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1])+(a[2]-b[2])*(a[2]-b[2]);
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB2();
+    }
+}

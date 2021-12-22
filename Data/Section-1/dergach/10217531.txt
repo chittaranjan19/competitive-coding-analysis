@@ -1,0 +1,162 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+using namespace std;
+
+typedef long long ll;
+#define mod 1000000007
+#define pi acos(-1.0)
+
+int T;
+int a[100005];
+int t[100005], r[100005];
+int lastPos[100005];
+int zeroCnt[100005];
+int exactUsing[100005];
+
+int exactUsingBeforeFirstDissapointment[100005];
+
+int main()
+{
+    scanf("%d", &T);
+    while(T--)
+    {
+        //input
+        int m, k;
+        scanf("%d %d", &m, &k);
+        for(int i = 1; i <= k; i++)
+            scanf("%d", &a[i]); 
+        for(int i = 0; i < m - 1; i++)
+            scanf("%d %d", &t[i], &r[i]);
+
+        if(m == 1)
+        {
+            for(int i = 1; i <= k; i++)
+            {
+                if(a[i])
+                    putchar('N');
+                else
+                    putchar('Y');
+            }
+            puts("");
+            continue;
+        }
+
+        //find last position of exact using of dish
+        //calculate array of partial sums of zero cases
+        //find first disappointment
+        //count exact using of dishes
+        for(int i = 0; i <= k; i++)
+        {
+            lastPos[i] = -1;
+            exactUsing[i] = 0;
+        }
+        int dissapointmentIndex = -1;
+        for(int i = 0; i < m - 1; i++)
+        {
+            if(dissapointmentIndex == -1 && r[i]) 
+                dissapointmentIndex = i;
+            zeroCnt[i] = 0;
+            if(t[i] != 0)
+            {
+                lastPos[t[i]] = i;
+                exactUsing[t[i]]++;
+            }
+            else
+                zeroCnt[i] = 1;
+            if(i)
+                zeroCnt[i] += zeroCnt[i-1];
+        }
+
+        if(dissapointmentIndex == -1)
+        {
+            for(int i = 1; i <= k; i++)
+            {
+                if(a[i] - exactUsing[i] - zeroCnt[m-2] <= 0)
+                    putchar('Y');
+                else
+                    putchar('N');
+            }
+            puts("");
+            continue;
+        }
+
+        //find universal dissapointment
+        for(int i = 0; i <= k; i++)
+            exactUsingBeforeFirstDissapointment[i] = 0;
+        for(int i = 0; i < dissapointmentIndex; i++)
+        {
+            if(t[i] != 0)
+                exactUsingBeforeFirstDissapointment[t[i]]++;
+        }
+        int universalDishForDissapointmentIndex = -1;
+        int minv = mod;
+        for(int i = 1; i <= k; i++)
+        {
+            if(lastPos[i] < dissapointmentIndex && a[i] - exactUsingBeforeFirstDissapointment[i] < minv)
+            {
+                minv = a[i] - exactUsingBeforeFirstDissapointment[i];
+                universalDishForDissapointmentIndex = i;
+            }
+        }
+
+        //main work
+        for(int i = 1; i <= k; i++)
+        {
+            if(lastPos[i] == -1)
+            {
+                if(a[i] - zeroCnt[dissapointmentIndex] <= 0 &&
+                    (exactUsingBeforeFirstDissapointment[universalDishForDissapointmentIndex] != a[universalDishForDissapointmentIndex] || i == universalDishForDissapointmentIndex))
+                    putchar('Y');
+                else
+                    if(a[i] - exactUsing[i] - (zeroCnt[m-2] - minv) <= 0)
+                        putchar('Y');
+                    else
+                        putchar('N');
+            } 
+            else
+                if(dissapointmentIndex <= lastPos[i])
+                {
+                    int possibleZeros = min(a[i] - exactUsing[i], zeroCnt[lastPos[i]] - minv);
+                    possibleZeros += zeroCnt[m-2] - zeroCnt[lastPos[i]];
+                    if(a[i] - exactUsing[i] - possibleZeros <= 0)
+                        putchar('Y');
+                    else
+                        putchar('N');
+                }
+                else
+                {
+                    //try to make this dish dissapointment
+                    int possibleZeros = min(a[i] - exactUsing[i], zeroCnt[lastPos[i]]);
+                    possibleZeros += zeroCnt[dissapointmentIndex-1] - zeroCnt[lastPos[i]];
+                    if(a[i] - exactUsing[i] - possibleZeros <= 0)
+                        putchar('Y');
+                    else
+                    {
+                        possibleZeros = 0;
+                        if(zeroCnt[lastPos[i]] - minv >= 0)
+                            possibleZeros = min(a[i] - exactUsing[i], zeroCnt[lastPos[i]] - minv) + (zeroCnt[m-2] - zeroCnt[lastPos[i]]);
+                        else
+                            possibleZeros = zeroCnt[m-2] - minv;
+                        if(a[i] - exactUsing[i] - possibleZeros <= 0)
+                            putchar('Y');
+                        else
+                            putchar('N');
+                    }
+                }
+        }
+        puts("");
+    }
+    return 0;
+}

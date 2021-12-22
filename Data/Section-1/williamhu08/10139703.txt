@@ -1,0 +1,84 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 300010, MOD = 1e9 + 7;
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+int inv (int x) {
+	int p = x, s = 1;
+	for (int i = MOD - 2; i; i >>= 1) {
+		if (i & 1) {
+			s = mult(s, p);
+		}
+		p = mult(p, p);
+	}
+	return s;
+}
+
+int quot (int x, int y) {
+	return mult(x, inv(y));
+}
+
+int N, K, arr[MAXN];
+int pow10[MAXN], comb[MAXN];
+int mut[MAXN], psum[MAXN];
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d\n", &N, &K);
+	for (int i = 1; i <= N; i++) {
+		arr[i] = getchar() - '0';
+	}
+	pow10[0] = 1;
+	for (int i = 1; i < MAXN; i++) {
+		pow10[i] = mult(pow10[i - 1], 10);
+	}
+	comb[K - 1] = 1;
+	for (int i = K; i < MAXN; i++) {
+		comb[i] = mult(comb[i - 1], quot(i, i - (K - 1)));
+		// if (i <= 5) {
+		// 	printf("comb[%d] = %d\n", i, comb[i]);
+		// }
+	}
+	psum[0] = comb[N - 2];
+	for (int i = 1; i < N; i++) {
+		psum[i] = add(psum[i - 1], mult(pow10[i], i > N - 2 ? 0 : comb[N - i - 2]));
+		// printf("psum[%d] = %d\n", i, psum[i]);
+	}
+	int ans = 0;
+	int sp = 0;
+	for (int i = 1; i <= N; i++) {
+		//compute i - 1 choose K
+		if (i == K + 1) {
+			sp = 1;
+		} else if (i > K + 1) {
+			sp = mult(sp, quot(i - 1, i - 1 - K));
+		}
+		// printf("i = %d, sp = %d\n", i, sp);
+		int s = add(i == N ? 0 : psum[N - i], sp);	//gotta be careful about 0 case!!!
+		// printf("s = %d\n", s);
+		// printf("i = %d, s = psum[%d] + comb[%d] = %d\n", i, N - i - 1, i - 1, s);
+		ans = add(ans, mult(arr[i], s));
+	}
+	printf("%d\n", ans);
+}

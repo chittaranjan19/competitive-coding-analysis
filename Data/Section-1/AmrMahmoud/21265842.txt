@@ -1,0 +1,104 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+char ss[3005][3005];
+int cntl[3005][3005], cntr[3005][3005];
+
+const int MaxVal = 3005;
+int tree[MaxVal];
+
+void update(int idx, int val)
+{
+  if(idx <= 0) return;
+  while (idx <= MaxVal && idx > 0){
+    tree[idx] = tree[idx] + val;
+    idx = idx + (idx & -idx);
+  }
+}
+
+int read(int idx)
+{
+  if(idx <= 0) return 0;
+  int sum = 0;
+  while(idx > 0 && idx <= MaxVal){
+    sum = sum + tree[idx];
+    idx = idx - (idx & -idx);
+  }
+  return sum;
+}
+
+int main()
+{
+  int n, m;
+  cin >> n >> m;
+  for(int i=0;i<n;i++)
+    scanf("%s", ss[i]);
+  for(int i=0;i<n;i++)
+  {
+    for(int j=0;j<m;j++)
+    {
+      if(ss[i][j] != 'z') continue;
+      cntl[i][j] = 1;
+      if(j) cntl[i][j] += cntl[i][j - 1];
+    }
+    for(int j=m-1;j>=0;j--)
+    {
+      if(ss[i][j] != 'z') continue;
+      cntr[i][j] = 1;
+      if(j != m - 1) cntr[i][j] += cntr[i][j + 1];
+    }
+  }
+  LL ans = 0;
+  for(int i=0;i<2;i++)
+  {
+    for(int j=i;j<(i==0?m:n);j++)
+    {
+      set<pair<int, int> > s;
+      int x = 0, y = j, k = 1;
+      if(i) x = j, y = m - 1;
+      while(x < n && y >= 0)
+      {
+        s.insert(mp(cntl[x][y] + k, k));
+        update(k, 1);
+        while(!s.empty() && s.begin()->f == k)
+        {
+          update(s.begin()->s, -1);
+          s.erase(s.begin());
+        }
+        if(ss[x][y] != 'z')
+        {
+          while(!s.empty())
+          {
+            update(s.begin()->s, -1);
+            s.erase(s.begin());
+          }
+        }
+        ans += read(k) - read(max(0, k - cntr[x][y]));
+        x++, y--, k++;
+      }
+      while(!s.empty())
+      {
+        update(s.begin()->s, -1);
+        s.erase(s.begin());
+      }
+    }
+  }
+  cout << ans;
+  return 0;
+}

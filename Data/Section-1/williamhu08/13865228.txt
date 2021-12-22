@@ -1,0 +1,129 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef long long ll;
+
+int slope[100013];
+ll yint[100013];
+
+bool comp(int a, int b) {
+	if (slope[a]==slope[b]) return yint[a]>yint[b];
+	return slope[a]<slope[b];
+}
+
+inline void add(vector<int>& hull, int c) {
+	while (hull.size()>1) {
+		int a = hull[hull.size()-2];
+		int b = hull.back();
+		ll one = (slope[c]-slope[a])*(yint[a]-yint[b]);
+		ll two = (slope[b]-slope[a])*(yint[a]-yint[c]);
+		if (one<two) hull.pop_back();
+		else break;
+	}
+	if (hull.size()==1 && slope[hull[0]]==slope[c] && yint[hull[0]]>yint[c]) hull.pop_back();
+	hull.push_back(c);
+}
+
+inline ll get(int i, ll T) { return T*slope[i]+yint[i]; }
+
+class CVT {
+private:
+	vector<int> has;
+	vector<int> hull;
+public:
+	CVT() {}
+	inline int size() { return has.size(); }
+	inline void insert(int x) {
+		has.push_back(x);
+		add(hull, x);
+	}
+	inline int query(ll T) {
+		int low = 0;
+		int high = hull.size()-1;
+		for (int i=0;i<6;i++) {
+			int a = (2*low+high)/3;
+			int b = (low+2*high)/3;
+			if (get(hull[a],T)<get(hull[b],T)) high = b;
+			if (get(hull[a],T)>get(hull[b],T)) low = a;
+		}
+		ll best = get(hull[low],T);
+		int which = hull[low];
+		for (int i=low+1;i<=high;i++) {
+			ll cur = get(hull[i],T);
+			if (cur<best || (cur==best && hull[i]<which)) {
+				best = cur;
+				which = hull[i];
+			}
+		}
+		if (best==get(hull[low],T)) {
+			while (low>0 && get(hull[low-1],T)==get(hull[low],T)) {
+				low-=1;
+				which = min(which,hull[low]);
+			}
+		}
+		if (best==get(hull[high],T)) {
+			while (high<hull.size()-1 && get(hull[high+1],T)==get(hull[high],T)) {
+				high+=1;
+				which = min(which,hull[high]);
+			}
+		}
+		return which;
+	}
+	inline void remove(int x) {
+		has.erase(find(has.begin(),has.end(),x));
+		hull.clear();
+		for (int i: has) add(hull,i);
+	}
+};
+
+const int SQRT = 1300;
+
+int n;
+int l[100013];
+int t[100013];
+CVT block[100013/SQRT+1];
+vector<int> lines;
+ll ans[100013];
+
+int main() {
+	scanf("%d",&n);
+	for (int i=0;i<n;i++) {
+		scanf("%d%d",&l[i],&t[i]);
+		slope[i] = 2*t[i];
+		yint[i] = l[i]-(ll) t[i]*t[i];
+		lines.push_back(i);
+	}
+	sort(lines.begin(),lines.end(),comp);
+	int on = 0;
+	int has = 0;
+	ll T = 0;
+	for (int i=0;i<n;i++) {
+		if (has==0) {
+			if (on==n) break;
+			T = max(T,slope[lines[on]]/2LL);
+		}
+		while (on<n && slope[lines[on]]/2<=T) {
+			has+=1;
+			block[lines[on]/SQRT].insert(lines[on]);
+			on+=1;
+		}
+		ll val = 1e18;
+		int which = 0;
+		for (int j=0;j<n/SQRT+1;j++) if (block[j].size()>0) {
+			int cur = block[j].query(T);
+			ll pos = get(cur,T);
+			if (pos<val || (pos==val && cur<which)) {
+				val = pos;
+				which = cur;
+			}
+		}
+		T+=l[which];
+		ans[which] = T;
+		block[which/SQRT].remove(which);
+		has-=1;
+	}
+	for (int i=0;i<n;i++) printf("%lld ",ans[i]);
+	printf("\n");
+
+	return 0;
+}

@@ -1,0 +1,125 @@
+//package x0007_aim_tech_round_3_div_2;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.Scanner;
+
+public class B_CheckPoints {
+	private final boolean isDebug;
+	
+	private int n;
+	private int a;
+	private int[] x;
+	
+	public B_CheckPoints(boolean isDebug) {
+		this.isDebug = isDebug;
+	}
+	
+	public void readInput() {
+		Scanner sc = null;
+		if (isDebug) {
+			try {
+				sc = new Scanner(new FileInputStream("src\\x0007_aim_tech_round_3_div_2\\B_input1.txt"));
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			sc =  new Scanner(System.in);
+		}
+		
+		n = sc.nextInt();
+		a = sc.nextInt();
+		x = new int[n];
+		for (int i = 0; i < n; ++i) {
+			x[i] = sc.nextInt();
+		}
+		
+		if (isDebug) {
+			System.out.format("n=%d a=%d %n", n, a);
+			
+			for (int i = 0; i < n; ++i) {
+				System.out.print(x[i] + " ");
+			}
+			System.out.println();
+		}
+	}
+	
+	public void solve() {
+//		Arrays.sort(x);
+		if (n == 1) {
+			System.out.println(0);
+			return;
+		}
+		
+		if (n == 2) {
+			System.out.println(Math.min(Math.abs(a - x[0]), Math.abs(a - x[1])));
+			return;
+		}
+		
+		int INF_NEG = Integer.MIN_VALUE;
+		int INF_POS = Integer.MAX_VALUE;
+		int x0, x1, x2, x3;
+		x0 = x1 = INF_POS;
+		x2 = x3 = INF_NEG;
+		
+		for (int i = 0; i < n; ++i) {
+			if (x[i] < x0) {
+				if (x0 < INF_POS) {
+					x1 = x0;
+				}
+				
+				x0 = x[i];
+			} else if (x[i] < x1) {
+				x1 = x[i];
+			}
+			
+			if (x[i] > x3) {
+				if (x3 > INF_NEG) {
+					x2 = x3;
+				}
+				
+				x3 = x[i];
+			} else if (x[i] > x2) {
+				x2 = x[i];
+			}
+		}
+		
+		if (x1 == INF_POS) x1 = x0;
+		if (x2 == INF_NEG) x2 = x3;
+		
+		int res = 0;
+		if (a <= x0) {
+			res = x2 - a;
+			if (isDebug) {
+				System.out.println(">>>> a <= x0");
+			}
+		} else if (a >= x3) {
+			res = a - x1;
+			if (isDebug) {
+				System.out.println(">>>> a >= x3");
+			}
+		} else {
+			res = Math.min(
+					Math.min(a - x0 + x2 - x0, Math.abs(a - x2) + x2 - x0),
+					Math.min(Math.abs(a - x1) + x3 - x1, x3 - a + x3 - x1)
+					);
+			if (isDebug) {
+				System.out.println(">>>> else");
+			}
+		}
+		
+		if (isDebug) {
+			System.out.format("x0=%d x1=%d x2=%d x3=%d %n", x0, x1, x2, x3);
+		}
+		
+		System.out.println(res);
+	}
+	
+	public static void main(String[] args) {
+		B_CheckPoints solver = new B_CheckPoints(false);
+		solver.readInput();
+		solver.solve();
+	}
+}

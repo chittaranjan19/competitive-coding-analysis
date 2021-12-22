@@ -1,0 +1,98 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = (1 << 20) + 5;
+
+ll a[maxn], b[maxn], c[maxn], xx[maxn], yy[maxn];
+int d[maxn];
+
+ll mul_mod(ll a, ll b, ll mod)
+{
+    return (a * b - (ll)(a / (long double)mod * b + 1e-3) * mod + mod) % mod;
+}
+
+void fwt(ll *a, int len, int on, ll mod)
+{
+    for(int d = 1; d < len; d <<= 1)
+    {
+        for(int k = d << 1, i = 0; i < len; i += k)
+        {
+            for(int j = 0; j < d; ++j)
+            {
+                ll x = a[i + j], y = a[i + j + d];
+                a[i + j] = (x + y) % mod / on;
+                a[i + j + d] = (x - y + mod) % mod / on;
+            }
+        }
+    }
+}
+
+void convo(ll *x, ll *y, int len, ll mod)
+{
+    for(int i = 0; i < len; ++i)
+    {
+        xx[i] = x[i];
+        yy[i] = y[i];
+    }
+    fwt(xx, len, 1, mod);
+    fwt(yy, len, 1, mod);
+    for(int i = 0; i < len; ++i) x[i] = mul_mod(xx[i], yy[i], mod);
+    fwt(x, len, 2, mod);
+}
+
+void pow_mod(ll n, int len, ll mod)
+{
+    memset(b, 0, sizeof(b));
+    b[0] = 1;
+    while(n)
+    {
+        if(n & 1) convo(b, c, len, mod);
+        convo(c, c, len, mod);
+        n >>= 1;
+    }
+}
+
+int cal(int x)
+{
+    int ret = 0;
+    while(x)
+    {
+        ++ret;
+        x -= x & -x;
+    }
+    return ret;
+}
+
+int main()
+{
+    int m;
+    ll t, p;
+    scanf("%d%I64d%I64d", &m, &t, &p);
+    int len = 1 << m;
+    p <<= m;
+    for(int i = 0; i < len; ++i)
+    {
+        scanf("%I64d", a + i);
+        a[i] %= p;
+    }
+    for(int i = 0; i <= m; ++i)
+    {
+        scanf("%d", d + i);
+        d[i] %= p;
+    }
+    for(int i = 0; i < len; ++i) c[i] = d[cal(i)];
+    pow_mod(t, len, p);
+    convo(a, b, len, p);
+    p >>= m;
+    for(int i = 0; i < len; ++i)
+    {
+        printf("%I64d\n", a[i] % p);
+    }
+    return 0;
+}

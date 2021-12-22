@@ -1,0 +1,127 @@
+#include<fstream>
+#include<string.h>
+#include<ctype.h>
+#include<iostream>
+#include<algorithm>
+#include<map>
+#include<unordered_map>
+#include<array>
+#include<deque>
+#include<math.h>
+#include<unordered_set>
+#include<iomanip>
+#include<bitset>
+using namespace std;
+int n, i, j, k, nr, ok;
+char type, rez[50];
+string number;
+struct Trie
+{
+	int nrprefixe, nrcuv;
+	Trie *fiu[2];
+
+	Trie()
+	{
+		nrprefixe = nrcuv = 0;
+		memset(fiu, 0, sizeof(fiu));
+	}
+};
+
+Trie *root = new Trie();
+inline void add()
+{
+	Trie *node = root;
+	int i, l = number.size();
+	for (i = l-1; i >= 0; i--)
+	{
+		if (node->fiu[number[i] - '0'] == 0)
+			node->fiu[number[i] - '0'] = new Trie;
+		node->nrprefixe++;
+		node = node->fiu[number[i] - '0'];
+		if (i == 0)
+		{
+			node->nrcuv++;
+			node->nrprefixe++;
+		}
+	}
+}
+inline void del()
+{
+	Trie *node = root;
+	int i, l = number.size();
+	for (i = l-1; i >= 0; i--)
+	{
+		if (node->fiu[number[i] - '0'] == NULL)
+			break;
+		else
+		{
+			node = node->fiu[number[i] - '0'];
+			node->nrprefixe--;
+			if (i == 0)
+			{
+				node->nrcuv--;
+			}
+		}
+	}
+}
+inline void findopp()
+{
+	Trie *node = root;
+	int i, l = number.size(),rezultat;
+	for (i = l-1; i >= 0; i--)
+	{
+		if (number[i] == '0')
+		{
+			if (node->fiu[0] != NULL)
+			{
+				node = node->fiu[0];
+			}
+		}
+		else
+		{
+			if (node->fiu[1] != NULL)
+			{
+				node = node->fiu[1];
+			}
+		}
+	}
+	rezultat = node->nrcuv;
+	for (i = l; i <= 18; i++)
+	{
+		if (node->fiu[0] != 0)
+		{
+			node = node->fiu[0];
+			rezultat += node->nrcuv;
+		}
+		else
+			break;
+	}
+	cout << rezultat << '\n';
+}
+
+int main()
+{
+	cin >> n;
+	for (k = 1; k <= n; k++)
+	{
+		cin >> type>>number;
+		int len = number.size();
+		for (i = 0; i < len; i++)
+		{
+			number[i] = (number[i] - '0') % 2 + '0';
+		}
+		if (type == '+')
+		{
+			add();
+		}
+		if (type == '-')
+		{
+			del();
+		}
+		if (type == '?')
+		{
+			findopp();
+		}
+	}
+	return 0;
+}

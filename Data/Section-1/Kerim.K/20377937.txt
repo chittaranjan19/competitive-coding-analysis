@@ -1,0 +1,80 @@
+#include "bits/stdc++.h"
+#define MAXN 400009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+char s[MAXN];
+int dp[MAXN],n,next[MAXN];
+int rec(int x){
+	if(x>=n)
+		return dp[x]=1;
+	int &ret=dp[x];
+	if(~ret)
+		return ret;ret=0;
+	int go=next[x];	
+	if(go-x<=8){
+		int cnt=0;
+		for(int j=go+1;j<next[go];j++){
+			cnt++;
+			if(cnt>3)
+				break;
+			ret|=rec(j+1);	
+		}
+	}
+	return ret;
+}
+void yaz(int l,int r){
+	for(int i=l;i<=r;i++)
+		printf("%c",s[i]);
+	printf("\n");	
+}
+void solve(int x){
+	if(x>=n)
+		return;
+	int go=next[x];	
+	if(go-x<=8){
+		int cnt=0;
+		for(int j=go+1;j<next[go];j++){
+			cnt++;
+			if(cnt>3)
+				break;
+			if(rec(j+1)){
+				yaz(x,j);
+				solve(j+1);
+				return;
+			}	
+		}
+	}
+}
+int main(){
+	memset(dp,-1,sizeof dp);
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif
+	scanf("%s",s);
+	n=strlen(s);
+	int last=n;
+	for(int i=n-1;i>=0;i--){
+		next[i]=last;	
+		if(s[i]=='.')
+			last=i;
+	}
+	if(!rec(0))
+		return printf("NO\n"),0;
+	printf("YES\n");
+	solve(0);
+	return 0;
+}

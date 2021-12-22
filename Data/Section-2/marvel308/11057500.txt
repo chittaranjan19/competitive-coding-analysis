@@ -1,0 +1,52 @@
+#include<stdio.h>
+#include<vector>
+using namespace std;
+#define max(a,b) (a>b?a:b)
+vector<int> G[100005];
+bool visited[100005]={false};
+long long int add[100005]={0},sub[100005]={0},val[100005]={0};
+void dfs(int u)
+{
+    visited[u]=true;
+    int i,si=G[u].size();
+    long long int add1=0,sub1=0,ans=0;
+    for(i=0;i<si;i++)
+    {
+        int v=G[u][i];
+        if(!visited[v])
+        {
+            dfs(v);
+            add1=max(add1,add[v]);
+            sub1=max(sub1,sub[v]);
+        }
+    }
+    ans=val[u]+add1-sub1;
+    add[u]=add1;
+    sub[u]=sub1;
+    if(ans<0)
+    {
+        add[u]-=ans;
+    }
+    else
+    {
+        sub[u]+=ans;
+    }
+    //printf("u=%d add=%I64d sub=%I64d\n",u,add[u],sub[u]);
+}
+int main()
+{
+    int n,i;
+    scanf("%d",&n);
+    for(i=0;i<n-1;i++)
+    {
+        int u,v;
+        scanf("%d%d",&u,&v);
+        G[u].push_back(v);
+        G[v].push_back(u);
+    }
+    for(i=1;i<=n;i++)
+        scanf("%I64d",&val[i]);
+    dfs(1);
+    printf("%I64d\n",add[1]+sub[1]);
+    return 0;
+}

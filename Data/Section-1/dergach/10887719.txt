@@ -1,0 +1,110 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+using namespace std;
+
+typedef long long ll;
+#define mod 1000000007
+#define pi acos(-1.0)
+/*
+int n, m;
+int d[100005], h[100005];
+
+int main()
+{
+    scanf("%d %d", &n, &m);
+    for(int i = 0; i < m; i++)
+        scanf("%d %d", &d[i], &h[i]);
+    int res = max(h[0] + d[0] - 1, n - d[m-1] + h[m-1]);
+    bool ok = true;
+    for(int i = 0; i < m - 1; i++)
+    {
+        if(d[i+1] - d[i] < abs(h[i+1] - h[i]))
+        {
+            ok = false;
+            break;
+        }
+        int d1 = d[i];
+        int d2 = d[i+1];
+        if(h[i] < h[i+1])
+            d1 += h[i+1] - h[i];
+        else
+            if(h[i] > h[i+1])
+                d2 -= h[i] - h[i+1];
+        res = max(res, (d2 - d1) / 2 + h[i]);
+    }
+    if(ok)
+        printf("%d\n", res);
+    else
+        puts("IMPOSSIBLE");
+    return 0;
+}
+*/
+
+char a[55][55], res[105][105];
+int dx[10005], dy[10005];
+
+int main()
+{
+    int n;
+    scanf("%d", &n);
+    for(int i = 0; i < n; i++)
+        scanf("%s", a[i]);
+    int K = 0;
+    for(int i = -n + 1; i <= n - 1; i++)
+        for(int j = -n + 1; j <= n - 1; j++)
+            if(i != 0 || j != 0)
+            {
+                dx[K] = i;
+                dy[K] = j;
+                K++;
+            }
+    for(int i = 0; i < n; i++)
+        for(int j = 0; j < n; j++)
+            if(a[i][j] == 'o')
+            {
+                for(int k = 0; k < K; k++)
+                    if(0 <= i + dx[k] && i + dx[k] < n && 0 <= j + dy[k] && j + dy[k] < n && a[i+dx[k]][j+dy[k]] == '.')
+                        dx[k] = dy[k] = 0;
+            }
+    bool ok = true;
+    for(int i = 0; i < n && ok; i++)
+        for(int j = 0; j < n && ok; j++)
+            if(a[i][j] == 'o')
+            {
+                for(int k = 0; k < K; k++)
+                    if((dx[k] != 0 || dy[k] != 0) && 0 <= i + dx[k] && i + dx[k] < n && 0 <= j + dy[k] && j + dy[k] < n && a[i+dx[k]][j+dy[k]] == 'x')
+                        a[i+dx[k]][j+dy[k]] = '.';
+            }
+    for(int i = 0; i < n && ok; i++)
+        for(int j = 0; j < n && ok; j++)
+            if(a[i][j] == 'x')
+                ok = false;
+    if(!ok)
+        puts("NO");
+    else
+    {
+        puts("YES");
+        for(int i = 0; i < 2 *n - 1; i++)
+            for(int j = 0; j < 2 * n - 1; j++)
+                res[i][j] = '.';
+        res[n-1][n-1] = 'o';
+        for(int i = 0; i < K; i++)
+            if(dx[i] != 0 || dy[i] != 0)
+                res[n-1+dx[i]][n-1+dy[i]] = 'x';
+        for(int i = 0; i < 2 *n - 1; i++)
+            puts(res[i]);
+    }
+    return 0;
+}

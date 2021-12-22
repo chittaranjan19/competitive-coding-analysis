@@ -1,0 +1,84 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 2009
+#define maxC 1000000000
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int n, ma[mn][mn], d[mn];
+vector< pair< int,  pair<int, int> > >  e;
+vector< pair<int, int> > g[mn];
+
+void setup()
+{
+    cin >> n;
+    FOR(i, 1, n)
+    FOR(j, 1, n)
+    {
+        cin >> ma[i][j];
+        if (i < j)
+            e.pb(mp(ma[i][j], mp(i, j)));
+    }
+    sort(e.begin(), e.end());
+    memset(d, 0, sizeof(d));
+}
+
+void dfs(int u, int s, int l, int pa)
+{
+    if (ma[u][s] != l)
+    {
+        cout << "NO";
+        exit(0);
+    }
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].F;
+        if (v == pa)
+            continue;
+        dfs(v, s, l + g[u][i].S, u);
+    }
+}
+
+int root(int x)
+{
+    if (!d[x])
+        return x;
+    return (d[x] = root(d[x]));
+}
+
+void xuly ()
+{
+    FOR(i, 0, int(e.size()) - 1)
+    {
+        int u = e[i].S.F;
+        int v = e[i].S.S;
+        int w = e[i].F;
+        if (!w)
+        {
+            cout << "NO";
+            return;
+        }
+        int r1 = root(u);
+        int r2 = root(v);
+        if (r1 == r2)
+            continue;
+        d[r1] = r2;
+        g[u].pb(mp(v, w));
+        g[v].pb(mp(u, w));
+    }
+    FOR(i, 1, n)
+    dfs(i, i, 0, 0);
+    cout << "YES";
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    setup();
+    xuly();
+    return 0;
+}

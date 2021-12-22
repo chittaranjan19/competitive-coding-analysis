@@ -1,0 +1,76 @@
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <iomanip>
+#include <map>
+
+
+using namespace std;
+
+typedef long long ll;
+
+#if _DEBUG
+#include <fstream>
+ifstream cin("input.txt");
+ofstream cout("output.txt");
+#else
+#include <iostream>
+#endif
+
+struct edge {
+	int to;
+	bool used;
+	edge () {}
+	edge(int to, bool used) : to(to), used(used) {}
+};
+
+vector < vector <edge> > vv;
+
+int in[10000], out[10000];
+
+vector <int> ans;
+
+void dfs(int v) {
+	out[v] = vv[v].size();
+	for(int i = 0; i < vv[v].size(); i++) {
+		if(!vv[v][i].used) {
+			vv[v][i].used = true;
+			in[vv[v][i].to]++;
+			dfs(vv[v][i].to);
+		}
+	}
+	ans.push_back(v);
+}
+
+			
+
+int main() {
+	int n;
+	cin >> n;
+	vv.resize(10000);
+	for(int i = 0; i < n; i++) {
+		string s;
+		cin >> s;
+		int from = (s[0] - 'A') * 100 + (s[1] - 'A');
+		int to = (s[1] - 'A') * 100 + (s[2] - 'A');
+		vv[from].push_back(edge(to, false));
+	}
+	for(int i = 0; i < 100000; i++) {
+		if(vv[i].size() != 0) {
+			dfs(i);
+			break;
+		}
+	}
+	for(int i = 0; i < 10000; i++) {
+		if(in[i] != out[i]) {
+			cout << "NO";
+			return 0;
+		}
+	}
+	cout << "YES\n";
+	cout << char(ans.back() / 100 + 'A');
+	for(int i = ans.size() - 1; i >= 0; i--) {
+		cout << char(ans[i] % 100 + 'A');
+	}
+	return 0;
+}

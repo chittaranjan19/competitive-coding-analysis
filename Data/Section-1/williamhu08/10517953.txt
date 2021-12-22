@@ -1,0 +1,77 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 17, MAXLG = 17;
+
+int N, R;
+vector<int> adj[MAXN], dp[MAXN];
+int depth[MAXN], par[MAXN][MAXLG];
+int ent[MAXN], exi[MAXN], z;
+
+void dfs (int x, int p, int d) {
+	ent[x] = ++z;	//if only i played another musical instrument, that would be great
+	dp[depth[x] = d++].push_back(z);
+	par[x][0] = p;
+	for (int t : adj[x]) {
+		dfs(t, x, d);
+	}
+	exi[x] = ++z;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	int nq, v, p;
+	cin >> N;
+	for (int i = 1; i <= N; i++) {
+		cin >> p;
+		adj[p].push_back(i);
+	}
+	dfs(0, -1, 0);
+	for (int j = 1; j < MAXLG; j++) {
+		for (int i = 0; i <= N; i++) {
+			int p = par[i][j - 1];
+			if (p == -1) {
+				par[i][j] = -1;
+			} else {
+				par[i][j] = par[p][j - 1];
+			}
+		}
+	}
+	for (cin >> nq; nq--; ) {
+		cin >> v >> p;
+		//advance v up by p
+		int d = depth[v];
+		if (p >= d) {
+			//too much advanced up
+			cout << "0 ";
+			continue;
+		}
+		for (int i = 0; i < MAXLG; i++) {
+			if (p & (1 << i)) {
+				v = par[v][i];
+			}
+		}
+		if (v) {
+			vector<int> &vec = dp[d];
+			//subtract one; don't count self
+			cout << upper_bound(all(vec), exi[v]) - lower_bound(all(vec), ent[v]) - 1;
+		} else {
+			cout << 0;
+		}
+		cout << ' ';
+	}
+}

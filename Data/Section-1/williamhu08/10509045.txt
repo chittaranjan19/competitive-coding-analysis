@@ -1,0 +1,129 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 100010, MAXP = 110;
+
+struct line {
+	ll m, b;
+	int id;
+	line () {}
+	line (ll _m, ll _b) : m(_m), b(_b) {}
+	ll val (ll x) const {
+		return m * x + b;
+	}
+	pll intersect (const line &a) const {
+		//careful, might have to change to double
+		pll p(b - a.b, a.m - m);
+		if (p.second < 0) {
+			p.first *= -1;
+			p.second *= -1;
+		}
+		return p;
+	}
+};
+
+struct convex {
+	vector<line> hull;
+	int ptr;
+	ll x;
+	convex() : hull(), ptr(), x(-1e12) {}
+	void insert (line t) {
+		if (hull.empty()) {
+			hull.push_back(t);
+			return;
+		}
+		line bk = hull.back();
+		assert(bk.m <= t.m);
+		if (bk.m == t.m && t.b <= bk.b) {
+			return;
+		}
+		//we totally beat them
+		bool curerase = false;
+		while (hull.size() >= 2) {
+			int hsiz = hull.size();
+			line l2 = hull[hsiz - 2];
+			pll ph = l2.intersect(hull.back()), pt = l2.intersect(t);
+			if (pt.first * ph.second <= pt.second * ph.first) {
+				if (hsiz == ptr + 1) {
+					curerase = true;
+				}
+				hull.pop_back();
+			} else {
+				break;
+			}
+		}
+		if (curerase) {
+			ptr = int(hull.size()) - 1;
+		}
+		hull.push_back(t);
+	}
+	ll query (ll t) {
+		assert(t >= x);
+		for (; ptr + 1 < hull.size(); ptr++) {
+			if (hull[ptr].val(t) > hull[ptr + 1].val(t)) {
+				break;
+			}
+		}
+		return hull[ptr].val(t);
+	}
+	void clear() {
+		hull.clear();
+		ptr = 0;
+		x = -1e12;
+	}
+};
+
+int N, M, P;
+ll A[MAXN], D[MAXN], pd[MAXN];
+ll dp[2][MAXN], *cur = dp[0], *prv = dp[1];
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M >> P;
+	for (int i = 2; i <= N; i++) {
+		cin >> A[i];
+		A[i] += A[i - 1];
+	}
+	for (int i = 1, h, t; i <= M; i++) {
+		cin >> h >> t;
+		D[i] = t - A[h];
+	}
+	sort(D + 1, D + M + 1);
+	for (int i = 1; i <= M; i++) {
+		pd[i] = pd[i - 1] + D[i];
+		cur[i] = i * D[i] - pd[i];
+	}
+	convex ch;
+	ll ans = 1e15;
+	for (int i = 2; i <= P; i++) {
+		swap(cur, prv);
+		ch.clear();
+		//insert as you go
+		for (int j = 1; j <= M; j++) {
+			//insert j - 1. go!
+			ch.insert(line(j - 1, -(prv[j - 1] + pd[j - 1])));
+			cur[j] = j * D[j] - pd[j] - ch.query(D[j]);
+			assert(cur[j] >= 0);
+		}
+		if (ans > cur[M]) {
+			ans = cur[M];
+		}
+	}
+	cout << ans << endl;
+	//BOSS
+}

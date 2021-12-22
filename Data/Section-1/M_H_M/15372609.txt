@@ -1,0 +1,79 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<ll, ll> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 1000;
+
+ll n, A, cf, cm, m;
+pii p[N];
+ll f[N];
+ll a[N];
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> A >> cf >> cm >> m;
+	for(int i = 0; i < n; ++i)
+		cin >> p[i].X, p[i].Y = i;
+	sort(p, p + n);
+	ll sum = 0;
+	for(int i = 1; i <= n; ++i){
+		sum += p[i - 1].X;
+		f[i] = i * p[i - 1].X - sum;	
+	}
+	reverse(p, p + n);
+	ll k = n;
+	while(f[k] > m) k --;
+	ll ans = min(A, (p[n - k].X + (m - f[k]) / k)) * cm;
+	int id = 0;
+	ll q = k;
+	ll w = m;
+	for(int i = 1; i <= n; ++i){
+		w -= (A - p[i - 1].X);
+		if(w >= 0){
+			while(k >= 0 && f[k] > w) k --;
+			ll t = i * cf +  min(A, (p[n - k].X + (w - f[k]) / k)) * cm;
+			if(t > ans){
+				ans = t;
+				q = k;
+				id = i;
+			}
+		}
+	}
+	for(int i = 0; i < id; ++i){
+		m -= (A - p[i].X);
+		p[i].X = A;
+	}
+	for(int i = n - 1; i >= n - q; --i)
+		p[i].X = min(A, p[n - q].X + m / (n - q + 1));
+	p[n - q].X += m % (n - q + 1);
+	for(int i = 0; i < n; ++i)
+		a[p[i].Y] = p[i].X;
+	cout << ans << "\n";
+	for(int i = 0; i < n; ++i)
+		cout << a[i] << " ";
+	cout << "\n";
+	return 0;
+}

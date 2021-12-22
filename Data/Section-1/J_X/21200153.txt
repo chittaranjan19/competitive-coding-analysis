@@ -1,0 +1,118 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <queue>
+
+using namespace std;
+
+const int maxn = 200 + 5;
+const int INF = 1 << 30;
+
+struct edge
+{
+    int to, vis, next;
+} G[maxn * maxn * 2];
+int head[maxn], tot, deg[maxn];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    memset(deg, 0, sizeof(deg));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot].to = v;
+    G[tot].vis = 0;
+    G[tot].next = head[u];
+    head[u] = tot++;
+}
+
+void dfs(int u)
+{
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        if(!G[i].vis)
+        {
+            G[i].vis = 1;
+            G[i ^ 1].vis = -1;
+            --deg[u];
+            if((--deg[G[i].to]) % 2 == 0) return;
+            dfs(G[i].to);
+        }
+
+    }
+}
+
+void euler(int u)
+{
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        if(!G[i].vis)
+        {
+            G[i].vis = 1;
+            G[i ^ 1].vis = -1;
+            --deg[u];
+            --deg[G[i].to];
+            euler(G[i].to);
+        }
+    }
+}
+
+int main()
+{
+    int T;
+    scanf("%d", &T);
+    while(T--)
+    {
+        init();
+        int n, m;
+        scanf("%d%d", &n, &m);
+        for(int i = 0; i < m; ++i)
+        {
+            int u, v;
+            scanf("%d%d", &u, &v);
+            addedge(u, v);
+            addedge(v, u);
+            ++deg[u], ++deg[v];
+        }
+        int ans = 0;
+        for(int i = 1; i <= n; ++i) if((deg[i] & 1) == 0) ++ans;
+        bool flag = true;
+        while(flag)
+        {
+            flag = false;
+            for(int i = 1; i <= n; ++i)
+            {
+                if(deg[i] & 1)
+                {
+                    dfs(i);
+                    flag = true;
+                }
+            }
+        }
+        flag = true;
+        while(flag)
+        {
+            flag = false;
+            for(int i = 1; i <= n; ++i)
+            {
+                if(deg[i])
+                {
+                    euler(i);
+                    flag = true;
+                }
+            }
+        }
+        printf("%d\n", ans);
+        for(int i = 0; i < tot; i += 2)
+        {
+            int u = G[i ^ 1].to, v = G[i].to;
+            if(~G[i].vis) printf("%d %d\n", u, v);
+            else printf("%d %d\n", v, u);
+        }
+    }
+    return 0;
+}

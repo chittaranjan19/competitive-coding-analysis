@@ -1,0 +1,138 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int tree[400005], arr[100005];
+
+void build(int i,int L,int R)
+{
+  if(L == R)
+  {
+    tree[i] = 1;
+    arr[L] = 1;
+    return ;
+  }
+  build(i*2 + 1, L, (L + R) / 2);
+  build(i*2 + 2, (L + R) / 2 + 1, R);
+  tree[i] = tree[i*2 + 1] + tree[i*2 + 2];
+}
+
+void update(int i,int L,int R,int node,int val)
+{
+  if(L == R)
+  {
+    tree[i] += val;
+    arr[L] += val;
+    return ;
+  }
+  if(node <= (L + R) / 2)
+    update(i*2 + 1, L, (L + R) / 2, node, val);
+  else update(i*2 + 2, (L + R) / 2 + 1, R, node, val);
+  tree[i] = tree[i*2 + 1] + tree[i*2 + 2];
+}
+
+int query(int i,int L,int R,int x,int y)
+{
+  if(L >= x && R <= y)
+    return tree[i];
+  if(L > y || R < x)
+    return 0;
+  return query(i*2 + 1, L, (L + R) / 2, x, y) + query(i*2 + 2, (L + R) / 2 + 1, R, x, y);
+}
+
+int main()
+{
+  //freopen("seaport.in", "r", stdin);
+  //freopen("seaport.out", "w", stdout);
+  int n, q, x, y;
+  scanf("%d %d", &n, &q);
+  build(0, 0, n - 1);
+  int L = 0, R = n - 1;
+  bool reversed = false;
+  while(q--)
+  {
+    scanf("%d", &x);
+    if(x == 1)
+    {
+      scanf("%d", &x);
+      if(x <= (R - L + 1) / 2)
+      {
+        if(!reversed)
+        {
+          y = 2 * x + L - 1;
+          for(int i=L;i<L+x;i++)
+            update(0, 0, n - 1, y--, arr[i]);
+          L += x;
+        }
+        else
+        {
+          y = R - 2 * x + 1;
+          for(int i=R;i>=L+x;i--)
+            update(0, 0, n - 1, y++, arr[i]);
+          R -= x;
+        }
+      }
+      else
+      {
+        x = (R - L + 1) - x;
+        if(!reversed)
+        {
+          y = R - 2 * x + 1;
+          for(int i=R;i>=L+x;i--)
+            update(0, 0, n - 1, y++, arr[i]);
+          R -= x;
+        }
+        else
+        {
+          y = 2 * x + L - 1;
+          for(int i=L;i<L+x;i++)
+            update(0, 0, n - 1, y--, arr[i]);
+          L += x;
+        }
+        reversed = !reversed;
+      }
+    }
+    else
+    {
+      scanf("%d %d", &x, &y);
+      y--;
+      if(!reversed) printf("%d\n", query(0, 0, n - 1, x + L, y + L));
+      else printf("%d\n", query(0, 0, n - 1, R - y, R - x));
+    }
+  }
+  return 0;
+}

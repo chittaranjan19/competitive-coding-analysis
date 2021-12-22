@@ -1,0 +1,106 @@
+#include<cstdio>
+#include<cstring>
+#include<queue>
+#include<algorithm>
+#define ll long long
+using namespace std;
+
+struct point{
+    int x,y;
+};
+
+struct node{
+    int v,b,f;
+}p[55];
+
+int dir[4][2]={{1,0},{-1,0},{0,1},{0,-1}};
+int h,w,k,num,num2;
+char map[55][55];
+int map1[55][55];
+
+bool cmp(node a,node b)
+{
+    if(a.f!=b.f) return a.f<b.f;
+    else return a.v<b.v;
+}
+
+void bfs(point a)
+{
+    queue<point> q;
+    point next;
+    num++;
+    p[num].b=num;
+    p[num].v=0;
+    p[num].f=0;
+    map1[a.x][a.y]=num;
+    map[a.x][a.y]='#';
+    q.push(a);
+    while(!q.empty())
+    {
+        p[num].v++;
+        a=q.front();
+        q.pop();
+        for(int i=0;i<4;i++)
+        {
+            next.x=a.x+dir[i][0];
+            next.y=a.y+dir[i][1];
+            if(next.x>=0&&next.x<h&&next.y>=0&&next.y<w&&map[next.x][next.y]=='.')
+            {
+                if(next.x==0||next.x==h-1||next.y==0||next.y==w-1) p[num].f=1,num2++;
+                map[next.x][next.y]='#';
+                map1[next.x][next.y]=num;
+                q.push(next);
+            }
+        }
+    }
+}
+
+int main()
+{
+    point t;
+    int flag,ans;
+    while(~scanf("%d%d%d",&h,&w,&k))
+    {
+        memset(map1,0,sizeof(map1));
+        num=num2=0;
+        for(int i=0;i<h;i++) scanf("%s",map[i]);
+        for(int i=0;i<h;i++)
+        {
+            for(int j=0;j<w;j++)
+            {
+                if(map[i][j]=='.')
+                {
+                    t.x=i;
+                    t.y=j;
+                    bfs(t);
+                }
+            }
+        }
+        sort(p+1,p+1+num,cmp);
+        ans=0;
+        for(int a=1;a<=num-num2-k;a++)
+        {
+            ans+=p[a].v;
+            for(int i=0;i<h;i++)
+            {
+                for(int j=0;j<w;j++)
+                {
+                    if(map1[i][j]==p[a].b)
+                    {
+                        map1[i][j]=0;
+                    }
+                }
+            }
+        }
+        printf("%d\n",ans);
+        for(int i=0;i<h;i++)
+        {
+            for(int j=0;j<w;j++)
+            {
+                if(map1[i][j]) printf(".");
+                else printf("*");
+            }
+            printf("\n");
+        }
+    }
+}

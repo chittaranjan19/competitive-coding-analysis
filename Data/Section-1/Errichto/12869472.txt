@@ -1,0 +1,136 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef pair<int,int> PI;
+typedef long long LL;
+typedef long double D;
+#define FI first
+#define SE second
+#define MP make_pair
+#define PB push_back
+#define R(I,N) for(int I=0;I<N;I++)
+#define F(I,A,B) for(int I=A;I<B;I++)
+#define FD(I,N) for(int I=N-1;I>=0;I--)
+#define make(A) scanf("%d",&A)
+#define make2(A,B) scanf("%d%d",&A,&B)
+#define ALL(x) (x).begin(), (x).end()
+#define SZ(x) ((int)(x).size())
+#define db if(1)printf
+template<typename C> void MA(C& a,C b){if(a<b)a=b;}
+template<typename C> void MI(C& a,C b){if(a>b)a=b;}
+//doskonale skojarzenie o minimalnym koszcie
+#define MAX 50
+int n;
+D t[MAX][MAX];//koszty
+D x[MAX],y[MAX],mi[MAX];
+int sx[MAX],sy[MAX],kx[MAX];
+queue<int> ds;
+bool czx[MAX],czy[MAX];
+void Hun(){
+ for(int i=0;i<n;i++){
+  sx[i]=-1;
+  sy[i]=-1;
+ }
+ for(int i=0;i<n;i++)
+ for(int j=0;j<n;j++){
+  if(t[i][j]<-x[i])
+  x[i]=-t[i][j];
+ }
+ for(int k=0;k<n;k++){
+  int v=-1;
+  while(ds.empty()==0)ds.pop();
+  for(int i=0;i<n;i++){
+   if(sx[i]==-1)
+    ds.push(i);
+   czx[i]=0;
+   czy[i]=0;
+   mi[i]=-1;
+  }
+  while(v==-1){
+   while(ds.empty()==0){
+    int ak=ds.front();ds.pop();
+    czx[ak]=1;
+    for(int i=0;i<n;i++){
+     if(czy[i]==0&&(mi[i]==-1||mi[i]>t[ak][i]+x[ak]+y[i])){
+      mi[i]=t[ak][i]+x[ak]+y[i];
+      kx[i]=ak;
+      if(mi[i]==0){ 
+       czy[i]=1;
+       if(sy[i]==-1){v=i;goto end;}
+       else ds.push(sy[i]);
+      }
+     }
+    }
+   }
+   D od=-1;
+   for(int i=0;i<n;i++){
+    if(czy[i]==0&&(od==-1||mi[i]<od))
+    od=mi[i];
+   }
+   for(int i=0;i<n;i++){
+    if(czx[i])x[i]-=od;
+    if(czy[i])y[i]+=od;
+    else{
+     mi[i]-=od;
+     if(mi[i]==0){
+      czy[i]=1;
+      if(sy[i]==-1)v=i;
+      else ds.push(sy[i]);
+     }
+    }
+   }
+  }
+  end:
+  while(v!=-1){
+   int pom=sx[kx[v]];
+   sy[v]=kx[v];
+   sx[kx[v]]=v;
+   v=pom;
+  };
+ }
+ //sx[i] => (i,sx[i]) jest w znalezonym skojarzeniu
+ //koszt = suma t[i][sx[i]] (wartosci w t nie sa zmieniane)
+}
+int a[MAX][MAX],b[MAX][MAX];
+bool licz(D h, bool cz = 0){
+  R(i,n)R(j,n)
+    t[i][j] = - max(a[i][j] + h,(D)b[i][j]);
+  
+  Hun();
+  int il = 0;
+  R(i,n){
+    if(abs(t[i][sx[i]] + (a[i][sx[i]] + h)) < 1e-12)
+      il++;
+    else
+      il--;
+  }
+  if(il == 0 || cz){
+    D wyn = -n/2 * h;
+    R(i,n){
+      wyn -= t[i][sx[i]];
+    }
+    printf("%d\n",int(wyn + 0.4));
+    exit(0);
+  }
+  return il>=0;
+}
+main(){
+  make(n);
+  R(i,n)R(j,n){
+    make(a[i][j]);
+    //a[i][j] = 100000;
+  }
+  R(i,n)R(j,n){
+    make(b[i][j]);
+    //b[i][j] = 0;
+  }
+  D po = -1e6 - 4;
+  D ko = 1e6 + 4;
+  while(abs(po-ko) > 1e-9){
+    D m = (po + ko) * .5;
+    if(licz(m)){
+      ko = m;
+    }else
+      po = m;
+  }
+  licz((po+ko) * .5,1);
+}

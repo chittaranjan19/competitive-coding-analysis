@@ -1,0 +1,112 @@
+#include<cstdio>
+#include<cstring>
+#include<cstdlib>
+#include<cctype>
+
+#include<cmath>
+#include<iostream>
+#include<iomanip>
+#include<fstream>
+
+#include<string>
+#include<utility>
+#include<vector>
+#include<list>
+#include<queue>
+#include<map>
+#include<algorithm>
+#include<set>
+#include<sstream>
+#include<stack>
+
+#define ii long long int
+#define pi 2*acos(0.0)
+#define eps 1e-9
+#define mem(x,y) memset(x,y,sizeof(x))
+#define all(x) x.begin(), x.end()
+#define pb push_back
+#define sz(a) (int)a.size()
+#define inf 2147483640
+
+#define mx 100010
+
+using namespace std;
+
+const int debug= 0;
+
+struct node
+{
+	int x,y;
+	node(){}
+	node(int a,int b){x=a,y=b;}
+};
+
+int n,m,k,s,a[mx],SZ[10],dis[10][5],dp[mx][6];
+node corner[5],kase[10][5];
+vector <node> v[10];
+
+int dist(int i1,int j1,int i2,int j2)
+{
+	return abs(i1-i2) + abs(j1-j2);
+}
+
+int call(int i,int prev)
+{
+	if (i>s) return 0;
+	
+	if (dp[i][prev]!=-1) return dp[i][prev];
+	
+	int t[5],j;
+	for (j=1;j<=4;++j) t[j]= call(i+1,j);
+	
+	if (i>1)
+	{
+		for (j=1;j<=4;++j)
+			t[j]= max( t[j],dist(kase[ a[i-1] ][prev].x,kase[ a[i-1] ][prev].y,kase[ a[i] ][j].x,kase[ a[i] ][j].y) );
+	}
+	
+	int ans=t[1];
+	for (j=1;j<=4;++j) ans= max(ans,t[j]);
+	
+	return dp[i][prev]= ans;
+}
+
+int main()
+{
+	//freopen("in.txt","r",stdin);
+	//freopen("out.txt","w",stdout);
+	
+	while (cin>>n>>m>>k>>s)
+	{
+		corner[1]=node(1,1);
+		corner[2]=node(1,m);
+		corner[3]=node(n,1);
+		corner[4]=node(n,m);
+		
+		int i,j,note,l;
+		for (i=1;i<=k;++i) v[i].clear();
+		for (i=1;i<=k;++i) for (j=1;j<=4;++j) dis[i][j]= inf;
+		
+		for (i=1;i<=n;++i) for (j=1;j<=m;++j)
+		{
+			cin>>note;
+			v[note].pb(node(i,j));
+			
+			for (l=1;l<=4;++l)
+			{
+				if ( (abs(corner[l].x-i)+abs(corner[l].y-j))<dis[note][l] )
+				{
+					dis[note][l]= abs(corner[l].x-i)+abs(corner[l].y-j);
+					kase[note][l]= node(i,j);
+				}
+			}
+		}
+		
+		for (i=1;i<=s;++i) cin>>a[i];
+		
+		mem(dp,-1);
+		cout<<call(1,0)<<endl;
+	}
+	return 0;	
+}
+

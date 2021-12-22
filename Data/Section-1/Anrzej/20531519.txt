@@ -1,0 +1,134 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+#define all(x) x.begin(), x.end()
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 3e5 + 10, lg = 31, MAXN = 1111;
+ll mod = 1e9 + 7;
+
+ll gcd(ll a, ll b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll _gcd(ll a, ll b, ll & x, ll & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	ll _x1, _y1;
+	ll d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+ll binpow(ll a, ll n) {
+	ll res = 1;
+	while (n) {
+		if (n & 1)
+			res *= a;
+		a *= a;
+		n >>= 1;
+		a %= mod;
+		res %= mod;
+	}
+	return res;
+}
+
+
+void term_ans(string ans){
+	cout << ans;
+	exit(0);
+}
+
+
+int n, e;
+vector<int> g[N];
+pair<int, int> cnt[N];
+vector<int> tm[N];
+int t_tm[N];
+int tm_t[1100000];
+int t_ans[N];
+
+int main()
+{
+	int mx_t = -1;
+	cin >> n >> e;
+	for (int i = 1; i <= n; i++){
+		cnt[i] = mp(0, i);
+		t_tm[i] = -1;
+	}
+	for (int i = 0; i < e; i++){
+		int u, v;
+		cin >> u >> v;
+		cnt[u].fs--;
+		cnt[v].fs--;
+		g[v].push_back(u);
+		g[u].push_back(v);
+	}
+	for (int i = 0; i < n; i++){
+		int l;
+		cin >> l;
+		while (l--){
+			int t;
+			cin >> t;
+			tm[i + 1].push_back(t);
+			tm_t[t] = -1;
+			mx_t = max(mx_t, t);
+		}
+	}
+	sort(cnt + 1, cnt + n + 1);
+	for (int i = 1; i <= n; i++){
+		if (t_tm[i] != -1) continue;
+		t_tm[i] = 1;
+		for (int j = 0; j < g[i].size(); j++){
+			int to = g[i][j];
+			t_tm[g[i][j]] = 2;
+		}
+	}
+
+	for (int i = 1; i <= n; i++){
+		for (int j = 0; j < tm[i].size(); j++){
+			if (tm_t[tm[i][j]] == -1){
+				t_ans[i] = tm[i][j], tm_t[tm[i][j]] = t_tm[i];
+				break;
+			}
+			else{
+				if (t_tm[i] == tm_t[tm[i][j]]){
+					t_ans[i] = tm[i][j];
+					break;
+				}
+			}
+		}
+	}
+	for (int i = 0; i < n; i++)
+		cout << t_ans[i + 1] << ' ';
+	cout << endl;
+	for (int i = 1; i <= mx_t; i++){
+		cout << max(1, tm_t[i]) << ' ';
+	}
+	return 0;
+}

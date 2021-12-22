@@ -1,0 +1,86 @@
+#include <iostream>
+#include <cstdlib>
+
+using namespace std;
+
+const int dx[4] = {-1,0,1,0};
+const int dy[4] = {0,-1,0,1};
+const char dc[4] = {'v','>','^','<'};
+
+int n,m;
+
+char t[2001][2001];
+
+void ans(bool r) {
+    if(!r) {
+        cout << "Not unique" << endl;
+        exit(0);
+    }
+
+    for(int i=0; i<n; i++) {
+        cout << t[i] << endl;
+    }
+}
+
+bool f(int x, int y) {
+    if(x<0) return 1;
+    if(y<0) return 1;
+    if(x>=n) return 1;
+    if(y>=m) return 1;
+    return (t[x][y]!='.');
+}
+
+void check(int i,int j) {
+    int sz = -1;
+    int fdb = 0;
+    for(int k=0; k<4; k++) {
+        if(f(i+dx[k], j+dy[k])) {
+            fdb++;
+        } else {
+            sz = k;
+        }
+    }
+    if(fdb == 3) {
+        t[i][j] = dc[sz];
+        t[i+dx[sz]][j+dy[sz]] = dc[(sz+2) % 4];
+
+        i=i+dx[sz]; j=j+dy[sz];
+        for(int k=0; k<4; k++) {
+            if(f(i+dx[k],j+dy[k])) continue;
+            check(i+dx[k],j+dy[k]);
+        }
+    }
+}
+
+int main()
+{
+    ios::sync_with_stdio(0);
+    cin >> n >> m;
+    for(int i=0; i<n; i++) {
+        cin >> t[i];
+    }
+
+    int i=0;
+    while(i<n) {
+
+        for(int j=0; j<m; j++) {
+            if(f(i,j)) continue;
+            check(i,j);
+        }
+
+        i++;
+    }
+
+    bool kdb = 1;
+    for(int i=0; i<n; i++) {
+        for(int j=0; j<m; j++) {
+            if(!f(i,j)) {
+                kdb = 0;
+            }
+        }
+    }
+
+    ans(kdb);
+
+    return 0;
+}

@@ -1,0 +1,134 @@
+#include <iostream>
+#include <vector>
+#include <cstdio>
+#include <string>
+#include <algorithm>
+#include <set>
+#include <queue>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+#define x first
+#define y second
+
+using namespace std;
+
+string s[3000];
+queue< pair<int, int> > q;
+int n, m;
+
+void get()
+{
+    for (int i = 1; i <= n; i++)
+    {
+        for (int j = 1; j <= m; j++)
+        {
+            if (s[i][j] != '.') continue;
+            int k = 0;
+            if (s[i+1][j] == '.')
+                k++;
+            if (s[i-1][j] == '.')
+                k++;
+            if (s[i][j+1] == '.')
+                k++;
+            if (s[i][j-1] == '.')
+                k++;
+            if (k == 1)
+                q.push(mp(i, j));
+        }
+    }
+}
+
+bool ok()
+{
+    bool go = 1;
+    for (int i = 1; i <= n; i++)
+    {
+        for (int j = 1; j <= m; j++)
+        {
+            if (s[i][j] == '.')
+                go = 0;
+        }
+    }
+    return go;
+}
+
+bool is(pair<int, int> a)
+{
+    return s[a.x][a.y] == '.';
+}
+
+void paint()
+{
+    pair<int, int> a = q.front();
+    if (s[a.x+1][a.y] == '.' && is(a))
+    {
+        s[a.x][a.y] = '^';
+        s[a.x+1][a.y] = 'v';
+    }
+    if (s[a.x - 1][a.y] == '.' && is(a))
+    {
+        s[a.x - 1][a.y] = '^';
+        s[a.x][a.y] = 'v';
+    }
+    if (s[a.x][a.y + 1] == '.'&& is(a))
+    {
+        s[a.x][a.y+1] = '>';
+        s[a.x][a.y] = '<';
+    }
+    if (s[a.x][a.y-1] == '.'&& is(a))
+    {
+        s[a.x][a.y-1] = '<';
+        s[a.x][a.y] = '>';
+    }
+
+    q.pop();
+}
+
+int main()
+{
+    cin >> n >> m;
+    for (int i = 1; i <= n; i++)
+    {
+        string t;
+        cin >> t;
+        s[i] = "";
+        s[i] += '!';
+        s[i] += t;
+        s[i] += '!';
+    }
+    s[0] = s[n + 1] = "";
+    for (int i = 0; i < m + 3; i++)
+    {
+        s[0] += '!';
+        s[n + 1] += '!';
+    }
+    get();
+    while (1)
+    {
+        if (!q.empty())
+            paint();
+        if (q.empty())
+        {
+            get();
+            if (q.empty())
+                break;
+        }
+    }
+    if (ok())
+    {
+        string a;
+        for (int i = 1; i <= n; i++)
+        {
+            a = "";
+            for (int j = 1; j <= m; j++)
+            {
+                a += s[i][j];
+            }
+            cout << a << endl;
+        }
+    }
+    else cout << "Not unique";
+    return 0;
+}

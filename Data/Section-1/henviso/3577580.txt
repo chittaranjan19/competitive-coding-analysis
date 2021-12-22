@@ -1,0 +1,108 @@
+#include <iostream>
+#include <cstdio>
+#include <string>
+#include <cstring>
+#include <cstdlib>
+#include <stack>
+#include <algorithm>
+#include <cctype>
+#include <vector>
+#include <queue>
+#include <tr1/unordered_map>
+#include <cmath>
+#include <map>
+#include <bitset>
+using namespace std;
+typedef long long ll;
+typedef vector<int> vi;
+typedef pair<int,int> ii;
+///////////////////////////////UTIL/////////////////////////////////
+#define ALL(x) (x).begin(),x.end()
+#define CLEAR0(v) memset(v, 0, sizeof(v))
+#define CLEAR(v, x) memset(v, x, sizeof(v))
+#define INRANGE0(x, n) ((x) > -1 && (x) < n)
+#define INRANGE(x, a, b) ((x) >= a && (x) <= b)
+#define COPY(a, b) memcpy(a, b, sizeof(a))
+#define REP(i,n) for(int i = 0; i<n; i++)
+#define REPP(i,a,n) for(int i = a; i<n; i++)
+#define REPD(i,n) for(int i = n-1; i>-1; i--)
+#define REPDP(i,a,n) for(int i = a; i>-1; i--)
+#define pb push_back
+#define pf push_front
+#define sz size()
+#define mp make_pair
+/////////////////////////////NUMERICAL//////////////////////////////
+#define INCMOD(a,b,c) (((a)+b)%c)
+#define DECMOD(a,b,c) (((a)+c-b)%c)
+#define ROUNDINT(a) (int)((double)(a) + 0.5)
+#define INF 2000000000
+#define EPS 1e-9
+/////////////////////////////BITWISE////////////////////////////////
+#define CHECK(S, j) (S & (1 << j))
+#define CHECKFIRST(S) (S & (-S))  //PRECISA DE UMA TABELA PARA TRANSFORMAR EM INDICE
+#define SET(S, j) S |= (1 << j)
+#define SETALL(S, j) S = (1 << j)-1  //J PRIMEIROS
+#define UNSET(S, j) S &= ~(1 << j)
+#define TOOGLE(S, j) S ^= (1 << j)
+///////////////////////////////64 BITS//////////////////////////////
+#define LCHECK(S, j) (S & (1ULL << j))
+#define LSET(S, j) S |= (1ULL << j)
+#define LSETALL(S, j) S = (1ULL << j)-1ULL  //J PRIMEIROS
+#define LUNSET(S, j) S &= ~(1ULL << j)
+#define LTOOGLE(S, j) S ^= (1ULL << j)
+//scanf(" %d ", &t);
+#define DFS_WHITE -1
+#define DFS_BLACK 1
+#define DFS_GRAY 2
+
+vi ft;
+
+void ft_create(vi &t, int n){ t.assign(n+1, 0); }
+
+int ft_rsq(const vi &t, int b){
+	int sum = 0; for(; b; b -= CHECKFIRST(b)) sum += t[b];
+	return sum;
+}
+
+int ft_rsq(const vi &t, int a, int b){
+	return ft_rsq(t, b) - (a == 1? 0 : ft_rsq(t, a-1)); 
+}
+
+void ft_adjust(vi &t, int k, int v){
+	for(; k  <= (int)t.size(); k += CHECKFIRST(k)) t[k] += v;
+}
+
+int a[100000];
+vi b;
+
+int main(){
+	int n, m, k;
+	cin >> n >> m >> k;
+	ft_create(ft, k+5);
+	
+	b.resize(m);
+	REP(i, n) scanf(" %d ", &a[i]);
+	REP(i, m){
+		scanf(" %d ", &b[i]);
+		ft_adjust(ft, b[i], 1);
+	}
+	sort(a, a+n);
+	sort(ALL(b));
+	int qnt = m;
+	bool pos = false;
+	REP(i, n){
+		if(ft_rsq(ft, a[i], k+1)){
+			vi::iterator el = lower_bound(ALL(b), a[i]);
+			if(el != b.end()){
+				ft_adjust(ft, *el, -1);
+				b.erase(el);
+			}
+		}
+		else{
+			pos = true;
+			break;
+		}
+	}
+	if(pos) printf("YES\n");
+	else printf("NO\n");
+}

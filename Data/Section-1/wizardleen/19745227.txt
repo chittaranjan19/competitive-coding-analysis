@@ -1,0 +1,68 @@
+import java.io.BufferedInputStream;
+import java.util.*;
+
+/**
+ * Created by leen on 6/6/16.
+ */
+public class Lab {
+
+
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024 * 64));
+        int n = scan.nextInt();
+        int[] g = new int[n*n];
+        for(int i = 0; i < n*n; i++) {
+            g[i] = scan.nextInt();
+        }
+        int[] a = new Lab().solve(g, n);
+        StringBuilder buf = new StringBuilder();
+        for(int i = 0; i < n; i++) {
+            if(i > 0)
+                buf.append(' ');
+            buf.append(a[i]);
+        }
+        System.out.println(buf.toString());
+    }
+
+    int[] solve(int[] g, int n) {
+        Arrays.sort(g);
+
+        int[] a = new int[n];
+        int curLen = 0;
+        Map<Integer, Integer> gcd2num = new HashMap<Integer, Integer>();
+        for(int j = n*n-1; j >= 0; j--) {
+            int v = g[j];
+            Integer gcdNum = gcd2num.get(v);
+            if(gcdNum != null && gcdNum > 0)
+                gcd2num.put(v, gcdNum-1);
+            else {
+                a[curLen++] = v;
+                if(curLen == n)
+                    break;
+                for(int i = 0; i < curLen-1; i++) {
+                    int gcd = gcd(a[i],v);
+                    gcdNum = gcd2num.get(gcd);
+                    if(gcdNum == null)
+                        gcdNum = 0;
+                    gcd2num.put(gcd, gcdNum+2);
+                }
+            }
+        }
+
+        return a;
+    }
+
+    int gcd(int a, int b) {
+        int r;
+        for(;;) {
+            r = a % b;
+            if(r == 0)
+                break;
+            a = b;
+            b = r;
+        }
+        return b;
+    }
+
+
+}

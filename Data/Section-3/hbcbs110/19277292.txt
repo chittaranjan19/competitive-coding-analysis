@@ -1,0 +1,137 @@
+#include<iostream>
+#include<algorithm>
+#include<cstdio>
+#include<cstring>
+#include<cstdlib>
+#include<cmath>
+using namespace std;
+const double pi=3.14159265358979;
+const double esp=1e-8;
+struct Circle
+{
+    double x,y,r,r2;
+}pl[100005];
+struct AngleSeg
+{
+    double s,e;
+}az[200005],azm[100005];
+double getdr(double x,double y)
+{
+    return sqrt(x*x+y*y);
+}
+double getds(double x,double y)
+{
+    return x*x+y*y;
+}
+double pow2(double x)
+{
+    return x*x;
+}
+double pow4(double x)
+{
+    return x*x*x*x;
+}
+bool cmp(AngleSeg a,AngleSeg b)
+{
+    if(a.s<b.s) return 1;
+    else if(a.s>b.s) return 0;
+         else return a.e<b.e;
+}
+int main()
+{
+    double v,t,gl=0,hbn,stn,xxx;
+    int n,i,m=0,mm=0;
+    bool sf=0;
+    scanf("%lf%lf%lf%lf",&pl[0].x,&pl[0].y,&v,&t);
+    pl[0].r=v*t;
+    pl[0].r2=v*v*t*t;
+    cin>>n;
+    for(i=1;i<=n;i++)
+    {
+        scanf("%lf%lf%lf",&pl[i].x,&pl[i].y,&pl[i].r);
+        pl[i].r2=pl[i].r*pl[i].r;
+        if(getdr(pl[i].x-pl[0].x,pl[i].y-pl[0].y)<=pl[i].r) sf=1;
+    }
+    if(sf)
+    {
+        printf("1.00000000\n");
+    }else{
+        if(pl[0].r<esp) printf("%0.00000000\n");
+        else{
+            for(i=1;i<=n;i++)
+            {
+                if(getdr(pl[i].x-pl[0].x,pl[i].y-pl[0].y)>=pl[i].r+pl[0].r) continue;
+                stn=acos((pl[i].x-pl[0].x)/getdr(pl[i].x-pl[0].x,pl[i].y-pl[0].y));
+                if(pl[i].y-pl[0].y<0) stn=pi-stn+pi;
+                if(getds(pl[i].x-pl[0].x,pl[i].y-pl[0].y)-pl[i].r2-pl[0].r2<esp)
+                {
+                    hbn=asin(pl[i].r/getdr(pl[i].x-pl[0].x,pl[i].y-pl[0].y));
+                    if(stn-hbn<0)
+                    {
+                        az[m].s=0;
+                        az[m].e=stn+hbn;
+                        m++;
+                        az[m].s=stn-hbn+pi+pi;
+                        az[m].e=pi+pi;
+                        m++;
+                    }else{
+                        if(stn+hbn>pi+pi)
+                        {
+                            az[m].s=0;
+                            az[m].e=stn+hbn-pi-pi;
+                            m++;
+                            az[m].s=stn-hbn;
+                            az[m].e=pi+pi;
+                            m++;
+                        }else{
+                            az[m].s=stn-hbn;
+                            az[m].e=stn+hbn;
+                            m++;
+                        }
+                    }
+                }else{
+                    xxx=0.5*sqrt(-getds(pl[i].x-pl[0].x,pl[i].y-pl[0].y)+2*pow2(pl[i].r)+2*pow2(pl[0].r)-(pow4(pl[i].r)+pow4(pl[0].r)-2*pow2(pl[i].r)*pow2(pl[0].r))/getds(pl[i].x-pl[0].x,pl[i].y-pl[0].y));
+                    hbn=asin(xxx/pl[0].r);
+                    if(stn-hbn<0)
+                    {
+                        az[m].s=0;
+                        az[m].e=stn+hbn;
+                        m++;
+                        az[m].s=stn-hbn+pi+pi;
+                        az[m].e=pi+pi;
+                        m++;
+                    }else{
+                        if(stn+hbn>pi+pi)
+                        {
+                            az[m].s=0;
+                            az[m].e=stn+hbn-pi-pi;
+                            m++;
+                            az[m].s=stn-hbn;
+                            az[m].e=pi+pi;
+                            m++;
+                        }else{
+                            az[m].s=stn-hbn;
+                            az[m].e=stn+hbn;
+                            m++;
+                        }
+                    }
+                }
+            }
+        }
+        sort(az,az+m,cmp);
+        azm[mm++]=az[0];
+        for(i=1;i<m;i++)
+        {
+            if(az[i].s>=azm[mm-1].s&&az[i].e<=azm[mm-1].e) continue;
+            if(az[i].s<=azm[mm-1].e) azm[mm-1].e=max(azm[mm-1].e,az[i].e);
+            else azm[mm++]=az[i];
+        }
+        for(i=0;i<mm;i++)
+        {
+            gl+=azm[i].e-azm[i].s;
+        }
+        gl/=pi*2;
+        printf("%lf\n",gl);
+    }
+    return 0;
+}

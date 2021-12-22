@@ -1,0 +1,132 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+#include <queue>
+using namespace std;
+const int MAX_V = 1e5, MAX_LOG_V = 17,MAX_a = 10;
+vector<int> G[MAX_V],people[MAX_V];
+void add_edge(int u,int v)
+{
+    G[u].push_back(v);  G[v].push_back(u);
+}
+
+int depth[MAX_V],parent[MAX_LOG_V][MAX_V];
+vector<int> path[MAX_LOG_V][MAX_V];
+//path[k][i]    从节点i延返祖边走2^k次(不足则停止),经过城市的p1,p2,...,pa, 不足则存下全部
+
+vector<int> merge(vector<int> &a, vector<int> &b)
+{
+    vector<int> res(a.size()+b.size());
+    merge(a.begin(),a.end(),b.begin(),b.end(),res.begin());
+    res.erase(unique(res.begin(),res.end()),res.end());
+    
+    if(res.size()>MAX_a)    res.resize(MAX_a);
+    
+    return res;
+}
+
+void bfs(int s)
+{
+    memset(depth,-1,sizeof(depth));
+    memset(parent,-1,sizeof(parent));
+    queue<int> que; que.push(s);
+    depth[s] = 0;   path[0][s] = people[s];
+    while(!que.empty())
+    {
+        int v = que.front();    que.pop();
+        for(int i = 0; i < G[v].size(); ++i)
+            if(depth[G[v][i]] < 0)
+            {
+                depth[G[v][i]] = depth[v] + 1,parent[0][G[v][i]] = v;
+                path[0][G[v][i]] = merge(people[v],people[G[v][i]]);
+                que.push(G[v][i]);
+            }
+    }
+}
+void ini(int V)
+{
+    for(int i = 0; i < V ; ++i)
+    {
+        sort(people[i].begin(),people[i].end());
+        if(people[i].size()>MAX_a)  people[i].resize(MAX_a);
+    }
+    
+    bfs(0);
+    for(int k = 0; k + 1 < MAX_LOG_V;++k)
+        for(int v = 0; v < V; ++v)
+        {
+            if(parent[k][v] < 0)
+            {
+                parent[k+1][v] = parent[k][v];
+                path[k+1][v] = path[k][v];
+            }
+            else
+            {
+                parent[k+1][v] = parent[k][parent[k][v]];
+                path[k+1][v] = merge(path[k][v],path[k][parent[k][v]]);
+            }
+        }
+}
+vector<int> query(int u,int v)
+{
+    if(depth[u] > depth[v]) swap(u,v);
+
+    vector<int> pu(people[u]),  pv(people[v]);
+
+    for(int k = 0; k < MAX_LOG_V; ++k)
+        if( (depth[v]-depth[u])& 1<<k)
+        {
+            pv = merge(path[k][v],pv);
+            v = parent[k][v];
+        }
+    
+    if(u==v)    return merge(pu,pv);
+    
+    for(int k = MAX_LOG_V-1; k >= 0; --k)
+        if(parent[k][u] != parent[k][v])
+        {
+            pu = merge(path[k][u],pu);  u = parent[k][u];
+            pv = merge(path[k][v],pv);  v = parent[k][v];
+        }
+    
+    pu = merge(path[0][u],pu);
+    pv = merge(path[0][v],pv);
+    
+    return merge(pu,pv);
+}
+
+int main()
+{
+    int n,m,q;
+    scanf("%d%d%d",&n,&m,&q);
+    for(int i = 0; i < n-1; ++i)
+    {
+        int u,v;
+        scanf("%d%d",&u,&v);
+        add_edge(u-1,v-1);
+    }
+    
+    for(int i = 0; i < m; ++i)
+    {
+        int c;
+        scanf("%d",&c);
+        people[c-1].push_back(i);
+    }
+    
+    ini(n);
+    
+    for(int i = 0; i < q; ++i)
+    {
+        int u,v,a;
+        scanf("%d%d%d",&u,&v,&a);
+        vector<int> ans = query(u-1,v-1);
+        
+        if(ans.size()>a)    ans.resize(a);
+        
+        printf("%d",ans.size());
+        for(int i = 0; i < ans.size();++i)
+            printf(" %d",ans[i]+1);
+        puts("");
+    }
+}

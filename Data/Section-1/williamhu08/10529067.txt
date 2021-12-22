@@ -1,0 +1,114 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 20, MOD = 1e9 + 7;
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+void addeq (int &x, int y) {
+	x = add(x, y);
+}
+
+int subtr (int x, int y) {
+	x -= y;
+	if (x < 0) {
+		x += MOD;
+	}
+	return x;
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+struct segtree {
+	int tree[2 * MAXN], lazy[2 * MAXN];
+	void add (int cur, int l, int r, int v) {
+		addeq(tree[cur], mult(r - l, v));
+		addeq(lazy[cur], v);
+	}
+	void down (int cur, int l, int r) {
+		if (lazy[cur]) {
+			int mid = (l + r) / 2;
+			add(2 * cur, l, mid, lazy[cur]);
+			add(2 * cur + 1, mid, r, lazy[cur]);
+			lazy[cur] = 0;
+		}
+	}
+	void update (int a, int b, int v, int cur = 1, int l = 0, int r = MAXN) {
+		if (r <= a || b <= l) {
+			return;
+		}
+		if (a <= l && r <= b) {
+			add(cur, l, r, v);
+			return;
+		}
+		down(cur, l, r);
+		int mid = (l + r) / 2;
+		update(a, b, v, 2 * cur, l, mid);
+		update(a, b, v, 2 * cur + 1, mid, r);
+		tree[cur] = ::add(tree[2 * cur], tree[2 * cur + 1]);
+	}
+	int query (int a, int cur = 1, int l = 0, int r = MAXN) {
+		if (r == l + 1) {
+			return tree[cur];
+		}
+		down(cur, l, r);
+		int mid = (l + r) / 2;
+		return a < mid ? query(a, 2 * cur, l, mid) : query(a, 2 * cur + 1, mid, r);
+	}
+};
+
+int N;
+int depth[MAXN];
+int in[MAXN], out[MAXN], z;
+vector<int> adj[MAXN];
+segtree tree1, tree2;
+
+void dfs (int x, int d) {
+	in[x] = ++z;
+	depth[x] = d++;
+	for (int t : adj[x]) {
+		dfs(t, d);
+	}
+	out[x] = ++z;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d", &N);
+	int v, x, k, nq;
+	for (int i = 2; i <= N; i++) {
+		scanf("%d", &x);
+		adj[x].push_back(i);
+	}
+	dfs(1, 0);
+	//dfs to find the depths
+	for (scanf("%d", &nq); nq--; ) {
+		scanf("%d %d", &k, &v);
+		if (k == 1) {
+			scanf("%d %d", &x, &k);
+			//update
+			tree1.update(in[v], out[v] + 1, add(x, mult(k, depth[v])));
+			tree2.update(in[v], out[v] + 1, k);
+		} else {
+			//query
+			printf("%d\n", subtr(tree1.query(in[v]), mult(tree2.query(in[v]), depth[v])));
+		}
+	}
+}

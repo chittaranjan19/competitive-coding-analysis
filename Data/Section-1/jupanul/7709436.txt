@@ -1,0 +1,107 @@
+#include <cmath>
+
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+
+using namespace std;
+
+int p[8][3];
+long long dist[7];
+
+double dist2(int i, int j) {
+    return sqrt(1LL * (p[i][0] - p[j][0]) * (p[i][0] - p[j][0]) + 1LL * (p[i][1] - p[j][1]) * (p[i][1] - p[j][1]) + 1LL * (p[i][2] - p[j][2]) * (p[i][2] - p[j][2]));
+}
+
+double area(int i, int j, int k) {
+    double a, b, c;
+    a = dist2(i, j);
+    b = dist2(i, k);
+    c = dist2(j, k);
+    double p = 0.5 * (a + b + c);
+    return sqrt(p * (p - a) * (p - b) * (p - c));
+}
+
+inline int copl(int i) {
+    double s[4];
+    s[0] = area(0, 1, 2);
+    s[1] = area(0, 1, i);
+    s[2] = area(0, 2, i);
+    s[3] = area(1, 2, i);
+    sort(s, s + 4);
+    return fabs(s[3] - s[0] - s[1] - s[2]) < 1.e-5;
+}
+
+bool coplanar() {
+    for(int i = 3; i < 8; ++ i) {
+        if (!copl(i)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool cube() {
+    for (int i = 0; i < 8; ++ i) {
+        int k = 0;
+        for (int j = 0; j < 8; ++ j) {
+            if (i != j) {
+                dist[k ++] = 1LL * (p[i][0] - p[j][0]) * (p[i][0] - p[j][0]) + 1LL * (p[i][1] - p[j][1]) * (p[i][1] - p[j][1]) + 1LL * (p[i][2] - p[j][2]) * (p[i][2] - p[j][2]);
+            }
+        }
+        sort(dist, dist + k);
+        for (int i = 1; i < 3; ++ i) {
+            if (dist[i] != dist[0]) {
+                return false;
+            }
+        }
+        for (int i = 3; i < 6; ++ i) {
+            if (dist[i] != 2 * dist[0]) {
+                return false;
+            }
+        }
+        for (int i = 6; i < 7; ++ i) {
+            if(dist[i] != 3 * dist[0]) {
+                return false;
+            }
+        }
+    }
+    if (coplanar()) {
+        return false;
+    }
+
+    return true;
+}
+
+int main() {
+    for (int i = 0; i < 8; ++ i) {
+        for(int j = 0; j < 3; ++ j) {
+            cin >> p[i][j];
+        }
+    }
+    do {
+        do {
+            do {
+                do{
+                    do{
+                        do{
+                            do{
+                                do{
+                                    if(cube()) {
+                                        cout << "YES\n";
+                                        for (int i = 0; i < 8; ++ i) {
+                                            cout << p[i][0] << " " << p[i][1] << " " << p[i][2] << "\n";
+                                        }
+                                        return 0;
+                                    }
+                                } while(next_permutation(p[7], p[7] + 3));
+                            }while(next_permutation(p[6], p[6] + 3));
+                        } while(next_permutation(p[5], p[5] + 3));
+                    } while(next_permutation(p[4], p[4] + 3));
+                } while(next_permutation(p[3], p[3] + 3));
+            } while(next_permutation(p[2], p[2] + 3));
+        } while(next_permutation(p[1], p[1] + 3));
+    } while(next_permutation(p[0], p[0] + 3));
+    cout << "NO\n";
+    return 0;
+}

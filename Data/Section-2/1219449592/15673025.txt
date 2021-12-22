@@ -1,0 +1,137 @@
+#include <iostream>
+#include <iomanip>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <cmath>
+#include <set>
+#include <vector>
+#include <queue>
+#include <algorithm>
+#define N 200005
+#define ll long long
+const int INF = 0x3fffffff;
+using namespace std;
+struct zz
+{
+	int node, len;
+};
+vector<int> aa[N];
+int n, vis[N];
+int a, leaf;
+void dfs(int node, int depth)
+{
+	int i, l = aa[node].size();
+	bool flag = true;
+	for (i = 0; i < l; i++)
+	{
+		if (!vis[aa[node][i]])
+		{
+			vis[aa[node][i]] = true;
+			dfs(aa[node][i], depth+1);
+			flag = false;
+		}
+	}
+	if (l == 1 && flag)	a = max(a, depth);
+}
+void bfs(int root)
+{
+	queue<int> q;
+	int t, l;
+	memset(vis, 0,sizeof(vis));
+	vis[root] = true;
+	q.push(root);
+	while(!q.empty())
+	{
+		t = q.front();
+		q.pop();
+		leaf = t;
+		l = aa[t].size();
+		for (int i = 0; i < l; i++)
+		{
+			if (!vis[aa[t][i]])
+			{
+				vis[aa[t][i]] = true;
+				q.push(aa[t][i]);
+			}
+		}
+	}
+}
+int bfs1(int leaf)
+{
+	queue<zz> q;
+	zz t1, t2;
+	int i, l, ans, t;
+	memset(vis, 0,sizeof(vis));
+	vis[leaf] = true;
+	t1.len = 0;
+	t1.node = leaf;
+	q.push(t1);
+	while(!q.empty())
+	{
+		t1 = q.front();
+		q.pop();
+		t = t1.node;
+		ans = t1.len;
+		l = aa[t].size();
+		for (i = 0; i < l; i++)
+		{
+			if (!vis[aa[t][i]])
+			{
+				vis[aa[t][i]] = true;
+				t2.len = t1.len+1;
+				t2.node = aa[t][i];
+				q.push(t2);
+			}
+		}
+	}
+	return ans;
+}
+int main()
+{
+#ifndef ONLINE_JUDGE
+	freopen("1.txt", "r", stdin);
+#endif
+	int i, j, u, v, x, y, root;
+	ll ans = 0;
+	bool flag;
+	scanf("%d%d%d", &n, &x, &y);
+	for (i = 1; i < n; i++)
+	{
+		scanf("%d%d", &u, &v);
+		aa[u].push_back(v);
+		aa[v].push_back(u);
+	}
+	if (x > y)
+	{
+		ans = (ll)y*(n-1);
+		flag = false;
+		for (i = 1; i <= n; i++)
+		{
+			if (aa[i].size() == n-1)
+			{
+				flag = true;
+				break;
+			}
+		}
+		if (flag)	ans += (ll)x-y;
+		printf("%I64d", ans);
+		return 0;
+	}
+	int t = 0;
+	for (i = 1; i <= n; i++)
+	{
+		if(aa[i].size() > 1) 	continue;
+		root = i;
+		break;
+	}
+	bfs(root);
+	t = bfs1(leaf);
+//	memset(vis, 0, sizeof(vis));
+//	dfs(leaf, 0);
+//	t = max(t, a);
+	ans = (ll)t*x+(ll)(n-t-1)*y;
+	printf("%I64d", ans);
+	return 0;
+}

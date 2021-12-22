@@ -1,0 +1,157 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 3010;
+
+vector<int> adj[maxn], radj[maxn];
+vector<pii> vec[maxn], rvec[maxn];
+int mpath[maxn][maxn], rmpath[maxn][maxn], vis[maxn], dist[maxn];
+int n, m;
+
+void solve(int src)
+{
+	int i, j, k, u, cdist;
+	for(i=1; i<=n; i++)
+		dist[i] = inf;
+	dist[src] = 0;
+	priority_queue<pii, vector<pii>, greater<pii> > q;
+	q.push(mp(0, src));
+	while(!q.empty()){
+		u = q.top().s;
+		cdist = q.top().f;
+		q.pop();
+		if(cdist > dist[u])
+			continue;
+		for(int it:adj[u]){
+			if(dist[it] > cdist+1){
+				dist[it] = cdist + 1;
+				q.push(mp(dist[it], it));
+			}
+		}
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int u, v, i, j, p, k1, k2, k3, k4, maxdist, cdist, v1, v2, v3, v4, x1, x2;
+	scanf("%d%d", &n, &m);
+	for(i=1; i<=m; i++){
+		scanf("%d%d", &u, &v);
+		adj[u].pb(v);
+		radj[v].pb(u);
+	}
+	for(i=1; i<=n; i++){
+		solve(i);
+		for(j=1; j<=n; j++){
+			mpath[i][j] = dist[j];
+			if(dist[j]!=inf)
+				vec[i].pb(mp(dist[j], j));
+		}
+		sort(all(vec[i]));
+		reverse(all(vec[i]));
+	}
+	swap(adj, radj);
+	for(i=1; i<=n; i++){
+		solve(i);
+		for(j=1; j<=n; j++){
+			rmpath[i][j] = dist[j];
+			if(dist[j]!=inf)
+				rvec[i].pb(mp(dist[j], j));
+		}
+		sort(all(rvec[i]));
+		reverse(all(rvec[i]));
+	}
+	maxdist = -1;
+	for(i=1; i<=n; i++){
+		for(j=1; j<=n; j++){
+			if(i==j || mpath[i][j]==inf)
+				continue;
+			p = 0;
+			k1 = k2 = -1;
+			while(p<rvec[i].size()){
+				if(rvec[i][p].s!=i && rvec[i][p].s!=j){
+					if(k1==-1)
+						k1 = rvec[i][p].s;
+					else if(k2==-1)
+						k2 = rvec[i][p].s;
+					else
+						break;
+				}
+				p++;
+			}
+			p = 0;
+			k3 = k4 = -1;
+			while(p<vec[j].size()){
+				if(vec[j][p].s!=i && vec[j][p].s!=j){
+					if(k3==-1)
+						k3 = vec[j][p].s;
+					else if(k4==-1)
+						k4 = vec[j][p].s;
+					else
+						break;
+				}
+				p++;
+			}
+			if(k1!=k3){
+				if(k1==-1 || k3==-1)
+					continue;
+				cdist = rmpath[i][k1] + mpath[i][j] + mpath[j][k3];
+				if(cdist > maxdist){
+					maxdist = cdist;
+					v1 = k1;
+					v2 = i;
+					v3 = j;
+					v4 = k3;
+				}
+			}
+			else{
+				if(k1==-1 || k4==-1)
+					x1 = -inf;
+				else
+					x1 = rmpath[i][k1] + mpath[i][j] + mpath[j][k4];
+				if(k2==-1 || k3==-1)
+					x2 = -inf;
+				else
+					x2 = rmpath[i][k2] + mpath[i][j] + mpath[j][k3];
+				if(x1 > x2){
+					cdist = x1;
+					if(cdist > maxdist){
+						maxdist = cdist;
+						v1 = k1;
+						v2 = i;
+						v3 = j;
+						v4 = k4;
+					}
+				}
+				else{
+					cdist = x2;
+					if(cdist > maxdist){
+						maxdist = cdist;
+						v1 = k2;
+						v2 = i;
+						v3 = j;
+						v4 = k3;
+					}
+				}
+			}
+		}
+	}
+	printf("%d %d %d %d\n", v1, v2, v3, v4);
+	return 0;
+}

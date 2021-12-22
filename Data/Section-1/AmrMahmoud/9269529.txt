@@ -1,0 +1,88 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+double DP[5001][5001];
+double power[105][5001];
+double arr[5001];
+int maxt[5001], n, t;
+
+double solve(int ind, int time)
+{
+    if(ind == n || time == t) return 0;
+    double &temp = DP[ind][time];
+    if(temp != -1)
+        return temp;
+    temp = 0;
+    bool done = 0;
+    int tmp = arr[ind] * 100 + EPS;
+    for(int i=time;i<min(time + maxt[ind], t);i++)
+    {
+        if(i - time + 1 == maxt[ind])
+        {
+            done = 1;
+            temp+=(solve(ind + 1, i + 1) + 1) * power[tmp][i - time];
+        }
+        else
+        {
+            double test = power[tmp][i - time] * arr[ind];
+            temp+= (solve(ind + 1, i + 1) + 1) * test;
+            if(test <= EPS) break;
+        }
+    }
+    if(!done && min(time + maxt[ind], t) - time == maxt[ind])
+        temp+=(solve(ind + 1, min(time + maxt[ind], t)) + 1) * power[tmp][min(time + maxt[ind], t) - time - 1];
+    return temp;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin >> n >> t;
+    for(int i=0;i<n;i++)
+        cin >> arr[i] >> maxt[i], arr[i]/=100;
+    for(int i=0;i<n;i++)
+        for(int j=0;j<t;j++)
+            DP[i][j] = -1;
+    for(int i=0;i<=100;i++)
+    {
+        double temp = 1.0, p = 1 - (double)i / 100.0;
+        for(int j=0;j<=t;j++)
+        {
+            power[i][j] = temp;
+            temp *= p;
+        }
+    }
+    printf("%.8lf",solve(0, 0));
+    return 0;
+}

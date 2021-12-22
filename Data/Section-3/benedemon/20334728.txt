@@ -1,0 +1,151 @@
+#include <iostream>
+#include <vector>
+#include <string.h>
+#include <stack>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <queue>
+#include <math.h>
+
+#define ll long long
+#define pb push_back
+#define mp make_pair
+#define traverse(container, it) \
+for(typeof(container.begin()) it = container.begin(); it!= container.end(); it++)
+using namespace std;
+
+//FILE *fin = freopen("in","r",stdin);
+//FILE *fout = freopen("out","w",stdout);
+
+int gcd(int a, int b){ if(b==0) return a; return gcd(b,a%b); }
+int lcm(int a, int b) {return a*(b/gcd(a,b));}
+void setbool(bool a[], int n, bool x){for(int i=0;i<n;i++){a[i] = x;}}
+void setint(int a[], int n, int x){for(int i=0;i<n;i++){a[i] = x;}}
+
+string x[1001];
+int counter, connected;
+int has[1000001];
+int vis[1001][1001];
+int fo[4][2];
+int n, m;
+
+int indexing(int a, int x)
+{
+    if( x == 0)
+    {
+        if( a < 0)
+            return 0;
+        if( a == n)
+            return n-1;
+        
+        return a;
+    }
+    else
+    {
+        if( a < 0)
+            return 0;
+        if( a == m)
+            return m-1;
+        
+        return a;
+    }
+}
+
+void dfs(int i, int j)
+{
+    if(vis[i][j] > 0)
+        return;
+    
+    vis[i][j] = counter;
+    connected++;
+    
+    for(int k=0;k<4;k++)
+    {
+            if( vis[indexing( i + fo[k][0] , 0)][indexing( j + fo[k][1] , 1)] == 0 && x[indexing( i + fo[k][0] , 0)][indexing( j + fo[k][1] , 1)] == '.' )
+            {
+                dfs(indexing( i + fo[k][0] , 0),indexing( j + fo[k][1] , 1));
+            }
+    }
+}
+
+int main(int argc, const char * argv[])
+{
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    cin>>n>>m;
+    
+    fo[0][0] = -1;
+    fo[0][1] = 0;
+    fo[1][0] = 0;
+    fo[1][1] = 1;
+    fo[2][0] = 1;
+    fo[2][1] = 0;
+    fo[3][0] = 0;
+    fo[3][1] = -1;
+    
+    setint(has, 1000001, 0);
+    
+    for(int i=0;i<n;i++)
+        cin>>x[i];
+    
+    for(int i=0;i<n;i++)
+    {
+        for(int j=0;j<m;j++)
+        {
+            if(x[i][j] == '.')
+            {
+                if(vis[i][j] == 0)
+                {
+                    counter++;
+                    connected = 0;
+                    dfs(i, j);
+                    has[counter] = connected;
+                }
+            }
+        }
+    }
+    
+//    for(int i=0;i<n;i++)
+//    {
+//        for(int j=0;j<m;j++)
+//            cout<<vis[i][j]<<" ";
+//        cout<<endl;
+//    }
+//    return 0;
+//    
+    int sum;
+    has[0] = 0;
+    for(int i=0;i<n;i++)
+    {
+        for(int j=0;j<m;j++)
+        {
+            if(x[i][j] == '*')
+            {
+                set<int> s;
+                sum = 0;
+                for (int  k= 0; k<4;k++)
+                {
+                    s.insert(vis[indexing( i + fo[k][0] , 0)][indexing( j + fo[k][1] , 1)]);
+                }
+                
+                traverse(s, it)
+                {
+                //    cout<<*it<<" ";
+                    sum += has[*it];
+                }
+                sum++;
+                sum %= 10;
+                x[i][j] = '0' + sum;
+                sum = 0;
+            }
+           // cout<<endl;
+        }
+    }
+   // return 0;
+    for(int i=0;i<n;i++)
+        printf("%s\n",x[i].c_str());
+    
+    return 0;
+}

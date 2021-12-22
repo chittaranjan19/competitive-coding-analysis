@@ -1,0 +1,89 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 200005, MAXK = 105, MOD = 1e9 + 7;
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+void addeq (int &x, int y) {
+	x = add(x, y);
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+void multeq (int &x, int y) {
+	x = mult(x, y);
+}
+
+int inv (int x) {
+	//inverse
+	int res = 1;
+	for (int i = MOD - 2; i; i >>= 1) {
+		if (i & 1) {
+			multeq(res, x);
+		}
+		multeq(x, x);
+	}
+	return res;
+}
+
+int N, M, A[MAXN], B[MAXN];
+vector<pii> Q[MAXK];
+int fact[MAXN], invfact[MAXN];
+
+int choose (int x, int y) {
+	return mult(fact[x], mult(invfact[y], invfact[x - y]));
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	//precomp
+	fact[0] = invfact[0] = 1;
+	for (int i = 1; i < MAXN; i++) {
+		invfact[i] = inv(fact[i] = mult(fact[i - 1], i));	//big time story bro
+	}
+	//input
+	cin >> N >> M;
+	for (int i = 0; i < N; i++) {
+		cin >> A[i];
+	}
+	for (int i = 0, l, r, k; i < M; i++) {
+		cin >> l >> r >> k;
+		Q[k].push_back(pii(l - 1, r));
+	}
+	for (int i = MAXK - 1; i >= 0; i--) {
+		for (pii p : Q[i]) {
+			addeq(B[p.first], 1);
+		}
+		for (int j = MAXK - 1; j >= i; j--) {
+			for (pii p : Q[j]) {
+				int lt = p.first, rt = p.second;
+				addeq(B[rt], MOD - choose(rt - lt + j - i - 1, j - i));
+			}
+		}
+		for (int i = 1; i < N; i++) {
+			addeq(B[i], B[i - 1]);
+		}
+	}
+	for (int i = 0; i < N; i++) {
+		cout << add(A[i], B[i]) << ' ';
+	}
+}

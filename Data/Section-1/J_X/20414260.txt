@@ -1,0 +1,66 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <map>
+#include <cmath>
+
+using namespace std;
+
+typedef pair<int, int> pii;
+typedef map<pii, int>::iterator ite;
+
+const int maxn = 1e3 + 15;
+
+int x[maxn], y[maxn], a[maxn], b[maxn];
+bool used[maxn];
+map<pii, int> mp;
+
+int gcd(int a, int b)
+{
+    return b ? gcd(b, a % b) : a;
+}
+
+int solve(int m, int n)
+{
+    int ret = 0;
+    memset(used, 0, sizeof(used));
+    for(int i = 0; i < m; ++i)
+    {
+        mp.clear();
+        int q = a[i];
+        for(int j = m; j < m + n; ++j)
+        {
+            if(used[j]) continue;
+            int g = gcd(abs(x[j] - x[q]), abs(y[j] - y[q]));
+            b[j] = g;
+            pii p = pii((x[j] - x[q]) / g, (y[j] - y[q]) / g);
+            if(mp.find(p) == mp.end() || b[mp[p]] > g) mp[p] = j;
+        }
+        for(ite p = mp.begin(); p != mp.end(); ++p)
+        {
+            ++ret;
+            used[p->second] = true;
+        }
+    }
+    return ret;
+}
+
+int main()
+{
+    int n, m;
+    scanf("%d%d", &m, &n);
+    for(int i = 0; i < m; ++i)
+    {
+        scanf("%d%d", x + i, y + i);
+        a[i] = i;
+    }
+    for(int i = m; i < m + n; ++i) scanf("%d%d", x + i, y + i);
+    int ans = 0;
+    do
+    {
+        ans = max(ans, solve(m, n));
+    } while(next_permutation(a, a + m));
+    printf("%d\n", ans);
+    return 0;
+}

@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 5010, MAXH = MAXN / 2;
+
+void setmin (int &a, int b) {
+	if (a > b) {
+		a = b;
+	}
+}
+
+int N, R, L;	//R = root, L = # of leaves
+vector<int> adj[MAXN];
+int dp[MAXN][MAXH][2];	//dp[cur][# of leaves in subtree of color 1][color]
+int sub[MAXN];
+
+void dfs (int x, int p) {
+	if (adj[x].size() == 1) {
+		sub[x] = 1;
+		dp[x][0][0] = dp[x][1][1] = 0;
+		return;
+	}
+	//dp[cur][# of leaves in subtree of color 1][color]
+	dp[x][0][0] = dp[x][0][1] = 0;	
+	for (int t : adj[x]) {
+		if (t != p) {
+			dfs(t, x);
+			for (int c = 0; c < 2; c++) {
+				//c = current color
+				//j = start of this thing
+				for (int j = min(sub[x], L / 2); j >= 0; j--) {
+					//j - k <= sub[x]
+					//Note: using old value of dp[x][j][c]
+					for (int k = 1; k <= sub[t] && j + k <= L / 2; k++) {
+						setmin(dp[x][j + k][c], dp[x][j][c] + min(dp[t][k][c], dp[t][k][!c] + 1));
+					}
+					//dealing with k = 0.
+					if (c) {
+						dp[x][j][c]++;	//oops at the back
+					}
+				}
+			}
+			sub[x] += sub[t];
+		}
+	}
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	if (N == 2) {
+		cout << "1\n";
+		return 0;
+	}
+	for (int i = 1, x, y; i < N; i++) {
+		cin >> x >> y;
+		adj[x].push_back(y);
+		adj[y].push_back(x);
+	}
+	fillchar(dp, 1);
+	for (int i = 1; i <= N; i++) {
+		if (adj[i].size() == 1) {
+			L++;
+		} else {
+			R = i;
+		}
+	}
+	assert(L % 2 == 0);
+	dfs(R, 0);
+	cout << min(dp[R][L / 2][0], dp[R][L / 2][1]) << endl;
+}

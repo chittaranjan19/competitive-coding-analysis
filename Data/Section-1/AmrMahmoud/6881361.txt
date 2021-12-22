@@ -1,0 +1,100 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+
+string input[1005][11];
+LL dif[1005][1005];
+pair<LL,int> diff[1005];
+vector<pair<int,int> > res;
+bool done[1005];
+
+int main()
+{
+    int n,m,k;
+    LL w;
+    LL cost =0;
+    cin >> n >> m >> k >> w;
+    for(int i=0;i<k;i++)
+    {
+        for(int j=0;j<n;j++)
+            cin >> input[i][j];
+    }
+    for(int i=0;i<k;i++)
+    {
+        diff[i].second = i;
+        for(int j=0;j<k;j++)
+        {
+            if(i == j)
+                continue;
+            if(i < j)
+            {
+                for(int ii=0;ii<n;ii++)
+                {
+                    for(int jj=0;jj<m;jj++)
+                    {
+                        if(input[i][ii][jj] != input[j][ii][jj])
+                            dif[i][j]++,dif[j][i]++,diff[i].first++,diff[j].first++;
+                    }
+                }
+            }
+        }
+    }
+    sort(diff,diff+k);
+    res.pb(mp(diff[0].second,0));
+    done[diff[0].second] = true;
+    cost+=n*m;
+    for(int i=1;i<k;i++)
+    {
+        LL mind=n*m;
+        int tt=0;
+        for(int j=0;j<k;j++)
+        {
+            if(done[j] && diff[i].second != j)
+                if(mind > (LL)(dif[diff[i].second][j]) * w)
+                    mind = dif[diff[i].second][j],tt=j+1;
+        }
+        res.pb(mp(diff[i].second,tt));
+        cost+=mind * w;
+        done[diff[i].second] = true;
+        for(int j=0;j<k;j++)
+        {
+            if(diff[i].second != j)
+                diff[j].first-=dif[diff[i].second][j];
+        }
+        sort(diff+i+1,diff+k);
+    }
+    cout << cost << endl;
+    for(int i=0;i<res.size();i++)
+    {
+        printf("%d %d\n",res[i].first+1,res[i].second);
+    }
+    return 0;
+}

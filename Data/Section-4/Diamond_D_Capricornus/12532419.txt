@@ -1,0 +1,78 @@
+Const Fi='';//'4D.INP';
+      Fo='';//'4D.OUT';
+      maxN=5001;
+Type  Vc=Record
+      w,h,Id:Longint;
+      End;
+Var   n,w,h:Longint;
+      A:Array[0..maxN]Of Vc;
+      F,Tr:Array[0..maxN]Of Longint;
+Procedure Enter;
+Var i:Longint;
+  Begin
+    Readln(n,w,h);
+    For i:=1 to n do
+      With A[i] do
+        Begin
+          Readln(w,h);
+          Id:=i;
+        End;
+  End;
+Procedure Sort(l,h:Longint);
+Var i,j:Longint;
+    Key,Tmp:Vc;
+  Begin
+    If l>h then Exit;
+    i:=l;j:=h;
+    Key:=A[l+Random(h-l+1)];
+    Repeat
+      While (A[i].w>Key.w)or((A[i].w=Key.w)and(A[i].h<Key.h)) do Inc(i);
+      While (A[j].w<Key.w)or((A[j].w=Key.w)and(A[j].h>Key.h)) do Dec(j);
+      If i<=j then
+        Begin
+          If i<j then
+            Begin
+              Tmp:=A[i];
+              A[i]:=A[j];
+              A[j]:=Tmp;
+            End;
+          Inc(i);Dec(j);
+        End;
+    Until i>j;
+    Sort(l,j);Sort(i,h);
+  End;
+Procedure Main;
+Var i,j,jmax,Cs,Res:Longint;
+  Begin
+    Sort(1,n);
+    F[0]:=0;
+    For i:=1 to n do
+      Begin
+        jmax:=0;
+        For j:=1 to i-1 do
+          If (A[j].h>A[i].h)and(F[j]>F[jmax]) then
+            jmax:=j;
+        F[i]:=F[jmax]+1;
+        Tr[i]:=jmax;
+      End;
+    Res:=0;Cs:=0;
+    For i:=1 to n do
+      If (A[i].w>w)and(A[i].h>h)and(F[i]>Res) then
+        Begin
+          Cs:=i;
+          Res:=F[i];
+        End;
+    Writeln(Res);
+    While Cs<>0 do
+      Begin
+        Write(A[Cs].Id,' ');
+        Cs:=Tr[Cs];
+      End;
+  End;
+Begin
+  Assign(Input,Fi);Reset(Input);
+  Assign(Output,Fo);Rewrite(Output);
+  Enter;
+  Main;
+  Close(Input);Close(Output);
+End.

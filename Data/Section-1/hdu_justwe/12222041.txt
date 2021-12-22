@@ -1,0 +1,53 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <math.h>
+#include <algorithm>
+using namespace std;
+typedef long long ll;
+
+struct Pair{
+    int a,b;
+    Pair(){}
+    Pair(int x,int y):a(x),b(y){}
+    bool operator<(const Pair&o)const{
+        return a<o.a;
+    }
+}legs[100005];
+
+int dcnt[205];
+
+int main(){
+    int n,tot=0;
+    scanf("%d",&n);
+    for(int i=1;i<=n;i++) scanf("%d",&legs[i].a);
+    for(int i=1;i<=n;i++) {
+        scanf("%d",&legs[i].b);
+        tot+=legs[i].b;
+    }
+    sort(legs+1,legs+n+1);
+    int lastpt=0;
+    int tmpans=0,bestans=0;
+    for(int i=1;i<=n;i++){
+        if(legs[i].a!=legs[i-1].a){
+            bestans=max(bestans,tmpans);
+            tmpans=0;
+            for(int j=lastpt;j<i;j++) dcnt[legs[j].b]++;
+            lastpt=i;
+        }
+        tmpans+=legs[i].b;
+        if(i!=lastpt){
+            int tmpcnt=0;
+            for(int j=200;j>=1;j--){
+                if(tmpcnt+dcnt[j]>=i-lastpt){
+                    tmpans+=j;break;
+                }else tmpcnt+=dcnt[j];
+            }
+        }
+    }
+    bestans=max(bestans,tmpans);
+    printf("%d\n",tot-bestans);
+    return 0;
+}

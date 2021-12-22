@@ -1,0 +1,74 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+const int MAXN = 130;
+
+struct matrix
+{
+  double arr[MAXN][MAXN];
+  int n, m;
+
+  matrix(int x, int y)
+  {
+    n = x, m = y;
+  };
+
+  matrix(int x, int y, int v)
+  {
+    n = x, m = y;
+    for(int i=0;i<n;i++)
+      for(int j=0;j<m;j++)
+        arr[i][j] = v;
+  };
+
+  matrix operator * (const matrix &mat) const
+  {
+    matrix res(n, mat.m, 0);
+    for(int i=0;i<n;i++)
+      for(int j=0;j<mat.m;j++)
+        for(int k=0;k<m;k++)
+          res.arr[i][j] += arr[i][k] * mat.arr[k][j];
+    return res;
+  }
+};
+
+matrix mat_pow(const matrix &base, int power)
+{
+  if(power == 1) return base;
+  if(power & 1) return base * mat_pow(base, power - 1);
+  matrix temp = mat_pow(base, power/2);
+  return temp * temp;
+}
+
+double p[105];
+
+int main()
+{
+  int n, x;
+  cin >> n >> x;
+  for(int i=0;i<=x;i++)
+    scanf("%lf", &p[i]);
+  matrix mat(MAXN, MAXN, 0);
+  for(int i=0;i<=127;i++)
+    for(int j=0;j<=x;j++)
+      mat.arr[i][i ^ j] += p[j];
+  mat = mat_pow(mat, n);
+  printf("%.15lf", 1 - mat.arr[0][0]);
+  return 0;
+}

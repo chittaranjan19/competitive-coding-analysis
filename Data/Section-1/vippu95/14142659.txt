@@ -1,0 +1,66 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+const int lmt = 200005;
+char str[lmt];
+struct node{
+    int nxt[26];
+    node(){
+        for(int i=0;i<26;i++)
+            nxt[i]=0;
+    }
+}trie[lmt];
+int tn=0;
+bool win[lmt*26],lose[lmt*26];
+
+void addTrie(){
+    int n = strlen(str);
+    int cur = 0;
+    for(int i=0;i<n;i++){
+        if(!trie[cur].nxt[str[i]-'a'])
+            trie[cur].nxt[str[i]-'a'] = ++tn;
+        cur = trie[cur].nxt[str[i]-'a'];
+    }
+}
+
+void dfs(int nn){
+    win[nn]=false;
+    lose[nn]=false;
+    bool isleaf = true;
+    for(int i=0;i<26;i++){
+        if(trie[nn].nxt[i]){
+            isleaf = false;
+            dfs(trie[nn].nxt[i]);
+            win[nn] |= !win[trie[nn].nxt[i]];
+            lose[nn] |= !lose[trie[nn].nxt[i]];
+        }
+    }
+    if(isleaf)
+        lose[nn] = true;
+    return;
+}
+
+int main(){
+    int n,k;
+    scanf("%d %d",&n,&k);
+    for(int i=0;i<n;i++){
+        scanf("%s",str);
+        addTrie();
+    }
+    dfs(0);
+    if(win[0] && lose[0]) printf("First\n");
+    else if(lose[0] && !win[0]) printf("Second\n");
+    else if(win[0] && !lose[0]){
+        if(k&1) printf("First\n");
+        else printf("Second\n");
+    }
+    return 0;
+}

@@ -1,0 +1,73 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+const double prob = 0.333333333333333;
+
+double dp[4][101][101][101];
+
+double solve(int cur, int r, int s, int p)
+{
+	if(cur==1){
+		if(s==0 && p==0 && r>0)
+			return 1.0;
+		if(r==0)
+			return 0;
+	}
+	if(cur==2){
+		if(r==0 && p==0 && s>0)
+			return 1.0;
+		if(s==0)
+			return 0;
+	}
+	if(cur==3){
+		if(r==0 && s==0 && p>0)
+			return 1.0;
+		if(p==0)
+			return 0;
+	}
+	if(dp[cur][r][s][p]!=-1)
+		return dp[cur][r][s][p];
+	double ret = 0, tot, p1, p2, p3;
+	tot = r*s + s*p + p*r;
+	p1 = (double)r*s/tot;
+	p2 = (double)r*p/tot;
+	p3 = (double)s*p/tot;
+	ret = (p3*solve(cur, r, s, p-1) + p1*solve(cur, r, s-1, p) + p2*solve(cur, r-1, s, p));
+	return dp[cur][r][s][p] = ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, k, l, n, r, s, p;
+	scanf("%d%d%d", &r, &s, &p);
+	for(i=0; i<=r; i++){
+		for(j=0; j<=s; j++){
+			for(k=0; k<=p; k++){
+				for(l=0; l<=3; l++)
+					dp[l][i][j][k] = -1;
+			}
+		}
+	}	
+	double p1 = solve(1, r, s, p);
+	double p2 = solve(2, r, s, p);
+	double p3 = solve(3, r, s, p);
+	printf("%.10lf %.10lf %.10lf\n", p1, p2, p3);
+	return 0;
+}

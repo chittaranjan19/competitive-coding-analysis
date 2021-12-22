@@ -1,0 +1,64 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+const int maxn = 20;
+const double eps = 1e-8;
+
+long double dp[(1 << maxn) + 5], ans[maxn];
+double p[maxn + 5];
+
+int cal(int x)
+{
+    int ret = 0;
+    while(x)
+    {
+        ret += x & 1;
+        x >>= 1;
+    }
+    return ret;
+}
+
+void work(int s)
+{
+    int now = 0;
+    long double tmp = dp[s];
+    while(s)
+    {
+        if(s & 1) ans[now] += tmp;
+        ++now;
+        s >>= 1;
+    }
+}
+
+int main()
+{
+    int n, m, has = 0;
+    scanf("%d%d", &n, &m);
+    for(int i = 0; i < n; ++i)
+    {
+        scanf("%lf", p + i);
+        if(p[i] > eps) ++has;
+    }
+    has = min(has, m);
+    memset(dp, 0, sizeof(dp));
+    dp[0] = 1;
+    int t = 1 << n;
+    for(int s = 0; s < t; ++s)
+    {
+        long double q = 0;
+        for(int i = 0; i < n; ++i)
+        {
+            if(!(s >> i & 1)) q += p[i];
+        }
+        if(q > eps)
+        {
+            for(int i = 0; i < n; ++i) if(!(s >> i & 1)) dp[s | 1 << i] += dp[s] * p[i] / q;
+        }
+        if(cal(s) == has) work(s);
+    }
+    for(int i = 0; i < n; ++i) printf("%.10f%c", (double)ans[i], " \n"[i == n - 1]);
+    return 0;
+}

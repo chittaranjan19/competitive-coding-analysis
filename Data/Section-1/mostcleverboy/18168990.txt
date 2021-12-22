@@ -1,0 +1,67 @@
+program j01;
+type xx=record ln,rn,num:longint; end;
+var f:array[1..400010]of xx;
+    s:ansistring;
+    n,m,i,ll,rr:longint;
+function min(a,b:longint):longint;
+begin
+  if a<b then exit(a) else exit(b);
+end;
+procedure  build(i,l,r:longint);
+var mid,x:Longint;
+begin
+  if l=r then
+  begin
+    if s[l]='(' then
+    begin
+      f[i].ln:=1;
+      f[i].rn:=0;
+      f[i].num:=0;
+    end
+    else
+    begin
+      f[i].ln:=0;
+      f[i].rn:=1;
+      f[i].num:=0;
+    end;
+    exit;
+  end;
+  mid:=(l+r)div 2;
+  build(i*2,l,mid);
+  build(i*2+1,mid+1,r);
+  x:=min(f[i*2].ln,f[i*2+1].rn);
+  f[i].num:=f[i*2].num+f[i*2+1].num+x*2;
+  f[i].ln:=f[i*2].ln+f[i*2+1].ln-x;
+  f[i].rn:=f[i*2].rn+f[i*2+1].rn-x;
+end;
+function find(i,l,r,ll,rr:longint):xx;
+var lt,rt:xx;
+    mid,x:longint;
+begin
+  if (ll<=l)and(r<=rr) then exit(f[i]);
+  if (l>rr)or(r<ll) then
+  begin
+    find.num:=0;
+    find.ln:=0;
+    find.rn:=0;
+    exit;
+  end;
+  mid:=(l+r)div 2;
+  lt:=find(i*2,l,mid,ll,rr);
+  rt:=find(i*2+1,mid+1,r,ll,rr);
+  x:=min(lt.ln,rt.rn);
+  find.num:=lt.num+rt.num+x*2;
+  find.rn:=lt.rn+rt.rn-x;
+  find.ln:=lt.ln+rt.ln-x;
+end;
+begin
+  readln(s);
+  n:=length(s);
+  build(1,1,n);
+  readln(m);
+  for i:=1 to m do
+  begin
+    readln(ll,rr);
+    writeln(find(1,1,n,ll,rr).num);
+  end;
+end.

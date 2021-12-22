@@ -1,0 +1,151 @@
+#include <iostream>
+#include <iomanip>
+#include <cstring>
+
+using namespace std;
+typedef long long ll;
+typedef double ld;
+typedef pair<ll, ld> pllld;
+
+ld dp[5001][5001];	// dp[k][j] = P(reach k songs at time j)
+
+int main() {
+	int n, maxtime; cin >> n >> maxtime;
+	ld prob[n];
+	int times[n];
+	for (int i = 0; i < n; i++) {
+		int p, t; cin >> p >> t;
+		prob[i] = p / 100.0;
+		times[i] = t;
+	}
+
+	memset(dp, 0, sizeof dp);
+
+	// perform dp to compute dp[k][j] = P(reach kth song exactly on step j)
+	ld tmp[maxtime+1];
+	ld cum[maxtime+1];
+	for (int j = 1; j <= maxtime; j++) {
+		/***** pasted code to conserve memory *****/
+		int k = 0;
+		ld p = prob[k];
+		ld p2 = 1 - prob[k];
+
+		// compute tmp[i] = P(exactly i tries for kth song)
+		ld sum = 0;
+		for (int i = 1; i <= maxtime && i < times[k]; i++) {
+			tmp[i] = p;
+			sum += p;
+			p *= p2;
+			if (p < 1e-100) p = 0;
+		}
+
+		// the t_k th guess must be correct
+		if (times[k] <= maxtime) {
+			tmp[times[k]] = 1 - sum;
+		}
+
+		// compute the cumulative probability
+		// cum[i] = P(<= i tries on kth song)
+		sum = 0;
+		for (int i = 1; i <= maxtime; i++) {
+			sum += tmp[i];
+			cum[i] = sum;
+		}
+		/***** end *****/
+
+		dp[1][j] = tmp[j];
+	}
+	ld add[maxtime+1];
+	ld remove[maxtime+1];
+	for (int k = 2; k <= n; k++) {
+		memset(add, 0, sizeof add);
+		memset(remove, 0, sizeof remove);
+
+
+		/***** pasted code to conserve memory *****/
+		k--;
+		ld p = prob[k];
+		ld p2 = 1 - prob[k];
+
+		// compute tmp[i] = P(exactly i tries for kth song)
+		ld sum = 0;
+		for (int i = 1; i <= maxtime && i < times[k]; i++) {
+			tmp[i] = p;
+			sum += p;
+			p *= p2;
+			if (p < 1e-100) p = 0;
+		}
+
+		// the t_k th guess must be correct
+		if (times[k] <= maxtime) {
+			tmp[times[k]] = 1 - sum;
+		}
+
+		// compute the cumulative probability
+		// cum[i] = P(<= i tries on kth song)
+		sum = 0;
+		for (int i = 1; i <= maxtime; i++) {
+			sum += tmp[i];
+			cum[i] = sum;
+		}
+		k++;
+		/***** end *****/
+
+		ld curr = 0;
+		for (int j = 1; j <= maxtime; j++) {
+			dp[k][j] = curr;
+			curr -= remove[j];
+			curr *= 1 - prob[k-1];
+			curr += add[j];
+			curr += dp[k-1][j] * tmp[1];
+			
+			int t = j + times[k-1] - 1;
+			if (t <= maxtime) {
+				remove[t] += dp[k-1][j] * tmp[times[k-1] - 1];
+				add[t] += dp[k-1][j] * tmp[times[k-1]];
+				if (t < maxtime) {
+					remove[t+1] += add[t];
+				}
+			}
+		}
+	}
+
+	// compute answer = sum(k * sum(P(reach kth song on step j) * P(not reach k+1 on maxtime)))
+	ld ans = 0;
+	for (int k = 1; k <= n; k++) {
+		/***** pasted code to conserve memory *****/
+		ld p = prob[k];
+		ld p2 = 1 - prob[k];
+
+		// compute tmp[i] = P(exactly i tries for kth song)
+		ld sum = 0;
+		for (int i = 1; i <= maxtime && i < times[k]; i++) {
+			tmp[i] = p;
+			sum += p;
+			p *= p2;
+			if (p < 1e-100) p = 0;
+		}
+
+		// the t_k th guess must be correct
+		if (times[k] <= maxtime) {
+			tmp[times[k]] = 1 - sum;
+		}
+
+		// compute the cumulative probability
+		// cum[i] = P(<= i tries on kth song)
+		sum = 0;
+		for (int i = 1; i <= maxtime; i++) {
+			sum += tmp[i];
+			cum[i] = sum;
+		}
+		/***** end *****/
+
+		ld stuff = 0;
+		for (int j = 1; j <= maxtime; j++) {
+			// note: cum[n][] = 0, so this works for k == n
+			stuff += dp[k][j] * (1.0 - cum[maxtime - j]);
+		}
+		ans += k * stuff;
+	}
+	cout << setprecision(10) << fixed << ans << endl;
+}

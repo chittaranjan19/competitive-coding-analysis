@@ -1,0 +1,111 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+#include <cstring>
+#include <map>
+#include <unordered_map>
+#include <iostream>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+#define ll long long
+#define fs first
+#define sc second
+#define mp make_pair
+
+ll n, q, a[1000000], cnt[1000000], ans, cur;
+bool u[1000000], pr[1000000];
+vector<ll> p[1000000];
+
+int get_cnt(ll x)
+{
+    int res = 0;
+    while (x > 0)
+    {
+        if (x & 1)
+            res++;
+        x >>= 1;
+    }
+    return res;
+}
+
+
+ll get_mul(int i, int x)
+{
+    ll res = 1,l = 0;
+    while (i > 0)
+    {
+        if (i & 1)
+            res *= p[x][l];
+        i >>= 1;
+        l++;
+    }
+    return res;
+}
+
+int main()
+{
+    ios::sync_with_stdio(false);
+    //freopen("sumdist.in", "r", stdin);
+    //freopen("sumdist.out", "w", stdout);
+    cin >> n >> q;
+    for (int i = 2; i < 500005; i++)
+    {
+        if (pr[i]) continue;
+        for (int j = i; j < 500005; j += i){
+            p[j].push_back(i);
+            pr[j] = 1;
+        }
+    }
+    for (int i = 0; i < n; i++)
+        cin >> a[i];
+    ans = 0; cur = 0;
+    while (q--)
+    {
+        ll xx, x;
+        cin >> xx;
+        ll del = cur;
+        x = a[xx-1];
+        if (u[xx])
+        {
+            u[xx] = 0;
+            cur -= 1;
+            del -= 1;
+            for (int i = 1; i < (1 << p[x].size()); i++)
+            {
+                ll dd;
+                if (get_cnt(i) % 2 == 0) dd = -1;
+                else dd = 1;
+                cnt[get_mul(i, x)] -= 1;
+                dd *= cnt[get_mul(i, x)];
+                del -= dd;
+            }
+            ans -= del;
+        }
+        else
+        {
+            u[xx] = 1;
+            for (int i = 1; i < (1 << p[x].size()); i++)
+            {
+                ll dd;
+                if (get_cnt(i) % 2 == 0) dd = -1;
+                else dd = 1;
+                dd *= cnt[get_mul(i, x)];
+                del -= dd;
+                cnt[get_mul(i,x)] += 1;
+            }
+            cur += 1;
+            ans += del;
+        }
+        cout << ans << endl;
+    }
+    return 0;
+}

@@ -1,0 +1,119 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+#include <iomanip>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 110, MAXV = 30 * MAXN;
+
+int N, M;
+int A[MAXN];
+pii edges[MAXN];
+set<int> st;
+int psum[MAXN];
+int fwd[MAXV], rev[MAXV];
+bool vis[MAXV];
+vector<int> adj[MAXV];
+
+bool aug (int i) {
+	for (int j : adj[i]) {
+		if (!vis[j]) {
+			vis[j] = true;
+			if (rev[j] == -1 || aug(rev[j])) {
+				fwd[i] = j;
+				rev[j] = i;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 1; i <= N; i++) {
+		cin >> A[i];
+		int v = A[i];
+		for (int j = 2; j * j <= v; j++) {
+			if (v % j == 0) {
+				st.insert(j);
+				for (; v % j == 0; v /= j);
+			}
+		}
+	}
+	//read edges
+	for (int i = 1; i <= M; i++) {
+		cin >> edges[i].first >> edges[i].second;
+		if (edges[i].second & 1) {
+			swap(edges[i].first, edges[i].second);
+		}
+	}
+	int ans = 0;
+	for (int p : st) {
+		psum[1] = psum[2] = 1;
+		for (int i = 1; i <= N; i++) {
+			//find the primes
+			int r = 0;
+			for (int j = A[i]; j % p == 0; j /= p, r++);
+			psum[i + 2] = psum[i] + r;
+		}
+		for (int i = 1; i < MAXV; i++) {
+			adj[i].clear();
+		}
+		for (int i = 1; i <= M; i++) {
+			int x = edges[i].first, y = edges[i].second;
+			for (int j = psum[x]; j < psum[x + 2]; j++) {
+				for (int k = psum[y]; k < psum[y + 2]; k++) {
+					adj[j].push_back(k);
+				}
+			}
+		}
+		//now find the bipartite matching
+		fillchar(rev, -1);
+		for (int i = 1; i < MAXV; i++) {
+			//ok now let's make sure
+			if (!adj[i].empty()) {
+				fillchar(vis, false);
+				ans += aug(i);
+			}
+		}
+	}
+	cout << ans << endl;
+}

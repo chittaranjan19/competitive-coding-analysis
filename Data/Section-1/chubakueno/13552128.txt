@@ -1,0 +1,74 @@
+#include <bits/stdc++.h>
+using namespace std;
+int vec[100002];
+int crec[200004];
+int decrec[200004];
+int main(){
+    int n,m;
+    scanf("%d %d",&n,&m);
+    for(int i=0;i<n;++i){
+        scanf("%d",&vec[i]);
+    }
+    crec[n]=decrec[n]=100;
+    for(int i=1;i<n;++i){
+        crec[n+i]=vec[i]-vec[i-1];
+        decrec[n+i]=vec[i-1]-vec[i];
+    }
+    for(int i=n-1;i>0;--i){
+        crec[i]=min(crec[i<<1],crec[i<<1|1]);
+        decrec[i]=min(decrec[i<<1],decrec[i<<1|1]);
+    }
+    for(int i=0;i<m;++i){
+        int l,r;
+        scanf("%d %d",&l,&r);
+        if(l==r) {printf("Yes\n"); continue;}
+        --l;--r;
+        int lo = l, hi = r;
+        int x=0;
+        while(lo < hi)
+        {
+            int mid1 = (2 * lo + hi) / 3;
+            int mid2 = min((lo + 2 * hi+2) / 3,hi);
+            if(vec[mid1] < vec[mid2]){
+                lo = mid1+1;
+                if(vec[x]<vec[mid1]){
+                    x=mid1;
+                }
+            }
+            else{
+                hi = mid2-1;
+                if(vec[x]<vec[mid2]){
+                    x=mid2;
+                }
+            }
+        }
+        if(vec[x]<vec[lo])
+            x=lo;
+        int mcrec=100;
+        int mdecrec=100;
+        lo=l+1,hi=x;
+        for (lo += n, hi += n; lo <= hi; lo >>= 1, hi >>= 1)
+        {
+            if (lo & 1) mcrec=min(mcrec,crec[lo++]);
+            if (!(hi&1))mcrec=min(mcrec,crec[hi--]);
+        }
+        lo=x+1,hi=r;
+        for (lo += n, hi += n; lo <= hi; lo >>= 1, hi >>= 1)
+        {
+            if (lo & 1) mdecrec=min(mcrec,decrec[lo++]);
+            if (!(hi&1))mdecrec=min(mcrec,decrec[hi--]);
+        }
+        if(mcrec<0||mdecrec<0){
+            printf("No\n");
+        }else{
+            printf("Yes\n");
+        }
+    }
+}
+/*
+for (l += n, r += n; l <= r; l >>= 1, r >>= 1)
+    {
+        if (l & 1) resL = combine(resL, t[l++]);
+        if (!(r&1)) resR = combine(t[r--], resR);
+    }
+*/

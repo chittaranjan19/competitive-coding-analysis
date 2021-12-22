@@ -1,0 +1,80 @@
+#include <bits/stdc++.h>
+
+#define f       first
+#define s       second
+#define mp      make_pair
+#define rank    something_which_is_supposed_to_be_rank
+#define left    something_which_is_supposed_to_be_left
+#define right   something_which_is_supposed_to_be_right
+
+using namespace std;
+
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+
+const int ALPHABET = 26;
+
+int n, m;
+vector<map<char,int>> dp;
+string s;
+
+int get(map<char,int> &t, char &c) {
+    return (t.find(c) != t.end() ? t[c] : 0);
+}
+
+void out(map<char,int> &t) {
+    for (char c = 'a'; c < 'a' + ALPHABET; ++c) {
+        cerr << get(t, c) << " ";
+    }
+    cerr << "\n";
+}
+
+
+void print(map<char,int> ans) {
+    for (auto &t: ans) {
+        cout << string(t.s, t.f);
+    }
+    cout << "\n";
+}
+
+struct my_less {
+    bool operator()(map<char,int> &a, map<char,int> &b) {
+        for (char c = 'a'; c < 'a' + ALPHABET; ++c) {
+            if (get(a, c) > get(b, c)) {
+                return (b.upper_bound(c) != b.end());
+            } else if (get(a, c) < get(b, c)) {
+                return (a.upper_bound(c) == a.end());
+            }
+        }
+        return false;
+    }
+};
+
+int main() {
+    cin.sync_with_stdio(0);
+    cin.tie(0);
+    cin >> m >> s;
+    n = s.size();
+    dp.resize(n + 1);
+    for (int i = 1; i <= n; ++i) {
+        // cerr << i << ":\n";
+        for (int j = max(0, i - m); j < i; ++j) {
+            map<char,int> tmp = dp[j];
+            ++tmp[s[i - 1]];
+            if (dp[i].empty() || my_less()(tmp, dp[i])) {
+                dp[i] = tmp;
+            }
+            // out(tmp);
+        }
+    }
+    // cerr << "final:\n";
+    // for (auto &t: dp) {
+    //     out(t);
+    // }
+
+    print(*min_element(dp.rbegin(), dp.rbegin() + m, my_less()));
+    cerr << "Time elapsed: " << (ld) clock() / CLOCKS_PER_SEC << "\n";
+    return 0;
+}

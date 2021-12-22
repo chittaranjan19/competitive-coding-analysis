@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define ll long long
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 3010;
+
+int n, dp[maxn][5][2], arr[3][maxn];
+
+/*
+    req: whether it is required for current hare to go before the previous hare, limiting its maximum value to 1.
+*/
+
+int solve(int cur, int prev, int req)
+{
+    if(cur==n+1){
+        if(!req)
+            return 0;
+        return -inf;
+    }
+    if(dp[cur][prev][req]!=-1)
+        return dp[cur][prev][req];
+    int ret;
+    if(!prev){                                                                                                  //req = 0
+        ret = max(arr[1][cur]+solve(cur+1, 1, 0), arr[2][cur]+solve(cur+1, 2, 1));
+    }
+    else if(prev==1){
+        if(!req){
+            ret = max(arr[1][cur]+solve(cur+1, 1, 0), arr[2][cur]+solve(cur+1, 2, 1));
+        }
+        else{
+            ret = max(arr[1][cur]+solve(cur+1, 1, 1), arr[0][cur]+solve(cur+1, 0, 0));
+        }
+    }
+    else{                                                                                                       //req = 1
+        ret = max(arr[0][cur]+solve(cur+1, 0, 0), arr[1][cur]+solve(cur+1, 1, 1));
+    }
+    return dp[cur][prev][req] = ret;
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int i, j;
+    sd(n);
+    for(i=1; i<=n; i++)
+        sd(arr[0][i]);
+    for(i=1; i<=n; i++)
+        sd(arr[1][i]);
+    for(i=1; i<=n; i++)
+        sd(arr[2][i]);
+    memset(dp, -1, sizeof dp);
+    int ans = max(arr[0][1]+solve(2, 0, 0), arr[1][1]+solve(2, 1, 1));
+    printf("%d\n", ans);
+    return 0;
+}

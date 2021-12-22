@@ -1,0 +1,90 @@
+#include<stdio.h>
+#include<vector>
+using namespace std;
+vector<int> G[200005];
+int in[200005]={0},out[200005]={0},depth[200005]={0},val[200005]={0},time=0,bit[400005]={0};
+bool visited[200005]={0};
+void dfs(int u)
+{
+    visited[u]=1;
+    in[u]=++time;
+    int si=G[u].size();
+    for(int i=0;i<si;i++)
+    {
+        int v=G[u][i];
+        if(!visited[v])
+        {
+            depth[v]=depth[u]+1;
+            dfs(v);
+        }
+    }
+    out[u]=++time;
+}
+void update(int idx,int val)
+{
+    for(;idx<=400000;idx+=(idx & -idx))
+    {
+        bit[idx]+=val;
+    }
+}
+int query(int idx)
+{
+    int sum=0;
+    for(;idx>0;idx-=(idx & -idx))
+    {
+        sum+=bit[idx];
+    }
+    return sum;
+}
+int main()
+{
+    int n,m,i,j;
+    scanf("%d%d",&n,&m);
+    for(i=1;i<=n;i++)
+    {
+        scanf("%d",&val[i]);
+    }
+    for(i=0;i<n-1;i++)
+    {
+        int u,v;
+        scanf("%d%d",&u,&v);
+        G[u].push_back(v);
+        G[v].push_back(u);
+    }
+    time=0;
+    dfs(1);
+    for(i=0;i<m;i++)
+    {
+        int x;
+        scanf("%d",&x);
+        if(x==1)
+        {
+            int u,val;
+            scanf("%d%d",&u,&val);
+            if(depth[u] % 2==0)
+            {
+                update(in[u], val);
+                update(out[u], -val);
+            }
+            else
+            {
+                update(in[u], -val);
+                update(out[u], val);
+            }
+        }
+        else
+        {
+            int u;
+            scanf("%d",&u);
+            if(depth[u]%2==0)
+            {
+                printf("%d\n",val[u]+query(in[u]));
+            }
+            else
+            {
+                printf("%d\n",val[u]-query(in[u]));
+            }
+        }
+    }
+    return 0;
+}

@@ -1,0 +1,164 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+string input,input2;
+map<string, int> id;
+int counter = 1;
+vector<vector<int> > graph(300505);
+int rs[300505],len[300505];
+vector<int> base;
+pair<int,int> DP[300505];
+bool inq[300505];
+
+pair<int,int> solve(int ind)
+{
+    if(inq[ind])
+    {
+        return mp(-1, ind);
+    }
+    pair<int,int> &temp = DP[ind];
+    if(temp.first != -1) return temp;
+    temp = mp(rs[ind], len[ind]);
+    inq[ind] = true;
+    for(int i=0;i<graph[ind].size();i++)
+    {
+        pair<int,int> tempo = solve(graph[ind][i]);
+        if(tempo.first == -1 && tempo.second != ind)
+        {
+            inq[ind] = false;
+            return temp = tempo;
+        }
+        else if(tempo.first == -1) continue;
+        if(tempo.first < temp.first) temp = tempo;
+        if(tempo.first == temp.first && tempo.second < temp.second) temp = tempo;
+    }
+    inq[ind] = false;
+    bool hack = false;
+    do
+    {
+        for(int i=0;i<graph[ind].size();i++)
+        {
+            pair<int,int> tempo = solve(graph[ind][i]);
+            if(tempo.first == -1 && tempo.second != ind)
+                return temp = tempo;
+            else if(tempo.first == -1)
+            {
+                hack = true;
+                continue;
+            }
+            if(tempo.first < temp.first) temp = tempo;
+            if(tempo.first == temp.first && tempo.second < temp.second) temp = tempo;
+        }
+    }
+    while(hack);
+    return temp;
+}
+
+int main()
+{
+    cin.sync_with_stdio(false);
+    int m,n,x,y;
+    cin >> m;
+    for(int i=0;i<m;i++)
+    {
+        int rcnt = 0;
+        cin >> input;
+        for(int j=0;j<input.size();j++)
+        {
+            if(input[j] >= 'A' && input[j] <= 'Z')
+                input[j] = (input[j] - 'A' + 'a');
+            if(input[j] == 'r') rcnt++;
+        }
+        if(id[input] != 0)
+        {
+            base.pb(id[input]);
+            continue;
+        }
+        base.push_back(counter);
+        rs[counter] = rcnt;
+        len[counter] = input.size();
+        id[input] = counter++;
+    }
+    cin >> n;
+    for(int i=0;i<n;i++)
+    {
+        cin >> input >> input2;
+        int rcnt1=0,rcnt2 = 0;
+        for(int j=0;j<input.size();j++)
+        {
+            if(input[j] >= 'A' && input[j] <= 'Z')
+                input[j] = (input[j] - 'A' + 'a');
+            if(input[j] == 'r') rcnt1++;
+        }
+        for(int j=0;j<input2.size();j++)
+        {
+            if(input2[j] >= 'A' && input2[j] <= 'Z')
+                input2[j] = (input2[j] - 'A' + 'a');
+            if(input2[j] == 'r') rcnt2++;
+        }
+        if(id[input] == 0)
+        {
+            rs[counter] = rcnt1;
+            len[counter] = input.size();
+            id[input] = counter++;
+        }
+        if(id[input2] == 0)
+        {
+            rs[counter] = rcnt2;
+            len[counter] = input2.size();
+            id[input2] = counter++;
+        }
+        x = id[input],y = id[input2];
+        graph[x].pb(y);
+    }
+    pair<int,int > xx = mp(INF_MAX,INF_MAX);
+    for(int r=0;r<7;r++)
+    {
+        for(int i=0;i<counter;i++)
+            DP[i].first = -1;
+        pair<int,int > sol = mp(0,0);
+        int random = max(rand() % counter,1);
+        solve(random);
+        for(int i=0;i<base.size();i++)
+        {
+            pair<int,int > temp = solve(base[i]);
+            sol.first+=temp.first;
+            sol.second+=temp.second;
+        }
+        if(sol.first < xx.first) xx = sol;
+        if(sol.first == xx.first && sol.second < xx.second) xx = sol;
+    }
+    cout << xx.first << " " << xx.second;
+    return 0;
+}

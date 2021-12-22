@@ -1,0 +1,84 @@
+program j01;
+type xx=record l,r,num:longint; da:longint; end;
+var tr:array[1..200000]of xx;
+    ha:array[0..200000]of longint;
+    ans:array[1..2,1..200000]of longint;
+    n,max,maxn,max1,m,x,t,i,k:longint;
+function hash(i:longint):longint;
+begin
+  hash:=i mod 200000;
+end;
+
+procedure insert(var i:longint;x:longint);
+begin
+  if i=0 then
+  begin
+    inc(t);
+    i:=t;
+    with tr[t] do
+    begin
+      da:=x;
+      l:=0;
+      r:=0;
+      num:=1;
+    end;
+    exit;
+  end;
+  with tr[i] do
+  begin
+    if da=x then
+    begin
+      inc(num);
+      exit;
+    end;
+    if da>x then insert(l,x);
+    if da<x then insert(r,x);
+  end;
+end;
+
+procedure find(i,x,j,k:longint);
+begin
+  if i=0 then exit;
+  with tr[i] do
+  begin
+    if da=x then
+    begin
+      inc(ans[k,j],num);
+      exit;
+    end;
+    if da>x then find(l,x,j,k);
+    if da<x then find(r,x,j,k);
+  end;
+end;
+
+begin
+  readln(n);
+  fillchar(ha,sizeof(ha),0);
+  t:=0;
+  for i:=1 to n do
+  begin
+    read(x);
+    insert(ha[hash(x)],x);
+  end;
+  readln(m);
+  max:=0;
+  max1:=0;
+  fillchar(ans,sizeof(ans),0);
+  for k:=1 to 2 do
+    for i:=1 to m do
+    begin
+      read(x);
+      find(ha[hash(x)],x,i,k);
+    end;
+  for i:=1 to m do
+  begin
+    //writeln(i,':',ans[1,i],' ',ans[2,i]);
+      if (ans[1,i]>max)or((ans[1,i]=max)and(ans[2,i]>max1)) then
+      begin
+        max:=ans[1,i];
+        max1:=ans[2,i];
+        maxn:=i;
+      end;
+    end;
+  writeln(maxn);
+end.

@@ -1,0 +1,131 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 510;
+
+int N, M;
+vector<int> A, B;
+vector<int> uniA, uniB;
+vector<int> uni;
+vector<int> indA[MAXN], indB[MAXN];
+int prvA[MAXN][MAXN], prvB[MAXN][MAXN];
+int dp[MAXN][MAXN];
+pii state[MAXN][MAXN];
+
+void read (vector<int> &v, int &n, vector<int> &univ) {
+	scanf("%d", &n);
+	v.resize(n);
+	for (int i = 0; i < n; i++) {
+		scanf("%d", &v[i]);
+	}
+	univ = v;
+	sort(univ.begin(), univ.end());
+	univ.resize(unique(univ.begin(), univ.end()) - univ.begin());
+}
+
+void getind (vector<int> &arr, int n, vector<int> ind[]) {
+	for (int i = 0; i < n; i++) {
+		int x = arr[i];
+		if (binary_search(uni.begin(), uni.end(), x)) {
+			ind[lower_bound(uni.begin(), uni.end(), x) - uni.begin()].push_back(i);
+		}
+	}
+}
+
+void getprvind (vector<int> &v, int x, int prv[], int n) {
+	int d = -1;
+	for (int i = 1; i < n; i++) {
+		if (v[i - 1] == x) {
+			d = i - 1;
+		}
+		prv[i] = d;
+	}
+}
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces10D.in", "r", stdin);
+#endif
+	read(A, N, uniA);
+	read(B, M, uniB);
+	uni.resize(N);
+	uni.resize(set_intersection(uniA.begin(), uniA.end(), uniB.begin(), uniB.end(), uni.begin()) - uni.begin());
+	//get the places where they have indices
+	getind(A, N, indA);
+	getind(B, M, indB);
+	//calc previnds to save time for the DP states
+	memset(prvA, -1, sizeof(prvA));
+	memset(prvB, -1, sizeof(prvB));
+	memset(state, -1, sizeof(state));
+	for (int i = 0, siz = uni.size(); i < siz; i++) {
+		getprvind(A, uni[i], prvA[i], N);
+		getprvind(B, uni[i], prvB[i], M);
+	}
+	int ans = 0;
+	pii pans(-1, -1);
+	for (int i = 0; i < N; i++) {
+		int ind = lower_bound(uni.begin(), uni.end(), A[i]) - uni.begin();
+		for (int j = 0; j < M; j++) {
+			if (A[i] == B[j]) {
+				int &ref = dp[i][j];
+				for (int k = 0; k < ind; k++) {
+					int p = prvA[k][i], q = prvB[k][j];
+					if (p != -1 && q != -1) {
+						if (ref < dp[p][q]) {
+							ref = dp[p][q];
+							state[i][j] = pii(p, q);
+							// printf("upd %d %d from %d %d\n", i, j, p, q);
+						}
+					}
+				}
+				ref++;
+				if (ans < ref) {
+					ans = ref;
+					pans = pii(i, j);
+				}
+			}
+		}
+	}
+	printf("%d\n", ans);
+	vector<int> vans;
+	while (pans.first != -1) {
+		vans.push_back(A[pans.first]);
+		pans = state[pans.first][pans.second];
+	}
+	for (vector<int>::reverse_iterator it = vans.rbegin(); it != vans.rend(); it++) {
+		printf("%d ", *it);
+	}
+}

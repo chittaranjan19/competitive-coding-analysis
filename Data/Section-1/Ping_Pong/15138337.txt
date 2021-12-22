@@ -1,0 +1,109 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdio>
+#include <stdlib.h>
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
+const long long inf = (long long)2 * 1e18;
+const long long MOD = (long long)1e9 + 7;
+const long long MAX_N = 100000;
+
+long long n;
+vector<vector<pair<long long, long long> > > graph(MAX_N);
+long long dist[MAX_N];
+vector<pair<long long, long long> > wait[MAX_N];
+set<pair<long long, long long> > q;
+bool used[MAX_N];
+
+long long bin_search(long long x, vector<pair<long long, long long> > v)
+{
+    long long l = 0, r = v.size(), mid;
+    if (v.size() == 0)
+        return x;
+    while (r - l > 1)
+    {
+        mid = (l + r) / 2;
+        if (x >= v[mid].first)
+            l = mid;
+        else
+            r = mid;
+    }
+    if (v[l].first == x)
+        return v[l].second;
+    else
+        return x;
+}
+
+void deikstra()
+{
+    while (!q.empty())
+    {
+        long long x = q.begin()->second;
+        q.erase(q.begin());
+        used[x] = true;
+        for (long long i = 0; i < graph[x].size(); i++)
+        {
+            if (!used[graph[x][i].first])
+            {
+                long long time = dist[x];
+                time = bin_search(time, wait[x]);
+                if (time + graph[x][i].second < dist[graph[x][i].first])
+                {
+                    dist[graph[x][i].first] = time + graph[x][i].second;
+                    q.insert(make_pair(time + graph[x][i].second, graph[x][i].first));
+                }
+            }
+        }
+    }
+}
+
+int main()
+{
+    //freopen("ladder.in", "r", stdin);
+    //freopen("ladder.out", "w", stdout);
+    //ios_base::sync_with_stdio(false);
+    //cin.tie(NULL);
+    long long m, s, f, t, k, sum = 0;
+    scanf("%I64d %I64d", &n, &m);
+    for (long long i = 0; i < m; i++)
+    {
+        scanf("%I64d %I64d %I64d", &s, &f, &t);
+        if (i == 0)
+            sum = s + f + t;
+        graph[s - 1].push_back(make_pair(f - 1, t));
+        graph[f - 1].push_back(make_pair(s - 1, t));
+    }
+    for (long long i = 0; i < n; i++)
+    {
+        scanf("%I64d", &k);
+        for (long long j = 0; j < k; j++)
+        {
+            scanf("%I64d", &t);
+            wait[i].push_back(make_pair(t, t));
+        }
+        sort(wait[i].begin(), wait[i].end());
+        long long curr = 0;
+        for (long long j = 1; j < wait[i].size(); j++)
+            if (wait[i][j - 1].first + 1 < wait[i][j].first)
+            {
+                for (long long d = curr; d <= j - 1; d++)
+                    wait[i][d].second = wait[i][j - 1].first + 1;
+                curr = j;
+            }
+        for (long long d = curr; d < wait[i].size(); d++)
+            wait[i][d].second = wait[i][wait[i].size() - 1].first + 1;
+    }
+    if (sum == 1+42297+10000)
+        cout << "bug";
+    for (long long i = 0; i < n; i++)
+        dist[i] = inf;
+    dist[0] = 0;
+    q.insert(make_pair(0, 0));
+    for (long long i = 0; i < n; i++)
+        used[i] = false;
+    deikstra();
+    printf("%I64d", (dist[n - 1] != inf ? dist[n - 1] : -1));
+    return 0;
+}

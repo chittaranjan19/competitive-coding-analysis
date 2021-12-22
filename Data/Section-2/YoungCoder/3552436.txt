@@ -1,0 +1,107 @@
+# include <iostream>
+# include <cstdlib>
+# include <cstdio>
+
+using namespace std;
+
+const int N = 100009;
+
+struct edge
+{
+	int x, y, z;
+}
+dp[N];
+
+int n, m, x, var, cnt, ans;
+
+int a[N], b[N], d[N * 4];
+
+void push_down (int v, int L, int R)
+{
+	if (!d[v] || L == R)
+		return;
+	
+	d[v * 2] = d[v];
+	d[v * 2 + 1] = d[v];
+	d[v] = 0;
+}
+
+void update_segment (int v, int L, int R, int l, int r, int val)
+{
+	if (l <= L && R <= r)
+	{
+		d[v] = val;
+		
+		push_down (v, L, R);
+		
+		return;
+	}
+	
+	if (l > R || r < L)
+		return;
+	
+	push_down (v, L, R);
+	
+	int m = (L + R) / 2;
+	
+	update_segment (v * 2, L, m, l, r, val);
+	update_segment (v * 2 + 1, m + 1, R, l, r, val);
+}
+
+int get_element (int v, int L, int R, int pos)
+{
+	push_down (v, L, R);
+	
+	if (L == R && L == pos)
+		return d[v];
+	
+	int m = (L + R) / 2;
+	
+	if (pos <= m)
+		return get_element (v * 2, L, m, pos);
+	
+	else
+		return get_element (v * 2 + 1, m + 1, R, pos);
+}
+
+int main ()
+{
+    scanf ("%d %d", &n, &m);
+    
+    for (int i = 1; i <= n; ++i)
+        scanf ("%d", &a[i]);
+        
+    for (int i = 1; i <= n; ++i)
+        scanf ("%d", &b[i]);
+    
+    for (int i = 1; i <= m; ++i)
+    {
+        scanf ("%d", &var);
+        
+        if (var == 1)
+        {
+			++cnt;
+			
+			scanf ("%d %d %d", &dp[cnt].x, &dp[cnt].y, &dp[cnt].z);
+			
+			update_segment (1, 1, n, dp[cnt].y, dp[cnt].y + dp[cnt].z - 1, cnt);
+        }
+        
+        else
+        {
+			scanf ("%d", &x);
+			
+			ans = get_element (1, 1, n, x);
+			
+			if (!ans)
+				ans = b[x];
+				
+			else
+				ans = a[x - dp[ans].y + dp[ans].x];
+			
+			printf ("%d\n", ans);
+		}
+    }
+    
+    return 0;
+}

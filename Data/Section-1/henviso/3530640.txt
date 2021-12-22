@@ -1,0 +1,150 @@
+#include <iostream>
+#include <cstdio>
+#include <string>
+#include <cstring>
+#include <cstdlib>
+#include <stack>
+#include <algorithm>
+#include <cctype>
+#include <vector>
+#include <queue>
+#include <tr1/unordered_map>
+#include <cmath>
+#include <map>
+#include <bitset>
+#include <set>
+using namespace std;
+typedef long long ll;
+typedef long long ull;
+typedef vector<int> vi;
+typedef pair<int,int> ii;
+///////////////////////////////UTIL/////////////////////////////////
+#define ALL(x) (x).begin(),x.end()
+#define CLEAR0(v) memset(v, 0, sizeof(v))
+#define CLEAR(v, x) memset(v, x, sizeof(v))
+#define INRANGE0(x, n) ((x) > -1 && (x) < n)
+#define INRANGE(x, a, b) ((x) >= a && (x) <= b)
+#define COPY(a, b) memcpy(a, b, sizeof(a))
+#define REP(i,n) for(int i = 0; i<n; i++)
+#define REPP(i,a,n) for(int i = a; i<n; i++)
+#define REPD(i,n) for(int i = n-1; i>-1; i--)
+#define REPDP(i,a,n) for(int i = a; i>-1; i--)
+#define pb push_back
+#define pf push_front
+#define sz size()
+#define mp make_pair
+/////////////////////////////NUMERICAL//////////////////////////////
+#define INCMOD(a,b,c) (((a)+b)%c)
+#define DECMOD(a,b,c) (((a)+c-b)%c)
+#define ROUNDINT(a) (int)((double)(a) + 0.5)
+#define INF 2000000000
+#define EPS 1e-9
+/////////////////////////////BITWISE////////////////////////////////
+#define CHECK(S, j) (S & (1 << j))
+#define CHECKFIRST(S) (S & (-S))  //PRECISA DE UMA TABELA PARA TRANSFORMAR EM INDICE
+#define SET(S, j) S |= (1 << j)
+#define SETALL(S, j) S = (1 << j)-1  //J PRIMEIROS
+#define UNSET(S, j) S &= ~(1 << j)
+#define TOOGLE(S, j) S ^= (1 << j)
+///////////////////////////////64 BITS//////////////////////////////
+#define LCHECK(S, j) (S & (1ULL << j))
+#define LSET(S, j) S |= (1ULL << j)
+#define LSETALL(S, j) S = (1ULL << j)-1ULL  //J PRIMEIROS
+#define LUNSET(S, j) S &= ~(1ULL << j)
+#define LTOOGLE(S, j) S ^= (1ULL << j)
+//scanf(" %d ", &t);
+
+typedef long long unsigned hash;
+
+#define MAXN 100100
+#define B 33ULL
+#define C 5381ULL
+
+ull power[MAXN];
+hash p[MAXN];
+string str;
+
+hash ph;
+string pat;
+
+int n;
+string s[100100];
+vi g[100100];
+
+void precalc(){
+	power[0] = 1ULL;
+	REPP(i, 1, MAXN) power[i] = power[i-1]*B;
+	
+	ph = 0ULL;
+	REP(i, pat.length()){
+		ph = ph*B + pat[i];
+	}
+}
+
+void calc(int a){
+	REPP(i, a, str.length()){
+		p[i+1] = p[i]*B + str[i];
+	}
+}
+
+void print(int a, int b){
+	for(int i = a; i<=b; i++){
+		printf("%c", str[i]);
+	}
+	printf("\n");
+}
+
+hash calc_dhash(int a, int b) {
+	if (a > b) return 0;
+	return p[b+1] - p[a] * power[b - a + 1];
+}
+
+int main(){
+	int p;
+	scanf(" %d ", &n);
+	REP(i, n) g[i].clear();
+	s[1] = "";
+	REPP(i, 2, n+1){
+		cin >> p >> s[i];
+		//cout << " P EH " << p << " S EH " << s[i] << endl;
+		g[p].pb(i);
+	}
+	cin >> pat;
+	
+	precalc();
+	
+	//cout << " PAT EH " << pat << endl;
+	ull ans = 0;
+	int v;
+	stack<int> st; st.push(1);
+	bitset<100100> vis; vis.reset();
+	str = ""; 
+	int t = 0, a, b, k;
+	while(!st.empty()){
+		v = st.top(); st.pop();
+		//cout << " V EH " << v << endl;
+		if(v > 0){
+			vis[v] = true; 
+			b = str.length(); 
+			str += s[v]; t = s[v].length();
+			
+			//cout << " STR EH " << str << endl;
+			calc(b);
+			for(; b < str.length(); b++){
+				a = b - (pat.length()-1);
+				//cout << " B EH " << b << " A EH " << a << endl;
+				if(a < 0) continue;
+				//cout << endl << "procurando: " << endl;
+				//cout << calc_dhash(a, b) << " E "<< ph << endl;
+				if(calc_dhash(a, b) == ph) ans++;
+			}
+			st.push(-t);
+			REP(i, g[v].size()) if(!vis[g[v][i]]) st.push(g[v][i]);
+			
+		}
+		else{
+			str.resize(str.length() + v);
+		}
+	}
+	cout << ans << endl;
+}

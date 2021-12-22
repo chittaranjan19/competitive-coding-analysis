@@ -1,0 +1,170 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class ProblemD {
+    BufferedReader rd;
+    long m;
+
+    ProblemD() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        long[] a = longarr();
+        long n = a[0];
+        long k = a[1];
+        long l = a[2];
+        m = a[3];
+
+        long max = 1L<<Math.min(l,62);
+        if(k>=max) {
+            out(0);
+        } else {
+            long[][] first = new long[][] { { 1, 1 }, { 1, 0 } };
+            long[][] res = pow(first,n+1);
+            long p = res[0][0];
+            long q = pow(2,n);
+            long r = sub(q,p,m);
+
+            long u = 1;
+            long um = 1L << Math.min(l,62);
+            long g = 0;
+            long s = 1L;
+            while(g < l) {
+                if(g < 61 && ((k&u) > 0)) {
+                    s *= r;
+                } else {
+                    s *= p;
+                }
+                s %= m;
+                u*=2;
+                g++;
+            }
+            out(s);
+        }
+    }
+
+    private long sub(long a, long b, long c) {
+        return (a+c-(b%c))%c;
+    }
+
+    public long pow(long a, long b) {
+        if(b == 0) {
+            return 1;
+        }
+        if(b == 1) {
+            return a%m;
+        }
+        long c = pow(a,b/2);
+        c = c*c;
+        c %= m;
+        if(b%2==1) {
+            c *= a;
+            c %= m;
+        }
+        return c;
+    }
+
+    public long[][] mul(long[][] a, long[][] b) {
+        long[][] c = new long[2][2];
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                long s = 0;
+                for (int k = 0; k < 2; k++) {
+                    s += (a[i][k] * b[k][j]) % m;
+                    s %= m;
+                }
+                c[i][j] = s;
+            }
+        }
+        return c;
+    }
+
+    private long[][] pow(long[][] a, long b) {
+        if(b == 1) {
+            return a;
+        }
+        if(b == 2) {
+            return mul(a,a);
+        }
+        long[][] c = pow(a,b/2);
+        c = mul(c,c);
+        if(b%2==1) {
+            c = mul(c,a);
+        }
+        return c;
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

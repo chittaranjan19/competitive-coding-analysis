@@ -1,0 +1,110 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+#include <fstream>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int arr[100005];
+bool v[100005][2];
+bool DP[100005][2];
+bool val[100005];
+int n;
+
+bool get(int i, int j)
+{
+  if(i == 1 && j == 0) return 0;
+  return 1;
+}
+
+bool solve(int ind, bool last)
+{
+  if(ind == n) return last;
+  if(v[ind][last]) return DP[ind][last];
+  bool nxt = get(last, arr[ind]);
+  DP[ind][last] = solve(ind + 1, nxt);
+  return DP[ind][last];
+}
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  cin >> n;
+  for(int i=0;i<n;i++) cin >> arr[i];
+  val[0] = arr[0];
+  int ch = -1;
+  for(int i=1;i<n;i++)
+  {
+    val[i] = get(val[i - 1], arr[i]);
+  }
+  if(val[n - 1] == 0)
+  {
+    cout << "YES\n";
+    cout << "(";
+    for(int i=0;i<n;i++)
+    {
+      if(i) cout << "->";
+      cout << arr[i];
+    }
+    cout << ")";
+    return 0;
+  }
+  for(int i=1;i<n-1 && ch == -1;i++)
+  {
+    if(val[i - 1] == 0) continue;
+    if(solve(i + 1, arr[i]) == 0) ch = i;
+  }
+  if(ch == -1)
+  {
+    cout << "NO";
+  }
+  else
+  {
+    cout << "YES\n";
+    cout << "(";
+    for(int i=0;i<ch;i++)
+    {
+      if(i) cout << "->";
+      cout << arr[i];
+    }
+    cout << ")->(";
+    for(int i=ch;i<n;i++)
+    {
+      if(i != ch) cout << "->";
+      cout << arr[i];
+    }
+    cout << ")";
+  }
+  return 0;
+}

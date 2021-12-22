@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdio>
+#include <stdlib.h>
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
+const long long inf = (long long)1e9;
+const long long MAX_N = 100000;
+const long long MOD = (long long)1e9 + 7;
+
+int main()
+{
+    //freopen("slalom.in", "r", stdin);
+    //freopen("slalom.out", "w", stdout);
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    long long n, a, b, k;
+    cin >> n >> a >> b >> k;
+    long long dp[k + 1][n], pref[n];
+    for (long long i = 0; i <= k; i++)
+        for (long long j = 0; j < n; j++)
+            dp[i][j] = 0;
+    dp[0][a - 1] = 1;
+    for (long long i = 1; i <= k; i++)
+    {
+        for (long long j = 0; j < n; j++)
+            pref[j] = dp[i - 1][j];
+        for (long long j = 1; j < n; j++)
+            pref[j] = (pref[j] + pref[j - 1]) % MOD;
+        for (long long j = 0; j < n; j++)
+            if (j != b - 1)
+            {
+                long long d = abs((j + 1) - b) / 2 - (1 - abs((j + 1) - b) % 2), cnt = 0;
+                if (b > (j + 1))
+                {
+                    if (j + d < n)
+                        cnt = (cnt + pref[j + d]) % MOD;
+                    else
+                        cnt = (cnt + pref[n - 1]) % MOD;
+                }
+                else
+                {
+                    if (j - d - 1 >= 0)
+                        cnt = (cnt + pref[n - 1] - pref[j - d - 1] + MOD) % MOD;
+                    else
+                        cnt = (cnt + pref[n - 1]) % MOD;
+                }
+                if (j > 0)
+                    cnt = max((long long)0, (cnt - (pref[j] - pref[j - 1] + MOD) % MOD + MOD) % MOD);
+                else
+                    cnt = max((long long)0, (cnt - pref[j] + MOD) % MOD);
+                dp[i][j] = cnt % MOD;
+            }
+    }
+    /*for (long long i = 0; i < n; i++)
+    {
+        for (long long j = 0; j <= k; j++)
+            cout << dp[j][i] << " ";
+        cout << endl;
+    }*/
+    long long ans = 0;
+    for (long long j = 0; j < n; j++)
+        ans = (ans + dp[k][j]) % MOD;
+    cout << ans;
+    return 0;
+}

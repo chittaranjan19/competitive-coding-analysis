@@ -1,0 +1,116 @@
+#include <iostream>
+#include <cstdio>
+#include <cmath>
+#define ls rt << 1
+#define rs rt << 1 | 1
+#define lson rt << 1, l, m
+#define rson rt << 1 | 1, m + 1, r
+
+using namespace std;
+
+const int MAXN = 300000 + 5;
+const double PI = acos(-1);
+
+struct Point
+{
+    double x, y;
+    Point(double x = 0, double y = 0) : x(x), y(y) {}
+};
+
+typedef Point Vector;
+
+Vector operator + (Vector A, Vector B) {return Vector(A.x + B.x, A.y + B.y);}
+
+Vector operator - (Vector A, Vector B) {return Vector(A.x - B.x, A.y - B.y);}
+
+Vector operator * (Vector A, double p) {return Vector(A.x * p, A.y * p);}
+
+Vector operator / (Vector A, double p) {return Vector(A.x / p, A.y / p);}
+
+double Dot(Vector A, Vector B) {return A.x * B.x + A.y * B.y;}
+
+double Length(Vector A) {return sqrt(Dot(A, A));}
+
+Vector Rotate(Vector A, double rad)
+{
+    return Vector(A.x * cos(rad) - A.y * sin(rad), A.x * sin(rad) + A.y * cos(rad));
+}
+
+struct segtree
+{
+    Vector node[MAXN << 2];
+    double ang[MAXN << 2];
+
+    void pushup(int rt)
+    {
+        node[rt] = node[ls] + Rotate(node[rs], ang[rt]);
+    }
+
+    void build(int rt, int l, int r)
+    {
+        ang[rt] = 0;
+        if(l == r)
+        {
+            node[rt] = Vector(1, 0);
+            return;
+        }
+        int m = (l + r) >> 1;
+        build(lson);
+        build(rson);
+        pushup(rt);
+    }
+
+    void update1(int rt, int l, int r, int x, int y)
+    {
+        if(l == r)
+        {
+            double len = Length(node[rt]);
+            node[rt] = node[rt] * (len + y) / len;
+            return;
+        }
+        int m = (l + r) >> 1;
+        x <= m ? update1(lson, x, y) : update1(rson, x, y);
+        pushup(rt);
+    }
+
+    void update2(int rt, int l, int r, int x, double rad)
+    {
+        if(l == r) return;
+        int m = (l + r) >> 1;
+        x <= m ? update2(lson, x, rad) : update2(rson, x, rad);
+        if(x <= m + 1 && l != x) ang[rt] += rad;
+        pushup(rt);
+    }
+
+    Point query(int rt)
+    {
+        return node[rt];
+    }
+} tree;
+
+int main()
+{
+    int n, q;
+    while(~scanf("%d%d", &n, &q))
+    {
+        tree.build(1, 0, n);
+        Point O(1, 0);
+        while(q--)
+        {
+            int op, x, y;
+            scanf("%d%d%d", &op, &x, &y);
+            if(op == 1)
+            {
+                tree.update1(1, 0, n, x, y);
+            }
+            else
+            {
+                double rad = y * PI / 180;
+                tree.update2(1, 0, n, x, -rad);
+            }
+            Point p = tree.query(1) - O;
+            printf("%.10f %.10f\n", p.x, p.y);
+        }
+    }
+    return 0;
+}

@@ -1,0 +1,64 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <set>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef set<pii>::iterator ite;
+
+const int maxn = 2e5 + 5;
+const int INF = 1 << 30;
+
+pii p[maxn];
+
+ll solve(int m, int n)
+{
+    set<pii> st;
+    ll ret = 0;
+    int gas = n, now = 0, j = 0, k = 0;
+    while(now < m)
+    {
+        while(j <= m && p[j].first - p[now].first <= n)
+        {
+            st.insert(pii(p[j].second, j));
+            ++j;
+        }
+        ite pp;
+        while(k <= now)
+        {
+            pp = st.lower_bound(pii(p[k].second, k));
+            st.erase(pp);
+            ++k;
+        }
+        if(st.empty()) return -1;
+        pp = st.begin();
+        int tmp = pp->first <= p[now].second ? p[pp->second].first - p[now].first : n;
+        if(gas < tmp)
+        {
+            ret += 1LL * p[now].second * (tmp - gas);
+            gas = tmp;
+        }
+        gas -= tmp;
+        now = pp->second;
+    }
+    return ret;
+}
+
+int main()
+{
+    int d, n, m;
+    while(~scanf("%d%d%d", &d, &n, &m))
+    {
+        p[0] = pii(0, INF);
+        ++m;
+        for(int i = 1; i < m; ++i) scanf("%d%d", &p[i].first, &p[i].second);
+        p[m] = pii(d, 0);
+        sort(p, p + m + 1);
+        printf("%I64d\n", solve(m, n));
+    }
+    return 0;
+}

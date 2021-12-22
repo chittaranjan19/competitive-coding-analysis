@@ -1,0 +1,99 @@
+#include <bits/stdc++.h>
+
+#define f       first
+#define s       second
+#define mp      make_pair
+#define rank    something_which_is_supposed_to_be_rank
+#define left    something_which_is_supposed_to_be_left
+#define right   something_which_is_supposed_to_be_right
+
+using namespace std;
+
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+
+const int N = 5179;
+const ll MOD = 1e9 + 7;
+ull M = 11;
+
+ll n, pref[N], dp[N][N];
+ull h[N], pows[N];
+string s;
+
+inline ll mod(ll x) {
+    return (x % MOD + MOD) % MOD;
+}
+
+inline ull get_hash(int l, int r) {
+    // cerr << "HASH " << l << " " << r << " -> " << h[r] - h[l] * pows[r - l] << "\n";
+    return h[r] - h[l] * pows[r - l];
+}
+
+inline bool wrapped(int l1, int r1, int l2, int r2) {
+    int l = -1, r = r2 - l2;
+    for (int m; l + 1 < r; ) {
+        m = (l + r) >> 1;
+        if (get_hash(l1, l1 + m) == get_hash(l2, l2 + m)) { 
+            l = m;
+        } else {
+            r = m;
+        }
+    }
+    // cerr << l << "\n";
+    return (l1 + l != r1 && s[l1 + l] < s[l2 + l]);
+}
+
+inline bool my_less(int l1, int r1, int l2, int r2) {
+    bool res = wrapped(l1, r1, l2, r2);
+    // cerr << l1 << " " << r1 << " & " << l2 << " " << r2 << " -> " << res << "\n";
+    return res;
+}
+
+inline void print() {
+    cerr << "pref\n";
+    for (int j = 0; j <= n; ++j) {
+        cerr << pref[j] << " ";
+    }
+    cerr << "\ndp\n";
+    for (int i = 0; i <= n; ++i) {
+        for (int j = 0; j <= n; ++j) {
+            cerr << dp[i][j] << " ";
+        }
+        cerr << "\n";   
+    }
+}
+
+int main() {
+    srand(time(0));
+    M += rand();
+    assert(M >= 11ULL);
+    pows[0] = 1;
+    cin.sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n >> s;
+    for (int i = 0; i < n; ++i) {
+        pows[i + 1] = pows[i] * M;
+        h[i + 1] = h[i] * M + s[i] - '0' + 1;
+    }
+    for (int l = 1; l <= n; ++l) {
+        for (int i = 0; i + l <= n; ++i) {
+            if (s[i] == '0') {
+                continue;
+            }
+            if (i == 0) {
+                dp[i][i + l] = 1;
+            } else {
+                dp[i][i + l] = mod((i >= l && my_less(i - l, i, i, i + l) ? dp[i - l][i] : 0) + pref[i]);
+            }
+        }
+        for (int i = 0; i <= n; ++i) {
+            pref[i] = mod(pref[i] + (i >= l ? dp[i - l][i] : 0));
+        }
+    }
+    // print();
+    cout << pref[n] << "\n";
+    cerr << "Time elapsed: " << (ld) clock() / CLOCKS_PER_SEC << "\n";
+    return 0;
+}

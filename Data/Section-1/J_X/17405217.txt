@@ -1,0 +1,113 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 1e5 + 5;
+
+struct edge
+{
+    int to, x, next;
+
+    edge(int to = 0, int x = 0, int next = 0) : to(to), x(x), next(next) {}
+} G[maxn << 1], E[maxn];
+int head[maxn], tot, id, d[maxn];
+char c[5];
+bool used[maxn];
+vector<int> vec[maxn][2];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v, int x)
+{
+    G[tot] = edge(v, x, head[u]);
+    head[u] = tot++;
+    G[tot] = edge(u, x, head[v]);
+    head[v] = tot++;
+}
+
+bool dfs(int u, int col, int s, int id)
+{
+    bool ret = true;
+    used[u] = true;
+    if(s)
+    {
+        vec[id >> 1][id & 1].push_back(u);
+        for(int i = head[u]; ~i; i = G[i].next)
+        {
+            G[i].x ^= 1;
+            G[i ^ 1].x ^= 1;
+        }
+    }
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        if(used[G[i].to]) continue;
+        if(!dfs(G[i].to, col, col != G[i].x, id)) ret = false;
+    }
+    for(int i = head[u]; ~i; i = G[i].next) if(G[i].x != col) ret = false;
+    return ret;
+}
+
+int solve(int n, int m, int k)
+{
+    int ret = 0;
+    fill(d, d + n, maxn);
+    for(int i = 0; i < 2; ++i)
+    {
+        memset(used, 0, sizeof(used));
+        init();
+        id = 0;
+        for(int j = 0; j < m; ++j) addedge(E[j].to, E[j].next, E[j].x);
+        for(int j = 1; j <= n; ++j)
+        {
+            if(!used[j])
+            {
+                vec[id][i].clear();
+                if(dfs(j, k, i, id << 1 | i)) d[id] = min(d[id], (int)vec[id][i].size());
+                ++id;
+            }
+        }
+    }
+    for(int i = 0; i < id; ++i)
+    {
+        if(d[i] >= maxn) return maxn;
+        ret += d[i];
+    }
+    return ret;
+}
+
+int main()
+{
+    int n, m;
+    scanf("%d%d", &n, &m);
+    for(int i = 0; i < m; ++i)
+    {
+        scanf("%d%d%s", &E[i].to, &E[i].next, c);
+        E[i].x = *c == 'B';
+    }
+    int ans = -1, cnt = maxn;
+    for(int i = 0; i < 2; ++i)
+    {
+        int tmp = solve(n, m, i);
+        if(cnt > tmp)
+        {
+            ans = i;
+            cnt = tmp;
+        }
+    }
+    if(~ans)
+    {
+        printf("%d\n", solve(n, m, ans));
+        for(int i = 0; i < id; ++i)
+        {
+            int k = d[i] == vec[i][1].size();
+            for(int j = 0; j < vec[i][k].size(); ++j) printf("%d ", vec[i][k][j]);
+        }
+        puts("");
+    }
+    else puts("-1");
+    return 0;
+}

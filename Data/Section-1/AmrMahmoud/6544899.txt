@@ -1,0 +1,104 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+
+LL cost[100005];
+int res[100005],low[100005],index=0;
+vector<vector<int> > graph(100005),scc;
+bool visited[100005];
+deque<int> dfs;
+
+void tarjan(int x)
+{
+    dfs.push_back(x);
+    res[x] = low[x] = index;
+    index++;
+    visited[x] = true;
+    for(int i=0;i<graph[x].size();i++)
+    {
+        if(res[graph[x][i]] == -1)
+        {
+            tarjan(graph[x][i]);
+            low[x] = min(low[x],low[graph[x][i]]);
+        }
+        else if(visited[graph[x][i]])
+            low[x] = min(low[x],low[graph[x][i]]);
+    }
+    if(low[x] == res[x])
+    {
+        vector<int> temp;
+        int y;
+        do
+        {
+            y = dfs.back();
+            dfs.pop_back();
+            temp.push_back(y);
+            visited[y] = false;
+        }
+        while(y != x);
+        scc.pb(temp);
+    }
+}
+
+int main()
+{
+    int n,m,x,y;
+    cin >> n;
+    for(int i=1;i<=n;i++)
+        scanf("%I64d",&cost[i]);
+    cin >> m;
+    for(int i=0;i<m;i++)
+    {
+        scanf("%d%d",&x,&y);
+        graph[x].pb(y);
+    }
+    memset(res,-1,sizeof(res));
+    for(int i=1;i<=n;i++)
+        if(res[i] == -1)
+            tarjan(i);
+    LL mini=0,ways=1;
+    for(int i=0;i<scc.size();i++)
+    {
+        LL counter=1,minii=INF_MAX;
+        for(int j=0;j<scc[i].size();j++)
+        {
+            if(minii > cost[scc[i][j]])
+                counter=1,minii = cost[scc[i][j]];
+            else if(minii == cost[scc[i][j]])
+                counter++;
+        }
+        ways*=counter;
+        ways%=mod;
+        mini+=minii;
+    }
+    cout << mini << " " << ways;
+    return 0;
+}

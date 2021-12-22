@@ -1,0 +1,147 @@
+#include<iostream>
+#include<cstdio>
+#include<map>
+#include<string>
+#include<cstring>
+#include<vector>
+#include<algorithm>
+
+using namespace std;
+
+#define max(a,b) a>b?a:b
+#define min(a,b) a<b?a:b
+
+void scan(long &x); //IMPORTANT: for positive only
+
+bool cmp(const pair<int, pair<int,int> >&i, const pair<int,pair<int,int> >&j)
+{
+        return i.first < j.first;
+}
+
+int n,m;
+
+vector< pair<long, pair<int,int> > > order;
+
+int main(void)
+{
+  cin >> n >> m;
+
+  long a[n][m];
+
+  for(int i=0;i<n;i++)
+     for(int j=0;j<m;j++)
+        {
+            scan(a[i][j]);
+            order.push_back( { a[i][j],{i,j} } );
+        }
+
+  sort(order.begin(),order.end(),cmp);
+
+  int x,y,len,cnum;
+
+  len = order.size();
+
+  vector < pair<int,int> > cstate; // curr num,(x,y)
+
+  cstate.push_back(order[0].second);
+  a[cstate[0].first][cstate[0].second] = 1;
+
+  int i;
+  for(i=1;i<len;i++)
+  {
+      if(order[i].first != order[i-1].first)
+          break;
+      else
+         a[order[i].second.first][order[i].second.second] = 1;
+  }
+
+  cnum = 1;
+  for(;i<len;)
+  {
+      //cout << "Order " << order[i].first << endl;
+      x = order[i].second.first;
+      y = order[i].second.second;
+
+      int flag = 1 , j; //does not fall in same column or row
+
+      for(j=0;j<cstate.size();j++)
+      {
+          if(cstate[j].first == x || cstate[j].second  == y) // does fall in same row or column
+                 {
+                     flag = 0;
+                     break;
+                 }
+      }
+
+      for(j=i+1;j<len;j++)
+      {
+
+
+          if(order[j].first != order[i].first)
+              break;
+
+         //cout << "order: " << order[j].first << endl;
+
+          x = order[j].second.first;
+          y = order[j].second.second;
+
+           for(int k=0 ;(k<cstate.size()) && flag ; k++)
+            {
+                 if(cstate[k].first == x || cstate[k].second  == y) // does fall in same row or column
+                 {
+                     flag = 0;
+                 }
+            }
+      }
+
+      if(flag)
+      {
+          for(int k=i;k<j;k++)
+            a[order[k].second.first][order[k].second.second] = cnum;
+      }
+      else
+      {
+          cnum++;
+          cstate.clear();
+          for(int k=i;k<j;k++)
+            {
+                a[order[k].second.first][order[k].second.second] = cnum;
+                cstate.push_back( {order[k].second.first,order[k].second.second} );
+            }
+      }
+     i=j;
+  }
+
+
+
+  for(int i=0;i<n;i++,printf("\n"))
+     for(int j=0;j<m;j++)
+        printf("%ld ",a[i][j]);
+
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+
+void scan(long &x)
+{
+    register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+
+   /* register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x; */
+}

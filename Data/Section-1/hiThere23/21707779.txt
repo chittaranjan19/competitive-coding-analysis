@@ -1,0 +1,98 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 105
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, a[mn], st[mn], r ;
+string zero = "";
+vector<string> step;
+priority_queue< pair<int, int> > p;
+
+void setup()
+{
+    cin >> n;
+    zero.resize(n);
+    FOR(i, 1, n)
+    {
+        cin >> a[i];
+        p.push(mp(a[i], i));
+        zero[i - 1] = '0';
+    }
+    while(true)
+    {
+        int u = p.top().S;
+        p.pop();
+        if (p.top().F == a[u])
+        {
+            p.push(mp(a[u], u));
+            return;
+        }
+        int v = p.top().S;
+        p.pop();
+        string add = zero;
+        add[u - 1] = add[v - 1] = '1';
+        step.pb(add);
+        if (a[u]) a[u] --;
+        if (a[v]) a[v] --;
+        p.push(mp(a[u], u));
+        p.push(mp(a[v], v));
+    }
+}
+
+void takeAway(int num)
+{
+    string add = zero;
+    while(num --)
+    {
+        add[st[r] - 1] = '1';
+        if (a[st[r]]) a[st[r]] --;
+        p.push(mp(a[st[r]], st[r]));
+        r --;
+    }
+    step.pb(add);
+}
+
+void xuly()
+{
+    int ans = a[min_element(a + 1, a + n + 1) - a];
+    string add = "";
+    while(true)
+    {
+        int top = p.top().F;
+        if (top == ans)
+            break;
+        r = 0;
+        while(p.top().F == top)
+        {
+            st[++ r] = p.top().S;
+            p.pop();
+        }
+        if (r % 4 == 1)
+            takeAway(5);
+        if (r % 4 == 2)
+            takeAway(2);
+        if (r % 4 == 3)
+            takeAway(3);
+        while(r)
+            takeAway(4);
+    }
+    cout << ans << '\n' << step.size() << '\n';
+    FOR(i, 0, int(step.size()) - 1)
+        cout << step[i] << '\n';
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

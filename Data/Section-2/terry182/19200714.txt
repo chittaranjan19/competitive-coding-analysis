@@ -1,0 +1,54 @@
+#include <iostream>
+#include <cmath>
+#include <queue>
+using namespace std;
+int scut[200015];
+int ans[200015], n, cnt;
+bool visited[200015];
+struct node{
+    int i, w;
+    node(int a,int b): i(a), w(b) {}
+    bool operator<(const node &x) const {
+        return ( w > x.w );
+    }
+};
+void dijkstra()
+{   priority_queue<node> q;
+    for (int i = 1; i <= n; ++i)    q.push(node(i, ans[i]));
+
+    while(!q.empty())
+    {   node u = q.top();
+        q.pop();
+        
+        if (visited[u.i]) { continue; }
+        else visited[u.i] = true;
+
+        for (int i = u.i-1; i <= u.i+1; ++i)
+        if (i != u.i)
+        {   int len = (i == scut[u.i]) ? 1 : abs(i - u.i);
+            if (ans[i] > ans[u.i] + len)
+            {   ans[i] = ans[u.i] + len;
+                q.push(node(i, ans[i]));
+            }
+        }
+        
+        if (ans[ scut[u.i] ] > ans[u.i] + 1) 
+        {   ans[scut[u.i]] = ans[u.i] + 1;
+            q.push(node(scut[u.i], ans[u.i]+1));
+        }
+        
+    }
+}
+int main()
+{   cin >> n;
+    for (int i = 1; i <= n; ++i) 
+    {   cin >> scut[i];
+        ans[i] = i-1; // At most.
+        visited[i] = false;
+    }
+    dijkstra();
+    cout << ans[1];
+    for (int i = 2; i <= n; ++i) cout << " " << ans[i];
+    cout << endl;
+
+}

@@ -1,0 +1,57 @@
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+#include <algorithm>
+#include <vector>
+#include <set>
+#include <map>
+#include <queue>
+#include <string>
+#include <math.h>
+
+using namespace std;
+
+int main()
+{
+    int n, m, x, y;
+    scanf("%d %d %d %d", &n, &m, &x, &y);
+    char a[n][m];
+    for (int i = 0; i < n; i++)
+    {
+        scanf("%c", &a[i][0]);
+        for (int j = 0; j < m; j++)
+            scanf("%c", &a[i][j]);
+    }
+    int black[m + 1], white[m + 1];
+    black[0] = 0;
+    white[0] = 0;
+    for (int j = 0; j < m; j++)
+    {
+        black[j + 1] = black[j];
+        white[j + 1] = white[j];
+        for (int i = 0; i < n; i++)
+            if (a[i][j] == '.')
+                white[j + 1]++;
+            else
+                black[j + 1]++;
+    }
+    int dp[2][m + 1];
+    dp[0][0] = 0;
+    dp[1][0] = 0;
+    for (int i = 1; i < m + 1; i++)
+    {
+        dp[0][i] = 2000000000;
+        dp[1][i] = 2000000000;
+    }
+    for (int i = 1; i < m + 1; i++)
+    {
+        for (int j = x; j <= y; j++)
+            if (i >= j)
+            {
+                dp[0][i] = min(dp[0][i], dp[1][i - j] + white[i] - white[i - j]);
+                dp[1][i] = min(dp[1][i], dp[0][i - j] + black[i] - black[i - j]);
+            }
+    }
+    printf("%d", min(dp[0][m], dp[1][m]));
+    return 0;
+}

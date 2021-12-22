@@ -1,0 +1,116 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+#define ls rt << 1
+#define rs rt << 1 | 1
+#define lson ls, l, m
+#define rson rs, m + 1, r
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 2e5 + 5;
+
+vector<int> v1[maxn], v2[maxn];
+int n, lazy[maxn << 2], minnode[maxn << 2], maxnode[maxn << 2];
+ll sumnode[maxn << 2];
+
+void modify(int rt, int l, int r, int c)
+{
+    lazy[rt] = c;
+    minnode[rt] = maxnode[rt] = c;
+    sumnode[rt] = (r - l + 1LL) * (n + 1 - c);
+}
+
+void pushup(int rt)
+{
+    sumnode[rt] = sumnode[ls] + sumnode[rs];
+    minnode[rt] = min(minnode[ls], minnode[rs]);
+    maxnode[rt] = max(maxnode[ls], maxnode[rs]);
+}
+
+void pushdown(int rt, int l, int r)
+{
+    if(lazy[rt])
+    {
+        int m = (l + r) >> 1;
+        modify(lson, lazy[rt]);
+        modify(rson, lazy[rt]);
+        lazy[rt] = 0;
+    }
+}
+
+void build(int rt, int l, int r)
+{
+    lazy[rt] = 0;
+    if(l == r)
+    {
+        minnode[rt] = l;
+        sumnode[rt] = n - l + 1;
+        return;
+    }
+    int m = (l + r) >> 1;
+    build(lson), build(rson);
+    pushup(rt);
+}
+
+void update(int rt, int l, int r, int x, int y, int c)
+{
+    if(c <= minnode[rt]) return;
+    if(x <= l && r <= y && maxnode[rt] <= c)
+    {
+        modify(rt, l, r, c);
+        return;
+    }
+    pushdown(rt, l, r);
+    int m = (l + r) >> 1;
+    if(x <= m) update(lson, x, y, c);
+    if(m < y) update(rson, x, y, c);
+    pushup(rt);
+}
+
+void init()
+{
+    for(int i = 1; i < maxn; ++i)
+    {
+        for(int j = i; j < maxn; j += i) v1[j].push_back(i);
+    }
+}
+
+int main()
+{
+    init();
+    scanf("%d", &n);
+    int mx = 0;
+    for(int i = 1; i <= n ; ++i)
+    {
+        int x;
+        scanf("%d", &x);
+        mx = max(x, mx);
+        for(int j = 0; j < v1[x].size(); ++j) v2[v1[x][j]].push_back(i);
+    }
+    build(1, 1, n);
+    ll ans = 0, cur = sumnode[1];
+    for(int i = mx; i; --i)
+    {
+//        if(i == 5)
+//        {
+//            cout << 1 << endl;
+//        }
+        if(v2[i].size() > 1)
+        {
+            int p = v2[i][0], q = v2[i][1];
+            if(q < n) update(1, 1, n, q + 1, n, n + 1);
+            update(1, 1, n, p + 1, q, v2[i].back());
+            update(1, 1, n, 1, p, v2[i][v2[i].size() - 2]);
+//            cout << i << ' ' << sumnode[1] << endl;
+            ans += i * (cur - sumnode[1]);
+            cur = sumnode[1];
+        }
+    }
+    printf("%I64d\n", ans);
+    return 0;
+}

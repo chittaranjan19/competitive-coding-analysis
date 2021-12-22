@@ -1,0 +1,74 @@
+#include <cstdio>
+#include <vector>
+using namespace std;
+int t,T,n,m,i,x,y,lebest,ribest,cc,c[100100],cnt[100100],l[100100],r[100100],le[100100],ri[100100],ans[100100];
+vector<int> g[100100];
+bool bad=false,can=true;
+void dfs(int i, int d) {
+  c[i]=cc-d;
+  if (++cnt[c[i]]==1) {
+    le[c[i]]=l[i];
+    ri[c[i]]=r[i];
+  } else {
+    le[c[i]]=max(le[c[i]],l[i]);
+    ri[c[i]]=min(ri[c[i]],r[i]);
+    if (le[c[i]]>ri[c[i]]) bad=true;
+  }
+  for (int j=0; j<g[i].size(); j++) {
+    int k=g[i][j];
+    if (c[k]==0) dfs(k,d^1);
+    if (c[k]==c[i]) bad=true;
+  }
+}
+bool inside(int x, int i) {
+  return x>=le[i] && x<=ri[i];
+}
+void solve() {
+    if (lebest+ribest<t) lebest=t-ribest;
+    if (lebest+ribest>T) ribest=T-lebest;
+    if (lebest<0 || ribest<0) { puts("IMPOSSIBLE"); return; }
+    for (i=2; i<=cc; i+=2) if (cnt[i-1]==0) {
+      if (inside(lebest,i)) ans[i]=1; else if (inside(ribest,i)) ans[i]=2; else { puts("IMPOSSIBLE"); return; }
+    } else if (inside(lebest,i-1) && inside(ribest,i)) {
+      ans[i-1]=1; ans[i]=2;
+    } else if (inside(lebest,i) && inside(ribest,i-1)) {
+      ans[i-1]=2; ans[i]=1;
+    } else { puts("IMPOSSIBLE"); return; }
+    puts("POSSIBLE");
+    printf("%d %d\n",lebest,ribest);
+    for (i=1; i<=n; i++) printf("%d",ans[c[i]]);
+}
+int main() {
+  scanf("%d%d%d%d",&t,&T,&n,&m);
+  for (i=1; i<=n; i++) scanf("%d%d",&l[i],&r[i]);
+  while (m--) {
+    scanf("%d%d",&x,&y);
+    g[x].push_back(y);
+    g[y].push_back(x);
+  }
+  for (i=1; i<=n; i++) if (c[i]==0) {
+    cc+=2; dfs(i,0);
+    if (bad) { puts("IMPOSSIBLE"); return 0; }
+    if (cnt[cc-1]>0) can=false;
+  }
+  ribest=1000000000;
+  for (i=1; i<=cc; i++) if (cnt[i]>0) {
+    if (le[i]>lebest) lebest=le[i];
+    if (ri[i]<ribest) ribest=ri[i];
+  }
+  if (lebest<=ribest) {
+    if (T<lebest) { puts("IMPOSSIBLE"); return 0; }
+    if (t<=ribest && can) {
+      lebest=max(t,lebest);
+      for (i=2; i<=cc; i+=2) if (!inside(lebest,i)) { puts("IMPOSSIBLE"); return 0; }
+      puts("POSSIBLE");
+      printf("%d 0\n",lebest);
+      for (i=1; i<=n; i++) printf("1");
+    } else {
+      solve();
+    }
+  } else {
+    solve();
+  }
+  return 0;
+}

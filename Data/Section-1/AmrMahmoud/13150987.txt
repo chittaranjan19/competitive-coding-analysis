@@ -1,0 +1,76 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+LL DP[262144][19];
+bool v[262144][19];
+int arr[20], cost[20][20], n, m;
+
+LL solve(int mask, int last)
+{
+  if(__builtin_popcount(mask) == m) return 0;
+  LL &temp = DP[mask][last];
+  if(v[mask][last])
+    return temp;
+  v[mask][last] = true;
+  temp = 0;
+  if(__builtin_popcount(mask) == 0)
+    last = -1;
+  for(int i=0;i<n;i++)
+  {
+    if(mask & (1 << i)) continue;
+    if(last != -1)
+      temp = max(temp, solve(mask | (1 << i), i) + arr[i] + cost[last][i]);
+    else temp = max(temp, solve(mask | (1 << i), i) + arr[i]);
+  }
+  return temp;
+}
+
+int main()
+{
+  int k, x, y, z;
+  scanf("%d %d %d", &n, &m, &k);
+  for(int i=0;i<n;i++)
+    scanf("%d", &arr[i]);
+  for(int i=0;i<k;i++)
+  {
+    scanf("%d %d %d", &x, &y, &z);
+    cost[x-1][y-1] = z;
+  }
+  printf("%I64d", solve(0, 0));
+  return 0;
+}

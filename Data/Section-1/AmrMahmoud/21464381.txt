@@ -1,0 +1,111 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int arr[100005], ind[100005], diff[100005], ans[100005];
+vector<int> v[100005];
+pair<pair<int, int>, int> queries[100005];
+int sq;
+
+bool sorter(const pair<pair<int, int>, int> &a, const pair<pair<int, int>, int> &b)
+{
+  if(a.f.f / sq == b.f.f / sq) return a.f.s < b.f.s;
+  return a.f.f / sq < b.f.f / sq;
+}
+
+int main()
+{
+  int n, q, x, y;
+  cin >> n;
+  sq = sqrt(n) + EPS;
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d", &arr[i]);
+    ind[i] = v[arr[i]].size();
+    v[arr[i]].pb(i);
+  }
+  cin >> q;
+  for(int i=0;i<q;i++)
+  {
+    scanf("%d %d", &x, &y);
+    queries[i] = mp(mp(x - 1, y - 1), i);
+  }
+  sort(queries, queries + q, sorter);
+  int L = 0, R = 0, cnt = 1, good = 1;
+  for(int i=0;i<q;i++)
+  {
+    x = queries[i].f.f;
+    y = queries[i].f.s;
+    while(R < y)
+    {
+      R++;
+      if(ind[R] == 0 || v[arr[R]][ind[R] - 1] < L) cnt++, good++;
+      else if(ind[R] > 1 && v[arr[R]][ind[R] - 2] >= L)
+      {
+        if(v[arr[R]][ind[R]] - v[arr[R]][ind[R] - 1] != v[arr[R]][ind[R] - 1] - v[arr[R]][ind[R] - 2])
+        {
+          if(diff[arr[R]] == 0) good--;
+          diff[arr[R]]++;
+        }
+      }
+    }
+    while(L > x)
+    {
+      L--;
+      if(ind[L] == v[arr[L]].size() - 1 || v[arr[L]][ind[L] + 1] > R) cnt++, good++;
+      else if(ind[L] + 2 < v[arr[L]].size() && v[arr[L]][ind[L] + 2] <= R)
+      {
+        if(v[arr[L]][ind[L] + 2] - v[arr[L]][ind[L] + 1] != v[arr[L]][ind[L] + 1] - v[arr[L]][ind[L]])
+        {
+          if(diff[arr[L]] == 0) good--;
+          diff[arr[L]]++;
+        }
+      }
+    }
+    while(R > y)
+    {
+      if(ind[R] == 0 || v[arr[R]][ind[R] - 1] < L) cnt--, good--;
+      else if(ind[R] > 1 && v[arr[R]][ind[R] - 2] >= L)
+      {
+        if(v[arr[R]][ind[R]] - v[arr[R]][ind[R] - 1] != v[arr[R]][ind[R] - 1] - v[arr[R]][ind[R] - 2])
+        {
+          diff[arr[R]]--;
+          if(diff[arr[R]] == 0) good++;
+        }
+      }
+      R--;
+    }
+    while(L < x)
+    {
+      if(ind[L] == v[arr[L]].size() - 1 || v[arr[L]][ind[L] + 1] > R) cnt--, good--;
+      else if(ind[L] + 2 < v[arr[L]].size() && v[arr[L]][ind[L] + 2] <= R)
+      {
+        if(v[arr[L]][ind[L] + 2] - v[arr[L]][ind[L] + 1] != v[arr[L]][ind[L] + 1] - v[arr[L]][ind[L]])
+        {
+          diff[arr[L]]--;
+          if(diff[arr[L]] == 0) good++;
+        }
+      }
+      L++;
+    }
+    ans[queries[i].s] = cnt + 1 - min(1, good);
+  }
+  for(int i=0;i<q;i++)
+    printf("%d\n", ans[i]);
+  return 0;
+}

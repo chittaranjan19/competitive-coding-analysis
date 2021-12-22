@@ -1,0 +1,102 @@
+#include <bits/stdc++.h>
+using namespace std;
+int n2=0,n3=0,n5=0,n7=0,n11=0,n13=0;
+vector<int> vec;
+int k;
+bool check(){
+    return (n2>=0&&n3>=0&&n5>=0&&n7>=0&&n11>=0&&n13>=0&&vec.size()>=k);
+}
+int e2,e3,e5,e7,e11,e13;
+void insert(int lvl){
+    vec.push_back(e2*e3*e5*e7*e11*e13);
+    if(lvl>=1){
+    if(e2!=1)   ++n2;
+    else        --n2;
+    }
+    if(lvl>=2){
+    if(e3!=1)   ++n3;
+    else        --n3;
+    }
+    if(lvl>=3){
+    if(e5!=1)   ++n5;
+    else        --n5;
+    }
+    if(lvl>=4){
+    if(e7!=1)   ++n7;
+    else        --n7;
+    }
+    if(lvl>=5){
+    if(e11!=1)  ++n11;
+    else        --n11;
+    }
+    if(lvl>=6){
+    if(e13!=1)  ++n13;
+    else        --n13;
+    }
+
+}
+bool trycount(int lvl){
+    if(check()) return true;
+    vec.clear();
+    n2=n3=n5=n7=n11=n13=0;
+    e2=e3=e5=e7=e11=e13=1;
+    e2=1;
+    for(int p2=0;e2*=2;++p2){
+        if(e2>2*k*k) break;
+        if(lvl==1) {insert(lvl);continue;}
+        e3=1;
+        for(int p3=0;e3*=3;++p3){
+            if(e2*e3>2*k*k) break;
+            if(lvl==2) {insert(lvl);continue;}
+            e5=1;
+            for(int p5=0;e5*=5;++p5){
+                if(e2*e3*e5>2*k*k) break;
+                if(lvl==3) {insert(lvl);continue;}
+                e7=1;
+                for(int p7=0;e7*=7;++p7){
+                    if(e2*e3*e5*e7>2*k*k) break;
+                    if(lvl==4) {insert(lvl);continue;}
+                    e11=1;
+                    for(int p11=0;e11*=11;++p11){
+                        if(e2*e3*e5*e7*e11>2*k*k) break;
+                        if(lvl==5) {insert(lvl);continue;}
+                        e13=1;
+                        for(int p13=0;e13*=13;++p13){
+                            if(e2*e3*e5*e7*e11*e13>2*k*k) break;
+                            if(lvl==6) insert(lvl);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return check();
+}
+int scoreit(int x){
+    return (x%2==0)+2*(x%3==0)+4*(x%5==0)+8*(x%7==0)+16*(x%11==0)+32*(x%13==0);
+}
+int main(){
+    cin>>k;
+    n2=n3=n5=n7=n11=n13=0;
+    for(int i=1;i<=6;++i)
+        trycount(i);
+    int score=0;
+    int tam=vec.size();
+    vector<int> elim(vec.size(),0);
+    while(tam>k){
+        for(int i=0;i<vec.size();++i){
+            if(elim[i]==0&&scoreit(vec[i])==score){
+                elim[i]=1;
+                --tam;
+                if(tam<=k) break;
+            }
+        }
+        ++score;
+    }
+    for(int i=0;i<vec.size();++i){
+        if(elim[i]==0){
+            cout<<vec[i]<<" ";
+        }
+    }
+    return 0;
+}

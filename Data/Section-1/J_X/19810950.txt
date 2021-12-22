@@ -1,0 +1,180 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 1e3 + 5;
+
+int tot, val[maxn * maxn], ch[maxn * maxn][2], pre[maxn * maxn], size[maxn * maxn];
+int root[maxn], now;
+
+void newnode(int &rt, int fa)
+{
+    rt = ++tot;;
+    ch[rt][0] = ch[rt][1] = 0;
+    pre[rt] = fa;
+    size[rt] = 1;
+}
+
+void pushup(int rt)
+{
+    if(!rt) return;
+    int ls = ch[rt][0], rs = ch[rt][1];
+    size[rt] = size[ls] + size[rs] + 1;
+}
+
+void build(int &rt, int l, int r, int fa)
+{
+    if(l > r) return;
+    newnode(rt, fa);
+    int m = (l + r) >> 1;
+    build(ch[rt][0], l, m - 1, rt);
+    scanf("%d", &val[rt]);
+    build(ch[rt][1], m + 1, r, rt);
+    pushup(rt);
+}
+
+void rotate(int x, int k)
+{
+    int y = pre[x], z = pre[y];
+    ch[y][!k] = ch[x][k];
+    pre[ch[x][k]] = y;
+    if(z)
+    {
+        ch[z][0] == y ? ch[z][0] = x : ch[z][1] = x;
+    }
+    else
+    {
+        root[now] = x;
+    }
+    pre[x] = z;
+    ch[x][k] = y;
+    pre[y] = x;
+    pushup(y);
+    pushup(x);
+    pushup(z);
+}
+
+void splay(int x, int f)
+{
+    while(pre[x] != f)
+    {
+        int y = pre[x], z = pre[y];
+        if(z == f)
+        {
+            rotate(x, ch[y][0] == x);
+        }
+        else
+        {
+            int k = ch[z][0] == y;
+            if(ch[y][k] == x)
+            {
+                rotate(x, !k);
+                rotate(x, k);
+            }
+            else
+            {
+                rotate(y, k);
+                rotate(x, k);
+            }
+        }
+    }
+    pushup(x);
+    pushup(f);
+}
+
+int get(int rt, int k)
+{
+    int t = size[ch[rt][0]] + 1;
+    if(t > k) return get(ch[rt][0], k);
+    if(t < k) return get(ch[rt][1], k - t);
+    return rt;
+}
+
+void update(int x, int a, int b, int y, int c, int d)
+{
+    now = x;
+    splay(get(root[x], a), 0);
+    splay(get(root[x], b + 2), root[x]);
+    now = y;
+    splay(get(root[y], c), 0);
+    splay(get(root[y], d + 2), root[y]);
+    swap(ch[ch[root[x]][1]][0], ch[ch[root[y]][1]][0]);
+    pre[ch[ch[root[x]][1]][0]] = ch[root[x]][1];
+    pre[ch[ch[root[y]][1]][0]] = ch[root[y]][1];
+    pushup(ch[root[x]][1]);
+    pushup(root[x]);
+    pushup(ch[root[y]][1]);
+    pushup(root[y]);
+}
+
+void update1(int x, int a, int b, int c, int d)
+{
+    now = x;
+    if(a > c)
+    {
+        swap(a, c);
+        swap(b, d);
+    }
+    splay(get(root[x], a), 0);
+    splay(get(root[x], b + 2), root[x]);
+    int tmp = ch[ch[root[x]][1]][0];
+    ch[ch[root[x]][1]][0] = 0;
+    pushup(ch[root[x]][1]);
+    pushup(root[x]);
+    splay(get(root[x], c - (b - a + 1)), 0);
+    splay(get(root[x], d + 2 - (b - a + 1)), root[x]);
+    int tmp1 = ch[ch[root[x]][1]][0];
+    ch[ch[root[x]][1]][0] = tmp;
+    pushup(ch[root[x]][1]);
+    pushup(root[x]);
+    splay(get(root[x], a), 0);
+    splay(get(root[x], a + 1), root[x]);
+    ch[ch[root[x]][1]][0] = tmp1;
+    pushup(ch[root[x]][1]);
+    pushup(root[x]);
+}
+
+void print(int rt)
+{
+    if(!rt) return;
+    print(ch[rt][0]);
+    printf("%d ", val[rt]);
+    print(ch[rt][1]);
+}
+
+int main()
+{
+    int n, m, q;
+    scanf("%d%d%d", &n, &m, &q);
+    tot = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        newnode(root[i], 0);
+        newnode(ch[root[i]][1], root[i]);
+        build(ch[ch[root[i]][1]][0], 1, m, ch[root[i]][1]);
+        pushup(ch[root[i]][1]);
+        pushup(root[i]);
+    }
+    while(q--)
+    {
+        int x1, y1, x2, y2, h, w;
+        scanf("%d%d%d%d%d%d", &x1, &y1, &x2, &y2, &h, &w);
+        for(int i = 0; i < h; ++i)
+        {
+            if(x1 != x2) update(x1 + i, y1, y1 + w - 1, x2 + i, y2, y2 + w - 1);
+            else update1(x1 + i, y1, y1 + w - 1, y2, y2 + w - 1);
+        }
+    }
+    for(int i = 1; i <= n; ++i)
+    {
+        now = i;
+        splay(get(root[i], 1), 0);
+        splay(get(root[i], m + 2), root[i]);
+        print(ch[ch[root[i]][1]][0]);
+        puts("");
+    }
+    return 0;
+}

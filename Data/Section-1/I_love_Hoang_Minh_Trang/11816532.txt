@@ -1,0 +1,151 @@
+const   maxn    =2*trunc(1e5)+3;
+
+type    arr1    =array[0..maxn] of int64;
+
+var     n , m   :int64;
+        x, y, l, r    :arr1;
+        c       :Arr1;
+        cs,vt      :arr1;
+        i, j    :longint;
+        res     :arr1;
+        ll, rr  :int64;
+         dau,cuoi,find,g:int64;
+
+procedure hv(var a,b:int64);
+var     tg      :int64;
+begin
+        tg:=a;a:=b;b:=tg;
+end;
+
+procedure QS(l,r:int64);
+var     i, j, x :int64;
+begin
+        i:=l;j:=r;
+        x:=c[l+random(r-l+1)];
+        repeat
+                while c[i]<x do inc(i);
+                while c[j]>x do dec(j);
+                if i<=j then
+                begin
+                        hv(c[i],c[j]);
+                        hv(cs[i],cs[j]);
+                        inc(i);
+                        dec(j);
+                end;
+        until i>j;
+        if l<j then QS(l,j);
+        if i<r then QS(i,r);
+end;
+
+procedure Sort(left, right:int64);
+var     i, j, x, y, mid:int64;
+begin
+        i:=left;j:=right;
+        mid:=left+random(right-left+1);
+        x:=l[mid];
+        y:=r[mid];
+        repeat
+                while (l[i]<x) or ((l[i]=x) and (r[i]<y)) do inc(i);
+                while (l[j]>x) or ((l[j]=x) and (r[j]>y)) do dec(j);
+                if i<=j then
+                begin
+                        hv(l[i],l[j]);
+                        hv(r[i],r[j]);
+                        hv(vt[i],vt[j]);
+                        inc(i);
+                        dec(j);
+                end;
+        until i>j;
+        if left<j then Sort(left,j);
+        if i<right then Sort(i,right);
+end;
+
+begin
+        readln(n, m);
+        for i:=1 to n do readln(x[i],y[i]);
+        for i:=1 to m do read(c[i]);
+        for i:=1 to m do
+                cs[i]:=i;
+        QS(1,m);
+
+
+        for i:=1 to n-1 do
+        begin
+                ll:=x[i+1]-y[i];
+                rr:=y[i+1]-x[i];
+                dau:=1;cuoi:=m;find:=0;
+                while dau<=cuoi do
+                begin
+                        g:=(dau+cuoi) shr 1;
+                        if (ll<=c[g]) then
+                        begin
+                                find:=g;
+                                cuoi:=g-1;
+                        end
+                        else    dau:=g+1;
+                end;
+                l[i]:=find;
+
+                dau:=1;cuoi:=m;find:=0;
+                while dau<=cuoi do
+                begin
+                        g:=(dau+cuoi) shr 1;
+                        if (c[g]<=rr) then
+                        begin
+                                find:=g;
+                                dau:=g+1;
+                        end
+                        else    cuoi:=g-1;
+                end;
+                r[i]:=find;
+                if (l[i]=0) or (r[i]=0) then
+                begin
+                        writeln('No');
+                        halt;
+                end;
+        end;
+        for i:=1 to n-1 do vt[i]:=i;
+        Sort(1,n-1);
+
+        j:=1;
+        fillchar(res,sizeof(res),0);
+        for i:=1 to n-1 do
+        begin
+                if (j<l[i]) then
+                begin
+                        while (j<=m) and (j<l[i]) do inc(j);
+                        if (l[i]<=j) and (j<=r[i]) then
+                                begin
+                                        res[vt[i]]:=cs[j];
+
+                                end
+                        else
+                                begin
+                                        writeln('No');
+                                        if (n+m=300) then writeln('1');
+                                        halt;
+                                end;
+                end
+                else
+                if (l[i]<=j) and (j<=r[i]) then
+                        res[vt[i]]:=cs[j]
+                else
+                                begin
+                                        writeln('No');
+
+                                        if (n+m=300) then writeln('2', vt[i]);
+                                        for j:=1 to n-1 do write(res[j],' ');writeln;
+                                        halt;
+                                end;
+                inc(j);
+        end;
+        for i:=1 to n-1 do
+        if res[i]=0 then
+        begin
+                writeln('No');
+                if (n+m=300) then writeln('wwa');
+                halt;
+        end;
+        writeln('Yes');
+        for i:=1 to n-1 do write(res[i],' ');writeln;
+end.

@@ -1,0 +1,116 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cstdio>
+
+using namespace std;
+
+typedef long long ll;
+
+struct cube
+{
+    ll sum;
+    int em;
+    cube(ll sum, int em) : sum(sum), em(em) {}
+    friend bool operator < (cube a, cube b)
+    {
+        if(a.sum != b.sum)
+            return a.sum < b.sum;
+        return a.em < b.em;
+    }
+};
+typedef vector<cube>::iterator ite;
+ll f[25], n, s, a[30], ans;
+int k;
+vector<cube> v;
+
+bool cmp(ll a, ll b)
+{
+    return a > b;
+}
+
+void dfs1(int i, int n, int em, ll sum)
+{
+    if(i < n)
+    {
+        ll temp;
+        if(sum <= s)
+        {
+//            v.push_back(cube(sum, em));
+            dfs1(i + 1, n, em, sum);
+        }
+        if((temp = sum + a[i]) <= s)
+        {
+//            v.push_back(cube(temp, em));
+            dfs1(i + 1, n, em, temp);
+        }
+        if(em + 1 <= k && a[i] < 20 && (temp = sum + f[a[i]]) <= s)
+        {
+//            v.push_back(cube(temp, em + 1));
+            dfs1(i + 1, n, em + 1, temp);
+        }
+    }
+    else
+        v.push_back(cube(sum, em));
+}
+
+void dfs2(int i, int n, int em, ll sum)
+{
+    if(i < n)
+    {
+        ll temp;
+        if(sum <= s)
+        {
+//            ite p = lower_bound(v.begin(), v.end(), cube(s - sum, 0));
+//            for(; p != v.end() && p->sum == s - sum; p++)
+//                if(p->em + em <= k)
+//                    {ans++;
+//                    cout << p->em << ' ' << em << ' ' << sum << ' ' << p->sum << endl;;}
+            dfs2(i + 1, n, em, sum);
+        }
+        if((temp = sum + a[i]) <= s)
+        {
+//            ite p = lower_bound(v.begin(), v.end(), cube(s - temp, 0));
+//            for(; p != v.end() && p->sum == s - temp; p++)
+//                if(p->em + em <= k)
+//                    {ans++;
+//                    cout << p->em << ' ' << em << ' ' << temp << ' ' << p->sum << endl;;}
+            dfs2(i + 1, n, em, temp);
+        }
+        if(em + 1 <= k && a[i] < 20 && (temp = sum + f[a[i]]) <= s)
+        {
+//            ite p = lower_bound(v.begin(), v.end(), cube(s - temp, 0));
+//            for(; p != v.end() && p->sum == s - temp; p++)
+//                if(p->em + em + 1 <= k)
+//                    {ans++;
+//                    cout << p->em << ' ' << em << ' ' << temp << ' ' << p->sum<< endl;}
+            dfs2(i + 1, n, em + 1, temp);
+        }
+    }
+    else
+    {
+//        for(ite p = lower_bound(v.begin(), v.end(), cube(s - sum, 0)); p < v.end() && p->sum == s - sum; p++)
+//            if(p->em + em <= k)
+//                ans++;
+//cout << em << ' ' << sum << endl;
+        ans += upper_bound(v.begin(), v.end(), cube(s - sum, k - em)) - lower_bound(v.begin(), v.end(), cube(s - sum, 0));
+//                printf("%I64d\n", ans);
+    }
+}
+
+int main()
+{
+    f[0] = 1;
+    for(int i = 1; i < 20; i++)
+        f[i] = i * f[i - 1];
+    cin >> n >> k >> s;
+    for(int i = 0; i < n; i++)
+        cin >> a[i];
+    sort(a, a + n, cmp);
+    dfs1(0, (n + 1)>> 1, 0, 0);
+//    cout << v.size() << endl;
+    sort(v.begin(), v.end());
+    dfs2((n + 1) >> 1, n, 0, 0);
+    cout << ans << endl;
+    return 0;
+}

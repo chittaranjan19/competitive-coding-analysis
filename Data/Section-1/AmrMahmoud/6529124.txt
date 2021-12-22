@@ -1,0 +1,100 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+
+vector<vector <int> > graph(100005);
+bool visited[100005];
+
+int main()
+{
+    int n;
+    cin >> n;
+    LL cost[n+5],mincost=0,minways=1;
+    for(int i=1;i<=n;i++)
+        scanf("%I64d",&cost[i]);
+    int m,x,y;
+    cin >> m;
+    for(int i=0;i<m;i++)
+    {
+        scanf("%d%d",&x,&y);
+        graph[x].pb(y);
+    }
+    for(int i=1;i<=n;i++)
+    {
+        if(!visited[i])
+        {
+            LL mini=cost[i],ways=1;
+            stack<int> dfs;
+            dfs.push(i);
+            bool cur[100005];
+            memset(cur,false,sizeof(cur));
+            vector<int> so;
+            bool circle = false;
+            while(!dfs.empty())
+            {
+                int temp = dfs.top();
+                dfs.pop();
+                if(cur[temp])
+                    continue;
+                cur[temp] = true;
+                if(temp != i)
+                    so.push_back(temp);
+                for(int j=0;j<graph[temp].size();j++)
+                {
+                    if(graph[temp][j]==i)
+                    {
+                        circle=true;
+                        continue;
+                    }
+                    if(!cur[graph[temp][j]])
+                        dfs.push(graph[temp][j]);
+                }
+            }
+            for(int j=0;j<so.size() && circle;j++)
+            {
+                if(mini > cost[so[j]])
+                {
+                    ways=1;
+                    mini=cost[so[j]];
+                }
+                else if(mini == cost[so[j]])
+                    ways++;
+                visited[so[j]] = true;
+            }
+            mincost+=mini;
+            minways*=ways;
+            minways%=mod;
+            visited[i] = true;
+        }
+    }
+    cout << mincost << " " << minways;
+    return 0;
+}

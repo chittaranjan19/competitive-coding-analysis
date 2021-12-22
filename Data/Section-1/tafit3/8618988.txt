@@ -1,0 +1,111 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class ProblemD {
+    BufferedReader rd;
+    long[] a;
+    long[] e = new long[1000010];
+
+    private ProblemD() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+
+
+    private void compute() throws IOException {
+        rd.readLine();
+        a = longarr();
+        int n = 1;
+        for(int i=1;i<a.length;i++) {
+            if(a[i] != a[i-1]) {
+                a[n] = a[i];
+                n++;
+            }
+        }
+        long res;
+        if(n == 1) {
+            res = 0;
+        } else if(n == 2) {
+            res = d(0);
+        } else {
+            res = 0;
+            boolean[] black = new boolean[n];
+            for(int i=2;i<n;i++) {
+                if((a[i-2] < a[i-1] && a[i-1] < a[i]) ||
+                   (a[i-2] > a[i-1] && a[i-1] > a[i])) {
+                    black[i-1] = true;
+                }
+            }
+            if(black[1]) {
+                black[0] = true;
+            }
+            if(black[n-2]) {
+                black[n-1] = true;
+            }
+            for(int i=1;i<n;i++) {
+                if(black[i-1] && black[i]) {
+                    res += d(i-1);
+                }
+            }
+            int i = 0;
+            while(i < n) {
+                if(!black[i]) {
+                    int s = Math.max(0, i-1);
+                    int j = i+1;
+                    while(j < n && !black[j]) {
+                        j++;
+                    }
+                    int f = Math.min(n-1, j);
+                    if(f-s == 2) {
+                        res += Math.max(d(f-1),d(f-2));
+                    } else {
+                        e[0] = d(s);
+                        e[1] = d(s+1);
+                        for(int k=2;k<f-s;k++) {
+                            long y = d(s+k);
+                            e[k] = 0;
+                            for(int m=2;m<=3;m++) {
+                                if(k-m >= 0) {
+                                    e[k] = Math.max(e[k], e[k-m] + y);
+                                }
+                            }
+                        }
+                        res += Math.max(e[f-1],e[f-2]);
+                    }
+                    i = j;
+                } else {
+                    i++;
+                }
+            }
+        }
+        out(res);
+    }
+
+    private long d(int x) {
+        return Math.abs(a[x]-a[x+1]);
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = s.split(" ");
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

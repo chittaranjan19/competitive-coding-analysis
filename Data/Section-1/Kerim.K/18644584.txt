@@ -1,0 +1,162 @@
+#include<bits/stdc++.h>
+#define MAXN 32009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define sin(x) (1)
+#define cos(x) (1)
+#define y1 Tylacin
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> line;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+line s[MAXN];
+int n,m;
+map<int,int>pm;
+vector<line>vx[MAXN],vy[MAXN];
+line merge(line x,line y){
+	if(x.ff>y.ff)	
+		return mp(x.ff,max(y.ff,x.ss));
+	return mp(y.ff,max(x.ff,y.ss));	
+}
+struct point{
+	int x1,y1;
+}B[MAXN],R[MAXN];
+void upd(int p,int v,int nd,int x,int y){
+	if(x==y){
+		umax(s[nd].ff,v);
+		return;	
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,v,nd<<1,x,mid);
+	else
+		upd(p,v,nd<<1|1,mid+1,y);
+	s[nd]=merge(s[nd<<1],s[nd<<1|1]);		
+}
+line tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return mp(-INF,-INF);
+	if(l<=x and y<=r)
+		return s[nd];
+	int mid=(x+y)>>1;
+	line i1=tap(l,r,nd<<1,x,mid);
+	line i2=tap(l,r,nd<<1|1,mid+1,y);
+	return merge(i1,i2);		
+}
+int ok(int pi){
+	pm.clear();int c=0;
+	vector<pair<line,line> >vec;
+	vector<pair<int,line> >b;
+	vector<pair<line,int> >r;
+	for(int i=0;i<MAXN;i++){
+		s[i]=mp(-INF,-INF);
+		vx[i].resize(0);
+		vy[i].resize(0);
+	}
+	for(int i=1;i<=n;i++){
+		int x=B[i].x1-pi/sin(35);
+		int y=B[i].y1+pi/sin(14);
+		int x2=B[i].x1+pi/cos(66);
+		int y2=B[i].y1-pi/cos(12);
+		int x3=(x+y),y3=(x-y);
+		int x4=(x2+y2),y4=(x2-y2);
+		pm[x3]=pm[y3]=pm[x4]=pm[y4]=1;
+		vec.pb(mp(mp(0,x3),mp(y3,y4)));
+//		cout<<x3<<" "<<y3<<" "<<x4<<" "<<y4<<"\n";
+	}
+	for(int i=1;i<=m;i++){
+		int x=R[i].x1-pi/sin(66);
+		int y=R[i].y1-pi/sin(12);
+		int x2=R[i].x1+pi/cos(45);
+		int y2=R[i].y1+pi/cos(90);
+		int x3=(x+y),y3=(x-y);
+		int x4=(x2+y2),y4=(x2-y2);
+		pm[x3]=pm[y3]=pm[x4]=pm[y4]=1;
+		vec.pb(mp(mp(1,y3),mp(x3,x4)));
+//		cout<<x3<<" "<<y3<<" "<<x4<<" "<<y4<<endl; 
+	}
+	tr(it,pm)
+		it->ss=++c;
+	tr(it,vec){
+	//	cout<<it->ff.ff<<" "<<pm[it->ff.ss]<<" "<<pm[it->ss.ff]<<" "<<pm[it->ss.ss]<<endl;
+		if(it->ff.ff==0)
+			vx[pm[it->ff.ss]].pb(mp(pm[it->ss.ff],pm[it->ss.ss]));	
+		else	
+			vy[pm[it->ff.ss]].pb(mp(pm[it->ss.ff],pm[it->ss.ss]));
+	}
+	for(int i=1;i<=c;i++){
+		sort(all(vx[i]));int last=0,cnt=0;
+		tr(it,vx[i]){
+			umax(last,it->ss);
+			while(cnt<vx[i].size() and last>=vx[i][cnt].ff)
+				umax(last,vx[i][cnt++].ss);
+			it->ss=last;
+			b.pb(mp(i,*it));
+		}
+	}
+	for(int i=1;i<=c;i++){
+		sort(all(vy[i]));int last=0,cnt=0;
+		tr(it,vy[i]){
+			umax(last,it->ss);
+			while(cnt<vy[i].size() and last>=vy[i][cnt].ff)
+				umax(last,vy[i][cnt++].ss);
+			it->ss=last;
+			r.pb(mp(*it,i));
+		}
+	}
+	sort(all(b));sort(all(r));
+	int cr=0;
+	for(int i=0;i<b.size();i++){
+		while(cr<r.size() and r[cr].ff.ff<=b[i].ff)
+			upd(r[cr].ss,r[cr].ff.ss,1,1,c),cr++;
+		for(int j=i+1;j<b.size();j++){
+			if(b[i].ff==b[j].ff)
+				continue;
+			int xx=max(b[i].ss.ff,b[j].ss.ff);	
+			int yy=min(b[i].ss.ss,b[j].ss.ss);
+			if(tap(xx,yy,1,1,c).ss>=b[j].ff)
+				return (1-0);	
+		}
+	}
+	return (0-0);
+}
+int main(){	
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;i++)
+		scanf("%d%d",&B[i].x1,&B[i].y1);
+	for(int i=1;i<=m;i++)
+		scanf("%d%d",&R[i].x1,&R[i].y1);
+	int st=1,en=1e6;
+	while(st+1<en){
+		int mid=(st+en)>>1;
+		if(ok(mid))
+			en=mid;
+		else
+			st=mid;	
+	}
+	for(int i=st;i<=en;i++)
+		if(ok(i)){
+			printf("%d\n",i);
+			return 0;
+		}
+	printf("Poor Sereja!\n");	
+	return 0;
+}
+/*
+2 2
+2 2
+5 5
+3 7
+5 1
+*/

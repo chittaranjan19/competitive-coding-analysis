@@ -1,0 +1,75 @@
+// In The Name Of ALLAH
+
+#include<bits/stdc++.h>
+#define LL long long
+#define LB long double
+#define ALL(X) X.begin(),X.end()
+#define DD(X) cout<<#X<<' '<<X<<endl;
+#define Speed_Up; ios_base::sync_with_stdio(0),cin.tie(0),cout.tie(0);
+using namespace std;
+
+const long long MOD=1000*1000*1000+7;
+const long long MAXN=123456+100;
+const long long MAXM=200+50;
+const long long INF=1e9+7;
+
+const long long dx[4]={0,0,-1,+1};
+const long long dy[4]={+1,-1,0,0};
+
+ifstream fin("input.txt");
+ofstream fout("output.txt");
+
+
+bool att[MAXN];
+vector<int>ver[MAXN];
+vector<int>nig[MAXN];
+int disfrom[2][MAXN];
+int r=-1,l=-1;
+
+bool Make_Tree(int v,int p=-1){
+	for(int i=0;i<ver[v].size();i++)
+		if(ver[v][i]!=p)if(Make_Tree(ver[v][i],v))ver[v].erase(ver[v].begin()+i),i--;
+	if(ver[v].size()==1 && !att[v])
+		return true;
+	return false;
+}
+
+void dfs(int v,int p=-1,int dis=0){
+	if(dis==l)r=min(r,v);
+	if(dis>l)l=dis,r=v;
+	for(auto u:ver[v])
+		if(u!=p)dfs(u,v,dis+1);
+}
+void idfs(bool f,int v,int p=-1,int dis=0){
+    disfrom[f][v]=dis;
+	for(auto u:nig[v])
+		if(u!=p)idfs(f,u,v,dis+1);
+}
+int main(){
+	Speed_Up;
+	int n,k,d;
+	cin>>n>>k>>d;
+    int at;
+	for(int i=0;i<k;i++){
+		cin>>at;
+		att[at-1]=true;
+	}
+	for(int i=1;i<n;i++){
+		int x,y;
+		cin>>x>>y;
+		x--,y--;
+		ver[x].push_back(y);
+		ver[y].push_back(x);
+		nig[x].push_back(y);
+		nig[y].push_back(x);
+	}
+	Make_Tree(at-1);
+	dfs(at-1);
+	idfs(0,r);
+	l=-1;
+	dfs(r);
+	idfs(1,r);
+	int ans=0;
+	for(int i=0;i<n;i++)if(disfrom[0][i]<=d && disfrom[1][i]<=d)ans++;
+	cout<<ans;
+}

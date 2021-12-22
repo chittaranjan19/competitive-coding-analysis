@@ -1,0 +1,84 @@
+
+#include <bits/stdc++.h>
+using namespace std;
+
+set <int> st;
+map <int, int> mp;
+char s[10];
+char *op[] = {"insert", "removeMin", "getMin"};
+struct on {
+    int id, x;
+}no[1000010];
+
+int main () {
+    int n, ans = 0;
+    cin >> n;
+    st.clear();
+    mp.clear();
+    for (int i = 1; i <= n; i++) {
+        int num;
+        cin >> s;
+        if (s[0] == 'i' || s[0] == 'g') cin >> num;
+        if (s[0] == 'i') {
+            no[++ans].id = 0, no[ans].x = num;
+            st.insert (num);
+            mp[num]++;
+        } else if (s[0] == 'r') {
+            if (!st.empty()) {
+                if (mp[*st.begin()] == 1)
+                    mp[*st.begin()]--, st.erase (st.begin()), no[++ans].id = 1;
+                else
+                    mp[*st.begin()]--, no[++ans].id = 1;
+            } else {
+                no[++ans].id = 0, no[ans].x = 1;
+                no[++ans].id = 1;
+            }
+        } else {
+            if (!st.empty()) {
+                if (*st.begin() != num) {
+                    if (*st.begin() > num) {
+                        no[++ans].id = 0, no[ans].x = num;
+                        mp[num]++;
+                        no[++ans].id = 2, no[ans].x = num;
+                        st.insert (num);
+                    } else {
+                        while (!st.empty() && *st.begin () < num) {
+                            no[++ans].id = 1, no[ans].x = *st.begin ();
+                            if (mp[*st.begin()] == 1)
+                                mp[*st.begin()]--, st.erase (st.begin());
+                            else
+                                mp[*st.begin()]--;
+                        }
+                        if (!st.empty ()) {
+                            if (*st.begin() == num) {
+                                no[++ans].id = 2, no[ans].x = num;
+                            } else {
+                                no[++ans].id = 0, no[ans].x = num;
+                                mp[num]++;
+                                no[++ans].id = 2, no[ans].x = num;
+                            }
+                        } else {
+                            no[++ans].id = 0, no[ans].x = num;
+                            mp[num]++;
+                            no[++ans].id = 2, no[ans].x = num;
+                        }
+                    }
+                } else {
+                    no[++ans].id = 2, no[ans].x = num;
+                }
+            } else {
+                no[++ans].id = 0, no[ans].x = num;
+                mp[num]++;
+                st.insert (num);
+                no[++ans].id = 2, no[ans].x = num;
+            }
+        }
+    }
+    cout << ans << endl;
+    for (int i = 1; i <= ans; i++) {
+        cout << op[no[i].id];
+        if (no[i].id == 0 || no[i].id == 2)   cout << " " << no[i].x;
+        cout << endl;
+    }
+    return 0;
+}

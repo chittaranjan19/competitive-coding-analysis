@@ -1,0 +1,208 @@
+/*	 Hello World!	*/
+
+#include <bits/stdc++.h>
+
+#define pb push_back
+#define pf push_front
+#define mp make_pair
+#define f first
+#define s second
+#define set(a,b) fill(all(a),b)
+#define let(x,a) __typeof(a) x(a)
+#define si(n) scanf("%d",&n)
+#define pi(n) printf("%d",n)
+#define piw(n) printf("%d ",n)
+#define pin(n) printf("%d\n",n)
+#define all(a) (a).begin(),(a).end()
+#define sorti(a) sort(all(a))
+#define sortd(a) sort(a.rbegin(),a.rend()) 
+#define len(s) s.length()
+#define sz(s) s[1]ize()
+#define endl '\n'
+#define nl printf("\n");
+#define present1(c,x) ((c)[0]ind(x) != (c).end()) 
+#define present2(c,x) (find(all(c),x) != (c).end())
+#define tr(v,it) for( let(it,v.begin()) ; it != v.end() ; it++)
+#define rtr(v,it) for( let(it,v.rbegin()) ; it != v.rend() ; it++)
+#define rep1(i,n) for(int i=0; i<(int)n;i++)
+#define rep2(i,a,b) for(int i=(int)a; i<=(int)b; i++)
+
+#define trace1(x)                cerr << #x << ": " << x << endl;
+#define trace2(x, y)             cerr << #x << ": " << x << " | " << #y << ": " << y << endl;
+#define trace3(x, y, z)          cerr << #x << ": " << x << " | " << #y << ": " << y << " | " << #z << ": " << z << endl;
+#define trace4(a, b, c, d)       cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << endl;
+#define trace5(a, b, c, d, e)    cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << endl;
+#define trace6(a, b, c, d, e, f) cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << " | " << #f << ": " << f << endl;
+
+#define LL long long int
+#define PII pair<int,int>
+#define PLL pair<LL,LL>
+#define VI vector<int>
+#define SI set<int>
+#define VPII vector< PII >
+#define SPII set< PII >
+#define inf INT_MAX
+
+using namespace std;
+
+void FastIO()
+{
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	cout.tie(NULL);
+}
+
+LL mod1=1e9+7,mod2=1e9+9;
+
+LL POW[100001][2], NINE[2];
+
+LL power(LL a, LL b, LL mod)
+{
+	LL ret=1;
+	while(b)
+	{
+		if(b%2) ret=(ret*a)%mod;
+		a=(a*a)%mod;
+		b/=2;
+	}
+	return ret;
+}
+
+LL mult(LL a, LL b, LL mod)
+{
+	return (a*b)%mod;
+}
+
+LL add(LL a, LL b, LL mod)
+{
+	return (a+b)%mod;
+}
+
+class SegmentTree
+{
+public: 
+	vector< vector<LL> > st;
+	vector<int> lazy;
+	VI A;
+	int n;
+	int left(int p)
+	{
+		return (p<<1)+1;
+	}
+	int right(int p)
+	{
+		return (p<<1)+2;
+	}
+	void build(int p, int l, int r)
+	{
+		if(l==r)
+		{
+			st[p][0] = st[p][1] = A[l];
+		}
+		else
+		{
+			build(left(p),l,(l+r)/2);
+			build(right(p),(l+r)/2+1,r);
+			st[p][0] = add( mult( st[left(p)][0] , POW[r-(l+r)/2][0], mod1 ) , st[right(p)][0], mod1);
+			st[p][1] = add( mult( st[left(p)][1] , POW[r-(l+r)/2][1], mod2 ) , st[right(p)][1], mod2);
+		}
+	}
+	SegmentTree(VI a)
+	{
+		A=a;
+		n=(int)A.size();
+		st.assign(4*n,vector<LL>(2,0));
+		lazy.assign(4*n,-1);
+		build(0,0,n-1);
+	}
+	void lazyUpdate(int pos, int l, int r)
+	{
+		if(lazy[pos]==-1) return;
+		st[pos][0] = mult(mult(lazy[pos],POW[r-l+1][0]-1, mod1),NINE[0], mod1);
+		st[pos][1] = mult(mult(lazy[pos],POW[r-l+1][1]-1, mod2),NINE[1], mod2);
+		if(l!=r)
+		{
+			lazy[left(pos)] = lazy[pos];
+			lazy[right(pos)] = lazy[pos];
+		}
+		lazy[pos]=-1;
+	}
+	pair<LL,LL> query(int pos, int l, int r, int i, int j)
+	{
+		lazyUpdate(pos,l,r);
+		if(i>r || j<l || l>r) return mp(0,0);
+		if(i<=l && r<=j)
+		{
+			return mp(st[pos][0],st[pos][1]);
+		}
+		int mid=(l+r)/2;
+		if(j<=mid) return query(left(pos),l,mid,i,j);
+		if(i>mid) return query(right(pos),mid+1,r,i,j);
+		pair<LL,LL> q1=query(left(pos),l,mid,i,mid);
+		pair<LL,LL> q2=query(right(pos),mid+1,r,mid+1,j);
+		int p=j-mid;
+		q1.f = add( mult(q1.f,POW[p][0], mod1) , q2.f, mod1 );
+		q1.s = add( mult(q1.s,POW[p][1], mod2) , q2.s, mod2 );
+
+		return q1;
+	}
+	void update(int pos, int l, int r, int i, int j, int val)
+	{
+		lazyUpdate(pos,l,r);
+		if(i>r || j<l || l>r) return;
+		if(i<=l && r<=j)
+		{
+			lazy[pos] = val;
+			lazyUpdate(pos,l,r);
+			return;
+		}
+		update(left(pos),l,(l+r)/2,i,j,val);
+		update(right(pos),(l+r)/2+1,r,i,j,val);
+		st[pos][0] = add( mult( st[left(pos)][0] , POW[r-(l+r)/2][0], mod1 ) , st[right(pos)][0], mod1);
+		st[pos][1] = add( mult( st[left(pos)][1] , POW[r-(l+r)/2][1], mod2 ) , st[right(pos)][1], mod2);
+	}
+};
+
+int main()
+{
+	FastIO();
+	int n,m,k,type,l,r,d;
+	cin>>n>>m>>k;
+	char c;
+	VI a(n,0);
+	rep1(i,n)
+	{
+		cin>>c;
+		a[i]=c-'0';
+	}
+	rep1(i,1e5+1)
+	{
+		POW[i][0]=power(10,i,mod1);
+		POW[i][1]=power(10,i,mod2);
+	}
+	NINE[0]=power(9,mod1-2,mod1);
+	NINE[1]=power(9,mod2-2,mod2);
+	SegmentTree ST(a);
+	rep1(i,m+k)
+	{
+		cin>>type>>l>>r>>d;
+		if(type==1)
+		{
+			ST.update(0,0,n-1,l-1,r-1,d);
+		}
+		else
+		{
+			PII p1=ST.query(0,0,n-1,l-1,r-1-d);
+			PII p2=ST.query(0,0,n-1,l-1+d,r-1);
+			if(p1==p2)
+			{
+				cout<<"YES"<<endl;
+			}
+			else
+			{
+				cout<<"NO"<<endl;
+			}
+		}
+	}
+	return 0;
+}

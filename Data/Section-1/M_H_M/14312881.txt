@@ -1,0 +1,81 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+
+int n;
+int h[N];
+int R[N];
+vector <pii> t;
+pii p;
+
+pii seg[20][N];
+
+void build(int d, int s, int e){
+	if(e - s == 1){
+		seg[d][s] = MP(R[s], h[s]);
+		return;
+	}
+	int mid = (s + e) / 2;
+	build(d + 1, s, mid);
+	build(d + 1, mid, e);
+	merge(seg[d + 1] + s , seg[d + 1] + mid, seg[d + 1] + mid, seg[d + 1] + e, seg[d] + s);
+	int mx = seg[d][e - 1].Y;
+	for(int i = e - 2; i >= s; i --){
+		seg[d][i].Y = max(seg[d][i].Y, mx);
+		mx = seg[d][i].Y;
+	}
+}
+
+int get(int d, int s, int e, int l, int r, int w){
+	if(r <= s || e <= l) return 0;
+	if(l <= s && e <= r)
+		return lower_bound(seg[d] + s, seg[d] + e, MP(w, 0)) -> Y;
+	int mid = (s + e) / 2;
+	return max(get(d + 1, s, mid, l, r, w), get(d + 1, mid, e, l, r, w));
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for(int i = 0; i < n; ++i)
+		cin >> h[i];
+	for(int i = 0; i < n; ++i){
+		while(SZ(t) && t.back().X >= h[i])
+			t.pop_back();
+		if(SZ(t)) R[i] += i - t.back().Y;
+		else R[i] += i + 1;
+		t.PB(MP(h[i], i));
+	}
+	t.clear();
+	for(int i = n; i --;){
+		while(SZ(t) && t.back().X >= h[i])
+			t.pop_back();
+		if(SZ(t)) R[i] += t.back().Y - i - 1;
+		else R[i] += n - i - 1;
+		t.PB(MP(h[i], i));
+	}
+	build(0, 0, n);
+	int q;
+	cin >> q;
+	for(int i = 0; i < q; ++i){
+		int l, r, w;
+		cin >> l >> r >> w;
+		l --;
+		cout << get(0, 0, n, l, r, w) << "\n";
+	}
+	return 0;
+}

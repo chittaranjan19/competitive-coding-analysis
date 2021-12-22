@@ -1,0 +1,205 @@
+//package x0001_aim_tech_round_div_1;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+
+public class A_GraphAndString {
+	public static final int A = 1, B = 2, C = 3, NOT_MARKED = 0;
+	
+	private final boolean isDebug;
+	
+	int n, m;
+	boolean[][] g;
+	int[] v;
+	public A_GraphAndString(boolean isDebug) {
+		this.isDebug = isDebug;
+	}
+	
+	public void readInput() {
+		Scanner sc = null;
+		if (isDebug) {
+			try {
+				sc = new Scanner(new FileInputStream("src\\x0001_aim_tech_round_div_1\\A_input1.txt"));
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			sc =  new Scanner(System.in);
+		}
+		
+		n = sc.nextInt();
+		m = sc.nextInt();
+		if (isDebug)
+			System.out.format("n=%d m=%d%n", n, m);
+		
+		g = new boolean[n][n];
+		for (int i = 0; i < m; i++) {
+			int u = sc.nextInt() - 1;
+			int v = sc.nextInt() - 1;
+			if (isDebug)
+				System.out.format("%d %d%n", u + 1, v + 1);
+			g[u][v] = true;
+		}
+		
+		v = new int[n];
+	}
+	
+	public void solve() {
+		if (m == 0) {
+			switch (n) {
+			case 1:
+				System.out.println("Yes");
+				System.out.print("a");
+				break;
+			case 2:
+				System.out.println("Yes");
+				System.out.print("ac");
+				break;
+			default:
+				System.out.println("No");
+				break;
+			}
+			
+			return;
+		}
+		
+		mark();
+	}
+	
+	private void mark() {
+		findAndMarkAllB();
+		if (!findAndMarkAllA())
+			return;
+		if (!findAndMarkAllC())
+			return;
+		
+		if (isGraphLegit()) {
+			System.out.println("Yes");
+			for (int i = 0; i < n; i++) {
+				String letter;
+				switch (v[i]) {
+				case A: letter = "a"; break;
+				case B: letter = "b"; break;
+				case C: letter = "c"; break;
+				default:
+					throw new AssertionError();
+				}
+				System.out.print(letter);
+			}
+		} else {
+			System.out.println("No");
+		}
+	}
+	
+	private void findAndMarkAllB() {
+		for (int y = 0; y < n; y++) {
+			boolean isB = true;
+			for (int x = 0; x < n; x++) {
+				if (y != x && !connected(y, x)) {
+					isB = false;
+					break;
+				}
+			}
+			
+			if (isB) {
+				v[y] = B;
+			}
+		}
+	}
+	
+	private boolean findAndMarkAllA() {
+		int idxA = -1;
+		for (int i = 0; i < n; i++) {
+			if (v[i] == NOT_MARKED) {
+				idxA = i;
+				break;
+			}
+		}
+		
+		if (idxA == -1) {	// All B
+			System.out.println("Yes");
+			for (int i = 0; i < n; i++) {
+				System.out.print("b");
+			}
+			
+			return false;
+		}
+		
+		v[idxA] = A;
+		for (int i = idxA + 1; i < n; i++) {
+			if (connected(idxA, i) && v[i] == NOT_MARKED) {
+				v[i] = A;
+			}
+		}
+		
+		return true;
+	}
+	
+	private boolean findAndMarkAllC() {
+		int idxC = -1;
+		for (int i = 0; i < n; i++) {
+			if (v[i] == NOT_MARKED) {
+				idxC = i;
+				break;
+			}
+		}
+		
+		if (idxC == -1) {	// No C
+			if (isGraphLegit()) {
+				System.out.println("Yes");
+				for (int i = 0; i < n; i++) {
+					String letter = v[i] == B ? "b" : "a"; 
+					System.out.print(letter);
+				}
+			} else {
+				System.out.println("No");
+			}
+			
+			return false;
+		}
+		
+		v[idxC] = C;
+		for (int i = idxC + 1; i < n; i++) {
+			if (v[i] == NOT_MARKED) {
+				if (connected(idxC, i)) {
+					v[i] = C;
+				} else {
+					System.out.println("No");
+					return false;
+				}
+			}
+		}
+		
+		return true;
+	}
+	
+	private boolean isGraphLegit() {
+		for (int i = 0; i < n; i++) {
+			if (v[i] == A || v[i] == C) {
+				int letter = v[i] == A ? C : A;
+				for (int j = 0; j < n; j++) {
+					if (i != j) {
+						if ((v[j] != letter && !connected(i, j))
+								|| (v[j] == letter && connected(i, j))) {
+							return false;
+						}
+					}
+				}
+			}
+		}
+		
+		return true;
+	}
+	
+	private boolean connected(int u, int v) {
+		return g[u][v] || g[v][u];
+	}
+	
+	public static void main(String[] args) {
+		A_GraphAndString solver = new A_GraphAndString(false);
+		solver.readInput();
+		solver.solve();
+	}
+}

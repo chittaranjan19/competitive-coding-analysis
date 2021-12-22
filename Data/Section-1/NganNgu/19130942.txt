@@ -1,0 +1,125 @@
+#include <iostream> 
+#include <cstdio>
+
+using namespace std;
+
+#define For(i , a , b) for (int i = a , _b = b ; i <= _b ; ++i)
+#define Ford(i , a  ,b) for (int i = a , _b = b : i >= _b ; --i)
+#define Rep(i , n) for (int i = 0 , _n = n ; i < _n ; ++i)
+#define sz(A) ((int)A.size())
+#define LL(x) (x << 1)
+#define RR(x) ((x << 1) | 1)
+
+typedef pair<int , int> pt;
+
+const int maxn = 100000 + 123;
+int n;
+long long a[maxn];
+
+void Read() {
+	cin >> n;
+	For(i , 1,  n) cin >> a[i];
+}
+
+const int md = 1e9 + 7;
+int Minus(int a , int b) {
+	return  ((a - b) % md + md ) % md;
+}
+int pwr(int a , long long x) {
+	int res = 1;
+	while (x) {
+		if (x & 1) res = 1LL * res * a % md;
+		x >>= 1; 
+		a = 1LL * a * a % md;
+	}
+	return res;
+}
+
+struct matrix{
+	int a[4][4];
+};
+matrix mul(matrix a , matrix b) {
+	matrix c;
+	Rep(i , 2) Rep(j , 2) {
+		c.a[i][j] = 0;
+		Rep(k , 2) {
+			c.a[i][j] = (c.a[i][j] + 1LL * a.a[i][k] * b.a[k][j] % md) % md;
+		}
+	}
+	return c;
+}
+matrix pwr(matrix a , long long n) {
+	matrix res; Rep(i , 2) Rep(j , 2) res.a[i][j] = 0; res.a[0][0] = res.a[1][1] = 1;
+	while (n) {
+		if (n & 1) res = mul(res , a);
+		n >>= 1;
+		a = mul(a , a);
+	}
+	return res;
+}
+matrix base;
+
+int cal(int plus) {
+	matrix tmp = base;
+	matrix res = base;
+	For(i , 1 , n) {
+		res = pwr(res , a[i]);
+	}
+	while (plus--) res = mul(res , base);
+	return (res.a[0][0]) % md;
+	return 0;
+}
+
+int mul(int a , int b) {
+	return 1LL * a * b % md;
+} 
+
+int dp[33];
+
+void Process() {
+	bool diff = true;
+	For(i , 1 , n) if (a[i] != 1) diff = false;
+	bool even = false;
+	For(i , 1 , n) if (a[i] % 2) even = true;
+	long long tich = 1;
+	For(i , 1 , n) {
+		if (a[i] > 2) tich = 0; 
+		if (a[i] <= 2) tich *= a[i];
+		if (tich > 2) tich = 0;
+	}
+	if (tich == 2) {
+		cout << "1/2" << endl; return;
+	}
+	if (diff) {
+		cout << "0/1" << endl; return;
+	}
+	
+	base.a[0][0] = 1 , base.a[0][1] = 1 , base.a[1][0] = 1;
+
+	int fn = cal(0) , fnp1 = cal(1) , fnm1 = Minus(fnp1 , fn);
+	int fnm2 = Minus(fn , fnm1);
+	// tinh fn-2 / fn
+	//cout << fn << endl;
+	if (even) {
+		//mul(fnm2 , pwr(2 , md - 2));
+		//mul(fn , pwr(2 , md - 2));
+	}
+	dp[0] = 1 , dp[1] = 1;
+	For(i , 1 ,16) dp[i] = dp[i - 1] + dp[i - 2];
+	//cout << dp[10] << " " << dp[12] << " " << dp[14] << " " << dp[16]<< endl;
+
+	cout << fnm2 << "/" << fnm1 << endl;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	
+	//freopen("input.inp" , "r" , stdin);
+	Read();
+	Process();
+	
+
+	return 0;
+
+}			

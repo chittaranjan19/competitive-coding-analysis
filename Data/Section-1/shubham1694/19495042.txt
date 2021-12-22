@@ -1,0 +1,62 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define f first
+#define s second
+#define mp make_pair
+#define pb push_back
+
+typedef long long ll;
+typedef pair<int, pair<int, ll> > ds;
+typedef vector<vector<ds> > matrix;
+
+const int maxn = 100010;
+const int logk = 40;
+
+int n;
+ds arr[logk][maxn], identity[maxn], temp[maxn];
+
+void matpow()
+{
+	int i, j, k;
+	for(i=1; i<logk; i++){	
+		for(j=0; j<n; j++){
+			k = arr[i-1][j].f;
+			ll sum = arr[i-1][j].s.s + arr[i-1][k].s.s;
+			int mn = min(arr[i-1][j].s.f, arr[i-1][k].s.f);
+			arr[i][j] = mp(arr[i-1][k].f, mp(mn, sum));
+		}	
+	}
+}
+
+int main()
+{
+	ll k, i, j, l; 
+	scanf("%d%lld", &n, &k);
+	for(i=0; i<n; i++)
+		scanf("%d", &arr[0][i].f);
+	for(i=0; i<n; i++){
+		scanf("%d", &arr[0][i].s.f);
+		arr[0][i].s.s = arr[0][i].s.f;
+		identity[i].f = i;
+		identity[i].s.f = 1000000005;
+		identity[i].s.s = 0;	
+	}
+	matpow();
+	for(i=logk-1; i>=0; i--){
+		if(k&(1ll<<(i))){	
+			for(j=0; j<n; j++){		
+				l = arr[i][j].f;				
+				ll sum = arr[i][j].s.s + identity[l].s.s;
+				int mn = min(arr[i][j].s.f, identity[l].s.f);
+				temp[j] = mp(identity[l].f, mp(mn, sum));
+			}		
+			for(j=0; j<n; j++)
+				identity[j] = temp[j];
+		}	
+	}	
+	for(i=0; i<n; i++)
+		printf("%lld %d\n", identity[i].s.s, identity[i].s.f); 
+	return 0;
+}

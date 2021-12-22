@@ -1,0 +1,80 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define gc getchar_unlocked
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+
+const int limit = 3005;
+vector<int> adj[limit];
+vector<int> cycle;
+bool iscycle = false,cycleele = -1;
+bool visited[limit],instack[limit];
+int dist[limit];
+const int oo = 1e9;
+
+void dfs(int cur,int par){
+    if(visited[cur] && instack[cur]){
+        iscycle=true;
+        cycleele=cur;
+        return;
+    }
+    if(visited[cur]) return;
+    visited[cur]=true;
+    instack[cur]=true;
+    for(int j=0;j<adj[cur].size();j++){
+        int child = adj[cur][j];
+        if(child==par) continue;
+        dfs(child,cur);
+        if(iscycle){
+            cycle.pb(cur);
+            return;
+        }
+    }
+    instack[cur]=false;
+}
+
+set< pair<int,int> > pq; //dist,node
+
+void dijkstra(){
+
+    while(!pq.empty()){
+        int par = pq.begin()->second;
+        pq.erase(pq.begin());
+
+        for(int i=0;i<adj[par].size();i++){
+            int child = adj[par][i];
+            int newdist = dist[par] + 1;
+            if(newdist < dist[child]){
+                pq.erase({dist[child],child});
+                dist[child] = newdist;
+                pq.insert({dist[child],child});
+            }
+        }
+    }
+    return;
+}
+
+int main(){
+    memset(visited,false,sizeof(visited));
+    memset(instack,false,sizeof(instack));
+    int n,a,b;
+    scanf("%d",&n);
+    for(int i=0;i<n;i++){
+        scanf("%d %d",&a,&b);
+        adj[a].pb(b);
+        adj[b].pb(a);
+    }
+    dfs(1,-1);
+    for(int i=1;i<=n;i++) dist[i]=oo;
+    for(int i=0;i<cycle.size();i++){
+        dist[cycle[i]]=0;
+        pq.insert({0,cycle[i]});
+    }
+    dijkstra();
+      for(int i=1;i<=n;i++)
+        printf("%d ",dist[i]);
+    printf("\n");
+    return 0;
+}

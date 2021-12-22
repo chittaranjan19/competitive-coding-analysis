@@ -1,0 +1,102 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+template<class T> T sqr(T x) { return x*x; }
+
+const int N = 2222;
+
+ld pi = 3.1415926535897932384626433832795;
+
+int n, k, a, b, q;
+ll t1[4 * 222222], t2[4*222222];
+
+ll suma(int v, int tl, int tr, int l, int r) {
+	if (l > r)
+		return 0;
+	if (l == tl && r == tr)
+		return t1[v];
+	int tm = (tl + tr) / 2;
+	return suma(v * 2, tl, tm, l, min(r, tm))
+		+ suma(v * 2 + 1, tm + 1, tr, max(l, tm + 1), r);
+}
+
+ll sumb(int v, int tl, int tr, int l, int r) {
+	if (l > r)
+		return 0;
+	if (l == tl && r == tr)
+		return t2[v];
+	int tm = (tl + tr) / 2;
+	return sumb(v * 2, tl, tm, l, min(r, tm))
+		+ sumb(v * 2 + 1, tm + 1, tr, max(l, tm + 1), r);
+}
+
+void updatea(int v, int tl, int tr, int pos, ll new_val) {
+	if (tl == tr)
+		t1[v] += new_val;
+	else {
+		int tm = (tl + tr) / 2;
+		if (pos <= tm)
+			updatea(v * 2, tl, tm, pos, new_val);
+		else
+			updatea(v * 2 + 1, tm + 1, tr, pos, new_val);
+		t1[v] = t1[v * 2] + t1[v * 2 + 1];
+	}
+}
+
+void updateb(int v, int tl, int tr, int pos, ll new_val) {
+	if (tl == tr)
+		t2[v] += new_val;
+	else {
+		int tm = (tl + tr) / 2;
+		if (pos <= tm)
+			updateb(v * 2, tl, tm, pos, new_val);
+		else
+			updateb(v * 2 + 1, tm + 1, tr, pos, new_val);
+		t2[v] = t2[v * 2] + t2[v * 2 + 1];
+	}
+}
+
+int main()
+{
+	cin >> n >> k >> a >> b >> q;
+	while (q--){
+		int t;
+		cin >> t;
+		if (t == 2)
+		{
+			int p;
+			cin >> p;
+			ll ans = 0;
+			ans += suma(1, 0, n - 1, 0, p - 2);
+			ans += sumb(1, 0, n - 1, min(p + k - 1, n), n-1);
+			cout << ans << endl;
+		}
+		else{
+			int d, add;
+			cin >> d >> add;
+			updatea(1, 0, n - 1, d - 1, min(add, b));
+			updateb(1, 0, n - 1, d - 1, min(add, a));
+		}
+	}
+	return 0;
+}

@@ -1,0 +1,76 @@
+#include<bits/stdc++.h>
+using namespace std;
+int tr[6000005],bit[31],ll[6000005],rr[6000005],ct=2;
+char s[5];
+int getbit(int x)
+{
+    int n=0;
+    memset(bit,0,sizeof bit);
+    while(x)
+    {
+        bit[n++]=x%2;
+        x/=2;
+    }
+}
+void add(int val)
+{
+    int nw=1;
+    for(int i=30;i>=0;i--)
+    {
+        tr[nw]+=val;
+        if(bit[i])
+        {
+            if(!rr[nw]) rr[nw]=ct++;
+            nw=rr[nw];
+        }
+        else
+        {
+            if(!ll[nw]) ll[nw]=ct++;
+            nw=ll[nw];
+        }
+    }
+    tr[nw]+=val;
+}
+int fd()
+{
+    int nw=1,res=0;
+    for(int i=30;i>=0;i--)
+    {
+        if((bit[i]&&tr[ll[nw]])||!tr[rr[nw]])
+        {
+            res=res*2;
+            nw=ll[nw];
+        }
+        else
+        {
+            res=res*2+1;
+            nw=rr[nw];
+        }
+    }
+    return res;
+}
+int main()
+{
+    int q,x,l;
+    scanf("%d",&q);
+    add(1);
+    while(q--)
+    {
+        scanf("%s%d",s,&x);
+        if(s[0]=='+')
+        {
+            getbit(x);
+            add(1);
+        }
+        if(s[0]=='-')
+        {
+            getbit(x);
+            add(-1);
+        }
+        if(s[0]=='?')
+        {
+            getbit(x);
+            printf("%d\n",fd()^x);
+        }
+    }
+}

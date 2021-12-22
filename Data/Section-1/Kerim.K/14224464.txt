@@ -1,0 +1,126 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"You can do IT.I belive YOU!!!"<<endl;
+#define ff first
+#define ss second
+#define lgN 18
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,char> PII;
+template<class T> bool checkMin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool checkMax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int P[MAXN][lgN+9],lvl[MAXN],ans;
+vector<PII>adj[MAXN];
+char f[MAXN],lasta,lastb;
+void dfs(int nd,int pr){
+	lvl[nd]=lvl[pr]+1;
+	P[nd][0]=pr;
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i].ff,c=adj[nd][i].ss;
+		if(to==pr)
+			continue;
+		f[to]=c;
+		dfs(to,nd);
+	}
+}
+void build(){
+	for(int i=1;i<MAXN;i++)
+		for(int j=1;j<=lgN;j++)
+			if(P[i][j-1]>0)
+				P[i][j]=P[P[i][j-1]][j-1];
+}
+void get(int nah,int z,int x){
+	while(z!=x){
+		if(nah==1){
+			if(f[z]!=lasta)
+				ans++,lasta=f[z];
+		}
+		else{
+			if(f[z]!=lastb)
+				ans++,lastb=f[z];
+		}
+		z=P[z][0];
+	}
+}
+int LCA(int x,int y){
+	if(lvl[x]<lvl[y])
+		swap(x,y);
+	for(int i=lgN;i>=0;i--)
+		if(lvl[x]-(1<<i)>=lvl[y])
+			x=P[x][i];
+	if(x==y)
+		return x;			
+	for(int i=lgN;i>=0;i--)
+		if(P[x][i]>0 and P[x][i]!=P[y][i])
+			x=P[x][i],y=P[y][i];
+	return P[x][0];					
+}
+int main(){
+	int t;
+	cin>>t;
+	while(t--){
+		memset(P,0,sizeof(P));
+		for(int i=0;i<MAXN;i++)
+			lvl[i]=0,adj[i].resize(0),f[i]='#';
+		int n;
+		cin>>n;
+		for(int i=0;i<n-1;i++){
+			int u,v;char w;
+			scanf("%d%d %c",&u,&v,&w);
+			adj[u].pb(mp(v,w));
+			adj[v].pb(mp(u,w));	
+		}
+		dfs(1,0);
+		build();
+		int m;
+		cin>>m;
+		while(m--){
+			int type,a,b;
+			char ww;
+			scanf("%d%d%d",&type,&a,&b);
+			if(type==1){
+				int q=LCA(a,b);
+				ans=0;
+				lasta='$';
+				lastb='$';
+				if(q==a and q==b){
+					cout<<ans<<endl;	
+					continue;
+				}
+				get(1,a,q);get(2,b,q);
+				if(lasta==lastb)
+					ans--;
+				printf("%d\n",ans);	
+			}
+			else{
+				scanf(" %c",&ww);
+				if(P[a][0]==b)
+					f[a]=ww;
+				else
+					f[b]=ww;	
+			}
+		}
+	}
+	return 0;
+}
+/*
+1
+7
+1 2 a
+1 3 a
+2 4 a
+2 5 b 
+5 6 b
+6 7 z
+100
+1 3 1
+*/

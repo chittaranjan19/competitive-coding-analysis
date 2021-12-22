@@ -1,0 +1,117 @@
+import java.io.BufferedInputStream;
+import java.util.*;
+
+/**
+ * Created by leen on 7/19/16.
+ */
+public class _699D {
+
+    static int numChanges = 0;
+
+    public static void main(String[] args) {
+
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 64 * 1024));
+        int n = scan.nextInt();
+
+        Node[] nodes = new Node[n + 1];
+
+        for(int i = 1; i <=n;i++)
+            nodes[i] = new Node(i);
+
+        for(int i = 1; i <= n; i++)
+            nodes[scan.nextInt()].addChild(nodes[i]);
+
+
+        Node root = null;
+        Node leaf = null;
+
+        for(int i = 1; i <= n; i++) {
+
+            if(nodes[i].visited2)
+                continue;
+
+            Node newRoot = nodes[i];
+
+            while(newRoot.parent != null && !newRoot.visited) {
+                newRoot.visited = true;
+                newRoot = newRoot.parent;
+            }
+
+            Node newLeaf = dfs(newRoot, newRoot);
+
+            if(root == null) {
+                root = newRoot;
+                leaf = newLeaf;
+            }
+            else if(root.parent == root) {
+                leaf.addChild(newRoot);
+                numChanges++;
+            }
+            else {
+                newLeaf.addChild(root);
+                root = newRoot;
+                leaf = newLeaf;
+                numChanges++;
+            }
+        }
+
+        assert root != null;
+
+        if(root.parent != root) {
+            root.parent = root;
+            numChanges++;
+        }
+
+        StringBuilder buf = new StringBuilder();
+        boolean first = true;
+        for(int i = 1; i <= n; i++) {
+            if(first)
+                first = false;
+            else
+                buf.append(' ');
+            buf.append(nodes[i].parent.index);
+        }
+
+        System.out.println(numChanges);
+        System.out.println(buf.toString());
+        System.out.flush();
+    }
+
+
+    static Node dfs(Node node, Node root) {
+        node.visited2  =true;
+        ListIterator<Node> it = node.children.listIterator();
+
+        Node leaf = null;
+
+        while(it.hasNext()) {
+            Node child = it.next();
+            if(child == root)
+                it.remove();
+            else
+                leaf = dfs(child, root);
+        }
+
+        if(node.children.isEmpty())
+            leaf = node;
+
+        return leaf;
+    }
+
+    static class Node {
+        final int index;
+        boolean visited;
+        boolean visited2;
+        Node parent;
+        List<Node> children = new LinkedList<Node>();
+
+        Node(int index) {
+            this.index = index;
+        }
+
+        void addChild(Node node) {
+            children.add(node);
+            node.parent = this;
+        }
+    }
+}

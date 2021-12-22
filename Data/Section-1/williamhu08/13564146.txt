@@ -1,0 +1,73 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 4010;
+
+int N;
+ll V[MAXN], D[MAXN], P[MAXN];
+bool treat[MAXN];
+bool mark[MAXN];	//mark it as new
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	list<int> lst;
+	for (int i = 1; i <= N; i++) {
+		cin >> V[i] >> D[i] >> P[i];
+		lst.push_back(i);
+	}
+	vector<int> ans;
+	while (!lst.empty()) {
+		int fst = *lst.begin();
+		lst.pop_front();
+		ans.push_back(fst);
+		//all confidence levels decrease instantly first
+		int val = P[fst] < 0 ? D[fst] : V[fst];
+		for (auto it = lst.begin(); it != lst.end() && val > 0; it++, val--) {
+			P[*it] -= val;
+		}
+		//keep decreasing
+		while (true) {
+			fillchar(mark, false);
+			bool has = false;
+			for (auto it = lst.begin(); it != lst.end(); it++) {
+				if (P[*it] < 0) {
+					has = true;
+					mark[*it] = true;
+				}
+			}
+			if (!has) {
+				break;
+			}
+			for (auto it = lst.begin(); it != lst.end(); ) {
+				int x = *it;
+				if (mark[x]) {
+					lst.erase(it++);
+					for (auto jt = it; jt != lst.end(); jt++) {
+						if (!mark[*jt]) {
+							P[*jt] -= D[x];
+						}
+					}
+				} else {
+					it++;
+				}
+			}
+		}
+	}
+	cout << ans.size() << endl;
+	for (int i : ans) {
+		cout << i << ' ';
+	}
+	cout << endl;
+}

@@ -1,0 +1,130 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 17, MOD = 1e9 + 7;
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+int subtr (int x, int y) {
+	x -= y;
+	if (x < 0) {
+		x += MOD;
+	}
+	return x;
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+int pwr (int x, int y) {
+	int res = 1;
+	while (y--) {
+		res = mult(res, x);
+	}
+	return res;
+}
+
+int N, M;
+int psum[MAXN][6];
+int C[6][6] = {{1}, {1, 1}, {1, 2, 1}, {1, 3, 3, 1}, {1, 4, 6, 4, 1}, {1, 5, 10, 10, 5, 1}};
+int tree[2 * MAXN][6], lazy[2 * MAXN];
+
+void down (int cur, int l, int r) {
+	if (lazy[cur] == -1) {
+		return;
+	}
+	for (int i = 0; i <= 5; i++) {
+		tree[cur][i] = mult(lazy[cur], subtr(psum[r][i], psum[l][i]));
+	}
+	if (r != l + 1) {
+		lazy[2 * cur] = lazy[2 * cur + 1] = lazy[cur];
+	}
+	lazy[cur] = -1;
+}
+
+void update (int a, int b, int x, int cur = 1, int l = 0, int r = MAXN) {
+	down(cur, l, r);	//wait wtf???
+	if (r <= a || b <= l) {
+		return;
+	}
+	if (a <= l && r <= b) {
+		lazy[cur] = x;
+		down(cur, l, r);
+		return;
+	}
+	int mid = (l + r) / 2;
+	update(a, b, x, 2 * cur, l, mid);
+	update(a, b, x, 2 * cur + 1, mid, r);
+	for (int i = 0; i <= 5; i++) {
+		tree[cur][i] = add(tree[2 * cur][i], tree[2 * cur + 1][i]);
+	}
+}
+
+int query (int a, int b, int k, int cur = 1, int l = 0, int r = MAXN) {
+	if (r <= a || b <= l) {
+		return 0;
+	}
+	down(cur, l, r);
+	if (a <= l && r <= b) {
+		return tree[cur][k];
+	}
+	int mid = (l + r) / 2;
+	return add(query(a, b, k, 2 * cur, l, mid), query(a, b, k, 2 * cur + 1, mid, r));
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d", &N, &M);
+	for (int i = 0, x; i < N; i++) {
+		scanf("%d", &x);
+		for (int j = 0, p = 1; j <= 5; j++, p = mult(p, i + 1)) {
+			tree[i + MAXN][j] = mult(x, p);
+		}
+	}
+	for (int i = MAXN - 1; i; i--) {
+		for (int j = 0; j <= 5; j++) {
+			tree[i][j] = add(tree[2 * i][j], tree[2 * i + 1][j]);
+		}
+	}
+	for (int i = 1; i < MAXN; i++) {
+		for (int j = 0, p = 1; j <= 5; j++, p = mult(p, i)) {
+			psum[i][j] = add(psum[i - 1][j], p);
+		}
+	}
+	fillchar(lazy, -1);
+	char qtype;
+	for (int lt, rt, k; M--; ) {
+		scanf(" %c %d %d %d", &qtype, &lt, &rt, &k);
+		lt--;
+		if (qtype == '=') {
+			update(lt, rt, k);
+		} else {
+			int ans = 0;
+			for (int i = 0; i <= k; i++) {
+				//then what
+				int d = mult(C[k][i], mult(query(lt, rt, i), pwr(lt, k - i)));
+				if ((k & 1) != (i & 1)) {
+					d = subtr(0, d);
+				}
+				ans = add(ans, d);
+			}
+			printf("%d\n", ans);
+		}
+	}
+}

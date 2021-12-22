@@ -1,0 +1,164 @@
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int MAX_N = 100000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+int len;
+
+vector<int> pos[1000001];
+
+int bin_search(int i, int xl, int xr)
+{
+    int l1 = -1, r1 = pos[i].size(), mid;
+    while (r1 - l1 > 1)
+    {
+        mid = (l1 + r1) / 2;
+        if (xl <= pos[i][mid])
+            r1 = mid;
+        else
+            l1 = mid;
+    }
+    int l2 = -1, r2 = pos[i].size();
+    while (r2 - l2 > 1)
+    {
+        mid = (l2 + r2) / 2;
+        if (xr >= pos[i][mid])
+            l2 = mid;
+        else
+            r2 = mid;
+    }
+    return l2 - r1 + 1;
+}
+
+typedef struct
+{
+    int l;
+    int r;
+    int num;
+
+    void quest(int l1, int r1, int num1)
+    {
+        l = l1;
+        r = r1;
+        num = num1;
+    }
+
+} quest;
+
+bool comp(quest a, quest b)
+{
+    if (a.l / len < b.l / len)
+        return true;
+    else if (a.l / len > b.l / len)
+        return false;
+    else
+        return a.r < b.r;
+}
+
+int main()
+{
+	//ios_base::sync_with_stdio(0);
+	//cin.tie(0);
+	int n, m, k;
+	scanf("%d %d %d", &n, &m, &k);
+	int a[n];
+	for (int i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+    int curr_xor = 0;
+    for (int i = 0; i < n; i++)
+    {
+        curr_xor ^= a[i];
+        pos[curr_xor].push_back(i);
+    }
+    for (int i = 0; i < 2; i++)
+    {
+        for (int j = 0; j < pos[i].size(); j++)
+            cout << pos[i][j] << " ";
+        cout << endl;
+    }
+    int pref_xor[n];
+    pref_xor[0] = a[0];
+    for (int i = 1; i < n; i++)
+        pref_xor[i] = pref_xor[i - 1] ^ a[i];
+    len = round(sqrt(n));
+    quest q[m];
+    for (int i = 0; i < m; i++)
+    {
+        int l, r;
+        scanf("%d %d", &l, &r);
+        q[i].quest(l - 1, r - 1, i);
+    }
+    sort(q, q + m, comp);
+    long long ans[m];
+    int currt = -1, currl, currr;
+    long long tmp;
+    for (int i = 0; i < m; i++)
+    {
+        while (currt < q[i].l / len)
+        {
+            currt++;
+            currl = -1;
+            currr = -1;
+            tmp = 0;
+        }
+        if (currl == -1 && currr == -1)
+        {
+            currl = q[i].l; currr = q[i].r;
+            if (currl == 0)
+                tmp += bin_search(k, currl, currr);
+            for (int j = currl; j <= currr; j++)
+                if (j > 0)
+                    tmp += bin_search(pref_xor[j - 1] ^ k, j, currr);
+            ans[q[i].num] = tmp;
+        }
+        else
+        {
+            while (currr < q[i].r)
+            {
+                currr++;
+                if (currl == 0 && pref_xor[currr] == k)
+                    tmp++;
+                if (currl > 0)
+                    tmp += bin_search(pref_xor[currr] ^ k, currl - 1, currr - 1);
+                else
+                    tmp += bin_search(pref_xor[currr] ^ k, currl, currr - 1);
+            }
+            while (currl > q[i].l)
+            {
+                currl--;
+                if (currl == 0)
+                    tmp += bin_search(k, currl, currr);
+                else
+                    tmp += bin_search(pref_xor[currl - 1] ^ k, currl, currr);
+            }
+            while (currl < q[i].l)
+            {
+                if (currl == 0)
+                    tmp -= bin_search(k, currl, currr);
+                else
+                    tmp -= bin_search(pref_xor[currl - 1] ^ k, currl, currr);
+                currl++;
+            }
+            ans[q[i].num] = tmp;
+        }
+    }
+    for (int i = 0; i < m; i++)
+        printf("%I64d\n", ans[i]);
+	return 0;
+}

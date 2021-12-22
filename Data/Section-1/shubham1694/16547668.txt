@@ -1,0 +1,86 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 200010;
+
+int n, m;
+vector<pii> bus;
+ll dp[maxn], ft[maxn];
+map<int, int> compress;
+
+void update(int idx, ll val)
+{
+	while(idx<maxn){
+		ft[idx] = (ft[idx] + val)%mod;
+		idx+=(idx&(-idx));
+	}
+}
+
+ll query(int idx)
+{
+	ll ret = 0;
+	while(idx>0){
+		ret = (ret+ft[idx])%mod;
+		idx-=(idx&(-idx));
+	}
+	return ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, k, lo, mid, hi, ind;
+	scanf("%d%d", &n, &m);
+	bus.resize(m);
+	for(i=0; i<m; i++){
+		scanf("%d%d", &bus[i].s, &bus[i].f);
+		compress[bus[i].s] = 1;
+		compress[bus[i].f] = 1;
+	}
+	j = 1;
+	for(auto it=compress.begin(); it!=compress.end(); ++it)
+		it->s = j++;
+	sort(all(bus));
+	for(i=0; i<m; i++)
+		swap(bus[i].f, bus[i].s);
+	ll ans = 0, temp;
+	for(i=m-1; i>=0; ){
+		k = i;
+		while(k>=0){
+			if(bus[k].s!=bus[i].s)
+				break;
+			j = compress[bus[k].s];
+			if(bus[k].s==n)
+				temp = 1;
+			else
+				temp = query(j);
+			if(!bus[k].f)
+				ans = (ans+temp)%mod;
+			dp[k] = temp;
+			k--;
+		}
+		for(j=i; j>k; j--){
+			ind = compress[bus[j].f];
+			update(ind, dp[j]);
+		}
+		i = k;
+		//cout << i << " " << temp << " " << bus[i].f << " " << bus[i].s << "\n";
+	}
+	printf("%lld\n", ans);
+	return 0;
+}

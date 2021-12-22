@@ -1,0 +1,84 @@
+Const Fi='';//109C.INP';
+      Fo='';//'109C.OUT';
+      maxN=200001;
+Var   n:Longint;
+      A,Head:Array[0..maxN]Of Longint;
+      s:Array[1..3,0..maxN]Of Longint;
+      D,F,Dad,Child,Cost:Array[0..maxN]Of Int64;
+Procedure Enter;
+Var i,u,v:Longint;
+  Begin
+    Readln(n);
+    Fillchar(Head,Sizeof(Head),0);
+    For i:=1 to n-1 do
+      Begin
+        Readln(u,v,s[3,i]);
+        Inc(Head[u]);Inc(Head[v]);
+        s[1,i]:=u;s[2,i]:=v;
+      End;
+    For i:=2 to n+1 do
+      Head[i]:=Head[i-1]+Head[i];
+    For i:=1 to n-1 do
+      Begin
+        u:=s[1,i];v:=s[2,i];
+        A[Head[u]]:=v;Cost[Head[u]]:=s[3,i];Dec(Head[u]);
+        A[Head[v]]:=u;Cost[Head[v]]:=s[3,i];Dec(Head[v]);
+      End;
+  End;
+Function  Lucky(u:Longint):Boolean;
+  Begin
+    While u>0 do
+      Begin
+        If (u mod 10<>4) and (u mod 10<>7) then
+          Exit(False);
+        u:=u Div 10;
+      End;
+    Exit(True);
+  End;
+Procedure Visit(u:Longint);
+Var i,v:Longint;
+  Begin
+    Child[u]:=1;
+    F[u]:=0;
+    For i:=Head[u]+1 to Head[u+1] do
+      If Dad[u]<>A[i] then
+        Begin
+          v:=A[i];
+          Dad[v]:=u;
+          Child[u]:=Child[u]+Child[v];
+          Visit(v);
+          If Lucky(Cost[i]) then
+            F[u]:=F[u]+Child[v]
+          Else
+            F[u]:=F[u]+F[v];
+        End;
+    For i:=Head[u]+1 to Head[u+1] do
+      If Dad[u]<>A[i] then
+        Begin
+          v:=A[i];
+          If Lucky(Cost[i]) then
+            D[v]:=n-Child[v]
+          Else
+            D[v]:=D[u]+F[u]-F[v];
+        End;
+  End;
+Procedure Main;
+Var i:Longint;
+    Res:Int64;
+  Begin
+    Dad[1]:=0;D[1]:=0;
+    Visit(1);
+    Res:=0;
+    For i:=1 to n do
+      Writeln(F[i],' ',D[i]);
+    For i:=1 to n do
+      Res:=Res+D[i]*(D[i]-1)+F[i]*(F[i]-1)+2*D[i]*F[i];
+    Writeln(Res);
+  End;
+Begin
+  Assign(Input,Fi);Reset(Input);
+  Assign(Output,Fo);Rewrite(Output);
+  Enter;
+  Main;
+  Close(Input);Close(Output);
+End.

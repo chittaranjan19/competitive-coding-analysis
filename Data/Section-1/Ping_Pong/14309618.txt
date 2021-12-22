@@ -1,0 +1,74 @@
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+#include <algorithm>
+#include <vector>
+#include <set>
+#include <map>
+#include <queue>
+#include <string>
+#include <math.h>
+
+using namespace std;
+int n;
+vector<pair<int, int> > divis;
+vector<vector<pair<int, int> > > graph;
+vector<bool> used;
+vector<set<pair<int, int> > > mest;
+
+void dfs(int x, int last)
+{
+    used[x] = true;
+    if (last != -1)
+    {
+        int cnt = mest[x].size();
+        pair<int, int> p;
+        for (int i = 0; i < min(cnt, graph[x][last].second); i++)
+        {
+            p(min_element(mest[x].begin(), mest[x].end()));
+            mest[x].erase(p);
+            divis[p.second]++;
+            mest[last].insert(p);
+        }
+    }
+    for (int i = 0; i < graph[x].size(); i++)
+        if (!used[graph[x][i].first])
+            dfs(graph[x][i].first, x);
+}
+
+int main()
+{
+    int q, s, f;
+    scanf("%d", &n);
+    for (int i = 0; i < n; i++)
+    {
+        scanf("%d", &q);
+        divis.push_back({q, 0});
+    }
+    vector<pair<int, int> > v;
+    set<int, int> s;
+    for (int i = 0; i < n; i++)
+        graph.push_back(v);
+    for (int i = 0; i < n - 1; i++)
+    {
+        scanf("%d %d %d", &s, &f, &q);
+        graph[s - 1].push_back({f - 1, q});
+        graph[f - 1].push_back({s - 1, q});
+    }
+    for (int i = 0; i < n; i++)
+    {
+        mest.push_back(s);
+        mest[i].insert({divis[i].first, i});
+    }
+    for (int i = 0; i < n; i++)
+        used.push_back(false);
+    while (mest[0].size() < n)
+    {
+        for (int i = 0; i < n; i++)
+        used[i] = false;
+        dfs(0, -1);
+    }
+    for (int i = 0; i < n; i++)
+        printf("%d ", divis[i].second);
+    return 0;
+}

@@ -1,0 +1,88 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 5e3 + 5;
+const ll INF = 1LL << 59;
+
+struct edge
+{
+    int to, w, next;
+} G[maxn << 1];
+int head[maxn], tot;
+ll dp[maxn][maxn];
+int n, m, t;
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v, int w)
+{
+    G[tot].to = v;
+    G[tot].w = w;
+    G[tot].next = head[u];
+    head[u] = tot++;
+}
+
+void dfs(int u)
+{
+    if(~dp[u][0]) return;
+    dp[u][0] = 0;
+    fill(dp[u] + 1, dp[u] + n + 1, INF);
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        edge e = G[i];
+        dfs(e.to);
+        for(int j = 1; j < n; ++j) dp[u][j + 1] = min(dp[u][j + 1], dp[e.to][j] + e.w);
+    }
+}
+
+void output(int u, int num)
+{
+    printf("%d ", u);
+    if(num == 1) return;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        edge e = G[i];
+        if(dp[u][num] == dp[e.to][num - 1] + e.w)
+        {
+            output(e.to, num - 1);
+            break;
+        }
+    }
+}
+
+int main()
+{
+    init();
+    scanf("%d%d%d", &n, &m, &t);
+    for(int i = 1; i <= m; ++i)
+    {
+        int u, v, w;
+        scanf("%d%d%d", &u, &v, &w);
+        addedge(u, v, w);
+    }
+    for(int i = 1; i < n; ++i) dp[i][0] = -1;
+    dp[n][0] = dp[n][1] = 0;
+    fill(dp[n] + 2, dp[n] + n + 1, INF);
+    dfs(1);
+    for(int i = n; i >= 1; --i)
+    {
+        if(dp[1][i] <= t)
+        {
+            printf("%d\n", i);
+            output(1, i);
+            break;
+        }
+    }
+    puts("");
+    return 0;
+}

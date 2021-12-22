@@ -1,0 +1,157 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <climits>
+#ifdef DEBUG
+	#include <ctime>
+#endif
+using namespace std;
+
+// template
+
+// abbreviations
+#define vi vector<int>
+#define vl vector<long long>
+#define vb vector<bool>
+#define vs vector<string>
+#define ii pair<int, int>
+#define a first
+#define b second
+#define vii vector<ii>
+#define mii map<ii>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define rep(it, n) for(int it = 0; it < n; ++it)
+#define rep1(it, n) for(int it = 1; it <= n; ++it)
+#define loop(it, from, to) for(int it = (from); it <= (to); ++it)
+#define reverse_iterate(it, cont) for(__typeof((cont).rend()) it = (cont).rbegin(); it != (cont).rend(); ++it)
+#define iterate(it, cont) for(__typeof((cont).begin()) it = (cont).begin(); it != (cont).end(); ++it)
+#define all(cont) (cont).begin(), (cont).end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const int INF = INT_MAX;
+const int NINF = INT_MIN;
+const ll INF_LL = LLONG_MAX;
+const ll NINF_LL = LLONG_MIN;
+const double PI = acos(-1);
+
+#ifdef DEBUG
+	#define debug(fmt, args...) printf("Line %d, in %s\t: " fmt, __LINE__, __FUNCTION__, ##args)
+	#define rep_rt() printf("[Run time: %.3fs]\n",((double)clock())/CLOCKS_PER_SEC)
+#else
+	#define debug(...)
+#endif
+
+// end of template
+
+inline ll get_par(ll val) {
+	if (val&1) {
+		val--;
+	}
+	val >>= 1;
+	return val;
+}
+
+int get_height(ll val) {
+	int ret = 1;
+	while (val != 1) {
+		val = get_par(val);
+		ret++;
+	}
+	return ret;
+}
+map<ll, ll> up_cost;
+inline void add_cost(ll idx, ll cost) {
+	if (!up_cost.count(idx))
+		up_cost[idx] = 0;
+	up_cost[idx] += cost;
+}
+
+inline ll get_cost(ll idx) {
+	if (!up_cost.count(idx))
+		return 0;
+	return up_cost[idx];
+}
+
+int main() {
+#ifdef DEBUG
+	freopen("697C.in", "r", stdin);
+#endif
+    
+    int nq;
+    scanf("%d", &nq);
+    while (nq--) {
+    	int e;
+    	scanf("%d", &e);
+    	if (e == 1) { // increase weight
+    		ll u, v, w;
+    		scanf("%I64d %I64d %I64d", &u, &v, &w);
+    		if (u == v)
+    			continue;
+    		int u_h = get_height(u), v_h = get_height(v);
+    		if (u_h < v_h) {
+    			swap(u_h, v_h);
+    			swap(u, v);
+    		}
+    		while (u_h > v_h) {
+    			add_cost(u, w);
+    			u = get_par(u);
+    			u_h--;
+    		}
+    		while (u != v) {
+    			add_cost(u, w);
+    			add_cost(v, w);
+    			u = get_par(u);
+    			v = get_par(v);
+    		}
+    	} else {
+    		ll v, u;
+    		scanf("%I64d %I64d", &v, &u);
+    		if (u == v)
+    			continue;
+    		int u_h = get_height(u), v_h = get_height(v);
+    		if (u_h < v_h) {
+    			swap(u_h, v_h);
+    			swap(u, v);
+    		}
+    		ll cost = 0;
+    		while (u_h > v_h) {
+    			cost += get_cost(u);
+    			u = get_par(u);
+    			u_h--;
+    		}
+    		while (u != v) {
+    			cost += get_cost(u)+get_cost(v);
+    			u = get_par(u);
+    			v = get_par(v);
+    		}
+    		printf("%I64d\n", cost);
+    	}
+    }
+
+#ifdef DEBUG
+    rep_rt();
+#endif
+    return 0;
+}

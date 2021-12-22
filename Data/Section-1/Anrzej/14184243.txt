@@ -1,0 +1,88 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+pair<pair<int, int>, int> dx[222222], dy[222222];
+int n, k;
+
+int cmpy(pair<pair<int, int>, int> a, pair<pair < int, int>, int> b)
+{
+	return a.fs.sc < b.fs.sc;
+}
+
+ll ans = 2e18;
+
+int main()
+{
+	cin >> n >> k;
+	for (int i = 0; i < n; i++)
+	{
+		int x, y, x1, y1;
+		scanf_s("%d%d%d%d", &x, &y, &x1, &y1);
+		dx[i] = mp(mp((x1 + x) >> 1, (y + y1) >> 1), i);
+		dy[i] = dx[i];
+	}
+	sort(dx, dx + n);
+	sort(dy, dy + n, cmpy);
+	for (int x = 0; x <= k; x++)
+	{
+		for (int y = 0; y+x <= k; y++)
+		{
+			for (int rx = 0; rx + y + x <= k; rx++)
+			{
+				for (int ry = 0; ry + rx + x + y <= k; ry++)
+				{
+					multiset<pair<int, int> > s;
+					for (int i = 0; i < x; i++)
+						s.insert(dx[i].fs);
+					for (int i = n - 1; i > n - 1 - rx; i--)
+						s.insert(dx[i].fs);
+					int cur = 0;
+					while (cur < y || s.count(dy[cur].fs) != 0)
+					{
+						if (s.count(dy[cur].fs) != 0)
+							s.erase(s.find(dy[cur].fs));
+						cur++;
+					}
+					int rcur = n - 1;
+					while (rcur > n - 1 - ry || s.count(dy[rcur].fs) != 0)
+					{
+						if (s.count(dy[rcur].fs) != 0)
+							s.erase(s.find(dy[rcur].fs));
+						rcur--;
+					}
+					ll lx = (dx[x].fs.fs - dx[n -1 -rx].fs.fs);
+					ll ly = (dy[cur].fs.sc - dy[rcur].fs.sc);
+					if (lx == 0)
+						lx = 1;
+					if (ly == 0)
+						ly = 1;
+					ans = min(ans, abs(lx*ly));
+				}
+			}
+		}
+	}
+	ll lx = max(1, abs(dx[0].fs.fs - dx[n - 1].fs.fs));
+	ll ly = max(1, abs(dy[0].fs.sc - dy[n - 1].fs.sc));
+	ans = min(ans, (lx*ly));
+	if (n - 1 == k)
+		ans = 1;
+	cout << ans;
+	return 0;
+}

@@ -1,0 +1,99 @@
+#include <cstdio>
+#include <algorithm>
+
+using namespace std;
+
+struct tour {
+   int p;
+   int a;
+   bool win;
+};
+
+bool cmp(tour t1, tour t2) {
+   if (t1.p != t2.p) return (t1.p > t2.p);
+   else return (t1.a > t2.a);
+}
+
+int main() {
+   int n, l, k, pnum = 0;
+   double ans = 1;
+   tour t[222];
+   
+   scanf("%d %d %d", &n, &l, &k);
+   for (int i = 0; i < n; i++) t[i].win = false;
+   for (int i = 0; i < n; i++) scanf("%d", &t[i].p);
+   for (int i = 0; i < n; i++) {scanf("%d", &t[i].a); if (t[i].a == -1) pnum++;}
+   
+   sort(t, t+n, cmp);
+   
+   if (l > n) {printf("0\n"); return 0;}
+   
+   int ptr1 = 0, ptr2 = 0, pcount = 0;
+   for (int i = 1; i <= l; i++) {
+      bool find = false;
+
+      for (; !find && ptr2 < ptr1; ptr2++) {
+         if (!t[ptr2].win && k + t[ptr2].a >= 0) {
+            k += t[ptr2].a;
+            ans *= (double)t[ptr2].p / 100;
+            t[ptr2].win = true;
+            find = true;
+            if (t[ptr2].a == -1) pcount++;
+         }
+      }
+      
+      for(; !find && ptr1 < n; ptr1++) {
+         if (k + t[ptr1].a >= 0) {
+            k += t[ptr1].a;
+            ans *= (double)t[ptr1].p / 100;
+            t[ptr1].win = true;
+            find = true;
+            
+            if (t[ptr1].a == -1) pcount++;
+         }
+      }
+      
+      if (!find) {printf("0\n"); return 0;}
+   }
+   
+   int ptr3 = n - 1;
+   while (k < pnum - pcount) {
+      bool find1 = false, find3 = false;
+      int pos1 = ptr1, pos3 = ptr3, countt = 0;
+      double temp = 1;
+      
+      for (; ptr1 < n && !find1; ptr1++)
+         if (t[ptr1].a > 0) {pos1 = ptr1; find1 = true;}
+      
+      if (!find1) {
+         ptr1 = pos1;
+         for (; ptr3 >= ptr1 && !find3; ptr3--)
+            if (t[ptr3].a == -1) {
+               pcount++;
+               ans *= (double)(100 - t[ptr3].p) / 100;
+               find3 = true;
+            }
+      }
+      
+      if (find3) continue;
+      
+      for (; ptr3 > ptr1 && countt < t[pos1].a; ptr3--)
+         if (t[ptr3].a == -1) {temp *= (double)(100 - t[ptr3].p) / 100; countt++;}
+
+      if (countt == t[pos1].a && temp > (double)t[pos1].p / 100) {
+         pcount += countt;
+         ans *= temp;
+         ptr1 = pos1;
+      }
+      
+      else {
+         k += t[pos1].a;
+         ans *= (double)t[pos1].p / 100;
+         ptr3 = pos3;
+      }
+   }
+   
+   printf("%lf\n", ans);
+   
+   return 0;
+}

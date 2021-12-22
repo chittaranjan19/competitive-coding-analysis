@@ -1,0 +1,135 @@
+#include <bits/stdc++.h>
+//#include <iostream>
+//#include <vector>
+
+#define SZ(x) ((int)x.size())
+#define PB push_back
+#define MP make_pair
+#define X first
+#define Y second
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+
+const int N = 100 * 1000 + 100;
+const ll oo = 1e12;
+
+vector <pii> g[N];
+int n;
+ll dp_down[N];
+ll dp_up[N];
+pair<ll, int> dp[N]; 
+
+void dfs_down(int v, int p){
+	for(pii nei : g[v]){
+		int u = nei.X;
+		int w = nei.Y;
+		if(p == u) continue;
+		dfs_down(u, v);
+		dp_down[v] = max(dp_down[v], w + dp_down[u]);
+	}
+}
+
+void dfs_up(int v, int p){
+	ll mx1 = dp_up[v], mx2 = -1;
+	for(pii nei : g[v]){
+		int u = nei.X;
+		int w = nei.Y;
+		if(p == u) continue;
+		if(dp_down[u] + w >= mx1){
+			mx2 = mx1;
+			mx1 = dp_down[u] + w;
+		}
+		else if(dp_down[u] + w >= mx2)
+			mx2 = dp_down[u] + w;
+	}
+	for(pii nei : g[v]){
+		int u = nei.X;
+		int w = nei.Y;
+		if(p == u) continue;
+		if(w + dp_down[u] < mx1)
+			dp_up[u] = mx1 + w;
+		else
+			dp_up[u] = mx2 + w;
+	}
+	for(pii nei : g[v]){
+		int u = nei.X;
+		if(p == u) continue;
+		dfs_up(u, v);
+	}
+}
+
+int st[N], ft[N];
+int T;
+
+void dfs(int v, int p){
+	st[v] = T++;
+	for(pii nei : g[v]){
+		int u = nei.X;
+		if(u != p) 
+			dfs(u, v);
+	}
+	ft[v] = T;
+}
+
+int fen[N];
+
+void add(int p){
+	for(p ++; p < N; p += p & -p)
+		fen[p] ++;
+}
+
+int get(int p){
+	int sum = 0;
+	for(; p; p -= p & -p)
+		sum += fen[p];
+	return sum;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for(int i = 0; i < n - 1; ++i){
+		int u, v, w;
+		cin >> u >> v >> w;
+		u --; v --;
+		g[u].PB(MP(v, w));
+		g[v].PB(MP(u, w));
+	}
+	dfs_down(0, -1);
+	dfs_up(0, -1);
+	ll mn = oo;
+	int ind;
+	for(int i = 0; i < n; ++i){
+		dp[i].X = max(dp_up[i], dp_down[i]);
+		dp[i].Y = i;
+//		cerr << dp[i].X << " ";
+		if(dp[i].X < mn){
+			mn = dp[i].X;
+			ind = i;
+		}		
+	}
+	dfs(ind, -1);
+	sort(dp, dp + n);
+	int q;
+	cin >> q;
+	for(int i = 0; i < q; ++i){
+		int L;
+		cin >> L;
+		memset(fen, 0, sizeof fen);
+		int ans = -1;
+		int t = 0;
+		for(int i = 0; i < n; ++i){
+			while(t < n && dp[t].X - dp[i].X <= L){
+				add(st[dp[t].Y]);
+				t ++;
+			}
+//			cerr << "bug : " << get(ft[dp[i].Y]) - get(st[dp[i].Y]) << " ";
+			ans = max(ans, get(ft[dp[i].Y]) - get(st[dp[i].Y]));
+		}
+		cout << ans << "\n";
+	}
+	return 0;
+}

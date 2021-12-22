@@ -1,0 +1,69 @@
+#include <fstream>
+#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <cmath>
+#include <complex>
+#include <map>
+#include <set>
+#include <cstring>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MN = 4005;
+
+int cnt[MN][MN];
+
+int w[MN], h[MN];
+int w2[MN], h2[MN];
+
+map<int, int> wtoi;
+map<int, int> htoi;
+
+int main()
+{
+    int n;
+    cin >> n;
+    for (int i = 0; i < n; ++i) {
+        cin >> w[i] >> h[i];
+        if (w[i] > h[i])
+            swap(w[i], h[i]);
+        w2[i] = w[i];
+        h2[i] = h[i];
+    }
+    sort(w2, w2 + n);
+    sort(h2, h2 + n);
+    for (int i = 0; i < n; ++i)
+        wtoi[w2[i]] = i, htoi[h2[i]] = i;
+    for (int i = 0; i < n; ++i) {
+        cnt[wtoi[w[i]]][htoi[h[i]]]++;
+    }
+    for (int i = 0; i < n; ++i) {
+        int tmp = 0;
+        for (int j = 0; j < n; ++j) {
+            tmp += cnt[i][j];
+            cnt[i][j] = tmp;
+            if (i > 0)
+                cnt[i][j] += cnt[i - 1][j];
+        }
+    }
+    ll ans = 0;
+    int bh = 0, bw = 0;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            int n2 = n;
+            if (i > 0) n2 -= cnt[i - 1][n - 1];
+            if (j > 0) n2 -= cnt[n - 1][j - 1];
+            if (i > 0 && j > 0) n2 += cnt[i - 1][j - 1];
+            ll cans = ll(w2[i]) * h2[j] * n2;
+            if (cans > ans) {
+                ans = cans;
+                bh = h2[j];
+                bw = w2[i];
+            }
+        }
+    }
+    cout << ans << endl << bh << " " << bw;
+}

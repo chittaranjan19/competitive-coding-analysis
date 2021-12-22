@@ -1,0 +1,109 @@
+#include <string>
+#include <vector>
+#include <map>
+#include <list>
+#include <iterator>
+#include <cassert>
+#include <set>
+#include <queue>
+#include <iostream>
+#include <sstream>
+#include <stack>
+#include <deque>
+#include <cmath>
+#include <memory.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cctype>
+#include <algorithm>
+#include <utility>
+#include <time.h>
+#include <complex>
+#include <fstream>
+#include <tuple>
+#include <iomanip>
+
+using namespace std;
+
+#define forn(i, n) for (int i = 0; i < int(n); ++i)
+#define for1(i, n) for (int i = 1; i < int(n); ++i)
+#define ford(i, n) for (int i = int(n) - 1; i >= 0; --i)
+#define fore(i, l, r) for (int i = int(l); i <= int(r); ++i)
+#define all(a) a.begin(), a.end()
+#define sz(a) (int(a.size()))
+#define mp make_pair
+#define pb push_back
+#define ft first
+#define sc second
+#define g(a, b) get<a> (b)
+
+typedef long long ll;
+typedef long double ld;
+typedef pair<int, int> pt;
+
+const int MAX_N = 5000 + 7;
+const int mod = 1e9 + 7;
+
+vector <pair<int, int> > st[MAX_N];
+vector <int> rev[MAX_N];
+pair<int, int> dp[MAX_N][MAX_N];
+vector <int> to;
+vector <int> ans;
+int n, m, t;
+
+void dfs(int v){
+    for (int i = 0; i < st[v].size(); i++){
+        if (dp[st[v][i].ft][0].ft == -1)
+            dfs(st[v][i].ft);
+        for (int j = 2; j <= n; j++){
+            if (dp[v][j].ft > dp[st[v][i].ft][j - 1].ft + st[v][i].sc){
+                dp[v][j].ft = dp[st[v][i].ft][j - 1].ft + st[v][i].sc;
+                dp[v][j].sc = st[v][i].ft;
+            }
+        }
+    }
+    dp[v][0].ft = 1;
+}
+
+void ansss(int v, int i){
+    ans.pb(v);
+    if (dp[v][i].sc != v) ansss(dp[v][i].sc, i - 1);
+}
+
+int main(){
+    #if 0
+        freopen("cinemaholics.in", "r", stdin);
+        freopen("cinemaholics.out", "w", stdout);
+    #endif
+    //cout << setprecision(20);
+    cin >> n >> m >> t;
+    for (int i = 0; i < m; i++){
+        int a, b, c;
+        cin >> a >> b >> c;
+        st[b].pb(mp(a, c));
+        rev[a].pb(b);
+    }
+    for (int i = 1; i <= MAX_N - 7; i++)
+        for (int j = 1; j <= MAX_N - 7; j++)
+        dp[i][j].ft = mod;
+    for (int i = 0;i <= n; i++)
+        dp[i][0].ft = -1;
+    dp[1][1].ft = 0;
+    dp[1][1].sc = 1;
+    to.pb(1);
+    dfs(n);
+    //for (auto it : to) cout << it << " " ;
+    /*for (int i =  1; i <= n; i++){
+        cout << dp[n][i].ft << endl;
+    }*/
+    for (int i = n; i >= 0; i--){
+        if (dp[n][i].ft <= t) {
+            ansss(n, i);
+            cout << ans.size() << endl;
+            for (int i = (int) ans.size() - 1; i >= 0; i--)
+                cout << ans[i] <<" ";
+            return 0;
+        }
+    }
+    return 0;
+}

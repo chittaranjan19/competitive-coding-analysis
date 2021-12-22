@@ -1,0 +1,94 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+const int M=2e5;
+const int N=3e5+9;
+set<int>ps,vl;
+int pos[N],val[N];
+int s[2][N<<2];
+void upd(int tp,int p,int v,int nd,int x,int y){
+	if(x==y){
+		s[tp][nd]=v;
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(tp,p,v,nd<<1,x,mid);
+	else
+		upd(tp,p,v,nd<<1|1,mid+1,y);
+	s[tp][nd]=max(s[tp][nd<<1],s[tp][nd<<1|1]);	
+}
+int tap(int tp,int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return s[tp][nd];
+	int mid=(x+y)>>1;
+	int i1=tap(tp,l,r,nd<<1,x,mid);				
+	int i2=tap(tp,l,r,nd<<1|1,mid+1,y);				
+	return max(i1,i2);
+}
+int main(){
+	int n,m;
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=m;i++){
+		int type,x,y;
+		scanf("%d%d",&type,&x);
+		if(type==1){
+			scanf("%d",&y);
+			y=y-i+M;pos[x]=y;val[y]=x;
+			vl.insert(y);ps.insert(x);
+			typeof((vl).begin()) it=vl.begin();
+			while(*it<y){
+				upd(0,val[*it],0,1,1,N);
+			//	upd(1,*it,0,1,1,N);
+				it++;
+			}
+			while(1){
+				int mx=tap(0,val[*it]+1,N,1,1,N)+1;
+				upd(0,val[*it],mx,1,1,N);
+			//	upd(1,*it,mx,1,1,N);
+				if(it==vl.begin())
+					break;it--;
+			}
+		//	printf("\n");
+		}
+		else{
+			typeof((ps).begin()) it=ps.begin();
+			for(int j=1;j<=x;j++){
+				upd(0,*it,0,1,1,N);
+			//	upd(1,pos[*it],0,1,1,N);
+				if(j<x)
+					it++;
+			}int k=*it;
+			while(1){
+				if(it==ps.begin())
+					break;it--;
+				int mx=tap(0,*it+1,N,1,1,N)+1;
+				upd(0,*it,mx,1,1,N);
+			//	upd(1,pos[*it],mx,1,1,N);
+			}
+			vl.erase(pos[k]);ps.erase(k);
+		}
+		printf("%d\n",s[0][1]);
+	}
+	return 0;
+}
+//LooK aT mY COde ONlinE +_+

@@ -1,0 +1,130 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((ll)x.size())
+#define PB push_back
+#define MP make_pair
+#define X first
+#define Y second
+
+using namespace std;
+typedef long long ll;
+typedef pair<ll, ll> pii;
+
+
+
+const ll N = 1e5 + 100;
+const ll oo = 1e12;
+
+ll n, k, q;
+ll sz[N];
+pii p[N], tmp[N];
+pair<ll, pii> tmp2[N];
+ll seg[20][4 * N];
+pii seg2[20][4 * N];
+vector<ll> res;
+vector<ll> age;
+
+void build(ll d, ll s, ll e){
+	if(e - s == 1){
+		seg[d][s] = tmp[s].Y;
+		return;
+	}
+	ll mid = (s + e) / 2;
+	build(d + 1, s, mid);
+	build(d + 1, mid, e);
+	merge(seg[d + 1] + s, seg[d + 1] + mid,
+		  seg[d + 1] + mid, seg[d + 1] + e,
+		  seg[d] + s);
+}
+
+ll get(ll d, ll s, ll e, ll l, ll r, ll val){
+	if(r <= s || e <= l) return 0;
+	if(l <= s && e <= r)
+		return upper_bound(seg[d] + s, seg[d] + e, val) - (seg[d] + s);
+	ll mid = (s + e) / 2;
+	return get(d + 1, s, mid, l, r, val) +
+		   get(d + 1, mid, e, l, r, val);
+}
+
+void build2(ll d, ll s, ll e){
+	if(e - s == 1){
+		seg2[d][s] = tmp2[s].Y;
+		return;
+	}
+	ll mid = (s + e) / 2;
+	build2(d + 1, s, mid);
+	build2(d + 1, mid, e);
+	merge(seg2[d + 1] + s, seg2[d + 1] + mid,
+		  seg2[d + 1] + mid, seg2[d + 1] + e,
+		  seg2[d] + s);
+//	ll mx = seg2[d][e - 1].Y;
+	ll mx = -1;
+	for(ll i = e - 1; i >= s; --i){
+		mx = max(seg2[d][i].Y, mx);
+		seg2[d][i].Y = mx;
+	}
+}
+
+ll get2(ll d, ll s, ll e, ll l, ll r, ll val){
+	if(r <= s || e <= l) return (-1);
+	if(l <= s && e <= r){
+/*		
+		cerr << "bug " << s << " " << e << "\n";		
+   		cerr << lower_bound(seg2[d] + s, seg2[d] + e, MP(val, 0)) - (seg2[d] + s) << "\n";
+		cerr << "HH :\n";
+		for(ll i = s; i < e; ++i)
+			cerr << seg2[d][i].X << " " << seg2[d][i].Y << "\n";
+		cerr << " :HH\n";
+*/		
+   		if(lower_bound(seg2[d] + s, seg2[d] + e, MP(val, 0LL)) - (seg2[d] + s) == e - s) return (-1);
+		return (*(lower_bound(seg2[d] + s, seg2[d] + e, MP(val, 0LL)))).Y;
+	}
+	ll mid = (s + e) / 2;
+	return max(get2(d + 1, s, mid, l, r, val),
+			   get2(d + 1, mid, e, l, r, val));
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> k;
+	for(ll i = 0; i < n; ++i){
+		cin >> p[i].X;
+		res.PB(p[i].X);
+	}
+	for(ll i = 0; i < n; ++i){
+		cin >> p[i].Y;
+	}
+	for(ll i = 0; i < n; ++i){
+		tmp[i].X = p[i].Y;
+		tmp[i].Y = p[i].X;
+	}
+	sort(tmp, tmp + n);
+	build(0, 0, n);
+	for(ll i = 0; i < n; ++i){
+		sz[i] = get(0, 0, n, lower_bound(tmp, tmp + n, MP(p[i].Y - k, 0LL)) - tmp , upper_bound(tmp, tmp + n, MP(p[i].Y + k, oo)) - tmp , p[i].X);
+		tmp2[i].X = p[i].Y;
+		tmp2[i].Y.X = p[i].X;
+		tmp2[i].Y.Y = sz[i];
+	}
+	sort(tmp2, tmp2 + n);
+	build2(0, 0, n);
+	cin >> q;
+	for(ll i = 0; i < q; ++i){
+		ll x, y;
+		cin >> x >> y;
+		x --; y--;
+/*		cerr << ":D"<< "\n";
+		cerr << p[x].Y << " " << p[y].Y << "\n";
+		cerr << lower_bound(tmp, tmp + n, MP(max(p[x].Y, p[y].Y) - k , 0)) - tmp << "\n";
+		cerr << upper_bound(tmp, tmp + n, MP(min(p[x].Y, p[y].Y) + k , oo)) - tmp << "\n";*/
+		cout <<  get2(0, 0, n, lower_bound(tmp2, tmp2 + n, MP(max(p[x].Y, p[y].Y) - k, MP(0LL, 0LL))) - tmp2 , upper_bound(tmp2, tmp2 + n, MP(min(p[x].Y, p[y].Y) + k, MP(oo, oo))) - tmp2 , max(p[x].X, p[y].X)) << "\n";
+	}
+	/*
+	for(ll i = 0; i < n; ++i){
+		cerr << sz[i] << " ";
+	}
+	cerr << "\n";
+	*/
+	return 0;
+}

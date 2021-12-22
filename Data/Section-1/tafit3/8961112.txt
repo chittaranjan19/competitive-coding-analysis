@@ -1,0 +1,139 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemC {
+    BufferedReader rd;
+
+    private ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        pint();
+        int[] a = intarr();
+        pint();
+        int[] b = intarr();
+
+        NavigableSet<Integer> distSet = new TreeSet<>();
+        for(int x: a) {
+            distSet.add(x);
+        }
+        for(int x: b) {
+            distSet.add(x);
+        }
+        Map<Integer, Integer> idx = new HashMap<>();
+        int ni = 1;
+        for(Integer d: distSet) {
+            idx.put(d, ni);
+            ni++;
+        }
+        int last = ni-1;
+
+        SortedMap<Integer, Integer> aMap = sort(a);
+        SortedMap<Integer, Integer> bMap = sort(b);
+
+        long[] sa = new long[400010];
+        long[] sb = new long[400010];
+        int ix = 1;
+        for(Integer d: distSet) {
+            int incr = 0;
+            Integer cnt = aMap.get(d);
+            if(cnt != null) {
+                incr = cnt;
+            }
+            sa[ix] = sa[ix-1] + incr;
+
+            incr = 0;
+            cnt = bMap.get(d);
+            if(cnt != null) {
+                incr = cnt;
+            }
+            sb[ix] = sb[ix-1] + incr;
+
+            ix++;
+        }
+
+        long[] pts = new long[] { 3 * sa[last], 3 * sb[last] };
+        long maxDiff = pts[0] - pts[1];
+        for(int i=1;i<=last;i++) {
+            long pa = 2*sa[i] + 3*(sa[last] - sa[i]);
+            long pb = 2*sb[i] + 3*(sb[last] - sb[i]);
+            long diff = pa - pb;
+            if(diff > maxDiff || (diff == maxDiff && pts[0] < pa)) {
+                maxDiff = diff;
+                pts[0] = pa;
+                pts[1] = pb;
+            }
+        }
+        out(pts[0]+":"+pts[1]);
+    }
+
+    private SortedMap<Integer, Integer> sort(int[] a) {
+        SortedMap<Integer, Integer> as = new TreeMap<>();
+        for(int x: a) {
+            Integer cnt = as.get(x);
+            if(cnt == null) {
+                cnt = 1;
+            } else {
+                cnt++;
+            }
+            as.put(x, cnt);
+        }
+        return as;
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private String[] split(String s) {
+        int n = s.length();
+        int sp = 0;
+        for(int i=0;i<n;i++) {
+            if(s.charAt(i)==' ') {
+                sp++;
+            }
+        }
+        String[] res = new String[sp+1];
+        int last = 0;
+        int x = 0;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(c == ' ') {
+                res[x++] = s.substring(last,i);
+                last = i+1;
+            }
+        }
+        res[x] = s.substring(last,n);
+        return res;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

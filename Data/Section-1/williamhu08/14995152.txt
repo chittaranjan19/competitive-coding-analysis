@@ -1,0 +1,181 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1 << 18, MOD = 1e9 + 7;
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+void addeq (int &x, int y) {
+	x = add(x, y);
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+void multeq (int &x, int y) {
+	x = mult(x, y);
+}
+
+int inv[MAXN];
+
+#define div divv
+
+int div (int x, int y) {
+	return mult(x, inv[y]);
+}
+
+struct query {
+	int t, p, x;
+};
+
+struct fenwick {
+	int bit[MAXN];
+	fenwick() {
+		fill_n(bit, MAXN, 1);
+	}
+	void update (int x, int v) {
+		for (; x < MAXN; x += (x & -x)) {
+			multeq(bit[x], v);
+		}
+	}
+	int query (int x) {
+		int s = 1;
+		for (; x; x &= x - 1) {
+			multeq(s, bit[x]);
+		}
+		return s;
+	}
+};
+
+struct segtree {
+	int tree[2 * MAXN], lazy[2 * MAXN];
+	//point update, range multiply update, range sum query
+	//k point update...is a bit tricky
+	segtree() {
+		fill_n(lazy, 2 * MAXN, 1);
+	}
+	void put (int cur, int v) {
+		multeq(tree[cur], v);
+		multeq(lazy[cur], v);
+	}
+	void down (int cur) {
+		if (lazy[cur] != 1) {
+			put(2 * cur, lazy[cur]);
+			put(2 * cur + 1, lazy[cur]);
+			lazy[cur] = 1;
+		}
+	}
+	void update (int x, int v) {
+		x += MAXN;
+		for (int i = 18; i > 0; i--) {
+			down(x >> i);
+		}
+		//no more lazy vals anymore!!!
+		tree[x] = v;
+		while (x /= 2) {
+			tree[x] = add(tree[2 * x], tree[2 * x + 1]);
+		}
+	}
+	void update (int a, int b, int v, int cur = 1, int lt = 0, int rt = MAXN) {
+		if (rt <= a || b <= lt) {
+			return;
+		}
+		if (a <= lt && rt <= b) {
+			put(cur, v);
+			return;
+		}
+		down(cur);
+		int mid = (lt + rt) / 2;
+		update(a, b, v, 2 * cur, lt, mid);
+		update(a, b, v, 2 * cur + 1, mid, rt);
+		tree[cur] = add(tree[2 * cur], tree[2 * cur + 1]);
+	}
+	int query (int a, int b, int cur = 1, int lt = 0, int rt = MAXN) {
+		if (rt <= a || b <= lt) {
+			return 0;
+		}
+		if (a <= lt && rt <= b) {
+			return tree[cur];
+		}
+		down(cur);
+		int mid = (lt + rt) / 2;
+		return add(query(a, b, 2 * cur, lt, mid), query(a, b, 2 * cur + 1, mid, rt));
+	}
+};
+
+int N = 1, M;
+int V[MAXN];
+vector<int> adj[MAXN];
+query qu[MAXN];
+int par[MAXN], ent[MAXN], exi[MAXN], ze;
+int deg[MAXN];
+fenwick ft, ift;
+segtree st;
+
+void dfs (int x) {
+	ent[x] = ++ze;
+	for (int t : adj[x]) {
+		par[t] = x;
+		dfs(t);
+	}
+	exi[x] = ze + 1;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	inv[1] = 1;
+	for (int i = 2; i < MAXN; i++) {
+		inv[i] = mult(MOD - MOD / i, inv[MOD % i]);
+	}
+	scanf("%d %d", &V[1], &M);
+	st.update(1, V[1]);
+	for (int i = 1; i <= M; i++) {
+		scanf("%d", &qu[i].t);
+		if (qu[i].t == 1) {
+			qu[i].x = ++N;
+			scanf("%d %d", &qu[i].p, &V[N]);
+			adj[par[N] = qu[i].p].push_back(N);
+		} else {
+			scanf("%d", &qu[i].x);
+		}
+	}
+	dfs(1);
+	for (int i = 1; i <= M; i++) {
+		int x = qu[i].x;
+		if (qu[i].t == 1) {
+			int p = qu[i].p;
+			int fac = add(1, inv[deg[p] + 1]);
+			int ifac = div(deg[p] + 1, deg[p] + 2);
+			st.update(ent[p], exi[p], fac);
+			ift.update(ent[p], ifac);
+			ft.update(ent[p], fac);
+			ift.update(exi[p], fac);
+			ft.update(exi[p], ifac);
+			st.update(ent[x], mult(V[x], ft.query(ent[p])));
+			deg[p]++;
+		} else {
+			int ans = st.query(ent[x], exi[x]);
+			if (x != 1) {
+				multeq(ans, ift.query(ent[par[x]]));
+			}
+			printf("%d\n", ans);
+		}
+	}
+}

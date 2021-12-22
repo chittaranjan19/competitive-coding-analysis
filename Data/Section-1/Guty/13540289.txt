@@ -1,0 +1,138 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+void imprimirVector (vector<int> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+int toNumber (string s)
+{
+	int Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (int number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+struct Par
+{
+	Par(int xx , int yy)
+	{
+		x = xx;
+		y = yy;
+	}
+	int x,y;
+};
+
+bool operator == (Par p1, Par p2)
+{
+	return (p1.x == p2.x && p1.y == p2.y);
+}
+
+Par rightDown (vector<vector<int> > &r, vector<string> &row)
+{
+	Par maxi = Par(-1,-1);
+	forn(i,r.size())
+	forn(j,r[0].size())
+		if ( !((r[i][j] == 1 && row[i][j] == 'W') or (r[i][j] == -1 && row[i][j] == 'B')) && j >= maxi.y)
+			maxi = Par(i,j);
+	return maxi;
+}
+
+
+Par downRight (vector<vector<int> > &r, vector<string> &row)
+{
+	Par maxi = Par(-1,-1);
+	forn(i,r.size())
+	forn(j,r[0].size())
+		if ( !((r[i][j] == 1 && row[i][j] == 'W') or (r[i][j] == -1 && row[i][j] == 'B'))  && i >= maxi.x)
+			maxi = Par(i,j);
+	return maxi;
+}
+
+
+int main()
+{
+	int n,m;
+	cin >> n >> m;
+	vector<string> row (n);
+	vector<vector<int> > r (n,vector<int> (m,0));
+	forn(i,n) 
+		cin >> row[i];
+	int total = 0;
+	while(downRight(r,row).x >= 0 && downRight(r,row).y >= 0 && rightDown(r,row).x >= 0 && rightDown(r,row).y >= 0)
+	{
+	
+		Par p1 = downRight(r,row);
+		Par p2 = rightDown(r,row);
+		int c = 0;
+		if (row[p1.x][p1.y] == 'W')
+			c = 1 - r[p1.x][p1.y];
+		else
+			c = -1 - r[p1.x][p1.y];
+		forn(i,p1.x+1)
+		forn(j,p1.y+1)
+			r[i][j] += c;
+		total++;
+		
+		if (!(p1 == p2))
+		{
+			if (row[p2.x][p2.y] == 'W')
+				c = 1 - r[p2.x][p2.y];
+			else
+				c = -1 - r[p2.x][p2.y];
+			forn(i,p2.x+1)
+			forn(j,p2.y+1)
+				r[i][j] += c;
+			total++;
+		}
+	}
+	cout << total << endl;
+	return 0;
+}
+
+
+

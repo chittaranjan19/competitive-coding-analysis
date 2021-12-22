@@ -1,0 +1,52 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+const int maxn = 1e6 + 5;
+const double INF = 1e20;
+
+struct Point
+{
+    double x, y;
+} p[maxn], q[5];
+double pre[maxn], suf[maxn];
+
+double dis(const Point &a, const Point &b)
+{
+    return sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+}
+
+int main()
+{
+    for(int i = 0; i < 3; ++i) scanf("%lf%lf", &q[i].x, &q[i].y);
+    int n;
+    scanf("%d", &n);
+    pre[0] = suf[n + 1] = INF;
+    double tot = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        scanf("%lf%lf", &p[i].x, &p[i].y);
+        pre[i] = min(pre[i - 1], dis(q[1], p[i]) - dis(q[2], p[i]));
+        tot += 2 * dis(q[2], p[i]);
+    }
+    if(n == 1)
+    {
+        printf("%.12f\n", min(dis(q[0], p[1]), dis(q[1], p[1])) + dis(q[2], p[1]));
+    }
+    else
+    {
+        double ans = -100;
+        for(int i = n; i; --i)
+        {
+            suf[i] = min(suf[i + 1], dis(q[1], p[i]) - dis(q[2], p[i]));
+            if(ans < 0) ans = tot + dis(q[0], p[i]) - dis(q[2], p[i]) + min(pre[i - 1], suf[i + 1]);
+            else ans = min(ans, tot + dis(q[0], p[i]) - dis(q[2], p[i]) + min(pre[i - 1], suf[i + 1]));
+        }
+        printf("%.12f\n", ans);
+    }
+    return 0;
+}

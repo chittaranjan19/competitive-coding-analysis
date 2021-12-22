@@ -1,0 +1,127 @@
+ # include <iostream>
+ # include <cstdlib>
+ # include <cstdio>
+ # include <cstring>
+ # include <string>
+ # include <algorithm>
+ # include <sstream>
+ # define strlast(name) (*(--(name.end())))
+ # define strfirst(name) (*(name.begin()))
+ 
+ using namespace std;
+ 
+ const int N = 1000000;
+ int n, m, a[N], l, r, v, d[4 * N], p[N], dp[4 * N];
+ char s[N];
+ 
+ void build (int v, int tl, int tr)
+ {
+     if (tl == tr)
+     {
+         d[v] = a[tr];
+         p[tr] = v;
+     }
+     else
+     {
+         int m = (tl + tr) / 2;
+         build (v * 2, tl, m);
+         build (v * 2 + 1, m + 1, tr);
+         d[v] = d[v * 2] + d[v * 2 + 1];
+     }
+ }
+ 
+ void change (int v, int tl, int tr, int l, int r, int val)
+ {
+     if (tl == l && tr == r)
+     {
+         d[v] += val;
+         dp[v] = val;
+     }
+      
+     else
+     {
+         int m = (tl + tr) / 2;
+         
+         if (r <= m)
+          change (v * 2, tl, m, l, r, val);
+          
+         if (l > m)
+          change (v * 2 + 1, m + 1, tr, l, r, val);
+          
+         if (l <= m && r > m)
+         {
+             change (v * 2, tl, m, l, m, val);
+             change (v * 2 + 1, m + 1, tr, m + 1, r, val);
+         }
+         
+         d[v] = min (d[v * 2], d[v * 2 + 1]);
+     }
+      
+ }
+ 
+ int solve (int v, int tl, int tr, int l, int r)
+ {
+     if (dp[v])
+     {
+         dp[v * 2] = dp[v];
+         dp[v * 2 + 1] = dp[v];
+         d[v] += dp[v];
+         d[v * 2 + 1] += dp[v];
+         dp[v] = 0;
+     }
+     if (tl == l && tr == r)
+      return d[v];
+      
+     int m = (tl + tr) / 2;
+     
+     if (r <= m)
+      return solve (v * 2, tl, m, l, r);
+      
+     if (l > m)
+      return solve (v * 2 + 1, m + 1, tr, l, r);
+      
+     if (l <= m && r > m)
+      return min (solve (v * 2, tl, m, l, m), solve (v * 2 + 1, m + 1, tr, m + 1, r));
+ }
+ 
+ int main ()
+ {
+     /*freopen ("input.txt", "r", stdin);
+     freopen ("output.txt", "w", stdout);*/
+     
+     scanf ("%d\n", &n);
+     
+     for (int i = 1; i <= n; ++i)
+      scanf ("%d ", &a[i]);
+      
+     build (1, 1, n);
+     
+     scanf ("%d\n", &m);
+     
+     for (int j = 1; j <= m; ++j)
+     {
+         gets (s);
+         stringstream fin (s);         
+         fin >> l >> r;
+         ++l;
+         ++r;
+         if (fin >> v)
+         {
+             if (l > r)
+             {
+                 change (1, 1, n, l, n, v);
+                 change (1, 1, n, 1, r, v);
+             }
+             else
+              change (1, 1, n, l, r, v);
+         }
+         else
+          if (l > r)
+           cout << min (solve (1, 1, n, l, n), solve (1, 1, n, 1, r)) << "\n";
+          else
+           cout << solve (1, 1, n, l, r) << "\n";
+     }
+     
+     return 0;
+ }
+     

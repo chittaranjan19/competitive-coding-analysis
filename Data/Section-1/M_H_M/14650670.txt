@@ -1,0 +1,116 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+const int LG = 17;
+const int SQ = 317;
+const int oo = 1e9;
+
+int n, m;
+vector <int> g[N];
+int par[LG][N];
+int d[N];
+bool mark[N];
+queue <int> q;
+pii Q[N];
+int h[N];
+
+void dfs(int v, int p){
+	par[0][v] = p;
+	for(int u : g[v]){
+		if(u == p) continue;
+		h[u] = h[v] + 1;
+		dfs(u, v);
+	}
+}
+
+int lca(int x, int y){
+	if(h[y] < h[x]) swap(x, y);
+	for(int i = LG; i --;)
+		if(par[i][y] != -1 && h[par[i][y]] >= h[x])
+			y = par[i][y];
+	if(x == y) return x;
+	for(int i = LG; i --;)
+		if(par[i][x] != par[i][y])
+			x = par[i][x], y = par[i][y];
+	return par[0][x];
+}
+
+
+void bfs(){
+	memset(d, -1, sizeof d);
+	for(int i = 0; i < n; ++i)
+		if(mark[i])
+			q.push(i), d[i] = 0;
+	while(!q.empty()){
+		int x = q.front();
+		q.pop();
+		for(int y : g[x])
+			if(d[y] == -1)
+				q.push(y), d[y] = d[x] + 1;
+	}
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	memset(par, -1, sizeof par);
+	mark[0] = 1;
+	cin >> n >> m;
+	for(int i = 0; i < n - 1; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; v --;
+		g[u].PB(v);
+		g[v].PB(u);
+	}
+	dfs(0, -1);
+	for(int i = 1; i < LG; ++i)
+		for(int j = 0; j < n; ++j)
+			if(par[i - 1][j] != -1)
+				par[i][j] = par[i - 1][par[i - 1][j]];
+	
+	for(int i = 0; i < m; ++i){
+		if(!(i % SQ))
+			bfs();
+		int t, x;
+		cin >> t >> x;
+		x --;
+		Q[i] = MP(t, x);
+		if(t == 1) 
+			mark[x] = 1;
+		else{
+			int k = d[x];
+			if(k == -1) k = oo;
+			for(int j = i - i % SQ; j < i; ++j)
+				if(Q[j].X == 1)
+					k = min(k, h[Q[j].Y] + h[x] - 2 * h[lca(x, Q[j].Y)]);
+			cout << k << "\n";
+		}
+	}
+
+	return 0;
+}

@@ -1,0 +1,97 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int cnt = 1;
+int k;
+LL maxi;
+
+LL DP[70][70][2];
+int v[70][70][2];
+
+LL solve(int ind, int k, bool s)
+{
+  if(ind == 63)
+  {
+    if(k == 0) return !s;
+    return 0;
+  }
+  if(k == 0)
+  {
+    if((1LL << ind) > maxi) return !s;
+    return 1;
+  }
+  if(v[ind][k][s] == cnt) return DP[ind][k][s];
+  v[ind][k][s] = cnt;
+  LL &temp = DP[ind][k][s];
+  if(s)
+  {
+    if(maxi & (1LL << ind)) temp = solve(ind + 1, k, 0) + solve(ind + 1, k - 1, 1);
+    else temp = solve(ind + 1, k, 1) + solve(ind + 1, k - 1, 1);
+  }
+  else
+  {
+    if(maxi & (1LL << ind)) temp = solve(ind + 1, k, 0) + solve(ind + 1, k - 1, 0);
+    else temp = solve(ind + 1, k, 0) + solve(ind + 1, k - 1, 1);
+  }
+  return temp;
+}
+
+int main()
+{
+  //freopen("dynamic.in", "r", stdin);
+  //freopen("dynamic.out", "w", stdout);
+  LL m;
+  scanf("%I64d %d", &m, &k);
+  LL L = 1, R = (LL)(1e18 + EPS);
+  while(R > L)
+  {
+    LL mid = L + (R - L) / 2;
+    maxi = mid * 2;
+    LL tmp = solve(0, k, 0);
+    cnt++;
+    maxi = mid - 1;
+    tmp -= solve(0, k, 0);
+    cnt++;
+    if(tmp >= m)
+      R = mid;
+    else if(tmp < m)
+      L = mid + 1;
+  }
+  printf("%I64d", R);
+  return 0;
+}

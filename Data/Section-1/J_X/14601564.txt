@@ -1,0 +1,102 @@
+#include <iostream>
+#include <cstring>
+#include <map>
+#include <cstdio>
+
+using namespace std;
+
+const int maxn = 100000 + 5;
+
+int n, k;
+map<int, int> mp;
+int tot;
+int sg[maxn];
+bool used[maxn][4];
+
+int myhash(int x)
+{
+    if(!mp[x])
+    {
+        mp[x] = ++tot;
+    }
+    return mp[x];
+}
+
+int mex(int x)
+{
+    if(!x) return 0;
+    if(x == 1) return 1;
+    if(k & 1)
+    {
+        if(x == 3) return 1;
+        if(x & 1) return 0;
+        int tmp = myhash(x);
+        if(~sg[tmp]) return sg[tmp];
+        memset(used[tmp], 0, sizeof(used[tmp]));
+        used[tmp][mex(x >> 1)] = true;
+        used[tmp][mex(x - 1)] = true;
+        int ret = 0;
+        while(used[tmp][ret])
+        {
+            ++ret;
+        }
+        return sg[tmp] = ret;
+    }
+    else
+    {
+        if(x == 2) return 2;
+        if(x & 1) return 0;
+                int tmp = myhash(x);
+        if(~sg[tmp]) return sg[tmp];
+        memset(used[tmp], 0, sizeof(used[tmp]));
+        used[tmp][0] = true;
+        used[tmp][mex(x - 1)] = true;
+        int ret = 0;
+        while(used[tmp][ret])
+        {
+            ++ret;
+        }
+        return sg[tmp] = ret;
+    }
+//    if(!x) return 0;
+////    if(x == 1) return 1;
+////    if(x == 2) return 2;
+////    if(x & 1) return 0;
+//    if(~sg[x]) return sg[x];
+//    memset(used[x], 0, sizeof(used[x]));
+//    if(x % 2 == 0)
+//    {
+//        if(k & 1)
+//        used[x][mex(x >> 1)] = true;
+//        else
+//        {
+//        used[x][0] = true;
+//        }
+//    }
+//    used[x][mex(x - 1)] = true;
+//    int ret = 0;
+//    while(used[x][ret])++ret;
+//    return sg[x] = ret;
+}
+
+int main()
+{
+//    k = 2;
+//    memset(sg, -1, sizeof(sg));
+//    for(int i = 1;  i <= 100; ++i) cout << i << ' ' << mex(i) << endl;
+    while(~scanf("%d%d", &n, &k))
+    {
+        mp.clear();
+        memset(sg, -1, sizeof(sg));
+        tot = 0;
+        int ans = 0;
+        for(int i = 0; i < n; ++i)
+        {
+            int x;
+            scanf("%d", &x);
+            ans ^= mex(x);
+        }
+        puts(ans ? "Kevin" : "Nicky");
+    }
+    return 0;
+}

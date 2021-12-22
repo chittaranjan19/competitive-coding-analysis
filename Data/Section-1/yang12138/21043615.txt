@@ -1,0 +1,88 @@
+/* ***********************************************
+Author        :huriyang
+Created Time  :2016年09月30日 星期五 23时52分47秒
+File Name     :721C.cpp
+************************************************ */
+
+#include <stdio.h>
+#include <string.h>
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <set>
+#include <map>
+#include <string>
+#include <math.h>
+#include <stdlib.h>
+#include <time.h>
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>P;
+#define mem(a,b) memset(a,b,sizeof(a))
+const int N=5005;
+
+struct Edge{
+	int to,nex;
+}e[N];
+int head[N],pre[N],cnt;
+
+void add(int u,int v){
+	e[cnt].to=v,e[cnt].nex=head[u],head[u]=cnt++;
+}
+
+struct Node{
+	int x,t,num;
+	Node(int a=0,int b=0,int c=0){
+		x=a,t=b,num=c;
+	}
+};
+
+int cost[N][N];
+int ans;
+int n,m,t;
+
+bool dfs(int v,int u,int now,int cou){
+	if(u==n){
+		if(cou>ans){
+			pre[n]=v;
+			ans=cou;
+			return 1;
+		}
+		return 0;
+	}
+	int ok=0;
+	for(int i=head[u];~i;i=e[i].nex){
+		if(now+cost[u][e[i].to]<=t){
+			if(dfs(u,e[i].to,now+cost[u][e[i].to],cou+1)){
+				pre[u]=v,ok=1;
+			}
+		}
+	}
+	return ok;
+}
+
+void print(int x){
+	if(pre[x]!=-1) print(pre[x]);
+	printf("%d ",x);
+}
+
+int main()
+{
+    //freopen("in.txt","r",stdin);
+    //freopen("out.txt","w",stdout);
+   	//std::ios_base::sync_with_stdio(false);
+	scanf("%d%d%d",&n,&m,&t);
+	mem(head,-1);
+	mem(cost,0x3f);
+	for(int i=1;i<=m;i++){
+		int u,v,w;
+		scanf("%d%d%d",&u,&v,&w);
+		add(u,v),cost[u][v]=w;
+	}
+	dfs(-1,1,0,1);
+	printf("%d\n",ans);
+	print(n);
+    return 0;
+}

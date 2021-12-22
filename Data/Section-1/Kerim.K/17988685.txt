@@ -1,0 +1,103 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+vector<int>adj[MAXN],add[MAXN];
+int TIM,n,m,in[MAXN],out[MAXN],ans[MAXN];
+void dfs(int nd,int pr){
+	in[nd]=++TIM;
+	tr(it,adj[nd])
+		if(*it!=pr)
+			dfs(*it,nd);
+	out[nd]=TIM;		
+}
+struct yalps{
+	int mn,cnt,add;
+	void op(){
+		mn=0;cnt=1;add=0;
+	}
+}s[MAXN<<2];
+void merge(int nd){
+	s[nd].mn=min(s[nd<<1].mn,s[nd<<1|1].mn)+s[nd].add;
+	s[nd].cnt=(s[nd<<1].mn+s[nd].add==s[nd].mn?s[nd<<1].cnt:0)+
+		(s[nd<<1|1].mn+s[nd].add==s[nd].mn?s[nd<<1|1].cnt:0);
+}
+void build(int nd,int x,int y){
+	if(x==y){
+		s[nd].op();
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+	merge(nd);
+}
+void upd(int l,int r,int val,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		s[nd].add+=val;
+		s[nd].mn+=val;
+		return;
+	}int mid=(x+y)>>1;
+	upd(l,r,val,nd<<1,x,mid);
+	upd(l,r,val,nd<<1|1,mid+1,y);
+	merge(nd);
+}
+int tap(){
+	if(s[1].mn==0)
+		return s[1].cnt;
+	return 0;		
+}
+void dfs1(int nd,int pr){
+	tr(it,add[nd])
+		upd(in[*it],out[*it],1,1,1,n);
+	if(add[nd].size()>0)	
+		upd(in[nd],out[nd],1,1,1,n);
+	ans[nd]=n-tap();
+	if(ans[nd])ans[nd]--;
+	tr(it,adj[nd])
+		if(*it!=pr)
+			dfs1(*it,nd);
+	tr(it,add[nd])
+		upd(in[*it],out[*it],-1,1,1,n);
+	if(add[nd].size()>0)	
+		upd(in[nd],out[nd],-1,1,1,n);				
+}
+int main(){
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<n;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	for(int i=1;i<=m;i++){
+		int x,y;
+		scanf("%d%d",&x,&y);
+		add[x].pb(y);
+		add[y].pb(x);
+	}
+	dfs(1,-1);
+	build(1,1,n);
+	dfs1(1,-1);
+	for(int i=1;i<=n;i++)
+		printf("%d ",ans[i]);
+	printf("\n");	
+	return 0;
+}

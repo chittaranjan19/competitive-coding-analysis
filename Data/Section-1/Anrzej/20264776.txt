@@ -1,0 +1,134 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+#define all(x) x.begin(), x.end()
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 3e5 + 10, lg = 31, MAXN = 1111;
+ll mod = 1e9 + 7;
+
+ll gcd(ll a, ll b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll _gcd(ll a, ll b, ll & x, ll & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	ll _x1, _y1;
+	ll d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+ll binpow(ll a, ll n) {
+	ll res = 1;
+	while (n) {
+		if (n & 1)
+			res *= a;
+		a *= a;
+		n >>= 1;
+		a %= mod;
+		res %= mod;
+	}
+	return res;
+}
+
+
+void term_ans(string ans){
+	cout << ans;
+	exit(0);
+}
+
+int k, n, m;
+int c[111];
+ll dp[111][111][111];
+int p[111][111];
+
+int main()
+{
+	//freopen("input.txt", "r", stdin);
+	//freopen("output.txt", "w", stdout);
+	cin >> n >> m >> k;
+	for (int i = 0; i < n; i++)
+		cin >> c[i];
+	for (int i = 0; i < n; i++){
+		for (int j = 0; j < m; j++)
+			cin >> p[i][j];
+	}
+	for (int i = 0; i < 111; i++){
+		for (int j = 0; j < 111; j++){
+			for (int jj = 0; jj < 111; jj++)
+				dp[i][j][jj] = 2e18;
+		}
+	}
+
+	if (c[0] != 0)
+		dp[0][1][c[0]-1] = 0;
+	else{
+		for (int i = 0; i < m; i++)
+			dp[0][1][i] = p[0][i];
+	}
+
+	for (int i = 1; i < n; i++){
+		for (int j = 1; j <= n; j++){
+			for (int clr = 0; clr < m; clr++){
+				for (int pclr = 0; pclr < m; pclr++){
+					if (c[i] != 0){
+						if (clr != c[i] - 1) continue;
+						if (pclr == clr){
+							if(dp[i - 1][j][clr] != 2e18)
+								dp[i][j][clr] = min(dp[i][j][clr], dp[i - 1][j][clr]);
+						}
+						else
+						{
+							if (dp[i - 1][j - 1][pclr] != 2e18 && j > 1)
+								dp[i][j][clr] = min(dp[i][j][clr], dp[i - 1][j - 1][pclr]);
+						}
+					}
+					else{
+						if (pclr == clr){
+							if (dp[i - 1][j][pclr] != 2e18)
+								dp[i][j][clr] = min(dp[i][j][clr], dp[i - 1][j][pclr] + p[i][clr]);
+						}
+						else{
+							if (dp[i - 1][j - 1][pclr] != 2e18 && j > 1)
+								dp[i][j][clr] = min(dp[i][j][clr], dp[i - 1][j - 1][pclr] + p[i][clr]);
+						}
+					}
+				}
+			}
+		}
+	}
+	ll mn = 2e18;
+	for (int i = 0; i < m; i++)
+		mn = min(mn, dp[n - 1][k][i]);
+	if (mn == 2e18)
+		cout << -1;
+	else cout << mn;
+	return 0;
+}

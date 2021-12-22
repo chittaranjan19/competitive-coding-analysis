@@ -1,0 +1,126 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 175781251
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+LL ans[100005];
+int sz;
+LL k;
+
+bool isprime[1000005];
+vector<int> primes;
+
+void get_primes(LL MAX)
+{
+  bool visited[MAX + 10];
+  setzero(visited);
+  for(LL x = 2; x <= MAX; x++)
+    if(!visited[x])
+    {
+      isprime[x] = true;
+      primes.push_back(x);
+      for(LL j = x*x; j <= MAX; j += x)
+        visited[j] = true;
+    }
+}
+
+bool check_prime(LL x)
+{
+  for(int i=0;i<primes.size() && primes[i] <= x / primes[i];i++)
+    if(x % primes[i] == 0)
+      return false;
+  return true;
+}
+
+vector<LL> divs;
+
+void solve(LL x, int depth)
+{
+  if(sz == 100000) return;
+  if(x == 1 || depth == k)
+  {
+    ans[sz++] = x;
+    return;
+  }
+  if((x > 1000000 && check_prime(x)) || (x <= 1000000 && isprime[x]))
+  {
+    for(int i=0;i<k - depth && sz < 100000;i++)
+      ans[sz++] = 1;
+    if(sz < 100000) ans[sz++] = x;
+    return;
+  }
+  for(int i=0;i<divs.size();i++)
+  {
+    if(sz == 100000) return;
+    if(divs[i] > x) break;
+    if(x % divs[i] != 0) continue;
+    solve(divs[i], depth + 1);
+  }
+}
+
+int main()
+{
+  LL x;
+  scanf("%I64d %I64d", &x, &k);
+  if(x == 1)
+  {
+    printf("1");
+    return 0;
+  }
+  get_primes(1000000);
+  if(k >= 100000)
+  {
+    for(int i=0;i<100000;i++)
+      printf("1 ");
+    return 0;
+  }
+  int e = (sqrt(x) + EPS);
+  for(int i=1;i<=e;i++)
+  {
+    if(x % i != 0) continue;
+    divs.pb(i);
+  }
+  if(e * 1LL * e == x) e--;
+  for(int i=e;i>0;i--)
+  {
+    if(x % i != 0) continue;
+    divs.pb(x / i);
+  }
+  solve(x, 0);
+  for(int i=0;i<sz;i++)
+    printf("%I64d ", ans[i]);
+  return 0;
+}

@@ -1,0 +1,65 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 19, MAXLG = 19;
+
+int N, M;
+vector<int> adj[MAXN];
+char S[MAXN];
+vector<int> pos[MAXN][26];
+int depth[MAXN], L[MAXN], R[MAXN], z;
+
+void dfs (int x, int d) {
+	depth[x] = d;
+	pos[d][S[x]].push_back(L[x] = ++z);
+	for (int t : adj[x]) {
+		dfs(t, d + 1);
+	}
+	R[x] = ++z;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d", &N, &M);
+	for (int i = 2, p; i <= N; i++) {
+		scanf("%d", &p);
+		adj[p].push_back(i);
+	}
+	scanf("%s", S + 1);
+	for (int i = 1; i <= N; i++) {
+		S[i] -= 'a';
+	}
+	//dfs the tree stupid...
+	dfs(1, 1);
+	int x, h;
+	while (M--) {
+		scanf("%d %d", &x, &h);
+		int diff = h - depth[x];
+		if (diff <= 0) {
+			puts("Yes");
+			continue;
+		}
+		bool seen = false, ans = true;
+		for (int i = 0; i < 26; i++) {
+			vector<int> &v = pos[h][i];
+			if ((lower_bound(all(v), R[x]) - lower_bound(all(v), L[x])) % 2) {
+				if (seen) {
+					ans = false;
+					break;
+				}
+				seen = true;
+			}
+		}
+		puts(ans ? "Yes" : "No");
+	}
+}

@@ -1,0 +1,61 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+typedef long long ll;
+const int MAXN = 2e5 + 10;
+
+int N, C;
+int A[MAXN];
+int has[MAXN];
+int prv[MAXN];
+bool fail[MAXN];
+
+int main() {
+	scanf("%d %d", &C, &N);
+	for (int i = 0; i < N; i++) {
+		scanf("%d", &A[i]);
+		has[A[i]]++;
+	}
+	sort(A, A + N);
+	int val = 0;
+	for (int i = 1; i < MAXN; i++) {
+		if (has[i]) {
+			val = i;
+		}
+		prv[i] = val;
+	}
+
+	for (int i = 1; i <= C; i++) {
+		//simulate
+		int cur = i;
+		while (cur) {
+			//check whether possible
+			int p = prv[cur];
+			if (p == 0) {
+				break;
+			}
+
+			ll nval = cur - has[p] * ll(p);
+			if (nval < 0) {
+				cur %= p;
+			} else {
+				cur = nval;
+			}
+		}
+		fail[i] = (cur > 0);
+	}
+
+	int ans = C;
+
+	for (int i = 1; i <= C - A[N - 1]; i++) {
+		if (fail[i]) {
+			ans = C - i;
+		}
+	}
+
+	if (ans == C) {
+		puts("Greed is good");
+	} else {
+		printf("%d\n", ans);
+	}
+}

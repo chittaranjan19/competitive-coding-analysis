@@ -1,0 +1,66 @@
+
+#include <string>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+        
+
+typedef long long ll;
+
+
+const int INF = 1e9;
+
+
+int dp[102][102][102];
+
+int main() {
+	int n, m, k;
+	cin >> n >> m >> k;
+	for (int i = 0; i < 101; i++) {
+		for (int j = 0; j < 101; j++) {
+			for (int e = 0; e < 101; e++) {
+				dp[i][j][e] = INF;
+			}
+		}
+	}
+	vector <int> c(n);
+	for (int i = 0; i < n; i++) {
+		cin >> c[i];
+	}
+	vector < vector <int> > p(n, vector <int>(m + 1));
+	for (int i = 0; i < n; i++) {
+		for (int j = 1; j <= m; j++) {
+			cin >> p[i][j];
+		}
+	}
+	dp[0][0][0] = 0;
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j <= k; j++) {
+			for (int e = 0; e <= m; e++) {
+				if (dp[i][j][e] == INF) continue;
+				if (c[i] == 0) {
+					for (int col = 1; col <= m; col++) {
+						if (col == e)
+							dp[i + 1][j][col] = dp[i][j][e] + p[i][col];
+						else
+							dp[i + 1][j + 1][col] = dp[i][j][e] + p[i][col];
+					}
+				}
+				else {
+					if (e == c[i])
+						dp[i + 1][j][e] = dp[i][j][e];
+					else
+						dp[i + 1][j + 1][c[i]] = dp[i][j][e];
+				}
+			}
+		}
+	}
+	int ans = INF;
+	for (int col = 1; col <= m; col++) {
+		ans = min(ans, dp[n][k][col]);
+	}
+	cout << ans << '\n';
+
+	return 0;
+}

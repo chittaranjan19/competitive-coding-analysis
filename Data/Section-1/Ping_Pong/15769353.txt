@@ -1,0 +1,148 @@
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int MAX_N = 1000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+class SegmentTree
+{
+private: int cnt_ver;
+private: int height;
+private: vector<int> tree;
+private: const int null = -2 * 1e9;
+
+public: SegmentTree(vector<int> &a, int n)
+{
+	for (cnt_ver = 1, height = 0; cnt_ver < n; cnt_ver <<= 1, height++);
+	tree.resize(cnt_ver * 2 - 1);
+	for (int i = 0; i < n; i++)
+		tree[cnt_ver - 1 + i] = a[i];
+	for (int i = cnt_ver - 2; i >= 0; i--)
+		tree[i] = tree[(i << 1) + 1] + tree[(i << 1) + 2];
+	//for (int i = cnt_ver - 2; i >= 0; i--)
+	//	tree[i] = null;
+}
+
+public: void update_one(int pos, int val)
+{
+	int curr = cnt_ver - 1 + pos - 1;
+	tree[curr] = val;
+	while (curr > 0)
+	{
+		tree[(curr - 1) / 2] = tree[(curr - 1) / 2 * 2 + 1] + tree[(curr - 1) / 2 * 2 + 2];
+		curr /= 2;
+	}
+}
+
+public: void update_segment(int l, int r, int val)
+{
+	update_segment(0, cnt_ver - 1, cnt_ver * 2 - 2, cnt_ver - 1 + l - 1, cnt_ver - 1 + r - 1, val);
+}
+
+private: void update_segment(int x, int lx, int rx, int l, int r, int val)
+{
+	if (r < lx || l > rx)
+		return;
+	else if (lx >= l && rx <= r)
+		tree[x] = val;
+	else
+	{
+		if (tree[x] != null)
+			push(x);
+		update_segment(x * 2 + 1, lx, (lx + rx) / 2, l, r, val);
+		update_segment(x * 2 + 2, (lx + rx) / 2 + 1, rx, l, r, val);
+	}
+}
+
+private: void push(int x)
+{
+	tree[x * 2 + 1] = tree[x];
+	tree[x * 2 + 2] = tree[x];
+	tree[x] = null;
+}
+
+public: int get_ans(int pos)
+{
+	return get_ans(0, cnt_ver - 1, cnt_ver * 2 - 2, cnt_ver - 1 + pos - 1, cnt_ver - 1 + pos - 1);
+}
+
+public: int get_ans(int l, int r)
+{
+	return get_ans(0, cnt_ver - 1, cnt_ver * 2 - 2, cnt_ver - 1 + l - 1, cnt_ver - 1 + r - 1);
+}
+
+private: int get_ans(int x, int lx, int rx, int l, int r)
+{
+	if (lx > r || rx < l)
+		return 0;
+	else if (lx >= l && rx <= r)
+		return tree[x];
+	else
+	{
+		if (tree[x] != null)
+			push(x);
+		return get_ans(x * 2 + 1, lx, (lx + rx) / 2, l, r) + get_ans(x * 2 + 2, (lx + rx) / 2 + 1, rx, l, r);
+	}
+}
+
+public: void print()
+{
+	int curr = 0, d = cnt_ver - 1, curr_cnt_ver = 1;
+	for (int i = 0; i <= height; i++)
+	{
+		for (int i = 0; i < d; i++)
+			cout << "  ";
+		for (int i = 0; i < curr_cnt_ver; i++)
+		{
+			if (tree[curr] == null)
+				cout << "--";
+			else
+			{
+				if (tree[curr] >= 0 && tree[curr] < 10)
+					cout << " ";
+				cout << tree[curr];
+			}
+			curr++;
+			for (int i = 0; i < d * 2 + 1; i++)
+				cout << "  ";
+		}
+		cout << endl << endl;
+		curr_cnt_ver *= 2;
+		d /= 2;
+	}
+}
+};
+
+int main()
+{
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+	int n;
+	cin >> n;
+	vector<int> a(n);
+	for (int i = 0; i < n; i++)
+		cin >> a[i];
+	SegmentTree tree(a, n);
+	tree.print();
+	tree.update_segment(2, 4, 5);
+	tree.print();
+	cout << tree.get_ans(2);
+	int tmp;
+	cin >> tmp;
+	return 0;
+}

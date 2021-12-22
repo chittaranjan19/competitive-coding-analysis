@@ -1,0 +1,191 @@
+#include<iostream>
+#include<cstdio>
+#include<map>
+#include<string>
+#include<cstring>
+#include<vector>
+#include<algorithm>
+#include<queue>
+#include<set>
+#include<stack>
+#include<cmath>
+
+#define fill(a,val) memset(a, (val), sizeof a)
+#define pb push_back
+#define scantype int
+#define min(a,b) a<b?a:b
+#define max(a,b) a>b?a:b
+
+using namespace std;
+
+void scan(scantype &x);
+
+int a[301][301];
+vector<pair<int,int> > noc[100000];
+long long dp[301][301];
+
+long long dist(pair<int,int> p1, pair<int,int> p2)
+{
+    long long x = abs(p1.first-p2.first);
+    long long y = abs(p1.second-p2.second);
+    return x+y;
+}
+bool mycmp(pair< pair<int,int> , int> p1, pair< pair<int,int> , int> p2)
+{
+    if(p1.second<p2.second) return true;
+    return false;
+}
+int main(void)
+{
+  int n,m,p;
+  for(int i=0;i<301;i++) for(int j=0;j<301;j++) dp[i][j]=999999999999999;
+
+  cin >> n >> m >> p;
+
+  for(int i=0;i<n;i++)
+  {
+      for(int j=0;j<m;j++)
+      {
+          scan(a[i][j]);
+          if(a[i][j]==1) dp[i][j] = i + j;
+          noc[a[i][j]].pb({i,j});
+      }
+  }
+
+  for(int i=2;i<=p;i++)
+  {
+      if( noc[i].size() * noc[i-1].size() <= (n*m) )
+      {
+           for(int j=0;j<noc[i-1].size();j++)
+           {
+               for(int k=0;k<noc[i].size();k++)
+               {
+                    int x,y,z,w;
+                    x = noc[i][k].first;
+                    y = noc[i][k].second;
+                    z = noc[i-1][j].first;
+                    w = noc[i-1][j].second;
+                    long long tmp = dp[z][w] + abs(x-z) + abs(y-w);
+                   // cout << dp[x][y] << " " << tmp << endl;
+                    if(dp[x][y]>tmp) dp[x][y] = tmp;
+                  //  cout << "n: " << dp[x][y] << endl;
+               }
+           }
+      }
+      else
+      {
+           queue< pair< pair<int,int> , int> > line;
+
+           bool visited[n][m];
+           fill(visited,false);
+
+           vector< pair< pair<int,int> ,int > > last;
+
+           for(int j=0;j<noc[i-1].size();j++)
+           {
+               int x,y;
+               x = noc[i-1][j].first;
+               y = noc[i-1][j].second;
+               last.pb({{x,y},dp[x][y]});
+           }
+
+           sort(last.begin(),last.end(),mycmp);
+
+           line.push(last[0]);
+           int ptr=1;
+
+           while(!line.empty())
+           {
+               int x,y,z;
+               x = line.front().first.first;
+               y = line.front().first.second;
+               z = line.front().second;
+               visited[x][y] =true;
+              // cout << "now: " << x << " " << y << " " << z << endl;
+               line.pop();
+
+               while(ptr<last.size() && last[ptr].second<=z)
+               {
+               line.push( {last[ptr].first,last[ptr].second} );
+               visited[last[ptr].first.first][last[ptr].first.second]=true;
+               ptr++;
+               }
+
+
+               if(x+1<n && !visited[x+1][y])
+               {
+                   if(a[x+1][y]==i)
+                   {
+                       dp[x+1][y] = z+1;
+                   }
+                   visited[x+1][y] = true;
+                   line.push({{x+1,y},z+1});
+               }
+               if(x>0 && !visited[x-1][y])
+               {
+                   if(a[x-1][y]==i)
+                   {
+                       dp[x-1][y] = z+1;
+                   }
+                   visited[x-1][y] = true;
+                   line.push({{x-1,y},z+1});
+               }
+               if(y+1<m && !visited[x][y+1])
+               {
+                   if(a[x][y+1]==i)
+                   {
+                       dp[x][y+1] = z+1;
+                   }
+                   visited[x][y+1] = true;
+                   line.push({{x,y+1},z+1});
+               }
+               if(y>0 && !visited[x][y-1])
+               {
+                   if(a[x][y-1]==i)
+                   {
+                       dp[x][y-1] = z+1;
+                   }
+                   visited[x][y-1] = true;
+                   line.push({{x,y-1},z+1});
+               }
+           }
+      }
+  }
+
+
+  long long ans=99999999999999;
+  for(int j=0;j<noc[p].size();j++)
+  {
+      int x,y;
+      x = noc[p][j].first;
+      y = noc[p][j].second;
+      ans = min(ans,dp[x][y]);
+  }
+
+  cout << ans;
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+void scan(scantype &x)
+{
+    /*register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}*/
+
+    register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x;
+}

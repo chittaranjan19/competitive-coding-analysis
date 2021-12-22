@@ -1,0 +1,96 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int Node,Need;
+
+struct cone{
+	
+	int prev;
+	int val;
+	cone *poi;
+
+};
+
+vector<cone> DP[5050];
+
+void push( vector<cone> &V , int idx , const cone &puh ){
+	
+	if(V.size()<=(uint)idx) V.resize(idx+2);
+	V[idx]=puh;
+}
+
+vector< array<int,2> > connec[5050];
+int topo[5050];
+stack<int> Q;
+
+int main(){
+	
+	int i,j,k,l,v;
+		
+	cin >> Node >> l >> Need;
+	
+	while(l--){
+		
+		cin >> i >> j >> k;
+		connec[j].push_back({i,k});
+		topo[i]++;
+	
+	}
+	
+	Q.push(Node);
+	DP[Node].resize(3);
+	DP[Node][1] = {9999,0,nullptr};
+	
+	while(!Q.empty()){
+		
+		int now = Q.top(); Q.pop();
+		
+		int m = min( Need , (int)DP[now].size() );
+		
+		for(v=m-1;v>=1;v--){
+			
+			for( const array<int,2> & nex : connec[now] ){
+				
+				DP[nex[0]].resize( max((int)DP[nex[0]].size(),v+3) );
+				
+				if( --topo[nex[0]] == 0 ) Q.push(nex[0]);
+		
+				if( DP[now][v].prev != 0 && (DP[now][v].val+nex[1] < DP[nex[0]][v+1].val || DP[nex[0]][v+1].val==0 ) ){
+					
+					DP[nex[0]][v+1] = { now, DP[now][v].val + nex[1], &DP[now][v] } ; 
+					
+					
+				}
+			}
+		}
+		
+	}
+	
+	/*
+	for(i=1;i<=Node;i++){
+		
+		for(j=1;j<DP[i].size();j++) cout << DP[i][j].val << ' ';
+		cout << endl;
+	}*/
+	
+	cone *poiter = &*max_element(DP[1].begin(),DP[1].end(),[](cone &a,cone &b){ if(!a.prev)return true; if(!b.prev)return false; return a.val>=b.val; });
+	
+	vector<int> ANS{1};
+	
+	
+	while( poiter != nullptr ){
+		
+		ANS.push_back((int)poiter->prev);
+		poiter = poiter->poi;
+		
+	};	ANS.pop_back();
+	
+	cout << ANS.size() << endl;
+	for(int ii : ANS) cout << ii << ' ';
+	
+	
+}
+
+
+
+

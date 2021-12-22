@@ -1,0 +1,119 @@
+#include <cstdio>
+#include <cstring>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <utility>
+#include <string>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <set>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define lsone(value) (value)&(-value)
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+class Fenwick {
+private:
+	vector<int> arr;
+	const int size;
+public:
+	Fenwick(int n) : arr(n+1), size(n) {
+		for (int it = 0; it < arr.size(); ++it)
+			arr[it] = 0;
+	}
+	void add(int v, int k) {
+		for (;k <= size; k += lsone(k)) {
+			arr[k] += v;
+		}
+	}
+	int get(int k) {
+		int total = 0;
+		for (;k > 0; k -= lsone(k))  {
+			total += arr[k];
+		}
+		return total;
+	}
+};
+
+vii points;
+
+template <typename U> class Comparator {
+public:
+    bool operator() (const U lhs, const U rhs) {
+        if (points[lhs] < points[rhs])
+        	return true;
+        return false;
+    }
+};
+// end of template
+
+int cross(const ii &O, const ii &A, const ii &B)
+{
+	return ((A.a - O.a) * (B.b - A.b))*O.b*B.a - ((A.b - O.b) * (B.a - A.a))*O.a*B.b;
+}
+
+int main() {
+	// freopen("535E.in", "r", stdin);
+	int n;
+	scanf("%d", &n);
+	points.resize(n);
+	vi sortedPPoints(n);
+
+	for (int it = 0; it < n; ++it) {
+		sortedPPoints[it] = it;
+		int s, r;
+		scanf("%d %d", &s, &r);
+		points[it] = make_pair(s, r);
+	}
+	sort(sortedPPoints.begin(), sortedPPoints.end(), Comparator<int>());
+
+	vi ans(n, -1);
+	int top = 0;
+	for (int it = 0; it < n; ++it) {
+		ii &newPoint = points[sortedPPoints[it]];
+		while (top) {
+			ii &lastPoint = points[ans[top-1]];
+			if (lastPoint == newPoint)
+				break;
+			if (lastPoint.b > newPoint.b)
+				break;
+			--top;
+		}
+		ans[top++] = sortedPPoints[it];
+	}
+	
+	vi upperHull(ans.size());
+	int k = 0;
+	for (int it = 0; it < top; ++it) {
+		while (k >= 2 && cross(points[upperHull[k-2]], points[upperHull[k-1]], points[ans[it]]) > 0) k--;
+		upperHull[k++] = ans[it];
+	}
+
+	sort(upperHull.begin(), upperHull.begin()+k);
+	for (int it = 0; it < k; ++it) {
+		if (it)
+			printf(" ");
+		printf("%d", upperHull[it]+1);
+	}
+	printf("\n");
+
+    return 0;
+}

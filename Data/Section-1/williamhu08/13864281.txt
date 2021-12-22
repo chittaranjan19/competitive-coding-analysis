@@ -1,0 +1,137 @@
+//Let it go
+//let it go
+//can't hold me back anymore
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define mp make_pair
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 50010, MAXLG = 16;
+
+int N, M, K;
+vector<int> adj[MAXN];
+bool spec[MAXN];
+int depth[MAXN];
+vector<int> vspec;
+bool vis[MAXN];
+int par[MAXN][MAXLG];
+vector<int> vvis;
+
+void dfs (int x, int p, int d) {
+	if (vis[x]) {
+		return;
+	}
+	vis[x] = true;
+	depth[x] = d;
+	vvis.push_back(x);
+	if (spec[x]) {
+		vspec.push_back(x);
+	}
+	par[x][0] = p;
+	for (int t : adj[x]) {
+		dfs(t, x, d + 1);
+	}
+}
+
+vector<int> getpath (int x, int c) {
+	vector<int> ans;
+	for (; x != c; x = par[x][0]) {
+		ans.push_back(x);
+	}
+	return ans;
+}
+
+int getpar (int x, int d) {
+    for (int i = 0; d; d /= 2, i++) {
+        if (d & 1) {
+            x = par[x][i];
+        }
+    }
+    return x;
+}
+
+int lca (int x, int y) {
+	if (depth[x] > depth[y]) {
+		swap(x, y);
+	}
+    y = getpar(y, depth[y] - depth[x]);
+	if (x == y) {
+		return x;
+	}
+	for (int k = MAXLG - 1; k >= 0; k--) {
+		if (par[x][k] != par[y][k]) {
+			x = par[x][k];
+			y = par[y][k];
+		}
+	}
+	return par[x][0];
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	scanf("%d %d %d", &N, &M, &K);
+	for (int i = 0, a, b; i < M; i++) {
+		scanf("%d %d", &a, &b);
+		adj[a].push_back(b);
+		adj[b].push_back(a);
+	}
+
+	for (int i = 0, x; i < K; i++) {
+		scanf("%d", &x);
+		spec[x] = true;
+	}
+
+	vector<vector<int> > ans;
+
+	for (int i = 1; i <= N; i++) {
+		if (!vis[i]) {
+			dfs(i, 0, 0);
+			//ok let's print out paths
+			for (int j = 1; j < MAXLG; j++) {
+				for (int x : vvis) {
+					par[x][j] = par[par[x][j - 1]][j - 1];
+				}
+			}
+			
+			for (int i = 0; i + 1 < vspec.size(); i += 2) {
+				int x = vspec[i], y = vspec[i + 1];
+				int c = lca(x, y);
+				vector<int> vx = getpath(x, c), vy = getpath(y, c);
+				vx.push_back(c);
+				vx.insert(vx.end(), vy.rbegin(), vy.rend());
+				ans.push_back(vx);
+			}
+#warning don't forget reset
+			vspec.clear();
+			vvis.clear();
+		}
+	}
+
+	/*
+	IT'S TIME TO SEE WHAT I CAN DO
+	TO TEST THE LIMITS AND BREAKTHROUGH
+	NO RIGHT, NO WRONG, NO RULES FOR ME
+	I'M FREE!!!!!!
+	*/
+	cout << ans.size() << '\n';
+	for (auto &v : ans) {
+		printf("%lu ", v.size() - 1);
+		for (int x : v) {
+			printf("%d ", x);
+		}
+		puts("");
+	}
+}

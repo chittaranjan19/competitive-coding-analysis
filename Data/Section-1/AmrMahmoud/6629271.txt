@@ -1,0 +1,102 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+
+int arr[100005],arr2[100005];
+
+vector<LL> primes;
+vector<pair<int,int> > res;
+
+void get_primes(LL max){
+    char *sieve;
+    sieve = new char[max/8+1];
+    memset(sieve, 0xFF, (max/8+1) * sizeof(char));
+    for(LL x = 2; x <= max; x++)
+        if(sieve[x/8] & (0x01 << (x % 8))){
+            primes.push_back(x);
+            for(LL j = 2*x; j <= max; j += x)
+                sieve[j/8] &= ~(0x01 << (j % 8));
+        }
+    delete[] sieve;
+}
+
+int main()
+{
+    get_primes(100005);
+    int n;
+    cin >> n;
+    for(int i=1;i<=n;i++)
+        scanf("%d",&arr[i]),arr2[arr[i]] = i;
+    for(int i=1;i<=n;i++)
+    {
+        if(arr2[i] == i)
+            continue;
+        bool found = false;
+        while(!found)
+        {
+            int L = 0,R=primes.size()-1,mid=0;
+            while(1)
+            {
+                mid = L + (R-L)/2;
+                if(primes[mid] == arr2[i] - i + 1)
+                {
+                    found = true;
+                    break;
+                }
+                if(primes[mid] > arr2[i] - i + 1)
+                {
+                    if(mid == 0 || primes[mid-1] < arr2[i] - i + 1)
+                    {
+                        if(mid != 0)
+                            mid--;
+                        break;
+                    }
+                    else R = mid;
+                }
+                else
+                {
+                    if(mid == primes.size() - 1 || primes[mid+1] > arr2[i] - i + 1)
+                        break;
+                    else L = mid;
+                }
+            }
+            res.push_back(mp(arr2[i] - primes[mid] + 1,arr2[i]));
+            int temp = arr2[i];
+            arr2[i] = arr2[i] - primes[mid] + 1;
+            arr2[arr[arr2[i]]] = temp;
+            swap(arr[temp],arr[arr2[i]]);
+        }
+    }
+    cout << res.size() << endl;
+    for(int i=0;i<res.size();i++)
+        printf("%d %d\n",res[i].first,res[i].second);
+    return 0;
+}

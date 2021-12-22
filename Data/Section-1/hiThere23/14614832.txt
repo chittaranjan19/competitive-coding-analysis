@@ -1,0 +1,84 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define base 100007
+#define pb push_back
+
+using namespace std;
+struct trie
+{
+    bool win, lose;
+    vector<int> down;
+    trie* child[26];
+
+    trie()
+    {
+        win = lose = false;
+        down.clear();
+        FOR(i, 0, 25)
+            child[i] = NULL;
+    }
+} t;
+int n, k;
+string s;
+
+void setup()
+{
+    cin >> n >> k;
+    FOR(i, 1, n)
+    {
+        cin >> s;
+        trie *p = &t;
+        FOR(j, 0, int(s.size()) - 1)
+        {
+            int u = s[j] - 'a';
+            if (p -> child[u] == NULL)
+            {
+                p -> down.pb(u);
+                p -> child[u] = new trie;
+            }
+            p = p -> child[u];
+        }
+    }
+}
+
+void dfs(trie *p, int h)
+{
+    int sz = p -> down.size();
+    if (sz == 0)
+    {
+        p -> win = false;
+        p -> lose = true;
+        return;
+    }
+    FOR(i, 0, sz - 1)
+    {
+        int u = p -> down[i];
+        dfs(p -> child[u], h + 1);
+        p -> win |= !(p -> child[u] -> win);
+        p -> lose |= !(p -> child[u] -> lose);
+    }
+}
+
+void xuly ()
+{
+    dfs(&t, 1);
+    if (!t.win)
+        cout << "Second";
+    if (t.win && t.lose)
+        cout << "First";
+    if (t.win && !t.lose)
+        cout << (k & 1? "First":"Second");
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

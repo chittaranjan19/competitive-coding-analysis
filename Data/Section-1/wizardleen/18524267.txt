@@ -1,0 +1,110 @@
+import java.io.BufferedInputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.*;
+
+/**
+ * Created by leen on 6/16/16.
+ */
+public class _681D {
+    public static void main(String[] args) {
+
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 16 * 1024));
+
+        int n = scan.nextInt();
+        int m = scan.nextInt();
+
+        Man[] men = new Man[1 + n];
+
+        for(int i = 1; i <= n; i++)
+            men[i] = new Man(i);
+
+        for(int i = 0; i < m; i++) {
+            int fatherIdx = scan.nextInt();
+            int sonIdx = scan.nextInt();
+            men[sonIdx].father = men[fatherIdx];
+            men[fatherIdx].children.add(men[sonIdx]);
+        }
+
+        for(int i = 1; i <= n; i++) {
+            int recvIdx = scan.nextInt();
+            Man recv = men[recvIdx];
+            Man sender = men[i];
+            recv.isReceiver = true;
+            recv.senders.add(sender);
+        }
+
+        List<Man> roots = new ArrayList<Man>();
+
+        for(int i = 1; i <= n; i++) {
+            Man man = men[i];
+            if(man.father == null)
+                roots.add(man);
+        }
+
+        List<Man> out = new ArrayList<Man>(100000);
+        for(Man root : roots) {
+            root.checked = true;
+            if(!process(root, out)) {
+                System.out.println(-1);
+                System.out.flush();
+                return;
+            }
+        }
+
+        System.out.println(out.size());
+
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+
+        for(int i = out.size() - 1; i >=0; i--)
+            pw.println(out.get(i).index);
+
+        pw.flush();
+
+        System.out.print(sw.toString());
+        System.out.flush();
+
+    }
+
+    static boolean process(Man tree, List<Man> out) {
+
+        tree.checked = true;
+
+        if(tree.isReceiver) {
+            for (Man sender : tree.senders) {
+                Man temp = sender;
+                while (!temp.checked) {
+                    if (temp.isReceiver)
+                        return false;
+                    temp.checked = true;
+                    temp = temp.father;
+                }
+            }
+            out.add(tree);
+        }
+
+        for(Man child : tree.children) {
+            if(!process(child, out))
+                return false;
+        }
+
+        return true;
+    }
+
+    static class Man {
+        final int index;
+        Man father;
+        boolean isReceiver;
+        boolean checked;
+        final List<Man> senders = new ArrayList<Man>();
+        final List<Man> children = new ArrayList<Man>();
+
+        Man(int index) {
+            this.index = index;
+        }
+
+
+    }
+
+}

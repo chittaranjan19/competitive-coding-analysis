@@ -1,0 +1,311 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD3 {
+    BufferedReader rd;
+    List<Map<Integer, Integer>> edges = new ArrayList<>();
+    int[][] roads;
+    Map<Integer, Map<Integer, double[]>> s;
+
+    private ProblemD3() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int n = pint();
+        for(int i=0;i<n;i++) {
+            edges.add(new HashMap<Integer, Integer>());
+        }
+        roads = new int[n-1][];
+        boolean debug = false;
+        for(int i=0;i<n-1;i++) {
+            int[] a = intarr();
+            if(i==0&&a[0]==1&&a[1]==29558&&a[2]==713) {
+                debug = true;
+            }
+            addEdge(a[0]-1,a[1]-1,a[2]);
+            roads[i] = a;
+        }
+        Set<Integer> singles = new HashSet<>();
+        for(int i=0;i<n;i++) {
+            if(neighbourCount(i) == 1) {
+                singles.add(i);
+            }
+        }
+        Set<Integer> processed = new HashSet<>();
+        s = new HashMap<>();
+        Queue<Integer> completed = new LinkedList<>();
+        completed.addAll(singles);
+        processed.addAll(singles);
+        long t1 = System.currentTimeMillis();
+        int root = -1;
+        while(!completed.isEmpty()) {
+            Integer node = completed.poll();
+            if(singles.contains(node)) {
+                Map.Entry<Integer, Integer> onlyRoad = edges.get(node).entrySet().iterator().next();
+                int neighbour = onlyRoad.getKey();
+                double length = onlyRoad.getValue();
+                Map<Integer, double[]> v = s.get(neighbour);
+                if(v == null) {
+                    v = new HashMap<>();
+                    s.put(neighbour, v);
+                }
+                v.put(node, new double[] { 1, length });
+                if(v.size() >= neighbourCount(neighbour)-1) {
+                    if(processed.add(neighbour)) {
+                        completed.add(neighbour);
+                    }
+                }
+            } else {
+                Map<Integer, double[]> v = s.get(node);
+                int vs = v.size();
+                if(vs == neighbourCount(node)) {
+                    root = node;
+                } else {
+                    int next = -1;
+                    double length = -1;
+                    for(Map.Entry<Integer, Integer> e: edges.get(node).entrySet()) {
+                        int neighbour = e.getKey();
+                        if(v.get(neighbour) == null) {
+                            next = neighbour;
+                            length = e.getValue();
+                            break;
+                        }
+                    }
+                    Map<Integer, double[]> vnext = s.get(next);
+                    if(vnext == null) {
+                        vnext = new HashMap<>();
+                        s.put(next, vnext);
+                    }
+                    double[] st = new double[] { 1, length };
+                    for(Map.Entry<Integer, double[]> e2: v.entrySet()) {
+                        double[] naw = e2.getValue();
+                        st[0] += naw[0];
+                        st[1] += naw[0]*length + naw[1];
+                    }
+                    vnext.put(node, st);
+                    if(vnext.size() == neighbourCount(next)-1) {
+                        if(processed.add(next)) {
+                            completed.add(next);
+                        }
+                    } else if(vnext.size() == neighbourCount(next)) {
+                        root = next;
+                        completed = new LinkedList<>();
+                    }
+                }
+            }
+        }
+        long t2 = System.currentTimeMillis();
+        if(debug)out("t1:"+(t2-t1));
+
+        processed = new HashSet<>();
+        completed.add(root);
+        processed.add(root);
+        if(debug) {
+            out("root:"+root);
+        }
+        int cc = 0;
+        while(!completed.isEmpty()) {
+            Integer polled = completed.poll();
+            if(debug) {
+                cc++;
+                out("polled:"+polled+", cc="+cc+" :: "+(System.currentTimeMillis()-t2)+" ms "+edges.get(polled).entrySet().size()+" # "+s.get(polled).size());
+            }
+            Map<Integer, double[]> v = s.get(polled);
+            if(v == null) {
+                v = new HashMap<>();
+                s.put(polled, v);
+            }
+            for(Map.Entry<Integer, Integer> e3: edges.get(polled).entrySet()) {
+                int node = e3.getKey();
+                if(processed.add(node)) {
+                    Map<Integer, double[]> vnext = s.get(node);
+                    if(vnext == null) {
+                        vnext = new HashMap<>();
+                        s.put(node, vnext);
+                    }
+                    int length = e3.getValue();
+                    double[] st = new double[] { 1, length };
+                    for(Map.Entry<Integer, double[]> e2: v.entrySet()) {
+                        if(e2.getKey() != node) {
+                            double[] naw = e2.getValue();
+                            st[0] += naw[0];
+                            st[1] += naw[0]*length + naw[1];
+                        }
+                    }
+                    vnext.put(polled, st);
+                    completed.add(node);
+                }
+
+            }
+        }
+        long t3 = System.currentTimeMillis();
+        if(debug)out("t2:"+(t3-t2));
+
+        double s1 = computeS1();
+        long t4 = System.currentTimeMillis();
+        if(debug)out("t3:"+(t4-t3));
+        double sum = computeSum();
+        long t5 = System.currentTimeMillis();
+        if(debug)out("t4:"+(t5-t4));
+        int q = pint();
+        for(int i=0;i<q;i++) {
+            int[] a = intarr();
+            int r = a[0];
+            int w = a[1];
+            long diff = roads[r-1][2]-w;
+            roads[r-1][2] = w;
+            double[] p = new double[2];
+            for(int x=0;x<2;x++) {
+                int from = roads[r-1][x]-1;
+                int to = roads[r-1][1-x]-1;
+                Map<Integer, double[]> v = s.get(from);
+                if(v != null) {
+                    p[x] = v.get(to)[0];
+                }
+            }
+            double t = 0;
+            for(int x=0;x<2;x++) {
+                if(p[x] > 1) {
+                    t += comb2(p[x])*p[1-x];
+                }
+            }
+            s1 -= diff*t;
+            out((s1*2D)/sum);
+        }
+    }
+
+    private double comb2(double a) {
+        return a*(a-1)/2;
+    }
+
+    private double computeSum() {
+        double sum = 0;
+        for(Map.Entry<Integer, Map<Integer, double[]>> e: s.entrySet()) {
+            if(e.getValue().size() >= 2) {
+                double[] a = new double[e.getValue().size()];
+                int ix = 0;
+                for(Map.Entry<Integer, double[]> e2: e.getValue().entrySet()) {
+                    a[ix++] = e2.getValue()[0];
+                }
+                double kw = 0;
+                double p = 0;
+                for(double x: a) {
+                    kw += x*x;
+                    p += x;
+                }
+                sum += (p*p-kw)/2;
+                double sa = 0;
+                for(int i=0;i<ix;i++) {
+                    sa += a[i];
+                }
+                double ssa = 0;
+                for(int i=0;i<ix;i++) {
+                    ssa += a[i] * (sa - a[i]);
+                }
+                double sssa = 0;
+                for(int i=0;i<ix;i++) {
+                    sssa += a[i]*(ssa/2 - a[i]*(sa-a[i]));
+                }
+                sum += sssa/3;
+            }
+        }
+        return sum;
+    }
+
+    private double computeS1() {
+        double s1 = 0;
+        for(Map.Entry<Integer, Map<Integer, double[]>> e2: s.entrySet()) {
+            Map<Integer, double[]> v = e2.getValue();
+            if(e2.getValue().size() >= 2) {
+                double as = 0;
+                double bs = 0;
+                for(Map.Entry<Integer, double[]> e: v.entrySet()) {
+                    as += e.getValue()[0];
+                    bs += e.getValue()[1];
+                }
+                double all = 0;
+                for(Map.Entry<Integer, double[]> e: v.entrySet()) {
+                    all += e.getValue()[0]*(as-e.getValue()[0]);
+                    double add = e.getValue()[0]*(bs-e.getValue()[1]);
+                    s1 += add;
+                }
+
+                for(Map.Entry<Integer, double[]> e: v.entrySet()) {
+                    double k = e.getValue()[0];
+                    double add = e.getValue()[1]*(all/2-(as-k)*k);
+                    s1 += add;
+                }
+            }
+        }
+
+        return s1;
+    }
+
+    private int neighbourCount(int node) {
+        return edges.get(node).size();
+    }
+
+    private void addEdge(int from, int to, int len) {
+        edges.get(from).put(to, len);
+        edges.get(to).put(from, len);
+    }
+
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private String[] split(String s) {
+        int n = s.length();
+        int sp = 0;
+        for(int i=0;i<n;i++) {
+            if(s.charAt(i)==' ') {
+                sp++;
+            }
+        }
+        String[] res = new String[sp+1];
+        int last = 0;
+        int x = 0;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(c == ' ') {
+                res[x++] = s.substring(last,i);
+                last = i+1;
+            }
+        }
+        res[x] = s.substring(last,n);
+        return res;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD3();
+    }
+}

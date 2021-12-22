@@ -1,0 +1,46 @@
+import java.math.BigInteger;
+import java.util.*;
+
+public class CF_Roads {
+    public static void main(String[] args) {
+
+        Scanner input = new Scanner(System.in);
+        int n = input.nextInt(), k = input.nextInt();
+        int sumCities = 0;
+
+        HashMap<Integer, Integer> c = new HashMap<>();
+        for (int i=0; i<n; i++) {
+            c.put(i, input.nextInt());
+            sumCities += c.get(i);
+        }
+
+        ArrayList<Integer> caps = new ArrayList<>();
+        for (int i=0; i<k; i++)
+            caps.add(input.nextInt() - 1);
+
+        BigInteger dist = new BigInteger("0");
+
+        for (int capitalIndex : caps) {
+            dist = dist.add(BigInteger.valueOf(c.get(capitalIndex) * (sumCities - c.get(capitalIndex))));
+            sumCities -= c.get(capitalIndex);
+            c.remove(capitalIndex);
+        }
+
+        int m = c.size();
+        Set<Integer> keys = c.keySet();
+
+        if (m > 0) {
+            if ((int)keys.toArray()[0] == 0 && (int)keys.toArray()[m-1] == n-1)
+                dist = dist.add(BigInteger.valueOf(c.get(0) * (sumCities - c.get(n-1))));
+
+            int lastIndex = (int)keys.toArray()[0];
+            for (int index : keys) {
+                if (index - lastIndex == 1)
+                    dist = dist.add(BigInteger.valueOf(c.get(index) * (sumCities - c.get(lastIndex))));
+                lastIndex = index;
+            }
+        }
+
+        System.out.println(dist);
+    }
+}

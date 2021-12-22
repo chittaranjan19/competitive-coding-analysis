@@ -1,0 +1,110 @@
+const
+  tfi = '';//'567c.inp';
+  tfo = '';//'567c.out';
+
+var
+  n,cnt,vmax : longint;
+  k1,k2,k3,res : int64;
+  a : array [1..600000] of longint;
+  b,k,p : array [1..600000] of longint;
+  c,t : array [1..600000,1..3] of int64;
+
+procedure enter;
+  var i,k : longint;
+  begin
+    assign(input,tfi);
+    reset(input);
+    readln(n,k);
+    for i := 1 to n do read(a[i]);
+    k1 := 1;
+    k2 := k;
+    k3 := int64(k)*k;
+    close(input);
+  end;
+
+procedure swap(var x,y : longint);
+  var z : longint;
+  begin
+    z := x;
+    x := y;
+    y := z;
+  end;
+
+procedure sort(l,h : longint);
+  var i,j,x : longint;
+  begin
+    i := l;
+    j := h;
+    x := b[random(h - l + 1) + l];
+    repeat
+      while b[i] < x do inc(i);
+      while b[j] > x do dec(j);
+      if i <= j then
+        begin
+          swap(b[i],b[j]);
+          swap(p[i],p[j]);
+          swap(k[i],k[j]);
+          inc(i);
+          dec(j);
+        end;
+    until i > j;
+    if l < j then sort(l,j);
+    if i < h then sort(i,h);
+  end;
+
+procedure process;
+  var i : longint;
+  begin
+    for i := 1 to n do
+      begin
+        if a[i] mod k1 = 0 then
+          begin
+            inc(cnt);
+            b[cnt] := a[i] div k1;
+            p[cnt] := i;
+            k[cnt] := 1;
+          end;
+        if a[i] mod k2 = 0 then
+          begin
+            inc(cnt);
+            b[cnt] := a[i] div k2;
+            p[cnt] := i;
+            k[cnt] := 2;
+          end;
+        if a[i] mod k3 = 0 then
+          begin
+            inc(cnt);
+            b[cnt] := a[i] div k3;
+            p[cnt] := i;
+            k[cnt] := 3;
+          end;
+      end;
+    sort(1,cnt);
+    vmax := 1;
+    t[p[1],k[1]] := 1;
+    for i := 2 to cnt do
+      begin
+        if b[i] <> b[i-1] then inc(vmax);
+        t[p[i],k[i]] := vmax;
+      end;
+    for i := 1 to n do
+      begin
+        if t[i,3] <> 0 then inc(res,c[t[i,3],2]);
+        if t[i,2] <> 0 then inc(c[t[i,2],2],c[t[i,2],1]);
+        if t[i,1] <> 0 then inc(c[t[i,1],1]);
+      end;
+  end;
+
+procedure print;
+  begin
+    assign(output,tfo);
+    rewrite(output);
+    write(res);
+    close(output);
+  end;
+
+begin
+  enter;
+  process;
+  print;
+end.

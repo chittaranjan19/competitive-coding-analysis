@@ -1,0 +1,71 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<pair<int, int> > tree[100005];
+map<int, int> m;
+int DP[200005], idx = 1;
+bool v[200005];
+const int b = 123457;
+
+int solve(int node, int parent, int id)
+{
+  int &temp = DP[id];
+  if(v[id]) return temp;
+  v[id] = true;
+  vector<int> v;
+  for(auto p : tree[node])
+  {
+    if(parent == p.f) continue;
+    v.pb(solve(p.f, node, p.s));
+  }
+  sort(v.begin(), v.end());
+  int h = 0;
+  for(int i=0;i<v.size();i++)
+    h = (h * 1LL * b + v[i]) % mod;
+  if(m.find(h) == m.end()) m[h] = idx++;
+  return temp = m[h];
+}
+
+int main()
+{
+  int n, x, y;
+  cin >> n;
+  for(int i=0;i<n-1;i++)
+  {
+    scanf("%d %d", &x, &y);
+    tree[x].pb(mp(y, i*2));
+    tree[y].pb(mp(x, i*2+1));
+  }
+  set<int> s;
+  for(int i=1;i<=n;i++)
+  {
+    if(tree[i].size() == 4) continue;
+    vector<int> v;
+    for(auto p : tree[i])
+      v.pb(solve(p.f, i, p.s));
+    sort(v.begin(), v.end());
+    int h = 0;
+    for(int i=0;i<v.size();i++)
+      h = (h * 1LL * b + v[i]) % mod;
+    if(m.find(h) == m.end()) m[h] = idx++;
+    s.insert(m[h]);
+  }
+  cout << s.size();
+  return 0;
+}

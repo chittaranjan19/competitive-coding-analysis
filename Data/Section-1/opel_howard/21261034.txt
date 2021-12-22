@@ -1,0 +1,208 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <climits>
+#ifdef DEBUG
+    #include <ctime>
+#endif
+using namespace std;
+
+// template
+
+// abbreviations
+
+typedef unsigned long long ull;
+typedef long long ll;
+typedef vector<int> vi;
+typedef vector<vi> vvi;
+typedef vector<ll> vl;
+typedef vector<vl> vvl;
+typedef vector<string> vs;
+typedef pair<int, int> ii;
+typedef vector<ii> vii;
+typedef map<int, int> mii;
+#define a first
+#define b second
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define it iterator
+#define sz(var) ((int) var.size())
+#define rep(it, n) for(int it = 0; it < n; ++it)
+#define dep(it, n) for(int it = n - 1; it >= 0; --it)
+#define rep1(it, n) for(int it = 1; it <= n; ++it)
+#define dep1(it, n) for(int it = n; it > 0; --it)
+#define loop(it, from, to) for(int it = (from); it <= (to); ++it)
+#define iter(it, cont) for(__typeof((cont).begin()) it = (cont).begin(); it != (cont).end(); ++it)
+#define riter(it, cont) for(__typeof((cont).rbegin()) it = (cont).rbegin(); it != (cont).rend(); ++it)
+#define all(cont) (cont).begin(), (cont).end()
+#define rng(cont, n) cont, cont + n
+#define memclr(var) memset(var, 0, sizeof(var))
+
+const int INF = INT_MAX;
+const int NINF = INT_MIN;
+const ll INF_LL = LLONG_MAX;
+const ll NINF_LL = LLONG_MIN;
+const double PI = acos(-1.0);
+const int MOD = 1e9 + 7;
+
+inline ll pos_m(ll a, ll c = MOD) { while (a < 0) { a += c; } return a; }
+inline ll add_m(ll a, ll b, ll c = MOD) { return (a + b) % c; }
+inline ll mul_m(ll a, ll b, ll c = MOD) { return (a * b) % c; }
+inline ll sub_m(ll a, ll b, ll c = MOD) { return pos_m((a - b) % c, c); }
+
+#ifdef DEBUG
+    #define debug(fmt, args...) printf("Line %d, in %s\t: " fmt, __LINE__, __FUNCTION__, ##args)
+    #define rep_rt() printf("[Run time: %.3fs]\n", ((double) clock()) / CLOCKS_PER_SEC)
+#else
+    #define debug(...)
+#endif
+
+// end of template
+
+#define MAXN (int) (1e3)
+#define MAXM (int) (1e4)
+
+struct St {
+    int idx;
+    ll c;
+    int wuse;
+    int f;
+    St() {}
+    St(int idx, int c, int wuse) : idx(idx), c(c), wuse(wuse) { f = -1; }
+    St(int idx, int c, int wuse, int f) : idx(idx), c(c), wuse(wuse), f(f) {}
+    bool operator() (St &a, St &b) {
+        return a.c < b.c;
+    }
+};
+ll dp[MAXN + 1][MAXM + 1];
+int bp[MAXN + 1][MAXM + 1];
+
+struct Edge {
+    int s, t;
+    int c;
+    Edge() {}
+    Edge(int s, int t, int c) : s(s), t(t), c(c) {}
+} edges[MAXM + 1];
+
+struct Ne {
+    int t;
+    int c;
+    int i;
+    Ne(int t, int c, int i) : t(t), c(c), i(i) {}
+};
+
+vector<Ne> nbs[MAXN];
+
+int main() {
+#ifdef DEBUG
+    freopen("716D.in", "r", stdin);
+#endif
+    
+    int n, m, l, s, t;
+    scanf("%d %d %d %d %d", &n, &m, &l, &s, &t);
+
+    int nwe = 0;
+    rep(midx, m) {
+        Edge &e = edges[midx];
+        scanf("%d %d %d", &e.s, &e.t, &e.c);
+        nbs[e.s].pub(Ne(e.t, e.c, midx));
+        nbs[e.t].pub(Ne(e.s, e.c, midx));
+        if (e.c == 0)
+            nwe++;
+    }
+
+    // init
+    rep(idx, n) {
+        rep(uwe, nwe + 1)
+            dp[idx][uwe] = INF;
+    }
+
+    pque<St, vector<St>, St> pq;
+    pq.pu(St(s, 0, 0));
+    while (sz(pq)) {
+        St st = pq.top();
+        pq.po();
+        if (dp[st.idx][st.wuse] <= st.c) // there is optimum path alr
+            continue;
+        dp[st.idx][st.wuse] = st.c;
+        bp[st.idx][st.wuse] = st.f;
+        iter(ep, nbs[st.idx]) {
+            Ne &e = *ep;
+            int wuse = st.wuse + (e.c == 0 ? 1 : 0);
+            pq.pu(St(e.t, st.c + e.c, wuse, e.i));
+        }
+    }
+    if (dp[t][0] < l) { // cannot increase the minimum cost anymore
+        puts("NO");
+        return 0;
+    }
+
+    rep(midx, m) {
+        Edge &e = edges[midx];
+        if (e.c == 0)
+            e.c = INF;
+    }
+    for (int uwe = 0; uwe <= nwe; ++uwe) {
+        if (dp[t][uwe] == INF) // there is no path using `uwe` wildcard edges
+            continue;
+        if (dp[t][uwe] + uwe > l) // it's impossible to generate this answer since there is constraint of positive integer number
+            continue;
+        debug("Use %d of we\n", uwe);
+
+        int nuwe = uwe;
+
+        Edge *fwedge = NULL;
+        int curr = t;
+        int f = bp[t][nuwe];
+        while (f != -1) {
+            debug("%d %d\n", curr, f);
+            Edge &edge = edges[f];
+            if (edge.c == INF) {
+                --nuwe;
+                edges[f].c = 1;
+                fwedge = &edge;
+            }
+            l -= edge.c;
+            // to know which node previously
+            int te = edge.s + edge.t;
+            curr = te - curr;
+
+            f = bp[curr][nuwe];
+        }
+        if (l) {
+            fwedge->c += l;
+        }
+
+        puts("YES");
+        rep(midx, m) {
+            Edge &e = edges[midx];
+            printf("%d %d %d\n", e.s, e.t, e.c);
+        }
+        return 0;
+    }
+    puts("NO");
+
+#ifdef DEBUG
+    rep_rt();
+#endif
+    return 0;
+}

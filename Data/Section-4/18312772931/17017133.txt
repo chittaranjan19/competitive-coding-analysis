@@ -1,0 +1,129 @@
+#include<iostream>
+#include<algorithm>
+#include<cstdio>
+
+using namespace std;
+
+const int T = 100000+50;
+
+#define lson (rt<<1)
+#define rson (rt<<1|1)
+
+struct node
+{
+	int L,R,mid,v,ans;
+}tree[T<<2];
+
+struct Line
+{
+	int L,R,v;
+}li[T];
+
+void Push_Down(int rt)
+{
+	if(tree[rt].v){
+		tree[lson].v |= tree[rt].v;
+		tree[rson].v |= tree[rt].v;
+		tree[lson].ans |= tree[rt].ans;
+		tree[rson].ans |= tree[rt].ans;
+		tree[rt].v = 0;
+	}
+}
+
+void Push_Up(int rt)
+{
+	tree[rt].ans = tree[lson].ans&tree[rson].ans;
+}
+
+void Build(int rt,int L,int R)
+{
+	tree[rt].L = L,tree[rt].R = R;
+	tree[rt].mid = (L+R)>>1;
+	tree[rt].v = tree[rt].ans = 0;
+	if(L==R)return;
+	Build(lson,L,tree[rt].mid);
+	Build(rson,tree[rt].mid+1,R);
+}
+
+void Insert(int rt,int L,int R,int v)
+{
+	if(L<=tree[rt].L&&R>=tree[rt].R){
+		tree[rt].ans |= v;
+		tree[rt].v |= v;
+		return;
+	}
+	Push_Down(rt);
+	if(R<=tree[rt].mid){
+		Insert(lson,L,R,v);
+	}
+	else if(L>tree[rt].mid){
+		Insert(rson,L,R,v);
+	}
+	else {
+		Insert(lson,L,tree[rt].mid,v);
+		Insert(rson,tree[rt].mid+1,R,v);
+	}
+	Push_Up(rt);
+}
+
+int query(int rt,int L,int R)
+{
+	if(L<=tree[rt].L&&R>=tree[rt].R){
+		return tree[rt].ans;
+	}
+	Push_Down(rt);
+	int ans = 0;
+	if(R<=tree[rt].mid){
+		 ans += query(lson,L,R);
+	}
+	else if(L>tree[rt].mid){
+		ans += query(rson,L,R);
+	}
+	else {
+		ans += query(lson,L,tree[rt].mid)&query(rson,tree[rt].mid+1,R);
+	}
+	Push_Up(rt);
+	return ans;
+}
+
+void Task(int rt,int L,int R)
+{
+	if(L==R){
+		printf("%d ",tree[rt].v);
+		return;
+	}
+	Push_Down(rt);
+	Task(lson,L,tree[rt].mid);
+	Task(rson,tree[rt].mid+1,R);
+}
+
+int main()
+{
+#ifdef zsc
+	freopen("input.txt","r",stdin);
+#endif
+	int n,m,i,j,k;
+	while(~scanf("%d%d",&n,&m))
+	{
+		Build(1,1,n);
+		for(i=0;i<m;++i){
+			scanf("%d%d%d",&li[i].L,&li[i].R,&li[i].v);
+			Insert(1,li[i].L,li[i].R,li[i].v);
+		}
+		bool flag = false;
+		for(i=0;i<m&&!flag;++i){
+			if(query(1,li[i].L,li[i].R)!=li[i].v){
+				flag = true;
+			}
+		}
+		if(flag){
+			printf("NO\n");
+		}
+		else {
+			printf("YES\n");
+			Task(1,1,n);
+			printf("\n");
+		}
+	}
+	return 0;
+}

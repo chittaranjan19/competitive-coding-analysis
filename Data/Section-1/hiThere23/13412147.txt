@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mp make_pair
+#define F first
+#define S second
+#define pb push_back
+#define mn 104
+#define modi(x) (x & (-x))
+
+using namespace std;
+int n, t, a[mn], maxFront[mn], maxAft[mn], dem[mn * 3];
+struct bitTree{
+    int tree[mn * 3];
+
+    void reset()
+    {
+        memset(tree, 0, sizeof(tree));
+    }
+
+    void update(int x, int w)
+    {
+        for(; x < mn * 3; x += modi(x))
+            tree[x] = max(tree[x], w);
+    }
+
+    int getMax(int x)
+    {
+        int re = 0;
+        for(; x; x -= modi(x))
+            re = max(re, tree[x]);
+        return re;
+    }
+} tr;
+
+void setup()
+{
+    cin >> n >> t;
+    memset(dem, 0, sizeof(dem));
+    FOR(i, 1, n)
+    {
+        cin >> a[i];
+        dem[a[i]] ++;
+    }
+    memset(maxFront, 0, sizeof(maxFront));
+    memset(maxAft, 0, sizeof(maxAft));
+}
+
+void xuly ()
+{
+    tr.reset();
+    FOR(i, 1, n)
+    {
+        int x = tr.getMax(a[i]);
+        maxFront[i] = x + 1;
+        tr.update(a[i], x + 1);
+    }
+    tr.reset();
+    FORD(i, n, 1)
+    {
+        int x = tr.getMax(301 - a[i]);
+        maxAft[i] = x + 1;
+        tr.update(301 - a[i], x + 1);
+    }
+    long long re = 0;
+    FOR(i, 1, n)
+    FORD(j, n, 1)
+    if (a[j] >= a[i])
+        re = max(re, 1ll * maxFront[i] + 1ll * maxAft[j] + 1ll * max(dem[a[i]], dem[a[j]]) * (t - 2));
+    cout << re;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

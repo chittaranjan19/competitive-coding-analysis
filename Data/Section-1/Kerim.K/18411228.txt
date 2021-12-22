@@ -1,0 +1,120 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int n,m,p,X[MAXN],Y[MAXN];
+int f(int x,int y){
+	return (X[x]+Y[y])%p;
+}
+//int dp[109][109];
+int dp[2][MAXN],cp[2][MAXN];
+int rec(int x,int y){
+	if(x==n and y==m)
+		return f(x,y);
+	int &ret=dp[x][y];
+	if(~ret)
+		return ret;
+	if(x+1<=n)
+		umax(ret,f(x,y)+rec(x+1,y));
+	if(y+1<=m)	
+		umax(ret,f(x,y)+rec(x,y+1));
+	return ret;			
+}
+int go(int x,int y,int x1,int y1){
+	int st=0,en=1;
+	for(int i=y;i<=y1;i++){
+		dp[st][i]=f(x,i);
+		if(i>y)
+			dp[st][i]+=dp[st][i-1];
+	}
+	for(int i=x+1;i<=x1;i++){
+		for(int j=y;j<=y1;j++){
+			dp[en][j]=dp[st][j];
+			if(j-1>=y)
+				umax(dp[en][j],dp[en][j-1]);
+			dp[en][j]+=f(i,j);
+		}
+		swap(st,en);
+	}
+	return st;
+}
+int go1(int x,int y,int x1,int y1){
+	int s1=0,e1=1;
+	for(int i=y1;i>=y;i--){
+		cp[s1][i]=f(x1,i);
+		if(i<y1)
+			cp[s1][i]+=cp[s1][i+1];
+	}
+	for(int i=x1-1;i>=x;i--){
+		for(int j=y1;j>=y;j--){
+			cp[e1][j]=cp[s1][j];
+			if(j+1<=y1)
+				umax(cp[e1][j],cp[e1][j+1]);
+			cp[e1][j]+=f(i,j);	
+		}
+		swap(s1,e1);
+	}
+	return s1;
+}
+string ss;
+int solve(int x,int y,int x1,int y1){
+	if(x==x1){
+		int ans=0;
+		for(int i=y;i<=y1;i++){
+			ans+=f(x,i);
+			if(i<y1)
+				ss+='S';
+		}
+		return ans;
+	}
+	int mid=(x+x1)>>1;
+	int kind=go(x,y,mid,y1);
+	int kind1=go1(mid+1,y,x1,y1);
+	int mx=-1,pos=-1;
+	for(int i=y;i<=y1;i++)
+		if(umax(mx,dp[kind][i]+cp[kind1][i]))
+			pos=i;
+	solve(x,y,mid,pos);
+	ss+='C';
+	solve(mid+1,pos,x1,y1);
+	return mx;
+}
+int main(){
+//	memset(dp,-1,sizeof(dp));
+	scanf("%d%d%d",&n,&m,&p);
+	for(int i=1;i<=n;i++)
+		scanf("%d",&X[i]);
+	for(int i=1;i<=m;i++)
+		scanf("%d",&Y[i]);
+	printf("%d\n",solve(1,1,n,m));	
+	puts(ss.c_str());
+	/*
+//	printf("%d\n",rec(1,1));
+	for(int x=n;x>=1;x--)
+		for(int y=m;y>=1;y--){
+			dp[x][y]=0;
+			if(x+1<=n)
+				umax(dp[x][y],dp[x+1][y]);
+			if(y+1<=m)
+				umax(dp[x][y],dp[x][y+1]);
+			dp[x][y]+=f(x,y);		
+		}
+	printf("%d\n",dp[1][1]);	
+	*/
+	return 0;
+}

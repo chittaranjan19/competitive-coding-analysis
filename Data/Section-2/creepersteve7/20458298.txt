@@ -1,0 +1,55 @@
+#include <bits/stdc++.h>
+
+#define mod 1000000007
+
+using namespace std;
+
+int n,a[200005],nxt=1,v[200005],p[200005],x[200005];
+long long sol=1;
+
+long long pwr(long long n, int p){
+    if(p==0) return 1;
+    if(p%2) return (n%mod)*pwr(n*n%mod,(p-1)/2)%mod;
+    return pwr(n*n%mod,p/2)%mod;
+}
+
+void addsol(int n, bool cic){
+    if(cic) sol=sol*(pwr(2,n)-2)%mod;
+    else sol=sol*pwr(2,n)%mod;
+}
+
+void dfs(int nod, int t, int k){
+    p[nod]=k;
+    v[nod]=1;
+    if(v[a[nod]] && p[a[nod]]==p[nod]){
+        addsol(x[a[nod]]-x[t],false);
+        addsol(x[nod]-x[a[nod]]+1,true);
+        while(v[nxt] && nxt<=n) nxt++;
+        if(nxt>n) return;
+        x[nxt]=1;
+        dfs(nxt, nxt,k+1);
+    }
+    else if(v[a[nod]]){
+        addsol(x[nod]-x[t]+1,false);
+        p[nod]=1;
+        while(v[nxt] && nxt<=n) nxt++;
+        if(nxt>n) return;
+        x[nxt]=1;
+        dfs(nxt, nxt, k+1);
+    }
+    else{
+        x[a[nod]]=x[nod]+1;
+        dfs(a[nod],t,k);
+    }
+}
+
+int main()
+{
+    cin >> n;
+    for(int i=1;i<=n;i++){
+        cin >> a[i];
+    }
+    x[1]=1;
+    dfs(1,1,1);
+    cout << sol;
+}

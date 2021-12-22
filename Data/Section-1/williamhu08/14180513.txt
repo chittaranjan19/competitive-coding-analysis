@@ -1,0 +1,47 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define all(v) (v).begin(), (v).end()
+#define fi first
+#define se second
+
+typedef long long ll;
+using pll = pair<ll, ll>;
+
+int N, K;
+pll A[100010];
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> K;
+	for (int i = 0; i < N; i++) {
+		ll x1, y1, x2, y2;
+		cin >> x1 >> y1 >> x2 >> y2;
+		A[i] = pll(x1 + x2, y1 + y2);
+	}
+	sort(A, A + N);
+	ll ans = LLONG_MAX;
+	for (int i = 0; i <= K; i++) {
+		vector<ll> vals;
+		for (int j = i; j < N; j++) {
+			vals.push_back(A[j].se);
+		}
+		sort(all(vals));
+		for (int j = 0; i + j <= K; j++) {
+			ll diffx = A[N - 1 - j].fi - A[i].fi;
+			int ndel = K - i - j;
+			int diff = int(vals.size()) - ndel - 1;
+			ll diffy = LLONG_MAX;
+			for (int k = 0; k <= ndel; k++) {
+				diffy = min(diffy, vals[k + diff] - vals[k]);
+			}
+			ans = min(ans, max((diffx + 1) / 2, 1ll) * max((diffy + 1) / 2, 1ll));
+			vals.erase(find(all(vals), A[N - 1 - j].se));
+		}
+	}
+	cout << ans << endl;
+}

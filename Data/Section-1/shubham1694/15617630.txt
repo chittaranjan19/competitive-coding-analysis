@@ -1,0 +1,63 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const ll inf = 1ll<<50;
+const int maxn = 100010;
+
+ll dp[305][305], cost[305][305];
+
+ll solve(ll cur, ll req)
+{
+	if(cur==0){
+		if(!req)
+			return 0;
+		return inf;
+	}
+	if(req<=0)
+		return 0;
+	if(dp[cur][req]!=-1)
+		return dp[cur][req];
+	int i;
+	ll ret = solve(cur-1, req);
+	for(i=1; i<=cur; i++)
+		ret = min(ret, solve(i-1, req-(cur-i+1))+cost[cur][i]);
+	return dp[cur][req] = ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int n, m, p, k, i, j, l, r;
+	ll c;
+	scanf("%d%d%d", &n, &m, &k);
+	for(i=0; i<=n; i++){
+		for(j=0; j<=n; j++){
+			cost[i][j] = inf;
+			dp[i][j] = -1;
+		}
+	}
+	for(i=1; i<=m; i++){
+		scanf("%d%d%lld", &l, &r, &c);
+		for(j=r; j>=l; j--)
+			cost[j][l] = min(cost[j][l], c);
+	}
+	ll ans = solve(n, k);
+	if(ans>=inf)
+		ans = -1;
+	printf("%lld\n", ans);
+	return 0;
+}

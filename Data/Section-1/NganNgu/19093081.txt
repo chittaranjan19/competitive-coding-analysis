@@ -1,0 +1,85 @@
+#include <iostream> 
+#include <cstdio>
+#include <vector>
+
+using namespace std;
+
+#define For(i , a , b) for (int i = a , _b = b ; i <= _b ; ++i)
+#define Ford(i , a  ,b) for (int i = a , _b = b : i >= _b ; --i)
+#define Rep(i , n) for (int i = 0 , _n = n ; i < _n ; ++i)
+#define sz(A) ((int)A.size())
+#define LL(x) (x << 1)
+#define RR(x) ((x << 1) | 1)
+
+typedef pair<int , int> pt;
+
+const int maxn = 103;
+const int md = 1e9 + 7;
+int n;
+long long k;
+long long a[maxn];
+
+vector<vector<int> > Solve(long long k) {
+	if (k == 1) {
+		vector<vector<int> > res;
+		res.resize(n);
+		for (int i = 0 ; i < n ; i++) res[i].resize(n);
+		for (int i = 0 ; i < n ; i++) res[i][i] = 1;
+		return res;
+	}
+	vector<vector<int> > haft = Solve((k + 1) >> 1);
+	vector<vector<int> > res;
+	res.resize(n);
+	for (int i = 0 ; i < n ; i++) res[i].resize(n);
+	for (int i = 0 ; i < n ; i++) {
+		for (int j = 0; j < n ; j++){
+			res[i][j] = 0;
+			for (int k = 0 ; k < n ; k++) {
+				res[i][j] += 1LL * haft[i][k] * haft[k][j] % md;
+				res[i][j] %= md;
+			}
+		}
+	}
+	if (k % 2 == 0) {
+		vector<vector<int> > res2;
+		res2.resize(n);
+		for (int i = 0 ; i < n ; i++) res2[i].resize(n);
+		for (int i = 0 ; i < n ; i++) {
+			for (int j = 0 ; j < n ; j++) {
+				res2[i][j] = 0;
+				for (int k = 0 ; k < n ; k++) if (__builtin_popcountll(a[j] ^ a[k]) % 3 == 0) {
+					res2[i][j] += res[i][k];
+					res2[i][j] %= md; 
+				}
+			}
+		}
+		return res2;
+	}
+	return res;
+}
+
+void ReadData() {
+	cin >> n >> k;
+	For(i , 0 , n - 1) cin >> a[i];
+}
+
+void Process() {
+	vector<vector<int> > res = Solve(k);
+	int ans = 0;
+	for (int i = 0 ; i < n ; i++) for (int j = 0 ; j < n ; j++) {
+		ans = (ans + res[i][j]) % md;
+	}
+	cout << ans << endl;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	
+	//freopen("input.inp" , "r" , stdin );
+	ReadData();
+	Process();
+
+	return 0;
+
+}			

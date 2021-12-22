@@ -1,0 +1,89 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+const int maxn = 1000 + 5;
+const int maxm = 200000 + 5;
+
+struct edge
+{
+    int to, next;
+
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxm], Q[maxm];
+int head[maxm], head1[maxm], tot, tot1, par[maxm], id[maxm];
+vector<int> vec[maxn];
+bool ans[maxm], root[maxm];
+int used[maxm], tim;
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    memset(head1, -1, sizeof(head1));
+    memset(root, true, sizeof(root));
+    tot = tot1 = tim = 0;
+}
+
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u]);
+    head[u] = tot++;
+    root[v] = false;
+}
+
+void addedge1(int u, int v, int p)
+{
+    Q[tot1] = edge(v, head1[u]);
+    id[tot1] = p;
+    head1[u] = tot1++;
+}
+
+void dfs(int u)
+{
+    for(int i = head[u]; ~i; i = G[i].next) dfs(G[i].to);
+    used[u] = tim;
+    for(int i = head1[u]; ~i; i = Q[i].next) if(used[Q[i].to] == tim) ans[id[i]] = true;
+    head1[u] = -1;
+}
+
+int main()
+{
+    int n, m, q;
+    scanf("%d%d%d", &n, &m, &q);
+    init();
+    for(int i = 1; i <= m; ++i)
+    {
+        int u, v;
+        scanf("%d%d", &u, &v);
+        if(!vec[u].empty()) addedge(vec[u].back(), i);
+        if(!vec[v].empty()) addedge(vec[v].back(), i);
+        vec[u].push_back(i);
+        vec[v].push_back(i);
+    }
+    for(int i = 1; i <= q; ++i)
+    {
+        int l, r, u, v;
+        scanf("%d%d%d%d", &l, &r, &u, &v);
+        int lb = lower_bound(vec[u].begin(), vec[u].end(), l) - vec[u].begin();
+        int ub = upper_bound(vec[v].begin(), vec[v].end(), r) - vec[v].begin();
+        if(lb < vec[u].size() && ub)
+        {
+            addedge1(vec[u][lb], vec[v][ub - 1], i);
+        }
+    }
+    for(int i = 1; i <= m; ++i)
+    {
+        if(root[i])
+        {
+            ++tim;
+            dfs(i);
+        }
+    }
+    for(int i = 1; i <= q; ++i) puts(ans[i] ? "Yes" : "No");
+    return 0;
+}

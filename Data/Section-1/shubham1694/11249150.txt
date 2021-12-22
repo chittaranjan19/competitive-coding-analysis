@@ -1,0 +1,91 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define MOD 1000000007
+#define inf 1000000000
+#define maxn 4000
+
+#define ll long long
+#define pii pair<int, int>
+#define pb push_back
+#define sin scanint
+#define bitcount(x) __builtin_popcount(x)
+#define fill(s, p) memset(s, p, sizeof(s));
+#define gc getchar
+
+void scanint(int &x)
+{
+    register int c = gc();
+    x = 0;
+    for(;(c<48 || c>57);c = gc());
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+}
+
+int p[maxn];
+bool seen[maxn];
+
+void cyclate(int st)
+{
+    int i;
+    for(i=st; !seen[i]; i=p[i]){
+        seen[i] = true;
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(false); cin.tie(NULL);
+    #ifndef ONLINE_JUDJE
+        //freopen("input.txt", "r", stdin);
+    #endif
+    int n, m, i, j, k, cyc, cur;
+    fill(seen, false);
+    sin(n);
+    for(i=1; i<=n; i++)
+        sin(p[i]);
+    sin(m);
+    cyc = 0;
+    m = n-m;
+    for(i=1; i<=n; i++){
+        if(!seen[i]){
+            cyc++;
+            //cout << i << endl;
+            cyclate(i);
+        }
+    }
+    printf("%d\n", abs(m-cyc));
+    fill(seen, false);
+    if(m<cyc){                                                  
+        cyclate(1);
+        for(i=1; i<=n && cyc>m; i++){
+            if(!seen[i]){
+                cyclate(i);
+                printf("%d %d ", 1, i);
+                cyc--;
+            }
+        }
+    }
+    if(m>cyc){                                              
+        for(i=1; i<=n && cyc<m; i++){
+            vector<int> pos(n+1, -1);
+            cur = 0;
+            for(j=p[i]; j!=i; j=p[j])
+                pos[j] = cur++;
+            pos[i] = cur;
+            //for(j=1; j<=n; j++)
+            //  cout << pos[j] << " ";
+            //cout << endl;
+            cur = 0;
+            for(j=i+1; j<=n && cyc<m; j++){
+                if(pos[j]>=cur){
+                    cur=pos[j]+1;
+                    cyc++;
+                    printf("%d %d ", i, j);
+                    swap(p[i], p[j]);
+                }
+            }
+        }
+    }
+    return 0;
+}

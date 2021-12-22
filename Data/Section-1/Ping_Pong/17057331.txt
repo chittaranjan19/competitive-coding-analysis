@@ -1,0 +1,170 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll p = 239;
+const ll MAX_N = 1000;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+ll a[MAX_N][MAX_N];
+bool used[MAX_N][MAX_N];
+
+pair<ll, ll> parent_set[MAX_N][MAX_N];
+ll rank_set[MAX_N][MAX_N];
+bool ok[MAX_N][MAX_N];
+ll max_cnt = 0;
+
+void make_set(ll x, ll y)
+{
+    parent_set[x][y] = make_pair(x, y);
+    ok[x][y] = true;
+    rank_set[x][y] = 1;
+    max_cnt = max(max_cnt, rank_set[x][y]);
+}
+
+pair<ll, ll> find_set(ll x, ll y)
+{
+    if (parent_set[x][y] == make_pair(x, y))
+        return parent_set[x][y];
+    parent_set[x][y] = find_set(parent_set[x][y].first, parent_set[x][y].second);
+    return parent_set[x][y];
+}
+
+void union_set(ll x1, ll y1, ll x2, ll y2)
+{
+    pair<ll, ll> p1 = find_set(x1, y1);
+    pair<ll, ll> p2 = find_set(x2, y2);
+    if (p1 == p2)
+        return;
+    if (rank_set[p1.first][p1.second] >= rank_set[p2.first][p2.second])
+    {
+        parent_set[p2.first][p2.second] = p1;
+        rank_set[p1.first][p1.second] += rank_set[p2.first][p2.second];
+        max_cnt = max(max_cnt, rank_set[p1.first][p1.second]);
+    }
+    else
+    {
+        parent_set[p1.first][p1.second] = p2;
+        rank_set[p2.first][p2.second] += rank_set[p1.first][p1.second];
+        max_cnt = max(max_cnt, rank_set[p2.first][p2.second]);
+    }
+}
+
+bool comp(pair<ll, pair<ll, ll> > a, pair<ll, pair<ll, ll> > b)
+{
+    return a.first > b.first;
+}
+
+ll n, m;
+
+ll need = 0;
+
+void dfs(ll x, ll y, ll val)
+{
+    used[x][y] = true;
+    need--;
+    a[x][y] = val;
+    if (x > 0 && !used[x - 1][y] && a[x - 1][y] >= val && (need > 0))
+        dfs(x - 1, y, val);
+    if (x < n - 1 && !used[x + 1][y] && a[x + 1][y] >= val && (need > 0))
+        dfs(x + 1, y, val);
+    if (y > 0 && !used[x][y - 1] && a[x][y - 1] >= val && (need > 0))
+        dfs(x, y - 1, val);
+    if (y < m - 1 && !used[x][y + 1] && a[x][y + 1] >= val && (need > 0))
+        dfs(x, y + 1, val);
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    ll k;
+    scanf("%I64d %I64d %I64d", &n, &m, &k);
+    for (ll i = 0; i < n; i++)
+        for (ll j = 0; j < m; j++)
+            scanf("%I64d", &a[i][j]);
+    vector<pair<ll, pair<ll, ll> > > b(n * m);
+    for (ll i = 0; i < n; i++)
+        for (ll j = 0; j < m; j++)
+            b[i * m + j] = make_pair(a[i][j], make_pair(i, j));
+    sort(b.begin(), b.end(), comp);
+    for (ll i = 0; i < n; i++)
+        for (ll j = 0; j < m; j++)
+            ok[i][j] = false;
+    ll ans = -1, ans1 = -1, ans2 = -1;
+    for (ll t = 0; t < n * m; t++)
+    {
+        pair<ll, ll> p = b[t].second;
+        ll num = b[t].first;
+        ll i = p.first, j = p.second;
+        make_set(i, j);
+        if (i > 0 && ok[i - 1][j])
+            union_set(i, j, i - 1, j);
+        if (i < n - 1 && ok[i + 1][j])
+            union_set(i, j, i + 1, j);
+        if (j > 0 && ok[i][j - 1])
+            union_set(i, j, i, j - 1);
+        if (j < m - 1 && ok[i][j + 1])
+            union_set(i, j, i, j + 1);
+        if (k % num == 0)
+        {
+            p = find_set(i, j);
+            i = p.first, j = p.second;
+            if (rank_set[i][j] >= k / num)
+            {
+                ans = num;
+                ans1 = i;
+                ans2 = j;
+                break;
+            }
+        }
+    }
+    if (ans == -1)
+    {
+        printf("NO\n");
+        return 0;
+    }
+    printf("YES\n");
+    for (ll i = 0; i < n; i++)
+        for (ll j = 0; j < m; j++)
+            used[i][j] = false;
+    need = k / ans;
+    //printf("%d %I64d %I64d\n", ans, ans1, ans2);
+    //printf("%d\n", need);
+    dfs(ans1, ans2, ans);
+    /*for (ll i = 0; i < n; i++)
+    {
+        for (ll j = 0; j < m; j++)
+            printf("%d ", a[i][j]);
+        printf("\n");
+    }*/
+    for (ll i = 0; i < n; i++)
+    {
+        for (ll j = 0; j < m; j++)
+            if (used[i][j])
+                printf("%I64d ", ans);
+            else
+                printf("%I64d ", (ll)0);
+        printf("\n");
+    }
+    return 0;
+}

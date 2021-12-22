@@ -1,0 +1,58 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <math.h>
+#include <algorithm>
+#include <set>
+#include <map>
+#include <unordered_map>
+#include <vector>
+using namespace std;
+typedef long long ll;
+
+int a[1005];
+
+int main(){
+	int n,ans=0;
+	scanf("%d",&n);
+	
+	unordered_map<ll,int> s;
+	for(int i=1;i<=n;i++){
+		scanf("%d",&a[i]);
+		if(a[i]==0){
+			++ans;
+		}
+		++s[a[i]];
+	}
+	unordered_map<ll,unordered_map<ll,bool> > app;
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=n;j++){
+			if(i!=j && (a[i]||a[j])){
+				if(app[a[i]][a[j]])continue;
+				app[a[i]][a[j]]=true;
+				unordered_map<ll,int> tmp;
+				++tmp[a[i]];++tmp[a[j]];
+				--s[a[i]];--s[a[j]];
+				
+				ll x=a[i],y=a[j],z=a[i]+a[j];
+				int cnt=2;
+				while(cnt<n){
+					if(s[z]<=0)break;
+					++cnt;
+					++tmp[z];--s[z];
+					x=y;
+					y=z;
+					z=x+y;
+				}
+				ans=max(ans,cnt);
+				for(auto it:tmp){
+					s[it.first]+=it.second;
+				}
+			}
+		}
+	}
+	printf("%d\n",ans);
+    return 0;
+}

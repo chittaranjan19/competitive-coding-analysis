@@ -1,0 +1,91 @@
+const
+  tfi = '';//'500b.inp';
+  tfo = '';//'500b.out';
+
+var
+  n,top : longint;
+  a,f,p,st : array [1..300] of longint;
+  fi,fo : text;
+
+function getroot(i : longint) : longint;
+  begin
+    if f[i] = i then exit(i);
+    f[i] := getroot(f[i]);
+    exit(f[i]);
+  end;
+
+procedure input;
+  var
+    i,j : longint;
+    tmp : char;
+  begin
+    assign(fi,tfi);
+    reset(fi);
+    read(fi,n);
+    for i := 1 to n do
+      begin
+        read(fi,a[i]);
+        f[i] := i;
+      end;
+    readln(fi);
+    for i := 1 to n do
+      begin
+        for j := 1 to n do
+          begin
+            read(fi,tmp);
+            if (tmp = '1') and (getroot(i) <> getroot(j)) then f[f[i]] := f[j];
+          end;
+        readln(fi);
+      end;
+    close(fi);
+  end;
+
+procedure swap(var x,y : longint);
+  var z : longint;
+  begin
+    z := x;
+    x := y;
+    y := z;
+  end;
+
+procedure sort;
+  var i,j : longint;
+  begin
+    for i := 1 to top-1 do
+      for j := i+1 to top do
+        if st[i] > st[j] then swap(st[i],st[j]);
+  end;
+
+procedure process;
+  var i,j : longint;
+  begin
+    for i := 1 to n do
+      begin
+        top := 0;
+        for j := 1 to n do
+          if getroot(j) = i then
+            begin
+              inc(top);
+              st[top] := a[j];
+              p[top] := j;
+            end;
+        sort;
+        for j := 1 to top do
+          a[p[j]] := st[j];
+      end;
+  end;
+
+procedure output;
+  var i : longint;
+  begin
+    assign(fo,tfo);
+    rewrite(fo);
+    for i := 1 to n do write(fo,a[i],' ');
+    close(fo);
+  end;
+
+begin
+  input;
+  process;
+  output;
+end.

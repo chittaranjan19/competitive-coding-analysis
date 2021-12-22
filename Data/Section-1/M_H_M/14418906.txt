@@ -1,0 +1,75 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <cstring>
+#include <iomanip>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 40000 + 100;
+
+struct Fenwick{
+	int fen[N];
+	void add(int p, int val){
+		for(p ++; p <= N; p += p & -p)
+			fen[p] += val;
+	}
+	int get(int p, int sum = 0){
+		for(; p; p -= p & -p)
+			sum += fen[p];
+		return sum;
+	}
+};
+
+int a[N];
+Fenwick f[4];
+int n;
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	for(int i = 0; i < 4; ++i)
+		memset(f[i].fen, 0, sizeof(f[i].fen));
+	cin >> n;
+	for(int i = 0; i < n; ++i){
+		cin >> a[i];
+		if(a[i] < 0) a[i] *= -1;
+		f[2].add(a[i], 1);
+	}
+	for(int i = 0; i < n; ++i){
+		f[2].add(a[i], -1);
+		int k1 = f[2].get(a[i]) + f[0].get(N) - f[0].get(a[i] + 1);
+		int k2 = f[1].get(a[i]) + f[0].get(N);
+		if(k2 <= k1)
+			f[1].add(a[i], 1), a[i] *= -1;
+		else
+			f[0].add(a[i], 1);
+	}
+	int ans = 0;
+	for(int i = 0; i < n; ++i){
+		a[i] += 20001;
+		f[3].add(a[i], 1);
+		ans += (f[3].get(40000) - f[3].get(a[i] + 1));
+		//cerr << ans << "\n";
+	}
+	cout << ans << "\n";
+	return 0;
+}

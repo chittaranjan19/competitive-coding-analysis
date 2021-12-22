@@ -1,0 +1,210 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define maxC 1000000007
+#define mn 200005
+#define mn2 100005
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+#define mid ((l + r) >> 1)
+
+using namespace std;
+int n, m, s, t, trace[mn2], ans[mn2], r = 0;
+long long po[mn];
+
+struct node
+{
+    long long hashVal;
+    int num0;
+    bool f;
+    node* lc;
+    node* rc;
+
+    node(int num0 = 1): num0(num0)
+    {
+        hashVal = f = 0;
+        lc = rc = NULL;
+    }
+};
+
+node* build(int l, int r)
+{
+    node* re = new node(r - l + 1);
+    if (l == r)
+        return re;
+    re -> lc = build(l, mid);
+    re -> rc = build(mid + 1, r);
+    return re;
+}
+
+void push(int l, int r, node* cur)
+{
+    if (!cur -> f)
+        return;
+    if (cur -> lc == NULL)
+        cur -> lc = new node();
+    if (cur -> rc == NULL)
+        cur -> rc = new node();
+    cur -> lc -> f = cur -> rc -> f = true;
+    cur -> lc -> hashVal = cur -> rc -> hashVal = 0;
+    cur -> lc -> num0 = mid - l + 1;
+    cur -> rc -> num0 = r - mid;
+    cur -> f = false;
+}
+
+int getNum0(int l, int r, node* cur, int x, int y)
+{
+    if (l > y || r < x)
+        return 0;
+    if (x <= l && r <= y)
+        return cur -> num0;
+    push(l, r, cur);
+    return getNum0(l, mid, cur -> lc, x, y) + getNum0(mid + 1, r, cur -> rc, x, y);
+}
+
+int find0(int l, int r, node* cur, int num)
+{
+    if (l == r)
+        return l;
+    push(l, r, cur);
+    if (cur -> rc -> num0 >= num)
+        return find0(mid + 1, r, cur -> rc, num);
+    return find0(l, mid, cur -> lc, num - cur -> rc -> num0);
+}
+
+bool compare(int l, int r, node* a, node* b)
+{
+    if (a -> hashVal == b -> hashVal)
+        return false;
+    if (l == r)
+        return a -> hashVal == 0;
+    push(l, r, a);
+    push(l, r, b);
+    if (a -> rc -> hashVal == b -> rc -> hashVal)
+        return compare(l, mid, a -> lc, b -> lc);
+    return compare(mid + 1, r, a -> rc, b -> rc);
+}
+
+node* update(int l, int r, node* cur, int x, int y)
+{
+    if (l == r && r == y)
+    {
+        node* re = new node(0);
+        re -> hashVal = 1;
+        return re;
+    }
+    if (x <= l && r < y)
+    {
+        node* re = new node(r - l + 1);
+        re -> hashVal = 0;
+        re -> f = true;
+        return re;
+    }
+    push(l, r, cur);
+    node* re = new node();
+    if (l > y || mid < x)
+        re -> lc = cur -> lc;
+    else
+        re -> lc = update(l, mid, cur -> lc, x, y);
+    if (mid + 1 > y || r < x)
+        re -> rc = cur -> rc;
+    else
+        re -> rc = update(mid + 1, r, cur -> rc, x, y);
+    re -> hashVal = (re -> rc -> hashVal * po[mid - l + 1] + re -> lc -> hashVal) % maxC;
+    re -> num0 = re -> lc -> num0 + re -> rc -> num0;
+    return re;
+}
+
+struct wait
+{
+    node* w;
+    int u;
+
+    wait(node* w = NULL, int u = 0): w(w), u(u){}
+};
+
+class com
+{
+    public: bool operator()(wait a, wait b)
+    {
+        return !compare(0, mn, a.w, b.w);
+    }
+};
+
+vector<node*> root, d;
+vector< pair<int, int> > g[mn2];
+priority_queue< wait, vector<wait>, com > p;
+
+void setup()
+{
+    cin >> n >> m;
+    int u, v, w;
+    FOR(i, 1, m)
+    {
+        cin >> u >> v >> w;
+        g[u].pb(mp(v, w));
+        g[v].pb(mp(u, w));
+    }
+    cin >> s >> t;
+    po[0] = 1;
+    FOR(i, 1, mn - 1)
+        po[i] = (po[i - 1] << 1) % maxC;
+}
+
+void xuly()
+{
+    FOR(i, 1, n + 1)
+        d.pb(NULL);
+    root.pb(d[s] = build(0, mn));
+    p.push(wait(d[s], s));
+    while(!p.empty())
+    {
+        int u = p.top().u;
+        node* w = p.top().w;
+        p.pop();
+        if (d[u] != w)
+            continue;
+        if (u == t)
+        {
+            while(u)
+            {
+                ans[++ r] = u;
+                u = trace[u];
+            }
+            cout << w -> hashVal << '\n' << r << '\n';
+            FORD(i, r, 1)
+                cout << ans[i] << ' ';
+            return;
+        }
+        FOR(i, 0, int(g[u].size()) - 1)
+        {
+            int v = g[u][i].F;
+            int w = g[u][i].S;
+            int pos = find0(0, mn, d[u], getNum0(0, mn, d[u], w, mn));
+            node* tem = update(0, mn, d[u], w, pos);
+            if (d[v] != NULL)
+            {
+                if (!compare(0, mn, tem, d[v]))
+                    continue;
+            }
+            d[v] = tem;
+            trace[v] = u;
+            p.push(wait(d[v], v));
+        }
+    }
+    cout << -1;
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+//    cout.tie(NULL);
+//    freopen("FILE.INP", "r", stdin);
+//    freopen("FILE.OUT", "w", stdout);
+    setup();
+    xuly();
+    return 0;
+}

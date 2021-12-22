@@ -1,0 +1,63 @@
+#include<stdio.h>
+#include<vector>
+using namespace std;
+#define min(a,b) (a<b?a:b)
+typedef long long int ll;
+vector<int> G[10];
+int getrev(int x)
+{
+    int y=0;
+    while(x>0)
+    {
+        y<<=1;
+        y=y|(x&1);
+        x/=2;
+    }
+    return y;
+}
+int flip_bits(int x)
+{
+    int y=0;
+    while(x>0)
+    {
+        y<<=1;
+        if(x%2==0)
+        y=y|1;
+        x/=2;
+    }
+    //printf("y=%d\n",y);
+    return getrev(y);
+}
+int main()
+{
+    //printf("%d\n",flip_bits(12));
+    int n,i,j;
+    scanf("%d",&n);
+    G[0].push_back(1);
+    for(i=0;i<=n;i++)
+    {
+        for(j=0;j<(1<<i);j++)
+        {
+            int x=G[i][j];
+            //printf("i=%d j=%d x=%d\n",i,j,x);
+            G[i+1].push_back((x<<(1<<i))+flip_bits(x));
+            G[i+1].push_back((x<<(1<<i))+x);
+        }
+    }
+    for(i=0;i<(1<<n);i++)
+    {
+        char ans[1005];
+        //printf("i=%d g=%d\n",i,G[n][i]);
+        for(j=0;j<(1<<n);j++)
+        {
+            if(G[n][i]&1)
+                ans[(1<<n)-j-1]='+';
+            else
+                ans[(1<<n)-j-1]='*';
+            G[n][i]/=2;
+        }
+        ans[1<<n]=NULL;
+        printf("%s\n",ans);
+    }
+    return 0;
+}

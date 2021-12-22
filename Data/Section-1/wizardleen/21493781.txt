@@ -1,0 +1,169 @@
+import java.io.BufferedInputStream;
+import java.util.*;
+
+/**
+ * Created by leen on 16/10/2016.
+ */
+public class _731D {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024 * 74));
+        int n = scan.nextInt(), c = scan.nextInt();
+
+//        Set<Rel> illegalRels = new HashSet<Rel>();
+
+        Word[] words = new Word[n];
+        List<Char>[] charList = new ArrayList[c];
+
+        int numIllegals = 0;
+
+        for(int i = 0; i < c; i++)
+            charList[i] = new ArrayList<Char>();
+
+        for(int i = 0; i < n; i++) {
+            int len = scan.nextInt();
+            Word word = new Word(i, len);
+
+            Set<Integer> existed = new HashSet<Integer>();
+
+            for(int j = 0; j < len; j++) {
+                Char ch = new Char(word, j, scan.nextInt()-1);
+                if(!existed.contains(ch.value)) {
+                    charList[ch.value].add(ch);
+                    existed.add(ch.value);
+                }
+                word.chars[j] = ch;
+            }
+
+            words[i] = word;
+
+            if(i > 0) {
+                Word lastWord = words[i - 1];
+                Rel rel = calcRel(lastWord, word);
+                word.backRel = rel;
+                lastWord.rel = rel;
+                if(rel.illegal)
+                    numIllegals++;
+            }
+        }
+
+        if(numIllegals == 0) {
+            System.out.println(0);
+            return;
+        }
+
+        for(int epoch = 1; epoch < c; epoch++) {
+            int rotatedCharVal = c-epoch;
+            List<Char> rotatedChars = charList[rotatedCharVal];
+
+            for(Char ch : rotatedChars) {
+                Word wd = ch.word;
+                Rel rel = wd.rel;
+                if(rel != null) {
+                    if(ch.pos <= rel.diffPos && rel.second.chars.length > ch.pos &&
+                            rel.second.chars[ch.pos].value != rotatedCharVal) {
+                        if(rel.illegal)
+                            numIllegals--;
+                        rel.illegal = false;
+                        rel.diffPos = ch.pos;
+//                        if(illegalRels.contains(rel))
+//                            illegalRels.remove(rel);
+                    }
+                }
+
+                Rel backRel = wd.backRel;
+                if(backRel != null) {
+                    if(ch.pos <= backRel.diffPos && backRel.first.chars.length > ch.pos &&
+                            backRel.first.chars[ch.pos].value != rotatedCharVal) {
+                        if(!backRel.illegal)
+                            numIllegals++;
+                        backRel.illegal = true;
+                        backRel.diffPos = ch.pos;
+                    }
+                }
+
+            }
+
+            if(numIllegals==0) {
+                System.out.println(epoch);
+                return;
+            }
+
+        }
+
+        System.out.println(-1);
+
+    }
+
+    static Rel calcRel(Word word1, Word word2) {
+        int minLen = Math.min(word1.chars.length, word2.chars.length);
+
+        int diffPos;
+        boolean illegal = false;
+
+        for(diffPos = 0; diffPos < minLen; diffPos++) {
+            if(word1.chars[diffPos].value < word2.chars[diffPos].value) {
+                illegal = false;
+                break;
+            }
+            else if(word1.chars[diffPos].value > word2.chars[diffPos].value) {
+                illegal = true;
+                break;
+            }
+        }
+
+        if(diffPos == minLen)
+            illegal = !(word1.chars.length <= word2.chars.length);
+
+        return new Rel(word1, word2, diffPos, illegal);
+    }
+
+    static class Word {
+        Char[] chars;
+        Rel rel;
+        Rel backRel;
+        int index;
+
+        Word(int index, int len) {
+            this.index = index;
+            chars = new Char[len];
+        }
+
+        @Override
+        public String toString() {
+            return "word " + index;
+        }
+    }
+
+    static class Char {
+        Word word;
+        int value;
+        int pos;
+
+        Char(Word word, int pos, int value) {
+            this.word = word;
+            this.pos = pos;
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value + "";
+        }
+    }
+
+    static class Rel {
+        Word first;
+        Word second;
+        int diffPos;
+        boolean illegal;
+
+        Rel(Word first, Word second, int diffPos, boolean illegal) {
+            this.first = first;
+            this.second = second;
+            this.diffPos = diffPos;
+            this.illegal = illegal;
+        }
+
+    }
+
+}

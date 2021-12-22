@@ -1,0 +1,142 @@
+#include <stdio.h>
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const ll MAX_N = 100000;
+const ld pi = 3.1415926535897932384626;
+const ld eps = 1e-6;
+
+const int ABC = 26;
+
+int root = 0;
+int nv = 1;
+vector<vector<int> > go(1, vector<int> (ABC, -1));
+vector<int> par(1, root);
+vector<int> in(1);
+vector<int> suf(1, root);
+vector<int> super(1, root);
+vector<int> term(1, -1);
+
+void add_string(string &s, int num)
+{
+    int curr = root;
+    for (int c : s)
+    {
+        c -= 'a';
+        if (go[curr][c] == -1)
+        {
+            go[curr][c] = nv++;
+            go.push_back(vector<int> (ABC, -1));
+            par.push_back(curr);
+            in.push_back(c);
+            suf.push_back(root);
+            super.push_back(root);
+            term.push_back(-1);
+        }
+        curr = go[curr][c];
+    }
+    term[curr] = num;
+}
+
+void build()
+{
+    vector<bool> used(nv, false);
+    queue<int> q;
+    used[root] = true;
+    q.push(root);
+    while (!q.empty())
+    {
+        int u = q.front();
+        q.pop();
+        if (u == root)
+            suf[u] = root;
+        else if (par[u] == root)
+            suf[u] = root;
+        else
+            suf[u] = go[suf[par[u]]][in[u]];
+        if (u == root)
+            super[u] = root;
+        else if (term[suf[u]])
+            super[u] = suf[u];
+        else
+            super[u] = super[suf[u]];
+        for (int c = 0; c < ABC; c++)
+            if (go[u][c] != -1)
+                continue;
+            else if (u == root)
+                go[u][c] = root;
+            else
+                go[u][c] = go[suf[u]][c];
+        for (int c = 0; c < ABC; c++)
+            if (!used[go[u][c]])
+            {
+                used[go[u][c]] = true;
+                q.push(go[u][c]);
+            }
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, k;
+    cin >> n >> k;
+    n *= k;
+    string s, t;
+    cin >> s;
+    int g;
+    cin >> g;
+    for (int i = 0; i < g; i++)
+    {
+        cin >> t;
+        add_string(t, i);
+    }
+    build();
+    s += s.substr(0, k - 1);
+    int dp[n + k - 1];
+    int curr = 0;
+    for (int i = 0; i < n + k - 1; i++)
+    {
+        curr = go[curr][s[i] - 'a'];
+        dp[i] = term[curr];
+    }
+    vector<int> used(n / k, -1);
+    int temp = 0;
+    vector<int> ans;
+    for (int i = n - 1; i < n + k - 1; i++)
+    {
+        ans.clear();
+        bool ok = true;
+        int pos = i;
+        for (int j = 0; j < n / k; j++)
+        {
+            if (dp[pos] == -1 || used[dp[pos]] == temp)
+            {
+                ok = false;
+                break;
+            }
+            ans.push_back(dp[pos]);
+            used[dp[pos]] = temp;
+            pos -= k;
+        }
+        if (ok)
+        {
+            cout << "YES" << endl;
+            for (int j = (int)ans.size() - 1; j >= 0; j--)
+                cout << ans[j] + 1 << " ";
+            cout << endl;
+            return 0;
+        }
+        temp++;
+    }
+    cout << "NO" << endl;
+    return 0;
+}

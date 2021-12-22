@@ -1,0 +1,177 @@
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+
+public class C_LorencoFonMatterhorn {
+	private final boolean isDebug;
+	
+	public static class Edge {
+		public static Edge of(long u, long v) {
+			return new Edge(u, v);
+		}
+		
+		private volatile int hashCode;
+		
+		final long u, v;
+		
+		private Edge(long u, long v) {
+			this.u = u;
+			this.v = v;
+		}
+		
+		@Override public boolean equals(Object o) {
+			if (!(o instanceof Edge))
+				return false;
+			
+			Edge e = (Edge) o;
+			
+			return e.u == u && e.v == v;
+		}
+		
+		@Override public int hashCode() {
+			int result = hashCode;
+			if (result == 0) {
+				result = 17;
+				result = 31 * result + Long.hashCode(u);
+				result = 31 * result + Long.hashCode(v);
+				hashCode = result;
+			}
+			
+			return result;
+		}
+	}
+	
+	private int q;
+	private int[] types, ws;
+	private long[] vs, us;
+	private Map<Edge, Long> prices;
+	
+	public C_LorencoFonMatterhorn(boolean isDebug) {
+		this.isDebug = isDebug;
+	}
+	
+	public void readInput() {
+		Scanner sc = null;
+		if (isDebug) {
+			try {
+				sc = new Scanner(new FileInputStream("src\\x0004_codeforces_round_362_div_2\\C_input1.txt"));
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			sc =  new Scanner(System.in);
+		}
+		
+		q = sc.nextInt();
+		types = new int[q];
+		ws = new int[q];
+		vs = new long[q];
+		us = new long[q];
+		
+		for (int i = 0; i < q; ++i) {
+			types[i] = sc.nextInt();
+			vs[i] = sc.nextLong();
+			us[i] = sc.nextLong();
+			if (types[i] == 1) {
+				ws[i] = sc.nextInt();
+			}
+		}
+		
+		if (isDebug) {
+			System.out.println(q);
+			for (int i = 0; i < q; ++i) {
+				if (types[i] == 1) {
+					System.out.format("1 v=%d u=%d w=%d%n", vs[i], us[i], ws[i]);
+				} else {
+					System.out.format("2 v=%d u=%d%n", vs[i], us[i]);
+				}
+			}
+		}
+	}
+	
+	public void solve() {
+		StringBuilder res = new StringBuilder();
+		String newLine = "\n";
+		prices = new HashMap<>();
+		
+		for (int i = 0; i < q; ++i) {
+			if (types[i] == 1) {
+				List<Edge> upd = find(us[i], vs[i]);
+				for (Edge edge : upd) {
+					Long price = prices.get(edge);
+					if (price == null) {
+						prices.put(edge, (long)ws[i]);
+					} else {
+						prices.put(edge, price + ws[i]);
+					}
+				}
+			} else {
+				List<Edge> path = find(us[i], vs[i]);
+				long sum = 0;
+				for (Edge edge : path) {
+					Long price = prices.get(edge);
+					sum += price == null ? 0 : price;
+				}
+				
+				res.append(sum).append(newLine);
+			}
+		}
+		
+		System.out.println(res);
+	}
+	
+	private List<Edge> find(long u, long v) {
+		List<Edge> path = new ArrayList<>();
+		
+		if (u > v) {
+			long tmp = u;
+			u = v;
+			v = tmp;
+		}
+		
+		int lu = layer(u), lv = layer(v);
+		long v_ = v, u_ = u;
+		if (lv > lu) {
+			int lv_ = lv;
+			while (lv_ > lu) {
+				lv_--;
+				long tmp = v_;
+				v_ = v_ >>> 1;
+				path.add(Edge.of(v_, tmp));
+			}
+		}
+		
+		while (v_ != u_) {
+			long tmp_v = v_, tmp_u = u_;
+			v_ = v_ >>> 1;
+			u_ = u_ >>> 1;
+			path.add(Edge.of(v_, tmp_v));
+			path.add(Edge.of(u_, tmp_u));
+		}
+		
+		return path;
+	}
+	
+	private int layer(long u) {
+		int i;
+		for (i = 1; i < 64; ++i) {
+			if (1 << i > u) {
+				break;
+			}
+		}
+		
+		return i - 1;
+	}
+	
+	public static void main(String[] args) {
+		C_LorencoFonMatterhorn solver = new C_LorencoFonMatterhorn(false);
+		solver.readInput();
+		solver.solve();
+	}
+}

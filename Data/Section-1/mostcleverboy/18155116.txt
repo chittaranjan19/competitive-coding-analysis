@@ -1,0 +1,74 @@
+program j01;
+var fg,fm,fn:array[1..20000]of longint;
+    s:array[1..10000]of longint;
+    n,l,r,m,i,g,mn,num:longint;
+function gcd(a,b:longint):longint;
+begin
+  if b=0 then exit(a) else exit(gcd(b,a mod b));
+end;
+function min(a,b:longint):longint;
+begin
+  if a<b then exit(a) else exit(b);
+end;
+procedure build(i,l,r:longint);
+var mid:longint;
+begin
+  if l=r then
+  begin
+    fm[i]:=s[l];
+    fn[i]:=1;
+    fg[i]:=s[l];
+    exit;
+  end;
+  mid:=(l+r) div 2;
+  build(i*2,l,mid);
+  build(i*2+1,mid+1,r);
+  fm[i]:=min(fm[i*2],fm[i*2+1]);
+  fn[i]:=0;
+  if fm[i*2]=fm[i] then inc(fn[i],fn[i*2]);
+  if fm[i*2+1]=fm[i] then inc(fn[i],fn[i*2+1]);
+  fg[i]:=gcd(fg[i*2],fg[i*2+1]);
+end;
+function findg(i,l,r,ll,rr:longint):Longint;
+var mid:longint;
+begin
+  if (ll<=l)and(r<=rr) then exit(fg[i]);
+  if (ll>r)or(rr<l) then exit(0);
+  mid:=(l+r)div 2;
+  exit(gcd(findg(i*2,l,mid,ll,rr),findg(i*2+1,mid+1,r,ll,rr)));
+end;
+function findm(i,l,r,ll,rr:longint):Longint;
+var mid:longint;
+begin
+  if (ll<=l)and(r<=rr) then exit(fm[i]);
+  if (ll>r)or(rr<l) then exit(maxlongint);
+  mid:=(l+r)div 2;
+  findm:=min(findm(i*2,l,mid,ll,rr),findm(i*2+1,mid+1,r,ll,rr));
+end;
+function findn(i,l,r,ll,rr:longint):Longint;
+var mid:longint;
+begin
+  if (ll<=l)and(r<=rr) then
+  begin
+    if fm[i]=mn then exit(fn[i]);
+    exit(0);
+  end;
+  if (ll>r)or(rr<l) then exit(0);
+  mid:=(l+r)div 2;
+  exit(findn(i*2,l,mid,ll,rr)+findn(i*2+1,mid+1,r,ll,rr));
+end;
+begin
+  readln(n);
+  for i:=1 to n do read(s[i]);
+  readln(M);
+  build(1,1,n);
+  for i:=1 to m do
+  begin
+    readln(l,r);
+    g:=findg(1,1,n,l,r);
+    mn:=findm(1,1,n,l,r);
+    num:=findn(1,1,n,l,r);
+    if g<>mn then num:=0;
+    writeln(r-l+1-num);
+  end;
+end.

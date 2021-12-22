@@ -1,0 +1,98 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define llu unsigned long long
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define gc getchar_unlocked
+
+void scanint(int &x)
+{
+    register int c = gc();
+    x = 0;
+    for(;(c<48 || c>57);c = gc());
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+}
+
+const lli mod = 1000000003;
+const int limit = 100005;
+char stra[limit],strb[limit];
+int lena,lenb;
+llu apo[limit],bpo[limit];
+llu ahash[limit],bhash[limit];
+llu magic1 = 173LL;
+
+/*Hashing*/
+void inithasha(){
+    int n = lena;
+    apo[0]=1;
+    ahash[0]=0;
+    for(int i=1;i<=n;i++){
+        apo[i] = (apo[i-1]*magic1);
+        ahash[i] = (ahash[i-1]*magic1 + stra[i-1]);
+    }
+    return;
+}
+
+//To get hash of idx between i and j (1 based)
+inline llu getHasha(int i,int j){
+    llu h1 = (ahash[j] - (ahash[i-1]*apo[j-i+1]));
+    return h1;
+}
+
+void inithashb(){
+    int n = lenb;
+    bpo[0]=1;
+    bhash[0]=0;
+    for(int i=1;i<=n;i++){
+        bpo[i] = (bpo[i-1]*magic1);
+        bhash[i] = (bhash[i-1]*magic1 + strb[i-1]);
+    }
+    return;
+}
+
+//To get hash of idx between i and j (1 based)
+inline llu getHashb(int i,int j){
+    llu h1 = (bhash[j] - (bhash[i-1]*bpo[j-i+1]));
+    return h1;
+}
+
+/*Hashing Done*/
+
+bool oka(int len){
+    if(lena%len != 0) return false;
+    llu h = getHasha(1,len);
+    for(int i=len+1;i<=lena;i+=len){
+        if(getHasha(i,i+len-1) != h)
+            return false;
+    }
+    return true;
+}
+
+bool okb(int len){
+    if(lenb%len != 0) return false;
+    llu h = getHashb(1,len);
+    for(int i=len+1;i<=lenb;i+=len){
+        if(getHashb(i,i+len-1) != h)
+            return false;
+    }
+    return true;
+}
+
+int main(){
+    scanf("%s",stra);
+    scanf("%s",strb);
+    lena = strlen(stra);
+    lenb = strlen(strb);
+    inithasha();
+    inithashb();
+    int upto = min(lena,lenb);
+    int ans = 0;
+    for(int i=1;i<=upto;i++){
+        llu a = getHasha(1,i);
+        llu b = getHashb(1,i);
+        if(a==b && oka(i) && okb(i)) ans++;
+    }
+    printf("%d\n",ans);
+    return 0;
+}

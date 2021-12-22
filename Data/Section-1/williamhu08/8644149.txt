@@ -1,0 +1,153 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 17;
+
+struct node {
+	int lmax, rmax, mmax;
+	int size;
+	node() {
+		clear();
+		size = 0;
+	}
+	void clear() {
+		fill(0);
+	}
+	void fill (int x = 1) {
+		lmax = rmax = mmax = x;
+	}
+	node operator + (const node &n) const {
+		node res;
+		res.size = size + n.size;
+		res.lmax = lmax;
+		if (lmax == size) {
+			res.lmax = size + n.lmax;
+		}
+		res.rmax = n.rmax;
+		if (n.rmax == n.size) {
+			res.rmax = n.size + rmax;
+		}
+		res.mmax = max(max(lmax, n.rmax), rmax + n.lmax);
+		return res;
+	}
+};
+
+int N, M;
+pii H[MAXN];
+int L[MAXN], R[MAXN], W[MAXN];
+int lo[MAXN], hi[MAXN];
+node tree[2 * MAXN];
+
+void update (int cur) {
+	//fill cur to be true
+	tree[cur += MAXN].fill();
+	while (cur) {
+		cur /= 2;
+		tree[cur] = tree[2 * cur] + tree[2 * cur + 1];
+	}
+}
+
+node query (int a, int b, int cur = 1, int l = 0, int r = MAXN) {
+	if (r <= a || b <= l) {
+		return node();
+	}
+	if (a <= l && r <= b) {
+		return tree[cur];
+	}
+	int mid = (l + r) / 2;
+	return query(a, b, 2 * cur, l, mid) + query(a, b, 2 * cur + 1, mid, r);
+}
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces484E.in", "r", stdin);
+#endif
+	scanf("%d", &N);
+	for (int i = 0; i < N; i++) {
+		scanf("%d", &H[i].first);
+		H[i].second = i;
+	}
+	sort(H, H + N, greater<pii> ());	//we need to know the order of the updates which to do them
+	scanf("%d", &M);
+	for (int i = 0; i < M; i++) {
+		scanf("%d %d %d", &L[i], &R[i], &W[i]);
+		L[i]--;
+		lo[i] = 1;
+		hi[i] = 1e9 + 5;
+	}
+	//initialize segtree
+	for (int i = 0; i < MAXN; i++) {
+		tree[i + MAXN].size = 1;
+	}
+	for (int i = MAXN - 1; i; i--) {
+		tree[i].size = 2 * tree[2 * i].size;
+	}
+	//do queries
+	for (;;) {
+		//k now let's do this
+		vector<pii> v;
+		for (int i = 0; i < M; i++) {
+			if (hi[i] - lo[i] > 1) {
+				v.push_back(pii((lo[i] + hi[i]) / 2, i));
+			}
+		}
+		if (v.empty()) {
+			for (int i = 0; i < M; i++) {
+				printf("%d\n", lo[i]);
+			}
+			return 0;
+		}
+		sort(v.rbegin(), v.rend());	//ok let's do this. remember, sort BACK
+		for (int i = 0; i < 2 * MAXN; i++) {
+			tree[i].clear();
+		}
+		//now do the updating as it goes along
+		int cur = 0;
+		rep(it, v) {
+			int guess = it->first, ind = it->second;
+			while (cur < N && guess <= H[cur].first) {
+				update(H[cur++].second);
+			}
+			if (query(L[ind], R[ind]).mmax >= W[ind]) {
+				lo[ind] = guess;
+			} else {
+				hi[ind] = guess;
+			}
+		}
+	}
+}

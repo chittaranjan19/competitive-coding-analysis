@@ -1,0 +1,98 @@
+#include <iostream> 
+#include <cstdio>
+#include <iomanip>
+
+using namespace std;
+
+#define For(i , a , b) for (int i = a , _b = b ; i <= _b ; ++i)
+#define Ford(i , a  ,b) for (int i = a , _b = b : i >= _b ; --i)
+#define Rep(i , n) for (int i = 0 , _n = n ; i < _n ; ++i)
+#define sz(A) ((int)A.size())
+#define LL(x) (x << 1)
+#define RR(x) ((x << 1) | 1)
+
+typedef pair<int , int> pt;
+
+const int maxn = 22;
+int n , k;
+double p[maxn];
+
+void ReadData() {
+	cin >> n >> k;
+	For(i , 1 , n) cin >> p[i];
+}
+
+
+double pwr(double x , long long n) {
+	double res = 1.0;
+	while (n) {
+		if (n & 1) res = res * x; 
+		n >>= 1; 
+		x = x * x;
+	}
+	return res;
+}
+long long pwr1010 = (long long) 1e10;
+double pwrZ(double x , int plus = 0) {
+	double res = x;
+	For(i , 1 , 10) {
+		res = pwr(res , pwr1010);
+	}
+	if (plus) res *= x; 
+	return res;
+}
+
+double sum[1 << 21];
+double fsum[1 << 21];
+double res[maxn];
+bool onbit(const int state , const int pos) {
+	return (state >> (pos - 1)) & 1;
+}
+
+double b[1 << 21];
+void cal(int L , int R) {
+	if (L + 1 == R) {
+		b[L] = fsum[L]; return;
+	}
+	int mid = (L + R) >> 1;
+	cal(L , mid); cal(mid , R);
+	For(i , mid , R) b[i] += b[i - mid];
+}
+
+void Process() {
+	//cout << pwr(0.9 , (long long)1e10) << endl;
+	//return;
+	if (k == n) {
+		For(i , 1 , n) cout << 1.000 << " "; cout << endl;
+		return;
+	}
+	Rep(x , 1 << n) {
+		sum[x] = 0;
+		For(i , 1 , n) if (onbit(x , i)) sum[x] += p[i];
+		if (sum[x] != 1) fsum[x] = (pwrZ(sum[x]) - 1 - sum[x] + 1) / (sum[x] - 1);
+	}
+	cal(0 , 1 << n);
+	For(i , 1 , n) if (p[i] > 0) {
+		res[i] = p[i];
+		Rep(x , 1 << n) if (!onbit(x , i)) {
+			if (__builtin_popcount(x) >= k) continue;
+			if (!x) continue;
+			res[i] += p[i] * (2 * fsum[x] - b[x]);
+		}
+	}
+
+	cout << fixed << setprecision(7);
+	For(i , 1 , n) cout << res[i] << " "; cout << endl;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	
+	//freopen("input.inp" , "r" , stdin);
+	ReadData();
+	Process();
+
+	return 0;
+
+}			

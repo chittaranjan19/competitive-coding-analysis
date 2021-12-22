@@ -1,0 +1,89 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 2e5 + 100;
+int n, m;
+int a[N];
+int ans[N];
+pii p[N];
+multiset <int> st;
+
+vector <pii> op;
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	for(int i = 0; i < n; ++i){
+		cin >> a[i];
+		st.insert(a[i]);
+	}
+	for(int i = 0; i < m; ++i){
+		int t, r;
+		cin >> t >> r;
+		while(!op.empty() && op.back().Y <= r)
+			op.pop_back();
+		op.PB({t, r});
+	}
+	for(int i = op[0].Y; i < n; ++i){
+		ans[i] = a[i];
+		st.erase(st.find(a[i]));
+	}
+	for(int i = 0; i < SZ(op) - 1; ++i){
+		if(op[i].X == 1){
+			for(int j = op[i].Y - 1; j >= op[i + 1].Y; --j){
+				auto it = st.end();
+				it --;
+				ans[j] = *it;
+				st.erase(it);
+			}
+		}
+		else{
+			for(int j = op[i].Y - 1; j >= op[i + 1].Y; --j){
+				ans[j] = *st.begin();
+				st.erase(st.begin());
+			}
+		}
+	}
+	if(op.back().X == 1){
+		for(int j = op.back().Y - 1; j >= 0; --j){
+			auto it = st.end();
+			it --;
+			ans[j] = *it;
+			st.erase(it);
+		}
+	}
+	else{
+		for(int j = op.back().Y - 1; j >= 0; --j){
+			ans[j] = *st.begin();
+			st.erase(st.begin());
+		}
+	}
+	for(int i = 0; i < n; ++i)
+		cout << ans[i] << " ";
+	cout << "\n";
+	return 0;
+}

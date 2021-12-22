@@ -1,0 +1,58 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+using namespace std;
+typedef long long ll;
+const int maxn=105;
+ll inf=100000000000000000;
+int  color[maxn],cost[maxn][maxn];
+ll dp[maxn][maxn][maxn];
+int main()
+{
+   int n,m,k,i,j,l,K;
+   scanf("%d%d%d",&n,&m,&K);
+   for(i=1;i<=n;i++) scanf("%d",&color[i]);
+   for(i=1;i<=n;i++)
+      for(j=1;j<=m;j++)
+         scanf("%d",&cost[i][j]);
+   for(i=0;i<=n;i++)
+      for(j=0;j<=m;j++)
+         for(k=0;k<=n;k++)
+            dp[i][j][k]=inf;
+   if(color[1]) dp[1][color[1]][1]=0;
+   else for(i=1;i<=m;i++) dp[1][i][1]=cost[1][i];
+   for(i=2;i<=n;i++)
+   {
+      if(color[i]==0)
+      {
+         for(j=1;j<=m;j++)
+         {
+            for(k=1;k<=m;k++)
+            {
+               for(l=1;l<=i;l++)
+               {
+                  if(j!=k) dp[i][j][l]=min(dp[i][j][l],dp[i-1][k][l-1]+cost[i][j]);
+                  else dp[i][j][l]=min(dp[i][j][l],dp[i-1][k][l]+cost[i][j]);
+               }
+            }
+         }
+      }
+      else
+      {
+         for(k=1;k<=m;k++)
+         {
+            for(l=1;l<=i;l++)
+            {
+               if(color[i]!=k) dp[i][color[i]][l]=min(dp[i][color[i]][l],dp[i-1][k][l-1]);
+               else dp[i][color[i]][l]=min(dp[i][color[i]][l],dp[i-1][k][l]);
+            }
+         }
+      }
+   }
+   ll ans=inf;
+   for(i=1;i<=m;i++)
+      ans=min(ans,dp[n][i][K]);
+   if(ans==inf)printf("-1\n");
+   else printf("%I64d\n",ans);
+   return 0;
+}

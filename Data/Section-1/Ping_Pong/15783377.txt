@@ -1,0 +1,138 @@
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const long long inf = (long long)2 * 1e9;
+const long long MOD = (long long)1e9 + 7;
+const long long MAX_N = 1 << 20;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+long long cnt_ver;
+vector<long long> tree[MAX_N * 2];
+pair<long long, long long> tree1[MAX_N * 2];
+
+void make_tree()
+{
+    for (long long x = cnt_ver - 2; x >= 0; x--)
+    {
+        long long cnt = 0, cnt_curr = 0, curr = -1;
+        long long u1 = 0, u2 = 0;
+        for (long long j = 0; j < tree[x * 2 + 1].size() * 2; j++)
+        {
+            if (u1 == tree[x * 2 + 1].size())
+            {
+                if (tree[x * 2 + 2][u2] == curr)
+                    tree1[x].second += cnt_curr;
+                else
+                    cnt_curr = 0;
+                tree[x].push_back(tree[x * 2 + 2][u2]);
+                u2++;
+                cnt++;
+            }
+            else if (u2 == tree[x * 2 + 2].size())
+            {
+                if (tree[x * 2 + 1][u1] == curr)
+                    cnt_curr++;
+                else
+                {
+                    curr = tree[x * 2 + 1][u1];
+                    cnt_curr = 1;
+                }
+                tree[x].push_back(tree[x * 2 + 1][u1]);
+                tree1[x].first += cnt;
+                u1++;
+            }
+            else
+            {
+                if (tree[x * 2 + 1][u1] <= tree[x * 2 + 2][u2])
+                {
+                    if (tree[x * 2 + 1][u1] == curr)
+                        cnt_curr++;
+                    else
+                    {
+                        curr = tree[x * 2 + 1][u1];
+                        cnt_curr = 1;
+                    }
+                    tree[x].push_back(tree[x * 2 + 1][u1]);
+                    tree1[x].first += cnt;
+                    u1++;
+                }
+                else
+                {
+                    if (tree[x * 2 + 2][u2] == curr)
+                        tree1[x].second += cnt_curr;
+                    else
+                        cnt_curr = 0;
+                    tree[x].push_back(tree[x * 2 + 2][u2]);
+                    u2++;
+                    cnt++;
+                }
+            }
+        }
+    }
+}
+
+int main()
+{
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+    long long n, p;
+    scanf("%I64d", &n);
+    cnt_ver = 1 << n;
+    for (long long i = 0; i < cnt_ver; i++)
+    {
+        scanf("%I64d", &p);
+        tree[cnt_ver - 1 + i].push_back(p);
+        tree1[cnt_ver - 1 + i] = make_pair(0, 0);
+    }
+    make_tree();
+    long long a[n + 1], d[n + 1];
+    for (long long i = 0; i <= n; i++)
+    {
+        a[i] = 0;
+        d[i] = 0;
+    }
+    long long curr_cnt = 1, curr = 0, j = 0;
+    while (curr_cnt <= cnt_ver)
+    {
+        for (long long i = 0; i < curr_cnt; i++)
+        {
+            a[curr] += tree1[j].first;
+            d[curr] += tree1[j].second;
+            j++;
+        }
+        curr++;
+        curr_cnt *= 2;
+    }
+    long long b[n + 1];
+    b[n] = 0;
+    if (n > 0)
+        b[n - 1] = 1 << (n - 1);
+    for (long long i = n - 2; i >= 0; i--)
+        b[i] = b[i + 1] * 2;
+    long long m, q;
+    scanf("%I64d", &m);
+    for (long long i = 0; i < m; i++)
+    {
+        scanf("%I64d", &q);
+        for (long long j = n - q; j < n; j++)
+            a[j] = b[j] - a[j] - d[j];
+        long long ans = 0;
+        for (long long j = 0; j < n; j++)
+            ans += a[j];
+        printf("%I64d\n", ans);
+    }
+	return 0;
+}

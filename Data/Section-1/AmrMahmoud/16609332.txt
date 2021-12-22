@@ -1,0 +1,89 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int arr[200005];
+LL psum[200005];
+
+vector<pair<LL, LL> > lines;
+int p = 0;
+
+LL cross(const pair<LL, LL> &O, const pair<LL, LL> &A, const pair<LL, LL> &B)
+{
+	return (O.f - A.f) * (B.s - O.s) - (A.s - O.s) * (O.f - B.f);
+}
+
+inline void add_line(LL m, LL c)
+{
+  pair<LL, LL> tmp = mp(m, c);
+  while(lines.size() >= 2 && cross(lines[lines.size() - 2], lines[lines.size() - 1], tmp) <= 0)
+    lines.pop_back();
+  lines.pb(tmp);
+}
+
+inline LL query(LL x)
+{
+  int L = 0, R = lines.size() - 1;
+  while(R > L)
+  {
+    int mid = L + (R - L) / 2;
+    if(mid == lines.size() - 1) mid--;
+    if(lines[mid].f * x + lines[mid].s < lines[mid+1].f * x + lines[mid+1].s)
+      L = mid + 1;
+    else R = mid;
+  }
+  return lines[L].f * x + lines[L].s;
+}
+
+int main()
+{
+  int n;
+  scanf("%d", &n);
+  LL sum = 0;
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d", &arr[i]);
+    psum[i] = arr[i];
+    sum += arr[i] * 1LL * (i + 1);
+    if(i) psum[i] += psum[i - 1];
+  }
+  LL res = sum;
+  for(int i=n-1;i>=0;i--)
+  {
+    add_line(-i, psum[i]);
+    res = max(res, sum + psum[i] - arr[i] * 1LL * i - query(arr[i]));
+  }
+  lines.clear();
+  for(int i=0;i<n;i++)
+  {
+    add_line(i, (i == 0? 0 : -psum[i - 1]));
+    res = max(res, sum + (i == 0? 0 : psum[i - 1]) - arr[i] * 1LL * i - query(-arr[i]));
+  }
+  cout << res;
+  return 0;
+}
+
+/*
+  // forward
+  ans[i] = maxj arr[i] * (j - i) - psum[j] + psum[i]
+  ans[i] = psum[i] - arr[i] * i + maxj - psum[j] + arr[i] * j
+  // backward
+  ans[i] = maxj arr[i] * (j - i) - psum[j - 1] + psum[i - 1]
+  ans[i] = psum[i - 1] - arr[i] * i + maxj - psum[j - 1] + arr[i] * j
+*/

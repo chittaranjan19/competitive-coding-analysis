@@ -1,0 +1,56 @@
+#include<stdio.h>
+
+int D[18][1 << 17];
+int depth;
+int N;
+
+void update(int val, int idx){
+    D[0][idx] = val;
+    int i = 1;
+    idx /= 2;
+    while(i <= depth){
+        if(i % 2 == 1)
+            // or.
+            D[i][idx] = D[i - 1][idx * 2] | D[i - 1][idx * 2 + 1];
+        else
+            // xor.
+            D[i][idx] = D[i - 1][idx * 2] ^ D[i - 1][idx * 2 + 1];
+        i++;
+        idx /= 2;
+    }
+}
+void build(){
+    depth = 0;
+    int width = N;
+    while(width > 1){
+        int i;
+        for(i = 0; i < width / 2; i++){
+            if(depth % 2 == 0)
+                // or.
+                D[depth + 1][i] = D[depth][i * 2] | D[depth][i * 2 + 1];
+            else
+                D[depth + 1][i] = D[depth][i * 2] ^ D[depth][i * 2 + 1];
+        }
+        depth++;
+        width /= 2;
+    }
+}
+
+int main(){
+    int n;
+    int M;
+    scanf("%d %d", &n, &M);
+    N = 1 << n;
+    int i;
+    for(i = 0; i < N; i++)
+        scanf("%d", &D[0][i]);
+    build();
+    for(i = 0; i < M;i ++){
+        int p, q;
+        scanf("%d %d", &p, &q);
+        update(q, p - 1);
+        printf("%d\n", D[depth][0]);
+    }
+
+    return 0;
+}

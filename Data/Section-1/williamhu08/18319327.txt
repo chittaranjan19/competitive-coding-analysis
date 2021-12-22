@@ -1,0 +1,118 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rfile(f) freopen(f, "r", stdin)
+#define wfile(f) freopen(f, "w", stdout)
+#define rwfile(prob) rfile(prob".in"); wfile(prob".out")
+#define pb push_back
+#define mpair make_pair
+#define fi first
+#define se second
+#define dri(x) scanf("%d", &x)
+#define drii(x, y) scanf("%d %d", &x, &y)
+#define driii(x, y, z) scanf("%d %d %d", &x, &y, &z)
+#define driiii(x, y, z, w) scanf("%d %d %d %d", &x, &y, &z, &w)
+#define drl(x) scanf("%lld", &x)
+#define drll(x, y) scanf("%lld %lld", &x, &y)
+#define drlll(x, y, z) scanf("%lld %lld %lld", &x, &y, &z)
+#define drllll(x, y, z, w) scanf("%lld %lld %lld %lld", &x, &y, &z, &w)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+
+ll N;
+
+ll cube (ll x) {
+	return x * x * x;
+}
+
+ll cdiff (ll x) {
+	return x - cube(ll(cbrt(x)));
+}
+
+int mycbrt (ll x) {
+	ll lo = 0, hi = 1e5 + 10;
+	while (hi - lo > 1) {
+		ll mid = (lo + hi) / 2;
+		if (cube(mid) <= x) {
+			lo = mid;
+		} else {
+			hi = mid;
+		}
+	}
+	return lo;
+}
+
+int dp[int(3e7)];
+
+int getdp (ll x, int d) {
+	if (x < 1e7) {
+		return dp[x];
+	}
+	assert(d < 2);
+	return getdp(cdiff(x), d - 1) + 1;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		rfile("input.txt");
+	}
+
+	for (int i = 1; i < 3e7; i++) {
+		dp[i] = dp[cdiff(i)] + 1;
+	}
+
+	// printf("Time: %f\n", float(clock()) / CLOCKS_PER_SEC);
+	// return 0;
+
+	scanf("%lld", &N);
+	pair<int, ll> ans(0, 0);
+
+	if (N < 1e7) {
+		for (int i = 1; i < 3e7; i++) {
+			ans = max(ans, mpair(dp[i], ll(i)));
+		}
+		printf("%d %lld\n", ans.fi, ans.se);
+		return 0;
+	}
+
+	ll ptr[2] = {0, 0};
+
+	for (int i = 1; i < 3e7; i++) {
+		pair<int, ll> p(dp[i], i);
+		ll ci = i;
+		for (int j = 0; j < 2; j++) {
+			if (p.se > N) {
+				break;
+			}
+
+			//find min a s.t. 3a(a + 1) >= i
+
+			while (cube(ptr[j] + 1) - cube(ptr[j]) - 1 < ci) {
+				ptr[j]++;
+			}
+
+			ll ni = ptr[j];
+			// printf("i = %d, ni = %lld\n", i, ni);
+			ci += cube(ni);
+			if (ci > N) {
+				break;
+			}
+			p.fi++;
+			p.se = ci;
+			// if (p.fi == 18) {
+			// 	printf("i = %d, ptr[0] = %lld, ptr[1] = %lld\n", i, ptr[0], ptr[1]);
+			// }
+		}
+		ans = max(ans, p);
+	}
+	// printf("Time: %f\n", float(clock()) / CLOCKS_PER_SEC);
+
+	printf("%d %lld\n", ans.fi, ans.se);
+}

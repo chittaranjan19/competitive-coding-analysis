@@ -1,0 +1,94 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const long long inf = (long long)2 * 1e18;
+const long long inf1 = (long long)2 * 1e9;
+const long long MOD = (long long)1e9 + 7;
+const long long MAX_N = 100000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+long long dist[MAX_N];
+bool used[MAX_N];
+vector<pair<long long, long long> > graph[MAX_N];
+set<pair<long long, long long> > curr;
+pair<long long, long long> train[MAX_N];
+
+void deikstra()
+{
+    while (!curr.empty())
+    {
+        int x = curr.begin()->second;
+        curr.erase(curr.begin());
+        if (!used[x])
+        {
+            used[x] = true;
+            for (int i = 0; i < graph[x].size(); i++)
+                if (!used[graph[x][i].first] && dist[x] + graph[x][i].second < dist[graph[x][i].first])
+                {
+                    dist[graph[x][i].first] = dist[x] + graph[x][i].second;
+                    curr.insert(make_pair(dist[graph[x][i].first], graph[x][i].first));
+                }
+        }
+    }
+}
+
+int main()
+{
+    //ifstream ifs("input.in");
+    //ofstream ofs("output.out");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    long long n, m, k, s, f, t;
+    scanf_s("%I64d %I64d %I64d", &n, &m, &k);
+    for (long long i = 0; i < m; i++)
+    {
+        scanf_s("%I64d %I64d %I64d", &s, &f, &t);
+        graph[s - 1].push_back(make_pair(f - 1, t));
+        graph[f - 1].push_back(make_pair(s - 1, t));
+    }
+    for (long long i = 0; i < n; i++)
+        used[i] = false;
+    for (long long i = 0; i < n; i++)
+        dist[i] = inf;
+    dist[0] = 0;
+    curr.insert(make_pair(0, 0));
+    deikstra();
+    for (long long i = 0; i < n; i++)
+        train[i] = make_pair(inf1, 0);
+    for (long long i = 0; i < k; i++)
+    {
+        scanf_s("%I64d %I64d", &f, &t);
+        train[f - 1].first = min(train[f - 1].first, t);
+        train[f - 1].second++;
+    }
+    long long ans = 0;
+    for (long long i = 1; i < n; i++)
+        if (dist[i] <= train[i].first)
+            ans += train[i].second;
+        else
+            ans += max(train[i].second - 1, (long long)0);
+    printf("%I64d", ans);
+    /*for (long long i = 0; i < n; i++)
+        cout << dist[i] << " ";
+    cout << endl;
+    for (long long i = 0; i < n; i++)
+        cout << train[i].first << " " << train[i].second << endl;
+    long long tmp;
+    cin >> tmp;*/
+    return 0;
+}

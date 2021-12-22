@@ -1,0 +1,76 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define EPS 1e-9
+typedef long long ll;
+int arr[1000000];
+char crib[1000000];
+int main(){
+	int n,k;
+	cin>>n>>k;
+	cin.tie(0);
+	ios::sync_with_stdio(false);
+	int turn=0,future=0;
+	for(int i=0;i<=n;++i){
+		string str;
+		cin>>str;
+		int x;
+		if(str=="?") x=-11111;
+		else{
+			x=0;
+			int mult=1,start=0;
+			if(str[0]=='-') {start=1;mult=-1;}
+			for(int i=start;i<str.length();++i){
+				x*=10;
+				x+=str[i]-'0';
+			}
+			x*=mult;
+		}
+		if(x!=-11111) ++turn;
+		else ++future;
+		arr[i]=x;
+	}
+	turn%=2;
+	if(k==0){
+		if(arr[0]!=-11111){
+			if(arr[0]==0)cout<<"Yes"<<endl;
+			else cout<<"No"<<endl;
+		}
+		else if(arr[0]==-11111){
+			if(turn==0) cout<<"No"<<endl;
+			else cout<<"Yes"<<endl;
+		}
+	}else{
+		if(future==0){
+			vector<int> vp;
+			memset(crib,1,sizeof crib);
+			crib[0]=crib[1]=0;
+			for(int i=2;i<1000000;++i){
+				if(crib[i]){
+					vp.push_back(i);
+					for(int j=2*i;j<1000000;j+=i){
+						crib[j]=1;
+					}
+				}
+			}
+			srand(time(NULL));
+			bool ok=true;
+			for(int i=0;i<100;++i){
+				ll prime=vp[rand()%vp.size()];
+				ll xj=1,res=0;
+				for(int i=0;i<=n;++i){
+					res+=(xj*arr[i])%prime;
+					res%=prime;
+					xj*=k;
+					xj%=prime;
+				}
+				if(res!=0) ok=false;
+			}
+			if(ok) cout<<"Yes"<<endl;
+			else cout<<"No"<<endl;
+		}else{
+			if((n+1)%2==1)cout<<"No"<<endl;
+			else cout<<"Yes"<<endl;
+		}
+	}
+	
+}

@@ -1,0 +1,84 @@
+#include <bits/stdc++.h>
+//#include <iostream>
+//#include <map>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 300 * 1000 + 100;
+const int oo = N;
+
+struct Fenwick{
+	int fen[N + 1];
+	void ad(int p){
+		for(p ++; p <= oo; p += p & -p)
+			fen[p] ++;
+	}
+	void rm(int p){
+		for(p ++; p <= oo; p += p & -p)
+			fen[p] --;
+	}
+	int gt(int p){
+		int sum = 0;
+		for(; p; p -= p & -p)
+			sum += fen[p];
+		return sum;
+	}
+};
+
+Fenwick L, R;
+int n;
+ll k;
+int a[N];
+vector <int> b;
+
+int main(){
+	cin >> n >> k;
+	for(int i = 0; i < n; ++i){
+		scanf("%d", a + i);
+		b.PB(a[i]);
+	}
+	sort(b.begin(), b.end());
+	b.resize(unique(b.begin(), b.end()) - b);
+	for(int i = 0; i < n; ++i)
+		a[i] = lower_bound(b.begin(), b.end(), a[i]) - b.bgein();
+	
+
+	ll inv = 0;
+	L.ad(a[0]);
+	for(int i = 1; i < n; ++i){
+		inv += R.gt(oo) - R.gt(a[i] + 1);
+		if(a[i] < a[0]) inv ++;
+		R.ad(a[i]);
+	}	
+	ll ans = 0;
+	int t = 1;
+	for(int i = 0; i < n - 1; ++i){
+		while(inv > k && t < n){
+			inv -= R.gt(a[t]);
+			inv -= L.gt(oo) - L.gt(a[t] + 1);
+			R.rm(a[t]);
+			t ++;
+		}
+		if(inv <= k)
+			ans += n - t;
+		if(t > i + 1){
+			inv += L.gt(oo) - L.gt(a[i + 1] + 1);
+			inv += R.gt(a[i + 1]);
+			L.ad(a[i + 1]);
+		}
+		else{
+			t = i + 2;
+		}
+	}
+	cout << ans << "\n";
+	return 0;
+}

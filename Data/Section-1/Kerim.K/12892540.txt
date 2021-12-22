@@ -1,0 +1,83 @@
+/*
+PROG:kerim
+LANG:C++
+*/
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool checkMin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool checkMax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+string q;
+int s[MAXN*40],m,n,sum;
+PII p[MAXN*40],rr[MAXN*40];
+void build(int nd,int x,int y)
+{
+	if(x==y)
+	{
+		if(q[x-1]=='(')
+			p[nd].ff++;
+		else
+			p[nd].ss++;
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd*2,x,mid);
+	build(nd*2+1,mid+1,y);
+	int san=min(p[nd*2].ff,p[nd*2+1].ss);
+	if(san)
+		s[nd]+=san;
+	s[nd]+=s[nd*2]+s[nd*2+1];
+	p[nd].ff=(p[nd*2].ff-san)+p[nd*2+1].ff;	
+	p[nd].ss=p[nd*2].ss+(p[nd*2+1].ss-san);	 
+}
+void tap(int l,int r,int nd,int x,int y)
+{
+	rr[nd].ff=0,rr[nd].ss=0;
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r)
+	{
+		sum+=s[nd]*2;
+		rr[nd].ff+=p[nd].ff;
+		rr[nd].ss+=p[nd].ss;
+		return;
+	}
+	int mid=(x+y)>>1;
+	tap(l,r,nd*2,x,mid);
+	tap(l,r,nd*2+1,mid+1,y);
+	int san=min(rr[nd*2].ff,rr[nd*2+1].ss);
+	if(san)
+		sum+=san*2,rr[nd*2].ff-=san,rr[nd*2+1].ss-=san;
+	rr[nd].ff=rr[nd*2].ff+rr[nd*2+1].ff;	
+	rr[nd].ss=rr[nd*2].ss+rr[nd*2+1].ss;	
+}
+int main()
+{
+	cin>>q;
+	scanf("%d",&m);
+	n=q.size();
+	build(1,1,n);
+	while(m--)
+	{
+		int l,r;
+		cin>>l>>r;
+		sum=0;
+		tap(l,r,1,1,n);
+		printf("%d\n",sum);
+	}
+	return 0;
+}
+

@@ -1,0 +1,114 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#define ls rt << 1
+#define rs rt << 1 | 1
+#define lson ls, l, mid
+#define rson rs, mid + 1, r
+
+using namespace std;
+
+const int maxn = 1000000 + 5;
+const int INF = 1e9 + 7;
+
+int v[maxn], c[maxn];
+
+struct segtree
+{
+	int maxnode[maxn << 2], minnode[maxn << 2];
+
+	void pushup(int rt)
+	{
+	    maxnode[rt] = max(maxnode[ls], maxnode[rs]);
+	    minnode[rt] = min(minnode[ls], minnode[rs]);
+	}
+
+	void build(int rt, int l, int r)
+	{
+		if(l == r)
+		{
+			maxnode[rt] = v[l];
+			minnode[rt] = c[l];
+			return;
+		}
+		int mid = (l + r) >> 1;
+		build(lson);
+		build(rson);
+		pushup(rt);
+	}
+
+	void query(int rt, int l, int r, int x, int y, int &mx, int mn)
+	{
+		if(x <= l && r <= y)
+		{
+            mx = max(mx, maxnode[rt]);
+            mn = min(mn, minnode[rt]);
+            return;
+		}
+		int mid = (l + r) >> 1;
+		if(x <= mid) query(lson, x, y, mx, mn);
+		if(mid < y) query(rson, x, y, mx, mn);
+	}
+} tree;
+int b[maxn];
+
+int main()
+{
+    int n, k;
+    while(~scanf("%d%d", &n, &k))
+    {
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", v + i);
+            v[i] *= 100;
+        }
+        for(int i = 1; i <= n; ++i) scanf("%d", c + i);
+        v[n + 1] = c[n + 1] = 0;
+        tree.build(1, 1, n + 1);
+        int j = n;
+        for(int i = n; i; --i)
+        {
+            if(c[i] <= v[i])
+            {
+                b[i] = c[i];
+                j = i - 1;
+            }
+            else
+            {
+//                b[i] = max(min(v[j], c[j]), min(v[j + 1], c[j + 1]));
+                int mx = 0, mn = INF;
+                tree.query(1, 1, n + 1, i, j, mx, mn);
+                int tmp = min(mx, mn);
+                mx = 0, mn = INF;
+                tree.query(1, 1, n + 1, i, j, mx, mn);
+                if(tmp > min(mx, mn))
+                {
+                    b[i] = tmp;
+                }
+                else
+                {
+                    b[i] = min(mx, mn);
+                }
+            }
+        }
+        sort(b + 1, b + n + 1);
+        double tt = 1, ans = 0;
+        for(int i = 1; i < k; ++i)
+        {
+            tt *= 1.0 * (n - i) / i;
+        }
+        double t = 1;
+        for(int i = 1; i <= k; ++i)
+        {
+            t *= 1.0 * (n - i + 1) / i;
+        }
+        for(int i = 1; i <= n - k + 1; ++i)
+        {
+            ans += b[i] * tt / t;
+            tt *= 1.0 * (n - i - k + 1) / (n - i);
+        }
+        printf("%.10f\n", ans);
+    }
+    return 0;
+}

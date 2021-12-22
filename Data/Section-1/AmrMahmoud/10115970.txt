@@ -1,0 +1,133 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000009
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+map<pair<int, int>, int > m;
+int x[100005];
+int y[100005];
+int p[100005];
+bool v[100005];
+bool blocked[100005];
+bool in[100005];
+
+bool check2(int x,int y)
+{
+  if(m.find(mp(x, y)) == m.end()) return false;
+  else if(m[mp(x, y)] == -1) return false;
+  return true;
+}
+
+bool check(int x, int y, int dx, int dy)
+{
+  if(m.find(mp(x, y)) == m.end()) return true;
+  else if(m[mp(x, y)] == -1) return true;
+  bool t = 0;
+  if(x - 1 != dx || y - 1 != dy) t|= check2(x - 1, y - 1);
+  if(x != dx || y - 1 != dy) t|= check2(x, y - 1);
+  if(x + 1 != dx || y - 1 != dy) t|= check2(x + 1, y - 1);
+  return t;
+}
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  //freopen("test.in", "r", stdin);
+  //freopen("report.out", "w", stdout);
+  int mm;
+  cin >> mm;
+  for(int i=0;i<mm;i++)
+  {
+    cin >> x[i] >> y[i];
+    m[mp(x[i], y[i])]=i;
+  }
+  int res = 0;
+  p[0] = 1;
+  for(int i=1;i<=mm;i++) p[i] = (p[i-1] * 1LL * mm);
+  priority_queue<int> q1, q2;
+  for(int i=0;i<mm;i++)
+  {
+    if(check(x[i] - 1, y[i] + 1, x[i], y[i]) && check(x[i], y[i] + 1, x[i], y[i]) && check(x[i] + 1, y[i] + 1, x[i], y[i]))
+      q1.push(i), q2.push(-i);
+  }
+  bool t = 1;
+  for(int i=0;i<mm;i++)
+  {
+    int nxt;
+    while(!q1.empty() && (v[q1.top()] || blocked[q1.top()])) q1.pop();
+    while(!q2.empty() && (v[-q2.top()]|| blocked[-q2.top()])) q2.pop();
+    if(t) nxt = q1.top(), q1.pop();
+    else nxt = -q2.top(), q2.pop();
+    v[nxt] = true;
+    res = (res + (p[mm - i - 1] * 1LL * nxt) % mod) % mod;
+    m[mp(x[nxt], y[nxt])] = -1;
+    int ind = 0;
+    if(check2(x[nxt] - 1, y[nxt] - 1))
+    {
+      ind = m[mp(x[nxt] - 1, y[nxt] - 1)];
+      if(check(x[ind] - 1, y[ind] + 1, x[ind], y[ind]) && check(x[ind], y[ind] + 1, x[ind], y[ind]) && check(x[ind] + 1, y[ind] + 1, x[ind], y[ind]))
+        q1.push(ind), q2.push(-ind),blocked[ind] = 0;
+    }
+    if(check2(x[nxt], y[nxt] - 1))
+    {
+      ind = m[mp(x[nxt], y[nxt] - 1)];
+      if(check(x[ind] - 1, y[ind] + 1, x[ind], y[ind]) && check(x[ind], y[ind] + 1, x[ind], y[ind]) && check(x[ind] + 1, y[ind] + 1, x[ind], y[ind]))
+        q1.push(ind), q2.push(-ind),blocked[ind] = 0;
+    }
+    if(check2(x[nxt] + 1, y[nxt] - 1))
+    {
+      ind = m[mp(x[nxt] + 1, y[nxt] - 1)];
+      if(check(x[ind] - 1, y[ind] + 1, x[ind], y[ind]) && check(x[ind], y[ind] + 1, x[ind], y[ind]) && check(x[ind] + 1, y[ind] + 1, x[ind], y[ind]))
+        q1.push(ind), q2.push(-ind),blocked[ind] = 0;
+    }
+
+    // check blocked
+
+    if(check2(x[nxt] + 1, y[nxt]))
+    {
+      ind = m[mp(x[nxt] + 1, y[nxt])];
+      if(!(check(x[ind] - 1, y[ind] + 1, x[ind], y[ind]) && check(x[ind], y[ind] + 1, x[ind], y[ind]) && check(x[ind] + 1, y[ind] + 1, x[ind], y[ind])))
+        blocked[ind] = true;
+    }
+    if(check2(x[nxt] - 1, y[nxt]))
+    {
+      ind = m[mp(x[nxt] - 1, y[nxt])];
+      if(!(check(x[ind] - 1, y[ind] + 1, x[ind], y[ind]) && check(x[ind], y[ind] + 1, x[ind], y[ind]) && check(x[ind] + 1, y[ind] + 1, x[ind], y[ind])))
+        blocked[ind] = true;
+    }
+    t = !t;
+  }
+  cout << res;
+  return 0;
+}

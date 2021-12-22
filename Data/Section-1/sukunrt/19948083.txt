@@ -1,0 +1,75 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+int seg[3000000];
+int arr[1000005];
+int last[1000005];
+int val[1000005];
+int x[1000005];
+int sol[1000005];
+vector<pair<int, int> > q[1000005];
+void update(int idx, int st, int ed, int uidx, int v) {
+    if (st > uidx || ed < uidx)
+	return;
+    if (st == ed && st == uidx) {
+	seg[idx] = v;
+	return;
+    }
+    int mid = (st + ed) >> 1;
+    int lt = (idx << 1);
+    update(lt, st, mid, uidx, v);
+    update(lt + 1, mid + 1, ed, uidx, v);
+    seg[idx] = seg[lt] ^ seg[lt+1];
+}
+
+int query(int idx, int st, int ed, int sr, int er) {
+    if (st > er || ed < sr) {
+	return 0;
+    }
+    if (st >= sr && ed <= er) {
+	return seg[idx];
+    }
+    int mid = (st + ed ) >> 1;
+    int l = (idx << 1);
+    int lt = query(l, st, mid, sr, er);
+    int rt = query(l + 1, mid + 1, ed, sr, er);
+    return lt ^ rt;
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    int n;
+    cin >> n;
+    for (int i = 1; i <= n; i++) {
+	cin >> val[i];
+	x[i] = x[i-1] ^ val[i];
+    }
+
+    int m;
+    cin >> m;
+    for (int i = 1; i <= m; i++) {
+	int x, y;
+	cin >> x >>y;
+	q[y].push_back(make_pair(x,i));
+    }    
+    for (int j = 1; j <= n; j++) {
+	int prev = last[val[j]];
+	last[val[j]] = j;
+	update(1,1,n,prev,0);
+	update(1,1,n,j,val[j]);
+	if (q[j].size() > 0){
+	    for (int i = 0; i < q[j].size(); i++) {
+		int lt = q[j][i].first;
+		int idx = q[j][i].second;
+		int ui = query(1, 1, n, lt, j);
+		int xr = x[j] ^ x[lt-1];
+		sol[idx] = ui ^ xr;
+	    }
+	}
+    }
+    for (int i = 1; i <= m; i++)
+	cout << sol[i] << endl;
+    return 0;
+}
+	
+	

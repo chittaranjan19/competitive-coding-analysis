@@ -1,0 +1,110 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int c[25][40], a[20], b[20];
+
+const int MAXN = 25;
+
+struct matrix
+{
+  unsigned int arr[MAXN][MAXN];
+  int n, m;
+
+  matrix(int x, int y)
+  {
+    n = x, m = y;
+  };
+
+  matrix(int x, int y, int v)
+  {
+    n = x, m = y;
+    for(int i=0;i<n;i++)
+      for(int j=0;j<m;j++)
+        arr[i][j] = v;
+  };
+
+  matrix operator * (const matrix &mat) const
+  {
+    matrix res(n, mat.m, INF);
+    for(int i=0;i<n;i++)
+      for(int j=0;j<mat.m;j++)
+        for(int k=0;k<m;k++)
+          res.arr[i][j] = min(arr[i][k] + mat.arr[k][j], res.arr[i][j]);
+    return res;
+  }
+
+  bool operator > (const matrix &mat) const
+  {
+    for(int i=0;i<n;i++)
+      for(int j=0;j<m;j++)
+      {
+        if(arr[i][j] > mat.arr[i][j]) return true;
+        if(arr[i][j] < mat.arr[i][j]) return false;
+      }
+    return true;
+  }
+};
+
+matrix mat_pow(matrix base, int power)
+{
+  matrix ans = base;
+  power--;
+  while(power)
+  {
+    if(power & 1) ans = ans * base;
+    base = base * base;
+    power >>= 1;
+  }
+  return ans;
+}
+
+int main()
+{
+  int n, m;
+  cin >> n >> m;
+  for(int i=0;i<n;i++) scanf("%d", &a[i]);
+  for(int i=0;i<n;i++) scanf("%d", &b[i]);
+  for(int i=0;i<=n;i++)
+    for(int j=0;j<2*n+1;j++)
+      c[i][j] = INF;
+  for(int i=0;i<(1 << n);i++)
+  {
+    int cnt = n, cost = 0, mini = 0;
+    for(int j=0;j<n;j++)
+    {
+      if(i & (1 << j))
+        cost += a[j], cnt++;
+      else cost += b[j], cnt--;
+      mini = min(mini, cnt - n);
+    }
+    c[-mini][cnt] = min(cost, c[-mini][cnt]);
+  }
+  matrix base(n+1, n+1, INF);
+  for(int i=0;i<=n;i++)
+  {
+    for(int j=0;j<=n;j++)
+    {
+      base.arr[i][j] = INF;
+      for(int k=0;k<=i;k++)
+        base.arr[i][j] = min(base.arr[i][j], (unsigned int) c[k][j - i + n]);
+    }
+  }
+  cout << mat_pow(base, m).arr[0][0];
+  return 0;
+}

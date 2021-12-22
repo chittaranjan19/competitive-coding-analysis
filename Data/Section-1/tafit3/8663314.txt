@@ -1,0 +1,147 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ProblemD {
+    BufferedReader rd;
+
+    private ProblemD() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int d = a[0];
+        int n = a[1];
+        a = intarr();
+        for(int i=0;i<a.length;i++) {
+            a[i] *= 10000;
+            a[i] += i+1;
+        }
+        d = d*10000 + 4999;
+        List<List<Integer>> e = new ArrayList<>();
+        for(int i=0;i<n;i++) {
+            e.add(new ArrayList<Integer>());
+        }
+        for(int i=0;i<n-1;i++) {
+            int[] uv = intarr();
+            uv[0]--;
+            uv[1]--;
+            e.get(uv[0]).add(uv[1]);
+            e.get(uv[1]).add(uv[0]);
+        }
+
+        final long B = 1000000007L;
+        long res = 0;
+
+        for(int i=0;i<n;i++) {
+            int mc = a[i];
+            int mx = a[i] + d;
+            boolean[] visited = new boolean[n];
+            visited[i] = true;
+            int[] q = new int[n*2];
+            int head = 0;
+            int tail = 0;
+            q[tail++] = i;
+            while(head != tail) {
+                int u = q[head++];
+                for(Integer v: e.get(u)) {
+                    if(!visited[v]) {
+                        visited[v] = true;
+                        if(a[v] >= mc && a[v] <= mx) {
+                            q[tail++] = v;
+                        }
+                    }
+                }
+            }
+            long[] c = new long[n];
+            boolean[] vt = new boolean[n];
+            for(int j=tail-1;j>=0;j--) {
+                int u = q[j];
+                vt[u] = true;
+                boolean found = false;
+                long x = 1;
+                for(Integer v: e.get(u)) {
+                    if(vt[v]) {
+                        found = true;
+                        long p = c[v];
+                        p++;
+                        p %= B;
+                        x *= p;
+                        x %= B;
+                    }
+                }
+                if(found) {
+                    c[u] = x;
+                    c[u] %= B;
+                } else {
+                    c[u] = 1;
+                }
+            }
+            res += c[i];
+            res %= B;
+        }
+        out(res);
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = s.split(" ");
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+
+
+    private long plong() throws IOException {
+        return plong(rd.readLine());
+    }
+
+    private long plong(String s) {
+        return Long.parseLong(s);
+    }
+
+
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = s.split(" ");
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

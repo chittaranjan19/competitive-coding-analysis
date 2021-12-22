@@ -1,0 +1,141 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+LL DP[100005][3][3], arr[100005];
+bool v[100005][3][3];
+vector<int> g[100005];
+
+LL solve(int node, int s1, int s2, int parent = -1)
+{
+  if(s1 == 2 && s2 == 2) return 0;
+  if(s1 != 1 && s2 != 2) swap(s1, s2);
+  LL &temp = DP[node][s1][s2];
+  if(v[node][s1][s2]) return temp;
+  v[node][s1][s2] = true;
+  if(s1 != 1)
+  {
+    for(int x : g[node])
+    {
+      if(x == parent) continue;
+      temp = max(temp, solve(x, s1, s2, node));
+    }
+  }
+  if(s1 == 1)
+  {
+    temp = arr[node];
+    temp = max(temp, solve(node, 2, s2, parent));
+    LL tmp = 0;
+    for(int x : g[node])
+    {
+      if(x == parent) continue;
+      temp = max(temp, solve(x, s1, s2, node) + arr[node]);
+      if(s2 == 0)
+      {
+        temp = max(temp, solve(x, s1, 2, node) + arr[node] + tmp);
+        tmp = max(tmp, solve(x, 2, s2, node));
+      }
+    }
+    tmp = 0;
+    if(s2 == 0)
+    {
+      for(int i=g[node].size() - 1;i>=0;i--)
+      {
+        int x = g[node][i];
+        if(x == parent) continue;
+        temp = max(temp, solve(x, s1, 2, node) + arr[node] + tmp);
+        tmp = max(tmp, solve(x, 2, s2, node));
+      }
+    }
+  }
+  if(s1 == 0)
+  {
+    temp = max(temp, arr[node]);
+    LL t1 = 0, t2 = 0;
+    vector<LL> v1, v2;
+    v2.resize(g[node].size());
+    for(int x : g[node])
+    {
+      v1.pb(t1);
+      if(x == parent) continue;
+      temp = max(temp, solve(x, 1, s2, node) + t1 + arr[node]);
+      temp = max(temp, solve(x, 1, 2, node) + t2 + arr[node]);
+      t1 = max(t1, solve(x, 1, 2, node));
+      t2 = max(t2, solve(x, 1, s2, node));
+    }
+    if(s2 == 0)
+    {
+      t1 = t2 = 0;
+      for(int i=g[node].size() - 1;i>=0;i--)
+      {
+        v2[i] = t2;
+        int x = g[node][i];
+        if(x == parent) continue;
+        t2 = max(t2, solve(x, 1, 2, node));
+      }
+      for(int i=0;i<g[node].size();i++)
+      {
+        int x = g[node][i];
+        if(x == parent) continue;
+        temp = max(temp, solve(x, 0, 2, node) + v1[i] + v2[i] + arr[node]);
+      }
+      t1 = t2 = 0;
+      for(int x : g[node])
+      {
+        if(x == parent) continue;
+        temp = max(temp, solve(x, 0, 2, node) + t1 + t2 + arr[node]);
+        if(t1 < solve(x, 1, 2, node))
+        {
+          t2 = t1;
+          t1 = solve(x, 1, 2, node);
+        }
+        else t2 = max(t2, solve(x, 1, 2, node));
+      }
+      t1 = t2 = 0;
+      for(int i=g[node].size() - 1;i>=0;i--)
+      {
+        int x = g[node][i];
+        if(x == parent) continue;
+        temp = max(temp, solve(x, 0, 2, node) + t1 + t2 + arr[node]);
+        if(t1 < solve(x, 1, 2, node))
+        {
+          t2 = t1;
+          t1 = solve(x, 1, 2, node);
+        }
+        else t2 = max(t2, solve(x, 1, 2, node));
+      }
+    }
+  }
+  return temp;
+}
+
+int main()
+{
+  int n, x, y;
+  scanf("%d", &n);
+  for(int i=1;i<=n;i++)
+    scanf("%d", &arr[i]);
+  for(int i=0;i<n-1;i++)
+  {
+    scanf("%d %d", &x, &y);
+    g[x].pb(y);
+    g[y].pb(x);
+  }
+  cout << solve(1, 0, 0);
+  return 0;
+}

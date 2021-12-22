@@ -1,0 +1,120 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 100 + 5;
+const int INF = 1 << 30;
+
+struct edge
+{
+    int to, next, cap, cost;
+
+    edge() {}
+    edge(int to, int next, int cap, int cost) :
+        to(to), next(next), cap(cap), cost(cost) {}
+} G[maxn * maxn * 4];
+int head[maxn], tot, d[maxn], que[maxn], deg[maxn], pre[maxn];
+bool inq[maxn];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v, int cap, int cost)
+{
+    G[tot] = edge(v, head[u], cap, cost);
+    head[u] = tot++;
+    G[tot] = edge(u, head[v], 0, -cost);
+    head[v] = tot++;
+}
+
+bool spfa(int s, int t)
+{
+    int front = 0, rear = 0;
+    fill(d, d + t + 1, INF);
+    d[s] = 0;
+    pre[s] = -1;
+    que[rear++] = s;
+    inq[s] = true;
+    while(front < rear)
+    {
+        int u = que[front++];
+        inq[u] = false;
+        for(int i = head[u]; ~i; i = G[i].next)
+        {
+            edge e = G[i];
+            if(e.cap > 0 && d[e.to] > d[u] + e.cost)
+            {
+                d[e.to] = d[u] + e.cost;
+                pre[e.to] = i;
+                if(!inq[e.to])
+                {
+                    que[rear++] = e.to;
+                    inq[e.to] = true;
+                }
+            }
+        }
+    }
+    return d[t] != INF;
+}
+
+int mcmf(int s, int t)
+{
+    int ret = 0;
+    while(spfa(s, t))
+    {
+        int f = INF;
+        for(int i = pre[t]; ~i; i = pre[G[i ^ 1].to])
+        {
+            f = min(f, G[i].cap);
+        }
+        for(int i = pre[t]; ~i; i = pre[G[i ^ 1].to])
+        {
+            G[i].cap -= f;
+            G[i ^ 1].cap += f;
+        }
+        ret += f * d[t];
+    }
+    return ret;
+}
+
+int main()
+{
+    int n, m;
+    scanf("%d%d", &n, &m);
+    init();
+    int s = 0, t = n + 1, ans = 0;
+    for(int i = 0; i < m; ++i)
+    {
+        int u, v, c, f;
+        scanf("%d%d%d%d", &u, &v, &c, &f);
+        deg[u] +=f, deg[v] -= f;
+        if(c >= f)
+        {
+            addedge(u, v, c - f, 1);
+            addedge(v, u, f, 1);
+            addedge(u, v, INF, 2);
+        }
+        else
+        {
+            ans += f - c;
+            addedge(u, v, INF, 2);
+            addedge(v, u, f - c, 0);
+            addedge(v, u, c, 1);
+        }
+    }
+    for(int i = 1; i <= n; ++i)
+    {
+        if(deg[i] > 0) addedge(i, t, deg[i], 0);
+        else if(deg[i] < 0) addedge(s, i, -deg[i], 0);
+    }
+    addedge(n, 1, INF, 0);
+    ans += mcmf(s, t);
+    printf("%d\n", ans);
+    return 0;
+}

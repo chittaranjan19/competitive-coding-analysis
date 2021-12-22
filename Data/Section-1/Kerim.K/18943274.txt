@@ -1,0 +1,88 @@
+#include "bits/stdc++.h"
+#define MAXN 200009
+#define left cep
+#define right sag
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(it,c) for(typeof((c).begin()) it=(c).begin();i!=(c).end();i++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+//freopen("file.in","r",stdin);
+//freopen("file.out","w",stdout);
+int arr[MAXN],rr[MAXN],a;
+int P[MAXN][20],M[MAXN][20];
+int LOG[MAXN];
+void build(){
+	for(int i=1;i<=a;i++){
+		P[i][0]=arr[i],M[i][0]=rr[i];
+		LOG[i]=log2(i);
+	}
+	for(int j=1;j<19;j++)
+		for(int i=1;i<=a;i++)
+			P[i][j]=max(P[i][j-1],(i+(1<<(j-1))<=a?P[i+(1<<(j-1))][j-1]:-INF));
+	for(int j=1;j<19;j++)
+		for(int i=1;i<=a;i++)
+			M[i][j]=min(M[i][j-1],(i+(1<<(j-1))<=a?M[i+(1<<(j-1))][j-1]:INF));		
+}
+int q1(int l,int r){
+	int k=LOG[r-l+1];
+	return max(P[l][k],P[r-(1<<k)+1][k]);
+}
+int q2(int l,int r){
+	int k=LOG[r-l+1];
+	return min(M[l][k],M[r-(1<<k)+1][k]);
+}
+int t1(int pos,int st,int en){
+	int error=pos-1;
+	while(st+1<en){
+		int mid=(st+en)>>1;
+		if(q1(pos,mid)<q2(pos,mid))
+			st=mid;
+		else
+			en=mid;
+	}
+	for(int i=en;i>=st;i--)
+		if(q1(pos,i)<q2(pos,i))
+			return i;
+	return error;		
+}
+int t2(int pos,int st,int en){
+	int error=st-1;
+	while(st+1<en){
+		int mid=(st+en)>>1;
+		if(q1(pos,mid)>q2(pos,mid))
+			en=mid;
+		else
+			st=mid;
+	}
+	for(int i=en;i>=st;i--)
+		if(q1(pos,i)==q2(pos,i))
+			return i;
+	return error;	
+}
+int main(){ll ans=0;
+	scanf("%d",&a);
+	for(int i=1;i<=a;i++)
+		scanf("%d",arr+i);
+	for(int i=1;i<=a;i++)
+		scanf("%d",rr+i);	
+	build();
+	for(int i=1;i<=a;i++){
+		int left=t1(i,i,a);
+		int right=t2(i,left+1,a);
+		ans+=ll(right-left);
+	}	
+	printf("%lld\n",ans);
+	return 0;
+}

@@ -1,0 +1,171 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemF {
+    BufferedReader rd;
+
+    ProblemF() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        long[] u = longarr();
+        int n = (int)u[0];
+        int m = (int)u[1];
+        long k = u[2];
+        long[][] a = new long[n][];
+        Map<Long, Set<int[]>> heights = new TreeMap<>();
+        for(int i=0;i<n;i++) {
+            a[i] = longarr();
+            for(int j=0;j<m;j++) {
+                if(a[i][j] > 0) {
+                    heights.computeIfAbsent(a[i][j], o -> new HashSet<>()).add(new int[] { i,j});
+                }
+            }
+        }
+
+        final int[][] dirs = new int[][] { { -1, 0 }, { 1,0 }, {0, -1}, {0,1}};
+        long g = 0;
+        for(Long ch: heights.keySet()) {
+            long h = ch;
+            if(k>=h && (k%h == 0)) {
+                long req = k/h;
+                if(req <= 1000_000) {
+                    long[][] v = new long[n][m];
+                    for(int[] start: heights.get(ch)) {
+                        int i = start[0];
+                        int j = start[1];
+                        g++;
+                        if(v[i][j] < g && a[i][j] >= h) {
+                            v[i][j] = g;
+                            Queue<Integer> order = new ArrayDeque<>();
+                            Queue<Integer> q = new ArrayDeque<>();
+                            q.add((i<<10)+j);
+                            int c = 1;
+                            while(!q.isEmpty()) {
+                                int z = q.poll();
+                                order.add(z);
+                                int row = z>>10;
+                                int col = z&0x3ff;
+                                for(int[] d: dirs) {
+                                    int nr = row + d[0];
+                                    int nc = col + d[1];
+                                    if(nr >= 0 && nr < n && nc >=0 && nc < m) {
+                                        if(v[nr][nc] < g && a[nr][nc] >= h) {
+                                            v[nr][nc] = g;
+                                            q.add((nr<<10)+nc);
+                                            c++;
+                                        }
+                                    }
+                                }
+                            }
+                            if(c >= req) {
+                                out("YES");
+                                g++;
+                                StringBuilder buf = new StringBuilder();
+                                for(i=0;i<req;i++) {
+                                    int z = order.poll();
+                                    int row = z>>10;
+                                    int col = z&0x3ff;
+                                    v[row][col] = g;
+                                }
+                                for(i=0;i<n;i++) {
+                                    if(i > 0) {
+                                        buf.append('\n');
+                                    }
+                                    for(j=0;j<m;j++) {
+                                        if(j > 0) {
+                                            buf.append(' ');
+                                        }
+                                        if(v[i][j]==g) {
+                                            buf.append(h);
+                                        } else {
+                                            buf.append('0');
+                                        }
+                                    }
+                                }
+                                out(buf);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        out("NO");
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemF();
+    }
+}

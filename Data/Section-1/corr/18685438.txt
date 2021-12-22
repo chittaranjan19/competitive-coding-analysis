@@ -1,0 +1,49 @@
+#include <bits/stdc++.h>
+using namespace std;
+vector <int> v[300010];
+int maxunder[300010],tot[300010];
+
+int dfs(int i) {
+	maxunder[i]= tot[i]= 0;
+	for (int j=0;j<v[i].size();++j) {
+		int k=v[i][j];
+		int temp= dfs(k);
+		maxunder[i]= max(maxunder[i],temp);
+		tot[i]+= temp;
+	}
+	tot[i]++;
+	return tot[i];
+}
+
+int query(int i, int total) {
+	if (total-tot[i]>total/2) return -1;
+	if (maxunder[i]<=total/2) return i;
+	
+	for (int j=0;j<v[i].size();++j) {
+		int k=v[i][j];
+		int temp= query(k,total);
+		if (temp!=-1) return temp;
+	}
+	return -1;
+}
+
+int main() {
+	int n,q;
+	while (cin>>n>>q) {
+		int i;
+		for (i=1;i<=n;++i) v[i].clear();
+		for (i=2;i<=n;++i) {
+			int par;
+			cin>>par;
+			v[par].push_back(i);
+		}
+		dfs(1);
+		
+		for (i=1;i<=q;++i) {
+			int num;
+			cin>>num;
+			cout<<query(num,tot[num])<<endl;
+		}
+	}
+	return 0;
+}

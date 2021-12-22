@@ -1,0 +1,61 @@
+#include <cstdio>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+struct Par{
+    int m, f;
+    Par(int _m, int _f){ m = _m; f = _f; }
+    Par(){}
+};
+
+vector<Par> v;
+
+bool criterio( Par p, Par q ) { return p.m < q.m; }
+
+int POS( vector<Par>::iterator it ) { return it-v.begin(); }
+
+int main(){
+    int n, d, m, f, m1, M, x, pos;
+    vector<Par>::iterator it, aa, bb, itx; Par pp;
+    scanf("%d %d", &n, &d);
+    v.push_back(Par(0, 0));
+
+    for(int i=1; i<=n; i++){
+        scanf("%d %d", &m, &f);
+        v.push_back(Par(m, f));
+    }
+    sort(v.begin(), v.end(), criterio);
+    
+    for(int i=1; i<=n; i++) v[i].f += v[i-1].f/*, cout<<"++"<<v[i].f<<endl*/;
+
+    m1 = M = v[0].f;
+    aa = v.begin()+1; bb = v.end();
+    bool flag = true; itx = v.begin() + 1;
+    while( flag ) {
+        x = (*itx).m;
+        pp.m = x+d-1;
+        it = upper_bound(aa, bb, pp, criterio);
+        
+        if( (it-1) == itx ){
+            M = max(M, (*itx).f - (*(itx-1)).f);
+            itx++; aa = itx;
+            if( it == v.end() ) flag = false;
+        } else{
+            if( it == v.end() ) flag = false;
+            M = max( M, (*(it-1)).f - (*(itx-1)).f );
+            bb = it;
+            pp.m = x;
+            aa = itx = upper_bound(aa, bb, pp, criterio );
+            bb = v.end();
+        }
+
+    }
+    printf("%d\n", M );
+    // for (std::vector<Par>::iterator i = v.begin(); i != v.end(); i++)
+    //  cout<<(*i).m<<", "<<(*i).f<<endl;
+
+    return 0;
+}

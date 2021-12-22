@@ -1,0 +1,133 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+
+using namespace std;
+
+    string a, b, c;
+    int ma[3][30], mm[3][30];
+
+bool canb()
+{
+    for(int i = 0; i < 27; i++)
+        if(ma[0][i] < mm[1][i])
+            return false;
+    return true;
+}
+
+bool canc()
+{
+    for(int i = 0; i < 27; i++)
+        if(ma[1][i] < mm[2][i])
+            return false;
+    return true;
+}
+
+void change_b()
+{
+    for(int i = 0; i < 27; i++)
+        ma[0][i] -= mm[1][i];
+}
+
+void change_c()
+{
+    for(int i = 0; i < 27; i++)
+        ma[1][i] -= mm[2][i];
+}
+
+int count_b()
+{
+    int l = 1e9;
+    for(int i = 0; i < 27; i++)
+        if(mm[1][i] > 0)
+            l = min(l, ma[1][i]/mm[1][i]);
+    return l;
+}
+
+int count_c()
+{
+    int l = 1e9;
+    for(int i = 0; i < 27; i++)
+        if(mm[2][i] > 0)
+            l = min(l, ma[0][i]/mm[2][i]);
+    return l;
+}
+
+
+int main()
+{
+    getline(cin, a);
+    getline(cin, b);
+    getline(cin, c);
+    //cin >> a >> b >> c;
+    for (int i = 0; i < 27; i++)
+    {
+        ma[i][0] = ma[i][1] = mm[i][1] = mm[i][2] = 0;
+    }
+    for (int i = 0; i < b.length(); i++) ++mm[1][b[i] - 'a'];
+    for (int i = 0; i < c.length(); i++) ++mm[2][c[i] - 'a'];
+
+    for (int i = 0; i < a.length(); i++)
+    {
+        ++ma[0][a[i] - 'a'];
+        ++ma[1][a[i] - 'a'];
+        ++ma[2][a[i] - 'a'];
+    }
+    int res = 0, fstr = 0, sstr = 0, f = 0, s = 0;
+    while(true)
+    {
+        if(canb())
+        {
+            ++fstr;
+            change_b();
+            sstr = count_c();
+            if(res < sstr + fstr)
+            {
+                res = sstr + fstr;
+                f = fstr;
+                s = sstr;
+            }
+        }
+        else break;
+    }
+    fstr = 0; sstr = 0;
+    while(true)
+    {
+        if(canc())
+        {
+            ++sstr;
+            change_c();
+            fstr = count_b();
+            if(res < sstr + sstr)
+            {
+                res = sstr + fstr;
+                f = fstr;
+                s = sstr;
+            }
+        }
+        else break;
+    }
+
+    string ans = "";
+    while(f--) ans += b;
+    while(s--) ans += c;
+    for(int i = 0; i < 27; i++)
+        ma[2][i] -= mm[1][i]*f + mm[2][i]*s;
+    cout << f << ' ' << s << ' ' << endl;
+    for(int i = 0; i < 27; i++)
+        for(int j = 0; j < ma[2][i]; j++)
+            ans += i + 'a';
+    printf("%s", ans.c_str());
+    return 0;
+}

@@ -1,0 +1,128 @@
+#include <bits/stdc++.h>
+#define forinc(i,a,b) for(int i = a; i <= b; i++)
+#define fordec(i,a,b) for(int i = a; i >= b; i--)
+#define task "602c"
+#define st first
+#define nd second
+#define make_pair m_p
+#define ll long long
+#define nn 410
+#define mm 160010
+
+using namespace std;
+
+int ok, n, m, m1, m2, f, r, head1[nn], head2[nn], adj1[mm], adj2[mm], next1[mm], next2[mm], a[nn][nn], pass[nn][nn], d[nn][nn], qx[mm], qy[mm];
+
+void add1(int u, int v)
+{
+    m1++;
+    adj1[m1] = v;
+    next1[m1] = head1[u];
+    head1[u] = m1;
+}
+
+void add2(int u, int v)
+{
+    m2++;
+    adj2[m2] = v;
+    next2[m2] = head2[u];
+    head2[u] = m2;
+}
+
+void enter()
+{
+    int u,v;
+    cin >> n >> m;
+    forinc(i,1,n)
+    {
+        cin >> u >> v;
+        a[u][v] = 1;
+        a[v][u] = 1;
+        add1(u,v);
+        add1(v,u);
+    }
+    forinc(u,1,n)
+        forinc(v,1,n)
+            if (u != v && !a[u][v]) add2(u,v);
+}
+
+void push(int x, int y)
+{
+    if (x == n && y == n)
+    {
+        cout << d[n][n];
+        ok = 1;
+    }
+    r++;
+    qx[r] = x;
+    qy[r] = y;
+    pass[x][y] = 1;
+}
+
+void pop(int &x, int &y)
+{
+    x = qx[f];
+    y = qy[f];
+    f++;
+}
+
+void process()
+{
+    ok = 0;
+    int x,y;
+    f = 1; r = 0;
+    push(1,1);
+    while (f <= r)
+    {
+        pop(x,y);
+        if (x == n)
+            for(int j2 = head2[y]; j2; j2 = next2[j2])
+            {
+                int v = adj2[j2];
+                if (!pass[x][v])
+                {
+                    d[x][v] = d[x][y] + 1;
+                    push(x,v);
+                    if (ok) return;
+                }
+            }
+        else
+        if (y == n)
+            for(int j1 = head1[x]; j1; j1 = next1[j1])
+            {
+                int u = adj1[j1];
+                if (!pass[u][y])
+                {
+                    d[u][y] = d[x][y] + 1;
+                    push(u,y);
+                    if (ok) return;
+                }
+            }
+        else
+        for(int j1 = head1[x]; j1; j1 = next1[j1])
+        {
+            int u = adj1[j1];
+            for(int j2 = head2[y]; j2; j2 = next2[j2])
+            {
+                int v = adj2[j2];
+                if (!pass[u][v] && (u != v || (u == n)))
+                {
+                    d[u][v] = d[x][y] + 1;
+                    push(u,v);
+                    if (ok) return;
+                }
+            }
+        }
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    //freopen(task".inp","r",stdin);
+    //freopen(task".out","w",stdout);
+    enter();
+    process();
+    if (!ok) cout << -1;
+}

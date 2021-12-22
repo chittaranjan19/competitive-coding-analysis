@@ -1,0 +1,109 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 300010;
+
+int n, m;
+vector<int> adj[maxn];
+int deg[maxn], lis[maxn], vis[maxn];
+map<pii, int> m1;
+
+void dfs(int cur, int len)
+{
+    lis[cur] = max(lis[cur], len+1);
+    int i, u;
+    for(i=0; i<adj[cur].size(); i++){
+        u = adj[cur][i];
+        if(u<=cur)
+            continue;
+        dfs(u, len+1);
+    }
+}
+
+void bfs(int cur)
+{
+    queue<pii> q;
+    q.push(mp(cur, 1));
+    lis[cur] = 1;
+    int i, x, y, u;
+    set<int> mset;
+    mset.insert(cur);
+    while(!q.empty()){
+        x = q.front().f;
+        y = q.front().s;
+        q.pop();
+        mset.erase(cur);
+        for(i=0; i<adj[x].size(); i++){
+            u = adj[x][i];
+            if(u>x && lis[u]<(y+1)){
+                lis[u] = y+1;
+                if(mset.find(u)==mset.end()){
+                    mset.insert(u);
+                    q.push(mp(u, y+1));
+                }   
+            }
+        }
+    }
+}
+
+void func()
+{
+    int i;
+    for(i=1; i<=n; i++){
+        if(!lis[i])
+            bfs(i);
+    }
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int i, j, u, v;
+    scanf("%d%d", &n, &m);
+    srand(time(NULL));
+    for(i=0; i<m; i++){
+        scanf("%d%d", &u, &v);
+        //u = 1 + rand()%n;
+        //v = 1 + rand()%n;
+        //if(u==v || m1.find(mp(u, v))!=m1.end() || m1.find(mp(v, u))!=m1.end()){
+            //i--; 
+        //  continue;
+        //}
+        if(u < v)
+            adj[u].pb(v);
+        else
+            adj[v].pb(u);
+        m1[mp(u, v)] = 1;
+        deg[u]++;
+        deg[v]++;
+    }
+    for(i=1; i<=n; i++){
+        if(!adj[i].empty())
+            sort(all(adj[i]));
+    }
+    func();
+    ll ans = 0, x;
+    for(i=1; i<=n; i++){
+        //cout << i << " " << lis[i] << "\n";
+        x = lis[i];
+        x = x*1ll*deg[i];
+        ans = max(ans, x);
+    }
+    printf("%lld\n", ans);
+    return 0;
+}

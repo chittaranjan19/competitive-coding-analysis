@@ -1,0 +1,306 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemE {
+    private final Node nil;
+    BufferedReader rd;
+
+    ProblemE() throws IOException {
+        nil = new Node();
+        nil.c = new Node[] { nil, nil };
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int n = pint();
+        NavigableMap<Integer, Integer> m = new TreeMap<>();
+        for(int i=0;i<n;i++) {
+            int[] a = intarr();
+            Integer cur = m.get(a[0]);
+            Integer cur2 = m.get(a[1]);
+            if(cur == null) {
+                cur = a[0];
+            }
+            if(cur2 == null) {
+                cur2 = a[1];
+            }
+            m.put(a[0], cur2);
+            m.put(a[1], cur);
+        }
+        SetWithCount all = new SetWithCountImpl();
+        for(Integer g: m.values()) {
+            all.add(g);
+        }
+        SetWithCount s = new SetWithCountImpl();
+        long res = 0;
+        for(Map.Entry<Integer, Integer> e: m.entrySet()) {
+            res += all.countLessThan(e.getValue()) - s.countLessThan(e.getValue());
+            int a = Math.abs(e.getValue() - e.getKey());
+            int b = Math.abs(all.countLessThan(e.getValue()) - all.countLessThan(e.getKey()));
+            res += a - b;
+            s.add(e.getValue());
+        }
+        out(res);
+    }
+
+    interface SetWithCount {
+        void add(int x);
+        int countLessThan(int x);
+    }
+
+    class SetWithCountImpl implements SetWithCount {
+        Tree t = new Tree();
+
+        @Override
+        public void add(int x) {
+            Node node = new Node();
+            node.t = x;
+            rbInsert(t, node);
+        }
+
+        @Override
+        public int countLessThan(int x) {
+            Node n = t.root;
+            Node prev = n;
+            while(n != nil) {
+                prev = n;
+                if(n.t > x) {
+                    n = n.c[0];
+                } else if(n.t < x) {
+                    n = n.c[1];
+                } else {
+                    break;
+                }
+            }
+            n = prev;
+            int res = 0;
+            while(n != nil) {
+                if(n.t <= x) {
+                    if(n.c[0] != nil) {
+                        res += n.c[0].count;
+                    }
+                    if(n.t < x) {
+                        res++;
+                    }
+                    if(n.p == nil) {
+                        n = nil;
+                    } else {
+                        while(n.p != nil && n.p.c[0] == n) {
+                            n = n.p;
+                        }
+                        if(n.p != nil) {
+                            n = n.p;
+                        }
+                    }
+                } else if(n.t > x) {
+                    n = n.p;
+                }
+            }
+            return res;
+        }
+
+    }
+
+    private class Tree {
+        Node root = nil;
+    }
+
+    private class Node {
+        int t;
+        Node p = nil;
+        Node[] c = new Node[] { nil, nil };
+        int count = 1;
+        boolean red;
+    }
+
+    private void treeInsert(Tree t, Node z) {
+        Node y = nil;
+        Node x = t.root;
+        while(x != nil) {
+            y = x;
+            y.count++;
+            if(z.t < x.t) {
+                x = x.c[0];
+            } else {
+                x = x.c[1];
+            }
+        }
+        z.p = y;
+        if(y == nil) {
+            t.root = z;
+        } else if(z.t < y.t) {
+            y.c[0] = z;
+        } else {
+            y.c[1] = z;
+        }
+    }
+
+    private void rbInsert(Tree t, Node x) {
+        treeInsert(t, x);
+        x.red = true;
+        while(x != t.root && x.p.red) {
+            if(x.p == x.p.p.c[0]) {
+                Node y = x.p.p.c[1];
+                if(y != nil && y.red) {
+                    x.p.red = false;
+                    y.red = false;
+                    x.p.p.red = true;
+                    x = x.p.p;
+                } else {
+                    if(x == x.p.c[1]) {
+                        x = x.p;
+                        leftRotate(t, x);
+                    }
+                    x.p.red = false;
+                    x.p.p.red = true;
+                    rightRotate(t, x.p.p);
+                }
+            } else {
+                Node y = x.p.p.c[0];
+                if(y != nil && y.red) {
+                    x.p.red = false;
+                    y.red = false;
+                    x.p.p.red = true;
+                    x = x.p.p;
+                } else {
+                    if(x == x.p.c[0]) {
+                        x = x.p;
+                        rightRotate(t, x);
+                    }
+                    x.p.red = false;
+                    x.p.p.red = true;
+                    leftRotate(t, x.p.p);
+                }
+            }
+        }
+        t.root.red = false;
+    }
+
+    private void leftRotate(Tree t, Node x) {
+        int xc = x.count;
+        int yc0 = 0;
+        Node y = x.c[1];
+        x.c[1] = y.c[0];
+        if(y.c[0] != nil) {
+            y.c[0].p = x;
+            yc0 = y.c[0].count;
+        }
+        y.p = x.p;
+        if(x.p == nil) {
+            t.root = y;
+        } else if(x == x.p.c[0]) {
+            x.p.c[0] = y;
+        } else {
+            x.p.c[1] = y;
+        }
+        y.c[0] = x;
+        x.p = y;
+        y.count = xc;
+        x.count = (x.c[0]==nil?0:x.c[0].count) + 1 + yc0;
+    }
+
+    private void rightRotate(Tree t, Node x) {
+        int xc = x.count;
+        int yc1 = 0;
+        Node y = x.c[0];
+        x.c[0] = y.c[1];
+        if(y.c[1] != nil) {
+            y.c[1].p = x;
+            yc1 = y.c[1].count;
+        }
+        y.p = x.p;
+        if(x.p == nil) {
+            t.root = y;
+        } else if(x == x.p.c[1]) {
+            x.p.c[1] = y;
+        } else {
+            x.p.c[0] = y;
+        }
+        y.c[1] = x;
+        x.p = y;
+        y.count = xc;
+        x.count = (x.c[0]==nil?0:x.c[0].count) + 1 + yc1;
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemE();
+    }
+}

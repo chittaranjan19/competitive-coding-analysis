@@ -1,0 +1,93 @@
+// 复杂度O(sqrt(n))  
+#include<iostream>  
+#include<cstdio>  
+#include<algorithm>  
+#include<cstring>  
+#include<queue>  
+#include<stack>  
+#include<vector>  
+#include<cmath>  
+#include<string>  
+using namespace std;  
+typedef long long LL;  
+#define INF 0x3f3f3f3f  
+const int maxn=1e6+100;  
+#define PI acos(-1.0)  
+#define lowbit(x) x&-x  
+struct node  
+{  
+    int a,b;  
+    int id;  
+};  
+node Q[maxn];  
+int unit,n,m,k;  
+LL ans[maxn];  
+int num[2*maxn];  
+int A[maxn];  
+bool cmp(node a,node b)//区间分块排序  
+{  
+    if(a.a/unit==b.a/unit)  
+        return a.b<b.b;  
+    else return a.a<b.a;  
+}  
+void work()  
+{  
+    int i,j;  
+    memset(num,0,sizeof(num));  
+    int L=1;  
+    int R=0;  
+    LL temp=0;  
+    for(i=0;i<m;i++)  
+    {  
+        while(R<Q[i].b)  
+        {  
+            R++;  
+            temp+=num[A[R]^k];  
+            num[A[R]]++;  
+        }  
+        while(R>Q[i].b)  
+        {  
+            num[A[R]]--;  
+            temp-=num[A[R]^k];  
+            R--;  
+        }  
+        while(L>Q[i].a-1)  
+        {  
+            L--;  
+            temp+=num[A[L]^k];  
+            num[A[L]]++;  
+              
+        }  
+        while(L<Q[i].a-1)  
+        {  
+            num[A[L]]--;  
+            temp-=num[A[L]^k];  
+            L++;  
+        }  
+        ans[Q[i].id]=temp;  
+    }  
+}  
+int main()  
+{  
+    scanf("%d%d%d",&n,&m,&k);  
+    int i,j;  
+    A[0]=0;  
+    for(i=1;i<=n;i++)  
+    {  
+        scanf("%d",&A[i]);  
+        A[i]^=A[i-1];     //处理前缀异或和  
+    }  
+    for(i=0;i<m;i++)  
+    {  
+        scanf("%d%d",&Q[i].a,&Q[i].b);  
+        Q[i].id=i;  
+    }  
+    unit=(int)ceil(sqrt((double)n));  
+    sort(Q,Q+m,cmp);  
+    work();  
+    for(i=0;i<m;i++)  
+    {  
+        printf("%I64d\n",ans[i]);  
+    }  
+    return 0;  
+}  

@@ -1,0 +1,170 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD {
+    BufferedReader rd;
+    List<List<Integer>> e;
+    int n;
+
+    ProblemD() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        n = intarr()[0];
+        e = new ArrayList<>(n);
+        for(int i=0;i<n;i++) {
+            e.add(new ArrayList<Integer>());
+        }
+        for(int i=0;i<n-1;i++) {
+            int[] a = intarr();
+            a[0]--;
+            a[1]--;
+            e.get(a[0]).add(a[1]);
+            e.get(a[1]).add(a[0]);
+        }
+        Set<Integer> att = new HashSet<>();
+        for(int i: intarr()) {
+            att.add(i-1);
+        }
+        Queue<Integer> one = new ArrayDeque<>();
+        for(int i=0;i<n;i++) {
+            if(e.get(i).size() == 1 && !att.contains(i)) {
+                one.add(i);
+            }
+        }
+        while(!one.isEmpty()) {
+            int v = one.poll();
+            if(e.get(v).size() == 1) {
+                int other = e.get(v).get(0);
+                e.get(v).clear();
+                List<Integer> otherList = e.get(other);
+                if(otherList.size() == 1) {
+                    otherList.clear();
+                } else if(otherList.size() > 1) {
+                    for(int i=0;i<otherList.size();i++) {
+                        if(otherList.get(i).equals(v)) {
+                            otherList.remove(i);
+                            break;
+                        }
+                    }
+                }
+                if(otherList.size() == 1 && !att.contains(otherList.get(0))) {
+                    one.add(other);
+                }
+            }
+        }
+
+        int root = att.iterator().next();
+        int[] rs = dfs(root);
+        int[] mx = dfs(rs[1]);
+
+        int sum = 0;
+        for(int i=0;i<n;i++) {
+            sum += e.get(i).size();
+        }
+        out(mx[1]+1);
+        out(sum - mx[0]);
+    }
+
+    private int[] dfs(int root) {
+        boolean[] vs = new boolean[n];
+        vs[root] = true;
+        int[] len = new int[n];
+        Queue<Integer> q = new ArrayDeque<>();
+        q.add(root);
+        int mx = 0;
+        int mxVertex = root;
+        while(!q.isEmpty()) {
+            int u = q.poll();
+            for(Integer v: e.get(u)) {
+                if(!vs[v]) {
+                    vs[v] = true;
+                    q.add(v);
+                    len[v] = len[u] + 1;
+                    if(len[v] > mx) {
+                        mx = len[v];
+                        mxVertex = v;
+                    } else if(len[v] == mx && v < mxVertex) {
+                        mxVertex = v;
+                    }
+                }
+            }
+        }
+        return new int[] { mx, mxVertex };
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

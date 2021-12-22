@@ -1,0 +1,107 @@
+#include<bits/stdc++.h>
+using namespace std;
+const int N=2e5+5,A=1e6+5;
+int arr[N],cnt[A];
+long long ans=0,ans1[N];
+int root=447;
+typedef struct
+{
+	int x,y,id;
+}nod;
+nod qu[N];
+int l = 1,r=1;
+bool comp(nod a,nod b)
+{
+	return (a.x/root == b.x/root)?(a.y < b.y):(a.x/root < b.x/root);
+}
+void read(int &x)
+{
+    register char c = getchar();
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x;
+}
+void read(long &x)
+{
+    register char c = getchar();
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x;
+}
+inline void write(long long a)
+{
+	char s[20];
+	int i=0;
+	if(!a)
+		s[i++]='0';
+	while(a!=0)
+	{
+		s[i++]=a%10+48;
+		a=a/10;
+	}
+	i--;
+	while(i>=0)
+		putchar(s[i--]);
+	putchar('\n');
+}
+void add(int pos)
+{
+	ans-=(long long)cnt[arr[pos]]*(long long)cnt[arr[pos]]*(long long)arr[pos];
+  	cnt[arr[pos]]++;
+  	ans+=(long long)cnt[arr[pos]]*(long long)cnt[arr[pos]]*(long long)arr[pos];
+}
+void remove(int pos)
+{
+	ans-=(long long)cnt[arr[pos]]*(long long)cnt[arr[pos]]*(long long)arr[pos];
+  	cnt[arr[pos]]--;
+  	ans+=(long long)cnt[arr[pos]]*(long long)cnt[arr[pos]]*(long long)arr[pos];
+}
+int main()
+{
+	int n,q,i,temp,temp1;
+	//scanf("%I64d%I64d",&n,&q);
+	read(n);read(q);
+	for(i=1;i<=n;i++)
+	{	read(temp);arr[i]=temp;}
+	for(i=0;i<q;i++)
+	{
+		//scanf("%I64d%I64d",&temp,&temp1);
+		read(temp);read(temp1);
+		qu[i].x=temp;qu[i].y=temp1;
+		qu[i].id=i;
+	}
+	sort(qu,qu+q,comp);
+	for(i=0;i<q;i++)
+  	{
+		while (l < qu[i].x)
+		{
+    			remove(l);
+    			l++;
+		}
+  		while (l > qu[i].x)
+		{
+    			add(l-1);
+    			l--;
+		}
+  		while (r <= qu[i].y)
+    		{
+			add(r);
+    			r++;
+		}
+  		while (r > qu[i].y+1)
+    		{
+			remove(r-1);
+    			r--;
+		}
+		ans1[qu[i].id]=ans;
+	}
+	for(i=0;i<q;i++)
+		write(ans1[i]);//printf("%I64d\n",qu[i].ans);
+	return 0;
+}

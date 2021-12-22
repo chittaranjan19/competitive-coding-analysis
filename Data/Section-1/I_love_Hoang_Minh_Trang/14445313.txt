@@ -1,0 +1,69 @@
+using namespace std;
+#include<bits/stdc++.h>
+#define FOR(i, a, b) for (int i = a; i < b; i++)
+#define FORE(i, a, b) for (int i = a; i <= b; i++)
+#define FORD(i, a, b) for (int i = a; i >= b; i--)
+const int MAXN = 5*1e5;
+const int INF = 1e9 + 7;
+int n, a[MAXN];
+typedef pair<int, int> ii;
+ii it[MAXN];
+
+void build(int x, int l, int r)
+{
+    if (l == r){
+        it[x].first = a[l];
+        it[x].second = a[l];
+        return;
+    }
+    int mid = (l + r) / 2;
+    build(2 * x, l, mid);
+    build(2 * x + 1, mid + 1, r);
+    it[x].first = min(it[2 * x].first, it[2 * x + 1].first);
+    it[x].second = max(it[2 * x].second, it[2 * x + 1].second);
+}
+
+int getmin(int x, int l, int r, int u, int v)
+{
+    if (r < u || v < l) return INF;
+    if (u <= l && r <= v) return it[x].first;
+    int mid = (l + r) / 2;
+    return min(getmin(2 * x, l, mid, u, v), getmin(2 * x + 1, mid + 1, r, u, v));
+}
+
+int getmax(int x, int l, int r, int u, int v)
+{
+    if (r < u || v < l) return -INF;
+    if (u <= l && r <= v) return it[x].second;
+    int mid = (l + r) / 2;
+    return max(getmax(2 * x, l, mid, u, v), getmax(2 * x + 1, mid + 1, r, u, v));
+}
+
+int main()
+{
+    ios::sync_with_stdio(false); cin.tie(0);
+    #ifndef ONLINE_JUDGE
+    freopen("B.inp", "r", stdin);
+    freopen("B.out", "w", stdout);
+    #endif // ONLINE_JUDGE
+    //MIKELHPDATKE;
+    cin >> n;
+    FORE(i, 1, n) cin >> a[i];
+    build(1, 1, n);
+   // cout<<get
+    int ans = 0;
+    FORE(i, 1, n){
+        int d = i, c = n, g, fin = -1;
+        while (d <= c){
+            g = (d + c) / 2;
+            if (getmax(1, 1, n, i, g) - getmin(1, 1, n, i, g) <= 1){
+                fin = g;
+                d = g + 1;
+            }
+            else c = g - 1;
+        }
+        ans = max(ans, fin - i + 1);
+    }
+    cout << ans;
+    return 0;
+}

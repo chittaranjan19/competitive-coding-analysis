@@ -1,0 +1,106 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define pb push_back
+
+vector<int> avai;
+string s;
+const lli mod = 1000000003;
+const int limit = 2000005;
+lli apo[limit];
+lli bpo[limit];
+lli ahash[limit];
+lli bhash[limit];
+lli magic1 = 37LL,magic2 = 97LL;
+/*Hashing*/
+char _s[limit];
+void inithash(string s){
+    int n = s.size();
+    apo[0]=bpo[0]=1LL;
+    ahash[0]=bhash[0]=0LL;
+
+    for(int i=1;i<=n;i++){
+        apo[i] = (apo[i-1]*magic1)%mod;
+        bpo[i] = (bpo[i-1]*magic2)%mod;
+        ahash[i] = (ahash[i-1]*magic1 + s[i-1])%mod;
+        bhash[i] = (bhash[i-1]*magic2 + s[i-1])%mod;
+    }
+    return;
+}
+
+inline pair<lli,lli> calcHash(string s){
+    int n = s.size();
+    lli h1=0LL,h2=0LL;
+
+    for(int i=0;i<n;i++){
+        h1 = (h1*magic1 + s[i])%mod;
+        h2 = (h2*magic2 + s[i])%mod;
+    }
+    return (make_pair(h1,h2));
+}
+
+//To get hash of idx between i and j (1 based)
+inline pair<lli,lli> getHash(int i,int j){
+    lli h1 = ((ahash[j] - (ahash[i-1]*apo[j-i+1]))%mod+mod)%mod;
+    lli h2 = ((bhash[j] - (bhash[i-1]*bpo[j-i+1]))%mod+mod)%mod;
+    return (make_pair(h1,h2));
+}
+/*Hashing Done*/
+
+bool ok(int len,pair<lli,lli> tmp){
+    int n = s.size();
+    pair<lli,lli> t;
+    for(int i=2;i<=n;i++){
+        int e = i+len-1;
+        if(e >= n) return false;
+        t = getHash(i,e);
+        if(t.first==tmp.first && t.second==t.second) return true;
+    }
+    return false;
+}
+
+int solve(){
+    pair<lli,lli> tmp;
+    int l = 0 , h = avai.size() - 1;
+    int len,mid;
+    while(l<h){
+        mid = l + (h-l+1)/2;
+        len = avai[mid];
+        tmp = getHash(1,len);
+        if(ok(len,tmp))
+            l = mid;
+        else
+            h = mid-1;
+    }
+    len = avai[l];
+    tmp = getHash(1,len);
+    if(ok(len,tmp)) return len;
+    return -1;
+}
+
+int main(){
+    scanf("%s",_s);
+    s = string(_s);
+    inithash(s);
+    int n = s.size();
+    pair<lli,lli> tmp;
+    pair<lli,lli> btmp;
+    for(int i=1;i<=n;i++){
+        tmp = getHash(1,i);
+        btmp = getHash(n-i+1,n);
+        if(tmp.first==btmp.first && tmp.second==btmp.second)
+            avai.pb(i);
+    }
+    //sort(avai.begin(),avai.end());
+    int ans = solve();
+    if(ans==-1)
+        printf("Just a legend\n");
+    else{
+        for(int i=0;i<ans;i++)
+            printf("%c",s[i]);
+        printf("\n");
+    }
+    return 0;
+}

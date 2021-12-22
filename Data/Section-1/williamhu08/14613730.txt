@@ -1,0 +1,111 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long double ld;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 2010;
+
+#define double ld //mwahahahahaha
+
+int gcd (int a, int b) {
+	return a ? gcd(b % a, a) : b;
+}
+
+ll gcd (ll a, ll b) {
+	return a ? gcd(b % a, a) : b;
+}
+
+const double EPS = 1e-10;	//how lenient should i be...
+
+int N;
+int A[MAXN], B[MAXN], C[MAXN];
+double X[MAXN], Y[MAXN];
+map<pii, int> mpcnt;
+
+bool eq (double a, double b) {
+	return isinf(a) ? isinf(b) : (!isinf(b) && fabs(a - b) < EPS);
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d", &N);
+	for (int i = 0; i < N; i++) {
+		scanf("%d %d %d", &A[i], &B[i], &C[i]);
+		pii p(A[i], B[i]);
+		int g = gcd(abs(A[i]), abs(B[i]));
+		p.fi /= g;
+		p.se /= g;
+		if (p.fi < 0) {
+			p.fi *= -1;
+			p.se *= -1;
+		}
+		mpcnt[p]++;
+		// printf("%d %d\n", p.fi, p.se);
+		//i think this is the key here...
+		double sqrab = A[i] * A[i] + B[i] * B[i];
+		X[i] = -(A[i] * C[i]) / sqrab;
+		Y[i] = -(B[i] * C[i]) / sqrab;
+		// cerr << "(x, y) = (" << X[i] << ", " << Y[i] << ")\n";
+	}
+	//not changing
+	//hmm dis is strange
+	//subtrackt
+	ll ans = 0;
+	for (int i = 0; i < N; i++) {
+		vector<double> slopes;
+		bool hnan = false;
+		for (int j = 0; j < N; j++) {
+			if (i == j) {
+				continue;
+			}
+			double m = double(Y[j] - Y[i]) / (X[j] - X[i]);
+			if (m != m) {
+				hnan = true;
+				continue;
+			}
+			if (isinf(m)) {
+				m = 1.0 / 0.0;
+			}
+			slopes.push_back(m);
+		}
+		//whoot they can still inters in origin. wut...
+		sort(all(slopes));
+		for (int j = 0, k = 1; j < N - 1; j = k) {
+			for (k = j + 1; k < N - 1; k++) {
+				if (!eq(slopes[k], slopes[k - 1])) {
+					break;
+				}
+			}
+			int diff = k - j;
+			ans += diff * (diff - 1) / 2;
+		}
+		if (hnan) {
+			ans += slopes.size();
+		}
+	}
+	// cerr << ans << endl;
+	// assert(ans % 3 == 0);	//desssert...
+	ans /= 3;	//oops
+	//map subtract? yeeess
+	for (auto it : mpcnt) {
+		ll x = it.se;
+		ans -= x * (x - 1) * (x - 2) / 6;
+	}
+	//OOPS that was a bad hoax call, sorry...
+	//WA 76 NOOO :(
+	//also test 18 has...ans % 3 != 0 !!???
+	printf("%lld\n", ans);
+}

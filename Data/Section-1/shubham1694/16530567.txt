@@ -1,0 +1,89 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef pair<int, pair<int, pii> > ds;
+
+const int mod = 1000000007;
+const int inf = 500000000;
+const int maxn = 100010;
+
+int n, m, r, mat[61][61][61];
+int dist[61][61][61][61];
+
+
+void dijkstra(int c, int s, int k)
+{
+	int i, j, cur, cdist, ck, cc, ndest, ndist;
+	for(i=1; i<=n; i++)
+		dist[c][s][k][i] = inf;
+	priority_queue<ds, vector<ds>, greater<ds> > pq;
+	dist[c][s][k][s] = 0;
+	pq.push(mp(0, mp(s, mp(c, k))));
+	while(!pq.empty()){	
+		cdist = pq.top().f;
+		cur = pq.top().s.f;
+		ck = pq.top().s.s.s;
+		cc = pq.top().s.s.f;
+		pq.pop();
+		if(dist[c][s][k][cur] < cdist)
+			continue;
+		for(i=1; i<=m; i++){																	//new car
+			for(j=1; j<=n; j++){																//destination
+				ndist = cdist + mat[i][cur][j];
+				if(i!=cc){
+					if(ck && ndist<dist[c][s][k][j]){
+						dist[c][s][k][j] = ndist;
+						pq.push(mp(ndist, mp(j, mp(i, ck-1))));
+					}
+				}
+				else{
+					if(ndist<dist[c][s][k][j]){
+						dist[c][s][k][j] = ndist;
+						pq.push(mp(ndist, mp(j, mp(i, ck))));
+					}
+				}
+			}
+		}
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, k, ans, s, d;
+	scanf("%d%d%d", &n, &m, &r);
+	for(i=1; i<=m; i++){
+		for(j=1; j<=n; j++){
+			for(k=1; k<=n; k++)
+				scanf("%d", &mat[i][j][k]);
+		}
+	}
+	for(i=1; i<=m; i++){
+		for(j=1; j<=n; j++){
+			for(k=0; k<=n; k++)
+				dijkstra(i, j, k);
+		}
+	}
+	while(r--){
+		scanf("%d%d%d", &s, &d, &k);
+		k = min(k, n);
+		ans = inf;
+		for(i=1; i<=m; i++){
+			ans = min(ans, dist[i][s][k][d]);
+		}
+		printf("%d\n", ans);
+	}
+	return 0;
+}

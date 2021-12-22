@@ -1,0 +1,125 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+
+
+void imprimirVector (vector<int> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+int toNumber (string s)
+{
+	int Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (int number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+struct Order
+{
+	Order(char buyOrSell, tint pp, tint qq, tint ind )
+	{
+		direction = buyOrSell;
+		price = pp;
+		volume = qq;
+		indice = ind;
+	}
+	char direction;
+	tint price, volume, indice;
+};
+
+bool operator < (Order o1, Order o2)
+{
+	return o1.indice < o2.indice;
+}
+
+bool wayToSortBuy (Order o1, Order o2)
+{
+	return o1.price > o2.price;
+}
+
+bool wayToSortSell (Order o1, Order o2)
+{
+	return o1.price < o2.price;
+}
+
+int main()
+{
+	ios_base::sync_with_stdio(0);
+	tint maxPrice = 100500;
+	tint n,s;
+	cin >> n >> s;
+	vector<Order> buy (maxPrice,Order('A',-1,0,maxPrice));
+	vector<Order> sell (maxPrice,Order('A',maxPrice,0,maxPrice));
+	forn(i,n)
+	{
+		char d;
+		tint p, q;
+		cin >> d >> p >> q;
+		if (d == 'B')
+			buy[p] = Order(d, p, buy[p].volume + q, min(tint (i), buy[p].indice));
+		else
+			sell[p] = Order(d, p, sell[p].volume + q, min(tint(i), sell[p].indice)); 
+	}
+	sort(buy.begin(),buy.end(), wayToSortBuy);
+	sort(sell.begin(),sell.end(), wayToSortSell);
+	vector<Order> ans;
+	forn(i,s)
+		if (buy[i].indice < maxPrice)
+			ans.push_back(buy[i]);
+	forn(i,s)
+	if (sell[i].indice < maxPrice)
+		ans.push_back(sell[i]);
+	sort(ans.begin(),ans.end(),wayToSortBuy);
+	for(auto x : ans)
+		cout << x.direction << " " << x.price << " " << x .volume << endl;
+	
+	return 0;
+}
+
+
+

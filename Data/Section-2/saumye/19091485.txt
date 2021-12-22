@@ -1,0 +1,131 @@
+#include<bits/stdc++.h>
+#define maxn 1000005
+
+using namespace std;
+
+vector<int> gr[maxn];
+int p[maxn];
+bool vis[maxn];
+int chain[maxn], k = 0;
+int ans[maxn];
+
+void dfs(int v)
+{
+	vis[v] = 1;
+	chain[k++] = v;
+	vector<int>::iterator it;
+	for ( it = gr[v].begin() ; it != gr[v].end() ; it++ )
+	{
+		if ( !vis[*it] )
+		{
+			dfs(*it);
+		}
+	}
+}
+/*void bfs(int v)
+{
+	queue<int> q;
+	q.push(v);
+	vis[v] = 1;
+	while ( !q.empty() )
+	{
+		int pr = q.front();
+		chain.push_back(pr);
+		q.pop();
+		vector<int>::iterator it;
+		for ( it = gr[pr].begin() ; it != gr[pr].end() ; it++ )
+		{
+			if ( !vis[*it] )
+			{
+				vis[*it] = 1;
+				q.push(*it);
+			}
+		}
+	} 
+}
+*/
+bool so[maxn];
+void count_sort(vector<int> &vec)
+{
+	memset(so, 0, sizeof so);
+	for (int i = 0 ; i < vec.size() ; i++ )
+	{
+		so[vec[i]] = 1;
+	}
+	vec.clear();
+	for (int i = maxn - 3 ; i >= 1 ; i-- )
+	{
+		if ( so[i] )
+			vec.push_back(i);
+	}
+}
+int readint()
+{
+   int cc = getc(stdin);
+   for (;cc < '0' || cc > '9';)  cc = getc(stdin);
+   int ret = 0;
+   for (;cc >= '0' && cc <= '9';)
+   {
+      ret = ret * 10 + cc - '0';
+      cc = getc(stdin);
+   }
+   return ret;
+}
+int main()
+{
+	int n, m, i;
+	n = readint();
+	m = readint();
+	for ( i = 1 ; i <= n ; i++ )
+	{
+		p[i] = readint();
+	}
+	for ( i = 1 ; i <= m ; i++ )
+	{
+		int u, v;
+		//scanf("%d%d", &u, &v);
+		u = readint();
+		v = readint();
+		gr[u].push_back(v);
+		gr[v].push_back(u);
+	}
+	for ( i = 1 ; i <= n ; i++ )
+	{
+		vis[i] = 0;
+		ans[i] = -1;
+	}
+	for ( i = 1 ; i <= n ; i++ )
+	{
+		if ( !vis[i] )
+		{
+			dfs(i);
+			//use chain and then clear it
+			sort(chain, chain + k);
+			vector<int> a;
+			for ( i = 0 ; i < k ; i++ )
+			{
+				a.push_back( p[chain[i]] );
+			}
+			count_sort(a);
+			for ( i = 0 ; i < k ; i++ )
+			{
+				ans[chain[i]] = a[i];
+			}
+			k = 0;
+		}
+	}
+
+	for ( i = 1 ; i <= n ; i++ )
+	{
+		if ( ans[i] < 0 )
+		{
+			ans[i] = p[i];
+		}
+	}
+	for ( i = 1 ; i <= n ; i++ )
+	{
+		printf("%d ", ans[i]);
+	}
+	printf("\n");
+	return 0;
+}

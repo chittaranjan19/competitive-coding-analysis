@@ -1,0 +1,95 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N =1000 + 100;
+
+int d[N][N];
+pii dp[5][N];
+
+vector <int> g[N];
+int n, m;
+queue <int> q;
+
+void bfs(int x){
+	d[x][x] = 0;
+	q.push(x);
+	while(!q.empty()){
+		int v = q.front();
+		q.pop();
+		for(auto u : g[v]){
+			if(d[x][u] == -1){
+				d[x][u] = d[x][v] + 1;
+				q.push(u);
+			}
+		}
+	}
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	memset(d, -1, sizeof d);
+	cin >> n >> m;
+	for(int i = 0; i < m; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; v --;
+		g[u].PB(v);
+	}
+	for(int i = 0; i < n; ++i) bfs(i);
+	for(int i = 0; i < n; ++i) dp[0][i] = {0, i};
+	for(int k = 1; k < 4; ++k){
+		for(int i = 0; i < n; ++i){
+			int mx = -1, id = 0;
+			for(int j = 0; j < n; ++j){
+				if(d[i][j] != -1 && mx < d[i][j] + dp[k - 1][j].X){
+					mx = d[i][j] + dp[k - 1][j].X;
+					id = j;
+				}
+			}
+			dp[k][i] = {mx, id};
+		}
+	}
+	int mx = -1, id = 0;
+	for(int i = 0; i < n; ++i){
+		if(mx < dp[3][i].X){
+			mx = dp[3][i].X;
+			id = i;
+		}
+	}
+//	cerr << dp[3][id].X << "\n";
+	cout << id + 1 << " ";
+	id = dp[3][id].Y;
+//	cerr << dp[2][id].X << "\n";
+	cout << id + 1 << " ";
+	id = dp[2][id].Y;
+//	cerr << dp[1][id].X << "\n";
+	cout << id + 1 << " ";
+	id = dp[1][id].Y;
+//	cerr << dp[0][id].X << "\n";
+	cout << id + 1 << "\n";
+	return 0;
+}

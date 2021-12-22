@@ -1,0 +1,83 @@
+#include<bits/stdc++.h>
+#define Max(a,b) (a>b?a:b)
+#define Min(a,b) (a>b?b:a)
+using namespace std;
+typedef __int64 ll;
+
+int const Max_N = 2e5+50;
+int head[Max_N] = {0};
+int dfn[Max_N] = {0};
+int low[Max_N] = {0};
+int cnt = 0;
+int N;
+bool vis[Max_N] = {false};
+stack<int> sta;
+ll const mod = 109+7;
+ll Pow(int n)
+{
+	ll ans = 1;
+	for (int i = 0; i < n; ++i)
+	{
+		ans *= 2;
+		ans %= mod; 
+	} 
+	return (ans + mod - 2) % mod; 
+} 
+int coun = 0; 
+int belong[Max_N] = {0}; 
+void Tarjan(int u)
+{
+	low[u] = dfn[u] = ++cnt;
+	vis[u] = true;
+	sta.push(u);
+	int v = head[u];
+	if(!dfn[v])
+	{
+		Tarjan(v);
+		low[u] = Min(low[u],low[v]);
+	}
+	else if(vis[v])
+	{
+		low[u] = Min(low[u],dfn[v]);
+	}
+	int res = 1;
+	if(low[u] == dfn[u])
+	{
+		int nod = 0;
+		++coun;
+		while(!sta.empty())
+		{
+			nod = sta.top();
+			vis[nod] = false;
+			++belong[coun]; 
+			sta.pop();
+			if(nod == u) return ;
+		}
+		
+	}
+	return ;
+}
+int main()
+{
+	scanf("%d",&N);
+	for (int i = 1; i < N+1;++i) scanf("%d",head+i);
+	ll ans = 0;
+	ll res = 0;
+	for (int i = 1; i < N+1; ++i)
+	{
+		if(!dfn[i]) Tarjan(i);
+	}
+	for(int i = 1; belong[i];++i)
+	{
+		if(belong[i] == 1) ++res;
+		else
+		{
+			ans = (ans + Pow(belong[i]))%mod;
+		 } 
+	} 
+	ll t = (Pow(res)+2)%mod;
+	ans = ans * t % mod;
+	cout << ans << endl;
+	return 0;
+}
+

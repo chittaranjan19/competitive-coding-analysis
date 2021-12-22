@@ -1,0 +1,115 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 100010;
+
+template<class T, class Comp = less<T> >
+struct mono_queue {
+	deque<pair<T, int> > dq;	//front = extreme. back = pushed in
+	Comp comp;
+	int left, right;	//careful about index problems...
+	mono_queue () : dq(), comp(), left(0), right(0) {}
+	void push (T t) {
+		while (!dq.empty() && comp(t, dq.back().first)) {
+			dq.pop_back();
+		}
+		dq.push_back(make_pair(t, right++));
+	}
+	void pop() {
+		assert(!empty());
+		if (dq.front().second == left) {
+			dq.pop_front();
+		}
+		left++;
+	}
+	T get() {
+		assert(!empty());
+		return dq.front().first;
+	}
+	bool empty() {
+		return left == right;
+	}
+};
+
+int N, M, K;
+int A[5][MAXN];
+mono_queue<int, greater<int> > mq[5];
+int ans, nshots[5];
+
+bool ok() {
+	int s = 0;
+	for (int i = 0; i < 5; i++) {
+		s += mq[i].empty() ? 0 : mq[i].get();
+	}
+	return s <= K;
+}
+
+void process (int diff) {
+	if (ans >= diff) {
+		return;
+	}
+	ans = diff;
+	for (int i = 0; i < 5; i++) {
+		nshots[i] = mq[i].get();
+	}
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M >> K;
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < M; j++) {
+			cin >> A[j][i];
+		}
+	}
+	//sweepline
+	for (int i = 0, j = 0; i < N || j < N; ) {
+		if (j == N) {
+			//then of course we have to increment i
+			if (ok()) {
+				process(j - i);
+				for (int k = 0; k < 5; k++) {
+					mq[k].pop();
+				}
+				i++;
+			} else {
+				break;
+			}
+			//remove i
+		} else {
+			//let's see if we can just increment it by one
+			if (ok()) {
+				process(j - i);
+				//insert j
+				for (int k = 0; k < 5; k++) {
+					mq[k].push(A[k][j]);
+				}
+				j++;
+			} else {
+				//yes. you need to limit it
+				//remove i
+				for (int k = 0; k < 5; k++) {
+					mq[k].pop();
+				}
+				i++;
+			}
+		}
+	}
+	for (int i = 0; i < M; i++) {
+		cout << nshots[i] << ' ';
+	}
+}

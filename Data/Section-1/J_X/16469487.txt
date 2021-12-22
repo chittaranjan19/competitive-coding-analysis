@@ -1,0 +1,89 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+#include <set>
+
+using namespace std;
+
+typedef pair<int, int> pii;
+
+const int maxn = 1e6 + 5;
+
+vector<pii> vec[maxn];
+set<int> st[maxn];
+bool vis[maxn];
+int a[maxn], num[maxn], ans[maxn];
+
+void sieve()
+{
+    for(int i = 2; i < maxn; ++i)
+    {
+        if(!vis[i])
+        {
+            for(int j = i; j < maxn; j += i)
+            {
+                num[j] = num[j / i] + 1;
+                vec[j].push_back(pii(i, num[j]));
+            }
+            for(int j = i; j < maxn; j += i)
+            {
+                num[j] = 0;
+            }
+        }
+    }
+}
+
+int main()
+{
+    sieve();
+    int n, m;
+    while(~scanf("%d%d", &n, &m))
+    {
+        for(int i = 1; i <= m; ++i) st[i].clear();
+        memset(num, 0, sizeof(num));
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", &a[i]);
+            if(a[i] <= m)
+            {
+//                cout << a[i] << endl;
+                for(int j = 0; j < vec[a[i]].size(); ++j)
+                {
+                    pii p = vec[a[i]][j];
+                    st[p.first].insert(p.second);
+//                    cout << p.first << ' ' << p.second << endl;
+                }
+                ++num[a[i]];
+            }
+        }
+        int l = 1;
+        for(int i = 1; i <= m; ++i)
+        {
+            ans[i] = 0;
+            vis[i] = true;
+            for(int j = 0; j < vec[i].size(); ++j)
+            {
+                pii p = vec[i][j];
+                if(!st[p.first].count(p.second))
+                {
+                    vis[i] = false;
+                    break;
+                }
+            }
+        }
+        for(int i = 1; i <= m; ++i)
+        {
+            for(int j = i; j <= m; j += i)
+            {
+                if(vis[j])ans[j] += num[i];
+            }
+            if(ans[i] > ans[l]) l = i;
+        }
+        printf("%d %d\n", l, ans[l]);
+        for(int i = 1; i <= n; ++i) if(l % a[i] == 0) printf("%d ", i);
+        puts("");
+    }
+    return 0;
+}

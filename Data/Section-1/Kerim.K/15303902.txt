@@ -1,0 +1,88 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll arr[MAXN],in[MAXN],out[MAXN],tim,rr[MAXN],BLOK,ans[MAXN],S[MAXN],cnt[MAXN],mx=0,id[MAXN];
+pair<PII,ll> pr[MAXN];
+vector<ll>adj[MAXN];
+bool cmp(pair<PII,ll> x,pair<PII,ll> y){
+	if(x.ff.ff/BLOK==y.ff.ff/BLOK)
+		return (x.ff.ss<y.ff.ss);
+	return (x.ff.ff<y.ff.ff);	
+}
+void dfs(ll nd,ll pr){
+	in[nd]=++tim;
+	rr[tim]=arr[nd];
+	for(ll i=0;i<adj[nd].size();i++){
+		ll to=adj[nd][i];
+		if(to!=pr)
+			dfs(to,nd);
+	}
+	out[nd]=tim;
+}
+void remove(ll k){
+	if(cnt[k]>0){
+		S[cnt[k]]-=k;
+		if(!S[cnt[k]] and cnt[k]==mx)
+			mx--;
+	}
+	cnt[k]--;
+	if(cnt[k]>0)
+		S[cnt[k]]+=k;
+}
+void add(ll k){
+	if(cnt[k]>0)
+		S[cnt[k]]-=k;
+	cnt[k]++;
+	if(cnt[k]>0){
+		S[cnt[k]]+=k;
+		if(cnt[k]>mx)
+			mx=cnt[k];
+	}
+}
+int main(){
+	ll a;
+	cin>>a;
+	for(ll i=1;i<=a;i++)
+		scanf("%lld",arr+i);
+	BLOK=sqrt(a);	
+	for(ll i=0;i<a-1;i++){
+		ll u,v;
+		scanf("%lld%lld",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	dfs(1,0);
+	for(ll i=1;i<=a;i++)
+		pr[i]=mp(mp(in[i],out[i]),i);
+	sort(pr+1,pr+(a+1),cmp);
+	ll l=1,r=1;
+	for(ll i=1;i<=a;i++){
+		ll L=pr[i].ff.ff,R=pr[i].ff.ss,ind=pr[i].ss;
+		while(l<L)remove(rr[l]),l++;
+		while(r<=R)add(rr[r]),r++;
+		while(l>L)add(rr[l-1]),l--;
+		while(r>R+1)remove(rr[r-1]),r--;
+		ans[ind]=S[mx];
+	}
+	for(ll i=1;i<=a;i++)
+		printf("%lld ",ans[i]);
+	printf("\n");	
+	return 0;
+}

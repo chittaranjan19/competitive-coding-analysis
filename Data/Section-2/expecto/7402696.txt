@@ -1,0 +1,108 @@
+#include <stdio.h>
+#include <algorithm>
+
+int n,m,p,w,ans,cnt,cnt2,uni[2014];
+bool check[1014],check_v[1014];
+
+struct ALPS
+{
+	char lev[12][12];
+}a[1014];
+struct edge
+{
+	int st;
+	int ed;
+	int val;
+}ed[550000],ans_v[1014];
+
+int sortf(edge x,edge y)
+{
+	if(x.val<y.val)
+		return 1;
+	return 0;
+}
+
+int u(int x)
+{
+	if(uni[x]==0)
+		uni[x]=x;
+	if(uni[x]==x)
+		return x;
+	else
+		return uni[x]=u(uni[x]);
+}
+int main()
+{
+	int i,j,k,l,cnt2;
+	scanf("%d %d %d %d",&n,&m,&p,&w);
+	for(i=1;i<=p;i++)
+	{
+		for(j=1;j<=n;j++)
+			scanf("%s",a[i].lev[j]+1);
+	}
+	for(i=1;i<=p;i++)
+	{
+		for(j=i+1;j<=p;j++)
+		{
+			cnt2=0;
+			for(k=1;k<=n;k++)
+			{
+				for(l=1;l<=m;l++)
+				{
+					if(a[i].lev[k][l]!=a[j].lev[k][l])
+						cnt2++;
+				}
+			}
+			ed[++cnt].st=i;
+			ed[cnt].ed=j;
+			ed[cnt].val=cnt2*w;
+		}
+	}
+	for(i=1;i<=p;i++)
+	{
+		ed[++cnt].st=0;
+		ed[cnt].ed=i;
+		ed[cnt].val=n*m;
+	}
+
+	std::sort(ed+1,ed+cnt+1,sortf);
+
+	cnt2=0;
+	for(i=1;i<=cnt;i++)
+	{
+		if(u(ed[i].st)!=u(ed[i].ed))
+		{
+			uni[u(ed[i].st)]=u(ed[i].ed);
+			ans+=ed[i].val;
+			ans_v[++cnt2]=ed[i];
+		}
+	}
+	printf("%d\n",ans);
+
+	check[0]=true;
+	while(1)
+	{
+		for(i=1;i<=cnt2;i++)
+		{
+			if(check_v[i])
+				continue;
+			if(check[ans_v[i].st]==true)
+			{
+				printf("%d %d\n",ans_v[i].ed,ans_v[i].st);
+				check[ans_v[i].ed]=true;
+				check_v[i]=true;
+				break;
+			}
+			if(check[ans_v[i].ed]==true)
+			{
+				printf("%d %d\n",ans_v[i].st,ans_v[i].ed);
+				check[ans_v[i].st]=true;
+				check_v[i]=true;
+				break;
+			}
+		}
+		if(i==cnt2+1)
+			break;
+	}
+	return 0;
+}

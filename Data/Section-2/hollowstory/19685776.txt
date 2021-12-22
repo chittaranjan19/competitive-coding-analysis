@@ -1,0 +1,65 @@
+#include<iostream>
+#include<algorithm>
+#include<cmath>
+#include<cstring>
+#include<vector>
+#include<queue>
+#include<stack>
+#include<map>
+
+using namespace std;
+
+const int INF = 0x3f3f3f3f;
+
+long long dp[20][2550][50];
+int hash[2550];
+int bit[20];
+
+int gcd( int a, int b ){
+    return b ? gcd( b, a % b ) : a;
+}
+
+long long dfs( int pos, int mod, int lcm, bool top ){
+    if( !pos ) return !( mod % lcm );
+    if( !top && dp[pos][mod][hash[lcm]] != -1 )
+        return dp[pos][mod][hash[lcm]];
+    long long ans = 0;
+    int hbit = top ? bit[pos] : 9;
+    for( int i = 0; i <= hbit; i++ ){
+        int mod_ = ( mod * 10 + i ) % 2520;
+        if( i == 0 )
+            ans += dfs( pos - 1, mod_, lcm, top && i == hbit );
+        else ans += dfs( pos - 1, mod_, lcm * i / gcd( lcm, i ), top && i == hbit );
+    }
+    if( !top ) dp[pos][mod][hash[lcm]] = ans;
+    return ans;
+}
+
+long long solve( int n ){
+    int len = 0;
+    while( n ){
+        bit[++len] = n % 10;
+        n /= 10;
+    }
+    return dfs( len, 0, 1, 1 );
+}
+
+int main(){
+    ios::sync_with_stdio( false );
+
+    memset( dp, -1, sizeof( dp ) );
+    int lcmcnt = 0;
+    for( int i = 1; i <= 2520; i++ )
+        if( 2520 % i == 0 )
+            hash[i] = lcmcnt++;
+
+    int T;
+    cin >> T;
+    while( T-- ){
+        long long l, r;
+        cin >> l >> r;
+        cout << solve( r ) - solve( l - 1 ) << endl; 
+    }
+
+    return 0;
+}

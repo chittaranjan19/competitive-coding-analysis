@@ -1,0 +1,100 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 3e5 + 10, lg = 31, MAXN = 1111;
+ll mod = 1e9 + 7;
+
+ll gcd(ll a, ll b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll _gcd(ll a, ll b, ll & x, ll & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	ll _x1, _y1;
+	ll d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+ll binpow(ll a, ll n) {
+	ll res = 1;
+	while (n) {
+		if (n & 1)
+			res *= a;
+		a *= a;
+		n >>= 1;
+		a %= mod;
+		res %= mod;
+	}
+	return res;
+}
+
+ll a00, a01, a10, a11;
+
+ll good(ll n){
+	for (ll i = 0; i*(i - 1) / 2 <= n; i++)
+		if (i*(i - 1) / 2 == n) return i;
+	return -1;
+}
+
+void bad(){
+	cout << "Impossible";
+	exit(0);
+}
+
+void term_ans(string ans){
+	cout << ans;
+	exit(0);
+}
+
+int main()
+{
+	cin >> a00 >> a01 >> a10 >> a11;
+	ll cnt0 = good(a00), cnt1 = good(a11);
+	if (a00 + a01 + a10 + a11 == 0)
+		term_ans("1");
+	if (cnt1 == 0 && cnt0 != 0 && (a10 != 0 || a01 != 0))
+		cnt1 = 1;
+	if (cnt0 == 0 && cnt1 != 0 && (a10 != 0 || a01 != 0))
+		cnt0 = 1;
+	if (cnt0 + cnt1 == 0 && (a10*a01 == 0 && a01+a10 != 0))
+		cnt0 = 1, cnt1 = 1;
+	if (cnt0 == -1 || !cnt1 == -1 || (cnt1*cnt0 != a10+a01))
+		bad();
+	string ans = "";
+	while (cnt0 || cnt1){
+		if (cnt1 <= a01)
+			ans += '0', cnt0 -= 1, a01 -= cnt1;
+		else ans += '1', cnt1 -= 1, a10 -= cnt0;
+	}
+	cout << ans;
+	return 0;
+}

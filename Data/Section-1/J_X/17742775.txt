@@ -1,0 +1,85 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 500000 + 5;
+
+int lf[maxn], rg[maxn], pa[maxn], pos[maxn], top1, top2;
+char s[maxn], op[maxn];
+
+void moveL()
+{
+    if(!top1) return;
+    pos[lf[top1 - 1]] = top2;
+    rg[top2++] = lf[--top1];
+}
+
+void moveR()
+{
+    if(!top2) return;
+    pos[rg[top2 - 1]] = top1;
+    lf[top1++] = rg[--top2];
+}
+
+int main()
+{
+    int n, m, p;
+    scanf("%d%d%d", &n, &m, &p);
+    scanf("%s", s + 1);
+    top1 = 0, top2 = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        if(s[i] == '(') lf[top1++] = i;
+        else
+        {
+            int q = lf[--top1];
+            pa[q] = i;
+            pa[i] = q;
+        }
+    }
+    top1 = 0;
+    for(int i = 1; i <= p; ++i)
+    {
+        lf[top1++] = i;
+        pos[i] = top1 - 1;
+    }
+    for(int i = n; i > p; --i)
+    {
+        rg[top2++] = i;
+        pos[i] = top2 - 1;
+    }
+    scanf("%s", op);
+    for(int i = 0; i < m; ++i)
+    {
+        if(op[i] == 'L')
+        {
+            pos[lf[top1 - 1]] = top2;
+            rg[top2++] = lf[--top1];
+        }
+        else if(op[i] == 'R')
+        {
+            pos[rg[top2 - 1]] = top1;
+            lf[top1++] = rg[--top2];
+        }
+        else
+        {
+            if(pa[lf[top1 - 1]] > lf[top1 - 1])
+            {
+                top2 = pos[pa[lf[top1 - 1]]];
+                --top1;
+                moveR();
+            }
+            else
+            {
+                top1 = pos[pa[lf[top1 - 1]]];
+                moveR();
+            }
+        }
+    }
+    int len = 0;
+    for(int i = 0; i < top1; ++i) op[len++] = s[lf[i]];
+    for(int i = top2 - 1; i >= 0; --i) op[len++] = s[rg[i]];
+    op[len] = 0;
+    puts(op);
+    return 0;
+}

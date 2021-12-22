@@ -1,0 +1,88 @@
+#include <iostream>
+#include <map>
+using namespace std;
+
+int a[1000006];
+//int cntl[1000006], cntr[1000006];
+int tr[5000006];
+int id[1000006];
+
+int lq[1000006], rq[1000006];
+void create_tree(int idx, int l, int r){
+        if (l == r)  {
+                id[l] = idx;
+                return;
+        }
+        create_tree(2*idx, l, (l+r)/2);
+        create_tree(2*idx + 1, (l+r)/2 + 1, r);
+}
+
+void update(int x, int a){
+        int idx = id[x];
+        tr[idx] += a;
+        idx /= 2;
+        while (idx){
+                tr[idx] = tr[2*idx] + tr[2*idx + 1];
+                idx /= 2;
+        }
+
+        return;
+}
+
+int query(int idx, int l, int r, int lo, int hi){
+        if (l > hi || r < lo) return 0;
+        if (l >= lo && r <= hi) return tr[idx];
+        int mid = (l+r)/2;
+        return (query(2*idx, l, mid, lo, hi) + query(2*idx + 1, mid+1, r, lo, hi));
+}
+
+int main()
+{
+        ios::sync_with_stdio(false);
+        int n;
+        cin >> n;
+        create_tree(1,0,n+5);
+        map <int, int> m;
+        for(int i = 1; i <= n; i++) cin >> a[i];
+
+        for(int i = 1; i <= n; i++){
+                if (m.count(a[i])){
+                        lq[i] = lq[m[a[i]]] + 1;
+                        m[a[i]] = i;
+                }
+                else{
+                        m[a[i]] = i;
+                        lq[i] = 1;
+                }
+//                cout << lq[i] << endl;
+        }
+        m.clear();
+        for(int i = n; i >= 1; i--){
+                if (m.count(a[i])){
+                        rq[i] = rq[m[a[i]]] + 1;
+                        m[a[i]] = i;
+                }
+                else {
+                        m[a[i]] = 1;
+                        rq[i] = i;
+                }
+        }
+        int res = 0;
+        for(int i = n; i >= 1; i--){
+                int cnt  = query(1, 0, n, 0, lq[i]-1);
+//                cout << rq[i] << endl;
+                res += cnt;
+                update(rq[i], 1);
+        }
+
+        cout << res << endl;
+
+        return 0;
+}
+                
+                
+        
+                
+        
+        
+        

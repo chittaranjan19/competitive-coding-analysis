@@ -1,0 +1,81 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+char arr[1009][1009];
+int ans=0,n,m,dx[]={+1,-1,0,0},dy[]={0,0,+1,-1},c,vis[1009][1009],gor[1009][1009];
+PII jog[1009][1009],que[MAXN*10];
+int das(int x,int y){
+	if(x<0 or y<0 or x>=n or y>=m or arr[x][y]=='*')
+		return 1;
+	return 0;		
+}
+void dfs(int x,int y){
+	vis[x][y]=1;
+	que[++c]=mp(x,y);
+	ans++;
+	for(int i=0;i<4;i++)
+		if(!das(x+dx[i],y+dy[i]) and !vis[x+dx[i]][y+dy[i]])
+			dfs(x+dx[i],y+dy[i]);
+}
+int main(){
+	scanf("%d%d",&n,&m);
+	for(int i=0;i<n;i++)
+		for(int j=0;j<m;j++)
+			scanf(" %c",&arr[i][j]);
+	int color=1;		
+	for(int i=0;i<n;i++)
+		for(int j=0;j<m;j++)
+			if(!vis[i][j] and arr[i][j]=='.'){
+				dfs(i,j);
+				for(int k=1;k<=c;k++)
+					jog[que[k].ff][que[k].ss]=mp(ans,color);
+				c=0;
+				ans=0;
+				color++;
+			}
+	for(int i=0;i<n;i++)
+		for(int j=0;j<m;j++)
+			if(arr[i][j]=='*'){
+				vector<PII>v;
+				int jyh=1;
+				for(int k=0;k<4;k++)
+					if(!das(dx[k]+i,dy[k]+j))
+						v.pb(jog[dx[k]+i][dy[k]+j]);
+				for(int k=0;k<v.size();k++){
+					int use=1;
+					for(int l=k-1;l>=0;l--)
+						if(v[k].ss==v[l].ss)
+							use=0;		
+					if(use)
+						jyh+=v[k].ff;
+				}
+				gor[i][j]=jyh%10;
+			}
+	for(int i=0;i<n;i++){
+		for(int j=0;j<m;j++){
+			if(arr[i][j]=='.')
+				printf(".");
+			else
+				printf("%d",gor[i][j]);
+		}
+		printf("\n");			
+	}
+	return 0; 
+	}

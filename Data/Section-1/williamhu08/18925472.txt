@@ -1,0 +1,78 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+const int MAXN = 2e5 + 10, MAXLG = 18;
+
+int N;
+int lg[MAXN];
+
+struct table {
+	int table[MAXN][MAXLG];
+	int type;	//0 min 1 max
+	int get (int a, int b) {
+		return type ? max(a, b) : min(a, b);
+	}
+	void read() {
+		for (int i = 0; i < N; i++) {
+			scanf("%d", &table[i][0]);
+		}
+
+		for (int j = 1; j < MAXLG; j++) {
+			for (int i = 0; i + (1 << j) <= N; i++) {
+				table[i][j] = get(table[i][j - 1], table[i + (1 << (j - 1))][j - 1]);
+			}
+		}
+	}
+
+	int query (int a, int b) {
+		int g = lg[b - a];
+		return get(table[a][g], table[b - (1 << g)][g]);
+	}
+} A, B;
+
+int main() {
+	for (int i = 2; i < MAXN; i++) {
+		lg[i] = lg[i / 2] + 1;
+	}
+	A.type = 1;
+	B.type = 0;
+	scanf("%d", &N);
+	A.read();
+	B.read();
+	long long ans = 0;
+	for (int i = 0; i < N; i++) {
+		if (A.query(i, N) < B.query(i, N)) {
+			//never
+			continue;
+		}
+
+		int lo = i, hi = N;
+		while (hi - lo > 1) {
+			int mid = (lo + hi) / 2;
+			if (A.query(i, mid) < B.query(i, mid)) {
+				lo = mid;
+			} else {
+				hi = mid;
+			}
+		}
+
+		if (A.query(i, hi) > B.query(i, hi)) {
+			//never
+			continue;
+		}
+		ans -= hi;
+		lo = hi;
+		hi = N + 1;
+		while (hi - lo > 1) {
+			int mid = (lo + hi) / 2;
+			if (A.query(i, mid) == B.query(i, mid)) {
+				lo = mid;
+			} else {
+				hi = mid;
+			}
+		}
+
+		ans += hi;
+	}
+	printf("%lld\n", ans);
+}

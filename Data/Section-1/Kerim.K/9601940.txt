@@ -1,0 +1,74 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <string>
+#include <algorithm>
+using namespace std;
+
+const int maxn = 62 * 62;
+vector<int> G[maxn];
+int n, cnt[maxn], in[maxn], out[maxn];
+
+int charNum(char c)
+{//???????????????
+    if(c >= 'a' && c <= 'z') return c - 'a';
+    if(c >= 'A' && c <= 'Z') return c - 'A' + 26;
+    return c - '0' + 52;
+}
+
+int VertexNum(char a, char b)
+{//????????????
+    return charNum(a) * 62 + charNum(b);
+}
+
+char ToChar(int x)
+{//????????????
+    if(x < 26) return 'a' + x;
+    if(x < 52) return 'A' + x - 26;
+    return '0' + x - 52;
+}
+
+void go(int v, string& ans)
+{
+    while(cnt[v] < G[v].size()) go(G[v][cnt[v]++], ans);
+    ans += ToChar(v % 62);
+}
+
+int main()
+{
+    //freopen("in.txt", "r", stdin);
+
+    scanf("%d", &n);
+    for(int i = 0; i < n; ++i)
+    {
+        char sub[5];
+        scanf("%s", sub);
+        int u = VertexNum(sub[0], sub[1]);
+        int v = VertexNum(sub[1], sub[2]);
+        G[u].push_back(v);
+        out[u]++; in[v]++;
+    }
+
+    int start = -1;
+    for(int v = 0; v < maxn; ++v)
+    {
+        if(abs(in[v] - out[v]) > 1) { puts("NO"); return 0; }
+        if(out[v] > in[v])
+        {
+            if(start != -1) { puts("NO"); return 0; }
+            start = v;
+        }
+    }
+    if(start == -1) for(int v = 0; v < maxn; ++v) if(!G[v].empty()) { start = v; break; }
+
+    string ans = "";
+    go(start, ans);
+    ans += ToChar(start / 62);
+    reverse(ans.begin(), ans.end());
+
+    if(ans.size() != n + 2) puts("NO");
+    else { puts("YES"); cout << ans << "\n"; }
+
+    return 0;
+}

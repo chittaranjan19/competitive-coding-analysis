@@ -1,0 +1,117 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int MAX_N = 100000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+int n, m;
+int graph[500][500];
+bool used[500];
+vector<int> pos;
+
+void dfs(int x)
+{
+    used[x] = true;
+    pos.push_back(x);
+    for (int i = 0; i < n; i++)
+        if (graph[x][i] && !used[i])
+            dfs(i);
+}
+
+int main()
+{
+    //ifstream ifs("input.in");
+    //ofstream ofs("output.out");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n >> m;
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            graph[i][j] = 0;
+    for (int i = 0; i < n; i++)
+        used[i] = false;
+    for (int i = 0; i < m; i++)
+    {
+        int s, f;
+        cin >> s >> f;
+        graph[s - 1][f - 1] = 1;
+        graph[f - 1][s - 1] = 1;
+    }
+    char ans[n];
+    int x1 = -1, x2 = -1;
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+            if (i != j && !graph[i][j])
+            {
+                x1 = i;
+                x2 = j;
+                break;
+            }
+        if (x1 != -1)
+            break;
+    }
+    if (x1 != -1)
+    {
+        ans[x1] = 'a';
+        ans[x2] = 'c';
+        for (int i = 0; i < n; i++)
+            if (i != x1 && i != x2)
+            {
+                if (graph[x1][i] + graph[x2][i] == 0)
+                {
+                    cout << "No";
+                    return 0;
+                }
+                else if (graph[x1][i] + graph[x2][i] == 1)
+                {
+                    if (graph[x1][i])
+                        ans[i] = 'a';
+                    else
+                        ans[i] = 'c';
+                }
+                else
+                    ans[i] = 'b';
+            }
+    }
+    else
+    {
+        for (int i = 0; i < n; i++)
+            ans[i] = 'b';
+    }
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            if (i != j)
+            {
+                if (graph[i][j] && (ans[i] == 'a' && ans[j] == 'c' || ans[i] == 'c' && ans[j] == 'a'))
+                {
+                    cout << "No";
+                    return 0;
+                }
+                else if (!graph[i][j] && !(ans[i] == 'a' && ans[j] == 'c' || ans[i] == 'c' && ans[j] == 'a'))
+                {
+                    cout << "No";
+                    return 0;
+                }
+            }
+    cout << "Yes\n";
+    for (int i = 0; i < n; i++)
+        cout << ans[i];
+    return 0;
+}

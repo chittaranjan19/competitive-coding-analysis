@@ -1,0 +1,64 @@
+#include <iostream>
+#include <cstring>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 19;
+
+ll dp[maxn][1 << maxn];
+int g[maxn][maxn];
+
+int getnum(int s)
+{
+    int cnt = 0;
+    while(s)
+    {
+        cnt += s & 1;
+        s >>= 1;
+    }
+    return cnt;
+}
+
+int main()
+{
+    int n, m, k;
+    while(cin >> n >> m >> k)
+    {
+        memset(g, 0, sizeof(g));
+        memset(dp, -1, sizeof(dp));
+        for(int i = 0; i < n; ++i)
+        {
+            cin >> dp[i][1 << i];
+        }
+        for(int i = 0; i < k; ++i)
+        {
+            int u, v;
+            cin >> u >> v;
+            --u, --v;
+            cin >> g[u][v];
+        }
+        int t = 1 << n;
+        ll ans = 0;
+        for(int i = 1; i < t; ++i)
+        {
+            for(int j = 0; j < n; ++j)
+            {
+                if(dp[j][i] == -1) continue;
+                if(getnum(i) == m)
+                {
+                    ans = max(ans, dp[j][i]);
+                }
+                for(int k = 0; k < n; ++k)
+                {
+                    if(i >> k & 1) continue;
+                    int temp = i | 1 << k;
+                    dp[k][temp] = max(dp[k][temp], dp[j][i] + g[j][k] + dp[k][1 << k]);
+                }
+            }
+        }
+        cout << ans << endl;
+    }
+    return 0;
+}

@@ -1,0 +1,270 @@
+import java.util.*;
+import java.io.*;
+
+public class Problem_B {
+	public static void main(String[] args) {
+		FastScannerB sc = new FastScannerB(System.in);
+		
+		String str = sc.next();
+		
+		int len = str.length();
+		
+		if(len < 26){
+			System.out.println(-1);
+			System.exit(0);
+		}
+		
+		Queue<Character> list = new LinkedList<>();
+		HashSet<Character> set = new HashSet<>();
+		HashMap<Character, Integer> times = new HashMap<>();
+		
+		int temp = 0;
+		int size = 0;
+		
+		int index = -1;
+		
+		for(int i = 0 ; i < len ; i++){
+			char c = str.charAt(i);
+			
+			if(size >= 26){
+				char last = list.poll();
+				
+				if(last == '?') temp--;
+//				else set.remove(last);
+				
+				Integer it = times.remove(last);
+				if(it != 1){
+					times.put(last, it-1);
+				}
+				else set.remove(last);
+				
+//				System.out.print("Removing " + last + " ");
+			}
+			
+			if(c == '?'){
+				temp++;
+			}
+			else{
+				set.add(c);
+			}
+			
+			list.add(c);
+			size++;
+			Integer it = times.get(c);
+			if(it == null) times.put(c, 1);
+			else times.put(c, it+1);
+			
+//			System.out.println("Adding " + c);
+			
+//			System.out.println("Current set = " + set.size() + " temp = " + temp);
+			
+			if(size>=26){
+				if(set.size() + temp == 26){
+					index = i;
+//					System.out.println("Found at index " + i);
+					break;
+				}
+			}
+			
+			
+		}
+		
+		if(index == -1){
+			System.out.println(-1);
+			System.exit(0);
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		
+		String compar = "ABCDEFGHIJKLMNOPQRZTUVWXYS";
+		
+//		System.out.println("Adding from 0 to " + (index-26));
+		for(int i = 0 ; i <= index - 26 ; i++){
+			char c = str.charAt(i);
+			if(c != '?') sb.append(c);
+			else sb.append('A');
+		}
+		
+//		System.out.println("Adding from " + (index-26 + 1) + " to " + index);
+		for(int i = index - 26 + 1 ; i <= index ; i++){
+			char c = str.charAt(i);
+			if(c != '?') sb.append(c);
+			else{
+				for(char ch : compar.toCharArray()){
+					if(!set.contains(ch)){
+						set.add(ch);
+						sb.append(ch);
+						break;
+					}
+				}
+			}
+		}
+		
+//		System.out.println("Adding from " + (index + 1) + " to " + len);
+		for(int i = index+1 ; i < len ; i++){
+			char c = str.charAt(i);
+			if(c != '?') sb.append(c);
+			else sb.append('A');
+		}
+		
+		System.out.println(sb.toString());
+		
+//		System.out.println(len + " " + sb.length());
+	}
+}
+
+class FastScannerB{
+    private InputStream stream;
+    private byte[] buf = new byte[1024];
+    private int curChar;
+    private int numChars;
+    private SpaceCharFilter filter;
+
+    public FastScannerB(InputStream stream)
+    {
+        this.stream = stream;
+    }
+
+    public int read()
+    {
+        if (numChars == -1)
+            throw new InputMismatchException();
+        if (curChar >= numChars)
+        {
+            curChar = 0;
+            try
+            {
+                numChars = stream.read(buf);
+            } catch (IOException e)
+            {
+                throw new InputMismatchException();
+            }
+            if (numChars <= 0)
+                return -1;
+        }
+        return buf[curChar++];
+    }
+
+    public int nextInt()
+    {
+        int c = read();
+        while (isSpaceChar(c))
+            c = read();
+        int sgn = 1;
+        if (c == '-')
+        {
+            sgn = -1;
+            c = read();
+        }
+        int res = 0;
+        do
+        {
+            if (c < '0' || c > '9')
+                throw new InputMismatchException();
+            res *= 10;
+            res += c - '0';
+            c = read();
+        } while (!isSpaceChar(c));
+        return res * sgn;
+    }
+
+    public String next()
+    {
+        int c = read();
+        while (isSpaceChar(c))
+            c = read();
+        StringBuilder res = new StringBuilder();
+        do
+        {
+            res.appendCodePoint(c);
+            c = read();
+        } while (!isSpaceChar(c));
+        return res.toString();
+    }
+    
+    public String nextLine()
+    {
+        int c = read();
+        StringBuilder res = new StringBuilder();
+        do
+        {
+            res.appendCodePoint(c);
+            c = read();
+        } while (!isLineEndChar(c));
+        return res.toString();
+    }    
+    
+    public double nextDouble() {
+        int c = read();
+        while (isSpaceChar(c))
+            c = read();
+        int sgn = 1;
+        if (c == '-') {
+            sgn = -1;
+            c = read();
+        }
+        double res = 0;
+        while (!isSpaceChar(c) && c != '.') {
+            if (c == 'e' || c == 'E')
+                return res * Math.pow(10, nextInt());
+            if (c < '0' || c > '9')
+                throw new InputMismatchException();
+            res *= 10;
+            res += c - '0';
+            c = read();
+        }
+        if (c == '.') {
+            c = read();
+            double m = 1;
+            while (!isSpaceChar(c)) {
+                if (c == 'e' || c == 'E')
+                    return res * Math.pow(10, nextInt());
+                if (c < '0' || c > '9')
+                    throw new InputMismatchException();
+                m /= 10;
+                res += (c - '0') * m;
+                c = read();
+            }
+        }
+        return res * sgn;
+    }
+    
+    public long nextLong() {
+        int c = read();
+        while (isSpaceChar(c))
+            c = read();
+        int sgn = 1;
+        if (c == '-') {
+            sgn = -1;
+            c = read();
+        }
+        long res = 0;
+        do {
+            if (c < '0' || c > '9')
+                throw new InputMismatchException();
+            res *= 10;
+            res += c - '0';
+            c = read();
+        } while (!isSpaceChar(c));
+        return res * sgn;
+    }
+    
+    public boolean isSpaceChar(int c)
+    {
+        if (filter != null)
+            return filter.isSpaceChar(c);
+        return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == -1;
+    }
+    
+    public boolean isLineEndChar(int c)
+    {
+        if (filter != null)
+            return filter.isSpaceChar(c);
+        return c == '\n' || c == '\r' || c == -1;
+    }
+
+    public interface SpaceCharFilter
+    {
+        public boolean isSpaceChar(int ch);
+    }
+}

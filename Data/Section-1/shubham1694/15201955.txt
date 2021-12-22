@@ -1,0 +1,67 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 500010;
+const ll a = 141;
+
+ll modpow(ll a, ll b)
+{
+    ll x=1, y=a;
+    while(b){
+        if(b&1)
+            x = (x*y)%mod;
+        y = (y*y)%mod;
+        b/=2;
+    }
+    return x;
+}
+
+ll fhash[maxn], bhash[maxn], pa[maxn], mpa[maxn];
+char str[maxn];
+int ans[maxn];
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int n, i, j, l, r;
+    ll h1, h2, sol=0;
+    pa[0] = mpa[0] = 1;
+    for(i=1; i<maxn; i++){
+        pa[i] = (pa[i-1]*a)%mod;
+        mpa[i] = modpow(pa[i], mod-2);
+    }
+    ll curhash;
+    scanf("%s", str+1);
+    n = strlen(str+1);
+    for(i=1; i<=n; i++)
+        fhash[i] = (fhash[i-1] + pa[i]*1ll*(str[i]))%mod;
+    for(i=n; i>=1; i--)
+        bhash[i] = (bhash[i+1] + pa[n-i+1]*1ll*(str[i]))%mod;
+    for(i=1; i<=n; i++){
+        h1 = fhash[i];
+        h2 = (bhash[1]-bhash[i+1]+mod)%mod;
+        h2 = (h2*mpa[n-i])%mod;
+        if(h1!=h2)
+            ans[i] = 0;
+        else
+            ans[i] = 1+ans[i/2];
+        sol+=ans[i];
+    }
+    printf("%lld\n", sol);
+    return 0;
+}

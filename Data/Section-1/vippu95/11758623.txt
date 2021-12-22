@@ -1,0 +1,105 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define pb push_back
+
+set< pair<lli,lli> > check;
+vector<pair<int,pair<lli,lli>>> avai;
+string s;
+
+const lli mod = 1000000003;
+const int limit = 2000005;
+lli apo[limit];
+lli bpo[limit];
+lli ahash[limit];
+lli bhash[limit];
+lli magic1 = 37LL,magic2 = 97LL;
+/*Hashing*/
+void inithash(string s){
+    int n = s.size();
+    apo[0]=bpo[0]=1LL;
+    ahash[0]=bhash[0]=0LL;
+
+    for(int i=1;i<=n;i++){
+        apo[i] = (apo[i-1]*magic1)%mod;
+        bpo[i] = (bpo[i-1]*magic2)%mod;
+        ahash[i] = (ahash[i-1]*magic1 + s[i-1])%mod;
+        bhash[i] = (bhash[i-1]*magic2 + s[i-1])%mod;
+        check.insert({ahash[i],bhash[i]});
+    }
+    return;
+}
+
+inline pair<lli,lli> calcHash(string s){
+    int n = s.size();
+    lli h1=0LL,h2=0LL;
+
+    for(int i=0;i<n;i++){
+        h1 = (h1*magic1 + s[i])%mod;
+        h2 = (h2*magic2 + s[i])%mod;
+    }
+    return (make_pair(h1,h2));
+}
+
+//To get hash of idx between i and j (1 based)
+inline pair<lli,lli> getHash(int i,int j){
+    lli h1 = ((ahash[j] - (ahash[i-1]*apo[j-i+1]))%mod+mod)%mod;
+    lli h2 = ((bhash[j] - (bhash[i-1]*bpo[j-i+1]))%mod+mod)%mod;
+    return (make_pair(h1,h2));
+}
+/*Hashing Done*/
+
+bool ok(int len,pair<lli,lli> tmp){
+    int n = s.size();
+    for(int i=2;i<=n;i++){
+        int e = i+len-1;
+        if(e >= n) return false;
+        pair<lli,lli> t = getHash(i,e);
+        if(t.first==tmp.first && t.second==t.second) return true;
+    }
+    return false;
+}
+
+int solve(){
+    int l = 0 , h = avai.size() - 1;
+    while(l<h){
+        int mid = l + (h-l+1)/2;
+        int len = avai[mid].first;
+        pair<lli,lli> tmp = avai[mid].second;
+        if(ok(len,tmp))
+            l = mid;
+        else
+            h = mid-1;
+    }
+    if(ok(avai[l].first,avai[l].second)) return avai[l].first;
+    return -1;
+}
+
+int main(){
+    cin.sync_with_stdio(false);
+    cin.tie();
+    cout.sync_with_stdio(false);
+    cout.tie();
+    cin>>s;
+    inithash(s);
+    for(int i=1;i<=s.size();i++){
+        pair<lli,lli> tmp = getHash(i,s.size());
+        if(check.find(tmp) != check.end()){
+            int len = s.size()-i+1;
+            avai.pb({len,tmp});
+        }
+    }
+    sort(avai.begin(),avai.end());
+    int ans = solve();
+    if(ans==-1)
+        cout<<"Just a legend\n";
+    else{
+        string res = "";
+        for(int i=0;i<ans;i++)
+            res += s[i];
+        cout<<res<<endl;
+    }
+    return 0;
+}

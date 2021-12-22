@@ -1,0 +1,104 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+struct ival{
+    ll left,right,ans;
+    ival(){
+        left=right=ans=0;
+    }
+    ival(ll pleft, ll pright, ll pans){
+        left=pleft;
+        right=pright;
+        ans=pans;
+    }
+};
+bool comp(ival i1, ival i2){
+    return i1.left<=i2.left;
+}
+int main(){
+    ios::sync_with_stdio(false);
+    ll h,q;
+    cin>>h>>q;
+    ll lsi=0,rsi=(1LL<<(h-1))-1;
+    bool ok=true;
+    vector<ival> vec(q);
+    for(int i=0;i<q;++i){
+        ll ith,l,r,ans;
+        cin>>ith>>l>>r>>ans;
+        ll pow=h-ith;
+        l-=(1LL<<(ith-1));
+        r-=(1LL<<(ith-1));
+        l<<=pow;
+        for(int j=0;j<pow;++j){
+            r*=2;
+            r+=1;
+        }
+        vec[i]=ival(l,r,ans);
+    }
+    for(int i=0;i<q;++i){
+        ll l=vec[i].left;
+        ll r=vec[i].right;
+        ll ans=vec[i].ans;
+        if(ans==1){
+            if(r<lsi||l>rsi){
+                cout<<"Game cheated!"<<endl;
+                return 0;
+            }
+            rsi=min(r,rsi);
+            lsi=max(l,lsi);
+        }
+    }
+    sort(vec.begin(),vec.end(),comp);
+    ll ret=-1;
+    for(int i=0;i<q;++i){
+        if(rsi==lsi){
+            cout<<lsi+(1LL<<(h-1))<<endl;
+            return 0;
+        }
+        ll l=vec[i].left;
+        ll r=vec[i].right;
+        ll ans=vec[i].ans;
+        if(ans==1) continue;
+        if(l<=lsi&&r>=rsi){
+            cout<<"Game cheated!"<<endl;
+            return 0;
+        }
+        if(lsi<l){
+            if(l-lsi!=1||ret!=lsi){
+                cout<<"Data not sufficient!"<<endl;
+                return 0;
+            }
+            ret=lsi;
+        }
+        if(r>=rsi){
+            if(ret!=-1){
+                cout<<ret+(1LL<<(h-1))<<endl;
+                return 0;
+            }else{
+                cout<<"Data not sufficient!"<<endl;
+                return 0;
+            }
+        }
+        lsi=r+1;
+        if(lsi==rsi){
+            if(ret==-1){
+                cout<<lsi+(1LL<<(h-1))<<endl;
+                return 0;
+            }else{
+                if(ret!=lsi){
+                    cout<<"Data not sufficient!"<<endl;
+                    return 0;
+                }else{
+                    cout<<ret+(1LL<<(h-1))<<endl;
+                }
+            }
+        }
+    }
+    if(rsi==lsi){
+        cout<<lsi+(1LL<<(h-1))<<endl;
+        return 0;
+    }else{
+        cout<<"Data not sufficient!"<<endl;
+        return 0;
+    }
+}

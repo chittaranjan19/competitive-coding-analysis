@@ -1,0 +1,146 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int arr[105];
+
+vector<LL> primes;
+
+void get_primes(LL MAX)
+{
+    bool visited[MAX + 10];
+    setzero(visited);
+    for(LL x = 2; x <= MAX; x++)
+        if(!visited[x])
+        {
+            primes.push_back(x);
+            for(LL j = x*x; j <= MAX; j += x)
+                visited[j] = true;
+        }
+}
+
+map<pair<int,int>, int> counter;
+set<int> test;
+int x[105], y[105];
+int cap[205][205];
+int flow[205][205];
+int parent[205];
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    get_primes(31625);
+    int n,m;
+    cin >> n >> m;
+    for(int i=1;i<=n;i++)
+    {
+        cin >> arr[i];
+        int temp = arr[i];
+        for(int j=0;j<primes.size() && primes[j] * primes[j] <= temp; j++)
+        {
+            int cnt = 0;
+            while(temp % primes[j] == 0)
+                cnt++, temp/=primes[j];
+            if(cnt) counter[mp(i, primes[j])] = cnt, test.insert(primes[j]);
+        }
+        if(temp != 1) counter[mp(i, temp)] = 1, test.insert(temp);
+    }
+    for(int i=0;i<m;i++)
+    {
+        cin >> x[i] >> y[i];
+        if(x[i] % 2 == 0) swap(x[i], y[i]);
+    }
+    LL res = 0;
+    for(set<int>::iterator it = test.begin(); it != test.end() ; it++)
+    {
+        int temp = *it;
+        setzero(cap);
+        setzero(flow);
+        int s = 0, t = 203;
+        for(int i=0;i<m;i++)
+        {
+            cap[0][x[i]] = INF;
+            cap[x[i]][0] = INF;
+
+            cap[y[i] + 100][203] = INF;
+            cap[203][y[i] + 100] = INF;
+
+            cap[x[i]][x[i] + 100] = counter[mp(x[i] ,temp)];
+            cap[x[i] + 100][x[i]] = counter[mp(x[i] ,temp)];
+
+            cap[y[i]][y[i] + 100] = counter[mp(y[i] ,temp)];
+            cap[y[i] + 100][y[i]] = counter[mp(y[i] ,temp)];
+
+            cap[x[i] + 100][y[i]] = INF;
+            cap[y[i]][x[i] + 100] = INF;
+        }
+        while(1)
+        {
+            queue<int> q;
+            setdp(parent);
+            q.push(s);
+            while(!q.empty())
+            {
+                int node = q.front();
+                q.pop();
+                for(int j=1;j<=203;j++)
+                {
+                    if(cap[node][j] - flow[node][j] > 0 && parent[j] == -1)
+                    {
+                        parent[j] = node;
+                        q.push(j);
+                    }
+                }
+            }
+            if(parent[t] == -1)
+                break;
+            int cflow = INF_MAX;
+            int current = t;
+            while(current != s)
+            {
+                cflow = min(cflow, cap[parent[current]][current] - flow[parent[current]][current]);
+                current = parent[current];
+            }
+            current = t;
+            while(current != s)
+            {
+                flow[parent[current]][current] += cflow;
+                flow[current][parent[current]] -= cflow;
+                current = parent[current];
+            }
+            res+=cflow;
+        }
+    }
+    cout << res;
+    return 0;
+}

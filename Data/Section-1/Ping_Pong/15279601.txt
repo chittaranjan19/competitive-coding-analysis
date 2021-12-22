@@ -1,0 +1,110 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int MAX_N = 1000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+bool w[10], dp[MAX_N][10][10];
+int come[MAX_N][10][10];
+
+int main()
+{
+    //ifstream ifs("input.in");
+    //ofstream ofs("output.out");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int m;
+    string s;
+    cin >> s;
+    cin >> m;
+    for (int i = 0; i < 10; i++)
+        if (s[i] == '1')
+            w[i] = true;
+        else
+            w[i] = false;
+    for (int i = 0; i < m; i++)
+        for (int j = 0; j < 10; j++)
+            for (int k = 0; k < 10; k++)
+            {
+                dp[i][j][k] = false;
+                come[i][j][k] = 0;
+            }
+    for (int i = 0; i < 10; i++)
+        if (w[i])
+            dp[0][i][i] = true;
+    for (int i = 0; i < m - 1; i++)
+        for (int j = 0; j < 10; j++)
+            for (int k = 0; k < 10; k++)
+                if (dp[i][j][k])
+                    for (int r = 0; r < 10; r++)
+                        if (r != j && w[r] && r > k && (!dp[i + 1][r][r - k - 1]))
+                        {
+                            dp[i + 1][r][r - k - 1] = true;
+                            come[i + 1][r][r - k - 1] = j;
+                        }
+    bool ans = false;
+    for (int j = 0; j < 10; j++)
+        for (int k = 0; k < 10; k++)
+            ans |= dp[m - 1][j][k];
+    /*for (int i = 0; i < m; i++)
+    {
+        for (int k = 0; k < 10; k++)
+        {
+            for (int j = 0; j < 10; j++)
+            cout << dp[i][j][k] << " ";
+            cout << endl;
+        }
+        cout << endl;
+    }
+    cout << endl;
+    for (int i = 0; i < m; i++)
+    {
+        for (int k = 0; k < 10; k++)
+        {
+            for (int j = 0; j < 10; j++)
+            cout << come[i][j][k] << " ";
+            cout << endl;
+        }
+        cout << endl;
+    }*/
+    cout << (ans ? "YES" : "NO") << endl;
+    if (!ans)
+        return 0;
+    int curr, currk;
+    for (int j = 0; j < 10; j++)
+        for (int k = 0; k < 10; k++)
+            if (dp[m - 1][j][k])
+            {
+                curr = j;
+                currk = k;
+            }
+    vector<int> t;
+    for (int i = m - 1; i >= 0; i--)
+    {
+        t.push_back(curr + 1);
+        int x = come[i][curr][currk];
+        currk = curr - currk - 1;
+        curr = x;
+    }
+    for (int i = t.size() - 1; i >= 0; i--)
+        cout << t[i] << " ";
+    cout << endl;
+    return 0;
+}

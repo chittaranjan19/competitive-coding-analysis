@@ -1,0 +1,107 @@
+#include <bits/stdc++.h>
+typedef long long ll;
+using namespace std;
+int vhp, vdt, vl, vr, vp;
+int ehp, edt, el, er, ep;
+vector<double> vprobs(201,0);
+vector<double> eprobs(201,0);
+void shoote(){
+    vector<double> vprobst(201,0);
+    double probpierce=(100-ep);
+    probpierce/=100;
+    for(int i=0;i<=200;++i){
+        if(vprobs[i]>0){
+            int st=max(0,i-er);
+            int cont=0;
+            double nprob=vprobs[i]/(er-el+1);
+            for(int j=st;j<=i-el;++j){
+                ++cont;
+                vprobst[j]+=nprob;
+            }
+            if(st==0)
+                vprobst[0]+=nprob*(er-el+1-cont);
+        }
+    }
+    for(int i=0;i<=200;++i)
+        vprobs[i]=(double)ep/100*vprobs[i]+vprobst[i]*probpierce;
+}
+void shootv(){
+    vector<double> eprobst(201,0);
+    double probpierce=(100-vp);
+    probpierce/=100;
+    for(int i=0;i<=200;++i){
+        if(eprobs[i]>0){
+            int st=max(0,i-vr);
+            double nprob=eprobs[i]/(vr-vl+1);
+            nprob*=100-vp;
+            nprob/=100;
+            int cont=0;
+            for(int j=st;j<=i-vl;++j){
+                ++cont;
+                eprobst[j]+=nprob;
+            }
+            if(st==0)
+                eprobst[0]+=nprob*(vr-vl+1-cont);
+        }
+    }
+    for(int i=0;i<=200;++i)
+        eprobs[i]=(double)vp/100*eprobs[i]+eprobst[i]*probpierce;
+}
+double propv(){
+    double acc=0;
+    for(int i=1;i<=200;++i)
+        acc+=vprobs[i];
+    return acc;
+}
+double prope(){
+    double acc=0;
+    for(int i=1;i<=200;++i)
+        acc+=eprobs[i];
+    return acc;
+}
+int main(){
+    cin>>vhp>>vdt>>vl>>vr>>vp;
+    cin>>ehp>>edt>>el>>er>>ep;
+    double vsprob=1;
+    vprobs[vhp]=1;
+    eprobs[ehp]=1;
+    shoote();
+    shootv();
+    int nextvshot=vdt, nexteshot=edt;
+    double probvivo=propv();
+    double propacc=probvivo;
+    double ans=eprobs[0];
+    
+    while(probvivo>0){
+        int puedematar=0;
+        if(nextvshot==nexteshot){
+            shoote();
+            shootv();
+            nextvshot=vdt;
+            nexteshot=edt;
+            puedematar=1;
+        }
+        else if(nextvshot<nexteshot){
+            shootv();
+            nexteshot-=nextvshot;
+            nextvshot=vdt;
+            puedematar=1;
+        }
+        else if(nexteshot<nextvshot){
+            shoote();
+            nextvshot-=nexteshot;
+            nexteshot=edt;
+            puedematar=0;
+        }
+        double probevivo=prope();
+        propacc*=probvivo;
+        if(probevivo==0) {ans+=probvivo;break;}
+        else if(puedematar){
+            ans+=probvivo*(1-probevivo);
+        }
+        probvivo=propv();
+    }
+    cout<<ans<<endl;
+    /*for(int i=0;i<=50;++i)
+        cout<<vprobs[i]<<" ";*/
+}

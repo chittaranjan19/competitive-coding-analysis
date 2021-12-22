@@ -1,0 +1,129 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+#define PB push_back
+#define MP make_pair
+#define X first
+#define Y second
+
+using namespace std;
+typedef long long ll;
+typedef pair<ll, ll> pll;
+
+const int N = 100 * 1000 + 1;
+
+int n, q;
+ll arr[N];
+pll seg[4 * N];
+int b[N];
+
+inline pll merge(pll a, pll b, int &s, int &mid, int &e){
+	return MP(a.X + b.X + ((e - mid) * (arr[mid] - arr[s]) + b.Y) * (mid - s) - (e - mid) * a.Y, (e - mid) * (arr[mid] - arr[s]) + a.Y + b.Y);
+}
+
+void build(int v, int s, int e){
+	if(e - s == 1){
+		seg[v] = MP(0, 0);
+		return;
+	}
+	int mid = (s + e) / 2;
+	build(2 * v + 0, s, mid);
+	build(2 * v + 1, mid, e);
+	seg[v] = merge(seg[2 * v + 0], seg[2 * v + 1], s, mid, e);
+//	cerr << "bug bas : " << s << " " << e << " ";
+//	cerr << seg[v].X << "\n";
+}
+
+void update(int v, int s, int e, int p, int val){
+	if(p < s || p >= e) return;
+	if(e - s == 1){ 
+		arr[p] += val;
+		return;
+	}
+	int mid = (s + e) / 2;
+	update(2 * v + 0, s, mid, p, val);
+	update(2 * v + 1, mid, e, p, val);
+	seg[v] = merge(seg[2 * v + 0], seg[2 * v + 1], s, mid, e);
+}
+
+pll get(int v, int s, int e, int l, int r){
+//	cerr << "Bug : " << s << " " << e  << " " << l << " " << r << "\n";
+	if(l == s && e == r)
+		return seg[v];
+	int mid = (s + e) / 2;
+	if(mid >= r)
+		return get(2 * v + 0, s, mid, l, r);
+	else if(mid <= l)
+		return get(2 * v + 1, mid, e, l, r);
+	else
+		return merge(get(2 * v + 0, s, mid, l, mid) , get(2 * v + 1, mid, e, mid, r), l, mid, r);
+}
+
+int main(){
+	//ios::sync_with_stdio(0);
+	//cin.tie(0);
+	scanf("%d", &n);
+	for(int i = 0; i < n; ++i)
+		scanf("%d", &b[i]), arr[i] = b[i];
+	sort(arr, arr + n);
+	build(1, 0, n);
+	scanf("%d", &q);
+	for(int i = 0; i < q; ++i){
+		int t;
+		scanf("%d", &t);
+		if(t == 1){
+			int p, d;
+			scanf("%d%d", &p, &d);
+			p--;
+			int tmp = b[p];
+			b[p] += d;
+			p = lower_bound(arr, arr + n, tmp) - arr;
+			if(d >= 0){
+				for(int i = 0; i < d; ++i){
+					if(p != n - 1 && arr[p + 1] - arr[p] > 1){
+						int tmp = min(int(arr[p + 1] - arr[p]), d - i);
+						update(1, 0, n, p , tmp);
+						i += tmp - 1;
+						continue;
+					}
+					if(p == n - 1){
+						update(1, 0, n, p, d - i);
+						i = d - 1;
+						continue;
+					}
+					if(!(p == n - 1 || arr[p] < arr[p + 1]))
+						p ++;
+					update(1, 0, n, p, 1);
+				}
+			}	
+			else{
+				for(int i = 0; i < -d; ++i){
+					if(p != 0 && arr[p] - arr[p - 1]  > 1){
+						int tmp = min(int(arr[p] - arr[p - 1]), -d - i);
+						update(1, 0, n, p , -tmp);
+						i += tmp - 1;
+						continue;
+					}
+					if(p == 0){
+						update(1, 0, n, p, -d - i);
+						i = -d - 1;
+						continue;
+					}
+					if(!(p == 0 || arr[p] > arr[p - 1]))
+						p --;
+					update(1, 0, n, p, -1);
+				}
+			}
+		}
+		else{
+			int l, r;
+			scanf("%d%d", &l, &r);
+			l = lower_bound(arr, arr + n, l) - arr;
+			r = upper_bound(arr, arr + n, r) - arr;
+//			cerr << "bug : " << l << " " << r << "\n";
+			if(l == r) printf("0\n");
+			else printf("%I64d\n", get(1, 0, n, l, r).X);
+		}
+	}
+	return 0;
+}

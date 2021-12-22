@@ -1,0 +1,71 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <bitset>
+#include <vector>
+
+using namespace std;
+
+char input[32][131072];
+int cols[1<<20];
+
+int groups[16][1<<7];
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	// read input
+	int n, m; scanf("%d %d\n", &n, &m);
+	char pattern[100];
+	sprintf(pattern, "%%%dc\n", m);
+	for (int i = 0; i < n; i++) {
+		scanf(pattern, input[i]);
+	}
+
+	// get bitmask of each column
+	for (int i = 0; i < m; i++) {
+		int x = 0;
+		for (int j = 0; j < n; j++) {
+			x = x * 2 + (int)(input[j][i] - '0');
+		}
+		cols[i] = x;
+	}
+
+	// special case: n = 1, always possible to get all 0's
+	if (n == 1) {
+		printf("0\n");
+	} else {
+		// brute force over first 13 bits
+		int bestAns = n*m;
+		int split = min(max(1, n-5), 13);
+		int mask1Max = (1 << split); int lol = mask1Max - 1;
+		int mask2Max = (1 << (n - split));
+
+		int popcount[(1 << 13)];
+		for (int i = 0; i < (1 << 13); i++) popcount[i] = __builtin_popcount(i);
+
+		for (int mask1 = 0; mask1 < mask1Max; mask1++) {
+			for (int i = 0; i <= split; i++) {
+				memset(groups[i], 0, mask2Max * sizeof(int));
+			}
+			for (int i = 0; i < m; i++) {
+				int x1 = popcount[(cols[i] & lol) ^ mask1];
+				int x2 = cols[i] >> split;
+				groups[x1][x2]++;
+			}
+			for (int mask2 = 0; mask2 < mask2Max; mask2++) {
+				int currAns = 0;
+				for (int i = 0; i <= split; i++) {
+					for (int j = 0; j < mask2Max; j++) {
+						int popCount = i + popcount[mask2 ^ j];
+						currAns += groups[i][j] * min(popCount, n - popCount);
+					}
+				}
+				bestAns = min(bestAns, currAns);
+			}
+		}
+		printf("%d\n", bestAns);
+	}
+}

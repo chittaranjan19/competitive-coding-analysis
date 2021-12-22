@@ -1,0 +1,108 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const double inf = 1e15;
+const int maxn = 1001;
+
+int n, graph[maxn][maxn], adj[maxn][maxn], parent[maxn];
+double cost[maxn][maxn], dist[maxn];
+pii pts[maxn];
+int source, sink;
+
+double dijkstra()
+{
+	int i, j;
+	for(i=source; i<=sink; i++)
+		dist[i] = inf;
+	priority_queue<pair<double, int>, vector< pair<double, int> >, greater< pair<double, int> > > pq;
+	pq.push(mp(0, source));
+	dist[source] = 0;
+	while(!pq.empty()){
+		double d = pq.top().f;
+		int u = pq.top().s;
+		pq.pop();
+		if(d > dist[u])
+			continue;
+		for(i=source; i<=sink; i++){
+			if(graph[u][i]>0 && (dist[i] > d + cost[u][i])){
+				dist[i] = d + cost[u][i];
+				parent[i] = u;
+				pq.push(mp(dist[i], i));
+			}
+		}
+	}
+	return dist[sink];
+}
+
+pair<double, int> solve()
+{
+	int i, j, flow = 0;
+	double min_cost = 0;
+	for(i=source; i<=sink; i++){
+		for(j=source; j<=sink; j++)
+			graph[i][j] = adj[i][j];
+	}
+	while(1){
+		double x = dijkstra();
+		if(x == inf)
+			break;
+		int cur = sink;
+		int minval = mod;
+		while(cur){
+			minval = min(minval, graph[parent[cur]][cur]);
+			cur = parent[cur];
+		}
+		cur = sink;
+		flow += minval;
+		while(cur){
+			graph[parent[cur]][cur] -= minval;
+			graph[cur][parent[cur]] += minval;
+			cur = parent[cur];
+		}
+		min_cost += (x*minval);
+	}
+	return mp(min_cost, flow);
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j;
+	scanf("%d", &n);
+	source = 0;
+	sink = 2*n+1;
+	for(i=1; i<=n; i++)
+		scanf("%d%d", &pts[i].f, &pts[i].s);
+	for(i=1; i<=n; i++){
+		adj[source][i] = 2;
+		for(j=1; j<=n; j++){
+			if(pts[i].s > pts[j].s){
+				double d = (pts[i].f-pts[j].f)*(pts[i].f-pts[j].f) + (pts[i].s-pts[j].s)*(pts[i].s-pts[j].s);
+				adj[i][n+j] = 1;
+				cost[i][n+j] = sqrt(d);
+			}
+		}
+		adj[n+i][sink] = 1;
+	}
+	pair<double, int> ans = solve();
+	if(ans.s != n-1)
+		printf("-1\n");
+	else
+		printf("%.10lf\n", ans.f);
+	return 0;
+}

@@ -1,0 +1,122 @@
+#include <bits/stdc++.h>
+using namespace std;
+const int inf=1001001001;
+const int dx[4]={-1,0,1,0};
+const int dy[4]={0,-1,0,1};
+int t,xl,xr,yl,yr,sz,cur,r,a[4],d[4],x[4],y[4],cx[4],cy[4],rx[4],ry[4];
+bool u[4];
+int check(int i, int xx, int yy) {
+  int c=abs(xx-x[i])+abs(yy-y[i]);
+  if (x[i]+dx[d[i]]*c!=xx || y[i]+dy[d[i]]*c!=yy) return inf;
+  return c;
+}
+void updr() {
+  if (cur<r) {
+    r=cur;
+    rx[a[0]]=xl; ry[a[0]]=yl;
+    rx[a[1]]=xl; ry[a[1]]=yr;
+    rx[a[2]]=xr; ry[a[2]]=yr;
+    rx[a[3]]=xr; ry[a[3]]=yl;
+  }
+}
+void rec(int l) {
+  if (l==4) {
+    xl=xr=yl=yr=sz=inf;
+    if (dx[d[a[0]]]==0) xl=x[a[0]]; else yl=y[a[0]];
+    if (dx[d[a[1]]]==0) {
+      cur=x[a[1]];
+      if (xl==inf) xl=cur; else if (xl!=cur) return;
+    } else yr=y[a[1]];
+    if (dx[d[a[2]]]==0) xr=x[a[2]]; else {
+      cur=y[a[2]];
+      if (yr==inf) yr=cur; else if (yr!=cur) return;
+    }
+    if (dx[d[a[3]]]==0) {
+      cur=x[a[3]];
+      if (xr==inf) xr=cur; else if (xr!=cur) return;
+    } else {
+      cur=y[a[3]];
+      if (yl==inf) yl=cur; else if (yl!=cur) return;
+    }
+    if (xl!=inf && xr!=inf) {
+      if (xl>=xr) return;
+      sz=xr-xl;
+    }
+    if (yl!=inf && yr!=inf) {
+      if (yl>=yr) return;
+      cur=yr-yl;
+      if (sz==inf) sz=cur; else if (sz!=cur) return;
+    }
+    if (sz==inf) return;
+    if (xl!=inf) xr=xl+sz;
+    if (xr!=inf) xl=xr-sz;
+    if (yl!=inf) yr=yl+sz;
+    if (yr!=inf) yl=yr-sz;
+    if (xl==inf && xr==inf) {
+      for (int i=0; i<4; i++) { cx[i]=x[i]; cy[i]=y[i]; }
+      if (d[a[0]]==d[a[1]]) {
+        cur=abs(cx[a[0]]-cx[a[1]]);
+        if (cx[a[0]]+d[a[0]]*cur==cx[a[1]]) cx[a[0]]=cx[a[1]]; else cx[a[1]]=cx[a[0]];
+        xl=cx[a[0]]; xr=xl+sz;
+        cur=max(cur,check(a[2],xr,yr));
+        cur=max(cur,check(a[3],xr,yl));
+        updr();
+      } else if (d[a[2]]==d[a[3]]) {
+        cur=abs(cx[a[2]]-cx[a[3]]);
+        if (cx[a[2]]+d[a[2]]*cur==cx[a[3]]) cx[a[2]]=cx[a[3]]; else cx[a[3]]=cx[a[2]];
+        xr=cx[a[2]]; xl=xr-sz;
+        cur=max(cur,check(a[0],xl,yl));
+        cur=max(cur,check(a[1],xl,yr));
+        updr();
+      } else {
+        
+      }
+    } else if (yl==inf && yr==inf) {
+      for (int i=0; i<4; i++) { cx[i]=x[i]; cy[i]=y[i]; }
+      if (d[a[0]]==d[a[3]]) {
+        cur=abs(cy[a[0]]-cy[a[3]]);
+        if (cy[a[0]]+d[a[0]]*cur==cy[a[3]]) cy[a[0]]=cy[a[3]]; else cy[a[3]]=cy[a[0]];
+        yl=cy[a[0]]; yr=yl+sz;
+        cur=max(cur,check(a[1],xl,yr));
+        cur=max(cur,check(a[2],xr,yr));
+        updr();
+      } else if (d[a[2]]==d[a[1]]) {
+        cur=abs(cy[a[2]]-cy[a[1]]);
+        if (cy[a[2]]+d[a[2]]*cur==cy[a[1]]) cy[a[2]]=cy[a[1]]; else cy[a[1]]=cy[a[2]];
+        yr=cy[a[2]]; yl=yr-sz;
+        cur=max(cur,check(a[0],xl,yl));
+        cur=max(cur,check(a[3],xr,yl));
+        updr();
+      } else {
+      
+      }
+    } else {
+      cur=check(a[0],xl,yl);
+      cur=max(cur,check(a[1],xl,yr));
+      cur=max(cur,check(a[2],xr,yr));
+      cur=max(cur,check(a[3],xr,yl));
+      updr();
+    }
+    return;
+  }
+  for (int i=0; i<4; i++) {
+    d[l]=i;
+    for (int j=0; j<4; j++) if (!u[j]) {
+      a[j]=l;
+      u[j]=true;
+      rec(l+1);
+      u[j]=false;
+    }
+  }
+}
+int main() {
+  scanf("%d",&t);
+  while (t--) {
+    for (int i=0; i<4; i++) scanf("%d%d",&x[i],&y[i]);
+    r=inf;
+    rec(0);
+    printf("%d\n",r==inf?-1:r);
+    if (r!=inf) for (int i=0; i<4; i++) printf("%d %d\n",rx[i],ry[i]);
+  }
+  return 0;
+}

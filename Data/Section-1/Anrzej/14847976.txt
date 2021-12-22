@@ -1,0 +1,141 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+#define pb push_back
+
+int n, m;
+vector<int> g[22][100010], sl[100010];
+int d[22][100010], pr[22][100010], ans[100010];
+int vrtx;
+bool used[100010];
+
+int sz(int v, int p, int lvl)
+{
+	used[v] = 1;
+	int have = 1;
+	for (int i = 0; i < g[lvl][v].size(); i++)
+	{
+		int to = g[lvl][v][i];
+		if (to == p) continue;
+		have += sz(to, v, lvl);
+	}
+	return have;
+}
+
+int dfs(int v, int p, int sz, int lvl)
+{
+	int have = 0;
+	for (int i = 0; i < g[lvl][v].size(); i++)
+	{
+		int to = g[lvl][v][i];
+		if (to == p) continue;
+		have += dfs(to, v, sz, lvl);
+	}
+	if (have >= sz / 2 && vrtx == 0){
+		vrtx = v;
+	}
+	return have+1;
+}
+
+void dfs1(int v, int p, int h, int lvl)
+{
+	sl[v].push_back(lvl + 1);
+	d[lvl][v] = h;
+	pr[lvl][v] = vrtx;
+	for (int i = 0; i < g[lvl][v].size(); i++)
+	{
+		int to = g[lvl][v][i];
+		if (to == p) continue;
+		g[lvl + 1][to].push_back(v);
+		g[lvl + 1][v].push_back(to);
+		dfs1(to, v, h+1, lvl);
+	}
+}
+
+void decompose()
+{
+	vrtx = 0;
+	for (int lvl = 0; lvl < 21; lvl++){
+		memset(used, 0, sizeof(used));
+		for (int i = 1; i <= n; i++){
+			if (used[i]) continue;
+			int size = sz(i, 0, lvl);
+			if (size < 2) continue;
+			vrtx = 0;
+			dfs(i, 0, size, lvl);
+			d[lvl][vrtx] = 0;
+			for (int i = 0; i < g[lvl][vrtx].size(); i++)
+				dfs1(g[lvl][vrtx][i], vrtx, 1, lvl);
+		}
+	}
+}
+
+int main()
+{
+	cin >> n >> m;
+	for (int i = 1; i < n; i++)
+	{
+		int u, v;
+		cin >> u >> v;
+		g[0][v].push_back(u);
+		g[0][u].push_back(v);
+	}
+	ans[0] = 1e9;
+	for (int i = 1; i <= n; i++)
+		sl[i].push_back(0), ans[i] = 1e9;
+	decompose();
+	ans[1] = 0;
+	for (int i = 0; i < sl[1].size(); i++)
+	{
+		int lvl = sl[1][i];
+		int lead = pr[lvl][1];
+		ans[lead] = min(ans[lead], d[lvl][1]);
+	}
+	while (m--)
+	{
+		int t, v;
+		cin >> t >> v;
+		if (t == 2)
+		{
+			int res = ans[v];
+			for (int i = 0; i < sl[v].size(); i++)
+			{
+				int lvl = sl[v][i];
+				int lead = pr[lvl][v];
+				if (lead == 0) break;
+				res = min(res, ans[lead]+d[lvl][v]);
+			}
+			cout << res << endl;
+		}
+		else
+		{
+			ans[v] = 0;
+			for (int i = 0; i < sl[v].size(); i++)
+			{
+				int lvl = sl[v][i];
+				int lead = pr[lvl][v];
+				if (lead == 0) break;
+				ans[lead] = min(ans[lead], d[lvl][v]);
+			}
+		}
+	}
+	return 0;
+}

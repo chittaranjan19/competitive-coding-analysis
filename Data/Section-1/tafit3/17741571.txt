@@ -1,0 +1,149 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemF {
+    BufferedReader rd;
+
+    ProblemF() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        String d = rd.readLine();
+        int[] c = new int[10];
+        for(char x: d.toCharArray()) {
+            c[x-'0']++;
+        }
+        String sub = rd.readLine();
+        int[] z = Arrays.copyOf(c, c.length);
+        for(char x: sub.toCharArray()) {
+            z[x-'0']--;
+        }
+        String min = null;
+        for(int i=1;i<=1000000;i++) {
+            char[] u = Integer.toString(i).toCharArray();
+            for(char x: u) {
+                z[x-'0']--;
+            }
+            min = solve(sub, i, z);
+            if(min != null) {
+                break;
+            }
+            for(char x: u) {
+                z[x-'0']++;
+            }
+        }
+        out(min);
+    }
+
+    private String solve(String sub, int len, int[] z) {
+        int s = sub.length();
+        for(int i: z) {
+            s += i;
+        }
+        if(s != len) {
+            return null;
+        }
+        char fc = sub.charAt(0);
+        NavigableSet<String> zz = new TreeSet<>();
+        if(fc != '0') {
+            StringBuilder buf = new StringBuilder(sub);
+            for(int i=0;i<10;i++) {
+                int q = z[i];
+                char c = (char)('0'+i);
+                for(int j=0;j<q;j++) {
+                    buf.append(c);
+                }
+            }
+            zz.add(buf.toString());
+        } else {
+            StringBuilder buf = new StringBuilder();
+            int j = 0;
+            for(int i=1;i<10;i++) {
+                if(z[i] > 0) {
+                    j = i;
+                    buf.append((char)('0'+i));
+                    break;
+                }
+            }
+            for(int i=0;i<z[0];i++) {
+                buf.append('0');
+            }
+            buf.append(sub);
+            for(int i=1;i<10;i++) {
+                int q = z[i] - (i==j?1:0);
+                char c = (char)('0'+i);
+                for(int k=0;k<q;k++) {
+                    buf.append(c);
+                }
+            }
+            zz.add(buf.toString());
+        }
+
+        StringBuilder buf = new StringBuilder();
+        int[] begin = new int[10];
+        int[] end = new int[10];
+        boolean first = true;
+        for(int i=1;i<10;i++) {
+            begin[i] = buf.length();
+            int q = z[i];
+            char c = (char)('0'+i);
+            for(int j=0;j<q;j++) {
+                buf.append(c);
+                if(first) {
+                    first = false;
+                    int q0 = z[0];
+                    begin[0] = buf.length();
+                    for(int k=0;k<q0;k++) {
+                        buf.append('0');
+                    }
+                    end[0] = buf.length();
+                }
+            }
+            end[i] = buf.length();
+        }
+        char sc = 0;
+        for(int i=1;i<sub.length();i++) {
+            char c = sub.charAt(i);
+            if(c != fc) {
+                sc = c;
+            }
+        }
+        if(fc == '0') {
+            buf.insert(end[0],sub);
+        } else if(fc == '1') {
+            if(z[1] > 0) {
+                if(sc == '0') {
+                    if(z[0] > 0) {
+                        buf.insert(end[0], sub);
+                    } else {
+                        buf.insert(begin[1], sub);
+                    }
+                } else {
+                    buf.insert(end[1], sub);
+                }
+            } else if(z[0] > 0) {
+                buf.insert(end[0],sub);
+            } else {
+                buf.insert(0,sub);
+            }
+        } else if(fc < sc) {
+            buf.insert(end[fc-'0'],sub);
+        } else {
+            buf.insert(begin[fc-'0'],sub);
+        }
+        zz.add(buf.toString());
+        return zz.first();
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemF();
+    }
+}

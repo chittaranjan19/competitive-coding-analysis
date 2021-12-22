@@ -1,0 +1,107 @@
+#include<bits/stdc++.h>
+#define lowbit(x) ((x)&(-x))
+#define Max(a,b) (a>b?a:b)
+#define Min(a,b) (a>b?b:a)
+#define INF 0x3f3f3f3f
+#define rep(i,a,b) for(int i=a;i<(b);++i)
+using namespace std;
+typedef __int64 ll;
+int const Max_N = 5e3+50;
+int n,m,k;
+struct Node
+{
+	int to;
+	int cost;
+}t;
+int dp[Max_N][Max_N] = {0};
+int d[Max_N] = {0};
+int f[Max_N][Max_N];
+vector<Node>head[Max_N];
+void tp()
+{
+	queue<int>que;
+	for (int i = 1; i < n+1; ++i)
+	{
+		if(!d[i]) que.push(i);
+		dp[i][0] = 0;
+	}
+	while(!que.empty())
+	{
+		int u = que.front();
+		que.pop();
+		if(u==1)
+		{
+			for(int i = 0;i < head[1].size();++i)
+			{
+				int v = head[1][i].to;
+				int cost = head[u][i].cost;
+				if(cost < dp[v][1] && cost <= k)
+				{
+					dp[v][1] = cost;
+					f[v][1] = 1;
+				}
+				if(--d[v]==0)
+				{
+					que.push(v);
+				}
+			}
+			continue;
+		}
+		for (int i = 0; i < head[u].size();++i)
+		{
+			int v = head[u][i].to;
+			int cost = head[u][i].cost;
+			for(int j = 1;j < n+1; ++j)
+			{
+						
+				if(dp[u][j]+cost < dp[v][j+1]&&dp[u][j]+cost <= k)
+				{
+					dp[v][j+1] = dp[u][j] + cost;
+					f[v][j+1] = u; 
+				}
+		    }
+		    
+			if(--d[v]==0)
+			{
+				que.push(v);
+			}
+		}
+	}
+}
+int main()
+{
+	scanf("%d%d%d",&n,&m,&k);
+	memset(dp,INF,sizeof(dp));
+	for (int i = 0; i < m ;++i)
+	{
+		int u,v,co;
+		scanf("%d%d%d",&u,&v,&co);
+		t.to = v;
+		t.cost = co;
+		head[u].push_back(t);
+		++d[v];
+	}
+	tp();
+	int ans = 0;
+	for (int i = 0; i < n+1; ++i)
+	{
+		if(dp[n][i] < k+1) ans = i;
+	}
+	stack<int>sta;
+	printf("%d\n",ans+1);
+	sta.push(n);
+	int x = n;
+	for(int i = ans; i >1; --i)
+	{
+		x = f[x][i];
+		sta.push(x);
+	}
+	printf("1");
+	while(!sta.empty())
+	{
+		printf(" %d",sta.top());
+		sta.pop();
+	}
+	return 0;
+}
+

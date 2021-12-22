@@ -1,0 +1,101 @@
+#include <iostream>
+
+using namespace std;
+
+struct Interv {
+    int l,r;
+    int xv;
+    long long s;
+    int db[20];
+    Interv *left, *right;
+    Interv(int l, int r): l(l),r(r),xv(0),s(0ll) {
+        fill(db,db+20,0);
+        left = right = NULL;
+    };
+};
+
+int n;
+int a[100000];
+
+void update(Interv* p) {
+    p->s = 0ll;
+    for(int i=0; i<20; i++) {
+        if(p->xv & (1<<i)) p->db[i] = (p->r + 1 - p->l) - p->db[i];
+        p->s += (1ll<<i) * p->db[i];
+    }
+    if(p->left != NULL) {
+        p->left->xv ^= p->xv;
+        p->right->xv ^= p->xv;
+    }
+    p->xv = 0;
+}
+
+void build(Interv* &p, int l, int r) {
+    p = new Interv(l,r);
+    if(l==r) {
+        p->s = a[l];
+        for(int i=0; i<20; i++) p->db[i] = (a[l]>>i)&1;
+        return;
+    }
+    int f((l+r)/2);
+    build(p->left, l, f);
+    build(p->right, f+1, r);
+
+    p->s = p->left->s + p->right->s;
+    for(int i=0; i<20; i++) p->db[i] = p->left->db[i] + p->right->db[i];
+}
+
+long long sum(Interv *p, int l, int r) {
+    update(p);
+    if((l <= p->l) && (p->r <= r)) return p->s;
+
+    int f((p->l + p->r) / 2);
+
+    long long rr(0ll);
+    if(l <= f) rr += sum(p->left, l, r);
+    if(f < r) rr += sum(p->right, l, r);
+
+    return rr;
+}
+
+void change(Interv *p, int l, int r, int x) {
+    if((l <= p->l) && (p->r <= r)) {
+        p->xv ^= x;
+        return;
+    }
+    update(p);
+
+    int f((p->l + p->r) / 2);
+
+    if(l <= f) change(p->left,l,r,x);
+    if(f < r) change(p->right,l,r,x);
+
+    update(p->left); update(p->right);
+    p->s = p->left->s + p->right->s;
+    for(int i=0; i<20; i++) p->db[i] = p->left->db[i] + p->right->db[i];
+}
+
+Interv* root;
+
+int main()
+{
+    ios::sync_with_stdio(0);
+    cin >> n;
+    for(int i=0; i<n; i++) cin >> a[i];
+
+    build(root,0,n-1);
+
+    cin >> n;
+    for(int i=0; i<n; i++) {
+        int t,l,r,x;
+        cin >> t >> l >> r; l--; r--;
+        if(t==1) {
+            cout << sum(root,l,r) << endl;
+        } else {
+            cin >> x;
+            change(root,l,r,x);
+        }
+    }
+
+    return 0;
+}

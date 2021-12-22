@@ -1,0 +1,105 @@
+import java.io.BufferedInputStream;
+import java.util.Scanner;
+
+/**
+ * Created by leen on 7/27/16.
+ */
+public class _651D {
+
+    static int n, a, b, T;
+    static boolean[] isVertical;
+
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024 * 128));
+        n = scan.nextInt(); a = scan.nextInt(); b = scan.nextInt(); T =scan.nextInt() + a;
+        scan.nextLine();
+        String line = scan.nextLine();
+        isVertical = new boolean[n];
+        for(int i = 0; i < n; i++)
+            isVertical[i] = line.charAt(i) == 'h';
+
+        int rightMost = -1;
+        int rightRemainingTime = T;
+        for(;;) {
+            int requiredTime = timeCost(rightMost+1);
+            if(rightRemainingTime >= requiredTime) {
+                rightMost++;
+                rightRemainingTime -= requiredTime;
+            }
+            else
+                break;
+
+            if(rightMost == n - 1)
+                break;
+        }
+
+        if(rightMost == -1) {
+            System.out.println(0);
+            return;
+        }
+
+        if(rightMost == n - 1) {
+            System.out.println(n);
+            return;
+        }
+
+        int leftMost = n;
+        int leftRemainingTime = T - timeCost(0);
+        for(;;) {
+            int requiredTime = timeCost(leftMost-1);
+
+            if(leftRemainingTime >= requiredTime) {
+                leftMost--;
+                leftRemainingTime -= requiredTime;
+            }
+            else
+                break;
+        }
+
+        if(leftMost == n) {
+            System.out.println(rightMost + 1);
+            return;
+        }
+
+        int maxNow = Math.max(rightMost + 1, n - leftMost + 1);
+
+        int numNow = rightMost + 1;
+        for(int left = n - 1; ; left--) {
+            rightRemainingTime -= a + timeCost(left);
+            numNow++;
+            while(rightRemainingTime < 0 && rightMost > 0) {
+                rightRemainingTime += timeCost(rightMost--);
+                numNow--;
+            }
+
+            if(rightMost == 0)
+                break;
+
+            if(numNow > maxNow)
+                maxNow = numNow;
+        }
+
+        numNow = n - leftMost + 1;
+        for(int right = 1; ; right++) {
+            leftRemainingTime -= a + timeCost(right);
+            numNow++;
+            while(leftRemainingTime < 0 && leftMost < n) {
+                leftRemainingTime += timeCost(leftMost++);
+                numNow--;
+            }
+
+            if(leftMost == n)
+                break;
+
+            if(numNow > maxNow)
+                maxNow = numNow;
+        }
+
+        System.out.println(maxNow);
+    }
+
+    static int timeCost(int i) {
+        return a + 1 + (isVertical[i] ? 0 : b);
+    }
+
+}

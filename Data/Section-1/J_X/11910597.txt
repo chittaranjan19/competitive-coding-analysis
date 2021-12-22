@@ -1,0 +1,80 @@
+#include <iostream>
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll, int> P;
+typedef set<P>::iterator ite;
+
+const int maxn = 2e5 + 5;
+
+struct land
+{
+    ll _min, _max;
+    int num;
+
+    land(ll _min = 0, ll _max = 0, int num = 0) : _min(_min), _max(_max), num(num) {}
+
+    friend bool operator < (const land &a, const land &b)
+    {
+        if(a._max != b._max)
+        {
+            return a._max < b._max;
+        }
+        return a._min < b._min;
+    }
+} l[maxn];
+
+set<P> st;
+int ans[maxn];
+
+int main()
+{
+    int n, m;
+    while(~scanf("%d%d", &n, &m))
+    {
+        st.clear();
+        ll l1, r1, l2, r2;
+        scanf("%I64d%I64d", &l1, &r1);
+        for(int i = 0; i < n - 1; ++i)
+        {
+            scanf("%I64d%I64d", &l2, &r2);
+            l[i] = land(l2 - r1, r2 - l1, i);
+            l1 = l2, r1 = r2;
+        }
+        for(int i = 1; i <= m; ++i)
+        {
+            ll x;
+            scanf("%I64d", &x);
+            st.insert(make_pair(x, i));
+        }
+        sort(l, l + n - 1);
+        bool flag = true;
+        for(int i = 0; i < n - 1; ++i)
+        {
+            land temp = l[i];
+            ite p = st.lower_bound(make_pair(temp._min, 0));
+            if(p == st.end() || p->first > temp._max)
+            {
+                flag = false;
+                break;
+            }
+            ans[temp.num] = p->second;
+            st.erase(p);
+        }
+        if(flag)
+        {
+            puts("Yes");
+            for(int i = 0; i < n - 1; ++i)
+            {
+                printf("%d%c", ans[i], i != n - 2 ? ' ' : '\n');
+            }
+        }
+        else
+        {
+            puts("No");
+        }
+    }
+    return 0;
+}

@@ -1,0 +1,79 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1000010;
+
+char str[maxn];
+pair<int, pii> st[maxn*5];
+
+void init(int s, int e, int node)
+{
+	if(s==e){
+		if(str[s]=='(')
+			st[node] = mp(0, mp(1, 0));
+		else
+			st[node] = mp(0, mp(0, 1));
+		return;
+	}
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	init(s, mid, lc);
+	init(mid+1, e, rc);
+	int temp = min(st[lc].s.f, st[rc].s.s);
+	st[node].f = st[lc].f + st[rc].f + temp;
+	st[node].s.f = st[lc].s.f - temp + st[rc].s.f;
+	st[node].s.s = st[lc].s.s + st[rc].s.s - temp;
+	return;
+}
+
+pair<int, pii> query(int s, int e, int qs, int qe, int node)
+{
+	if(s>e || s>qe || qs>e)
+		return mp(0, mp(0, 0));
+	if(s>=qs && qe>=e)
+		return st[node];
+	int mid, lc, rc, temp;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	pair<int, pii> x, y, ret;
+	x = query(s, mid, qs, qe, lc);
+	y = query(mid+1, e, qs, qe, rc);
+	temp = min(x.s.f, y.s.s);
+	ret.f = x.f + y.f + temp;
+	ret.s.f = x.s.f - temp + y.s.f;
+	ret.s.s = x.s.s + y.s.s - temp;
+	return ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int n, m, l, r, i;
+	scanf("%s%d", str, &m);
+	n = strlen(str);
+	init(0, n-1, 0);
+	while(m--){
+		scanf("%d%d", &l, &r);
+		pair<int, pii> ans = query(0, n-1, l-1, r-1, 0);
+		printf("%d\n", ans.f*2);
+	}
+	return 0;
+}

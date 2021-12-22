@@ -1,0 +1,109 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<int> g[100005];
+int DP[100005][2];
+bool v[100005][2], color[100005];
+
+int solve(int node, bool need, int parent)
+{
+  int &temp = DP[node][need];
+  if(v[node][need]) return temp;
+  v[node][need] = true;
+  temp = 0;
+  if(!need)
+  {
+    temp = solve(node, 1, parent);
+    if(color[node]) return temp;
+  }
+  else if(color[node]) need = 0;
+  int tmp = 1;
+  vector<int> ans, cul;
+  for(int i=0;i<g[node].size();i++)
+  {
+    int x = g[node][i];
+    if(x == parent)
+    {
+      if(need) ans.pb(1);
+      continue;
+    }
+    if(!need) tmp = (tmp * 1LL * solve(x, 0, node)) % mod;
+    else ans.pb(solve(x, 0, node));
+  }
+  cul = ans;
+  if(need)
+  {
+    temp = 0;
+    for(int i=(int)(cul.size())-2;i>=0;i--)
+      cul[i] = (cul[i] * 1LL * cul[i + 1]) % mod;
+    for(int i=0;i<g[node].size();i++)
+    {
+      int x = g[node][i];
+      if(x == parent) continue;
+      int y = (tmp * 1LL * solve(x, 1, node)) % mod;
+      if(i != cul.size() - 1) y = (y * 1LL * cul[i + 1]) % mod;
+      temp += y;
+      if(temp >= mod) temp -= mod;
+      tmp = (tmp * 1LL * ans[i]) % mod;
+    }
+  }
+  else
+  {
+    temp += tmp;
+    if(temp >= mod) temp -= mod;
+  }
+  return temp;
+}
+
+int main()
+{
+  //freopen("seaport.in", "r", stdin);
+  //freopen("seaport.out", "w", stdout);
+  int n, x;
+  scanf("%d", &n);
+  for(int i=0;i<n-1;i++)
+  {
+    scanf("%d", &x);
+    g[i + 1].pb(x);
+    g[x].pb(i + 1);
+  }
+  for(int i=0;i<n;i++)
+    scanf("%d", &color[i]);
+  printf("%d", solve(0, 1, 0));
+  return 0;
+}

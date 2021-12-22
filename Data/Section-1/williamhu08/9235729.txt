@@ -1,0 +1,79 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 110;
+
+int N, K;
+char str[MAXN];
+int dp[MAXN][2 * MAXN][MAXN][2];	//dp[string pos][position in line][# of changes left][direction]
+
+int getdp (int i, int pos, int nchng, bool dir) {
+	if (nchng < 0) {
+		//careful you may not be able to change anymore
+		return 0;
+	}
+	if (i == N) {
+		return nchng ? 0 : abs(pos);
+	}
+	int &ref = dp[i][pos + MAXN][nchng][dir];
+	if (ref == -1) {
+		return ref = 
+		max(getdp(i + 1, pos + (dir ? 1 : -1), 	nchng - (str[i] != 'F'), dir), 
+			getdp(i + 1, pos, nchng - (str[i] != 'T'), !dir));
+	}
+	return ref;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	scanf("%s%d", str, &K);
+	N = strlen(str);
+	fillchar(dp, -1);
+	int ans = 0;
+	//ok let's do another dp. basically we do all changes at the beginning
+	for (int i = K; i >= 0; i -= 2) {
+		int d = getdp(0, 0, i, true);
+		if (ans < d) {
+			ans = d;
+		}
+	}
+	printf("%d\n", ans);
+}

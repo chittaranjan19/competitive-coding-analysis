@@ -1,0 +1,93 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll, int> P;
+
+const int MAXN = 2000 + 5;
+
+int a[MAXN], b[MAXN], sw[6][2];
+P p[MAXN * MAXN];
+
+ll myabs(ll a)
+{
+    return a >= 0 ? a : -a;
+}
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        ll suma = 0, sumb = 0;
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", a + i);
+            suma += a[i];
+        }
+        int m;
+        scanf("%d", &m);
+        for(int i = 1; i <= m; ++i)
+        {
+            scanf("%d", b + i);
+            sumb += b[i];
+        }
+        ll ans = myabs(suma - sumb);
+        int num = 0;
+        for(int i = 1; i <= n; ++i)
+        {
+            for(int j = 1; j <= m; ++j)
+            {
+                ll tmpa = suma - a[i] + b[j], tmpb = sumb - b[j] + a[i];
+                ll tmp = myabs(tmpa - tmpb);
+                if(tmp < ans)
+                {
+                    ans = tmp;
+                    num = 1;
+                    sw[0][0] = i, sw[0][1] = j;
+                }
+            }
+        }
+        int cnt = 0;
+        for(int i = 1; i < m; ++i)
+        {
+            for(int j = i + 1; j <= m; ++j) p[cnt++] = P((b[i] + b[j]) * 2LL, i * MAXN + j);
+        }
+        sort(p, p + cnt);
+        for(int i = 1; i < n; ++i)
+        {
+            for(int j = i + 1; j <= n; ++j)
+            {
+                ll tmp = suma - sumb - 2LL * (a[i] + a[j]);
+                int k = lower_bound(p, p + cnt, P(-tmp, 0)) - p;
+                if(myabs(tmp + p[k].first) < ans)
+                {
+                    ans = myabs(tmp + p[k].first);
+                    num = 2;
+                    sw[0][0] = i, sw[0][1] = j, sw[1][0] = p[k].second / MAXN, sw[1][1] = p[k].second % MAXN;
+                }
+                if(k)
+                {
+                    --k;
+                    if(myabs(tmp + p[k].first) < ans)
+                    {
+                        ans = myabs(tmp + p[k].first);
+                        num = 2;
+                        sw[0][0] = i, sw[1][0] = j, sw[0][1] = p[k].second / MAXN, sw[1][1] = p[k].second % MAXN;
+                    }
+                }
+            }
+        }
+        printf("%I64d\n%d\n", ans, num);
+        for(int i = 0; i < num; ++i)
+        {
+            printf("%d %d\n", sw[i][0], sw[i][1]);
+        }
+    }
+    return 0;
+}

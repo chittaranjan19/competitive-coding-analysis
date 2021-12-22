@@ -1,0 +1,67 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 250005;
+
+int n, m, len[51], con[maxn], sum[51], arr[51][5001];
+int st[51][5001], en[51][5001];
+ll dp[maxn][2];
+
+void compute(int ind)
+{
+	int i;
+	for(i=len[ind]; i>=1; i--)
+		st[ind][i] = max(st[ind][i+1]+arr[ind][i], arr[ind][i]);
+	for(i=1; i<=len[ind]; i++)
+		en[ind][i] = max(en[ind][i-1]+arr[ind][i], arr[ind][i]);
+}
+
+ll solve(int cur, int state)
+{
+	if(cur>m)
+		return 0;
+	if(dp[cur][state]!=-1)
+		return dp[cur][state];
+	ll ret = solve(cur+1, 0);
+	int ind = con[cur];
+	ret = max(ret, solve(cur+1, 1) + en[ind][len[ind]]);
+	if(state)
+		ret = max(ret, 1ll*st[ind][1]);
+	return dp[cur][state] = ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j;
+	memset(dp, -1, sizeof(dp));
+	ll ans = -1ll<<50;
+	scanf("%d%d", &n, &m);
+	for(i=1; i<=n; i++){
+		scanf("%d", &len[i]);
+		sum[i] = 0;
+		for(j=1; j<=len[i]; j++)
+			scanf("%d", &arr[i][j]), sum[i]+=arr[i][j];
+		compute(i);
+	}
+	for(i=1; i<=m; i++)
+		scanf("%d", &con[i]);
+	ans = solve(1, 0);
+	printf("%lld\n", ans);
+	return 0;
+}

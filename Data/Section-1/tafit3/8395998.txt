@@ -1,0 +1,157 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemB3 {
+    BufferedReader rd;
+    int[] p2 = new int[32];
+
+    private ProblemB3() throws IOException {
+        int j = 1;
+        for(int i=0;i<32;i++) {
+            p2[i] = j;
+            j <<= 1;
+        }
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        int[] a = intarr();
+        int n = a[0];
+        int m = a[1];
+        NavigableMap<Integer, List<Interval>> p = new TreeMap<>();
+        int[] res = new int[n+2];
+        boolean ok = true;
+        for(int i=0;i<m;i++) {
+            a = intarr();
+            int from = a[0];
+            int to = a[1];
+            addToMap(p, new Interval(from, to, a[2]));
+        }
+        int nextIdx = 1;
+        int cx = 0;
+        int[] cur = new int[31];
+        Map<Integer, List<Interval>> toWrite = new HashMap<>();
+        for(Map.Entry<Integer, List<Interval>> e: p.entrySet()) {
+            int key = e.getKey();
+            for(int i=nextIdx;i<key;i++) {
+                res[i] = cx;
+            }
+            nextIdx = key;
+            for(Interval v: e.getValue()) {
+                if(v.from != key) {
+                    if(!v.marked) {
+                        ok = false;
+                        break;
+                    }
+                    dec(cur, v.v);
+                }
+            }
+            if(!ok) {
+                break;
+            }
+            for(Interval v: e.getValue()) {
+                if(v.from == key) {
+                    inc(cur,v.v);
+                    addToMap(toWrite, v, v.v);
+                }
+            }
+            cx = toCx(cur);
+            List<Interval> vv = toWrite.remove(cx);
+            if(vv != null) {
+                for(Interval v: vv) {
+                    v.marked = true;
+                }
+            }
+        }
+        for(int i=nextIdx;i<=n;i++) {
+            res[i] = cx;
+        }
+        if(!toWrite.isEmpty()) {
+            ok = false;
+        }
+        out(ok?"YES":"NO");
+        if(ok) {
+            StringBuilder buf = new StringBuilder();
+            buf.append(res[1]);
+            for(int i=2;i<=n;i++) {
+                buf.append(' ');
+                buf.append(res[i]);
+            }
+            out(buf);
+        }
+    }
+
+    private int toCx(int[] cur) {
+        int cx = 0;
+        for(int i=0;i<31;i++) {
+            if(cur[i] > 0) {
+                cx |= p2[i];
+            }
+        }
+        return cx;
+    }
+
+    private void inc(int[] cur, int v) {
+        for(int i=0;i<31;i++) {
+            if((p2[i]&v)>0) {
+                cur[i]++;
+            }
+        }
+    }
+
+    private void dec(int[] cur, int v) {
+        for(int i=0;i<31;i++) {
+            if((p2[i]&v)>0) {
+                cur[i]--;
+            }
+        }
+    }
+
+    private void addToMap(Map<Integer, List<Interval>> m, Interval x) {
+        addToMap(m, x, x.from);
+        addToMap(m, x, x.to+1);
+    }
+
+    private void addToMap(Map<Integer, List<Interval>> m, Interval x, int y) {
+        List<Interval> q = m.get(y);
+        if(q == null) {
+            q = new ArrayList<>();
+            m.put(y,q);
+        }
+        q.add(x);
+    }
+
+    class Interval {
+        int from;
+        int to;
+        int v;
+        boolean marked;
+
+        Interval(int from, int to, int v) {
+            this.from = from;
+            this.to = to;
+            this.v = v;
+        }
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = s.split(" ");
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB3();
+    }
+}

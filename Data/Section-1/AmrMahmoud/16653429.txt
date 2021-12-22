@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int a[100005], b[100005];
+vector<pair<LL, LL> > lines;
+
+inline LL cross(const pair<LL, LL> &A, const pair<LL, LL> &O, const pair<LL, LL> &B)
+{
+  return (O.f - A.f) * (B.s - O.s) - (A.s - O.s) * (O.f - B.f);
+}
+
+inline void add_line(LL m, LL c)
+{
+  pair<LL, LL> tmp = mp(m, c);
+  while(lines.size() >= 2 && cross(lines[lines.size() - 2], lines[lines.size() - 1], tmp) <= 0)
+    lines.pop_back();
+  lines.pb(tmp);
+}
+
+inline LL query(LL x)
+{
+  int L = 0, R = lines.size() - 1;
+  while(R > L)
+  {
+    int mid = L + (R - L) / 2;
+    if(lines[mid].f * x + lines[mid].s > lines[mid+1].f * x + lines[mid+1].s)
+      L = mid + 1;
+    else R = mid;
+  }
+  return lines[L].f * x + lines[L].s;
+}
+
+int main()
+{
+  int n;
+  scanf("%d", &n);
+  if(n == 1)
+  {
+    cout << 0;
+    return 0;
+  }
+  for(int i=0;i<n;i++)
+    scanf("%d", &a[i]);
+  for(int i=0;i<n;i++)
+    scanf("%d", &b[i]);
+  add_line(-b[0], 0);
+  for(int i=1;i<n-1;i++)
+    add_line(-b[i], query(-a[i]));
+  cout << query(-a[n - 1]);
+  return 0;
+}

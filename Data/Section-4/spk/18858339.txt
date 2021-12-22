@@ -1,0 +1,148 @@
+#include<iostream>
+#include<cstdio>
+#include<map>
+#include<string>
+#include<cstring>
+#include<vector>
+#include<algorithm>
+#include<queue>
+#include<set>
+#include<stack>
+
+#define fill(a,val) memset(a, (val), sizeof a)
+#define pb push_back
+#define scantype int
+#define min(a,b) a<b?a:b
+#define max(a,b) a>b?a:b
+#define lli long long int
+
+lli powermod(lli _a,lli _b,lli _m){lli _r=1;while(_b){if(_b%2==1)_r=(_r*_a)%_m;_b/=2;_a=(_a*_a)%_m;}return _r;}
+
+using namespace std;
+
+void scan(scantype &x);
+
+bool mycmp(pair< pair<int,int>, int> a,pair< pair<int,int>, int> b)
+{
+    if(a.first.first<b.first.first)return true;
+    if(a.first.first==b.first.first && a.first.second<b.first.second) return true;
+    return false;
+}
+
+bool cmp(pair<int,int> a,pair<int,int> b)
+{
+    if(a.second<b.second)return true;
+    return false;
+}
+int main(void)
+{
+  int n,k;
+  cin>>n;
+
+  pair< pair<int,int>, int> req[n];
+
+  for(int i=0;i<n;i++)
+  {
+      int x,y;
+      scan(x);
+      scan(y);
+      req[i]={{x,y},i};
+  }
+  cin>>k;
+
+  sort(req,req+n,mycmp);
+  /*cout<<"order: "<<endl;
+  for(int i=0;i<k;i++)
+  {
+      cout<<"onum: "<<req[i].second<<" size: "<<req[i].first.first<<" money: "<<req[i].first.second<<endl;
+  }*/
+
+  vector<pair< pair<int,int>, int> > vp[k];
+
+  pair<int,int> table[k];
+
+  for(int i=0;i<k;i++)
+  {
+      int x;
+      scan(x);
+      table[i]={i,x};
+  }
+
+  sort(table,table+k,cmp);
+
+  /*cout<<"table: "<<endl;
+  for(int i=0;i<k;i++)
+  {
+      cout<<"num: "<<table[i].first<<" cap: "<<table[i].second<<endl;
+  }*/
+  for(int i=0;i<k;i++)
+    {
+        for(int j=0;j<n;j++)
+        {
+            if(req[j].first.first<=table[i].second)   vp[table[i].first].pb(req[j]);
+            else                                       break;
+        }
+    }
+
+  bool vis[n];
+  fill(vis,false);
+
+  vector< pair<int,int> > ans;
+
+  long long tsum=0;
+  for(int i=0;i<k;i++)
+  {
+      int ordernum,cap,mon=0,flag=0;
+
+      int idx=table[i].first;
+      for(int j=0;j<vp[idx].size();j++)
+      {
+          if(!vis[ vp[idx][j].second ] && vp[idx][j].first.second>=mon)
+          {
+    
+               flag=1;
+               cap=vp[idx][j].first.first;
+               mon=vp[idx][j].first.second;
+               ordernum=vp[idx][j].second;
+               vis[ vp[idx][j].second ] = true;
+
+               //cout<<"ordernum: "<<ordernum<<" table:"<<idx<<endl;
+          }
+      }
+      tsum+=mon;
+      if(flag)
+      ans.pb({ordernum+1,idx+1});
+  }
+
+  cout<<ans.size()<<" "<<tsum<<endl;
+
+  for(int i=0;i<ans.size();i++)
+  {
+      printf("%d %d\n",ans[i].first,ans[i].second);
+  }
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+void scan(scantype &x)
+{
+    /*register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}*/
+
+    register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x;
+}

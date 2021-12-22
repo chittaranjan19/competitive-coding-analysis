@@ -1,0 +1,74 @@
+#include <bits/stdc++.h>
+#define maxn 3*100005
+#define e 1000000007
+using namespace std;
+    int n,Q,deg[maxn];
+    vector<int>g[maxn];
+    int gt1[maxn];
+    int gt2[maxn];
+    int cl[maxn],depth[maxn],head[maxn],tail[maxn],x[maxn];
+    int cur[maxn],s[maxn];
+void dfs()
+{
+    int sn=0,slx=0;
+    s[++sn]=1; cl[1]=1; depth[1]=1;
+    x[++slx]=1; head[1]=slx;
+    while(sn)
+    {
+        int u=s[sn];
+        while(cur[u]<deg[u]&&cl[g[u][cur[u]]]) cur[u]++;
+        if(cur[u]==deg[u])
+        {
+            tail[u]=slx;
+            sn--;
+        }
+        else
+        {
+            int v=g[u][cur[u]];
+            cl[v]=1; s[++sn]=v;
+            depth[v]=depth[u]+1;
+            x[++slx]=v; head[v]=slx;
+        }
+    }
+}
+void lam1()
+{
+    int v,x,k;
+    cin>>v>>x>>k;
+    int val=(x+depth[v]*(long long)k)%e;
+    for(int i=head[v];i<=tail[v];i++)
+        gt1[i]=((gt1[i]+val)+e)%e;
+    for(int i=head[v];i<=tail[v];i++)
+        gt2[i]=((gt2[i]-k)%e+e)%e;
+}
+void lam2()
+{
+    int v;
+    cin>>v;
+    int ds=((gt1[head[v]]+(long long)gt2[head[v]]*depth[v])%e+e)%e;
+    cout<<ds<<"\n";
+}
+int main()
+{
+    //freopen("div1c.inp","r",stdin);
+    //freopen("div1c.out","w",stdout);
+    ios::sync_with_stdio(0);
+    cin>>n;
+    for(int i=2; i<=n; i++)
+    {
+        int p;
+        cin>>p;
+        deg[p]++; g[p].push_back(i);
+        deg[i]++; g[i].push_back(p);
+    }
+    dfs();
+    cin>>Q;
+    for(int i=1; i<=n; i++)
+    {
+        int id;
+        cin>>id;
+        if(id==1) lam1();
+        else lam2();
+    }
+}
+

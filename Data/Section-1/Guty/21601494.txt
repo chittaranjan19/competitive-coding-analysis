@@ -1,0 +1,167 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+#include <valarray>
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(tint i=(s);i<(tint)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		tint p = tint(v.size());
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) )
+		Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+// CRIBA
+
+//const tint maxN = 1000500;
+//int p[maxN + 1] = {1, 1};
+//
+//map<tint,tint> factorizar (tint n)
+//{
+//	map<tint,tint> f;
+//	while (n > 1) 
+//	{ 
+//		f[p[n]]++;
+//		n /= p[n]; 
+//	}
+//	return f;
+//}
+// ESTO VA EN EL MAIN
+//	for (int i = 1; i <= maxN; ++i)
+//		if (p[i] == 1)
+//			for (int j = i; j <= maxN; j += i)
+//				p[j] = i;
+
+
+const int maxN = 200000;
+const int maxK = 200000;
+
+int visto[maxN];
+int color[maxN];
+int hist[maxK];
+
+
+void dfsVisita (vector<vector<int> > &adj, int &componente, int v)
+{
+	visto[v] = 1;
+	hist[color[v]]++;
+	componente++;
+	for (auto vecino : adj[v])
+		if (!visto[vecino])
+			dfsVisita(adj,componente,vecino);
+	
+	
+}
+
+void dfs(vector<vector<int> > &adj, int &ans)
+{
+	int n = int(adj.size());
+	forn(i,n)
+		visto[i] = 0;
+	
+	forn(i,n)
+	{
+		if (!visto[i])
+		{
+			forn(j,maxK)
+				hist[j] = 0;
+			int componente = 0;
+			dfsVisita(adj,componente,i);
+			int maxi = -1;
+			forn(j,maxN)
+				maxi = max(maxi,hist[j]);
+			ans += componente - maxi;
+		}
+	}
+			
+}
+
+int main()
+{
+	#ifdef ACMTUYO
+		assert(freopen("entrada.in", "r", stdin));
+	#endif
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	int n,m,k;
+	while (cin >> n >> m >> k)
+	{
+		forn(i,maxN)
+			color[i] = 0;
+		forn(i,n)
+		{
+			cin >> color[i];
+			color[i]--;
+		}
+		
+		vector<vector<int> > adj(n);
+		forn(i,m)
+		{
+			int l,r;
+			cin >> l >> r;
+			adj[l-1].push_back(r-1);
+			adj[r-1].push_back(l-1);
+		}
+		
+		int ans = 0;
+		dfs(adj,ans);
+		cout << ans << "\n";
+		
+	}
+	return 0;
+}
+
+
+

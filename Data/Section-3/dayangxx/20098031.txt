@@ -1,0 +1,155 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <map>
+#include <set>
+#include <queue>
+#include <stack>
+#include <bitset>
+#include <time.h>
+#include <string>
+#include <vector>
+#include <math.h>
+#include <cassert>
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+
+using namespace std;
+
+#define ft first
+#define sc second
+#define mp make_pair
+#define all(a) a.begin(), a.end()
+#define forn(i, n) for (int i = 0; i < int(n); i++)
+
+typedef long long li;
+typedef long double ld;
+typedef pair <li, li> pli;
+typedef pair <int, int> pii;
+
+const int N = 200000;
+const li INF = li(1e18);
+
+int n;
+
+bool ok[N];
+
+struct edge
+{
+    int v, to, w, idx;
+    edge () { }
+    edge(int v, int to, int w, int idx) : v(v), to(to), w(w), idx(idx) { }
+};
+
+vector <li> d1, d2;
+
+vector <edge> e, g[N], tg[N];
+
+void work(int v, vector <li> & d, bool f)
+{
+    d.assign(n, INF);
+    d[v] = 0;
+    set < pair <li, int> > s;
+    s.insert(mp(d[v], v));
+
+    while(!s.empty())
+    {
+        v = s.begin()->sc;
+        li dv = s.begin()->ft;
+        s.erase(s.begin());
+
+        forn(i, f ? tg[v].size() : g[v].size())
+        {
+            int to = f ? tg[v][i].to : g[v][i].to;
+            int w = f ? tg[v][i].w : g[v][i].w;
+
+            if(d[to] > dv + w)
+            {
+                d[to] = dv + w;
+                s.insert(mp(d[to], to));
+            }
+        }
+    }
+}
+
+bool cmp(pair <pli, int> a, pair <pli, int> b)
+{
+    return a.ft.sc > b.ft.sc;
+}
+
+int main()
+{
+
+    int m, s, t;
+    scanf("%d %d %d %d", &n, &m, &s, &t);
+    s--; t--;
+
+    forn(i, m)
+    {
+        int a, to, w;
+        scanf("%d %d %d", &a, &to, &w);
+        a--; to--;
+        g[a].push_back(edge(-1, to, w, i));
+        tg[to].push_back(edge(-1, a, w, i));
+        e.push_back(edge(a, to, w, i));
+    }
+
+    work(s, d1, false);
+    work(t, d2, true);
+
+    vector <pair <pli, int>> ds;
+
+    forn(i, m)
+    {
+        int v = e[i].v, w = e[i].w, to = e[i].to;
+        if(d1[v] + w + d2[to] == d1[t])
+            ds.push_back(mp(mp(d1[v], d1[to]), e[i].idx));
+
+    }
+
+    sort(all(ds), cmp);
+
+    set <pli> st;
+    set <pli> changed;
+
+    forn(i, ds.size())
+    {
+        li l = ds[i].ft.ft, r = ds[i].ft.sc;
+        auto it = st.lower_bound(mp(l, -1));
+
+        if(it == st.end() || it->sc >= r)
+            st.insert(mp(r, l));
+        else
+        {
+            li lf = it->sc, rt = it->ft;
+            changed.insert(*it);
+            st.erase(it);
+            st.insert(mp(rt,min(lf, l)));
+            changed.insert(mp(rt,min(lf, l)));
+        }
+    }
+
+    vector <int> res;
+
+    forn(i, ds.size())
+    {
+        li l = ds[i].ft.ft, r = ds[i].ft.sc;
+        auto it = st.find(mp(r, l));
+        auto it2 = changed.find(mp(r, l));
+        if(it != st.end() && it2 == changed.end())
+            ok[ds[i].sc] = true;
+    }
+
+    forn(i, m)
+    {
+        int v = e[i].v, to = e[i].to, w = e[i].w;
+
+        if(ok[e[i].idx])
+            puts("YES");
+        else if(d1[t] - d1[v] - d2[to] - 1 > 0)
+            printf("CAN %d\n", w - (d1[t] - d1[v] - d2[to] - 1));
+        else
+            puts("NO");
+    }
+
+    return 0;
+}

@@ -1,0 +1,58 @@
+using namespace std;
+#include<bits/stdc++.h>
+#define FOR(i, a, b) for (int i = a; i < b; i++)
+#define FORE(i, a, b) for (int i = a; i <= b; i++)
+#define FORD(i, a, b) for (int i = a; i >= b; i--)
+const int MAXN = 2*1e5;
+const int INF  = 1e9 + 7;
+
+int n, a[MAXN], L[MAXN], R[MAXN], odd[MAXN], Left[MAXN], Right[MAXN];
+long long mmax[MAXN],  SumOdd[MAXN];
+
+int main()
+{
+    ios::sync_with_stdio(false); cin.tie(0);
+
+    //freopen("202E.inp", "r", stdin);
+    //freopen("202E.out", "w", stdout);
+
+    cin >> n;
+    FORE(i, 1, n - 1) cin >> a[i];
+    L[1] = 1;
+    FORE(i, 2, n - 1) {
+        L[i] = i;
+        while (L[i] > 1 && a[ L[i] - 1] >= a[i]) L[i] = L[L[i] - 1];
+    }
+    Left[1] = 0;
+    FORE(i, 2, n) {
+        int tmp = a[i - 1];
+        if (tmp % 2 == 1) tmp--;
+        Left[i] = tmp * (i - 1 - L[i - 1] + 1);
+    }
+
+    R[n - 1] = n - 1;
+    FORD(i, n - 2, 1) {
+        R[i] = i;
+        while (R[i] < n - 1 && a[ R[i] + 1] >= a[i]) R[i] = R[R[i] + 1];
+    }
+    Right[n] = 0;
+    FORD(i, n - 1, 1) {
+        int tmp = a[i];
+        if (tmp % 2 == 1) tmp--;
+        Right[i] = tmp * (R[i] - i + 1);
+    }
+    //FORE(i, 1, n) cout<<Right[i]<<" ";cout<<endl;
+
+    FORE(i, 2, n) {
+        odd[i - 1] = a[i - 1];
+        if (odd[i - 1] % 2 == 0) odd[i - 1]--;
+        SumOdd[i] = SumOdd[i - 1] + odd[i - 1];
+    }
+    //cout<<SumOdd[n]<<endl;
+    mmax[n] = Right[n] + SumOdd[n];
+    FORD(i, n - 1, 1) mmax[i] = max(mmax[i + 1], Right[i] + SumOdd[i]);
+    long long ans = 0;
+    FORE(i, 1, n - 1) ans = max(ans, Left[i] - SumOdd[i] + mmax[i + 1]);
+    cout<<ans;
+    return 0;
+}

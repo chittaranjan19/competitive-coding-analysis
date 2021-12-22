@@ -1,0 +1,215 @@
+/*
+*Rainto96
+*Beijing University of Posts and Telecommunications School of Software Engineering
+*http://blog.csdn.net/u011775691
+*/
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <queue>
+#include <cstring>
+#include <string>
+#include <cmath>
+#include <set>
+#include <map>
+#include <vector>
+#include <climits>
+using namespace std;
+#define pb push_back
+#define ALL(x) x.begin(),x.end()
+#define VINT vector<ll>
+#define PII pair<ll,ll>
+#define MP(x,y) make_pair((x),(y))
+#define ll long long
+#define ull unsigned ll
+#define MEM0(x)  memset(x,0,sizeof(x))
+#define MEM(x,val) memset((x),val,sizeof(x))
+#define scan(x) scanf("%I64d",&(x))
+#define scan2(x,y) scanf("%I64d%I64d",&(x),&(y))
+#define scan3(x,y,z) scanf("%I64d%I64d%I64d",&(x),&(y),&(z))
+#define scan4(x,y,z,k) scanf("%I64d%I64d%I64d%I64d",&(x),&(y),&(z),&(k))
+#define Max(a,b) a=max(a,b)
+#define Min(a,b) a=min(a,b)
+#define rep(x,y) for(ll (x)=0;(x)<(y);(x)++ )
+using namespace std;
+const ll MAXV=111111;
+const ll INF=0x3f3f3f3f3f3f3f3f;
+struct edge{
+        ll to,cost,isin,preid;
+        edge(ll to=0,ll cost=0,ll isin=0,ll preid=0):to(to),cost(cost),isin(isin),preid(preid){}
+
+};
+bool cmpp(edge s1,edge s2){
+        return s1.to < s2.to;
+}
+typedef pair<ll ,ll > P;
+ll V;
+vector<edge> G[MAXV];
+ll sd[MAXV] , dt[MAXV];
+ll isCut[MAXV];
+
+ll tmpd[MAXV];
+
+void dijkstraBiaojiBian(ll s,ll d[],ll ans[]){
+        priority_queue<P, vector<P> ,greater<P> > que;
+        fill(d+1,d+V+1,INF);
+        d[s]=0;
+        que.push(P(0,s));
+        while(!que.empty()){
+                P p=que.top();que.pop();
+                ll v=p.second;
+                if(d[v]<p.first) continue;
+                for(ll i=0;i<G[v].size() ;i++){
+                        edge e=G[v][i];
+                        if(d[e.to]>d[v]+e.cost){
+                                d[e.to]=d[v]+e.cost;
+                                que.push(P(d[e.to],e.to));
+                        }
+                        if(ans[e.to]==d[v]+e.cost){
+                                G[v][i].isin=1;
+                        }
+                }
+        }
+}
+
+void dijkstra(ll s,ll d[],bool biaojima){
+        priority_queue<P, vector<P> ,greater<P> > que;
+        fill(d+1,d+V+1,INF);
+        d[s]=0;
+        que.push(P(0,s));
+        while(!que.empty()){
+                P p=que.top();que.pop();
+                ll v=p.second;
+                if(d[v]<p.first) continue;
+                for(ll i=0;i<G[v].size() ;i++){
+                        edge e=G[v][i];
+                        if(d[e.to]>d[v]+e.cost){
+                                d[e.to]=d[v]+e.cost;
+                                que.push(P(d[e.to],e.to));
+                        }
+                }
+        }
+        if(biaojima)
+                dijkstraBiaojiBian(s,tmpd,d);
+}
+
+
+
+vector<edge > geG[MAXV];
+
+
+/////////////////////��-˫��ͨ����////////////////
+//���bccno������
+ll pre[MAXV],dfs_clock;
+ll dfs(ll u,ll fa){
+    ll low_u = pre[u] = ++dfs_clock;
+    ll child = 0;
+    for(ll i = 0;i < geG[u].size();i++){
+        ll v = geG[u][i].to;
+        //edge e = (edge){v,0,0,0};
+        if(!pre[v]){//û�з��ʹ�v
+            child++;
+            ll low_v = dfs(v,u);
+            low_u = min(low_u,low_v);//�ú���low��������Լ�
+            if(low_v > pre[u]){
+                ///��Ǹ��
+                ll oriId= geG[u][i].preid;
+                isCut[oriId]=true;
+            }
+        }else if(pre[v] < pre[u] && v != fa){
+            low_u = min(low_u,pre[v]);//�÷���߸����Լ�
+        }
+    }
+    return low_u;
+}
+void find_bcc(ll n){
+    //���ý����S��֤Ϊ�գ����Բ������
+    memset(pre,0,sizeof(pre));
+    dfs_clock =0;
+    for(ll i = 1;i <= n;i++)//���±��0��ʼ
+        if(!pre[i]) dfs(i,-1);
+}
+/*how to use
+n vertex,G[] ����˫��ߣ����±��0��ʼ��
+����find_bcc(n)
+*/
+/////////////////////��-˫��ͨ����////////////////
+
+
+
+int main(){
+	#ifndef ONLINE_JUDGE
+		//freopen("C:/OJ/in.txt","r",stdin);
+	#endif
+        ll n,m,s,t;
+        scan4(n,m,s,t);
+        V=n;
+        vector<pair<PII,ll > > vec;
+        for(ll i=1;i<=m;i++){
+                ll u,v,w;scan3(u,v,w);
+                vec.pb(MP(MP(u,v),w));
+                G[u].pb(edge(v,w,0,i));
+                //cerr<<u<<" "<<v<<" "<<w<<endl;
+        }
+        //cerr<<G[1].size()<<endl;
+        dijkstra(s,sd,true);
+        ll minSTdis=sd[t];
+
+        for(ll i=1;i<=n;i++){
+                for(ll j=0;j<G[i].size();j++){
+                        if(G[i][j].isin) {
+                                geG[i].pb(G[i][j]);
+                                edge e=G[i][j];
+                                ll u=i , v=e.to;
+                                geG[v].pb(edge(u,0,0,e.preid));
+                        }
+                }
+        }
+//        for(ll i=1;i<=n;i++){
+//                for(ll j=0;j<geG[i].size();j++){
+//                        cerr<<i<<" "<<geG[i][j].to<<" "<<geG[i][j].cost<<endl;
+//                }
+//        }
+        find_bcc(n);
+
+        for(ll i=1;i<=n;i++){
+                sort(ALL(geG[i]),cmpp);
+                for(ll j=0;j<geG[i].size();j++){
+                        if(j+1<geG[i].size()){
+                                if(geG[i][j].to==geG[i][j+1].to){
+                                        isCut[geG[i][j].preid]=false;
+                                }
+                        }
+                }
+        }
+
+        //for(ll i=1;i<=m;i++) cerr<<"bian "<<i<<" iscut? "<<isCut[i]<<endl;
+
+        for(ll i=1;i<=n;i++) G[i].clear();
+        for(auto pr:vec){
+                ll u=pr.first.first ,v=pr.first.second ,w=pr.second;
+                G[v].pb(edge(u,w,0,0));
+        }
+        dijkstra(t,dt,false);
+        ll nowi=1;
+        for(auto pr:vec){
+                ll u=pr.first.first ,v=pr.first.second ,w=pr.second;
+                ll dis1=sd[u];
+                ll dis2=dt[v];
+                if(dis1+w+dis2==minSTdis)
+                        if(isCut[nowi] ) puts("YES");
+                        else{
+                                if(w>=2) puts("CAN 1");
+                                else puts("NO");
+                        }
+                else{
+                        ll zhishao=minSTdis-dis1-dis2-1;
+                        if(zhishao<1) puts("NO");
+                        else{
+                                printf("CAN %I64d\n",w-zhishao);
+                        }
+                }
+                nowi++;
+        }
+        return 0;
+}

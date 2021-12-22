@@ -1,0 +1,197 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+
+using namespace std;
+
+const ll N = 1000000;
+const ll inf = (ll)1e9;
+const int MOD = (int)1e9 + 7;
+
+struct edge
+{
+    int u;
+    int v;
+    int w;
+    int id;
+
+    edge() {};
+
+    edge(int a, int b, int c, int d)
+    {
+        u = a;
+        v = b;
+        w = c;
+        id = d;
+    }
+};
+
+vector<edge> e;
+
+bool comp(edge a, edge b)
+{
+    return a.w < b.w;
+}
+
+vector<int> p;
+vector<int> r;
+
+void build(int n)
+{
+    p.resize(n);
+    for (int i = 0; i < n; i++)
+        p[i] = i;
+    r.resize(n, 0);
+}
+
+int get_p(int x)
+{
+    if (p[x] != x)
+        p[x] = get_p(p[x]);
+    return p[x];
+}
+
+bool union_p(int x, int y)
+{
+    x = get_p(x);
+    y = get_p(y);
+    if (x == y)
+        return false;
+    if (r[x] >= r[y])
+        p[y] = x;
+    else
+        p[x] = y;
+    if (r[x] == r[y])
+        r[x]++;
+    return true;
+}
+
+vector<vector<pair<int, int> > > g;
+vector<int> height;
+vector<int> in;
+vector<pair<int, int> > order;
+vector<vector<int> > up;
+vector<vector<int> > ma;
+
+void dfs(int u, int par, int h, int w)
+{
+    height[u] = h;
+    if (h > 0)
+    {
+        up[u][0] = par;
+        ma[u][0] = w;
+    }
+    for (int p = 1; (1 << p) <= h; p++)
+    {
+        up[u][p] = up[up[u][p - 1]][p - 1];
+        ma[u][p] = max(ma[u][p - 1], ma[up[u][p - 1]][p - 1]);
+    }
+    in[u] = order.size();
+    order.push_back({h, u});
+    for (auto v : g[u])
+        if (v.first != par)
+        {
+            dfs(v.first, u, h + 1, v.second);
+            order.push_back({h, u});
+        }
+}
+
+vector<vector<pair<int, int> > > st;
+vector<int> log_2;
+
+void build_st()
+{
+    int n = order.size();
+    log_2.resize(n + 1);
+    log_2[1] = 0;
+    for (int i = 2; i <= n; i++)
+        if (i >= (1 << (log_2[i - 1] + 1)))
+            log_2[i] = log_2[i - 1] + 1;
+        else
+            log_2[i] = log_2[i - 1];
+    int sz = 1;
+    while ((1 << sz) <= n)
+        sz++;
+    st.resize(n, vector<pair<int, int> > (sz));
+    for (int i = 0; i < n; i++)
+        st[i][0] = order[i];
+    for (int j = 1; j < sz; j++)
+        for (int i = 0; i < n; i++)
+            if (i + (1 << j) <= n)
+                st[i][j] = min(st[i][j - 1], st[i + (1 << (j - 1))][j - 1]);
+}
+
+pair<int, int> get(int l, int r)
+{
+    int len = log_2[r - l];
+    return min(st[l][len], st[r - (1 << len)][len]);
+}
+
+int get_ma(int u, int lca)
+{
+    int res = 0;
+    int k = height[u] - height[lca];
+    for (int i = 0; i < 18; i++)
+        if ((k >> i) & 1)
+        {
+            res = max(res, ma[u][i]);
+            u = up[u][i];
+        }
+    return res;
+}
+
+int main()
+{
+    //freopen("power.in", "r", stdin);
+    //freopen("power.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, m;
+    cin >> n >> m;
+    e.resize(m);
+    for (int i = 0; i < m; i++)
+    {
+        int s, f, t;
+        cin >> s >> f >> t;
+        e[i] = {s - 1, f - 1, t, i};
+    }
+    sort(e.begin(), e.end(), comp);
+    vector<ll> ans(m, -1);
+    vector<edge> mst;
+    ll mst_s = 0;
+    build(n);
+    for (int i = 0; i < m; i++)
+        if (union_p(e[i].u, e[i].v))
+        {
+            mst.push_back(e[i]);
+            mst_s += e[i].w;
+        }
+    for (auto i : mst)
+        ans[i.id] = mst_s;
+
+    g.resize(n);
+    height.resize(n);
+    in.resize(n);
+    up.resize(n, vector<int> (18, -1));
+    ma.resize(n, vector<int> (18, 0));
+    for (auto i : mst)
+    {
+        g[i.u].push_back({i.v, i.w});
+        g[i.v].push_back({i.u, i.w});
+    }
+    dfs(0, -1, 0, -1);
+    build_st();
+    for (auto i : e)
+        if (ans[i.id] == -1)
+        {
+            int u = i.u, v = i.v;
+            int p1 = in[u], p2 = in[v];
+            if (p1 > p2)
+                swap(p1, p2);
+            int lca = get(p1, p2 + 1).second;
+            ans[i.id] = mst_s - max(get_ma(u, lca), get_ma(v, lca)) + i.w;
+        }
+    for (int i = 0; i < m; i++)
+        cout << ans[i] << endl;
+    return 0;
+}

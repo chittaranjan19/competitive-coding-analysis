@@ -1,0 +1,56 @@
+#include<bits/stdc++.h>
+using namespace std;
+const int N = 3e5+5;
+
+
+typedef long long LL;
+typedef pair<LL,LL> pl;
+
+LL t[N], w[N];
+int n;
+
+
+priority_queue<pl, vector< pl >, greater< pl > > pq1;
+priority_queue< pl > pq2;
+
+
+void init(){
+    scanf("%d",&n);
+    for (int i=0;i<n;i++){
+        scanf("%I64d %I64d",&t[i], &w[i]);
+        if (i){
+            if (t[i] > t[0]){
+                if (w[i] >= t[i])
+                    pq1.push(pl(w[i] - t[i] + 1, t[i]));
+            }
+            else{
+                if (w[i] >= t[i])
+                    pq2.push(pl(t[i],w[i]));
+            }
+        }
+    }
+}
+
+void solve(){
+    int ans = (int)pq1.size() + 1;
+    while (t[0] >= 0 && !pq1.empty()){
+        pl tmp = pq1.top();
+        pq1.pop();
+        if (t[0] < tmp.first) break;
+        t[0] -= tmp.first;
+        while (!pq2.empty() && pq2.top().first > t[0]){
+            pl nxt = pq2.top(); pq2.pop();
+            pq1.push(pl(nxt.second - nxt.first + 1, nxt.first));
+        }
+        ans = min(ans,(int)pq1.size() + 1);
+    }
+    cout << ans << endl;
+}
+
+
+
+int main(){
+    init();
+    solve();
+    return 0;
+}

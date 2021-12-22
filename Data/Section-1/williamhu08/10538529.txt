@@ -1,0 +1,161 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 200010, BLOCK = 460, INF = 1e8;
+const int inc[3][2] = {{-1, 0}, {1, 0}, {0, 1}};
+
+void setmin (int &a, int b) {
+	if (a > b) {
+		a = b;
+	}
+}
+
+int N, Q;
+bool grid[2][MAXN];
+int pathb[BLOCK][2][2], lpath[BLOCK][2][2], rpath[BLOCK][2][2];
+vector<pii> allvis;
+queue<pii> que;
+bool vis[2][MAXN];
+
+pii gutter (int x) {
+	pii res;
+	if (x > N) {
+		res.first = 1;
+		x -= N;
+	}
+	res.second = x - 1;
+	return res;
+}
+
+bool bounded (int x, int y) {
+	return (x == 0 || x == 1) && (0 <= y && y < N);
+}
+
+int getpath (int x1, int y1, int x2, int y2) {
+	assert(y1 <= y2);
+	if (grid[x1][y1] || grid[x2][y2]) {
+		//one of them is filled
+		return INF;
+	}
+	if (x1 == x2 && y1 == y2) {
+		return 0;
+	}
+	for (pii p : allvis) {
+		vis[p.first][p.second] = false;
+	}
+	allvis.clear();
+	while (!que.empty()) {
+		que.pop();
+	}
+	vis[x1][y1] = true;
+	que.push(pii(x1, y1));
+	allvis.push_back(pii(x1, y1));
+	for (int d = 1; !que.empty(); d++) {
+		//d = new dist
+		for (int sz = que.size(); sz--; ) {
+			pii p = que.front();
+			que.pop();
+			for (int i = 0; i < 3; i++) {
+				int x = p.first + inc[i][0], y = p.second + inc[i][1];
+				//determine if it is bad to visit
+				if (bounded(x, y) && !vis[x][y] && !grid[x][y] && y <= y2) {
+					//then it's ok
+					if (x == x2 && y == y2) {
+						return d;
+					}
+					que.push(pii(x, y));
+					vis[x][y] = true;
+					allvis.push_back(pii(x, y));
+				}
+			}
+		}
+	}
+	return INF;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d", &N, &Q);
+	for (int i = 0; i < 2; i++) {
+		getchar();
+		for (int j = 0; j < N; j++) {
+			grid[i][j] = (getchar() == 'X');
+		}
+	}
+	//precalculate the shortest path for each block
+	for (int i = 0; (i + 1) * BLOCK < N; i++) {
+		//((0, 1), i * BLOCK) -> ((0, 1), (i + 1) * BLOCK)
+		int b1 = i * BLOCK, b2 = (i + 1) * BLOCK;
+		for (int j = 0; j < 2; j++) {
+			for (int k = 0; k < 2; k++) {
+				pathb[i][j][k] = getpath(j, b1, k, b2);
+			}
+		}
+	}
+	for (int a, b; Q--; ) {
+		scanf("%d %d", &a, &b);
+		pii p1 = gutter(a), p2 = gutter(b);
+		if (p1.second > p2.second) {
+			p1.swap(p2);
+		}
+		int x1 = p1.first, y1 = p1.second, x2 = p2.first, y2 = p2.second, ans = INF;
+		int path[2];
+		int cb = y1 / BLOCK, nb = y2 / BLOCK;
+		if (cb == nb) {
+			//then just find it directly
+			for (int i = 0; i < 2; i++) {
+				for (int j = 0; j < 2; j++) {
+					setmin(ans, getpath(x1, y1, x2, y2));
+				}
+			}
+		} else {
+			//do it for this component, then do it for the rest
+			bool bad = true;
+			for (int i = 0; i < 2; i++) {
+				path[i] = getpath(x1, y1, i, (cb + 1) * BLOCK);
+				if (path[i] < INF) {
+					bad = false;
+				}
+			}
+			if (!bad) {
+				for (int i = cb + 1; i < nb; i++) {
+					int npath[2] = {INF, INF};
+					for (int j = 0; j < 2; j++) {
+						for (int k = 0; k < 2; k++) {
+							setmin(npath[k], path[j] + pathb[i][j][k]);
+						}
+					}
+					if (npath[0] == INF && npath[1] == INF) {
+						bad = true;
+						ans = INF;
+						break;
+					}
+					path[0] = npath[0];
+					path[1] = npath[1];
+				}
+			}
+			if (!bad) {
+				//then go ahead
+				int npath = INF;
+				for (int j = 0; j < 2; j++) {
+					setmin(npath, path[j] + getpath(j, nb * BLOCK, x2, y2));
+				}
+				ans = npath;
+			}
+		}
+		printf("%d\n", ans == INF ? -1 : ans);
+	}
+}

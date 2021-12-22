@@ -1,0 +1,62 @@
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <set>
+#include <map>
+// #include <multiset>
+#include <utility>
+#define MAXN 100010
+#define INF 0x7FFFFFFF
+#define msg(a) cout<<#a<<" : "<<a<<endl;
+typedef long long int LL;
+using namespace std;
+
+int v[MAXN];
+LL SA[MAXN];
+map <int, int> M;
+map <int, int>::iterator it;
+
+multiset <LL> MS;
+multiset <LL>::iterator it1;
+
+void mostrars(){
+	for( map <int, int>::iterator it = M.begin(); it!=M.end(); it++ ){
+		cout<<"("<<(*it).first<<", "<<(*it).second<<")"<<endl;
+	}
+}
+
+int main(){
+	int n, e, a, b, c, d, L, R;
+	v[0] = SA[0] = 0;
+	
+	cin>>n;
+	for(int i=1; i<=n; i++) cin>>v[i], SA[i]=v[i]+SA[i-1];
+
+	M[1] = n; MS.insert(SA[n]);
+	for(int i=1; i<=n; i++){
+		cin>>e;
+		it = M.upper_bound( e ); it--;
+		L = (*it).first; R = (*it).second;
+		it1 = MS.find( SA[R] - SA[L-1] );
+		a = L; b = e-1;
+		c = e+1; d = R;
+
+		MS.erase(it1);
+		// msg(a);msg(b);msg(c);msg(d);
+		if( a<=b && c<=d ){
+			M[a] = b; M[c] = d;
+			MS.insert( SA[b]-SA[a-1] ); MS.insert( SA[d]-SA[c-1] ); 
+		}else{
+			if( a<=b ) {M[a] = b; MS.insert( SA[b]-SA[a-1] );}
+			else
+				if( c<=d ) {M.erase(it); M[c] = d; MS.insert( SA[d]-SA[c-1] );}
+		}
+		// mostrars();
+		if( MS.size()==0 ) cout<<"0\n";
+		else{
+			it1 = MS.end(); it1--; cout<<*it1<<endl;
+		}
+
+	}
+	return 0;
+}

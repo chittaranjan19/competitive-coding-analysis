@@ -1,0 +1,99 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdio>
+#include <stdlib.h>
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int MAX_N = 100000;
+
+int a[MAX_N], tree[MAX_N * 4];
+int cnt_ver;
+
+int tree_size(int n)
+{
+    int cnt = 0, curr = 1;
+    while (curr < n)
+    {
+        cnt++;
+        curr *= 2;
+    }
+    return cnt;
+}
+
+int bin_power(int n)
+{
+    return 1 << n;
+}
+
+void make_tree(int n)
+{
+    for (int i = 0; i < MAX_N; i++)
+        tree[i] = inf;
+    int k = tree_size(n);
+    cnt_ver = bin_power(k) - 1;
+    for (int i = 0; i < n; i++)
+        tree[cnt_ver + i] = a[i];
+    for (int i = cnt_ver + n - 1; i > 0; i--)
+        tree[(i - 1) / 2] = min(tree[(i - 1) / 2], tree[i]);
+}
+
+void change_elem(int x, int new_value)
+{
+    int curr = x;
+    tree[x] = new_value;
+    while (curr > 0)
+    {
+        tree[(curr - 1) / 2] = min(tree[(curr - 1) / 2 * 2 + 1], tree[(curr - 1) / 2 * 2 + 2]);
+        curr = (curr - 1) / 2;
+    }
+}
+
+int min_elem(int x, int lx, int rx, int l, int r)
+{
+    if (r < lx || l > rx)
+        return inf;
+    else if (lx >= l && rx <= r)
+        return tree[x];
+    else
+        return min(min_elem(x * 2 + 1, lx, (lx + rx) / 2, l, r), min_elem(x * 2 + 2, (lx + rx) / 2 + 1, rx, l, r));
+}
+
+int find_ind(int f, int x, int lx, int rx)
+{
+    if (lx == rx)
+        return x;
+    else if (tree[x * 2 + 2] == f)
+        return find_ind(f, x * 2 + 2, (lx + rx) / 2 + 1, rx);
+    else
+        return find_ind(f, x * 2 + 1, lx, (lx + rx) / 2);
+}
+
+int main()
+{
+    //freopen("slalom.in", "r", stdin);
+    //freopen("output.txt", "w", stdout);
+    //ios_base::sync_with_stdio(false);
+    //cin.tie(NULL);
+    int n;
+    scanf("%d", &n);
+    for (int i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+    make_tree(n);
+    /*cout << cnt_ver << endl;
+    for (int i = 0; i < (cnt_ver + 1) * 2 - 1; i++)
+        cout << tree[i] << " ";
+    cout << endl;*/
+    for (int i = 0; i < n; i++)
+    {
+        int x = min_elem(0, 0, cnt_ver, i + 1, n - 1);
+        if (x >= a[i])
+            printf("%d ", -1);
+        else
+            printf("%d ", find_ind(x, 0, 0, cnt_ver) - cnt_ver - i - 1);
+    }
+    return 0;
+}

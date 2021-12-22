@@ -1,0 +1,97 @@
+#include<stdio.h>
+#include<memory.h>
+#define max(a,b) (a>b?a:b)
+long long int trie[10000007][2]={0};
+long long int bin[40]={0},x=0;
+long long int a[100005]={0},prefix[100005]={0},suffix[100005]={0};
+void tobinary(long long int x)
+{
+    int cnt=0;
+    memset(bin,0,sizeof(bin));
+    while(x>0)
+    {
+        bin[cnt++]=(x%2);
+        x/=2;
+    }
+}
+void update(long long int node,long long int idx)
+{
+    if(idx<0)
+        return ;
+    //printf("#1 node=%I64d idx=%I64d x=%I64d\n",node,idx,x);
+    if(bin[idx]==0)
+    {
+        if(trie[node][0]==-1)
+        {
+            trie[node][0]=++x;
+        }
+        //printf("goes to 0\n");
+        update(trie[node][0],idx-1);
+    }
+    else
+    {
+        if(trie[node][1]==-1)
+        {
+            trie[node][1]=++x;
+        }
+        //printf("goes to 1\n");
+        update(trie[node][1],idx-1);
+    }
+}
+long long int query(long long int node,long long int idx)
+{
+    if(idx<0)
+        return 0LL;
+    //printf("#2 node=%I64d idx=%I64d x=%I64d\n",node,idx,x);
+    long long int ret=0;
+    if(bin[idx]==0)
+    {
+        if(trie[node][1]!=-1)
+        {
+            ret+=((1LL)<<idx);
+            ret+=query(trie[node][1],idx-1);
+        }
+        else
+        {
+            ret+=query(trie[node][0],idx-1);
+        }
+    }
+    else
+    {
+        if(trie[node][0]!=-1)
+        {
+            ret+=(1LL<<idx);
+            ret+=query(trie[node][0],idx-1);
+        }
+        else
+        {
+            ret+=query(trie[node][1],idx-1);
+        }
+    }
+    return ret;
+}
+int main()
+{
+    memset(trie,-1,sizeof(trie));
+    long long int n,i,ans=0;
+    scanf("%I64d",&n);
+    for(i=1;i<=n;i++)
+    {
+        scanf("%I64d",&a[i]);
+        prefix[i]=a[i]^prefix[i-1];
+    }
+    for(i=n;i>=1;i--)
+    {
+        suffix[i]=suffix[i+1]^a[i];
+    }
+    for(i=0;i<=n;i++)
+    {
+        tobinary(prefix[i]);
+        update(0,39);
+        //printf("\n");
+        tobinary(suffix[i+1]);
+        ans=max(ans,query(0,39));
+    }
+    printf("%I64d\n",ans);
+    return 0;
+}

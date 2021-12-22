@@ -1,0 +1,117 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const ll MAX_N = 500000;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+ll n;
+vector<ll> a;
+vector<vector<ll> > graph;
+vector<ll> ans;
+
+pair<map<ll, ll>, map<ll, ll> > dfs(ll x, ll par)
+{
+    map<ll, ll> color;
+    map<ll, ll> cnt;
+    color[a[x]] = 1;
+    cnt[1] = a[x];
+    for (ll i = 0; i < graph[x].size(); i++)
+        if (graph[x][i] != par)
+        {
+            pair<map<ll, ll>, map<ll, ll> > p = dfs(graph[x][i], x);
+            map<ll, ll> color1 = p.first;
+            map<ll, ll> cnt1 = p.second;
+            if (cnt.size() >= cnt1.size())
+                for (map<ll, ll>::iterator it = cnt1.begin(); it != cnt1.end(); it++)
+                    cnt[it->first] += it->second;
+            else
+            {
+                for (map<ll, ll>::iterator it = cnt.begin(); it != cnt.end(); it++)
+                    cnt1[it->first] += it->second;
+                cnt = cnt1;
+            }
+            if (color.size() >= color1.size())
+                for (map<ll, ll>::iterator it = color1.begin(); it != color1.end(); it++)
+                    if (color.find(it->first) != color.end())
+                    {
+                        ll col = it->first;
+                        ll cn = it->second;
+                        cnt[cn] -= col;
+                        cnt[color[col]] -= col;
+                        color[col] += cn;
+                        cnt[color[col]] += col;
+                    }
+                    else
+                        color[it->first] += it->second;
+            else
+            {
+                for (map<ll, ll>::iterator it = color.begin(); it != color.end(); it++)
+                    if (color1.find(it->first) != color1.end())
+                    {
+                        ll col = it->first;
+                        ll cn = it->second;
+                        cnt[cn] -= col;
+                        cnt[color1[col]] -= col;
+                        color1[col] += cn;
+                        cnt[color1[col]] += col;
+                    }
+                    else
+                        color1[it->first] += it->second;
+                color = color1;
+            }
+        }
+    ans[x] = (--cnt.end())->second;
+    /*cout << "____________" << endl;
+    cout << x << endl;
+    for (map<ll, ll>::iterator it = color.begin(); it != color.end(); it++)
+        cout << it->first << " " << it->second << endl;
+    cout << endl;
+    for (map<ll, ll>::iterator it = cnt.begin(); it != cnt.end(); it++)
+        cout << it->first << " " << it->second << endl;
+    cout << "____________" << endl;*/
+    return make_pair(color, cnt);
+}
+
+int main()
+{
+    //ios_base::sync_with_stdio(0);
+    //cin.tie(0);
+    scanf("%I64d", &n);
+    a.resize(n);
+    for (ll i = 0; i < n; i++)
+        scanf("%I64d", &a[i]);
+    graph.resize(n);
+    for (ll i = 0; i < n - 1; i++)
+    {
+        ll x, y;
+        scanf("%I64d %I64d", &x, &y);
+        graph[x - 1].push_back(y - 1);
+        graph[y - 1].push_back(x - 1);
+    }
+    ans.resize(n);
+    dfs(0, -1);
+    for (ll i = 0; i < n; i++)
+        prllf("%I64d ", ans[i]);
+    return 0;
+}

@@ -1,0 +1,94 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef pair<int,int> ii;
+typedef pair<int,ii> iii;
+vector<vector<int> > tab;
+vector<vector<int> > ans;
+vector<vector<int> > adjfil;
+vector<vector<int> > adjcol;
+vector<ii> vfil;
+vector<ii> vcol;
+vector<bool> visfil;
+vector<bool> viscol;
+void dfs(iii x, int curnum){
+	int v=x.second.first;
+	if(x.second.second==0){
+		if(visfil[v]) return;
+		visfil[v]=true;
+		vfil[v]=ii(curnum,x.first);
+		for(int i=0;i<adjfil[v].size();++i)
+			dfs(iii(x.first,ii(adjfil[v][i],1)),curnum);
+	}else{
+		if(viscol[v]) return;
+		viscol[v]=true;
+		vcol[v]=ii(curnum,x.first);
+		for(int i=0;i<adjcol[v].size();++i)
+			dfs(iii(x.first,ii(adjcol[v][i],0)),curnum);
+	}
+}
+int main(){
+	int n,m;
+	cin>>n>>m;
+	adjfil.resize(n,vector<int>());
+	adjcol.resize(m,vector<int>());
+	tab.resize(n,vector<int>(m));
+	ans.resize(n,vector<int>(m));
+	vfil.resize(n,make_pair(0,0));
+	vcol.resize(m,make_pair(0,0));
+	vector<iii> vs;
+	visfil.resize(n,0);
+	viscol.resize(m,0);
+	for(int i=0;i<n;++i)
+		for(int j=0;j<m;++j){
+			scanf("%d",&tab[i][j]);
+			vs.push_back(iii(tab[i][j],ii(i,j)));
+		}
+	sort(vs.begin(),vs.end());
+	int last=0;
+	for(int i=0;i<vs.size();++i){
+		int a=vs[i].first,f=vs[i].second.first,c=vs[i].second.second;
+		if(i&&a!=vs[i-1].first||i==vs.size()-1){
+			vector<iii> vs2;
+			for(int j=last;j<i;++j){
+				int a2=vs[j].first,f2=vs[j].second.first,c2=vs[j].second.second;
+				adjfil[f2].push_back(c2);
+				adjcol[c2].push_back(f2);
+				vs2.push_back(iii(ans[f2][c2],ii(f2,0)));
+				vs2.push_back(iii(ans[f2][c2],ii(c2,1)));
+			}
+			sort(vs2.begin(),vs2.end());
+			reverse(vs2.begin(),vs2.end());
+			int curnum=vs[last].first;
+			for(int j=0;j<vs2.size();++j)
+				dfs(vs2[j],curnum);
+			for(int j=last;j<i;++j){
+				int a2=vs[j].first,f2=vs[j].second.first,c2=vs[j].second.second;
+				ans[f2][c2]=vfil[f2].second;
+				adjfil[f2].clear();
+				adjcol[c2].clear();
+				visfil[f2]=0;
+				viscol[c2]=0;
+			}
+			last=i;
+		}
+		int v1=a==vfil[f].first?vfil[f].second:vfil[f].second+1;
+		int v2=a==vcol[c].first?vcol[c].second:vcol[c].second+1;
+		int vn=max(v1,v2);
+		if(vfil[f].first!=a){
+			vfil[f].first=a;
+			vfil[f].second=vn;
+		}
+		if(vcol[c].first!=a){
+			vcol[c].first=a;
+			vcol[c].second=vn;
+		}
+		ans[f][c]=vn;
+	}
+	for(int i=0;i<n;++i){
+		for(int j=0;j<m;++j){
+			printf("%d",ans[i][j]);
+			if(j<m-1) printf(" ",ans[i][j]);
+			else printf("\n",ans[i][j]);
+		}
+	}
+}

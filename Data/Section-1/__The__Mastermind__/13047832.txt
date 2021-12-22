@@ -1,0 +1,130 @@
+{$H+}
+program walking;
+
+const
+  tfi = '';//'walking.inp';
+  tfo = '';//'walking.out';
+  limit = 200000;
+
+var
+  s : string;
+  n,res,pres : longint;
+  cnt : array [1..2] of longint;
+  a,f,r,next,d : array [1..limit] of longint;
+  c : array [1..4*limit,1..2] of boolean;
+
+procedure enter;
+  var i : longint;
+  begin
+    assign(input,tfi);
+    reset(input);
+    readln(s);
+    n := length(s);
+    for i := 1 to length(s) do
+      begin
+        if s[i] = 'L' then a[i] := 1 else a[i] := 2;
+        inc(cnt[a[i]]);
+      end;
+    close(input);
+  end;
+
+procedure update(s,l,r,i,x : longint);
+  var mid : longint;
+  begin
+    if (i < l) or (r < i) then exit;
+    if l = r then
+      begin
+        c[s,x] := false;
+        exit;
+      end;
+    mid := (l + r) div 2;
+    update(2*s,l,mid,i,x);
+    update(2*s+1,mid+1,r,i,x);
+    c[s,x] := c[2*s,x] or c[2*s+1,x];
+  end;
+
+function find(s,l,r,i,t : longint) : longint;
+  var mid : longint;
+  begin
+    if not c[s,t] then exit(n+1);
+    if l = r then exit(l);
+    mid := (l + r) div 2;
+    if mid < i then exit(find(2*s+1,mid+1,r,i,t));
+    if c[2*s,t] then exit(find(2*s,l,mid,i,t))
+    else exit(find(2*s+1,mid+1,r,i,t));
+  end;
+
+procedure preinit;
+  var i : longint;
+  begin
+    next[n] := n;
+    for i := n-1 downto 1 do
+      if s[i] = s[i+1] then next[i] := next[i+1] else next[i] := i;
+  end;
+
+procedure init(s,l,r : longint);
+  var mid : longint;
+  begin
+    if l = r then
+      begin
+        c[s,a[l]] := true;
+        exit;
+      end;
+    mid := (l + r) div 2;
+    init(2*s,l,mid);
+    init(2*s+1,mid+1,r);
+    c[s,1] := c[2*s,1] or c[2*s+1,1];
+    c[s,2] := c[2*s,2] or c[2*s+1,2];
+  end;
+
+procedure check(t : longint);
+  var i,tt,p : longint;
+  begin
+    pres := 0;
+    init(1,1,n);
+    fillchar(d,sizeof(d),0);
+    tt := t;
+    p := next[find(1,1,n,1,tt)];
+    inc(d[p]);
+    update(1,1,n,p,tt);
+    f[1] := p;
+    for i := 2 to n do
+      begin
+        tt := 3 - tt;
+        p := find(1,1,n,p+1,tt);
+        if p = n + 1 then
+          begin
+            inc(pres);
+            p := find(1,1,n,1,tt);
+          end;
+        p := next[p];
+        p := p - d[p];
+        f[i] := p;
+        update(1,1,n,p,tt);
+        inc(d[p]);
+      end;
+    if pres < res then
+      begin
+        res := pres;
+        r := f;
+      end;
+  end;
+
+procedure print;
+  var i : longint;
+  begin
+    res := maxlongint;
+    if cnt[1] >= cnt[2] then check(1);
+    if cnt[2] >= cnt[1] then check(2);
+    assign(output,tfo);
+    rewrite(output);
+    writeln(res);
+    for i := 1 to n do write(r[i],' ');
+    close(output);
+  end;
+
+begin
+  enter;
+  preinit;
+  print;
+end.

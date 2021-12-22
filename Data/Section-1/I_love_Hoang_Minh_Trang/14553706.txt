@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+#define FORE(i, a, b) for(int i = a; i <= b; i++)
+#define FORD(i, a, b) for(int i = a; i >= b; i--)
+#define FOR(i, a, b) for(int i = a; i < b; i++)
+const int MAXN = 5001;
+const int INF = 1e9 + 7;
+const int base = 1e6;
+using namespace std;
+string s;
+int f[5001][5001];
+int n;
+int p[5001], sa[5001], sb[5001];
+int sumr[5001][5001];
+
+int mul(int x, int y)
+{
+    return (1ll * x * y) % INF;
+}
+
+int geta(int l, int r)
+{
+    return (sa[r] - mul(sa[l - 1], p[r - l + 1]) + 1LL * INF * INF) % INF;
+}
+
+int getb(int l, int r)
+{
+    return (sb[l] - mul(sb[r + 1], p[r - l + 1]) + 1LL * INF * INF) % INF;
+}
+
+int main()
+{
+    ios::sync_with_stdio(0); cin.tie(0);
+    #ifndef ONLINE_JUDGE
+    freopen("H.inp", "r", stdin);
+    freopen("H.out", "w", stdout);
+    #endif //MIKELHPDATKE
+    cin >> s;
+    n = s.size(); s = '=' + s;
+    p[0] = 1;
+   //cout<<s<<" "<<n<<endl;
+    FORE(i, 1, n) p[i] = mul(p[i - 1], base);
+    sa[0] = 0;
+    FORE(i, 1, n) sa[i] = (mul(sa[i - 1], base) + s[i]) % INF;
+    //cout<<sa[n]<<"wtf"<<endl;
+    sb[n] = s[n];
+    FORD(i, n - 1, 1) sb[i] = (mul(sb[i + 1], base) + s[i]) % INF;
+ //   cout<<(geta(2, 3) == geta(3, 4))<<endl;
+    FORE(i, 1, n) FORE(j, i, n){
+        int len = (j - i + 2) / 2;
+        f[i][j] = f[i][j - 1];
+        if (geta(i, i + len - 1) == getb(j - len + 1, j)){
+            f[i][j]++;
+   //         cout<<i<<" "<<j<<endl;
+        }
+    }
+    FORD(j, n, 1){
+        sumr[j][j] = f[j][j];
+        FORD(i, j - 1, 1) sumr[i][j] = sumr[i + 1][j] + f[i][j];
+    }
+    int l, r, q;
+    cin >> q;
+    while (q--){
+        cin >> l >> r;
+        cout<<sumr[l][r]<<endl;
+    }
+    return 0;
+}
+

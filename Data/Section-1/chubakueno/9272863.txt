@@ -1,0 +1,60 @@
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <utility>
+#define err 1000000
+using namespace std;
+int main(){
+	int n;
+	cin>>n;
+	vector<int> p1(2*n,err);
+	vector<int> p2(2*n,err);
+	vector<int> sum1(2*n,0);
+	vector<int> sum2(2*n,0);
+	int acc1=0,acc2=0;
+	for(int i=0;i<n;++i){
+		int temp;
+		cin>>temp;
+		if(temp==1) ++acc1;
+		if(temp==2) ++acc2;
+		sum1[i]=acc1;
+		sum2[i]=acc2;
+		if(p1[acc1]==err) p1[acc1]=i;
+		if(p2[acc2]==err) p2[acc2]=i;
+	}
+	vector<pair<int,int> > st;
+	for(int t=1;t<=n;++t){
+		int s=1;
+		bool ok=true;
+		acc1=acc2=0;
+		int lastwin;
+		int wins[2]={0,0};
+		while(1){
+			int ind1=p1[acc1+t];
+			int ind2=p2[acc2+t];
+			int nextset;
+			if(ind1<ind2){
+				lastwin=0;
+				nextset=ind1;
+				++wins[0];
+			}else{
+				lastwin=1;
+				nextset=ind2;
+				++wins[1];
+			}
+			if(nextset==n-1) break;
+			if(nextset==err) {ok=false;break;}
+			acc1=sum1[nextset];
+			acc2=sum2[nextset];
+			++s;
+		}
+		if(lastwin==1&&wins[0]<=wins[1]) ok=false;
+		if(lastwin==2&&wins[1]<=wins[0]) ok=false;
+		if(ok) st.push_back(pair<int,int>(wins[lastwin],t));
+	}
+	sort(st.begin(),st.end());
+	cout<<st.size()<<endl;
+	for(int i=0;i<st.size();++i)
+		cout<<st[i].first<<st[i].second<<endl;
+	return 0;
+}

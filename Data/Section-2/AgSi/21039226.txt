@@ -1,0 +1,78 @@
+#include <iostream>
+#include <algorithm>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+const int maxn = 5005;
+
+int n,m,i;
+int u[maxn],v[maxn];
+__int64 w[maxn];
+int first[maxn],nxt[maxn];
+__int64 dp[maxn][maxn];
+int pre[maxn][maxn];
+
+__int64 t;
+
+void dfs(int st, __int64 remain,int num){
+
+    int k= first[st];
+    while(k!=-1){
+        int to=v[k];
+        if(remain+w[k]<=t&&dp[to][num+1]>remain+w[k]){
+            dp[to][num+1]=remain+w[k];
+            pre[to][num+1]=st;
+            dfs(to,remain+w[k],num+1);
+        }
+        k=nxt[k];
+    }
+    return ;
+}
+
+int main(){
+
+    scanf("%d%d%I64d",&n,&m,&t);
+    int j;
+    for(i=1;i<=n;i++)
+        first[i]=-1;
+    for(i=1;i<=m;i++)
+    {
+        scanf("%d %d %I64d",&u[i],&v[i],&w[i]);//读入每一条边
+        nxt[i]=first[u[i]];
+        first[u[i]]=i;
+    }
+
+    for(i=0;i<=n;i++)
+        for(j=0;j<=n;j++)
+            dp[i][j]=0x3fffffff;
+
+    //cout<<0x3fffffff<<endl;
+
+    dp[1][0]=0;
+    dfs(1,0,1);
+    int ans=0;
+    for(i=n;i>=0;i--){
+        if(dp[n][i]<=t){
+            printf("%d\n",i);
+            ans=i;
+            break;
+        }
+    }
+
+    int fs=n;
+    int lu[maxn];
+    int fn=0;
+    lu[++fn]=n;
+    while(fs!=1){
+        lu[++fn]=pre[fs][ans];
+        fs=pre[fs][ans];
+        ans--;
+    }
+
+    for(i=fn;i>=1;i--)
+        printf("%d ",lu[i]);
+    printf("\n");
+    return 0;
+}

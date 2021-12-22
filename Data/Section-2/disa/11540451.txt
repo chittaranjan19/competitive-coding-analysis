@@ -1,0 +1,105 @@
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <vector>
+#include <set>
+#include <algorithm>
+#include <iomanip>
+#include <map>
+#include <cmath>
+#include <queue>
+#include <time.h>
+using namespace std;
+
+typedef long long ll;
+
+#if _DEBUG
+#include <fstream>
+ifstream cin("input.txt");
+ofstream cout("output.txt");
+#else
+#include <iostream> 
+#endif
+
+vector < vector <int> > vv;
+
+int n, m, h, t;
+
+
+vector < pair <int, int> > edges;
+
+int count(int v1, int v2) {
+	int ans = 0;
+	vector <int> all;
+	for (int i = 0; i < vv[v1].size(); i++) {
+		if (vv[v1][i] != v2)
+			all.push_back(vv[v1][i]);
+	}
+	for (int i = 0; i < vv[v2].size(); i++) {
+		if (vv[v2][i] != v1)
+			all.push_back(vv[v2][i]);
+	}
+	sort(all.begin(), all.end());
+	for (int i = 1; i < all.size(); i++) {
+		if (all[i] == all[i - 1])
+			ans++;
+	}
+	return ans;
+}
+
+bool used[100002];
+
+int main() {
+	cin >> n >> m >> h >> t;
+	vv.resize(n + 1);
+	for (int i = 0; i < m; i++) {
+		int from, to;
+		cin >> from >> to;
+		vv[from].push_back(to);
+		vv[to].push_back(from);
+		edges.push_back(make_pair(from, to));
+		edges.push_back(make_pair(to, from));
+	}
+	for (int i = 0; i <= n; i++) {
+		sort(vv[i].begin(), vv[i].end());
+	}
+	for(int i = 0; i < edges.size(); i++) {
+		int u = edges[i].first;
+		int v = edges[i].second;
+		int cnt_all = count(u, v);
+		int cnt1 = vv[u].size() - 1 - cnt_all;
+		int cnt2 = vv[v].size() - 1 - cnt_all;
+		int need = max(0, h - cnt1);
+		cnt_all -= need;
+		cnt1 += need;
+		need = max(0, t - cnt2);
+		cnt_all -= need;
+		cnt2 += need;
+		if (cnt_all >= 0 && cnt1 >= h && cnt2 >= t) {
+			cout << "YES\n";
+			cout << u << ' ' << v << '\n';
+			int cnt = 0;
+			used[u] = true;
+			used[v] = true;
+			for (int j = 0; j < vv[u].size() && cnt < h; j++) {
+				if (!used[vv[u][j]]) {
+					cout << vv[u][j] << ' ';
+					cnt++;
+					used[vv[u][j]] = true;
+				}
+			}
+			cout << '\n';
+			cnt = 0;
+			for (int j = 0; j < vv[v].size() && cnt < t; j++) {
+				if (!used[vv[v][j]]) {
+					cout << vv[v][j] << ' ';
+					cnt++;
+				}
+			}
+			cout << '\n';
+			return 0;
+		}
+	}
+	cout << "NO\n";
+	return 0;
+}

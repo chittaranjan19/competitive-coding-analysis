@@ -1,0 +1,143 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#define ls rt << 1
+#define rs rt << 1 | 1
+#define lson ls, l, m
+#define rson rs, m, r
+
+using namespace std;
+
+const int maxn = 5e5 + 5;
+
+struct edge
+{
+    int to, next;
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxn << 1];
+int head[maxn], tot, clk, d[maxn];
+
+struct segtree
+{
+    int node[maxn << 2];
+
+    void change(int rt, int a)
+    {
+        node[rt] += a;
+    }
+
+    void pushdown(int rt)
+    {
+        if(node[rt])
+        {
+            change(ls, node[rt]);
+            change(rs, node[rt]);
+            node[rt] = 0;
+        }
+    }
+
+    void build(int rt, int l, int r)
+    {
+        if(l >= r) return;
+        node[rt] = 0;
+        if(r - l == 1)
+        {
+            node[rt] = d[l];
+            return;
+        }
+        int m = (l + r) >> 1;
+        build(lson);
+        build(rson);
+    }
+
+    void update(int rt, int l, int r, int x, int y, int a)
+    {
+        if(x >= y || l >= r) return;
+        if(x <= l && r <= y)
+        {
+            change(rt, a);
+            return;
+        }
+        pushdown(rt);
+        int m = (l + r) >> 1;
+        if(x < m) update(lson, x, y, a);
+        if(m < y) update(rson, x, y, a);
+    }
+
+    int query(int rt, int l, int r, int x)
+    {
+        if(r - l == 1) return node[rt];
+        pushdown(rt);
+        int m = (l + r) >> 1;
+        return x < m ? query(lson, x) : query(rson, x);
+    }
+} tree;
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u]);
+    head[u] = tot++;
+    G[tot] = edge(u, head[v]);
+    head[v] = tot++;
+}
+
+void dfs(int u, int fa, int dep)
+{
+    bool leaf = true;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(v == fa) continue;
+        leaf = false;
+        dfs(v, u, dep + 1);
+    }
+    if(leaf) d[clk++] = dep;
+}
+
+int solve(int u)
+{
+    int ret = 0;
+    clk = 0;
+    dfs(u, 1, 1);
+    sort(d, d + clk);
+    tree.build(1, 0, clk);
+    int j = 0;
+    for(int i = 0; i < clk; ++i)
+    {
+        int tmp = tree.query(1, 0, clk, i);
+        ret += tmp;
+        while(j < clk && tree.query(1, 0, clk, j) == tmp) ++j;
+        tree.update(1, 0, clk, i + 1, j, 1 - tmp);
+        tree.update(1, 0, clk, j, clk, -tmp);
+    }
+    return ret;
+}
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        init();
+        for(int i = 1; i < n; ++i)
+        {
+            int u, v;
+            scanf("%d%d", &u, &v);
+            addedge(u, v);
+        }
+        int ans = 0;
+        for(int i = head[1]; ~i; i = G[i].next)
+        {
+            ans = max(ans, solve(G[i].to));
+        }
+        printf("%d\n", ans);
+    }
+    return 0;
+}

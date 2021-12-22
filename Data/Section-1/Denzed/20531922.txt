@@ -1,0 +1,98 @@
+#include <bits/stdc++.h>
+
+#define f       first
+#define s       second
+#define mp      make_pair
+#define rank    something_which_is_supposed_to_be_rank
+#define left    something_which_is_supposed_to_be_left
+#define right   something_which_is_supposed_to_be_right
+
+using namespace std;
+
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+
+const int N = 5e4, E = 1e5, T = 1e6 + 1;
+
+int MAX_TEAM;
+int n, e, l[N], conf[N], teams[T], res[N];
+vector<int> t[N], edges[E], order;
+
+bool try_solve() {
+    // partition teams
+    for (int i = 1; i <= MAX_TEAM; ++i) {
+        teams[i] = rand() % 2 + 1;
+    }
+    // produce answer
+    //random_shuffle(order.begin(), order.end());
+    for (int i: order) {
+        res[i] = 0;
+        //random_shuffle(t[i].begin(), t[i].end());
+        for (int team: t[i]) {
+            if (teams[team] == conf[i]) {
+                res[i] = team;
+                break;
+            }
+        }
+        if (!res[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+int main() {
+    srand(time(0));
+    cin.sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n >> e;
+    for (int i = 0, a, b; i < e; ++i) {
+        cin >> a >> b;
+        --a;
+        --b;
+        edges[a].push_back(b);
+        edges[b].push_back(a);
+    }
+    for (int i = 0; i < n; ++i) {
+        cin >> l[i];
+        t[i].resize(l[i]);
+        for (int j = 0; j < l[i]; ++j) {
+            cin >> t[i][j];
+            MAX_TEAM = max(MAX_TEAM, t[i][j]);
+        }
+        order.push_back(i);
+    }
+    // partition people
+    for (int i = 0; i < n; ++i) {
+        int c1 = 0;
+        int c2 = 0;
+        for (int j: edges[i]) {
+            if (conf[j] == 1) c1++;
+            if (conf[j] == 2) c2++;
+        }
+        if (c1 > c2) conf[i] = 2;
+        else conf[i] = 1;
+    }
+    int count = 0;
+    for (int i = 0; i < n; ++i) {
+        for (int j: edges[i]) {
+            count += (conf[i] != conf[j]);
+        }
+    }
+    assert(2 * count >= e);
+    // do everything else
+    for (; !try_solve(); );
+    // output
+    for (int i = 0; i < n; ++i) {
+        cout << res[i] << " ";
+    }
+    cout << "\n";
+    for (int i = 1; i <= MAX_TEAM; ++i) {
+        cout << teams[i] << " ";
+    }
+    cout << "\n";
+    cerr << "Time elapsed: " << (ld) clock() / CLOCKS_PER_SEC << "\n";
+    return 0;
+}

@@ -1,0 +1,145 @@
+#include "bits/stdc++.h"
+#define MAXN 409
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int n,k,vis[MAXN],sub[MAXN],st;
+vector<int>adj[MAXN],way[MAXN],G[MAXN];
+vector<int>dp[MAXN][MAXN];
+int yol[MAXN][MAXN];
+PII road[MAXN];
+void f1(int nd,int pr){
+	sub[nd]=1;
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i];
+		if(to==pr or vis[to])
+			continue;
+		f1(to,nd);	
+		sub[nd]+=sub[to];	
+	}
+}
+int f2(int nd,int pr,int sz){
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i];
+		if(to==pr or vis[to])
+			continue;
+		if(sub[to]>sz)
+			return f2(to,nd,sz);
+	}
+	return nd;
+}
+void f3(int nd,int pr){
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i];
+		if(to==pr)
+			continue;	
+		way[nd].pb(to);
+		f3(to,nd);	
+	}
+}
+int ans=INF;
+int rec(int nd,int x,int y){
+	if(x==int(way[nd].size())){
+		if(!y)
+			return 0;
+		return INF;	
+	}
+	int &ret=dp[nd][y][x];
+	if(~ret)
+		return ret;ret=INF;	
+	int to=way[nd][x];	
+	umin(ret,rec(nd,x+1,y)+1);
+	if(vis[to])
+		return ret;
+	for(int i=1;i<=y;i++)
+		umin(ret,rec(to,0,i-1)+rec(nd,x+1,y-i));
+	return ret;	
+}
+void dfs(int nd){
+	f1(nd,-1);
+	int centr=f2(nd,-1,sub[nd]>>1);
+	vis[centr]=1;
+	if(sub[nd]<k)
+		return;
+	for(int i=1;i<=n;i++)
+		way[i].resize(0);
+	f3(centr,-1);
+	for(int i=1;i<=n;i++)
+		for(int j=0;j<=k;j++){
+			dp[i][j].clear();
+			dp[i][j].resize(way[i].size()+2,-1);	
+		}
+	int res=rec(centr,0,k-1);
+	if(res<ans){
+		ans=res;st=centr;
+		for(int i=1;i<=n;i++)
+			G[i]=way[i];	
+	}
+	for(int i=0;i<int(adj[centr].size());i++){
+		int to=adj[centr][i];
+		if(vis[to])
+			continue;
+		dfs(to);
+	}
+}
+void yaz(int nd,int x,int y){
+	if(x==int(way[nd].size()))
+		return;
+	int to=way[nd][x];	
+	int ret=dp[nd][y][x];
+	if(ret==rec(nd,x+1,y)+1){
+		yol[nd][to]=yol[to][nd]=1;
+		yaz(nd,x+1,y);
+		return;
+	}
+	for(int i=1;i<=y;i++)
+		if(ret==rec(to,0,i-1)+rec(nd,x+1,y-i)){
+			yaz(to,0,i-1);
+			yaz(nd,x+1,y-i);
+			return;
+		}
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif
+	scanf("%d%d",&n,&k);
+	for(int i=1;i<n;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+		road[i]=mp(u,v);
+	}
+	dfs(1);
+	for(int i=1;i<=n;i++)
+		way[i]=G[i];
+	for(int i=1;i<=n;i++)
+		for(int j=0;j<=k;j++){
+			dp[i][j].clear();
+			dp[i][j].resize(way[i].size()+2,-1);	
+		}
+	memset(vis,0,sizeof vis);
+	printf("%d\n",rec(st,0,k-1));
+	yaz(st,0,k-1);
+	for(int i=1;i<n;i++){
+		int u=road[i].ff;
+		int v=road[i].ss;
+		if(yol[u][v] or yol[v][u])
+			printf("%d ",i);
+	}printf("\n");
+	return 0;
+}

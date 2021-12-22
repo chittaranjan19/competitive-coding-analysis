@@ -1,0 +1,164 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Random;
+
+import static javafx.scene.input.KeyCode.M;
+
+public class ProblemE {
+    BufferedReader rd;
+    Random rnd = new Random();
+
+    ProblemE() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        long[] ns = longarr();
+        int n = (int)ns[0];
+        long s = ns[1];
+        long[][] p = new long[n][];
+        for(int i=0;i<n;i++) {
+            p[i] = longarr();
+        }
+        double upperLimit = 4*s - 1e-9;
+        while(true) {
+            long[] x = q(p[rnd.nextInt(p.length)].clone());
+            long[] y = q(p[rnd.nextInt(p.length)].clone());
+            long[] z = q(p[rnd.nextInt(p.length)].clone());
+            double u = area(x,y,z);
+            if(u > 1e-9 && u < upperLimit && ok(x) && ok(y) && ok(z)) {
+                int j = 0;
+                while(j < p.length) {
+                    if(!PointInTriangle(p[j],x,y,z)) {
+                        break;
+                    }
+                    j++;
+                }
+                if(j >= p.length) {
+                    out(x[0]+" "+x[1]);
+                    out(y[0]+" "+y[1]);
+                    out(z[0]+" "+z[1]);
+                    return;
+                }
+            }
+        }
+    }
+
+    private long[] q(long[] c) {
+        c[0] *= rnd.nextInt(10)-5;
+        c[1] *= rnd.nextInt(10)-5;
+        return c;
+    }
+
+    boolean ok(long[] x) {
+        return x[0] >= -1_00_000_0000 && x[0] <= 1_00_000_0000 && x[1] >= -1_00_000_0000 && x[1] <= 1_00_000_0000;
+    }
+
+    double sign (long[] p1, long[] p2, long[] p3)
+    {
+        return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1]);
+    }
+
+    boolean PointInTriangle (long[] pt, long[] v1, long[] v2, long[] v3)
+    {
+        boolean b1, b2, b3;
+
+        b1 = sign(pt, v1, v2) < 0.0f;
+        b2 = sign(pt, v2, v3) < 0.0f;
+        b3 = sign(pt, v3, v1) < 0.0f;
+
+        return ((b1 == b2) && (b2 == b3));
+    }
+
+    private double area(long[] x, long[] y, long[] z) {
+        return area(d(x,y),d(y,z),d(z,x));
+    }
+
+    private double d(long[] x, long[] y) {
+        long a = x[0]-y[0];
+        long b = x[1]-y[1];
+        return Math.sqrt(a*a+b*b);
+    }
+
+    private double area(double a, double b, double c) {
+        double p = (a+b+c)/2;
+        return Math.sqrt(p*(p-a)*(p-b)*(p-c));
+    }
+
+    private long r() {
+        return rnd.nextInt(2000_0000_00)-1_00_000_0000;
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemE();
+    }
+}

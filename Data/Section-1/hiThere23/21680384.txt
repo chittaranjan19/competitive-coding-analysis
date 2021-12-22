@@ -1,0 +1,118 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 300005
+#define maxC 4000000007000000007ll
+#define F first
+#define S second
+#define mp make_pair
+#define mid ((l + r) >> 1)
+
+using namespace std;
+int n;
+pair<long long, long long> team[mn];
+struct interval
+{
+    int l, r;
+    pair<long long, int> low;
+    interval* lc;
+    interval* rc;
+
+    interval(int l = 0, int r = 0): l(l), r(r)
+    {
+        if (l == r)
+        {
+            low = mp(team[l].S, l);
+            lc = rc = NULL;
+            return;
+        }
+        lc = new interval(l, mid);
+        rc = new interval(mid + 1, r);
+        low = min(lc -> low, rc -> low);
+    }
+
+    void update(int x)
+    {
+        if (l > x || r < x)
+            return;
+        if (l == r)
+        {
+            low.F = maxC;
+            return;
+        }
+        lc -> update(x);
+        rc -> update(x);
+        low = min(lc -> low, rc -> low);
+    }
+
+    pair<long long, int> get(int x, int y)
+    {
+        if (l > y || r < x)
+            return mp(maxC, 1000000007);
+        if (x <= l && r <= y)
+            return low;
+        return min(lc -> get(x, y), rc -> get(x, y));
+    }
+} t;
+
+bool com(pair<long long, long long> a, pair<long long, long long> b)
+{
+    if (a.F != b.F)
+        return a.F > b.F;
+    return a.S < b.S;
+}
+
+void setup()
+{
+    cin >> n >> team[1].F >> team[1].S;
+    FOR(i, 2, n)
+    {
+        cin >> team[i].F >> team[i].S;
+        team[i].S = team[i].S - team[i].F + 1;
+    }
+    sort(team + 2, team + n + 1, com);
+    t = interval(2, n);
+}
+
+int findCurPos()
+{
+    int l = 1, r = n + 1;
+    while(r - l > 1)
+    {
+        int g = mid;
+        if (team[g].F > team[1].F)
+            l = g;
+        else
+            r = g;
+    }
+    return l;
+}
+
+void xuly()
+{
+    int ans = n;
+    int id = findCurPos();
+    int num = 0;
+    while(true)
+    {
+        ans = min(ans, id - num);
+        pair<long long, int> p = t.get(2, id);
+        if(p.F > team[1].F)
+            break;
+        team[1].F -= p.F;
+        t.update(p.S);
+        id = findCurPos();
+        num ++;
+    }
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

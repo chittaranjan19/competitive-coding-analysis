@@ -1,0 +1,188 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+#define all(x) x.begin(), x.end()
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 3e5 + 10, lg = 31, MAXN = 1111;
+ll mod = 1e9 + 7;
+
+ll gcd(ll a, ll b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll _gcd(ll a, ll b, ll & x, ll & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	ll _x1, _y1;
+	ll d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+ll binpow(ll a, ll n) {
+	ll res = 1;
+	while (n) {
+		if (n & 1)
+			res *= a;
+		a *= a;
+		n >>= 1;
+		a %= mod;
+		res %= mod;
+	}
+	return res;
+}
+
+
+void term_ans(string ans){
+	cout << ans;
+	exit(0);
+}
+
+
+ll n, m, L, s, t;
+
+vector<pair<int, int> > g[1212];
+ll road_v[12121];
+pair<int, int> rr[12121];
+
+ll d[12121], prv[12121], prvr[12121];
+int cnt_zero[12121];
+bool used[12121];
+set<pair<ll, int > > st;
+
+
+int main()
+{
+	cin >> n >> m >> L >> s >> t;
+	for (int i = 0; i < m; i++){
+		int u, v, c;
+		cin >> u >> v >> c;
+		g[u].push_back(mp(v, i));
+		g[v].push_back(mp(u, i));
+		road_v[i] = c;
+		rr[i] = mp(u, v);
+	}
+
+	for (int i = 0; i < n; i++)
+		d[i] = 2e18, used[i] = false, cnt_zero[i] = 0;
+	d[s] = 0;
+	prv[s] = -1;
+	st.insert(mp(0, s));
+	while (!st.empty()) {
+		int v = st.begin()->sc;
+		st.erase(st.begin());
+		for (int j = 0; j<g[v].size(); ++j) {
+			int to = g[v][j].fs;
+			ll len = road_v[g[v][j].sc];
+			if (d[v] + len == d[to] && cnt_zero[to] > cnt_zero[v] + (len == 0)){
+				st.erase(mp(d[to], to));
+				d[to] = d[v] + max(1ll, len);
+				prv[to] = v;
+				prvr[to] = g[v][j].sc;
+				st.insert(mp(d[to], to));
+				cnt_zero[to] = cnt_zero[v] + (len == 0);
+			}
+			if (d[v] + len < d[to]) {
+				st.erase(mp(d[to], to));
+				d[to] = d[v] + max(1ll, len);
+				prv[to] = v;
+				prvr[to] = g[v][j].sc;
+				st.insert(mp(d[to], to));
+				cnt_zero[to] = cnt_zero[v] + (len == 0);
+			}
+
+		}
+	}
+	if (d[t] > L){
+		cout << "NO";
+		exit(0);
+	}
+	int cnt = 0;
+	int cur = t;
+	while (cur != s){
+		cnt += road_v[prvr[cur]] == 0;
+		cur = prv[cur];
+	}
+	d[t] -= cnt;
+	if (cnt > L - d[t]){
+
+		for (int i = 0; i < n; i++)
+			d[i] = 2e18, used[i] = false;
+		d[s] = 0;
+		prv[s] = -1;
+		st.insert(mp(0, s));
+		while (!st.empty()) {
+			int v = st.begin()->sc;
+			st.erase(st.begin());
+			for (int j = 0; j<g[v].size(); ++j) {
+				int to = g[v][j].fs;
+				ll len = road_v[g[v][j].sc];
+				if (len == 0) continue;
+				if (d[v] + len < d[to]) {
+					st.erase(mp(d[to], to));
+					d[to] = d[v] + len;
+					prv[to] = v;
+					prvr[to] = g[v][j].sc;
+					st.insert(mp(d[to], to));
+				}
+			}
+		}
+		if (d[t] == L){
+			cout << "YES" << endl;
+			for (int i = 0; i < m; i++){
+				if (road_v[i] == 0)
+					road_v[i] = 1e18;
+				cout << rr[i].fs << ' ' << rr[i].sc << ' ' << road_v[i] << endl;
+			}
+			exit(0);
+		}
+		cout << "NO";
+		exit(0);
+	}
+	cur = t;
+	bool filled = 0;
+	ll need = L - d[t];
+	while (cur != s){
+		if (road_v[prvr[cur]] == 0){
+			if (filled)
+				road_v[prvr[cur]] = 1;
+			else road_v[prvr[cur]] = L - d[t] - cnt + 1, filled = 1;
+		}
+		cur = prv[cur];
+	}
+	for (int i = 0; i < m; i++){
+		if (road_v[i] == 0)
+			road_v[i] = 1e18;
+	}
+	cout << "YES" << endl;
+	for (int i = 0; i < m; i++){
+		cout << rr[i].fs << ' ' << rr[i].sc << ' ' << road_v[i] << endl;
+	}
+	return 0;
+}

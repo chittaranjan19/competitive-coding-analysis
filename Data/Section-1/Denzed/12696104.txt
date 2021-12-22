@@ -1,0 +1,36 @@
+from decimal import Decimal
+from math import atan2, pi, sin
+
+
+EPS = Decimal(1e-9)
+pi = Decimal(pi)
+
+
+class Vector:
+    def __init__(self, x = 0, y = 0):
+        self.x = x
+        self.y = y
+
+    def __neg__(self):
+        return Vector(-self.x, -self.y)
+
+    def __xor__(self, v2):
+        return Decimal(abs(atan2(self | v2, self & v2)))
+
+    def __and__(self, v2):
+        return self.x * v2.x + self.y * v2.y
+
+    def __or__(self, v2):
+        return self.x * v2.y - self.y * v2.x
+
+
+p = [list(map(Decimal, input().split())) for x in range(3)]
+ca, ab, bc = [Vector(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]) for i in range(3)]
+angles = [-ca ^ ab, -ab ^ bc, -bc ^ ca]
+R_sq = (ab.x ** Decimal(2) + ab.y ** Decimal(2)) / Decimal(sin(angles[2])) ** Decimal(2) / Decimal(4)
+n = Decimal(3)
+# print(*(180 * angle / pi for angle in angles))
+while n < 101 and any(k for k in (angle * n / pi for angle in angles) if abs(k - int(k + EPS)) >= EPS):
+    # print(n, *(k for k in ((pi - angle) * n / Decimal(2) / pi for angle in angles)))
+    n += 1
+print(n * R_sq * Decimal(sin(Decimal(2) * pi / n)) / Decimal(2))

@@ -1,0 +1,73 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+vector<int>adj[MAXN][2];
+vector<int>ans;
+int color[MAXN],vis[MAXN];
+bool dfs(int nd,int now){
+	vis[nd]=1;color[nd]=now;
+	if(now)
+		ans.pb(nd);
+	for(int i=0;i<int(adj[nd][0].size());i++){
+		int to=adj[nd][0][i];
+		if(!vis[to]){
+			if(!dfs(to,now^1))
+				return 0;
+		}
+		else{
+			if(color[to]==color[nd])
+				return 0;
+		}
+	}
+	for(int i=0;i<int(adj[nd][1].size());i++){
+		int to=adj[nd][1][i];
+		if(!vis[to]){
+			if(!dfs(to,now))
+				return 0;
+		}
+		else{
+			if(color[to]!=color[nd])
+				return 0;
+		}
+	}
+	return 1;
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	int n,m;
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=m;i++){
+		int u,v,c;
+		scanf("%d%d%d",&u,&v,&c);
+		adj[u][c].pb(v);
+		adj[v][c].pb(u);
+	}
+	bool flag=true;
+	for(int i=1;i<=n;i++)
+		if(!vis[i])
+			flag&=dfs(i,0);
+	if(!flag)
+		return printf("Impossible\n"),0;
+	printf("%d\n",int(ans.size()));
+	for(int i=0;i<int(ans.size());i++)
+		printf("%d ",ans[i]);
+	printf("\n");	
+	return 0;
+}

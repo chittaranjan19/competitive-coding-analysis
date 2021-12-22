@@ -1,0 +1,80 @@
+#include <sstream>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <queue>
+#include <map>
+#include <cmath>
+#include <algorithm>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+void imprimirVector (vector<tint> v)
+{
+    if (!v.empty())
+    { 
+        int p = v.size();
+        cout << "[";
+        forn(i,p-1)
+            cout << v[i] << ",";
+        cout << v[p-1] << "]" << endl;
+    }
+    else
+        cout << "[]" << endl;
+}
+
+
+int main(){
+	tint MaxN = 5000001;
+    vector<bool> A (MaxN,true);
+    vector<tint> M (MaxN,0);
+    // El uno y el cero no son primos
+    A[0] = false;
+    A[1] = false;
+    // Hacemos una criba
+    for(int i=2;i<MaxN;i++){
+        if(A[i]){
+            tint p=i; 						// Si entro aca entonces i es primo
+            while(p<MaxN){
+                for(int h=p;h<MaxN;h+=p)	// Sumamos uno a los multiplos de p, despues uno mas a los de p^2, despues uno mas a los de p^3 y asi
+                    M[h]++;			
+                p*=i;
+            }
+            for(int j=2*i;j<MaxN;j+=i) 		// Seguimos con la criba
+                A[j]=false;
+            }
+    }
+    // Calculamos las sumas parciales
+    forsn(i,1,MaxN)
+            M[i] = M[i-1] + M[i];
+    // Hasta aca se corre siempre    
+         
+    // Ahora se responde cada test segun lo precomputado
+    tint t;
+    cin >> t;
+    string bigString = "";
+    forn(i,t)
+    {
+        tint a,b;
+        cin >> a >> b;
+        tint ans = M[a] - M[b];
+        ostringstream ostr;
+        ostr << ans;
+        string ansString = ostr.str();
+        ansString += "\n";
+        bigString += ansString;
+    }
+    cout << bigString;
+    return 0;
+}

@@ -1,0 +1,115 @@
+#include<bits/stdc++.h>
+#define MAXN 1009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define right maslahat
+#define left dark
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int right[MAXN][MAXN];
+int left[MAXN][MAXN];
+int up[MAXN][MAXN],arr[MAXN][MAXN];
+int down[MAXN][MAXN];
+PII rr[MAXN];
+int intersect(int x,int y,int z){
+	return (x<=z and z<=y);
+	cerr<<"Error_404"<<endl;
+}
+int calc(vector<int>v,int h){
+//	tr(it,v)
+//		cout<<*it<<" ";
+//	cout<<endl;	
+	stack<int>s;
+	v[0]=-INF;s.push(0);
+	int ans=0;
+	for(int i=1;i<v.size();i++){
+		while(!s.empty() and v[s.top()]>v[i]){
+			rr[s.top()].ss=i-1;
+			s.pop();
+		}
+		if(v[s.top()]==v[i])
+			rr[i].ff=rr[s.top()].ff;
+		else
+			rr[i].ff=s.top()+1;
+		rr[i].ss=v.size()-1;	
+		s.push(i);
+	}
+	for(int i=1;i<v.size();i++)	
+		if(intersect(rr[i].ff,rr[i].ss,h))
+			umax(ans,v[i]*(rr[i].ss-rr[i].ff+1));
+	return ans;		
+}
+int main(){
+	int n,m,q,pos,sop;
+	scanf("%d%d%d",&n,&m,&q);
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++)
+			scanf("%d",&arr[i][j]);
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++){
+			if(!arr[i][j])
+				left[i][j]=up[i][j]=0;
+			else{	
+				up[i][j]=up[i-1][j]+1;
+				left[i][j]=left[i][j-1]+1;
+			}
+		}
+	for(int i=n;i>=1;i--)
+		for(int j=m;j>=1;j--){
+			if(!arr[i][j])
+				right[i][j]=down[i][j]=0;
+			else{	
+				down[i][j]=down[i+1][j]+1;
+				right[i][j]=right[i][j+1]+1;
+			}
+		}
+	while(q--){
+		int type,x,y;
+		scanf("%d%d%d",&type,&x,&y);
+		if(type==2){
+			int res=0;
+			vector<int>vec;vec.pb(-1);
+			for(int i=1;i<=m;i++)
+				vec.pb(up[x][i]);
+			umax(res,calc(vec,y));
+			vec.clear();vec.pb(-1);
+			for(int i=1;i<=m;i++)
+				vec.pb(down[x][i]);
+			umax(res,calc(vec,y));
+			vec.clear();vec.pb(-1);
+			for(int i=1;i<=n;i++)
+				vec.pb(left[i][y]);
+			umax(res,calc(vec,x));
+			vec.clear();vec.pb(-1);
+			for(int i=1;i<=n;i++)
+				vec.pb(right[i][y]);
+			umax(res,calc(vec,x));
+			printf("%d\n",res);	
+		}
+		else{
+			arr[x][y]=arr[x][y]^1;
+			for(int i=1;i<=n;i++)
+				up[i][y]=(!arr[i][y]?0:up[i-1][y]+1);
+			for(int i=n;i>=1;i--)
+				down[i][y]=(!arr[i][y]?0:down[i+1][y]+1);
+			for(int i=1;i<=m;i++)
+				left[x][i]=(!arr[x][i]?0:left[x][i-1]+1);
+			for(int i=m;i>=1;i--)
+				right[x][i]=(!arr[x][i]?0:right[x][i+1]+1);			
+		}
+	}
+	return 0;
+}

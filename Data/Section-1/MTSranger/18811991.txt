@@ -1,0 +1,76 @@
+#include <iostream>
+#include <bitset>
+#include <cstring>
+#include <queue>
+#include <vector>
+
+using namespace std;
+
+int n, k;
+
+int coins[501];
+bitset<501> dp[501]; // dp[i][j] = make j using up to and including ith coin 
+
+bool visited[501][501];
+bitset<501> memo[501][501];
+
+
+bitset<501> dfs(int i, int j) {
+	if (visited[i][j]) return memo[i][j];
+
+	//for (int z = 0; z < depth; z++) cerr << " ";
+	//cerr << "visit: " << i << "=" << coins[i] << " " << j << endl;
+
+	bitset<501> res;
+
+	res[0] = 1;
+	res[coins[i]] = 1;
+
+	for (int z = 1; z < i; z++) {
+		int zz = j - coins[z];
+		if (zz >= 0 && dp[z-1][zz]) {
+			bitset<501> next = dfs(z, zz);
+			res |= (next | (next << coins[i]));
+		}
+	}
+	if (j == coins[0]) {
+		res[j] = 1;
+		res[j + coins[i]] = 1;
+	}
+
+	//for (int z = 0; z < depth; z++) cerr << " ";
+	//for (int z = 0; z <= k; z++) cerr << res[z]; cerr << endl;
+
+	visited[i][j] = true;
+	memo[i][j] = res;
+	return res;
+}
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	cin >> n >> k;
+	for (int i = 0; i < n; i++) cin >> coins[i];
+	coins[n] = 0;
+
+	dp[0][0] = 1;
+	dp[0][coins[0]] = 1;
+	for (int i = 1; i < n; i++) dp[i] = (dp[i-1] | (dp[i-1] << coins[i]));
+
+	memset(visited, 0, sizeof visited);
+	bitset<501> possible = dfs(n, k);
+
+	vector<int> sol;
+	for (int i = 0; i <= k; i++) if (possible[i]) sol.push_back(i);
+
+	cout << sol.size() << endl;
+	for (int i = 0; i < sol.size(); i++) {
+		if (i > 0) cout << " ";
+		cout << sol[i];
+	}
+	cout << endl;
+
+	return 0;
+
+}

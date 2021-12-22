@@ -1,0 +1,94 @@
+#include<stdio.h>
+#include<string.h>
+#include<iostream>
+#include<algorithm>
+#include<vector>
+#include<cmath>
+using namespace std;
+#define maxn 100010
+#define inf 99999999
+int smax,smin;
+int n,k;
+int h[maxn];
+int st[maxn],end[maxn];
+struct node{
+	int l,r;
+	int lmax,lmin;
+}tree[maxn*4];
+void pushup(int v){
+	int temp=v<<1;
+	tree[v].lmax=max(tree[temp].lmax,tree[temp+1].lmax);
+	tree[v].lmin=min(tree[temp].lmin,tree[temp+1].lmin);
+}
+void build(int l,int r,int v){
+	tree[v].l=l;
+	tree[v].r=r;
+	tree[v].lmax=-1;
+	tree[v].lmin=inf;
+	if(l==r){
+		scanf("%d",&h[l]);
+		tree[v].lmax=tree[v].lmin=h[l];
+		return ; 
+	}
+	int mid=(l+r)>>1;
+	int temp=v<<1;
+	build(l,mid,temp);
+	build(mid+1,r,temp+1);
+	pushup(v);
+}
+void query(int l,int r,int v,int cnt){
+	if(tree[v].l==l&&tree[v].r==r){
+		if(cnt==0){	 
+			smin=min(smin,tree[v].lmin);
+			return ;
+		}
+		else{
+			smax=max(smax,tree[v].lmax);
+			return ;
+		}
+	}
+	int mid=(tree[v].l+tree[v].r)>>1;
+	int temp=v<<1;
+	if(r<=mid) query(l,r,temp,cnt);
+	else if(l>mid) query(l,r,temp+1,cnt);
+	else{
+		query(l,mid,temp,cnt);
+		query(mid+1,r,temp+1,cnt);
+	}
+}
+int judge(int l){
+	for(int i=1;i+l-1<=n;i++){
+		smax=-1; smin=inf;
+		query(i,i+l-1,1,1);
+		query(i,i+l-1,1,0);
+		if(smax-smin<=k) return 1;
+	}
+	return 0;
+}
+int main(){
+	scanf("%d%d",&n,&k);
+	build(1,n,1);
+	int l=1,r=n+1;
+	int ans=-1;
+	while(l<r){
+		int mid=(l+r)>>1;
+		if(judge(mid)){
+			l=mid+1;
+			ans=max(ans,mid);
+		}
+		else r=mid;
+	}
+	int cnt=0;
+	for(int i=1;i+ans-1<=n;i++){
+		smax=-1; smin=inf;
+		query(i,i+ans-1,1,1);
+		query(i,i+ans-1,1,0);
+		if(smax-smin<=k){
+			st[cnt]=i;
+			end[cnt++]=i+ans-1;
+		}
+	}
+	printf("%d %d\n",ans,cnt);
+	for(int i=0;i<cnt;i++) printf("%d %d\n",st[i],end[i]);
+	return 0;
+}

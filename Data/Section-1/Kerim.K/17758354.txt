@@ -1,0 +1,94 @@
+#include<bits/stdc++.h>
+#define MAXN 5009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+char s[MAXN];
+int dp[MAXN][MAXN],n,lcp[MAXN];
+int c[MAXN],S[MAXN][23],ord[MAXN];
+int ID[MAXN][MAXN],cnt[MAXN];
+PII C[MAXN];
+int rec(int x,int y){
+	if(x>=y)
+		return 1;
+	int &ret=dp[x][y];
+	if(ret!=-1)
+		return ret;ret=0;
+	if(s[x]!=s[y])
+		return ret=0;
+	return ret=rec(x+2,y-2);			
+}
+bool cmp(int x,int y){
+	return(C[x]<C[y]);
+}
+int yaz(int x,int y){
+	for(int i=x;i<=y;i++)
+		printf("%c",s[i]);
+	printf("\n");
+	return 0;	
+}int sz=0;
+int trie[MAXN*MAXN/100][3];
+void upd(int x){
+	int num=0;
+	for(int i=x;i<=n;i++){
+		if(!trie[num][s[i]-'a'+1])
+			trie[num][s[i]-'a'+1]=++sz;
+		num=trie[num][s[i]-'a'+1];
+		ID[x][i]=num;cnt[num]++;
+	}
+}
+int main(){
+	memset(dp,-1,sizeof(dp));
+	scanf("%s",s+1);
+	int k;n=strlen(s+1);
+	scanf("%d",&k);
+	for(int i=1;i<=n;i++)
+		for(int j=i;j<=n;j++)	
+			rec(i,j);		
+	for(int i=1;i<=n;i++)
+		upd(i),S[i][0]=s[i]-'a'+1;
+	for(int j=1;j<15;j++){
+		for(int i=1;i<=n;i++)
+			C[i]=mp(S[i][j-1],i+(1<<j-1)<=n?S[i+(1<<j-1)][j-1]:-1),c[i]=i;
+		sort(c+1,c+n+1,cmp);
+		for(int i=1;i<=n;i++)
+			S[c[i]][j]=S[c[i-1]][j]+(C[c[i]]!=C[c[i-1]]);
+	}
+	for(int i=1;i<=n;i++)
+		ord[S[i][14]]=i;
+	for(int i=2;i<=n;i++){
+		int a=ord[i];
+		int b=ord[i-1];
+		for(int j=14;j>=0;j--)
+			if(a<=n and b<=n and S[a][j]==S[b][j]){
+				a+=(1<<j);b+=(1<<j);
+				lcp[i]+=(1<<j);
+			}
+	}
+	for(int i=1;i<=n;i++){
+		int kk=ord[i]+lcp[i];
+		for(int j=kk;j<=n;j++){
+			if(dp[ord[i]][j])
+				k-=cnt[ID[ord[i]][j]];
+			if(k<=0 and dp[ord[i]][j])
+				return yaz(ord[i],j);	
+		}
+	}
+	return 0;
+}
+//LooK aT mY COde ONlinE +_+

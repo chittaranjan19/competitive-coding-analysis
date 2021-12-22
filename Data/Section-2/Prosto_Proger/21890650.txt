@@ -1,0 +1,136 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <string.h>
+
+using namespace std;
+
+const int MAXN = 2e5 + 308;
+
+struct Tree {
+	int as, ts;
+	vector <int> node;
+	void build(int _s) {
+		for (as = 1; as < _s; as <<= 1);
+		ts = (as << 1) + 1;
+		node.clear();
+		node.resize(ts, -1);
+	}
+	void set(int v, int nu) {
+		v += as - 1;
+		node[v] = nu;
+		do {
+			int p = (v - 1 + (v&1)) >> 1;
+			int c = (p << 1);
+			node[p] = min(node[c + 1], node[c + 2]);
+			v = p;
+		} while (v);
+	}
+	
+	int get(int l, int r) { return get(0, as - 1, l, r, 0); }
+	
+	int get(int tl, int tr, int l, int r, int v) {
+		if (tl == l && tr == r) return node[v];
+		
+		int tm = (tl + tr) >> 1;
+		int c = (v << 1);
+		
+		if (r <= tm) return get(  tl, tm, l, r, c + 1);
+		if (l  > tm) return get(tm+1, tr, l, r, c + 2);
+		
+		return min (
+			get(  tl, tm,    l, tm, c + 1),
+			get(tm+1, tr, tm+1,  r, c + 2)
+		);
+	}
+} tr;
+
+
+struct Lad {
+	int x, y;
+	Lad() : x(0), y(0) { }
+	Lad(int _x, int _y) : x(_x), y(_y) { }
+} L[MAXN];
+
+struct Event {
+	int x1, y1, x2, y2, v;
+	Event() : x1(0), y1(0), x2(0), y2(0), v(-1) { }
+	Event(int _x1, int _y1, int _x2, int _y2, int _v) {
+		x1 = _x1, y1 = _y1;
+		x2 = _x2, y2 = _y2;
+		v = _v;
+	}
+} E[MAXN];
+
+
+struct clx {
+	bool operator() (const Lad &l1, const Lad &l2) const {
+		return l1.x < l2.x; 
+	}
+};
+
+struct cly {
+	bool operator() (const Lad &l1, const Lad &l2) {
+		return l1.y < l2.y; 
+	}
+};
+
+struct cex {
+	bool operator() (const Event &e1, const Event &e2) {
+		return e1.x2 < e2.x2;
+	}
+};
+
+struct cey {
+	bool operator() (const Event &e1, const Event &e2) {
+		return e1.y1 < e2.y2;
+	}
+};
+
+bool NORM[MAXN];
+
+int main() {
+	freopen("i.i", "r", stdin);
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL), cout.tie(NULL);
+	memset(NORM, 0, sizeof NORM);
+	
+	int n, m, k, q;
+	cin >> n >> m >> k >> q;
+	for (int i = 0; i < k; ++i)
+		cin >> L[i].x >> L[i].y;
+	
+	for (int i = 0; i < q; ++i) {
+		cin >> E[i].x1 >> E[i].y1 >> E[i].x2 >> E[i].y2;
+		E[i].v = i;
+	}
+	
+	sort(L, L + k, clx());
+	sort(E, E + q, cex());
+	tr.build(max(n, m) + 308);
+	
+	for (int i = 0, j = 0; i < q; ++i) {
+		while (j < k && L[j].x <= E[i].x2) {
+			tr.set(L[j].y, L[j].x);
+			++j;
+		}
+		int z = tr.get(E[i].y1, E[i].y2);
+		if (z >= E[i].x1) NORM[ E[i].v ] = 1;
+	}
+	
+	sort(L, L + k, cly());
+	sort(E, E + q, cey());
+	tr.build(max(n, m) + 308);
+	for (int i = 0, j = 0; i < q; ++i) {
+		while (j < k && L[j].y <= E[i].y2) {
+			tr.set(L[j].x, L[j].y);
+			++j;
+		}
+		int z = tr.get(E[i].x1, E[i].x2);
+		if (z >= E[i].y1) NORM[ E[i].v ] = 1;
+	}
+	for (int i = 0; i < q; ++i) 
+		cout << (NORM[i] ? "YES" : "NO") << endl;
+	
+	return 0;
+}

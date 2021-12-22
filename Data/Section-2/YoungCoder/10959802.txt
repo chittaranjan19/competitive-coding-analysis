@@ -1,0 +1,69 @@
+# include <iostream>
+# include <cstdlib>
+# include <cstdio>
+# include <string>
+# include <map>
+# include <algorithm>
+# include <cstring>
+
+using namespace std;
+
+const int INF = 2147483647;
+int p[4], N, M, da[5000][30], db[5000][30], a[5000], b[5000], d[5000][5000];
+char s1[5000], s2[5000];
+bool u[5000][5000];
+
+int f (int n, int m)
+{
+    //cout << n << " " << m << "\n";
+    if (m == M) return (N - n) * p[1];
+    if (n == N) return (M - m) * p[0];
+    if (u[n][m]) return d[n][m];
+    if (a[n] == b[m]) return f (n + 1, m + 1);
+    int res1 = f (n + 1, m + 1) + p[2];
+    int res2 = (da[n][b[m]] != -1 && db[m][a[n]] != -1 ? (da[n][b[m]] - n - 1) * p[1] + (db[m][a[n]] - m - 1) * p[0] + p[3] + f (da[n][b[m]] + 1, db[m][a[n]] + 1) : INF);
+    int res3 = f (n, m + 1) + p[0];
+    int res4 = f (n + 1, m) + p[1];
+    u[n][m] = true;
+    //cout << n << " " << m << " " << res2 << "\n\n";
+    return d[n][m] = min (res1, min (res2, min (res3, res4)));
+}
+
+int main ()
+{
+    for (int i = 0; i < 4; ++i)
+        scanf ("%d ", &p[i]);
+    gets (s1);
+    gets (s2);
+    N = strlen (s1);
+    M = strlen (s2);
+    for (int i = 0; i < N; ++i) a[i] = s1[i] - 'a';
+    for (int i = 0; i < M; ++i) b[i] = s2[i] - 'a';
+    for (int i = N - 1; i >= 0; --i)
+    {
+        if (i == N - 1)
+            for (int j = 0; j <= 'z' - 'a'; ++j)
+                da[i][j] = -1;
+        else
+        {
+            for (int j = 0; j <= 'z' - 'a'; ++j)
+                da[i][j] = da[i + 1][j];
+            da[i][a[i + 1]] = i + 1;
+        }
+    }
+    for (int i = M - 1; i >= 0; --i)
+    {
+        if (i == M - 1)
+            for (int j = 0; j <= 'z' - 'a'; ++j)
+                db[i][j] = -1;
+        else
+        {
+            for (int j = 0; j <= 'z' - 'a'; ++j)
+                db[i][j] = db[i + 1][j];
+            db[i][b[i + 1]] = i + 1;
+        }
+    }
+    //cout << "\n";
+    printf ("%d\n", f (0, 0));
+    return 0;
+}

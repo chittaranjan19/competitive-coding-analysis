@@ -1,0 +1,72 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"You can do IT.I belive YOU!!!"<<endl;
+#define ff first
+#define ss second
+#define lg(x) ceil(log2(x))
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN],s[MAXN*4],t[MAXN*4],a;
+void build1(int nd,int x,int y){
+	if(x==y){
+		s[nd]=arr[x];
+		t[nd]=arr[x];
+		return;
+	}
+	int mid=(x+y)>>1;
+	build1(nd*2,x,mid);
+	build1(nd*2+1,mid+1,y);
+	s[nd]=min(s[nd*2],s[nd*2+1]);
+	t[nd]=max(t[nd*2],t[nd*2+1]);
+}
+PII tap1(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return mp(INF,0);
+	if(l<=x and y<=r)
+		return mp(s[nd],t[nd]);
+	int mid=(x+y)>>1;
+	PII i1=tap1(l,r,nd*2,x,mid);
+	PII i2=tap1(l,r,nd*2+1,mid+1,y);
+	return mp(min(i1.ff,i2.ff),max(i1.ss,i2.ss));		
+}
+int calc(int k){
+	for(int i=k;i<=a;i++){
+		PII tl=tap1(i-k+1,i,1,1,a);
+		if(tl.ss-tl.ff<=1)
+			return 1;
+	}
+	return 0;
+}
+int main(){
+	cin>>a;
+	for(int i=1;i<=a;i++)
+		scanf("%d",arr+i);
+	build1(1,1,a);
+	int st=1,en=a;
+	while(st<en){
+		int mid=(st+en)>>1;
+		if(calc(mid))
+			st=mid+1;
+		else
+			en=mid-1;			
+	}
+	for(int i=max(st+4,a);i>=min(st-4,1);i--){
+		if(calc(i)){
+			cout<<i<<endl;
+			break;
+		}
+	}
+	return 0;
+}

@@ -1,0 +1,122 @@
+#include <cstdio>
+#include <algorithm>
+
+using namespace std;
+
+int n;
+long long k,a[1001];
+
+long long fact[11];
+int fc[11];
+int fv;
+
+void factorize(long long k) {
+    for(long long i=2; i*i<=k; i++) {
+        if(k%i) continue;
+        fact[fv] = i;
+        while(!(k%i)) {
+            fc[fv]++;
+            k /= i;
+        }
+        fv++;
+    }
+    if(k>1) {
+        fact[fv] = k;
+        fc[fv++] = 1;
+    }
+}
+
+int af[1001][11];
+
+void afact(int ai, long long x) {
+    for(int i=0; i<fv; i++) {
+        while(!(x%fact[i])) {
+            af[ai][i]++;
+            x /= fact[i];
+        }
+    }
+}
+
+long long ns[12];
+long long dp[15000];
+long long b[15000][1001];
+
+void convtocc(long long x, int cc[]) {
+    for(int i=fv-1; i>=0; i--) {
+        cc[i] = x/ns[i];
+        x %= ns[i];
+    }
+}
+
+long long convfromcc(int cc[]) {
+    long long ret(0ll);
+    for(int i=0; i<fv; i++) ret += ns[i]*cc[i];
+
+    return ret;
+}
+int cc[11];
+int ccc[11];
+
+int main()
+{
+    scanf("%d%I64d",&n,&k);
+    factorize(k);
+
+    if(k==1) {
+        long long sol(1000000000000ll);
+        for(int i=0; i<n; i++) {
+            long long x; scanf("%I64d",&x); sol = min(sol,x);
+        }
+        printf("%I64d\n",sol);
+        return 0;
+    }
+
+    ns[0] = 1;
+    for(int i=1; i<=fv; i++) ns[i] = ns[i-1]*(fc[i-1]+1);
+
+    if(fv > 11) return 101;
+    if(ns[fv] > 15000) return 102;
+
+    for(long long j=1; j<ns[fv]; j++) dp[j] = 2000000000000000000ll;
+    dp[0] = 0ll;
+
+    for(int i=1; i<=n; i++) {
+        scanf("%I64d",&a[i]);
+        afact(i,a[i]);
+
+        for(long long j=ns[fv]-2; j>=0; j--) {
+            convtocc(j,cc);
+            for(int k=0; k<fv; k++) {
+                ccc[k] = -cc[k];
+                cc[k] = min(fc[k],cc[k]+af[i][k]);
+                ccc[k] += cc[k];
+            }
+            long long jj = convfromcc(cc);
+            if((dp[j]+a[i]+(1000000000000001ll))<dp[jj]) {
+                dp[jj] = (dp[j]+a[i]+(1000000000000001ll));
+                b[jj][i] = convfromcc(ccc);
+            }
+        }
+    }
+
+    if(dp[ns[fv]-1] >= 2000000000000000000ll) {
+        printf("-1\n");
+        return 0;
+    }
+
+    printf("%I64d\n",(dp[ns[fv]-1]/1000000000000001ll));
+
+    long long j=ns[fv]-1;
+    for(int i=n; i>0; i--) {
+        if(b[j][i]) {
+            printf("%d ",i);
+            convtocc(b[j][i],ccc);
+            convtocc(j,cc);
+            for(int k=0; k<fv; k++) cc[k] -= ccc[k];
+            j = convfromcc(cc);
+        }
+    }
+    printf("\n");
+
+    return 0;
+}

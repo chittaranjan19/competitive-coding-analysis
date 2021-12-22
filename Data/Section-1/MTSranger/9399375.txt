@@ -1,0 +1,150 @@
+import java.io.*;
+import java.util.*;
+public class D0CF {
+	
+	static class S {
+		int v, length;
+		
+		public S(){}
+
+		public S(int next, int length) {
+			super();
+			this.v = next;
+			this.length = length;
+		}
+	}
+	
+	static class P {
+		int u, v;
+
+		public P(int u, int v) {
+			super();
+			this.u = u;
+			this.v = v;
+		}
+	}
+
+	public static void main(String[] args) throws NumberFormatException, IOException {
+		Scanner sc = new Scanner(System.in);
+		//Scanner sc = new Scanner(new File("cf/D3.in"));
+		//int ncase = sc.nextInt();
+		//for (int cs = 1; cs <= ncase; cs++) {
+			int n = sc.nextInt();
+			int m = sc.nextInt();
+			ArrayList<Integer>[] adj = new ArrayList[n];
+			ArrayList<Integer>[] edgelen = new ArrayList[n];
+			ArrayList<Integer>[] adjrev = new ArrayList[n];
+			ArrayList<P> edgesLookup = new ArrayList<P>();
+			for (int i = 0; i < n; i++) {
+				adj[i] = new ArrayList<Integer>();
+				edgelen[i] = new ArrayList<Integer>();
+				adjrev[i] = new ArrayList<Integer>();
+			}
+			for (int i = 0; i < m; i++) {
+				int a = sc.nextInt(); a--;
+				int b = sc.nextInt(); b--;
+				edgesLookup.add(new P(a, adj[a].size()));
+				adj[a].add(b);
+				edgelen[a].add(1);
+				adjrev[b].add(a);
+			}
+			
+			// figure out which vertices are on the path from start to end
+			boolean[] reachable = new boolean[n];
+			Arrays.fill(reachable, true);
+			
+			boolean[] visited = new boolean[n];
+			LinkedList<Integer> q = new LinkedList<Integer>();
+			// forward bfs
+			q.add(0);
+			while (!q.isEmpty()) {
+				int curr = q.poll();
+				if (visited[curr]) continue;
+				visited[curr] = true;
+				for (int i = 0; i < adj[curr].size(); i++) {
+					q.add(adj[curr].get(i));
+				}
+			}
+			for (int i = 0; i < n; i++) {
+				reachable[i] = reachable[i] && visited[i];
+			}
+			// backward bfs
+			q.clear();
+			Arrays.fill(visited, false);
+			q.add(n-1);
+			while (!q.isEmpty()) {
+				int curr = q.poll();
+				if (visited[curr]) continue;
+				visited[curr] = true;
+				for (int i = 0; i < adjrev[curr].size(); i++) {
+					q.add(adjrev[curr].get(i));
+				}
+			}
+			for (int i = 0; i < n; i++) {
+				reachable[i] = reachable[i] && visited[i];
+			}
+			
+			// figure out possible path lengths
+			boolean[][] visited2 = new boolean[n][n];
+			LinkedList<S> q2 = new LinkedList<S>();
+			q2.add(new S(0, 0));
+			while (!q2.isEmpty()) {
+				S curr = q2.poll();
+				if (visited2[curr.v][curr.length]) continue;
+				visited2[curr.v][curr.length] = true;
+				
+				for (int i = 0; i < adj[curr.v].size(); i++) {
+					q2.add(new S(adj[curr.v].get(i), curr.length + 1));
+				}
+			}
+			
+			// find out the maximal path length from 0 to v
+			int[] length = new int[n];
+			for (int i = 0; i < n; i++) {
+				if (!reachable[i]) continue;
+				int j = n-1;
+				while (j >= 0 && !visited2[i][j]) j--;
+				length[i] = j;
+			}
+			
+			// relabel edges and fix lengths
+			for (int k = 0; k < n; k++) {
+				for (int i = 0; i < n; i++) {
+					if (!reachable[i]) continue;
+					for (int j = 0; j < adj[i].size(); j++) {
+						int next = adj[i].get(j);
+						if (!reachable[next]) continue;
+						if (length[i] + edgelen[i].get(j) < length[next]) {
+							edgelen[i].set(j, 2);
+							length[i] = length[next] - 2;
+						}
+					}
+				}
+			}
+			
+			// check again
+			boolean good = true;
+			for (int i = 0; i < n; i++) {
+				if (!reachable[i]) continue;
+				for (int j = 0; j < adj[i].size(); j++) {
+					int next = adj[i].get(j);
+					if (!reachable[next]) continue;
+					if (length[i] + edgelen[i].get(j) != length[next]) good = false;
+				}
+			}
+			if (good) {
+				System.out.println("Yes");
+				for (int i = 0; i < edgesLookup.size(); i++) {
+					P p = edgesLookup.get(i);
+					int a = p.u;
+					int b = adj[a].get(p.v);
+					System.out.println(length[b] - length[a]);
+				}
+			} else {
+				System.out.println("No");
+			}
+		//}
+		sc.close();
+	}
+
+}

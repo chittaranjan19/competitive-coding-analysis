@@ -1,0 +1,78 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<ll, ll> pii;
+typedef pair<pii, int> piii;
+
+const int N = 500 + 50;
+
+int n, m;
+vector <pii> g[N];
+pii d[N];
+set <piii> s;
+
+void djikstra(int v){
+	d[v] = {0, 0};
+	s.insert({d[v], v});
+	while(!s.empty()){
+		v = s.begin() -> Y;
+		s.erase(s.begin());
+		for(pii nei : g[v]){
+			int u = nei.X;
+			int w = nei.Y;
+			if(d[v].X + w < d[u].X){
+				s.erase({d[u], u});
+				d[u].X = d[v].X + w;
+				d[u].Y = d[v].Y + 1;
+				s.insert({d[u], u});
+			}
+			else if(d[v].X + w == d[u].X){
+				s.erase({d[u], u});
+				d[u].Y += d[v].Y + 1;
+				s.insert({d[u], u});	
+			}
+		}
+	}
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	for(int i = 0; i < m; ++i){
+		int u, v, w;
+		cin >> u >> v >> w;
+		u --; v --;
+		g[u].PB({v, w});
+		g[v].PB({u, w});
+	}
+	for(int i = 0; i < n; ++i){
+		for(int j = 0; j < n; ++j)
+			d[j] = {1e18, 0};
+		djikstra(i);
+		for(int j = i + 1; j < n; ++j)
+			cout << d[j].Y << " ";
+	}
+	cout << "\n";
+	return 0;
+}

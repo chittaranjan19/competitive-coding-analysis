@@ -1,0 +1,144 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)10000019;
+const int p = 239;
+const int MAX_N = 200000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+int ma[MOD];
+bool str[MOD];
+
+int main()
+{
+    //ifstream ifs("input.txt");
+    //ofstream ofs("output.txt");
+    //freopen("candies.in", "r", stdin);
+    //freopen("candies.out", "w", stdout);
+    //ios_base::sync_with_stdio(0);
+    //cin.tie(0);
+    int n;
+    scanf("%d", &n);
+    vector<char> s(n);
+    for (int i = 0; i < n; i++)
+        scanf(" %c", &s[i]);
+    int m;
+    scanf("%d", &m);
+    vector<vector<char> > v(m);
+    char c;
+    scanf("%c", &c);
+    for (int i = 0; i < m; i++)
+    {
+        scanf("%c", &c);
+        while (c != 10 && c != 13)
+        {
+            v[i].push_back(c);
+            scanf("%c", &c);
+        }
+    }
+    vector<vector<char> > a = v;
+    for (int i = 0; i < m; i++)
+        for (int j = 0; j < a[i].size(); j++)
+            if (a[i][j] >= 'A' && a[i][j] <= 'Z')
+                a[i][j] += ('a' - 'A');
+    for (int i = 0; i < m; i++)
+        for (int j = 0; j < a[i].size() / 2; j++)
+        {
+            c = a[i][j];
+            a[i][j] = a[i][a[i].size() - j - 1];
+            a[i][a[i].size() - j - 1] = c;
+        }
+    /*for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < a[i].size(); j++)
+            cout << a[i][j];
+        cout << endl;
+    }*/
+    for (int i = 0; i < MOD; i++)
+        str[i] = false;
+    long long curr, cnt;
+    for (int i = 0; i < m; i++)
+    {
+        curr = 1;
+        cnt = 0;
+        for (int j = a[i].size() - 1; j >= 0; j--)
+        {
+            cnt = (cnt + curr * a[i][j]) % MOD;
+            curr = (curr * p) % MOD;
+        }
+        str[(int)cnt] = true;
+        ma[(int)cnt] = i;
+    }
+    int dp[n], ans[n];
+    for (int i = 0; i < n; i++)
+        dp[i] = -1;
+    for (int i = 0; i < n; i++)
+    {
+        curr = 1;
+        cnt = 0;
+        for (int j = i; j >= 0; j--)
+        {
+            cnt = (cnt + s[j] * curr) % MOD;
+            curr = (curr * p) % MOD;
+            if (j == 0)
+            {
+                if (str[(int)cnt])
+                {
+                    dp[i] = i + 1;
+                    ans[i] = ma[(int)cnt];
+                    break;
+                }
+            }
+            else
+            {
+                if (str[(int)cnt] && dp[j - 1] != -1)
+                {
+                    dp[i] = i - j + 1;
+                    ans[i] = ma[(int)cnt];
+                    break;
+                }
+            }
+        }
+    }
+    /*for (int i = 0; i < n; i++)
+        cout << dp[i] << " ";
+    for (int i = 0; i < n; i++)
+        cout << ans[i] << " ";
+    cout << endl;*/
+    vector<int> out;
+    for (int i = n - 1; i >= 0;)
+    {
+        if (i < 0)
+            break;
+        out.push_back(ans[i]);
+        i = i - dp[i];
+        if (i < 0)
+            break;
+    }
+    /*for (int i = 0; i < out.size(); i++)
+        cout << out[i] << " ";
+    cout << endl;*/
+    for (int i = out.size() - 1; i >= 0; i--)
+    {
+        for (int j = 0; j < v[out[i]].size(); j++)
+            printf("%c", v[out[i]][j]);
+        printf(" ");
+    }
+    return 0;
+}

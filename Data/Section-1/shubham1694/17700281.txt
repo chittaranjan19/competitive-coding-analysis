@@ -1,0 +1,188 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+struct node{
+    int cnt[26];
+    int updated, order;
+};
+
+char str[maxn];
+node st[maxn*5], dummy;
+
+void init(int s, int e, int v)
+{
+    if(s==e){
+        for(int i=0; i<26; i++)
+            st[v].cnt[i] = 0;
+        st[v].cnt[str[s]-'a'] = 1;
+        st[v].updated = 0;
+        st[v].order = 0;
+        return;
+    }
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*v + 1;
+    rc = lc + 1;
+    init(s, mid, lc);
+    init(mid+1, e, rc);
+    for(int i=0; i<26; i++)
+        st[v].cnt[i] = st[lc].cnt[i] + st[rc].cnt[i];
+    st[v].updated = 0;
+    st[v].order = 0;
+}
+
+//1 - inc
+//2 - dec
+
+void propagate_down(int s, int e, int v)
+{
+    if(s==e)
+        return;
+    int i, c, mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*v + 1;
+    rc = lc + 1; 
+    if(st[v].updated){
+        for(i=0; i<26; i++)
+            st[lc].cnt[i] = st[rc].cnt[i] = 0;
+        if(st[v].order==1){
+            c = mid-s+1;
+            i = 0;
+            while(c){
+                st[lc].cnt[i] = min(c, st[v].cnt[i]);
+                c-=st[lc].cnt[i];
+                i++;
+            }
+            for(i=0; i<26; i++)
+                st[rc].cnt[i] = st[v].cnt[i] - st[lc].cnt[i];
+            st[lc].order = st[rc].order = 1;
+            st[lc].updated = st[rc].updated = 1;
+        }
+        else{
+            c = mid-s+1;
+            i = 25;
+            while(c){
+                st[lc].cnt[i] = min(c, st[v].cnt[i]);
+                c-=st[lc].cnt[i];
+                i--;
+            }
+            for(i=0; i<26; i++)
+                st[rc].cnt[i] = st[v].cnt[i] - st[lc].cnt[i];
+            st[lc].order = st[rc].order = 2;
+            st[lc].updated = st[rc].updated = 1;
+        }
+        st[v].updated = 0;
+    }
+}
+
+void merge(node* temp, int s, int e, int v)
+{
+    int i, c, add;
+    c = e-s+1;
+    for(i=0; i<26; i++)
+        st[v].cnt[i] = 0;
+    if(temp->order==1){
+        i = 0;
+        add = 1;
+    }
+    else{
+        i = 25;
+        add = -1;
+    }
+    while(c){
+        st[v].cnt[i] = min(c, temp->cnt[i]);
+        temp->cnt[i]-=st[v].cnt[i];
+        c-=st[v].cnt[i];
+        i+=add;
+    }
+    st[v].updated = 1;
+    st[v].order = temp->order;
+}
+
+node find(int s, int e, int qs, int qe, int v)
+{
+    propagate_down(s, e, v);
+    if(s>e || s>qe || qs>e)
+        return dummy;
+    if(s>=qs && qe>=e)
+        return st[v];
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*v + 1;
+    rc = lc + 1;
+    node lt = find(s, mid, qs, qe, lc);
+    node rt = find(mid+1, e, qs, qe, rc);
+    node ret;
+    for(int i=0; i<26; i++)
+        ret.cnt[i] = lt.cnt[i] + rt.cnt[i];
+    return ret;
+}
+
+void update(int s, int e, int qs, int qe, int v, node *temp)
+{
+    propagate_down(s, e, v);
+    if(s>e || s>qe || qs>e)
+        return;
+    if(s>=qs && qe>=e){
+        merge(temp, s, e, v);
+        return;
+    }
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*v + 1;
+    rc = lc + 1;
+    update(s, mid, qs, qe, lc, temp);
+    update(mid+1, e, qs, qe, rc, temp);
+    for(int i=0; i<26; i++)
+        st[v].cnt[i] = st[lc].cnt[i] + st[rc].cnt[i];
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int n, q, i, j, l, r, k;
+    scanf("%d%d%s", &n, &q, str);
+    init(0, n-1, 0);
+    for(i=0; i<26; i++)
+        dummy.cnt[i] = 0;
+    dummy.updated = 0;
+    dummy.order = 0;
+    while(q--){
+        scanf("%d%d%d", &l, &r, &k);
+        l--, r--;
+        k^=1;
+        node temp = find(0, n-1, l, r, 0);
+        temp.updated = 1;
+        temp.order = k+1;
+        update(0, n-1, l, r, 0, &temp);
+    }
+    string ans = "";
+    for(i=0; i<n; i++){
+        node temp = find(0, n-1, i, i, 0);
+        for(j=0; j<26; j++){
+            if(temp.cnt[j]){
+                ans+=(char)('a'+j);
+                break;
+            }
+        }
+    }
+    cout << ans << "\n";
+    return 0;
+}

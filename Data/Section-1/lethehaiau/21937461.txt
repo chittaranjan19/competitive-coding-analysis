@@ -1,0 +1,91 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int n, k;
+int a[555], b[555];
+int c[555], d[555];
+
+int main()
+{
+	//freopen("in.txt", "r", stdin);
+	cin >> n;
+	for(int i = 1; i <= n; i++)
+		cin >> a[i];
+	cin >> k;
+	for(int i = 1; i <= k; i++)
+		cin >> b[i];
+	int m = 0;
+	int u = 0;
+	for(int j = 1; j <= k; j++)
+	{
+		int s = 0;
+		for(int i = j; i <= n; i++)
+		{
+			s += a[i];
+			if(s >= b[j])
+			{
+				u = i;
+				break;
+			}
+		}
+		if(s != b[j])
+		{
+			cout << "NO";
+			return 0;
+		}
+		int maxc = 0;
+		for(int i = j; i <= u; i++) if(maxc < a[i]) maxc = a[i];
+		bool ok = false;
+		if(u == j) ok = true;
+		if(!ok)
+		for(int i = j; i < u; i++)
+			if(a[i] == maxc && a[i+1] < a[i])
+			{
+				ok = true;
+				for(int v = i + 1; v <= u; v++)
+				{
+					m++;
+					c[m] = i; d[m] = 1;
+				}
+				for(int v = i; v > j; v--)
+				{
+					m++;
+					c[m] = v; d[m] = 0;
+				}
+				break;
+			}
+		if(!ok)
+		for(int i = j+1; i <= u; i++)
+			if(a[i] == maxc && a[i] > a[i-1])
+			{
+				ok = true;
+				for(int v = i; v > j; v--)
+				{
+					m++;
+					c[m] = v; d[m] = 0;
+				}
+				for(int v = i + 1; v <= u; v++)
+				{
+					m++;
+					c[m] = j; d[m] = 1;
+				}
+				break;
+			}
+		if(!ok)
+		{
+			cout << "NO";
+			return 0;
+		}
+		for(int i = u + 1; i <= n; i++)
+			a[j + i - u] = a[i];
+		n -= u-j;
+	}
+	cout << "YES\n";
+	for(int i = 1; i <= m; i++)
+	{
+		cout << c[i] << " ";
+		if(d[i] == 1) cout << "R\n";
+		else cout << "L\n";
+	}
+	return 0;
+}

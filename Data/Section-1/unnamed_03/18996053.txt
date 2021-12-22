@@ -1,0 +1,120 @@
+#include<cstdio>
+#include<cstring>
+#include<iostream>
+#include<cmath>
+#include<algorithm>
+using namespace std;
+typedef long long ll;
+const int maxn = 100000 + 1000 ;
+const int T = 1000000000 + 7 ;
+int c[10][10],p[6][maxn],sum[6][maxn];
+int ch[6][maxn*4],flag[6][maxn*4],a[maxn];
+int n,m;
+void build(int num,int l,int r,int cur)
+{
+	if(l==r){ch[num][cur]=(ll)(ll(a[l]*p[num][l]))%T;return;}
+	int m=(l+r)>>1,lc=cur<<1,rc=lc|1;
+	build(num,l,m,lc);
+	build(num,m+1,r,rc);
+	ch[num][cur]=ch[num][lc]+ch[num][rc];
+	if(ch[num][cur]>=T)ch[num][cur]-=T;
+//	if(!num)cout<<l<<" "<<r<<" "<<ch[num][cur]<<" "<<ch[num][lc]<<" "<<ch[num][rc]<<endl;
+	return ;
+}
+void down(int num,int l,int r,int cur)
+{
+	int m=(l+r)>>1,lc=cur<<1,rc=lc|1;
+	flag[num][lc]=flag[num][rc]=flag[num][cur];
+	ch[num][lc]=(ll)((ll)(sum[num][m+1]-sum[num][l-1])*flag[num][lc])%T;
+	if(ch[num][lc]<0)ch[num][lc]+=T;
+	ch[num][rc]=(ll)((ll)(sum[num][r]-sum[num][m])*flag[num][rc])%T;
+	if(ch[num][rc]<0)ch[num][rc]+=T;
+	flag[num][cur]=-1;
+	return ;
+}
+int query(int num,int l,int r,int cur,int x,int y)
+{
+	if(x<=l&&r<=y)return ch[num][cur];
+	if(r<x||l>y)return 0;
+	if(flag[num][cur]!=-1)down(num,l,r,cur);
+	int m=(l+r)>>1,lc=cur<<1,rc=lc|1;
+	int ans=query(num,l,m,lc,x,y);
+	ans+=query(num,m+1,r,rc,x,y);
+	if(ans>=T)ans-=T;
+//	if(!num)cout<<l<<" "<<r<<" "<<ch[num][cur]<<" "<<ch[num][lc]<<" "<<ch[num][rc]<<endl;
+	return ans;
+}
+void update(int num,int l,int r,int cur,int x,int y,int k)
+{
+	int m=(l+r)>>1,lc=cur<<1,rc=lc|1;
+	if(x<=l&&r<=y)
+	{
+		flag[num][cur]=k;
+		ch[num][cur]=(ll)((ll)(sum[num][r]-sum[num][l-1])*flag[num][cur])%T;
+		if(ch[num][cur]<0)ch[num][cur]+=T;
+		return ;
+	}
+	if(r<x||l>y)return ;
+	if(flag[num][cur]!=-1)down(num,l,r,cur);
+	update(num,l,m,lc,x,y,k);
+	update(num,m+1,r,rc,x,y,k);
+	ch[num][cur]=ch[num][lc]+ch[num][rc];
+	if(ch[num][cur]>=T)ch[num][cur]-=T;
+	
+	return ;
+}
+int work(int l,int r,int k)
+{
+	long long x[6],ans=0;
+	x[0]=1;
+	for(int i=1;i<=k;i++)
+	x[i]=(ll)(x[i-1]*(1-l+T))%T;
+	for(int i=0;i<=k;i++)
+	{
+//		if((k-i)&1)ans-=((ll)(((c[k][i])*x[k-i])%T)*query(i,1,n,1,l,r))%T;
+		ans+=((ll)(((c[k][i])*x[k-i])%T)*query(i,1,n,1,l,r))%T;
+		ans%=T;
+//		cout<<query(i,1,n,1,2,n)<<" "<<x[k-i]<<" "<<c[k][i]<<endl;
+	}
+	int buf=ans;
+	if(buf<0)buf+=T; 
+	return buf;
+}
+int main()
+{
+	int l,r,k;cin>>n>>m;
+
+	for(int i=1;i<=n;i++)p[0][i]=1,sum[0][i]=i;
+	for(int i=1;i<=5;i++)
+	for(int j=1;j<=n;j++)
+	{
+		p[i][j]=((ll)p[i-1][j]*j)%T;
+		sum[i][j]=sum[i][j-1]+p[i][j];
+		if(sum[i][j]>=T)sum[i][j]-=T;
+		if(i>=4)printf("%d %d %d\n",i,j,sum[i][j]);
+	}
+	for(int i=1;i<=n;i++)scanf("%d",&a[i]);
+	memset(c,0,sizeof(c));
+	c[0][0]=1;
+	c[1][1]=1;c[1][0]=1;
+	for(int i=2;i<=5;i++)
+	for(int j=0;j<=i;j++)
+	c[i][j]=c[i-1][j]+c[i-1][j-1];
+	for(int i=0;i<=5;i++)
+	build(i,1,n,1);
+//	cout<<query(0,1,n,1,1,3)<<endl;
+	memset(flag,-1,sizeof(flag));
+	for(int i=1;i<=m;i++)
+	{
+		char x=scanf("%c",&x);
+		scanf("%c",&x);
+		scanf("%d%d%d",&l,&r,&k);
+		if(x=='?')printf("%d\n",work(l,r,k));
+		else
+		{
+			for(int i=0;i<=5;i++)
+			update(i,1,n,1,l,r,k);
+		}
+	}
+	return 0;
+}

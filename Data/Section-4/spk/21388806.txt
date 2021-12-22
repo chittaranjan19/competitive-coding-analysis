@@ -1,0 +1,133 @@
+#include<bits/stdc++.h>
+
+using namespace std;
+
+#define fill(a,val) memset(a, (val), sizeof a)
+#define pb push_back
+#define scantype int
+#define lli long long int
+#define N 210
+
+lli powermod(lli _a,lli _b,lli _m){lli _r=1;while(_b){if(_b%2==1)_r=(_r*_a)%_m;_b/=2;_a=(_a*_a)%_m;}return _r;}
+lli string_to_number(string s){lli x=0; stringstream convert(s); convert>>x; return x;}
+
+
+void scan(scantype &x);
+
+multiset<int>edge[N];
+map< pair<int,int> , int > del;
+vector<int> path;
+bool vis[N];
+bool yes[N][N];
+
+void dfs(int s)
+{
+       while(edge[s].size())
+       {
+              int t = *edge[s].begin();
+              edge[s].erase(t);
+              edge[t].erase(s);
+              dfs(t);
+       }
+       path.pb(s);
+}
+
+int main(void)
+{
+  int t;
+  cin>>t;
+
+  while(t--)
+  {
+      int n,m;
+      scan(n);scan(m);
+
+      for(int i=0;i<N;i++)edge[i].clear();
+      fill(vis,false);
+      del.clear();
+      path.clear();
+      fill(yes,false);
+
+      for(int i=0;i<m;i++)
+      {
+             int x,y;
+             scan(x);scan(y);
+             edge[x].insert(y);
+             edge[y].insert(x);
+             yes[x][y]=true;
+             yes[y][x]=true;
+      }
+
+      vector<int> oedge;
+
+      int cnt=0;
+      for(int i=1;i<=n;i++)
+         if(edge[i].size()%2)oedge.pb(i);
+         else cnt++;
+
+      for(int i=0;i<oedge.size();i+=2)
+      {
+             edge[oedge[i]].insert(oedge[i+1]);
+             edge[oedge[i+1]].insert(oedge[i]);
+             del[{oedge[i],oedge[i+1]}]++;
+             del[{oedge[i+1],oedge[i]}]++;
+      }
+
+      for(int i=1;i<=n;i++)
+       {
+              if(edge[i].size()>0)
+              {
+                     dfs(i);
+                     path.pb(-1);
+              }
+       }
+
+      vector< pair<int,int> > res;
+
+      for(int i=1;i<path.size();i++)
+      {
+           if(path[i]==-1 || path[i-1]==-1)continue;
+           pair<int,int> f,r;
+           f= {path[i],path[i-1]};
+           r= {path[i-1],path[i]};
+
+           if(del[f] || del[r])
+           {
+             if(yes[f.first][f.second] || yes[r.first][r.second])
+                  res.pb(r);
+              continue;
+           }
+           res.pb(r);
+      }
+
+      cout<<cnt<<endl;
+      for(int i=0;i<res.size();i++)
+       printf("%d %d\n",res[i].first,res[i].second);
+      // cout<<endl<<endl;
+  }
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+void scan(scantype &x)
+{
+    /*register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}*/
+
+    register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x;
+}

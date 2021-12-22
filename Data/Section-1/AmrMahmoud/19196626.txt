@@ -1,0 +1,274 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+const int MAXN = 100005;
+const int LN = 18;
+
+vector<int> g[MAXN], costs[MAXN], indexx[MAXN];
+int baseArray[MAXN], ptr;
+int chainNo, chainInd[MAXN], chainHead[MAXN], posInBase[MAXN];
+int h[MAXN], P[MAXN][LN], otherEnd[MAXN], subsize[MAXN];
+pair<int, int> tree[4*MAXN];
+int lazy[4*MAXN];
+
+inline pair<int, int> get_best(const pair<int, int> &a, const pair<int, int> &b)
+{
+  if(a.s == -1) return b;
+  if(b.s == -1) return a;
+  if(a.f < b.f) return a;
+  if(a.f > b.f) return b;
+  pair<int, int> ans = a;
+  ans.s += b.s;
+  return ans;
+}
+
+ void build(int cur, int s, int e) {
+  if(s == e-1) {
+    tree[cur] = mp(0, 1);
+    return;
+  }
+  int c1 = (cur<<1), c2 = c1 | 1, m = (s+e)>>1;
+  build(c1, s, m);
+  build(c2, m, e);
+  tree[cur] = get_best(tree[c1], tree[c2]);
+}
+
+void update(int cur, int s, int e, int S, int E, int val) {
+  if(lazy[cur] != 0)
+  {
+    tree[cur].f += lazy[cur];
+    if(s != e - 1)
+    {
+      lazy[(cur<<1)]+=lazy[cur];
+      lazy[(cur<<1)|1]+=lazy[cur];
+    }
+    lazy[cur] = 0;
+  }
+  if(s >= E || e <= S) return;
+  if(s >= S && e <= E) {
+    lazy[cur]+=val;
+    tree[cur].f += lazy[cur];
+    if(s != e - 1)
+    {
+      lazy[(cur<<1)]+=lazy[cur];
+      lazy[(cur<<1)|1]+=lazy[cur];
+    }
+    lazy[cur] = 0;
+    return;
+  }
+  int c1 = (cur<<1), c2 = c1 | 1, m = (s+e)>>1;
+  update(c1, s, m, S, E, val);
+  update(c2, m, e, S, E, val);
+  tree[cur] = get_best(tree[c1], tree[c2]);
+}
+
+pair<int, int> tree_query(int cur, int s, int e, int S, int E) {
+  if(lazy[cur] != 0)
+  {
+    tree[cur].f += lazy[cur];
+    if(s != e - 1)
+    {
+      lazy[(cur<<1)]+=lazy[cur];
+      lazy[(cur<<1)|1]+=lazy[cur];
+    }
+    lazy[cur] = 0;
+  }
+  if(s >= E || e <= S)
+    return mp(-1, -1);
+  if(s >= S && e <= E)
+    return tree[cur];
+  int c1 = (cur<<1), c2 = c1 | 1, m = (s+e)>>1;
+  pair<int, int> a = tree_query(c1, s, m, S, E), b = tree_query(c2, m, e, S, E);
+  return get_best(a, b);
+}
+
+pair<int, int> query_up(int u, int v) {
+  if(u == v) return mp(-1, -1);
+  int uchain, vchain = chainInd[v];
+  pair<int, int> ans = mp(-1, -1);
+  while(1)
+  {
+    uchain = chainInd[u];
+    if(uchain == vchain)
+    {
+      if(u == v) break;
+      ans = get_best(ans, tree_query(1, 0, ptr, posInBase[v]+1, posInBase[u]+1));
+      break;
+    }
+    ans = get_best(ans, tree_query(1, 0, ptr, posInBase[chainHead[uchain]], posInBase[u]+1));
+    u = chainHead[uchain];
+    u = P[u][0];
+  }
+  return ans;
+}
+
+int LCA_query(int p, int q)
+{
+  int log;
+  if(h[p] < h[q])
+    swap(p, q);
+  for(log = 1; (1 << log) <= h[p]; log++);
+  log--;
+  for(int i = log; i >= 0; i--)
+    if(h[p] - (1 << i) >= h[q])
+      p = P[p][i];
+  if(p == q)
+    return p;
+  for(int i = log; i >= 0; i--)
+    if(P[p][i] != -1 && P[p][i] != P[q][i])
+      p = P[p][i], q = P[q][i];
+  return P[p][0];
+}
+
+pair<int, int> query(int u, int v) {
+  int lca = LCA_query(u, v);
+  pair<int, int> a = query_up(u, lca);
+  pair<int, int> b = query_up(v, lca);
+  return get_best(a, b);
+}
+
+void update_up(int u, int v, int val) {
+  if(u == v) return ;
+  int uchain, vchain = chainInd[v];
+  while(1)
+  {
+    uchain = chainInd[u];
+    if(uchain == vchain)
+    {
+      if(u == v) break;
+      update(1, 0, ptr, posInBase[v]+1, posInBase[u]+1, val);
+      break;
+    }
+    update(1, 0, ptr, posInBase[chainHead[uchain]], posInBase[u]+1, val);
+    u = chainHead[uchain];
+    u = P[u][0];
+  }
+}
+
+void change(int u, int v, int val) {
+  int lca = LCA_query(u, v);
+  update_up(u, lca, val);
+  update_up(v, lca, val);
+}
+
+void HLD(int curNode, int cost = 0, int prev = -1)
+{
+  if(chainHead[chainNo] == -1)
+    chainHead[chainNo] = curNode;
+  chainInd[curNode] = chainNo;
+  posInBase[curNode] = ptr;
+  baseArray[ptr++] = cost;
+  int sc = -1, ncost;
+  for(int i=0;i<g[curNode].size();i++)
+    if(g[curNode][i] != prev)
+    {
+      if(sc == -1 || subsize[sc] < subsize[g[curNode][i]])
+      {
+        sc = g[curNode][i];
+        ncost = costs[curNode][i];
+      }
+    }
+  if(sc != -1) HLD(sc, ncost, curNode);
+  for(int i=0; i<g[curNode].size(); i++)
+    if(g[curNode][i] != prev) {
+      if(sc != g[curNode][i])
+      {
+        chainNo++;
+        HLD(g[curNode][i], costs[curNode][i], curNode);
+      }
+    }
+}
+
+void dfs(int node, int depth = 1, int parent = -1)
+{
+  h[node] = depth;
+  P[node][0] = parent;
+  subsize[node] = 1;
+  for(int i=0;i<g[node].size();i++)
+  {
+    if(g[node][i] == parent) continue;
+    otherEnd[indexx[node][i]] = g[node][i];
+    dfs(g[node][i], depth + 1, node);
+    subsize[node] += subsize[g[node][i]];
+  }
+}
+
+int main()
+{
+  int n, k, x, y;
+  cin >> n >> k;
+  for(int i=0;i<n-1;i++)
+  {
+    scanf("%d %d", &x, &y);
+    g[x].pb(y);
+    g[y].pb(x);
+    indexx[x].pb(i);
+    indexx[y].pb(i);
+    costs[x].pb(0);
+    costs[y].pb(0);
+  }
+  setdp(P);
+  setdp(chainHead);
+  dfs(1);
+  HLD(1);
+  build(1, 0, ptr);
+  for(int j = 1; (1 << j) <= n; j++)
+    for(int i = 1; i <= n; i++)
+      if(P[i][j - 1] != -1)
+        P[i][j] = P[P[i][j - 1]][j - 1];
+  int L = 1, R = 1, ans = 1, curr = 1;
+  pair<int, int> tmp;
+  while(1)
+  {
+    while(R < n)
+    {
+      tmp = query(R, R + 1);
+      if(tmp.f != 0)
+      {
+        change(R, R + 1, 1);
+        R++;
+      }
+      else if(curr + tmp.s <= k)
+      {
+        curr += tmp.s;
+        change(R, R + 1, 1);
+        R++;
+      }
+      else break;
+    }
+    ans = max(ans, R - L + 1);
+    if(R == n) break;
+    curr += tmp.s;
+    change(R, R + 1, 1);
+    R++;
+    while(curr > k)
+    {
+      tmp = query(L, L + 1);
+      if(tmp.f == 0)
+        curr += tmp.s;
+      change(L, L + 1, -1);
+      tmp = query(L, L + 1);
+      if(tmp.f == 0)
+        curr -= tmp.s;
+      L++;
+    }
+  }
+  cout << ans;
+  return 0;
+}

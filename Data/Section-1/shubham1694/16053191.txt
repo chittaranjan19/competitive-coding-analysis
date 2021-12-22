@@ -1,0 +1,62 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 300010;
+
+vector<pii> adj[maxn];
+vector<pair<int, pii> > edges;
+map<pair<int, pii>, int> m1;
+int n, m, dp[maxn];
+
+int solve(int cur)
+{
+	if(cur>=m)
+		return 0;
+	if(dp[cur]!=-1)
+		return dp[cur];
+	int src, nxt, wt, ret = 1;
+	wt = edges[cur].f;
+	nxt = edges[cur].s.s;
+	for(auto it:adj[nxt]){
+		if(it.f > wt)
+			ret = max(ret, 1+solve(m1[mp(it.f, mp(nxt, it.s))]));
+	}
+	return dp[cur] = ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int u, v, i, j, wt;
+	memset(dp, -1, sizeof(dp));
+	scanf("%d%d", &n, &m);
+	edges.resize(m);
+	for(i=0; i<m; i++){
+		scanf("%d%d%d", &u, &v, &wt);
+		edges[i] = mp(wt, mp(u, v));
+		adj[u].pb(mp(wt, v));
+	} 
+	sort(all(edges));
+	for(i=0; i<m; i++)
+		m1[edges[i]] = i;
+	int ans = 0;
+	for(i=0; i<m; i++)
+		ans = max(ans, solve(i));
+	printf("%d\n", ans);
+	return 0;
+}

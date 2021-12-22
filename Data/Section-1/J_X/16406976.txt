@@ -1,0 +1,253 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <cmath>
+#include <set>
+#define ls rt << 1
+#define rs rt << 1 | 1
+#define lson ls, l, mid
+#define rson rs, mid + 1, r
+
+using namespace std;
+
+typedef set<int>::iterator ite;
+
+const int maxn = 3e4 + 5;
+
+int mod, n, m, a[maxn], b[maxn], used[maxn], block, phi, prime[maxn], ans[maxn];
+bool vis[maxn];
+set<int> st;
+struct mat
+{
+    int a[3][3], r, c;
+
+    mat(int r = 3, int c = 3)
+    {
+        this->r = r, this->c = c;
+        memset(a, 0, sizeof(a));
+    }
+} tmp;
+struct query
+{
+    int l, r, id;
+
+    bool operator < (const query &a) const
+    {
+        return l / block != a.l / block ? l / block < a.l / block : r < a.r;
+    }
+} Q[maxn];
+
+int sieve()
+{
+    int cnt = 0;
+    for(int i = 2; i < maxn; ++i)
+    {
+        if(!used[i]) prime[cnt++] = i;
+        for(int j = 0; j < cnt && i * prime[j] < maxn; ++j)
+        {
+            used[i * prime[j]] = true;
+            if(i % prime[j] == 0) break;
+        }
+    }
+    return cnt;
+}
+
+mat mul(const mat &a, const mat &b)
+{
+    mat c(a.r, b.c);
+    for(int i = 0; i < a.r; ++i)
+    {
+        for(int j = 0; j < b.c; ++j)
+        {
+            for(int k = 0; k < a.c; ++k)
+            {
+                c.a[i][j] += 1LL * a.a[i][k] * b.a[k][j] % mod;
+                if(c.a[i][j] >= mod) c.a[i][j] -= mod;
+            }
+        }
+    }
+    return c;
+}
+
+int pow_mod(int x, int n)
+{
+    int ret = 1;
+//    x %= mod;
+    while(n)
+    {
+        if(n & 1) ret = 1LL * ret * x % mod;
+        x = 1LL * x * x % mod;
+        n >>= 1;
+    }
+    return ret;
+}
+
+struct segtree
+{
+    mat node[maxn << 2];
+
+    void pushup(int rt)
+    {
+        node[rt] = mul(node[rs], node[ls]);
+    }
+
+    void build(int rt, int l, int r)
+    {
+        node[rt] = tmp;
+        if(l == r) return;
+        int mid = (l + r) >> 1;
+        build(lson);
+        build(rson);
+    }
+
+    void update(int rt, int l, int r, int x)
+    {
+        if(l == r)
+        {
+            node[rt] = tmp;
+            return;
+        }
+        int mid = (l + r) >> 1;
+        x <= mid ? update(lson, x) : update(rson, x);
+        pushup(rt);
+    }
+
+    void getmat(int rt, int l, int r, int x)
+    {
+        if(l == r)
+        {
+            tmp = node[rt];
+            return;
+        }
+        int mid = (l + r) >> 1;
+        x <= mid ? getmat(lson, x) : getmat(rson, x);
+    }
+
+    int query()
+    {
+        tmp.r = 3, tmp.c = 1;
+        tmp.a[0][0] = 0, tmp.a[1][0] = 1, tmp.a[2][0] = 0;
+        return mul(node[1], tmp).a[2][0];
+    }
+} tree;
+
+void add(int x)
+{
+    if(++used[x] == 1)
+    {
+        st.insert(x);
+        ite p = st.lower_bound(x);
+        tmp = mat(3, 3);
+        if(p != st.begin())
+        {
+            --p;
+            tmp.a[0][0] = tmp.a[2][0] = b[x] * pow_mod(b[*p], phi - 1) % mod;
+            if(p != st.begin())
+            {
+                --p;
+                tmp.a[0][1] = tmp.a[2][1] = b[x] * pow_mod(b[*p], phi - 1) % mod;
+                ++p;
+            }
+            else tmp.a[0][1] = tmp.a[2][1] = b[x];
+            ++p;
+        }
+        else tmp.a[0][0] = tmp.a[0][1] = tmp.a[2][0] = tmp.a[2][1] = b[x];
+        tmp.a[1][0] = tmp.a[2][2] = 1;
+        tree.update(1, 1, m, x);
+        ite pp = st.upper_bound(x);
+        if(pp != st.end())
+        {
+            tmp.a[0][0] = tmp.a[2][0] = b[*pp] * pow_mod(b[x], phi - 1) % mod;
+            if(p != st.begin())
+            {
+                --p;
+                tmp.a[0][1] = tmp.a[2][1] = b[*pp] * pow_mod(b[*p], phi - 1) % mod;
+            }
+            else tmp.a[0][1] = tmp.a[2][1] = b[x];
+            tree.update(1, 1, m, *pp);
+        }
+    }
+}
+
+void del(int x)
+{
+    if(--used[x] == 0)
+    {
+        ite pp = st.upper_bound(x);
+        if(pp != st.end())
+        {
+            tree.getmat(1, 1, m, x);
+            tmp.a[0][0] = tmp.a[2][0] = tmp.a[0][0] * pow_mod(b[x], phi - 1) % mod * b[*pp] % mod;
+            tmp.a[0][1] = tmp.a[2][1] = tmp.a[0][1] * pow_mod(b[x], phi - 1) % mod * b[*pp] % mod;
+            tree.update(1, 1, m, *pp);
+        }
+        tmp = mat(3, 3);
+        for(int i = 0; i < 3; ++i) tmp.a[i][i] = 1;
+        tree.update(1, 1, m, x);
+        st.erase(x);
+    }
+}
+
+void work(int x)
+{
+    if(vis[x])
+    {
+        del(a[x]);
+        vis[x] = false;
+    }
+    else
+    {
+        add(a[x]);
+        vis[x] = true;
+    }
+}
+
+int main()
+{
+    int cnt = sieve();
+    while(~scanf("%d%d", &n, &mod))
+    {
+        block = sqrt(n + 0.5);
+        phi = mod;
+        for(int i = 0; i < cnt; ++i) if(mod % prime[i] == 0) phi = phi / prime[i] * (prime[i] - 1);
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", a + i);
+            b[i] = a[i];
+        }
+        sort(b + 1, b + n + 1);
+        m = unique(b + 1, b + n + 1) - b - 1;
+        for(int i = 1; i <= n; ++i)
+        {
+            a[i] = lower_bound(b + 1, b + m + 1, a[i]) - b;
+        }
+        tmp = mat(3, 3);
+        for(int i = 0; i < 3; ++i) tmp.a[i][i] = 1;
+        tree.build(1, 1, m);
+        int q;
+        scanf("%d", &q);
+        for(int i = 0; i < q; ++i)
+        {
+            scanf("%d%d", &Q[i].l, &Q[i].r);
+            Q[i].id = i;
+        }
+        sort(Q, Q + q);
+        memset(vis, 0, sizeof(vis));
+        memset(used, 0, sizeof(used));
+        st.clear();
+        int l = Q[0].l, r = Q[0].r;
+        for(int i = l; i <= r; ++i) work(i);
+        ans[Q[0].id] = tree.query();
+        for(int i = 1; i < q; ++i)
+        {
+            while(l < Q[i].l) work(l++);
+            while(l > Q[i].l) work(--l);
+            while(r < Q[i].r) work(++r);
+            while(r > Q[i].r) work(r--);
+            ans[Q[i].id] = tree.query();
+        }
+        for(int i = 0; i < q; ++i) printf("%d\n", ans[i]);
+    }
+    return 0;
+}

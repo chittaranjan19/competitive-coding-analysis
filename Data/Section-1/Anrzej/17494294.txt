@@ -1,0 +1,156 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define F first
+#define S second
+#define PB push_back
+#define MP make_pair
+
+typedef signed long long    ll;
+typedef unsigned long long  ull;
+typedef double              lf;
+typedef long double         llf;
+
+struct FastReader {
+    FastReader &operator,(int &x) { scanf("%d", &x); return *this; }
+    FastReader &operator,(ll &x) { scanf("%I64d", &x); return *this; }
+    FastReader &operator,(double &x) { scanf("%lf", &x); return *this; }
+    FastReader &operator,(char &x) { do x = getchar(); while (x == ' ' || x == '\n'); return *this; }
+    FastReader &operator,(char *x) { scanf("%s", x); return *this; }
+} in;
+struct FastWriter {
+    FastWriter &operator,(const int x) { printf("%d", x); return *this; }
+    FastWriter &operator,(const ll x) { printf("%I64d", x); return *this; }
+    FastWriter &operator,(const double x) { printf("%lf", x); return *this; }
+    FastWriter &operator,(const char x) { putchar(x); return *this; }
+    FastWriter &operator,(const char *x) { printf("%s", x); return *this; }
+    FastWriter &operator,(const string x) { return operator,(x.c_str()); }
+} out;
+
+template<class T>
+T sqr(T x) { return x * x; }
+
+/* Main code */
+struct Node {
+	int x, y, s;
+	Node *l, *r;
+	Node(int x, int y) : x(x), y(y), s(1), l(NULL), r(NULL) {}
+};
+
+int size(Node *t) {
+	return (t == NULL) ? 0 : t->s;
+}
+
+void recalc(Node *t) {
+	if (t != NULL)
+		t->s = size(t->l) + size(t->r) + 1;
+}
+
+void split(Node *t, Node *(&l), Node *(&r), int x) {
+	if (t == NULL)
+		l = r = NULL;
+	else if (x < t->x)
+		split(t->l, l, t->l, x), r = t;
+	else
+		split(t->r, t->r, r, x), l = t;
+    recalc(t);
+}
+
+void merge(Node *(&t), Node *l, Node *r) {
+	if (l == NULL || r == NULL)
+		t = (l == NULL) ? r : l;
+	else if (l->y > r->y)
+		merge(l->r, l->r, r), t = l;
+	else
+		merge(r->l, l, r->l), t = r;
+    recalc(t);
+}
+
+void insert(Node *(&t), Node *n) {
+	if (t == NULL)
+		t = n;
+	else if (n->y > t->y)
+		split(t, n->l, n->r, n->x), t = n;
+	else
+		insert((n->x < t->x) ? t->l : t->r, n);
+    recalc(t);
+}
+
+int find(Node *t, int x) {
+    if (x == t->x)
+        return size(t) - size(t->r);
+    if (x < t->x) {
+        return find(t->l, x);
+    } else {
+        return size(t->l) + 1 + find(t->r, x);
+    }
+}
+
+Node *upper_bound(Node *t, int x) {
+    if (t == NULL || x == t->x)
+		return t;
+    if (x > t->x) {
+        Node *f = upper_bound(t->r, x);
+		return (f == NULL) ? t : f;
+    }
+    return upper_bound(t->l, x);
+}
+
+int query(Node *t, int x) {
+    Node *f = upper_bound(t, x);
+    if (f == NULL)
+        return 0;
+    return find(t, f->x);
+}
+
+struct Query {
+    int q, t, tt;
+};
+
+const int N = (int)2e5 + 111;
+
+int n, ct;
+map< int, vector<Query> > mp;
+Node *ins, *del;
+int ans[N];
+
+int main() {
+    #ifdef DEBUG
+    //    freopen("input.txt", "rt", stdin);
+    #endif
+    // Start here...
+
+    in, n; ct = 0;
+
+    for (int i = 0; i < n; i++) {
+        int q, t, x;
+        in, q, t, x;
+        Query qr = (Query){q, t, 0};
+        if (q == 3)
+            qr.tt = ct++;
+        mp[x].push_back(qr);
+    }
+
+    srand(time(NULL));
+
+    map< int, vector<Query> >::iterator it;
+    for (it = mp.begin(); it != mp.end(); it++) {
+        vector<Query> &a = it->second;
+        ins = NULL, del = NULL;
+        for (int i = 0; i < a.size(); i++) {
+            if (a[i].q == 1) {
+                insert(ins, new Node(a[i].t, rand()));
+            } else if (a[i].q == 2) {
+                insert(del, new Node(a[i].t, rand()));
+            } else {
+                ans[a[i].tt] = query(ins, a[i].t) - query(del, a[i].t);
+            }
+        }
+    }
+
+    for (int i = 0; i < ct; i++)
+        out, ans[i], '\n';
+
+    return 0;
+}

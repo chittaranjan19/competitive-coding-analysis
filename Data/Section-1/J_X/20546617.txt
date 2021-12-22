@@ -1,0 +1,91 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#define ls rt << 1
+#define rs rt << 1 | 1
+#define lson ls, l, m
+#define rson rs, m + 1, r
+
+using namespace std;
+
+const int maxn = 1e5 + 5;
+
+long double node1[maxn << 2], node2[maxn << 1], p[maxn], up, down;
+
+void pushup(int rt, int l, int r)
+{
+    int m = (l + r) >> 1;
+    node1[rt] = node1[ls] * node1[rs];
+    node2[rt] = node2[ls] + node2[rs] + p[m] * (1 - p[m + 1]);
+}
+
+void build(int rt, int l, int r)
+{
+    if(l == r)
+    {
+        int a, b;
+        scanf("%d%d", &a, &b);
+        p[l] = (long double)a / b;
+        node1[rt] = p[l];
+        node2[rt] = 0;
+        return;
+    }
+    int m = (l + r) >> 1;
+    build(lson);
+    build(rson);
+    pushup(rt, l, r);
+}
+
+void update(int rt, int l, int r, int pos, long double c)
+{
+    if(l == r)
+    {
+        node1[rt] = p[l] = c;
+        return;
+    }
+    int m = (l + r) >> 1;
+    pos <= m ? update(lson, pos, c) : update(rson, pos, c);
+    pushup(rt, l, r);
+}
+
+void query(int rt, int l, int r, int x, int y)
+{
+    if(x <= l && r <= y)
+    {
+        up *= node1[rt];
+        down += node2[rt];
+        return;
+    }
+    int m = (l + r) >> 1;
+    if(x <= m) query(lson, x, y);
+    if(m < y) query(rson, x, y);
+    if(x <= m && m < y) down += p[m] * (1 - p[m + 1]);
+}
+
+int main()
+{
+    int n, q;
+    scanf("%d%d", &n, &q);
+    build(1, 1, n);
+    while(q--)
+    {
+        int op;
+        scanf("%d", &op);
+        if(op == 1)
+        {
+            int p, a, b;
+            scanf("%d%d%d", &p, &a, &b);
+            update(1, 1, n, p, (long double)a / b);
+        }
+        else
+        {
+            int l, r;
+            scanf("%d%d", &l, &r);
+            up = 1, down = 0;
+            query(1, 1, n, l, r);
+            printf("%.10f\n", (double)(up / (1 - down)));
+        }
+    }
+    return 0;
+}

@@ -1,0 +1,167 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int arr[305][305];
+vector<pair<int, int> > v[90006];
+int ans[305][305];
+int tree[1205];
+
+void build(int i,int L,int R)
+{
+  if(L == R)
+  {
+    tree[i] = INF;
+    return ;
+  }
+  build(i*2 + 1, L, (L + R) / 2);
+  build(i*2 + 2, (L + R) / 2 + 1, R);
+  tree[i] = INF;
+}
+
+void update(int i,int L,int R,int node,int val)
+{
+  if(L == R)
+  {
+    tree[i] = val;
+    return ;
+  }
+  if(node <= (L + R) / 2)
+    update(i*2 + 1, L, (L + R) / 2, node, val);
+  else update(i*2 + 2, (L + R) / 2 + 1, R, node, val);
+  tree[i] = min(tree[i*2 + 1], tree[i*2 + 2]);
+}
+
+int query(int i,int L,int R,int x,int y)
+{
+  if(L >= x && R <= y)
+    return tree[i];
+  if(L > y || R < x)
+    return INF;
+  return min(query(i*2 + 1, L, (L + R) / 2, x, y), query(i*2 + 2, (L + R) / 2 + 1, R, x, y));
+}
+
+void solve(vector<pair<int, int> > &pre, vector<pair<pair<int, int>, pair<int, int> > > &now, int n, int m, const int currcost)
+{
+  sort(pre.begin(), pre.end());
+  sort(now.begin(), now.end());
+  int x = 0, y = 0;
+  build(0, 0, m - 1);
+  while(y < now.size())
+  {
+    if(x == pre.size() || pre[x] > now[y].f)
+    {
+      ans[now[y].s.f][now[y].s.s] = min(ans[now[y].s.f][now[y].s.s], currcost + query(0, 0, m - 1, 0, now[y].f.s) + now[y].f.f + now[y].f.s);
+      y++;
+    }
+    else
+    {
+      update(0, 0, m - 1, pre[x].s, - pre[x].f - pre[x].s);
+      x++;
+    }
+  }
+}
+
+int main()
+{
+  int n, m, p;
+  cin >> n >> m >> p;
+  for(int i=0;i<n;i++)
+    for(int j=0;j<m;j++)
+    {
+      scanf("%d", &arr[i][j]);
+      v[arr[i][j]].pb(mp(i, j));
+    }
+  vector<pair<int, pair<int, int> > > curr;
+  curr.pb(mp(0, v[p][0]));
+  for(int i=p-1;i>0;i--)
+  {
+    for(auto P : v[i])
+      ans[P.f][P.s] = INF;
+    vector<pair<int, int> > tmp;
+    tmp.pb(curr[0].s);
+    for(int j=1;j<curr.size();j++)
+    {
+      if(curr[j].f != curr[j-1].f)
+      {
+        vector<pair<pair<int, int>, pair<int, int> > > test;
+        for(auto P : v[i])
+        {
+          if(ans[P.f][P.s] <= curr[j - 1].f) continue;
+          test.pb(mp(P, P));
+        }
+        for(int _=0;_<4;_++)
+        {
+          solve(tmp, test, n, m, curr[j - 1].f);
+          for(int k=0;k<tmp.size();k++)
+          {
+            int t = tmp[k].f;
+            tmp[k].f = tmp[k].s;
+            tmp[k].s = n - t - 1;
+          }
+          for(int k=0;k<test.size();k++)
+          {
+            int t = test[k].f.f;
+            test[k].f.f = test[k].f.s;
+            test[k].f.s = n - t - 1;
+          }
+          swap(n, m);
+        }
+        tmp.clear();
+        tmp.pb(curr[j].s);
+      }
+      else tmp.pb(curr[j].s);
+    }
+    vector<pair<pair<int, int>, pair<int, int> > > test;
+    for(auto P : v[i])
+    {
+      if(ans[P.f][P.s] <= curr[curr.size() - 1].f) continue;
+      test.pb(mp(P, P));
+    }
+    for(int _=0;_<4;_++)
+    {
+      solve(tmp, test, n, m, curr[curr.size() - 1].f);
+      for(int k=0;k<tmp.size();k++)
+      {
+        int t = tmp[k].f;
+        tmp[k].f = tmp[k].s;
+        tmp[k].s = n - t - 1;
+      }
+      for(int k=0;k<test.size();k++)
+      {
+        int t = test[k].f.f;
+        test[k].f.f = test[k].f.s;
+        test[k].f.s = n - t - 1;
+      }
+      swap(n, m);
+    }
+    curr.clear();
+    for(auto P : v[i])
+    {
+      curr.pb(mp(ans[P.f][P.s], P));
+    }
+    sort(curr.begin(), curr.end());
+  }
+  int res = INF;
+  for(int i=0;i<curr.size();i++)
+  {
+    res = min(curr[i].f + curr[i].s.f + curr[i].s.s, res);
+  }
+  cout << res;
+  return 0;
+}

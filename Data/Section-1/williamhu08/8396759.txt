@@ -1,0 +1,125 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 17;
+
+int N, M;
+int L[MAXN], R[MAXN];
+bool A[MAXN][30];
+//segtree
+bool lazy[30][2 * MAXN];
+int tree[30][2 * MAXN];
+
+void add (int t, int cur, int l, int r) {
+	tree[t][cur] = r - l;
+	lazy[t][cur] = true;
+}
+
+void down (int t, int cur, int l, int r) {
+	if (lazy[t][cur]) {
+		int mid = (l + r) / 2;
+		add(t, 2 * cur, l, mid);
+		add(t, 2 * cur + 1, mid, r);
+		lazy[t][cur] = false;
+	}
+}
+
+void update (int t, int a, int b, int cur = 1, int l = 0, int r = MAXN) {
+	//we need to support a fill here
+	if (b <= l || r <= a) {
+		return;
+	}
+	if (a <= l && r <= b) {
+		add(t, cur, l, r);
+		return;
+	}
+	down(t, cur, l, r);
+	int mid = (l + r) / 2;
+	update(t, a, b, 2 * cur, l, mid);
+	update(t, a, b, 2 * cur + 1, mid, r);
+	tree[t][cur] = tree[t][2 * cur] + tree[t][2 * cur + 1];
+}
+
+int query (int t, int a, int b, int cur = 1, int l = 0, int r = MAXN) {
+	//number of ones
+	if (b <= l || r <= a) {
+		return 0;
+	}
+	if (a <= l && r <= b) {
+		return tree[t][cur];
+	}
+	down(t, cur, l, r);
+	int mid = (l + r) / 2;
+	return query(t, a, b, 2 * cur, l, mid) + query(t, a, b, 2 * cur + 1, mid, r);
+}
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces482B.in", "r", stdin);
+#endif
+	scanf("%d %d", &N, &M);
+	for (int i = 1, foo; i <= M; i++) {
+		scanf("%d %d %d", &L[i], &R[i], &foo);
+		R[i]++;
+		for (int j = 0; j < 30; j++) {
+			if ((A[i][j] = (foo >> j) & 1)) {
+				update(j, L[i], R[i]);
+			}
+		}
+	}
+	for (int i = 1; i <= M; i++) {
+		for (int j = 0; j < 30; j++) {
+			if (!A[i][j]) {
+				//check if all of them in range must be true
+				if (query(j, L[i], R[i]) == R[i] - L[i]) {
+					puts("NO");
+					return 0;
+				}
+			}
+		}
+	}
+	puts("YES");
+	//get ans
+	for (int i = 1; i <= N; i++) {
+		int ans = 0;
+		for (int j = 0; j < 30; j++) {
+			if (query(j, i, i + 1)) {
+				ans |= (1 << j);
+			}
+		}
+		printf("%d ", ans);
+	}
+}

@@ -1,0 +1,200 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-6
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+pair<int, int> arr[100005];
+
+#include <complex>
+
+typedef complex<double> point;
+
+#define X real()
+#define Y imag()
+#define polar(r, t) (r * exp(point(0, t)))
+#define length(a) hypot(a.X, a.Y)
+#define angle(a) atan2(a.Y, a.X)
+#define vec(a, b) (b - a)
+#define dot(a, b) ((conj(a) * b).X)
+#define cross(a, b) ((conj(a) * b).Y)
+#define lengthsqr(a) dot(a, a)
+#define vec_rot(v, t) (v * exp(point(0, t)))
+#define vec_rot_around(v, t, a) (vec_rot(vec(a, v), t) + a)
+#define reflect(v, m) (conj(v / m) * m)
+#define normalize(v) (v / length(v))
+#define ccw(a, b, c) (cross(vec(a, b), vec(a, c)) > EPS)
+#define same(a, b) (lengthsqr(vec(a, b)) < EPS)
+
+double cross_3D(const point &O, const point &A, const point &B)
+{
+	return (A.X - O.X) * (B.Y - O.Y) - (A.Y - O.Y) * (B.X - O.X);
+}
+
+bool sorter(const point &a, const point &b)
+{
+  if(a.X == b.X) return a.Y < b.Y;
+  return a.X < b.X;
+}
+
+vector<point> convex_hull(vector<point> &P)
+{
+	int n = P.size(), k = 0;
+	vector<point> H(2*n);
+	sort(P.begin(), P.end(), sorter);
+	for(int i=0;i<n;i++)
+  {
+		while(k >= 2 && cross_3D(H[k-2], H[k-1], P[i]) <= 0)
+      k--;
+		H[k++] = P[i];
+	}
+	for(int i=n-2,t=k+1;i>=0;i--)
+  {
+		while(k >= t && cross_3D(H[k-2], H[k-1], P[i]) <= 0)
+      k--;
+		H[k++] = P[i];
+	}
+	H.resize(k);
+	return H;
+}
+
+vector<point> line_circle_intersection(const point &x, double r, const point &a, const point &b)
+{
+  vector<point> res;
+  double dx = b.X - a.X;
+  double dy = b.Y - a.Y;
+  double A = dx * dx + dy * dy;
+  double B = 2 * (dx * (a.X - x.X) + dy * (a.Y - x.Y));
+  double C = x.X * x.X + x.Y * x.Y;
+  C += a.X * a.X + a.Y * a.Y;
+  C -= 2 * (x.X * a.X + x.Y * a.Y);
+  C -= r * 1.0 * r;
+  double tmp = B * B - 4 * A * C;
+  if(tmp < 0)
+    return res;
+  if(tmp == 0)
+    res.pb(-B / (2.0 * A));
+  else
+  {
+    res.pb((-B + tmp) / (2.0 * A));
+    res.pb((-B - tmp) / (2.0 * A));
+  }
+  return res;
+}
+
+bool point_on_ray(const point &a, const point &b, const point &p)
+{
+  return fabs(cross(vec(a, b), vec(a, p))) < EPS && dot(vec(a, b), vec(a, p)) > -EPS;
+}
+
+bool point_on_line(const point &a, const point &b, const point &p)
+{
+  return fabs(cross(vec(a, b), vec(a, p))) < EPS;
+}
+
+bool point_on_segment(const point &a, const point &b, const point &p)
+{
+  if(lengthsqr(vec(a, b)) < EPS)
+      return lengthsqr(vec(a, p)) < EPS;
+  return point_on_ray(a, b, p) && point_on_ray(b, a, p);
+}
+
+point divide_line_by_ratio(const point &a, const point &b, const double &r)
+{
+  return a + r * (b - a);
+}
+
+double point_line_distance(const point &a, const point &b, const point &p, point &res)
+{
+  double temp = dot(vec(a, b), vec(a, p)) / lengthsqr(vec(a, b));
+  res = divide_line_by_ratio(a, b, temp);
+  return length(vec(res, p));
+}
+
+double point_segment_min_distance(const point &a, const point &b, const point &p, point &res)
+{
+  if(a.X == b.X && a.Y == b.Y)
+  {
+      res = point(a.X, a.Y);
+      return length(vec(res, p));
+  }
+  double temp = dot(vec(a, b), vec(a, p)) / lengthsqr(vec(a, b));
+  if(temp < EPS)
+  {
+      res = point(a.X, a.Y);
+      return length(vec(res, p));
+  }
+  if(temp > 1)
+  {
+      res = point(b.X, b.Y);
+      return length(vec(res, p));
+  }
+  return point_line_distance(a, b, p, res);
+}
+
+int main()
+{
+  int n;
+  double x, y;
+  scanf("%d %lf %lf", &n, &x, &y);
+  double r1 = 0.0, r2 = 1e18;
+  vector<point> v;
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d %d", &arr[i].f, &arr[i].s);
+    r1 = max(r1, sqrt((arr[i].f - x) * 1.0 * (arr[i].f - x) + (arr[i].s - y) * 1.0 * (arr[i].s - y)));
+    r2 = min(r2, sqrt((arr[i].f - x) * 1.0 * (arr[i].f - x) + (arr[i].s - y) * 1.0 * (arr[i].s - y)));
+    v.pb(point(arr[i].f, arr[i].s));
+  }
+  point p = point(x, y), tmp;
+  double res = PI * (r1 * r1 - r2 * r2);
+  v.pb(point(arr[0].f, arr[0].s));
+  vector<pair<point, point> > lines;
+  for(int i=0;i<v.size() - 1;i++)
+  {
+    double t1 = sqrt((v[i].X - x) * 1.0 * (v[i].X - x) + (v[i].Y - y) * 1.0 * (v[i].Y - y));
+    double t2 = sqrt((v[i + 1].X - x) * 1.0 * (v[i + 1].X - x) + (v[i + 1].Y - y) * 1.0 * (v[i + 1].Y - y));
+    if(fabs(t1 - r2) <= EPS && fabs(t2 - r2) <= EPS)
+    {
+      lines.pb(mp(v[i], v[i + 1]));
+      continue;
+    }
+  }
+  if(lines.size() > 1) r2 = 0;
+  else if(lines.size() == 1) r2 = point_segment_min_distance(lines[0].f, lines[0].s, p, tmp);
+  res = PI * (r1 * r1 - r2 * r2);
+  printf("%.15lf", res);
+  return 0;
+}

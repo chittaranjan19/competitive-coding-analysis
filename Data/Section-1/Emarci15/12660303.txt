@@ -1,0 +1,67 @@
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+int n,k;
+long long a[300001];
+long long dp[300001];
+
+int main()
+{
+    ios::sync_with_stdio(0);
+    cin >> n >> k;
+
+    for(int i=1; i<=n; i++) cin >> a[i];
+
+    sort(a+1,a+n+1);
+
+    fill(dp+1,dp+1+n,n*2000000000ll);
+
+    int ss = n/k;
+    int bs = ss+1;
+    int bc = n%k;
+    int sc = (n-(bc*bs))/ss;
+
+    if(ss < k) {
+        long long ddp[n][k];
+
+        fill(&ddp[0][0],&ddp[n][0],n*2000000000ll);
+
+        ddp[0][0] = 0ll;
+        for(int i=1; i<=n; i++) {
+            for(int j=1; j<=k; j++) {
+                if(i-ss < 0) continue;
+
+                ddp[i][j] = min(ddp[i][j],ddp[i-ss][j-1] + a[i]-a[i+1-ss]);
+                if(i-bs < 0) continue;
+
+                ddp[i][j] = min(ddp[i][j],ddp[i-bs][j-1] + a[i]-a[i+1-bs]);
+            }
+        }
+
+        cout << ddp[n][k] << endl;
+        return 0;
+    }
+
+    if(bc == 0) {
+        long long sol = 0;
+        for(int i=ss; i<=n; i+=ss) {
+            sol += a[i]-a[i+1-ss];
+        }
+        cout << sol << endl;
+        return 0;
+    }
+
+    dp[0] = 0;
+    dp[ss] = a[ss]-a[1];
+
+    for(int i=bs; i<=n; i++) {
+        dp[i] = min(dp[i],dp[i-ss] + (a[i] - a[i+1-ss]));
+        dp[i] = min(dp[i],dp[i-bs] + (a[i] - a[i+1-bs]));
+    }
+
+    cout << dp[n] << endl;
+
+    return 0;
+}

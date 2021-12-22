@@ -1,0 +1,41 @@
+#include <iostream>
+
+#define mod 1000000007
+using namespace std;
+
+typedef long long ll;
+ll dp[5005][5005];
+ll psum[5005];
+int main(){
+        ios::sync_with_stdio(false);
+        int n,a,b,k;
+        cin >> n >> a >> b >> k;
+        dp[a][0] = 1;
+        
+        for(int i = 1; i <= k; i++){
+                for(int j = 1; j <= n; j++) {
+                        psum[j] = psum[j-1] + dp[j][i-1];
+                        psum[j] %= mod;
+                }
+                
+                for(int j = 1; j <= n; j++){
+                        if (j < b){
+                                int t = (b+j-1)/2;
+
+                                dp[j][i] = psum[t] - dp[j][i-1];
+                                dp[j][i] = (dp[j][i] + mod) % mod;
+                        }
+                        else if (j > b){
+                                int t = (b+j+1)/2 + ((b+j)%2 == 0);
+                                
+                                dp[j][i] = psum[n] - psum[t-1];
+                                dp[j][i] -= dp[j][i-1];
+                                dp[j][i] = (dp[j][i] + mod) % mod;
+                        }
+                }
+        }
+
+        ll res = 0;
+        for(int i = 1; i <= n; i++) {  res += dp[i][k]; res %= mod; }
+        cout << res <<endl;
+}

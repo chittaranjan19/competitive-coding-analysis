@@ -1,0 +1,95 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007000000007ll
+#define line pair<long long, long long>
+#define A first
+#define B second
+
+using namespace std;
+int n, m, p, r, d[mn], t[mn];
+long long dp[mn][101], cost[mn];
+double rLim[mn];
+line st[mn], l[mn];
+
+void setup()
+{
+    cin >> n >> m >> p;
+    FOR(i, 2, n)
+    {
+        cin >> d[i];
+        d[i] += d[i - 1];
+    }
+    int h;
+    FOR(i, 1, m)
+    {
+        cin >> h >> t[i];
+        t[i] -= d[h];
+    }
+    sort(t + 1, t + m + 1);
+}
+
+void chuanbi()
+{
+    FOR(i, 2, m)
+        cost[i] = cost[i - 1] + 1ll * (i - 1) * (t[i] - t[i - 1]);
+    FOR(i, 1, m)
+    {
+        if (t[i] < 0)
+            dp[i][1] = maxC;
+        else
+            dp[i][1] = cost[i];
+        l[i].A = 1 - i;
+    }
+}
+
+double inter(line a, line b)
+{
+    return (1.0 * (b.B - a.B)) / (a.A - b.A);
+}
+
+void convex(int x)
+{
+    FOR(i, 1, m)
+        l[i].B = dp[i - 1][x - 1] - cost[i] + 1ll * t[i] * (i - 1);
+    rLim[0] = - maxC;
+    rLim[1] = maxC;
+    st[r = 1] = l[1];
+    FOR(i, 2, m)
+    {
+        double xx = inter(l[i], st[r]);
+        while(xx <= rLim[r - 1])
+            xx = inter(l[i], st[-- r]);
+        st[++ r] = l[i];
+        rLim[r - 1] = xx;
+        rLim[r] = maxC;
+    }
+}
+
+void xuly()
+{
+    FOR(i, 2, p)
+    {
+        convex(i);
+        int id = 0;
+        FOR(j, 1, m)
+        {
+            while(rLim[id] < t[j])
+                id ++;
+            dp[j][i] = st[id].A * t[j] + st[id].B + cost[j];
+        }
+    }
+    cout << dp[m][p];
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    chuanbi();
+    xuly ();
+    return 0;
+}

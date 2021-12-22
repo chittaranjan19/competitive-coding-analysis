@@ -1,0 +1,202 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int MAXN = 200000 + 2;
+const int MAXK = 10;
+
+char s[MAXN];
+int n, m, k;
+
+struct segtree
+{
+    int node[MAXN << 2];
+
+    void pushdown(int rt)
+    {
+        if(~node[rt])
+        {
+            node[rt << 1] = node[rt];
+            node[rt << 1 | 1] = node[rt];
+            node[rt] = -1;
+        }
+    }
+
+    void build(int rt, int l, int r)
+    {
+        node[rt] = -1;
+        if(l == r)
+        {
+            node[rt] = s[l] - 'a';
+            return;
+        }
+        int m = (l + r) >> 1;
+        build(rt << 1, l, m);
+        build(rt << 1 | 1, m + 1, r);
+    }
+
+    void update(int rt, int l, int r, int x, int y, int c)
+    {
+        if(x <= l && r <= y)
+        {
+            node[rt] = c;
+            return;
+        }
+        pushdown(rt);
+        int m = (l + r) >> 1;
+        if(x <= m)
+        {
+            update(rt << 1, l, m, x, y, c);
+        }
+        if(m < y)
+        {
+            update(rt << 1 | 1, m + 1, r, x, y, c);
+        }
+    }
+
+    int query(int rt, int l, int r, int x)
+    {
+        if(l == r) return node[rt];
+        pushdown(rt);
+        int m = (l + r) >> 1;
+        return x <= m ? query(rt << 1, l, m, x) : query(rt << 1 | 1, m + 1, r, x);
+    }
+} tree1;
+
+struct mattree
+{
+    int node[MAXN << 2][MAXK][MAXK];
+    bool lazy[MAXN << 2];
+
+    void modify(int rt)
+    {
+//        memset(node[rt], 0, sizeof(node[rt]));
+        for(int i = 0; i < k; ++i)
+        {
+            for(int j = 0; j < k; ++j)
+            {
+                node[rt][i][j] = 0;
+            }
+        }
+        lazy[rt] = true;
+    }
+
+    void pushup(int rt)
+    {
+        for(int i = 0; i < k; ++i)
+        {
+            for(int j = 0; j < k; ++j)
+            {
+                node[rt][i][j] = node[rt << 1][i][j] + node[rt << 1 | 1][i][j];
+            }
+        }
+    }
+
+    void pushdown(int rt)
+    {
+        if(lazy[rt])
+        {
+            modify(rt << 1);
+            modify(rt << 1 | 1);
+            lazy[rt] = false;
+        }
+    }
+
+    void build()
+    {
+        memset(node, 0, sizeof(node));
+        memset(lazy, 0, sizeof(lazy));
+    }
+
+    void update(int rt, int l, int r, int x, int y)
+    {
+        if(x <= l && r <= y)
+        {
+            modify(rt);
+            return;
+        }
+        pushdown(rt);
+        int m = (l + r) >> 1;
+        if(x <= m)
+        {
+            update(rt << 1, l, m, x, y);
+        }
+        if(m < y)
+        {
+            update(rt << 1 | 1, m + 1, r, x, y);
+        }
+        pushup(rt);
+    }
+
+    void add(int rt, int l, int r, int x, int i, int j)
+    {
+        if(l == r)
+        {
+            node[rt][i][j] += 1;
+            return;
+        }
+        pushdown(rt);
+        int m = (l + r) >> 1;
+        x <= m ? add(rt << 1, l, m, x, i, j) : add(rt << 1 | 1, m + 1, r, x, i, j);
+        pushup(rt);
+    }
+
+    int query(int rt, int i, int j)
+    {
+        return node[rt][i][j];
+    }
+} tree2;
+
+int main()
+{
+    while(~scanf("%d%d%d", &n, &m, &k))
+    {
+        scanf("%s", s + 1);
+        tree1.build(1, 1, n);
+        tree2.build();
+        for(int i = 1; i < n; ++i)
+        {
+            tree2.add(1, 1, n, i, s[i] - 'a', s[i + 1] - 'a');
+        }
+        while(m--)
+        {
+            int op;
+            scanf("%d", &op);
+            if(op == 1)
+            {
+                int l, r;
+                scanf("%d%d%s", &l, &r, s);
+                tree1.update(1, 1, n, l, r, *s - 'a');
+                tree2.update(1, 1, n, max(1, l - 1), r);
+                int tmp;
+                if(l > 1)
+                {
+                    tmp = tree1.query(1, 1, n, l - 1);
+                    tree2.add(1, 1, n, l - 1, tmp, *s - 'a');
+                }
+                if(r < n)
+                {
+                    tmp = tree1.query(1, 1, n, r + 1);
+                    tree2.add(1, 1, n, r, *s - 'a', tmp);
+                }
+            }
+            else
+            {
+                scanf("%s", s);
+                int ans = n;
+                for(int i = 0; i < k - 1; ++i)
+                {
+                    for(int j = i + 1; j < k; ++j)
+                    {
+                        ans -= tree2.query(1, s[i] - 'a', s[j] - 'a');
+                    }
+                }
+                printf("%d\n", ans);
+            }
+        }
+    }
+    return 0;
+}

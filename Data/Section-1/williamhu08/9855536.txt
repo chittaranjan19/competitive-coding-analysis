@@ -1,0 +1,61 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset(a, s, sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 600010;
+const ll P = 1e9 + 7;
+
+int N, M;
+ll pwr[MAXN];
+char str[MAXN], buf[MAXN];
+unordered_set<ll> hashes;
+
+ll gethsh() {
+	gets(str);
+	ll h = 0;
+	for (int i = 0; str[i]; i++) {
+		h += pwr[i] * str[i];
+	}
+	return h;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d\n", &N, &M);
+	pwr[0] = 1;
+	for (int i = 1; i < MAXN; i++) {
+		pwr[i] = pwr[i - 1] * P;
+	}
+	for (int tt = 0; tt < N; tt++) {
+		hashes.insert(gethsh());
+	}
+	for (int tt = 0; tt < M; tt++) {
+		ll h = gethsh();
+		N = strlen(str);
+		bool ans = false;
+		for (int i = 0; i < N; i++) {
+			ll nh = h - str[i] * pwr[i];	//not including that char
+			for (char j = 'a'; j <= 'z'; j++) {
+				if (j == str[i]) {
+					continue;
+				}
+				if (hashes.count(nh + j * pwr[i])) {
+					ans = true;
+					goto putans;
+				}
+			}
+		}
+		putans:
+		puts(ans ? "YES" : "NO");
+	}
+}

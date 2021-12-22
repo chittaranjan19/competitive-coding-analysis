@@ -1,0 +1,128 @@
+import java.util.*;
+
+/**
+ * Created by leen on 7/8/16.
+ */
+public class _687CV4 {
+
+    static int[] c;
+    static int n;
+    static int k;
+    static List<Node>[] nodesByK;
+
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+        n = scan.nextInt();
+        k = scan.nextInt();
+
+        c = new int[n + 1];
+        nodesByK = new List[k + 1];
+
+        for(int i =1; i<=n; i++)
+            c[i] = scan.nextInt();
+
+        for(int i = 0; i <= k; i++)
+            nodesByK[i] = new ArrayList<Node>();
+
+        for(int i = 0; i<= n; i++)
+            nodesByK[0].add(new Node(0, i));
+
+        for(int i = 1; i <=k; i++) {
+            for(int j = 1; j <= n; j++) {
+                int lastK = i - c[j];
+                if(lastK >=0 && !nodesByK[lastK].isEmpty() && nodesByK[lastK].get(0).index < j)
+                    nodesByK[i].add(new Node(i, j));
+            }
+        }
+
+        List<List<Integer>> solutions = new ArrayList<List<Integer>>();
+
+        for(Node node : nodesByK[k])
+            solutions.addAll(buildSolutions(node));
+
+        Set<Integer> ans = new HashSet<Integer>();
+
+        ans.add(0);
+
+        for(List<Integer> solution : solutions)
+            solve(solution, ans);
+
+        List<Integer> sortedAns = new ArrayList<Integer>(ans);
+        Collections.sort(sortedAns);
+
+
+        System.out.println(sortedAns.size());
+
+        StringBuilder buf = new StringBuilder();
+        boolean isFirst = true;
+        for(Integer val : sortedAns) {
+            if(isFirst)
+                isFirst = false;
+            else
+                buf.append(' ');
+            buf.append(val);
+        }
+
+        System.out.println(buf.toString());
+        System.out.flush();
+    }
+
+    static void solve(List<Integer> solution, Set<Integer> ans) {
+
+        int[] minIdxes = new int[k + 1];
+
+        Arrays.fill(minIdxes, Integer.MAX_VALUE);
+
+        minIdxes[0] = 0;
+
+        for(int i = 1; i <= k; i++) {
+            for(int j = 1; j < solution.size(); j++) {
+
+                int lastK = i - solution.get(j);
+                if(lastK >= 0 && minIdxes[lastK] < j) {
+                    ans.add(i);
+                    if(j < minIdxes[i])
+                        minIdxes[i] = j;
+                }
+            }
+        }
+    }
+
+    static List<List<Integer>> buildSolutions(Node node) {
+        if(node.i == 0) {
+            List<Integer> solution = new ArrayList<Integer>();
+            solution.add(0);
+
+            List<List<Integer>> solutions = new ArrayList<List<Integer>>();
+            solutions.add(solution);
+            return solutions;
+        }
+        List<Node> nodes = nodesByK[node.i - c[node.index]];
+
+        List<List<Integer>> solutions = new ArrayList<List<Integer>>();
+
+        for(Node n : nodes) {
+            if(n.index >= node.index)
+                break;
+
+            List<List<Integer>> subSolutions = buildSolutions(n);
+            for(List<Integer> subSolution : subSolutions)
+                subSolution.add(c[node.index]);
+
+            solutions.addAll(subSolutions);
+        }
+
+        return solutions;
+    }
+
+    static class Node {
+        int i;
+        int index;
+
+        Node(int i, int index) {
+            this.i = i;
+            this.index = index;
+        }
+    }
+
+}

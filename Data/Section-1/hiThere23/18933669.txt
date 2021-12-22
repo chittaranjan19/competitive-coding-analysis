@@ -1,0 +1,101 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 200005
+#define maxC 1000000009
+#define base 100007
+#define F first
+#define S second
+#define mp make_pair
+#define pb push_back
+
+using namespace std;
+int n, a[mn], b[mn];
+
+struct interval
+{
+    long long treeA[mn << 2], treeB[mn << 2];
+
+    void build(int l, int r, int id)
+    {
+        if (l == r)
+        {
+            treeA[id] = a[l];
+            treeB[id] = b[l];
+            return;
+        }
+        int g = ((l + r) >> 1);
+        build(l, g, id << 1);
+        build(g + 1, r, (id << 1) | 1);
+        treeA[id] = max(treeA[id << 1], treeA[(id << 1) | 1]);
+        treeB[id] = min(treeB[id << 1], treeB[(id << 1) | 1]);
+    }
+
+    pair<int, int> get(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return mp(-maxC, maxC);
+        if (x <= l && r <= y)
+            return mp(treeA[id], treeB[id]);
+        int g = ((l + r) >> 1);
+        pair<int, int> a = get(l, g, id << 1, x, y);
+        pair<int, int> b = get(g + 1, r, (id << 1) | 1, x, y);
+        return mp(max(a.F, b.F), min(a.S, b.S));
+    }
+} t;
+
+void setup()
+{
+    cin >> n;
+    FOR(i, 1, n)
+        cin >> a[i];
+    FOR(i, 1, n)
+        cin >> b[i];
+    t.build(1, n, 1);
+}
+
+void xuly()
+{
+    long long ans = 0;
+    FOR(i, 1, n)
+    {
+        int l1 = i - 1, r1 = n + 1;
+        while(r1 - l1 > 1)
+        {
+            int g = ((l1 + r1) >> 1);
+            pair<int, int> x = t.get(1, n, 1, i, g);
+            if (x.F >= x.S)
+                r1 = g;
+            else
+                l1 = g;
+        }
+        int l2 = i - 1, r2 = n + 1;
+        while(r2 - l2 > 1)
+        {
+            int g = ((l2 + r2) >> 1);
+            pair<int, int> x = t.get(1, n, 1, i, g);
+            if (x.F > x.S)
+                r2 = g;
+            else
+                l2 = g;
+        }
+        pair<int, int> x = t.get(1, n, 1, i, r1);
+        pair<int, int> y = t.get(1, n, 1, i, l2);
+        if (x.F != x.S)
+            continue;
+        if (y.F != y.S)
+            continue;
+        ans += l2 - r1 + 1;
+    }
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

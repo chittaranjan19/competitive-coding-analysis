@@ -1,0 +1,87 @@
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 17;
+
+int gcd (int a, int b) {
+	return a ? gcd(b % a, a) : b;
+}
+
+int N, S[MAXN];
+int tree[2 * MAXN];
+map<int, vector<int> > occ;
+
+int getocc (int x, int l, int r) {
+	vector<int> &ref = occ[x];
+	if (ref.empty()) {
+		return 0;
+	}
+	int firstind = lower_bound(ref.begin(), ref.end(), l) - ref.begin(), occsiz = ref.size();
+	if (firstind == occsiz || ref[firstind] > r) {
+		return 0;
+	}
+	//then it exists within the range
+	return upper_bound(ref.begin(), ref.end(), r) - ref.begin() - firstind;
+}
+
+int query (int a, int b, int cur = 1, int l = 0, int r = MAXN) {
+	if (a <= l && r <= b) {
+		// printf("gcd from %d to %d is %d\n", l, r - 1, tree[cur]);
+		return tree[cur];
+	}
+	if (r <= a || b <= l) {
+		return 0;
+	}
+	int mid = (l + r) / 2;
+	return gcd(query(a, b, 2 * cur, l, mid), query(a, b, 2 * cur + 1, mid, r));
+}
+
+int main() {
+#ifndef ONLINE_JUDGE
+	freopen("codeforces474F.in", "r", stdin);
+#endif
+	scanf("%d", &N);
+	for (int i = 1; i <= N; i++) {
+		scanf("%d", &S[i]);
+		occ[tree[i + MAXN] = S[i]].push_back(i);
+	}
+	//calculate the gcd just like you would do for a segtree
+	for (int i = MAXN - 1; i; i--) {
+		tree[i] = gcd(tree[2 * i], tree[2 * i + 1]);
+	}
+	for (int t, a, b = scanf("%d", &t); t--; ) {
+		scanf("%d %d", &a, &b);
+		printf("%d\n", (b - a + 1) - getocc(query(a, b + 1), a, b));
+	}
+}

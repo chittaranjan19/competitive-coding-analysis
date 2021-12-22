@@ -1,0 +1,142 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int n,MOD,PHI;
+ll pw[MAXN],inv[MAXN];
+int vis[MAXN],lvl[MAXN],dp[MAXN],sub[MAXN];
+ll up[MAXN],down[MAXN],ans;
+vector<PII>adj[MAXN];
+vector<int>on;
+ll mod(ll x){
+	while(x<0)
+		x+=MOD;
+	return (x%MOD);
+}
+int Euler(){
+	int x=MOD,res=MOD;
+	for(int i=2;i<=sqrt(MOD);i++){
+		if(x%i==0){
+			while(x%i==0)
+				x/=i;
+			res-=res/i;	
+		}
+	}
+	if(x>1)
+		res-=res/x;
+	return res;
+}
+ll Fe(ll x,int y){
+	if(!y)
+		return 1LL;
+	ll h=Fe(x,y/2);
+	h=mod(h*h);
+	if(y&1)
+		h=mod(h*x);
+	return h;	
+}
+void f1(int nd,int pr){
+	sub[nd]=1;
+	on.pb(nd);
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i].ff;
+		if(to==pr or vis[to])	
+			continue;
+		f1(to,nd);
+		sub[nd]+=sub[to];	
+	}
+}
+int f2(int nd,int pr,int sz){
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i].ff;
+		if(to==pr or vis[to])
+			continue;
+		if(sub[to]>sz)
+			return f2(to,nd,sz);
+	}
+	return nd;
+}
+void f3(int nd,int pr,int cost){
+	lvl[nd]=(~pr?lvl[pr]+1:1);	
+	if(~pr){
+		up[nd]=mod(up[pr]+cost*pw[lvl[nd]-2]);
+		down[nd]=mod(down[pr]*10+cost);
+	}
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i].ff;
+		int val=adj[nd][i].ss;
+		if(vis[to] or to==pr)
+			continue;
+		if(pr==-1)
+			dp[to]=to;
+		else
+			dp[to]=dp[nd];
+		f3(to,nd,val);	
+	}
+}
+void get(int nd){
+	for(int i=0;i<int(on.size());i++)
+		down[on[i]]=lvl[on[i]]=up[on[i]]=dp[on[i]]=0;
+	f3(nd,-1,0);
+	map<ll,int>cnt;
+	map<pair<int,ll>,int>sp;
+	for(int i=0;i<int(on.size());i++){
+		cnt[up[on[i]]]++;
+		sp[{dp[on[i]],up[on[i]]}]++;
+	}
+	for(int i=0;i<int(on.size());i++){
+		if(!dp[on[i]])
+			ans+=cnt[0]-1;
+		else{
+			ll val=mod(mod(-down[on[i]])*inv[lvl[on[i]]-1]);
+			ans+=cnt[val]-sp[{dp[on[i]],val}];
+		}	
+	}
+}
+void dfs(int nd){
+	on.resize(0);f1(nd,-1);
+	int centr=f2(nd,-1,sub[nd]>>1);
+	vis[centr]=1;get(centr);
+	for(int i=0;i<int(adj[centr].size());i++){
+		int to=adj[centr][i].ff;
+		if(!vis[to])
+			dfs(to);
+	}
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	scanf("%d%d",&n,&MOD);
+	for(int i=1;i<n;i++){
+		int u,v,w;
+		scanf("%d%d%d",&u,&v,&w);
+		u++;v++;
+		adj[u].pb(mp(v,w));
+		adj[v].pb(mp(u,w));
+	}
+	PHI=Euler();
+	pw[0]=1;inv[0]=1;
+	pw[1]=10;inv[1]=Fe(10,PHI-1);
+	for(int i=2;i<MAXN;i++){
+		pw[i]=mod(pw[i-1]*10);
+		inv[i]=mod(inv[i-1]*inv[1]);
+	}
+	dfs(1);
+	printf("%lld\n",ans);
+	return 0;
+}

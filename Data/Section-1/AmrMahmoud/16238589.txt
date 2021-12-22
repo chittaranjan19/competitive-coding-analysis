@@ -1,0 +1,73 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000009
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+char s[100005];
+int DP[2005][4005][2];
+bool v[2005][4005][2];
+int mini, curr;
+
+int solve(int rem, int cnt, bool t)
+{
+  if(!t && rem == 0)
+    return (cnt >= mini && cnt + curr == 0);
+  if(t && rem == 0)
+    return (cnt + curr == 0);
+  if(t && rem < abs(cnt + curr))
+    return 0;
+  cnt += 2001;
+  int &temp = DP[rem][cnt][t];
+  if(v[rem][cnt][t]) return temp;
+  v[rem][cnt][t] = true;
+  cnt -= 2001;
+  if(!t)
+  {
+    // open
+    temp = solve(rem - 1, cnt + 1, t);
+    // close
+    if(cnt) temp += solve(rem - 1, cnt - 1, t);
+    if(temp >= mod) temp -= mod;
+    // jump
+    if(cnt >= mini) temp += solve(rem, cnt, 1);
+    if(temp >= mod) temp -= mod;
+    return temp;
+  }
+  // open
+  temp = solve(rem - 1, cnt + 1, t);
+  // close
+  if(cnt + curr) temp += solve(rem - 1, cnt - 1, t);
+  if(temp >= mod) temp -= mod;
+  return temp;
+}
+
+int main()
+{
+  int n, m;
+  cin >> n >> m;
+  scanf("%s", s);
+  for(int i=0;i<m;i++)
+  {
+    if(s[i] == ')') curr--;
+    else curr++;
+    mini = min(mini, curr);
+  }
+  mini *= -1;
+  cout << solve(n - m, 0, 0);
+  return 0;
+}

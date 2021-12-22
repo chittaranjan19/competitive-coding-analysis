@@ -1,0 +1,145 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+struct disjointset
+{
+    vector<int> rank, parent;
+    vector<LL> sz;
+    int subtrees;
+
+    disjointset(int n)
+    {
+        subtrees = n;
+        for(int i=0;i<n;i++)
+            rank.pb(1),parent.pb(i), sz.pb(0);
+    }
+
+    int find_set(int x)
+    {
+        if(x == parent[x])
+            return x;
+        return parent[x] = find_set(parent[x]);
+    }
+
+    void link(int x,int y)
+    {
+        if(rank[x] > rank[y])
+            swap(x, y);
+        parent[x] = y;
+        sz[y] += sz[x];
+        if(rank[x] == rank[y])
+            rank[y]++;
+    }
+
+    bool union_sets(int x,int y)
+    {
+        x = find_set(x),y = find_set(y);
+        if(x != y)
+        {
+            link(x,y);
+            subtrees--;
+        }
+        return x != y;
+    }
+
+    bool same_set(int x,int y)
+    {
+        return find_set(x) == find_set(y);
+    }
+};
+
+int main()
+{
+  //freopen("approximation.in", "r", stdin);
+  //freopen("approximation.out", "w", stdout);
+  int n, m, p, q, x, y, z;
+  scanf("%d %d %d %d", &n, &m, &p, &q);
+  disjointset d(n);
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d %d %d", &x, &y, &z);
+    x--, y--;
+    d.union_sets(x, y);
+    d.sz[d.find_set(x)] += z;
+  }
+  if(d.subtrees < q)
+  {
+    printf("NO");
+    return 0;
+  }
+  priority_queue<pair<LL, int> > pq;
+  vector<pair<int, int> > sol;
+  for(int i=0;i<n;i++)
+    if(d.find_set(i) == i)
+      pq.push(mp(-d.sz[i], i));
+  while(p && d.subtrees != q)
+  {
+    p--;
+    x = pq.top().s;
+    pq.pop();
+    y = pq.top().s;
+    pq.pop();
+    d.union_sets(x, y);
+    sol.pb(mp(x+1,y+1));
+    x = d.find_set(x);
+    d.sz[x] += min(1000000000LL, d.sz[x] + 1);
+    pq.push(mp(-d.sz[x], x));
+  }
+  if(d.subtrees != q)
+  {
+    printf("NO");
+    return 0;
+  }
+  for(int i=0;i<n && p > 0;i++)
+  {
+    if(d.find_set(i) != i)
+    {
+      while(p--) sol.pb(mp(i+1, d.find_set(i)+1));
+    }
+  }
+  if(p > 0) printf("NO");
+  else
+  {
+    printf("YES\n");
+    for(int i=0;i<sol.size();i++)
+    {
+      printf("%d %d\n", sol[i].f, sol[i].s);
+    }
+  }
+  return 0;
+}

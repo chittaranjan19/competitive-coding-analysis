@@ -1,0 +1,104 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+#include <cstring>
+#include <map>
+#include <unordered_map>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+#define x first
+#define y second
+
+using namespace std;
+
+ll n, q, p[300000], v[300000];
+
+int find(int a)
+{
+    return (p[a] == a) ? a : find(p[a]);
+}
+
+void merge(int a, int b)
+{
+    a = find(a);
+    b = find(b);
+    if (a != b)
+    {
+        if (v[a] < v[b])
+            swap(a, b);
+        p[b] = a;
+        v[a] += v[b];
+    }
+}
+
+set<pair<int, int> > s;
+
+int main()
+{
+    cin >> n >> q;
+    for (int i = 0; i < n; i++)
+    {
+        p[i] = i;
+        v[i] = 0;
+        s.insert(mp(i, i));
+    }
+    while (q--)
+    {
+        int t, l, r;
+        scanf_s("%d%d%d", &t, &l, &r);
+        l--; r--;
+        if (t == 1)
+        {
+            merge(l, r);
+        }
+        if (t == 2)
+        {
+            set<pair<int, int> >::iterator a, b, i;
+            a = s.lower_bound(mp(l, -1));
+            b = s.lower_bound(mp(r, -1));
+            stack<pair<int, int> > st;
+            pair<int, int> aa = *a;
+            int lf = aa.x;
+            for (i = a; i != b; i++)
+            {
+                aa = *i;
+                st.push(*i);
+                merge(lf, aa.x);
+                lf = aa.x;
+            }
+            st.push(*b);
+            while (!st.empty())
+            {
+                s.erase(st.top());
+                st.pop();
+            }
+            s.insert(mp(r, l));
+        }
+        if (t == 3)
+        {
+            bool ok = 0;
+            l = find(l);
+            r = find(r);
+            if (l == r)
+                ok = 1;
+            set<pair<int, int> >::iterator a, b, i;
+            a = s.lower_bound(mp(l, -1));
+            b = s.lower_bound(mp(r, -1));
+            if (*a == *b)
+                ok = 1;
+            if (!ok)
+                printf("NO\n");
+            else printf("YES\n");
+        }
+    }
+    return 0;
+}

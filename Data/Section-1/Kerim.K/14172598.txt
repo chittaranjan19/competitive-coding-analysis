@@ -1,0 +1,116 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"You can do IT.I belive YOU!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool checkMin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool checkMax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+vector<int>adj[MAXN],lvl[MAXN],q,dj[MAXN];
+set<int>s1,s2;
+int maxlvl,l[MAXN],vis[MAXN],P[MAXN];
+PII arr[MAXN][2];
+void dfs(int nd,int pr){
+	l[nd]=l[pr]+1;
+	P[nd]=pr;
+	checkMax(maxlvl,l[nd]);
+	lvl[l[nd]].pb(nd);
+	for(int i=0;i<adj[nd].size();i++)
+		if(adj[nd][i]!=pr)
+			dfs(adj[nd][i],nd);
+}
+void dfs1(int nd,int pr){
+	arr[nd][0].ss=nd;
+	for(int i=0;i<dj[nd].size();i++){
+		int to=dj[nd][i];
+		if(to!=pr){
+			dfs1(to,nd);
+			if(arr[to][0].ff+1>arr[nd][0].ff){
+				swap(arr[nd][0],arr[nd][1]);
+				arr[nd][0].ff=arr[to][0].ff+1;
+				arr[nd][0].ss=arr[to][0].ss;
+			}
+			else if(arr[to][0].ff+1>arr[nd][1].ff){
+				arr[nd][1].ff=arr[to][0].ff+1;
+				arr[nd][1].ss=arr[to][0].ss;
+			}
+		}
+	}
+}
+void dfs2(int nd,int pr){
+	if(pr!=0){
+		PII das=arr[pr][0];
+		if(das.ss==arr[nd][0].ss)
+			das=arr[pr][1];
+		das.ff++;	
+		if(das.ff>arr[nd][0].ff){
+			swap(arr[nd][0],arr[nd][1]);
+			arr[nd][0]=das;
+		}
+		else if(das.ff>arr[nd][1].ff)
+			arr[nd][1]=das;
+	}
+	for(int i=0;i<dj[nd].size();i++)
+		if(dj[nd][i]!=pr)
+			dfs2(dj[nd][i],nd);
+}
+int main(){
+	int a,b,x,e=0;
+	cin>>a>>b;
+	for(int i=1;i<a;i++){
+		int u,v;
+		cin>>u>>v;
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	for(int i=0;i<b;i++)
+		cin>>x,vis[x]=1;
+	dfs(1,0);
+	for(int i=maxlvl;i>=1;i--){
+		for(int j=0;j<lvl[i].size();j++)
+			if(vis[lvl[i][j]]==1)
+				s1.insert(lvl[i][j]),b--;
+				
+		e+=s1.size();		
+		tr(i,s1)
+			q.pb(*i);
+		if(s1.size()==1 && b==0)
+			break;			
+		tr(i,s1){
+			int z=*i;
+			s2.insert(P[z]);
+			dj[z].pb(P[z]);
+			dj[P[z]].pb(z);
+		}
+		s1=s2;
+		s2.clear();
+	}
+	dfs1(x,0);
+	dfs2(x,0);
+	int ans=0,mini=INF;
+	for(int i=0;i<q.size();i++)
+		checkMax(ans,arr[q[i]][0].ff);
+	for(int i=0;i<q.size();i++)
+		if(arr[q[i]][0].ff==ans)
+			checkMin(mini,q[i]);
+	cout<<mini<<endl;		
+	cout<<2*(e-1)-ans<<endl;
+	return 0;
+}
+/*
+4
+1 2
+2 3
+3 4
+*/

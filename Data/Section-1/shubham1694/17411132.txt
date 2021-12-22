@@ -1,0 +1,119 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 500010;
+
+struct node{
+	int val[2], lazy[2];
+};
+
+int arr[maxn], rs[maxn], re[maxn], depth[maxn], n, m;
+node st[maxn*5];
+vector<int> euler, adj[maxn];
+
+void dfs(int cur, int p, int d)
+{	
+	rs[cur] = euler.size();
+	euler.pb(cur);
+	depth[cur] = d;
+	for(auto it:adj[cur]){
+		if(it!=p){
+			dfs(it, cur, d+1);
+			re[cur] = euler.size();
+			euler.pb(cur);
+		}
+	}
+}
+
+void propagate(int s, int e, int k)
+{
+	if(s!=e){
+		int lc, rc;
+		lc = 2*k + 1;
+		rc = lc + 1;
+		for(int i=0; i<2; i++){
+			st[lc].lazy[i]+=st[k].lazy[i];
+			st[rc].lazy[i]+=st[k].lazy[i];
+			st[lc].val[i]+=st[k].lazy[i];
+			st[rc].val[i]+=st[k].lazy[i];
+		}
+	}
+	st[k].lazy[0] = st[k].lazy[1] = 0;
+}
+
+void update(int s, int e, int qs, int qe, int t, int val, int k)
+{
+	propagate(s, e, k);
+	if(s>e || s>qe || qs>e)
+		return;
+	if(s>=qs && qe>=e){
+		st[k].val[t]+=val;
+		st[k].lazy[t]+=val;
+		return;
+	}
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*k + 1;
+	rc = lc + 1;
+	update(s, mid, qs, qe, t, val, lc);
+	update(mid+1, e, qs, qe, t, val, rc);
+}
+
+int query(int s, int e, int q, int k)
+{
+	propagate(s, e, k);
+	if(s>e || s>q || q>e)
+		return 0;
+	if(s==e){
+		int t = depth[euler[q]]&1;
+		int ret = arr[euler[q]] - t*(st[k].val[0] - st[k].val[1]) + (t^1)*(st[k].val[0] - st[k].val[1]);
+		return ret;
+	}
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*k + 1;
+	rc = lc + 1;
+	return query(s, mid, q, lc) + query(mid+1, e, q, rc);
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int t, i, u, v, val;
+	scanf("%d%d", &n, &m);
+	for(i=1; i<=n; i++)
+		scanf("%d", &arr[i]);
+	for(i=1; i<n; i++){
+		scanf("%d%d", &u, &v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	dfs(1, 0, 0);
+	while(m--){
+		scanf("%d%d", &t, &u);
+		if(t==1){
+			scanf("%d", &val);
+			update(0, euler.size()-1, rs[u], re[u], depth[u]&1, val, 0);
+		}
+		else{
+			int ans = query(0, euler.size()-1, rs[u], 0);
+			printf("%d\n", ans);
+		}
+	}
+	return 0;
+}

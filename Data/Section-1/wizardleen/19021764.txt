@@ -1,0 +1,122 @@
+import java.io.BufferedOutputStream;
+import java.io.PrintWriter;
+import java.util.*;
+
+/**
+ * Created by leen on 7/11/16.
+ */
+public class _687D {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+
+        int n = scan.nextInt();
+        int m = scan.nextInt();
+        int q = scan.nextInt();
+
+        City[] cities = new City[n + 1];
+
+        for(int i = 1; i <= n; i++)
+            cities[i] = new City(i);
+
+        List<Edge> edges = new ArrayList<Edge>();
+
+        for(int i = 1; i <= m; i++) {
+            City a = cities[scan.nextInt()];
+            City b = cities[scan.nextInt()];
+            int len = scan.nextInt();
+            edges.add(new Edge(i, a, b, len));
+        }
+
+        Collections.sort(edges, new Comparator<Edge>() {
+            @Override
+            public int compare(Edge o1, Edge o2) {
+                return o2.length - o1.length;
+            }
+        });
+
+        PrintWriter pw = new PrintWriter(new BufferedOutputStream(System.out, 1024 * 64));
+
+        for(int i = 1; i <= q; i++) {
+            int l = scan.nextInt();
+            int r = scan.nextInt();
+
+            for(int j = 1; j <= n; j++) {
+                cities[j].representative = cities[j];
+                cities[j].subset.clear();
+                cities[j].subset.add(cities[j]);
+                cities[j].kingdom = false;
+            }
+
+
+            int ans = -1;
+            for(Edge edge : edges) {
+                if(edge.num < l || edge.num > r)
+                    continue;
+
+                City start = edge.start;
+                City end = edge.end;
+
+                if(start.representative == end.representative &&
+                        start.kingdom == end.kingdom) {
+                    ans = edge.length;
+                    break;
+                }
+
+
+                if(start.representative != end.representative) {
+                    boolean needChangeKingdom = start.kingdom == end.kingdom;
+
+                    // merge two subsets
+                    City rep1 = start.representative;
+                    City rep2 = end.representative;
+
+                    if (rep1.subset.size() < rep2.subset.size()) {
+                        City tmp = rep1;
+                        rep1 = rep2;
+                        rep2 = tmp;
+                    }
+
+                    for (City city : rep2.subset) {
+                        city.representative = rep1;
+                        if (needChangeKingdom)
+                            city.kingdom = !city.kingdom;
+                        rep1.subset.add(city);
+                    }
+                }
+
+            }
+
+            pw.println(ans);
+        }
+
+        pw.flush();
+
+    }
+
+    static class City {
+
+        final int num;
+        City representative;
+        List<City> subset = new ArrayList<City>();
+        boolean kingdom;
+
+        City(int num) {
+            this.num = num;
+        }
+
+    }
+
+    static class Edge {
+        int num;
+        City start;
+        City end;
+        int length;
+
+        Edge(int num, City start, City end, int length) {
+            this.num = num;
+            this.start = start;
+            this.end = end;
+            this.length = length;
+        }
+    }
+}

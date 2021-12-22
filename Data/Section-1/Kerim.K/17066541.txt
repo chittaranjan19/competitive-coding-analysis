@@ -1,0 +1,92 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+vector<pair<ll,PII> >v;
+int arr[1009][1009],d[MAXN*10],rank[MAXN*10],vis[1009][1009];
+int n,m;ll k;
+int dx[]={+1,-1,0,0};
+int dy[]={0,0,+1,-1};
+int atabul(int x){
+	if(d[x]==x)
+		return x;
+	return d[x]=atabul(d[x]);	
+}
+int ok(int x,int y){
+	if(x<1 or y<1 or x>n or y>m or vis[x][y])
+		return 0;
+	return 1;	
+}
+int get(int x,int y){
+	return (x-1)*m+y;
+}
+int tap(int x,int y,int v){
+	printf("YES\n");
+	queue<PII>q;
+	q.push(mp(x,y));
+	ll g=k/v,cnt=0;
+	while(!q.empty()){
+		int nx=q.front().ff,ny=q.front().ss;
+		q.pop();
+		vis[nx][ny]=1;cnt++;
+		if(cnt==g)
+			break;
+		for(int i=0;i<4;i++){
+			int tox=dx[i]+nx,toy=dy[i]+ny;
+			if(ok(tox,toy) and arr[tox][toy]>=v)
+				q.push(mp(tox,toy));
+		}
+	}
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=m;j++){
+			if(vis[i][j])
+				printf("%d ",v);
+			else
+				printf("0 ");
+		}
+		printf("\n");
+	}
+	exit(0);	
+}
+int main(){
+	scanf("%d%d%lld",&n,&m,&k);
+	for(int i=1;i<=n*m;i++)
+		d[i]=i,rank[i]=0;
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++){
+			scanf("%d",&arr[i][j]);
+			v.pb(mp(arr[i][j],mp(i,j)));
+		}	
+	sort(all(v));
+	for(int i=v.size()-1;i>=0;i--){
+		int xx=v[i].ss.ff,yy=v[i].ss.ss;
+		int h=atabul(get(xx,yy));
+		for(int i=0;i<4;i++){
+			int nx=dx[i]+xx;int ny=dy[i]+yy;
+			if(ok(nx,ny) and rank[atabul(get(nx,ny))]>0 and atabul(get(nx,ny))!=h	){
+				rank[h]+=rank[atabul(get(nx,ny))];
+				d[atabul(get(nx,ny))]=h;
+			}
+		}rank[h]++;
+		if(k%v[i].ff==0 and rank[h]*v[i].ff*1LL>=k)
+			tap(xx,yy,arr[xx][yy]);
+	}
+	printf("NO\n");
+	return 0;
+}

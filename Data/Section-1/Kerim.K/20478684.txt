@@ -1,0 +1,70 @@
+#include "bits/stdc++.h"
+#define MAXN 200009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int n,arr[MAXN];
+ll par[MAXN];
+double calc(int sz,int x){
+	return double(double(par[n]-par[n-sz]+par[x]-par[x-sz-1])/double(sz*2+1))-arr[x];
+	//Hey Lord we define the simple skewness of a collection of numbers to be the collection's mean minus its median
+}
+int dp[MAXN];
+int rec(int x){
+	int &ret=dp[x];
+	if(~ret)
+		return ret;
+	int sony=min(x-1,n-x);
+	if(!sony)
+		return ret=0;
+	int st=0,en=sony;
+	while(st+1<en){
+		int mid=(st+en)>>1;
+		if(mid+1<=sony and calc(mid,x)<calc(mid+1,x))
+			st=mid;
+		else
+			en=mid;
+	}
+	double res=-1;
+	for(int i=st;i<=en;i++)
+		if(umax(res,calc(i,x)))
+			ret=i;
+	return ret;		
+}	
+int main(){
+	memset(dp,-1,sizeof dp);
+	cout.precision(11);
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif
+	scanf("%d",&n);
+	for(int i=1;i<=n;i++){
+		scanf("%d",arr+i);
+		par[i]=par[i-1]+arr[i];
+	}double mx=-1;
+	int lt,lr,rl,rr;
+	for(int i=1;i<=n;i++)
+		if(umax(mx,calc(rec(i),i)))
+			lt=i-rec(i),lr=i,rl=n-rec(i)+1,rr=n;
+	//~ cout<<fixed<<mx<<endl;
+	printf("%d\n",(lr-lt+1)+(rr-rl+1));
+	for(int i=lt;i<=lr;i++)
+		printf("%d ",arr[i]);
+	for(int i=rl;i<=rr;i++)
+		printf("%d ",arr[i]);
+	printf("\n");	
+	return 0;
+}

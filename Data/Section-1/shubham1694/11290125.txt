@@ -1,0 +1,125 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define MOD 1000000007
+#define inf 1000000000
+#define maxn 1000000
+
+#define ll long long
+#define pii pair<int, int>
+#define pb push_back
+#define sin scanint
+#define bitcount(x) __builtin_popcount(x)
+#define fill(s, p) memset(s, p, sizeof(s));
+#define gc getchar
+
+void scanint(int &x)
+{
+    register int c = gc();
+    x = 0;
+    for(;(c<48 || c>57);c = gc());
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+}
+
+struct node{
+    int lst, st, maxval;
+};
+
+node segtree[510][10000];
+int mat[510][510];
+
+void init(int s, int e, int node_num, int t)
+{
+    if(s==e){
+        segtree[t][node_num].lst = segtree[t][node_num].st = segtree[t][node_num].maxval = mat[t][s];
+        return;
+    }
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*node_num + 1;
+    rc = lc+1;
+    init(s, mid, lc, t);
+    init(mid+1, e, rc, t);
+    if(segtree[t][lc].st==(mid-s+1))
+        segtree[t][node_num].st = segtree[t][lc].st + segtree[t][rc].st;
+    else
+        segtree[t][node_num].st = segtree[t][lc].st;
+    if(segtree[t][rc].lst==(e-mid))
+        segtree[t][node_num].lst = segtree[t][rc].lst + segtree[t][lc].lst;
+    else
+        segtree[t][node_num].lst = segtree[t][rc].st;
+    segtree[t][node_num].maxval = max(segtree[t][lc].maxval, segtree[t][rc].maxval);
+    if(segtree[t][lc].lst>0 && segtree[t][rc].st>0){
+        segtree[t][node_num].maxval = max(segtree[t][node_num].maxval, segtree[t][lc].lst + segtree[t][rc].st);
+    }
+    return;
+}
+
+void update(int s, int e, int q, int node_num, int t)
+{
+    if(s>e || s>q || q>e)
+        return;
+    if(s==e){
+        segtree[t][node_num].lst = segtree[t][node_num].st = segtree[t][node_num].maxval = mat[t][q];
+        return;
+    }
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*node_num + 1;
+    rc = lc+1;
+    update(s, mid, q, lc, t);
+    update(mid+1, e, q, rc, t);
+    if(segtree[t][lc].st==(mid-s+1))
+        segtree[t][node_num].st = segtree[t][lc].st + segtree[t][rc].st;
+    else
+        segtree[t][node_num].st = segtree[t][lc].st;
+    if(segtree[t][rc].lst==(e-mid))
+        segtree[t][node_num].lst = segtree[t][rc].lst + segtree[t][lc].lst;
+    else
+        segtree[t][node_num].lst = segtree[t][rc].st;
+    segtree[t][node_num].maxval = max(segtree[t][lc].maxval, segtree[t][rc].maxval);
+    if(segtree[t][lc].lst>0 && segtree[t][rc].st>0){
+        segtree[t][node_num].maxval = max(segtree[t][node_num].maxval, segtree[t][lc].lst + segtree[t][rc].st);
+    }
+    return;
+}
+
+int main()
+{
+    #ifndef ONLINE_JUDJE
+        freopen("input.txt", "r", stdin);
+    #endif
+    int n, m, q, i, j, k, ans;
+    sin(n);
+    sin(m);
+    sin(q);
+    for(i=0; i<n; i++){
+        for(j=0; j<m; j++){
+            sin(mat[i][j]);
+        }
+    }
+    for(i=0; i<n; i++){
+        init(0, m-1, 0, i);
+        //cout << segtree[i][0].maxval << " " << segtree[i][0].st << " " << segtree[i][0].lst << endl;
+    }
+    //for(i=0; i<7; i++)
+    //  cout << segtree[0][i].maxval << " " << segtree[0][i].st << " " << segtree[0][i].lst << endl;
+    while(q--){
+        sin(i), sin(j);
+        i--, j--;
+        if(mat[i][j]==1)
+            mat[i][j] = 0;
+        else
+            mat[i][j] = 1;
+        update(0, m-1, j, 0, i);
+        //for(i=0; i<7; i++)
+        //cout << segtree[0][i].maxval << " " << segtree[0][i].st << " " << segtree[0][i].lst << endl;
+        ans = 0;
+        for(k=0; k<n; k++){
+            ans = max(ans, segtree[k][0].maxval);
+        }
+        printf("%d\n", ans);
+    }
+    return 0;
+}

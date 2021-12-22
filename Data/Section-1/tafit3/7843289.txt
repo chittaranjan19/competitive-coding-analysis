@@ -1,0 +1,55 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class ProblemC {
+    long[] s;
+    long[] a;
+    long[][] d;
+    int m,n,k;
+
+    private ProblemC() throws IOException {
+        BufferedReader rd = new BufferedReader(new InputStreamReader(System.in));
+        String h = rd.readLine();
+        String[] q = h.split("\\s+");
+        n = Integer.parseInt(q[0]);
+        m = Integer.parseInt(q[1]);
+        k = Integer.parseInt(q[2]);
+        h = rd.readLine();
+        q = h.split("\\s+");
+        a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        s = new long[n-m+1];
+        long s1 = 0;
+        for(int i=0;i<m;i++) {
+            s1 += a[i];
+        }
+        s[0] = s1;
+        for(int i=1;i<n-m+1;i++) {
+            s[i] = s[i-1]-a[i-1]+a[i+m-1];
+        }
+        int p = 0;
+        d = new long[2][n+1];
+        for(int r=k;r>=0;r--) {
+            for(int t=0;t<=n;t++) {
+                long prev = t>0?d[p][t-1]:0;
+                d[p][t] = Math.max(d[p][t], prev);
+                if(r<k && t >= m) {
+                    d[p][t] = Math.max(d[p][t], d[1-p][t-m] + s[t-m]);
+                }
+            }
+            p = 1-p;
+        }
+        out(d[1 - p][n]);
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

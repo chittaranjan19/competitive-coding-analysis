@@ -1,0 +1,108 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 2000000000000000ll;
+#define task "LIQUORS"
+#define mp make_pair
+#define p2 pair<int, int>
+#define p4 pair< p2, p2 >
+#define F first
+#define S second
+
+using namespace std;
+pair<long long, int> h[mn];
+int num[mn], up[mn], down[mn], n, d, trace[mn], ans = 0, en;
+struct interval{
+    pair<int, int> tree[mn * 4];
+
+    void update(int l, int r, int id, int x, int w)
+    {
+        if (l > x || r < x)
+            return;
+        if (l == r)
+        {
+            tree[id] = mp(w, x);
+            return;
+        }
+        int g = ((l + r) >> 1);
+        update(l, g, id << 1, x, w);
+        update(g + 1, r, (id << 1) + 1, x, w);
+        tree[id] = max(tree[id << 1], tree[(id << 1) + 1]);
+    }
+
+    pair<int, int> getMax(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return mp(0, 0);
+        if (x <= l && r <= y)
+            return tree[id];
+        int g = ((l + r) >> 1);
+        pair<int, int> a = getMax(l, g, id << 1, x, y);
+        pair<int, int> b = getMax(g + 1, r, (id << 1) + 1, x, y);
+        return max(a, b);
+    }
+} t;
+
+void setup ()
+{
+    cin >> n >> d;
+    FOR(i, 1, n)
+    {
+        cin >> h[i].F;
+        h[i].S = i;
+    }
+    sort(h + 1, h + n + 1);
+    FOR(i, 1, n)
+        num[h[i].S] = i;
+    int id = 0;
+    FOR(i, 1, n)
+    {
+        while (h[id + 1].F <= h[i].F - d)
+            id ++;
+        down[h[i].S] = id;
+    }
+    id = n + 1;
+    FORD(i, n, 1)
+    {
+        while (h[id - 1].F >= h[i].F + d)
+            id --;
+        up[h[i].S] = id;
+    }
+}
+
+void xuly ()
+{
+    FOR(i, 1, n)
+    {
+        pair<int, int> x = t.getMax(1, n, 1, 1, down[i]);
+        pair<int, int> y = t.getMax(1, n, 1, up[i], n);
+        x = max(x, y);
+        trace[i] = h[x.S].S;
+        if (ans < x.F + 1)
+        {
+            ans = x.F + 1;
+            en = i;
+        }
+        t.update(1, n, 1, num[i], x.F + 1);
+    }
+    int way[mn];
+    cout << ans << "\n";
+    FOR(i, 1, ans)
+    {
+        way[i] = en;
+        en = trace[en];
+    }
+    FORD(i, ans, 1)
+    cout << way[i] << " ";
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

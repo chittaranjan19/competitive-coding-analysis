@@ -1,0 +1,65 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define llu unsigned long long
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define gc getchar_unlocked
+#define pb push_back
+
+const int lmt=105;
+int dp[lmt][lmt][2026];
+const int mod = (int)1e8;
+int n,m,k1,k2;
+
+int solve(int f,int h,int mask,int check){
+    if(f==0 && h==0)  return 1;
+    for(int i=max(k1,k2);i<32;i++)
+        mask &= ~(1<<i);
+    if(dp[f][h][mask] != -1) return dp[f][h][mask];
+    int res = 0;
+    if(f>0){
+        //cout<<"Footmen \n";
+        int tmask = mask<<1;
+        //cout<<tmask<<endl;
+        if(check<k1){
+            res += solve(f-1,h,tmask,check+1);
+        }else{
+            int cnt = 0;
+            for(int i=0;i<k1;i++){
+                if(!(mask&(1<<i))) cnt++;
+                else break;
+            }
+            if(cnt<k1)
+                res += solve(f-1,h,tmask,check+1);
+        }
+        res %= mod;
+    }
+    if(h>0){
+        int tmask = (mask<<1)|1;
+        if(check<k2){
+            res += solve(f,h-1,tmask,check+1);
+        }else{
+            int cnt = 0;
+            for(int i=0;i<k2;i++){
+                if((mask&(1<<i))) cnt++;
+                else break;
+            }
+            if(cnt<k2)
+                res += solve(f,h-1,tmask,check+1);
+        }
+        res %= mod;
+    }
+    dp[f][h][mask]=res;
+    //cout<<f<<" "<<h<<" "<<mask<<endl;
+    //DEBUG(res);
+    return res;
+}
+
+int main(){
+    memset(dp,-1,sizeof(dp));
+    scanf("%d %d %d %d",&n,&m,&k1,&k2);
+    int ans = solve(n,m,0,0);
+    printf("%d\n",ans);
+    return 0;
+}

@@ -1,0 +1,90 @@
+/* ***********************************************
+Author        :huriyang
+Created Time  :2016年05月06日 星期五 13时00分57秒
+File Name     :cf/617E.cpp
+************************************************ */
+
+#include <stdio.h>
+#include <string.h>
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <queue>
+#include <set>
+#include <map>
+#include <string>
+#include <math.h>
+#include <stdlib.h>
+#include <time.h>
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>P;
+#define mem(a,b) memset(a,b,sizeof(a))
+
+const int N=1e5+5;
+
+struct node
+{
+	int l,r,a,id;
+	bool operator<(const node&temp)const
+	{
+		if(a==temp.a) return r<temp.r;
+		return a>temp.a;
+	}
+}p[N];
+int date[N];
+int n,m,k,l,r,num[1<<22];
+ll all,ans[N];
+void query(int a,int b)
+{
+	while(r<b)
+	{
+		r++;
+		all+=num[date[r]^k];
+		num[date[r]]++;
+	}
+	while(l>a-1)
+	{
+		l--;
+		all+=num[date[l]^k];
+		num[date[l]]++;
+	}
+	while(b<r)
+	{
+		num[date[r]]--;
+		all-=num[date[r]^k];
+		r--;
+	}
+	while(l<a-1)
+	{
+		num[date[l]]--;
+		all-=num[date[l]^k];
+		l++;
+	}
+}
+int main()
+{
+    //freopen("in.txt","r",stdin);
+    //freopen("out.txt","w",stdout);
+    scanf("%d%d%d",&n,&m,&k);
+	for(int i=1;i<=n;i++){
+		scanf("%d",date+i);
+		date[i]^=date[i-1];
+	}
+	int len=(int)sqrt(n);
+	for(int i=1;i<=m;i++){
+		scanf("%d%d",&p[i].l,&p[i].r);
+		p[i].a=(p[i].l-1)/len;
+		p[i].id=i;
+	}
+	sort(p+1,p+m+1);
+	l=1,r=0;
+	for(int i=1;i<=m;i++){
+		query(p[i].l,p[i].r);
+		ans[p[i].id]=all;
+	}
+	for(int i=1;i<=m;i++){
+		printf("%I64d\n",ans[i]);
+	}
+    return 0;
+}

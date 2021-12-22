@@ -1,0 +1,102 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const int N = 100000;
+const int inf = (int)1e9;
+const int MOD = (int)1e9 + 7;
+const ld eps = 1e-6;
+const int ABC = 26;
+
+int main()
+{
+    //freopen("point.in", "r", stdin);
+    //freopen("point.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.precision(20);
+    string s, t, v;
+    cin >> s >> t >> v;
+    int n = s.size(), m = t.size(), l = v.size();
+    int dp[n + 1][m + 1][l + 1];
+    pair<pair<int, int>, int> come[n + 1][m + 1][l + 1];
+    for (int i = 0; i <= n; i++)
+        for (int j = 0; j <= m; j++)
+            for (int k = 0; k <= l; k++)
+                dp[i][j][k] = -inf;
+    for (int i = 0; i <= m; i++)
+        dp[0][i][0] = 0;
+    for (int i = 0; i <= n; i++)
+        dp[i][0][0] = 0;
+    for (int i = 1; i <= n; i++)
+        for (int j = 1; j <= m; j++)
+            for (int k = 0; k <= l; k++)
+            {
+                if (dp[i - 1][j][k] > dp[i][j][k])
+                {
+                    dp[i][j][k] = dp[i - 1][j][k];
+                    come[i][j][k] = {{i - 1, j}, k};
+                }
+                if (dp[i][j - 1][k] > dp[i][j][k])
+                {
+                    dp[i][j][k] = dp[i][j - 1][k];
+                    come[i][j][k] = {{i, j - 1}, k};
+                }
+                if (k == 0)
+                {
+                    if (s[i - 1] == t[j - 1])
+                        for (int r = 0; r < l; r++)
+                            if (s[i - 1] != v[r])
+                                if (dp[i - 1][j - 1][r] + 1 > dp[i][j][k])
+                                {
+                                    dp[i][j][k] = dp[i - 1][j - 1][r] + 1;
+                                    come[i][j][k] = {{i - 1, j - 1}, r};
+                                }
+                }
+                else
+                {
+                    if (s[i - 1] == t[j - 1] && s[i - 1] == v[k - 1])
+                        if (dp[i - 1][j - 1][k - 1] + 1 > dp[i][j][k])
+                        {
+                            dp[i][j][k] = dp[i - 1][j - 1][k - 1] + 1;
+                            come[i][j][k] = {{i - 1, j - 1}, k - 1};
+                        }
+                }
+            }
+    int ans = 0;
+    for (int i = 0; i < l; i++)
+        ans = max(ans, dp[n][m][i]);
+    if (ans == 0)
+    {
+        cout << 0 << endl;
+        return 0;
+    }
+    int i, j, k;
+    for (int r = 0; r < l; r++)
+        if (dp[n][m][r] == ans)
+        {
+            i = n;
+            j = m;
+            k = r;
+            break;
+        }
+    string res = "";
+    while (ans > 0)
+    {
+        int i1 = come[i][j][k].first.first, j1 = come[i][j][k].first.second, k1 = come[i][j][k].second;
+        if (i1 + 1 == i && j1 + 1 == j)
+        {
+            res += s[i1];
+            ans--;
+        }
+        i = i1;
+        j = j1;
+        k = k1;
+    }
+    reverse(res.begin(), res.end());
+    cout << res << endl;
+    return 0;
+}

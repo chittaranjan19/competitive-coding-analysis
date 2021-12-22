@@ -1,0 +1,87 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 6009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN],a,c,dp[MAXN],ans,lvl[MAXN],mxlvl,in[MAXN],out[MAXN],tim;
+set<PII>s;
+vector<int>adj[MAXN],level[MAXN];
+void dfs(int nd,int pr){
+	in[nd]=++tim;
+	if(pr!=-1)
+		lvl[nd]=lvl[pr]+1;
+	level[lvl[nd]].pb(nd);	
+	umax(mxlvl,lvl[nd]);
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to==pr)
+			continue;
+		dfs(to,nd);		
+	}
+	out[nd]=tim;
+}
+int anc(int x,int y){
+	if(in[x]<=in[y] and out[y]<=out[x])
+		return 1;
+	return 0;
+}
+int main(){
+	scanf("%d",&a);
+	for(int i=1;i<=a;i++)
+		scanf("%d",arr+i);	
+	for(int i=1;i<a;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	for(int k=1;k<=a;k++){
+		memset(lvl,0,sizeof(lvl));
+		memset(in,0,sizeof(in));
+		memset(out,0,sizeof(out));
+		mxlvl=tim=0;
+		s.clear();
+		dfs(k,-1);
+		for(int i=mxlvl;i>=0;i--){
+			for(int j=0;j<level[i].size();j++){
+				int nd=level[i][j],mak=0;
+				tr(it,s){
+					PII road=*it;
+					if(arr[road.ss]<arr[nd] and anc(nd,road.ss))
+						umax(mak,road.ff);
+				}
+				s.insert(mp(mak+1,nd));
+			}
+			level[i].resize(0);
+		}
+		if(s.size()>0){
+			PII mx=*(--s.end());
+			umax(ans,mx.ff);
+		}
+	}
+	printf("%d\n",ans);
+	return 0;
+}
+/*
+5
+8758 8771 8784 8797 8810
+4 1
+5 4
+2 1
+3 4
+*/

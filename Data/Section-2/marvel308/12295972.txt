@@ -1,0 +1,105 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<memory.h>
+#include<vector>
+using namespace std;
+#define max(a,b) (a>b?a:b)
+vector<int> G[100005];
+int parent[100005]={0},diameter[100005]={0},maxi,maxiV;
+bool visited[100005]={false};
+int getroot(int x)
+{
+    int deb;
+    //printf("x=%d\n",x);
+    //scanf("%d",&deb);
+    //printf("---\n");
+    if(parent[x]<0)
+    {
+        return x;
+    }
+    else
+    {
+        return parent[x]=getroot(parent[x]);
+    }
+}
+void union1(int x,int y)
+{
+    int setx=getroot(x);
+    int sety=getroot(y);
+    if(setx==sety)
+        return ;
+    if(abs(parent[setx])<abs(parent[sety]))
+    {
+        parent[setx]+=parent[sety];
+        parent[sety]=setx;
+        diameter[setx]=max(max(diameter[setx],diameter[sety]),(diameter[setx]+1)/2+(diameter[sety]+1)/2+1);
+    }
+    else
+    {
+        parent[sety]+=parent[setx];
+        parent[setx]=sety;
+        diameter[sety]=max(max(diameter[setx],diameter[sety]),(diameter[setx]+1)/2+(diameter[sety]+1)/2+1);
+    }
+}
+void dfs(int v, int depth, int p) {
+    if (depth > maxi) {
+        maxi = depth;
+        maxiV = v;
+    }
+    for (size_t i = 0; i < G[v].size(); i++) {
+        int to = G[v][i];
+        if (to != p) dfs(to, depth + 1, v);
+    }
+}
+
+int findLongestWay(int v) {
+    maxi = -1;
+    dfs(v, 0, -1);
+    maxi = -1;
+    dfs(maxiV, 0, -1);
+    return maxi;
+}
+int main()
+{
+    int n,m,q,i;
+    scanf("%d%d%d",&n,&m,&q);
+    memset(parent,-1,sizeof(parent));
+    for(i=0;i<m;i++)
+    {
+        int u,v;
+        scanf("%d%d",&u,&v);
+        union1(u,v);
+        G[u].push_back(v);
+        G[v].push_back(u);
+    }
+    //printf("-------\n");
+    for(i=1;i<=n;i++)
+    {
+        int x=getroot(i);
+        //printf("x=%d\n",x);
+        if(!visited[x])
+        {
+            visited[x]=true;
+            diameter[x]=findLongestWay(i);
+        }
+    }
+    while(q--)
+    {
+        int x;
+        scanf("%d",&x);
+        if(x==1)
+        {
+            int u;
+            scanf("%d",&u);
+            //printf("u=%d\n",getroot(u));
+            printf("%d\n",diameter[getroot(u)]);
+        }
+        else
+        {
+            int u,v;
+            scanf("%d%d",&u,&v);
+            union1(u,v);
+        }
+    }
+    return 0;
+}

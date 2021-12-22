@@ -1,0 +1,80 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+typedef long long ll;
+const int MAXN = 105;
+const int MOD = 1e9 + 7;
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+void addeq (int &x, int y) {
+	x = add(x, y);
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+struct matrix {
+	int data[MAXN][MAXN];
+	matrix() {
+		memset(data, 0, sizeof(data));
+	}
+
+	int* operator[] (int x) {
+		return data[x];
+	}
+};
+
+int N;
+
+matrix operator * (matrix m1, matrix m2) {
+	matrix m;
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < N; j++) {
+			for (int k = 0; k < N; k++) {
+				addeq(m[i][j], mult(m1[i][k], m2[k][j]));
+			}
+		}
+	}
+	return m;
+}
+
+ll A[MAXN];
+ll K;
+
+int main() {
+	scanf("%d %lld", &N, &K);
+	K--;
+	matrix cur;
+	for (int i = 0; i < N; i++) {
+		scanf("%lld", &A[i]);
+		for (int j = i; j >= 0; j--) {
+			if (__builtin_popcountll(A[i] ^ A[j]) % 3 == 0) {
+				cur[i][j] = cur[j][i] = 1;
+			}
+		}
+	}
+
+	matrix pwr;
+	for (int i = 0; i < N; i++) {
+		pwr[i][i] = 1;
+	}
+
+	for (; K; K >>= 1) {
+		if (K & 1) {
+			pwr = pwr * cur;
+		}
+		cur = cur * cur;
+	}
+
+	int ans = 0;
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < N; j++) {
+			addeq(ans, pwr[i][j]);
+		}
+	}
+	printf("%d\n", ans);
+}

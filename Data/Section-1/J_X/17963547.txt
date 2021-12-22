@@ -1,0 +1,90 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#define ls rt << 1
+#define rs rt << 1 | 1
+#define lson ls, l, m
+#define rson rs, m + 1, r
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 1e5 + 5;
+const ll INF = 1LL << 60;
+
+struct segtree
+{
+    ll node[maxn << 2];
+
+    void modify(int rt, ll mn)
+    {
+        node[rt] = min(node[rt], mn);
+    }
+
+    void pushup(int rt)
+    {
+        node[rt] = min(node[ls], node[rs]);
+    }
+
+    void build(int rt, int l, int r)
+    {
+        node[rt] = INF;
+        if(l == r) return;
+        int m = (l + r) >> 1;
+        build(lson), build(rson);
+    }
+
+    void update(int rt, int l, int r, int p, ll mn)
+    {
+        if(l == r)
+        {
+            modify(rt, mn);
+            return;
+        }
+        int m = (l + r) >> 1;
+        p <= m ? update(lson, p, mn) : update(rson, p, mn);
+        pushup(rt);
+    }
+
+    ll query(int rt, int l, int r, int x, int y)
+    {
+        if(x <= l && r <= y) return node[rt];
+        int m = (l + r) >> 1;
+        ll ret = INF;
+        if(x <= m) ret = min(ret, query(lson, x, y));
+        if(m < y) ret = min(ret, query(rson, x, y));
+        return ret;
+    }
+} tree;
+int rg[maxn], id[maxn];
+
+bool cmp(int a, int b)
+{
+    return rg[a] != rg[b] ? rg[a] > rg[b] : a > b;
+}
+
+int main()
+{
+    int n;
+    scanf("%d", &n);
+    tree.build(1, 1, n);
+    for(int i = 1; i < n; ++i)
+    {
+        scanf("%d", rg + i);
+        id[i] = i;
+    }
+    sort(id + 1, id + n, cmp);
+    tree.update(1, 1, n, n, n);
+    ll ans = 0;
+    for(int i = 1; i < n; ++i)
+    {
+        int p = id[i];
+        ll tmp = tree.query(1, 1, n, p + 1, rg[p]) + n - p - rg[p];
+        ans += tmp;
+        tree.update(1, 1, n, p, tmp + p);
+    }
+    printf("%I64d\n", ans);
+    return 0;
+}

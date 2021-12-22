@@ -1,0 +1,103 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 20004
+#define bas1 1000
+#define bas2 1123
+#define maxC 1000000000
+#define maxF 1234567890
+#define task "SHORTEST"
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+string s[mn];
+pair< pair<long long, long long>, int> p[mn];
+int n, k = 0;
+vector<int> g[mn];
+
+string xuly(int x)
+{
+    string domai = "", login = "";
+    bool pass = false;
+    FOR(i, 0, int(s[x].length()) - 1)
+    {
+        if (s[x][i] == '@')
+        {
+            pass = true;
+            continue;
+        }
+        if (!pass)
+        {
+            if (s[x][i] == '.')
+                continue;
+            char add = s[x][i];
+            if ('A' <= add && add <= 'Z')
+                add += ('a' - 'A');
+            login += add;
+            continue;
+        }
+        char add = s[x][i];
+        if ('A' <= add && add <= 'Z')
+            add += ('a' - 'A');
+        domai += add;
+    }
+    if (domai == "bmail.com")
+    {
+        FOR(i, 0, int(login.length()) - 1)
+        if (login[i] == '+')
+        {
+            login = login.substr(0, i);
+            break;
+        }
+    }
+    return login + '@' + domai;
+}
+
+long long hashing(string s, long long base, long long mod)
+{
+    long long re = 0;
+    FOR(i, 0, int(s.length()) - 1)
+        re = (re * base + s[i]) % mod;
+    return re;
+}
+
+void setup ()
+{
+    cin >> n;
+    FOR(i, 1, n)
+    {
+        cin >> s[i];
+        p[i] = mp(mp(hashing(xuly(i), bas1, maxC), hashing(xuly(i), bas2, maxF)), i);
+    }
+    sort(p + 1, p + n + 1);
+    p[n + 1].first = mp(-1, -1);
+    int begi = 1;
+    g[0].pb(p[1].second);
+    FOR(i, 2, n + 1)
+    {
+        if (p[i].first != p[begi].first)
+        {
+            k ++;
+            begi = i;
+        }
+        g[k].pb(p[i].second);
+    }
+    cout << k << "\n";
+    FOR(i, 0, k - 1)
+    {
+        cout << g[i].size() << " ";
+        FOR(j, 0, int(g[i].size()) - 1)
+            cout << s[g[i][j]] << " ";
+        cout << "\n";
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    return 0;
+}

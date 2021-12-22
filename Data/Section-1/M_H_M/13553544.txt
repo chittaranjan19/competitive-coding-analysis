@@ -1,0 +1,100 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+#define PB push_back
+#define MP make_pair
+#define X first
+#define Y second
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+
+const int N = 150 * 1000 + 100;
+
+int n, m, h;
+int mn[4 * N];
+int lazy[4 * N];
+int b[N];
+int a[N];
+
+void build(int v, int s, int e){
+	if(e - s == 1){
+		mn[v] = -1 * s;
+		return;
+	}
+	int mid = (s + e) / 2;
+	build(2 * v + 0, s, mid);
+	build(2 * v + 1, mid, e);
+	mn[v] = min(mn[2 * v + 0], mn[2 * v + 1]);
+}
+
+void shift(int v){
+	mn[2 * v + 0] += lazy[v];
+	mn[2 * v + 1] += lazy[v];
+	lazy[2 * v + 0] += lazy[v];
+	lazy[2 * v + 1] += lazy[v];
+	lazy[v] = 0;
+}
+
+void update(int v, int s, int e, int l, int r, int val){
+	if(e <= l || r <= s) return;
+	if(l <= s && e <= r){
+		mn[v] +=  val;
+		lazy[v] += val;
+		return;
+	}
+	int mid = (s + e) / 2;
+	shift(v);
+	update(2 * v + 0, s, mid, l, r, val);
+	update(2 * v + 1, mid, e, l, r, val);
+	mn[v] = min(mn[2 * v + 0], mn[2 * v + 1]);
+}
+
+void add(int p){
+	if(p == -1) return;
+	update(1, 0, m, m - p - 1, m, 1);
+}
+
+void rm(int p){
+	if(p == -1) return;
+	update(1, 0, m, m - p - 1, m, -1);
+}
+
+bool isgoodmn(){
+	return (mn[1] > 0);
+}
+
+int match(int p){
+	int f = -1, l = m;
+	while(l - f > 1){
+		int mid = (f + l) / 2;
+		if(a[p] + b[mid] >= h)
+			f = mid;
+		else
+			l = mid;
+	}
+	return f;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m >> h;
+	for(int i = 0; i < m; ++i) cin >> b[i];
+	for(int i = 0; i < n; ++i) cin >> a[i];
+	sort(b, b + m);
+	reverse(b, b + m);
+	build(1, 0, m);
+	for(int i = 0; i < m; ++i)
+		add(match(i));
+	int ans = 0;
+	for(int i = m; i < n; ++i){
+		if(isgoodmn()) ans ++;
+		add(match(i));
+		rm(match(i - m));
+	}
+	ans += isgoodmn();
+	cout << ans << "\n";
+	return 0;
+}

@@ -1,0 +1,87 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD {
+    private ProblemD() throws IOException {
+        BufferedReader rd = new BufferedReader(new InputStreamReader(System.in));
+        String h = rd.readLine();
+        String[] q = h.split("\\s+");
+        int n = Integer.parseInt(q[0]);
+        int k = Integer.parseInt(q[1]);
+        int[][] idx = new int[k][n];
+        for(int i=0;i<k;i++) {
+            h = rd.readLine();
+            q = h.split("\\s+");
+            for(int j=0;j<n;j++) {
+                int a = Integer.parseInt(q[j]);
+                idx[i][a-1] = j;
+            }
+        }
+
+        boolean[][] pairs = new boolean[n][n];
+        boolean found = false;
+        for(int i=0;i<n;i++) {
+            for(int j=0;j<n;j++) {
+                if(i != j) {
+                    boolean ok = true;
+                    int m = 0;
+                    while(ok && m < k) {
+                        ok = idx[m][i] < idx[m][j];
+                        m++;
+                    }
+                    if(ok) {
+                        pairs[i][j] = true;
+                        found = true;
+                    }
+                }
+            }
+        }
+
+        int len = 1;
+        if(found) {
+            boolean[] nonInitial = new boolean[n];
+            boolean[] initial = new boolean[n];
+            for(int i=0;i<n;i++) {
+                for(int j=0;j<n;j++) {
+                    if(pairs[i][j]) {
+                        if(nonInitial[i]) {
+                            initial[j] = false;
+                        } else {
+                            initial[i] = true;
+                        }
+                        nonInitial[j] = true;
+                    }
+                }
+            }
+
+            for(int i=0;i<n;i++) {
+                if(initial[i]) {
+                    Queue<int[]> queue = new LinkedList<int[]>();
+                    queue.add(new int[] { i, 1 });
+                    while(!queue.isEmpty()) {
+                        int[] p = queue.poll();
+                        for(int j=0;j<n;j++) {
+                            if(pairs[p[0]][j]) {
+                                if(len < p[1]+1) {
+                                    len = p[1]+1;
+                                }
+                                queue.add(new int[] { j, p[1]+1 });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        out(len);
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

@@ -1,0 +1,102 @@
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
+#include <algorithm>
+#include <map>
+#include <vector>
+#include <string>
+#include <queue>
+using namespace std;
+
+char str[1000010];
+
+int tree[1000010],l,q[1000010],ans[100010];
+
+void update(int pos)
+{
+    while(pos<=l)
+    {
+        tree[pos]++;
+        pos+=pos&-pos;
+    }
+    return;
+}
+
+int query(int pos)
+{
+    int res=0;
+    while(pos>0)
+    {
+     //   printf("%d\n",pos);
+        res=res+tree[pos];
+        pos-=pos&-pos;
+    }
+    return res;
+}
+
+struct node
+{
+    int l,r,id;
+    bool operator <(const node &b)const
+    {
+        return l>b.l;
+    }
+}a[100010],back[1000010];
+
+bool cmp(node p1,node p2)
+{
+    return p1.l<p2.l;
+}
+
+int main()
+{
+    scanf("%s",str);
+    l=strlen(str);
+    int rear=0,i,k=0,n;
+    for(i=0;i<l;i++)
+    {
+        if(str[i]=='(')
+            q[rear++]=i;
+        else
+        {
+            if(rear>0)
+            {
+                back[++k].r=i+1;
+                back[k].l=q[--rear]+1;
+               // printf("%d %d\n",i+1,q[rear]+1);
+            }
+        }
+    }
+    scanf("%d",&n);
+    for(i=1;i<=n;i++)
+    {
+        scanf("%d%d",&a[i].l,&a[i].r);
+        a[i].id=i;
+    }
+    sort(back+1,back+1+k);
+    sort(a+1,a+1+n);
+    int now=1;
+    memset(tree,0,sizeof(tree));
+    for(i=1;i<=k;i++)
+    {
+        if(back[i].l>=a[now].l)
+        {
+            update(back[i].r);
+        }
+        else
+        {
+            ans[a[now].id]=query(a[now].r)-query(a[now].l);
+            i--;
+            now++;
+            if(now>n)
+                break;
+        }
+    }
+    for(i=now;i<=n;i++)
+          ans[a[i].id]=query(a[i].r)-query(a[i].l);
+    for(i=1;i<=n;i++)
+        printf("%d\n",2*ans[i]);
+    return 0;
+}

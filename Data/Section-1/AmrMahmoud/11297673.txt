@@ -1,0 +1,120 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+#include <fstream>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+vector<pair<int, int> > v;
+int res[200005];
+bool vis[200005];
+
+struct disjointset
+{
+    vector<int> rank, parent, minL, maxR;
+    int subtrees;
+
+    disjointset(int n)
+    {
+        subtrees = n;
+        for(int i=0;i<n;i++)
+            rank.pb(1),parent.pb(i), minL.pb(i), maxR.pb(i);
+    }
+
+    int find_set(int x)
+    {
+        if(x == parent[x])
+            return x;
+        return parent[x] = find_set(parent[x]);
+    }
+
+    void link(int x,int y)
+    {
+        if(rank[x] > rank[y])
+            swap(x, y);
+    int t = find_set(y), tt = find_set(x);
+        parent[x] = y;
+        minL[t] = min(minL[t], minL[tt]);
+        maxR[t] = max(maxR[t], maxR[tt]);
+        if(rank[x] == rank[y])
+            rank[y]++;
+    }
+
+    bool union_sets(int x,int y)
+    {
+        x = find_set(x),y = find_set(y);
+        if(x != y)
+        {
+            link(x,y);
+            subtrees--;
+        }
+        return x != y;
+    }
+
+    bool same_set(int x,int y)
+    {
+        return find_set(x) == find_set(y);
+    }
+};
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  int n, x;
+  cin >> n;
+  for(int i=0;i<n;i++)
+  {
+    cin >> x;
+    v.push_back(mp(x, i));
+  }
+  sort(v.begin(), v.end());
+  disjointset solve(n + 5);
+  for(int i=n-1;i>=0;i--)
+  {
+    int ind = v[i].s;
+    vis[ind] = true;
+    x = v[i].f;
+    if(ind != n - 1 && vis[ind + 1])
+      solve.union_sets(ind, ind + 1);
+    if(ind != 0 && vis[ind - 1])
+      solve.union_sets(ind, ind - 1);
+    ind = solve.find_set(ind);
+    int dist = solve.maxR[ind] - solve.minL[ind] + 1;
+    while(dist && res[dist] == 0)
+      res[dist--] = x;
+  }
+  for(int i=1;i<=n;i++)
+    cout << res[i] << " ";
+  return 0;
+}

@@ -1,0 +1,98 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <map>
+#include <set>
+
+using namespace std;
+
+typedef pair<int, int> P;
+typedef long long ll;
+typedef set<int>::iterator ite;
+
+const int MAXN = 1e5 + 5;
+const int mod = 1e9 + 9;
+
+map<P, int> mp;
+P p[MAXN];
+set<int> st;
+int num[MAXN];
+
+ll fast_pow(ll x, int n)
+{
+    ll ret = 1;
+    while(n)
+    {
+        if(n & 1)
+        {
+            ret = ret * x % mod;
+        }
+        x = x * x % mod;
+        n >>= 1;
+    }
+    return ret;
+}
+
+void add(int k)
+{
+    int x = p[k].first, y = p[k].second;
+    if(!y) return;
+    for(int i = -1; i < 2; ++i)
+    {
+        int tmp = mp[P(x + i, y - 1)];
+        if(tmp && --num[tmp] == 0)
+        {
+            st.insert(tmp);
+        }
+    }
+}
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        ll ans = 0;
+        mp.clear();
+        for(int i = 1; i <= n; ++i)
+        {
+            num[i] = 0;
+            scanf("%d%d", &p[i].first, &p[i].second);
+            mp[P(p[i].first, p[i].second)] = i;
+        }
+        for(int i = 1; i <= n; ++i)
+        {
+            int x = p[i].first, y = p[i].second;
+            if(y)
+            {
+                for(int j = -1; j < 2; ++j)
+                {
+                    int tmp = mp[P(x + j, y - 1)];
+                    if(tmp)
+                    {
+                        ++num[tmp];
+                    }
+                }
+            }
+        }
+        for(int i = 1; i <= n; ++i)
+        {
+            if(!num[i])
+            {
+                st.insert(i);
+            }
+        }
+        int turn = 0, now = n - 1;
+        while(!st.empty())
+        {
+            ite p = turn ? st.begin() : --st.end();
+            int m = *p;
+            ans = (ans + (m - 1) * fast_pow(n, now--) % mod) % mod;
+            st.erase(p);
+            add(m);
+            turn ^= 1;
+        }
+        printf("%I64d\n", ans);
+    }
+    return 0;
+}

@@ -1,0 +1,100 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<int> graph[100005];
+bool v[100005];
+bool color[100005];
+int c1, c2;
+
+bool dfs(int node, bool c)
+{
+  if(v[node]) return (color[node] == c);
+  v[node] = true;
+  color[node] = c;
+  if(c) c1++;
+  else c2++;
+  for(int i=0;i<graph[node].size();i++)
+    if(!dfs(graph[node][i], !c))
+      return false;
+  return true;
+}
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  //freopen("funny.in", "r", stdin);
+  //freopen("funny.out", "w", stdout);
+  int n, m, x, y;
+  cin >> n >> m;
+  if(m == 0)
+  {
+    cout << "3 " << n * 1LL * (n - 1) * (n - 2) / 6;
+    return 0;
+  }
+  bool test = true;
+  for(int i=0;i<m;i++)
+  {
+    cin >> x >> y;
+    graph[x].pb(y);
+    graph[y].pb(x);
+    test &= (graph[x].size() == 1);
+    test &= (graph[y].size() == 1);
+  }
+  if(test)
+  {
+    cout << "2 " << m * 1LL * (n - 2);
+    return 0;
+  }
+  test = true;
+  LL res = 0;
+  for(int i=1;i<=n && test;i++)
+  {
+    if(v[i]) continue;
+    c1 = c2 = 0;
+    test &= dfs(i, 0);
+    res+=c1 * 1LL * (c1 - 1) / 2;
+    res+=c2 * 1LL * (c2 - 1) / 2;
+  }
+  if(!test)
+  {
+    cout << "0 1";
+    return 0;
+  }
+  cout << "1 " << res;
+  return 0;
+}

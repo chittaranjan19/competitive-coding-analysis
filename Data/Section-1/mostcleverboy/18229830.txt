@@ -1,0 +1,76 @@
+program j01;
+var a,t,f,g,b,x:Array[1..1000001]of longint;
+    n,i,j,m,ans:longint;
+function lowbit(x:longint):longint;
+begin
+  exit(x and(-x));
+end;
+procedure qs(l,r:longint);
+var i,j,x,y:longint;
+begin
+  i:=l;
+  j:=r;
+  x:=a[b[(i+j)div 2]];
+  repeat
+    while a[b[i]]<x do inc(i);
+    while x<a[b[j]] do dec(j);
+    if i<=j then
+    begin
+      y:=b[i];
+      b[i]:=b[j];
+      b[j]:=y;
+      inc(i);
+      dec(j);
+    end;
+  until i>j;
+  if i>r then qs(i,r);
+  if l<j then qs(l,j);
+end;
+procedure add(i,x:longint);
+begin
+  while i<=n do
+  begin
+    t[i]:=t[i]+x;
+    i:=i+lowbit(i);
+  end;
+end;
+function sum(i:longint):longint;
+begin
+  sum:=0;
+  while i>0 do
+  begin
+    sum:=sum+t[i];
+    i:=i-lowbit(i);
+  end;
+end;
+begin
+  readln(n);
+  for i:=1 to n do
+  begin
+    read(a[i]);
+    b[i]:=i;
+  end;
+  qs(1,n);
+  m:=1;
+  x[b[1]]:=1;
+  for i:=2 to n do
+  begin
+    if a[b[i]]<>a[b[i-1]] then inc(m);
+    x[b[i]]:=m;
+  end;
+  fillchar(t,sizeof(t),0);
+  for i:=1 to n do
+  begin
+    f[i]:=sum(m)-sum(x[i]);
+    add(x[i],1);
+  end;
+  fillchar(t,sizeof(t),0);
+  for i:=n downto 1 do
+  begin
+    g[i]:=sum(x[i]-1);
+    add(x[i],1);
+  end;
+  ans:=0;
+  for i:=1 to n do ans:=ans+f[i]*g[i];
+  writeln(ans);
+end.

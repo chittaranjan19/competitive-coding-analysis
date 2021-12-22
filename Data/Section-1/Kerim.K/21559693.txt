@@ -1,0 +1,120 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int fup[MAXN],tin[MAXN],TIM,size[MAXN];
+vector<PII>adj[MAXN];
+vector<int>way[MAXN];
+stack<int>tmp;
+int col[MAXN],S,sum[MAXN],vis[MAXN];
+void dfs(int nd,int pr){
+	tmp.push(nd);
+	fup[nd]=tin[nd]=++TIM;
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i].ff;
+		if(to==pr)
+			continue;
+		if(!tin[to]){
+			dfs(to,nd);
+			umin(fup[nd],fup[to]);
+		}
+		else
+			umin(fup[nd],tin[to]);
+	}
+	if(fup[nd]==tin[nd]){
+		col[nd]=++S;
+		size[S]=1;
+		while(tmp.top()!=nd){
+			col[tmp.top()]=S;
+			size[S]++;
+			tmp.pop();
+		}
+		tmp.pop();
+	}
+}
+int par[MAXN];
+void dfs1(int nd,int pr){
+	par[nd]=pr;
+	if(~pr)
+		sum[nd]=size[nd]+sum[pr];
+	else
+		sum[nd]=size[nd];
+	for(int i=0;i<int(way[nd].size());i++){
+		int to=way[nd][i];
+		if(to==pr)
+			continue;
+		dfs1(to,nd);	
+	}
+}
+PII ans[MAXN];
+void dfs2(int nd){
+	if(vis[nd])
+		return;
+	vis[nd]=1;	
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i].ff;
+		int ind=adj[nd][i].ss;
+		if(col[nd]!=col[to])
+			continue;
+		dfs2(to);
+		ans[ind]=mp(nd,to);	
+	}
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif
+	int n,m;
+	scanf("%d%d",&n,&m);
+	vector<PII>edges;
+	edges.pb(mp(-1,-1));
+	for(int i=1;i<=m;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(mp(v,i));
+		adj[v].pb(mp(u,i));
+		edges.pb(mp(u,v));
+	}	
+	dfs(1,-1);
+	int mx=0,root;
+	for(int i=1;i<=S;i++)
+		if(umax(mx,size[i]))
+			root=i;				
+	tr(it,edges)
+		if(col[it->ff]!=col[it->ss]){
+			way[col[it->ff]].pb(col[it->ss]);
+			way[col[it->ss]].pb(col[it->ff]);
+		}
+	dfs1(root,-1);	
+	printf("%d\n",*min_element(sum+1,sum+S+1));
+	for(int i=1;i<=n;i++)
+		if(!vis[i])
+			dfs2(i);
+	for(int i=1;i<=m;i++){
+		int u=edges[i].ff;
+		int v=edges[i].ss;
+		if(col[u]!=col[v]){
+			if(par[col[v]]==col[u])
+				printf("%d %d\n",v,u);
+			else
+				printf("%d %d\n",u,v);
+			continue;	
+		}
+		printf("%d %d\n",ans[i].ff,ans[i].ss);
+	}
+	return 0;
+}

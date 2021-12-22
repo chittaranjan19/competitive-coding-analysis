@@ -1,0 +1,61 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define f first
+#define s second
+#define mp make_pair
+
+typedef pair<int, int> pii; 
+
+const int maxn = 100010;
+
+int n, m, matched[maxn], k[maxn];
+pair<pii, int> note[maxn];
+pair<pii, pii> actor[maxn];
+set<pair<pii, int> > valid;
+set<pair<pii, int> > :: iterator it; 
+
+int main()
+{
+	int i, js, je;
+	scanf("%d", &n);	
+	for(i=1; i<=n; i++){
+		scanf("%d%d", &note[i].f.f, &note[i].f.s);
+		note[i].s = i;	
+	}	
+	scanf("%d", &m);	
+	for(i=1; i<=m; i++){
+		scanf("%d%d%d", &actor[i].f.f, &actor[i].f.s, &actor[i].s.f);
+		actor[i].s.s = i;
+		k[i] = actor[i].s.f;
+	}
+	sort(note+1, note+n+1);
+	sort(actor+1, actor+m+1);
+	js = je = 1;	
+	for(i=1; i<=n; i++){
+		while(je<=m){
+			if(actor[je].f.f > note[i].f.f)
+				break;
+			valid.insert(mp(mp(actor[je].f.s, actor[je].s.s), k[actor[je].s.s]));		
+			je++;
+		}
+		it = valid.lower_bound(mp(mp(note[i].f.s, 0), 1));
+		if(it == valid.end()){
+			printf("NO\n");
+			return 0;
+		}
+		matched[note[i].s] = (*it).f.s;	
+		pair<pii, int> v = mp((*it).f, (*it).s);
+		valid.erase(it);	
+		v.s--;	
+		k[v.f.s]--;
+		if(v.s)
+			valid.insert(v);
+	}
+	printf("YES\n");
+	for(i=1; i<=n; i++)
+		printf("%d ", matched[i]);
+	printf("\n");
+	return 0;
+}

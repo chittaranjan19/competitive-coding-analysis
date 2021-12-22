@@ -1,0 +1,97 @@
+#include <iostream>
+#include <algorithm>
+#include <map>
+
+using namespace std;
+typedef long long ll;
+
+const ll mod = 1000000007LL;
+const int N = 1000005;
+
+ll arr[N];
+ll sorted[N];
+ll counts[N];
+ll countLeftover[N];
+map<ll, ll> condenseMap;
+
+ll dp1[N];
+ll cum[N];
+ll dp2[N];
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	// read input
+	int n; ll lInput; int kInput;
+	cin >> n >> lInput >> kInput;
+	for (int i = 0; i < n; i++) cin >> arr[i];
+
+	// condense input sequence
+	for (int i = 0; i < n; i++) sorted[i] = arr[i];
+	sort(&sorted[0], &sorted[n]);
+
+	int curr = 0;
+	counts[curr] = 0;
+	condenseMap[sorted[0]] = curr;
+	counts[curr]++;
+	for (int i = 1; i < n; i++) {
+		if (sorted[i] != sorted[i-1]) {
+			curr++;
+			counts[curr] = 0;
+			condenseMap[sorted[i]] = curr;
+		}
+		counts[curr]++;
+	}
+	int numUniq = curr+1;
+
+	// max length of sequence with full choice
+	int maxk = (int)min((ll)kInput, lInput / n);
+
+	// count of "leftovers"
+	for (int i = 0; i < numUniq; i++) countLeftover[i] = 0;
+	if (lInput/n < kInput && (lInput % n) > 0) {
+		int x = (int)(lInput % n);
+		for (int i = 0; i < x; i++) {
+			countLeftover[condenseMap[arr[i]]]++;
+		}
+	}
+
+	// compute dp and add ans for 1 <= k <= maxk
+	ll ans = 0;
+	for (int i = 0; i < numUniq; i++) {
+		dp1[i] = 0;
+		cum[i] = 1;
+	}
+	for (int k = 1; k <= maxk; k++) {
+		for (int i = 0; i < numUniq; i++) {
+			dp2[i] = (cum[i] * counts[i]) % mod;
+
+			// we can "shift" this sequence multiples of n to the right
+			ll mul = maxk+1 - k;
+			ans = (ans + dp2[i]*mul) % mod;
+
+			// special case: shift to last part
+			ans = (ans + cum[i] * countLeftover[i]) % mod;
+		}
+
+		for (int i = 0; i < numUniq; i++) dp1[i] = dp2[i];
+		cum[0] = dp1[0];
+		for (int i = 1; i < numUniq; i++) {
+			cum[i] = (cum[i-1] + dp1[i]) % mod;
+		}
+
+		//cerr << "dp[" << k << "] = "; for (int i = 0; i < numUniq; i++) cerr << dp1[i] << " "; cerr << endl;
+	}
+
+	// the last number may have limited choice
+	if (lInput/n < kInput && (lInput % n) > 0) {
+		int x = (int)(lInput % n);
+		for (int i = 0; i < x; i++) {
+			ans = (ans + cum[condenseMap[arr[i]]]) % mod;
+		}
+	}
+
+	cout << ans << endl;
+	
+}

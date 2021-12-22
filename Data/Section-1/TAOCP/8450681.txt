@@ -1,0 +1,45 @@
+#include <cstdio>
+#include <algorithm>
+
+using namespace std;
+
+int rest[222];
+double p[222];
+double dp[222][222][2222];
+
+int main() {
+   int n, l, k;
+   double ans = 0;
+   
+   scanf("%d %d %d", &n, &l, &k);
+   for (int i = 1; i <= n; i++) {
+      int x;
+      scanf("%d", &x);
+      p[i] = (double)x / 100;
+      
+   }
+   for (int i = 1; i <= n; i++) scanf("%d", &rest[i]);
+   
+   const int zero = 200;
+   const int end = zero + 200;
+   dp[0][0][zero+k] = 1;
+   for (int i = 1; i <= n; i++)
+      for (int j = 1; j <= i; j++)
+         for (int k = 0; k <= end; k++) {
+            if (rest[i] != -1) {
+               int x = min(200, k + rest[i]);
+               dp[i][j][x] += dp[i-1][j-1][k] * p[i];
+            }
+            
+            else if (k > 0) dp[i][j][k-1] += dp[i-1][j-1][k] * p[i];
+            dp[i][j-1][k] += dp[i-1][j-1][k] * (1 - p[i]);
+         }
+   
+   for (int i = l; i <= n; i++)
+      for (int j = zero; j <= end; j++)
+         ans += dp[n][i][j];
+         
+   printf("%.12f\n", ans);
+
+   return 0;
+}

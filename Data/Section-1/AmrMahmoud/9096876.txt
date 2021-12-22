@@ -1,0 +1,89 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int fail[5005];
+int res[5005];
+bool dub[5005][5005];
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    string s1,s2;
+    cin >> s1 >> s2;
+    int sol = INF_MAX;
+    string s = s1;
+    for(int i=0;;i++)
+    {
+        int k = 0;
+        for(int j=1;j<s1.size();j++)
+        {
+            while(k > 0 && s1[k] != s1[j])
+                k = fail[k-1];
+            if(s1[k] == s1[j]) k++,dub[i][i + k - 1] = dub[i + j - k + 1][i + j] = true;
+            fail[j] = k;
+        }
+        if(s1.size() == 1) break;
+        s1 = s1.substr(1, s1.size());
+    }
+    s1 = s;
+    for(int i=0;;i++)
+    {
+        setzero(res);
+        int k = 0;
+        for(int j=1;j<s1.size();j++)
+        {
+            while(k > 0 && s1[k] != s1[j])
+                k = fail[k-1];
+            if(s1[k] == s1[j]) k++;
+            fail[j] = k;
+        }
+        k = 0;
+        for(int j=0;j<s2.size();j++)
+        {
+            while(k > 0 && s1[k] != s2[j])
+                k = fail[k-1];
+            if(s1[k] == s2[j]) res[++k]++;
+            if(k == s1.size()) k = fail[k];
+        }
+        for(int j=1;j<=s1.size();j++)
+            if(res[j] == 1 && !dub[i][i + j - 1])
+                sol = min(sol, j);
+        if(s1.size() == 1) break;
+        s1 = s1.substr(1, s1.size());
+    }
+    if(sol == INF_MAX)
+        sol = -1;
+    cout << sol;
+    return 0;
+}

@@ -1,0 +1,266 @@
+#include<stdio.h>
+typedef struct
+{
+  char a,b;
+}Node;
+typedef struct
+{
+  int x;
+  char y1;
+  char y2;
+  char y3;
+}NNode;
+int fun1(char *s,char *s1,char *a,char *b)
+{
+  int i=0;
+  while(s[i]!='\0'&&s1[i]!='\0'&&s[i]==s1[i]) i++;
+  if(s[i]>s1[i])
+  {
+    *a=s[i];
+    *b=s1[i];
+    return 1;
+  }
+  else
+  {
+    *a=s[i];
+    *b=s1[i];
+    return 0;
+  }
+}
+int main()
+{
+  NNode e[110];
+  int ch[30],cc[30];
+  char ans[30];
+  int b[30],i,j,k,u,v,n,o,r,match,h1,h2,co;
+  char a[30],t1,t2;
+  char s[110][110];
+  Node y[110];
+  while(scanf("%d",&n)!=EOF)
+  {
+    match=1;
+    for(i=0;i<30;i++)
+      a[i]='A';
+    for(j=0;j<30;j++)
+      b[j]=0;
+    for(i=0;i<110;i++)
+      e[i].x=0;
+    for(k=j=0,match=1,i=0;i<n;i++)
+    {
+      scanf("%s",s[i]);
+      if(b[s[i][0]-'a']==0)
+      {
+        b[s[i][0]-'a']=1;
+        a[j++]=s[i][0];
+      }
+      else
+      {
+        if(s[i-1][0]==s[i][0])
+        {
+          fun1(s[i-1],s[i],&t1,&t2);
+          if(t1!=0)
+          {
+            y[k].a=t1;
+            y[k++].b=t2;
+          }
+        }
+        else match=0;
+      }
+    }
+    /*for(i=0;i<j;i++)
+      printf("%c",a[i]);
+    printf("\n");
+    for(i=0;i<k;i++)
+      printf("%c %c\n",y[i].a,y[i].b);*/
+    for(o=0,h1=-1,h2=-1,i=0;i<k&&match==1;i++)
+    {
+      for(v=0;v<j;v++)
+      {
+        if(a[v]==y[i].a) h1=v;
+        if(a[v]==y[i].b) h2=v;
+      }
+      //printf("%d %d\n",h1,h2);
+      if(h1!=-1&&h2!=-1)
+      {
+        if(h1>h2)
+        {
+          if(e[y[i].a-'a'].x==1&&e[y[i].b-'a'].x==0)
+          {
+            e[y[i].a-'a'].x=0;
+            e[e[y[i].a-'a'].y3-'a'].x=0;
+            for(r=j-1;r>=h2;r--)
+              a[r+1]=a[r];
+            h2++;
+            a[r+1]=e[y[i].a-'a'].y1;
+            j++;
+            for(r=j-1;r>=h2;r--)
+              a[r+1]=a[r];
+            a[r+1]=e[y[i].a-'a'].y2;
+            j++;
+            if(e[a[h1+2]].y1==a[h1+2])
+            {
+              for(r=h1+2;r<j-1;r++)
+                a[r]=a[r+1];
+              j--;
+              for(r=h1+2;r<j-1;r++)
+                a[r]=a[r+1];
+              j--;
+            }
+            else
+            {
+              for(r=h1+2;r<j-1;r++)
+                a[r]=a[r+1];
+              j--;
+              for(r=h1+1;r<j-1;r++)
+                a[r]=a[r+1];
+              j--;
+            }
+            //把隐的两个放到显的前面
+          }
+          else if(e[y[i].b-'a'].x==1&&e[y[i].a-'a'].x==1)
+          {
+            e[y[i].a-'a'].x=0;
+            e[e[y[i].a-'a'].y3-'a'].x=0;
+            e[y[i].b-'a'].x=0;
+            e[e[y[i].b-'a'].y3-'a'].x=0;
+            if(e[y[i].b-'a'].y3==y[i].a)
+            {
+              e[y[i].b-'a'].x=0;
+              e[y[i].a-'a'].x=0;
+              i--;
+              continue;
+            }
+            //如果在同一队里面，判断。
+            else
+            {
+              for(u=0;u<h1;u++)
+                if(a[u]>y[i].a) break;
+              for(r=j-1;r>=u;r--)
+                a[r+1]=a[r];
+              a[r+1]=e[y[i].a-'a'].y1;
+              j++;
+              for(u=r+2;u<h1;u++)
+                if(a[u]>e[y[i].a-'a'].y2) break;
+              for(r=j-1;r>=u;r--)
+                a[r+1]=a[r];
+              a[r+1]=e[y[i].a-'a'].y2;
+              j++;
+              h1+=2;
+              for(r=h1;r<j-1;r++)
+                a[r]=a[r+1];
+              j--;
+              for(r=h1+1;r<j-1;r++)
+                a[r]=a[r+1];
+              j--;
+            }
+            //printf("%d\n",e[y[i].a].x);
+            //如果在不同队里面，把y[i].a那对放在y[i].b那对的前面
+          }
+          else
+            match=0;
+        }
+      }
+      else if(h1!=-1)
+      {
+        if(e[a[h1]-'a'].x==1)
+        {
+          e[a[h1]-'a'].x=0;
+          e[e[a[h1]-'a'].y3-'a'].x=0;
+        }
+        for(r=j-1;r>h1;r--)
+          if(a[r]<y[i].b) break;
+        for(u=j-1;u>r;u--)
+          a[u+1]=a[u];
+        a[u+1]=y[i].b;
+        j++;
+        //a[h1]后插入y[i].b;
+      }
+else if(h2!=-1)
+      {
+       // printf("%d %c %d\n",h2,a[h2],e[h2].x);
+        if(e[a[h2]-'a'].x==1)
+        {
+          e[a[h2]-'a'].x=0;
+          e[e[a[h2]-'a'].y3-'a'].x=0;
+        }
+        for(r=0;r<h2;r++)
+          if(a[r]>y[i].a) break;
+        for(u=j-1;u>=r;u--)
+          a[u+1]=a[u];
+        a[u+1]=y[i].a;
+        j++;
+        //a[h2]前插入y[i].a;
+      }
+      else
+      {
+        a[j++]=y[i].a;
+        a[j++]=y[i].b;
+        e[y[i].a-'a'].x=1;
+        e[y[i].b-'a'].x=1;
+        e[y[i].a-'a'].y1=y[i].a;
+        e[y[i].a-'a'].y2=y[i].b;
+        e[y[i].a-'a'].y3=y[i].b;
+        e[y[i].b-'a'].y1=y[i].a;
+        e[y[i].b-'a'].y2=y[i].b;
+        e[y[i].b-'a'].y3=y[i].a;
+      }
+      /*for(u=0;u<j;u++)
+        printf("%c",a[u]);
+      printf("\n");*/
+    }
+    if(match==0)
+    {
+      printf("Impossible\n");
+      continue;
+    }
+    for(i=0;i<30;i++)
+    {
+      ch[i]=0;
+    }
+    for(co=0,i=0;i<j;i++)
+    {
+      if(e[a[i]-'a'].x==0)
+      {
+        ch[a[i]-'a']=1;
+        co++;
+      }
+    }
+    for(v=0,i=0;i<26;i++)
+      if(ch[i]==0)
+      {
+        cc[v++]=i+'a';     //正常包括隐的
+      }
+    for(i=j;i<30;i++)
+      a[i]='{';
+    for(i=v;i<30;i++)
+      cc[i]='{';
+    for(j=0,k=0,i=0;i<26;i++)
+    {
+      while(e[a[j]-'a'].x==1) j++;
+      if(cc[k]<a[j])
+        ans[i]=cc[k++];
+      else
+        ans[i]=a[j++];
+    }
+    for(i=0;i<j;i++)
+      if(e[a[i]-'a'].x==1)
+      {
+        if(e[a[i]-'a'].y1>e[a[i]-'a'].y2)
+        {
+          for(v=0;v<26;v++)
+          {
+            if(ans[v]==e[a[i]-'a'].y1)
+              ans[v]=e[a[i]-'a'].y2;
+            else if(ans[v]==e[a[i]-'a'].y2)
+              ans[v]=e[a[i]-'a'].y1;
+          }
+          e[a[i]-'a'].x=0;
+          e[e[a[i]-'a'].y3-'a'].x=0;
+        }
+      }
+    for(i=0;i<26;i++)
+      printf("%c",ans[i]);
+    printf("\n");
+  }
+  return 0;
+}

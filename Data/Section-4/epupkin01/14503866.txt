@@ -1,0 +1,146 @@
+#include <cstdio>
+
+int min(int, int);
+int max(int, int);
+
+int main() {
+    // initialization
+    int n, m;
+    scanf("%d%d", &n, &m);
+    char mainArray[26][26] = {0};
+    int w[26][26] = {0}, ans = 0;
+    for (int i = 1; i <= n; i++) {
+        scanf("%s", mainArray[i]);
+    }
+    // sort w[][]
+    for (int i = 1; i <= n; i++) {
+        if (mainArray[i][0] != '1') {
+            w[i][0] = 1;
+        }
+        for (int j = 1; j < m; j++) {
+            if (mainArray[i][j] != '1') {
+                if (w[i][j-1] != 0) {
+                    w[i][j] = w[i][j-1] + 1;
+                }
+                else {
+                    w[i][j] = 1;
+                }
+            }
+            else {
+                w[i][j] = 0;
+            }
+        }
+    }
+    // receiving the answer
+    int ansArray[26][26] = {0};
+    int k = 0, MIN = m;
+    for (int i = 1; i <= n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (w[i][j]) {
+                MIN = m;
+                for (k = i; k >= 0 && w[k][j]; k--) {
+                    MIN = min(MIN, w[k][j]);
+                }
+                ans = max(ans, 2 * ((i - k) + MIN));
+                ansArray[i][j] = 2 * ((i - k) + MIN);
+            }
+        }
+    }
+    // print ansArray[][]
+    /*
+    printf("ansArray[][]:\n");
+    for (int i = 1; i <= n; i++) {
+        for ( int j = 0; j < m; j++) {
+            if (ansArray[i][j] > 9) {
+                printf("%d  ", ansArray[i][j]);
+            }
+            else {
+                printf("%d   ", ansArray[i][j]);
+            }
+        }
+        printf("\n");
+    }
+     */
+    printf("%d\n", ans);
+    return 0;
+}
+
+int min(int a, int b) {
+    int mi = a;
+    if (b < mi)
+        mi = b;
+    return mi;
+}
+
+int max(int a, int b) {
+    int mi = a;
+    if (b > mi)
+        mi = b;
+    return mi;
+}
+/*
+input:
+ 8 4    (n, m)
+ 0000   (mainArray[][])
+ 0000
+ 0100
+ 0010
+ 0000
+ 0000
+ 1000
+ 0000
+output:
+ 18
+ 
+ MAIN IDEA:
+ 
+ MIN = m;
+ for (k = i; k >= 0 && w[k][j]; k--) {
+    MIN = min(MIN, w[k][j]);
+ }
+ 
+w[][]
+ 1 2 3 4
+ 1 2 3 4
+ 1 0 1 2
+ 1 2 0 1
+ 1 2 3 4
+ 1 2 3 4
+ 0 1 2 3
+ 1 2 3 4
+ansArray[][]:
+ 4   6   8   10
+ 6   8   10  12
+ 8   0   8   10
+ 10  6   0   10
+ 12  8   8   12
+ 14  10  10  14
+ 0   10  10  16
+ 4   12  12  18
+ 
+ EXAMPLES:
+ 3 3
+ 000
+ 010
+ 000
+ 8
+ 
+ 5 4
+ 1000
+ 0000
+ 0100
+ 0010
+ 0000
+ 12
+ 
+ 8 6
+ 000000
+ 000000
+ 011110
+ 110100
+ 010100
+ 010100
+ 011100
+ 000001
+ 16
+ */

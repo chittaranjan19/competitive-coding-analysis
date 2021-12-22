@@ -1,0 +1,117 @@
+ # include <iostream>
+ # include <cstdlib>
+ # include <cstdio>
+ 
+ using namespace std;
+ 
+ const long long int N = 1000000, M = 30;
+ long long int n, d[N][M], a[N], p[N], ans, xl, xr, cnt, m, x;
+ char mark[N][M];
+ 
+ bool bit (long long int n, long long int v)
+ {
+     return ((n & (1 << v)) > 0);
+ }
+ 
+ void build (long long int lv, long long int v, long long int l, long long int r)
+ {
+     if (l == r)
+     {
+         p[r] = v;
+         d[lv][v] = bit (a[r], lv);
+     }
+     else
+     {
+         long long int mid = (l + r) / 2;
+         if (r <= mid)
+          build (lv, v * 2, l, mid);
+         if (l > mid)
+          build (lv, v * 2 + 1, mid + 1, r);
+         if (l <= mid && r > mid)
+         {
+             build (lv, v * 2, l, mid);
+             build (lv, v * 2 + 1, mid + 1, r);
+         }
+         d[lv][v] = d[lv][v * 2] + d[lv][v * 2 + 1];
+     }
+ }
+ 
+ void update (long long int lv, long long int v, long long int tl, long long int tr, long long int l, long long int r)
+ {
+     if (tl == l && tr == r)
+     {
+         mark[lv][v] = true;
+         d[lv][v] = r - l + 1 - d[lv][v];
+     }
+     else
+     {
+         long long int mid = (tl + tr) / 2;
+         if (r <= mid)
+          update (lv, v * 2, tl, mid, l, r);
+         if (l > mid)
+          update (lv, v * 2 + 1, mid + 1, tr, l, r);
+         if (l <= mid && r > mid)
+         {
+             update (lv, v * 2, tl, mid, l, mid);
+             update (lv, v * 2 + 1, mid + 1, tr, mid + 1, r);
+         }
+         d[lv][v] = d[lv][v * 2] + d[lv][v * 2 + 1];
+     }
+ }
+ 
+ long long int getsum (long long int lv, long long int v, long long int tl, long long int tr, long long int l, long long int r)
+ {
+     if (mark[lv][v])
+     {
+         mark[lv][v] = false;
+         mark[lv][v * 2] = true;
+         mark[lv][v * 2 + 1] = true;
+         long long int mid = (tl + tr) / 2;
+         d[lv][v * 2] = mid - tl + 1 - d[lv][v * 2];
+         d[lv][v * 2 + 1] = tr - (mid + 1) + 1 - d[lv][v * 2 + 1]; 
+     }
+     if (tl == l && tr == r)
+      return d[lv][v];
+     long long int mid = (tl + tr) / 2;
+     if (r <= mid)
+      return getsum (lv, v * 2, tl, mid, l, r);
+     if (l > mid)
+      return getsum (lv, v * 2 + 1, mid + 1, tr, l, r);
+     if (l <= mid && r > mid)
+      return getsum (lv, v * 2, tl, mid, l, mid) + getsum (lv, v * 2 + 1, mid + 1, tr, mid + 1, r);
+ }
+ 
+ int main ()
+ {    
+     cin >> n;
+     
+     for (int i = 1; i <= n; ++i)
+      cin >> a[i];
+     
+     for (int i = 0; i < M; ++i)
+      build (i, 1, 1, n);
+     
+     cin >> m;
+     
+     for (int i = 1; i <= m; ++i)
+     {
+         cin >> x;
+         if (x == 1)
+         {
+             cin >> xl >> xr;
+             ans = 0;
+             for (int i = 0; i < M; ++i)
+              ans += getsum (i, 1, 1, n, xl, xr) * (1 << i);
+             cout << ans << "\n";              
+         }
+         else
+         {
+             cin >> xl >> xr >> cnt;
+             for (int i = 0; i < M; ++i)
+              if (bit (cnt, i))
+               update (i, 1, 1, n, xl, xr);
+         }
+     }
+     
+     return 0;
+ }

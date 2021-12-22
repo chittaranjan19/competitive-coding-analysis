@@ -1,0 +1,120 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <stdio.h>
+
+using namespace std;
+
+#define ll long long
+#define ull unsigned long long 
+#define sc second
+#define fs first
+#define mp make_pair
+const int N = 1e5 + 100;
+vector<int> g[N];
+
+ull p = 1e9+7, t[4 * N], bpow[N], hs[11][N];
+int lz[4 * N];
+string s;
+
+void build(int v, int tl, int tr)
+{
+    if (tl == tr)
+        t[v] = s[tl - 1] - '0' + 1;
+    else
+    {
+        int tm = (tl + tr) >> 1;
+        build(v * 2, tl, tm);
+        build(v * 2 + 1, tm + 1, tr);
+        t[v] = t[v * 2] + bpow[tm - tl + 1] * t[v * 2 + 1];
+    }
+}
+
+void push(int v, int tl, int tr)
+{
+    if (lz[v] == -1) return;
+    if (tl < tr)
+    {
+        int tm = (tl + tr) >> 1;
+        lz[v * 2] = lz[v * 2 + 1] = lz[v];
+        t[v * 2] = hs[lz[v]][tm - tl + 1];
+        t[v * 2 + 1] = hs[lz[v]][tr - tm];
+    }
+    lz[v] = -1;
+}
+
+void update(int v, int tl, int tr, int l, int r, int x)
+{
+    if (l > r) return;
+    push(v, tl, tr);
+    if (tl == l && tr == r)
+    {
+        t[v] = hs[x][r - l + 1];
+        lz[v] = x;
+    }
+    else
+    {
+        int tm = (tl + tr) >> 1;
+        update(v * 2, tl, tm, l, min(tm, r), x);
+        update(v * 2 + 1, tm + 1, tr, max(l, tm + 1), r, x);
+        t[v] = t[v * 2] + t[v * 2 + 1] * bpow[tm - tl + 1];
+    }
+}
+
+ll get(int v, int tl, int tr, int l, int r)
+{
+    if (l > r) return 0;
+    push(v, tl, tr);
+    if (tl == l && tr == r)
+        return t[v];
+    int tm = (tl + tr) >> 1;
+    ull lf = get(v * 2, tl, tm, l, min(tm, r)), rt = get(v * 2 + 1, tm + 1, tr, max(tm + 1, l), r);
+    if (l <= tm)
+        return lf + rt*bpow[tm - l + 1];
+    else return rt;
+}
+
+void ans(int l, int r, int d, int n)
+{
+    ull lll = get(1, 1, n, l + d, r), rrr = get(1, 1, n, l, r - d);
+    if (lll == rrr)
+        cout << "YES";
+    else cout << "NO";
+    cout << endl;
+}
+
+int main()
+{
+    int n, m, k;
+    cin >> n >> m >> k >> s;
+    memset(lz, -1, sizeof(lz));
+    memset(hs, 0, sizeof(hs));
+    ull tmp = 1;
+    for (int i = 1; i <= s.length(); i++){
+        for (int j = 0; j <= 10; j++){
+            hs[j][i] = hs[j][i - 1] + tmp*(j + 1);
+        }
+        tmp *= p;
+    }
+    bpow[0] = 1;
+    for (int i = 1; i <= s.size(); i++)
+        bpow[i] = bpow[i - 1] * p;
+    int q = m + k;
+    build(1, 1, n);
+    while (q--)
+    {
+        int tp, l, r, c;
+        cin >> tp >> l >> r >> c;
+        if (tp == 1)
+            update(1, 1, n, l, r, c);
+        else
+            ans(l, r, c, n);
+    }
+    return 0;
+}

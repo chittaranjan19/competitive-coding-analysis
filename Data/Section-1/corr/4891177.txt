@@ -1,0 +1,97 @@
+#include<cstdio>
+#include<cstring>
+#include<cstdlib>
+#include<cctype>
+
+#include<cmath>
+#include<iostream>
+#include<iomanip>
+#include<fstream>
+
+#include<string>
+#include<utility>
+#include<vector>
+#include<list>
+#include<queue>
+#include<map>
+#include<algorithm>
+#include<set>
+#include<sstream>
+#include<stack>
+
+#define ii long long int
+#define pi 2*acos(0.0)
+#define eps 1e-9
+#define mem(x,y) memset(x,y,sizeof(x))
+#define all(x) x.begin(), x.end()
+#define pb push_back
+#define sz(a) (int)a.size()
+#define inf 2147483640
+
+#define mx 3010
+#define hungry 0
+#define full 1
+
+using namespace std;
+
+const int debug= 0;
+int a[mx],b[mx],c[mx],dp[mx][2][2];
+int n;
+
+int call(int i,int kas,int dur);
+
+int main()
+{
+	//freopen("in.txt","r",stdin);
+	//freopen("out.txt","w",stdout);
+	
+	while (cin>>n)
+	{
+		mem(dp,-1);
+		int i;
+		for (i=1;i<=n;++i) cin>>a[i];
+		for (i=1;i<=n;++i) cin>>b[i];
+		for (i=1;i<=n;++i) cin>>c[i];
+		
+		int ans;
+		if (n==1) ans= a[1];
+		else ans= call(1,0,0);
+		
+		cout<<ans<<endl;
+	}
+	
+	
+	return 0;	
+}
+
+int call(int i,int kas,int dur)
+{
+	int take= 0;
+	
+	if (dp[i][kas][dur]!=-1) return dp[i][kas][dur];
+	
+	if (i>1)
+	{
+		int prev= i-1;
+		if (prev==1)
+		{
+			if (kas==hungry) take= a[prev];
+			else take= b[prev];
+		}
+		else
+		{
+			if (kas==hungry&&dur==full) take=a[prev];
+			else if (kas==full&&dur==hungry) take=c[prev];
+			else take=b[prev];
+		}
+	}
+	
+	if (i==n)
+	{
+		if (kas==full) take+= a[i];
+		else take+= b[i];
+		return take;
+	}
+	
+	return dp[i][kas][dur]= max(call(i+1,hungry,kas),call(i+1,full,kas))+take;
+}

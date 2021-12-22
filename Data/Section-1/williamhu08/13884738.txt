@@ -1,0 +1,96 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define mp make_pair
+#define fi first
+#define se second
+#define elsa else
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1e5 + 10, SQRT = 320;
+
+int N;
+int T[MAXN], L[MAXN];
+ll ans[MAXN];
+multiset<int> mst;
+vector<int> E[MAXN];	//events
+
+bool cmp (int x, int y) {
+	if (L[x] != L[y]) {
+		return L[x] > L[y];	//sorted reverse order
+	}
+	return x > y;
+}
+
+map<ll, bool> me;	//no better name :P
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d", &N);
+	for (int i = 0; i < N; i++) {
+		scanf("%d %d", &L[i], &T[i]);
+		E[T[i]].push_back(i);
+		me[T[i]];
+	}
+
+	for (int i = 0; i < MAXN; i++) {
+		sort(all(E[i]), cmp);	//it's already sorted
+	}
+
+	bool active = false;
+
+	for (auto it : me) {
+		//do something!
+		if (it.second) {
+			active = false;	//removed
+		}
+
+		//everything is active for it.first.
+		if (it.first < MAXN) {
+			for (int x : E[it.first]) {
+				mst.insert(it.first);
+			}
+		}
+
+		if (mst.empty()) {
+			continue;
+		}
+		
+		int mact = *mst.begin();	//min active
+
+		pair<ll, int> pr(LLONG_MAX, MAXN);
+		for (int i = mact; i < MAXN && i - mact < SQRT; i++) {
+			//check the top elements
+			if (E[i].empty()) {
+				continue;
+			}
+			int ind = E[i].back();
+			pr = min(pr, make_pair(L[ind] - ll(T[ind]) * T[ind] + 2 * T[ind] * it.first, ind));
+		}
+
+		int dind = pr.second;	//deleted index
+		if (dind != MAXN) {
+			//then we found something to delete
+			E[dind].pop_back();
+			active = true;
+			ll tans = L[dind] + it.first;
+			me[tans] = true;
+			ans[dind] = tans;
+			mst.erase(mst.find(T[dind]));
+		}
+	}
+
+	for (int i = 0; i < N; i++) {
+		printf("%lld ", ans[i]);
+	}
+	puts("");
+}

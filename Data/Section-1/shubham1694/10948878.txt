@@ -1,0 +1,151 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define MOD 1000000007
+#define inf 1000000000
+#define maxn 1000000
+
+#define ll long long
+#define pii pair<int, int>
+#define pb push_back
+#define sin scanint
+#define bitcount(x) __builtin_popcount(x)
+#define fill(s, p) memset(s, p, sizeof(s));
+#define gc getchar
+
+void scanint(int &x)
+{
+    register int c = gc();
+    x = 0;
+    for(;(c<48 || c>57);c = gc());
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+}
+
+ll modpow(ll a, ll b)
+{
+    ll x=1ll, y=a;
+    while(b){
+        if(b%2)
+            x=(x*y)%MOD;
+        y=(y*y)%MOD;
+        b/=2;
+    }
+    return x;
+}
+
+ll gcd(ll a, ll b)
+{
+    if(a%b==0)
+        return b;
+    else
+        return gcd(b, a%b);
+}
+
+int r, c, r1, c1, r2, c2;
+char mat[510][510];
+int dx[4] = {-1, 0, 1, 0};
+int dy[4] = {0, 1, 0, -1};
+bool once;
+
+bool isvalid(int i, int j)
+{
+    if(i>=0 && i<r && j>=0 && j<c)
+        return true;
+    return false;
+}
+
+void state()
+{
+    int i, j;
+    for(i=0; i<r; i++){
+        for(j=0; j<c; j++)
+            cout << mat[i][j] << " ";
+        cout << endl;
+    }
+}
+
+bool dfs2(int curx, int cury)
+{
+    //cout << "dfs2 " << curx << " " << cury << endl;
+    //bstate();
+    if(curx==r2 && cury==c2){
+        if(once)
+            return true;
+        else
+            once = true;
+        //if(mat[r2][c2]=='X')
+        //  return true;
+    }
+    int i, nx, ny;
+    for(i=0; i<4; i++){
+        nx = curx + dx[i];
+        ny = cury + dy[i];
+        if(isvalid(nx, ny)){
+            if(mat[nx][ny]=='.'){
+                mat[nx][ny] = 'X';
+                if(dfs2(nx, ny))
+                    return true;
+                mat[nx][ny] = '.';
+            }
+            else if(mat[nx][ny]=='X' && nx==r2 && ny==c2)
+                return true;
+        }
+    }
+    return false;
+}
+
+bool dfs1(int curx, int cury)
+{
+    //cout << "dfs1 " << curx << " " << cury << endl;
+    //state();
+    if(curx==r2 && cury==c2){
+        once = false;
+        if(dfs2(r2, c2))
+            return true;
+        else
+            return false;
+    }
+    int i, j, nx, ny;
+    for(i=0; i<4; i++){
+        nx = curx + dx[i];
+        ny = cury + dy[i];
+        if(isvalid(nx, ny)){
+            if(mat[nx][ny]=='.'){
+                mat[nx][ny] = 'X';
+                if(dfs1(nx, ny))
+                    return true;
+                mat[nx][ny] = '.';
+            }
+            else if(mat[nx][ny]=='X' && nx==r2 && ny==c2){
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+int main()
+{
+    /*#ifndef ONLINE_JUDJE
+        freopen("input.txt", "r", stdin);
+        //freopen("op.txt", "w", stdin);
+    #endif*/
+    sin(r);
+    sin(c);
+    string s;
+    int i, j, k;
+    for(i=0; i<r; i++){
+        cin >> s;
+        for(j=0; j<c; j++)
+            mat[i][j] = s[j];
+    }
+    scanf("%d%d%d%d", &r1, &c1, &r2, &c2);
+    r1--, c1--, r2--, c2--;
+    if(dfs1(r1, c1)){
+        printf("YES\n");
+    }
+    else
+        printf("NO\n");
+    return 0;
+}

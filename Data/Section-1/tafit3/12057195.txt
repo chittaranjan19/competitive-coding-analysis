@@ -1,0 +1,234 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD {
+    BufferedReader rd;
+
+    ProblemD() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        long[] a = longarr();
+        long h = a[0];
+        long q = a[1];
+        long[] p = new long[] { 1L<<(h-1), (1L<<h) - 1L };
+        IntervalContainer g = new IntervalContainer();
+        g.add(p);
+        boolean cheat = false;
+        for(int i=0;i<q;i++) {
+            long[] m = longarr();
+            long u = h-m[0];
+            long left = m[1] * (1L<<u);
+            long right = m[2] * (1L<<u) + (1L<<u) - 1L;
+            if(m[3] == 0) {
+                g.remove(new long[] { left, right });
+            } else {
+                if(right < p[0] || left > p[1]) {
+                    cheat = true;
+                } else {
+                    p[0] = Math.max(p[0], left);
+                    p[1] = Math.min(p[1], right);
+                }
+            }
+        }
+        IntervalContainer g2 = new IntervalContainer();
+        g2.add(p);
+        for(Map.Entry<Long, Bound> entry: g.m.entrySet()) {
+            if(entry.getValue().type != Type.UPPER) {
+                g2.remove(new long[] { entry.getKey(), entry.getValue().other });
+            }
+        }
+        IntervalContainer g3 = new IntervalContainer();
+        g3.add(p);
+        for(Map.Entry<Long, Bound> entry: g2.m.entrySet()) {
+            if(entry.getValue().type != Type.UPPER) {
+                g3.remove(new long[] { entry.getKey(), entry.getValue().other });
+            }
+        }
+        if(g3.m.size() == 1) {
+            Map.Entry<Long, Bound> entry = g3.m.entrySet().iterator().next();
+            if(entry.getKey().equals(entry.getValue().other)) {
+                out(entry.getKey());
+                return;
+            }
+        }
+        if(cheat) {
+            out("Game cheated!");
+        } else {
+            out("Data not sufficient!");
+        }
+    }
+
+    private enum Type {
+        LOWER, UPPER, BOTH;
+    }
+
+    private class Bound {
+        long other;
+        Type type;
+
+        private Bound(long other, Type type) {
+            this.other = other;
+            this.type = type;
+        }
+    }
+
+    private class IntervalContainer {
+        NavigableMap<Long, Bound> m = new TreeMap<>();
+
+        public void add(long[] v) {
+            if(v[0] == v[1]) {
+                m.put(v[0], new Bound(v[0], Type.BOTH));
+            } else {
+                m.put(v[0], new Bound(v[1], Type.LOWER));
+                m.put(v[1], new Bound(v[0], Type.UPPER));
+            }
+        }
+
+        public void remove(long[] x) {
+            Map.Entry<Long, Bound> floor = m.floorEntry(x[0]);
+            Map.Entry<Long, Bound> ceil = m.ceilingEntry(x[1]);
+            if(floor == null) {
+                if(ceil == null) {
+                    m.clear();
+                } else {
+                    long[] u;
+                    if(ceil.getValue().type == Type.UPPER) {
+                        u = new long[] { ceil.getValue().other, ceil.getKey() };
+                    } else {
+                        u = new long[] { ceil.getKey(), ceil.getValue().other };
+                    }
+                    m.subMap(Long.MIN_VALUE, true, u[1], true).clear();
+                    List<long[]> diff = minus(u,x);
+                    for(long[] v: diff) {
+                        add(v);
+                    }
+                }
+            } else if(ceil == null) {
+                long[] u;
+                if(floor.getValue().type == Type.UPPER) {
+                    u = new long[] { floor.getValue().other, floor.getKey() };
+                } else {
+                    u = new long[] { floor.getKey(), floor.getValue().other };
+                }
+                m.subMap(u[0], true, Long.MAX_VALUE, true).clear();
+                List<long[]> diff = minus(u,x);
+                for(long[] v: diff) {
+                    add(v);
+                }
+            } else {
+                long[] u1;
+                if(floor.getValue().type == Type.UPPER) {
+                    u1 = new long[] { floor.getValue().other, floor.getKey() };
+                } else {
+                    u1 = new long[] { floor.getKey(), floor.getValue().other };
+                }
+                long[] u2;
+                if(ceil.getValue().type == Type.UPPER) {
+                    u2 = new long[] { ceil.getValue().other, ceil.getKey() };
+                } else {
+                    u2 = new long[] { ceil.getKey(), ceil.getValue().other };
+                }
+                m.subMap(u1[0], true, u2[1], true).clear();
+                List<long[]> diff = minus(u1,x);
+                for(long[] v: diff) {
+                    add(v);
+                }
+                diff = minus(u2,x);
+                for(long[] v: diff) {
+                    add(v);
+                }
+            }
+        }
+    }
+
+    private List<long[]> minus(long[] a, long[] b) {
+        List<long[]> res = new ArrayList<>();
+        if(a[1] < b[0] || a[0] > b[1]) {
+            res.add(a);
+        } else if(a[0] < b[0] || a[1] > b[1]) {
+            if(a[0] < b[0]) {
+                res.add(new long[] { a[0],b[0]-1});
+            }
+            if(a[1] > b[1]) {
+                res.add(new long[] { b[1]+1,a[1]});
+            }
+        }
+        return res;
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

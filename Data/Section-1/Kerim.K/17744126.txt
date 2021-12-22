@@ -1,0 +1,84 @@
+#include<stdio.h>
+#include<stack>
+#include<ext/pb_ds/assoc_container.hpp>
+#include<vector>
+#define MAXN 500009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+using namespace std;
+using namespace __gnu_pbds;
+typedef tree<int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update> lov;
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+char s[MAXN],q[MAXN];
+int pr[MAXN];
+lov v;
+int main(){
+	int n,m,p;
+	scanf("%d%d%d",&n,&m,&p);
+	scanf("%s",s);
+	scanf("%s",q);
+	stack<int>st;
+	for(int i=0;i<n;i++){
+		if(s[i]=='(')
+			st.push(i);
+		else{
+			int k=st.top()+1;
+			pr[k]=i+1;
+			pr[i+1]=k;
+			st.pop();		
+		}		
+	}
+//	for(int i=1;i<=n;i++)
+//		cout<<pr[i]<<" ";
+//	cout<<endl;	
+	v.insert(-1);
+	for(int i=1;i<=n;i++)
+		v.insert(i);
+	for(int i=0;i<m;i++){
+		char type=q[i];
+		if(type=='R')
+			p++;
+		if(type=='L')
+			p--;
+		if(type=='D'){
+			int k=pr[*v.find_by_order(p)];
+		//		printf("%d ",k);
+			int pos=v.order_of_key(k);
+		//	cout<<pos<<" "<<p<<endl;
+			int bas=min(pos,p);
+			int son=max(pos,p);
+			if(pos<p)
+				p=p+1-(son-bas+1);
+			else
+				p=p;
+			int a1=*v.find_by_order(bas);
+			int a2=*v.find_by_order(son);
+			typeof((v).begin()) it=v.lower_bound(a1);
+			typeof((v).begin()) it3=v.lower_bound(a1);
+			typeof((v).begin()) it2=v.lower_bound(a2);
+			while(it!=it2){
+				it3=it;it++;
+				v.erase(it3);
+			}
+			v.erase(it2);
+			//	v.erase(v.end()-(v.size()-bas));
+			if(p>=v.size())
+				p--;	
+		//	cout<<p<<endl;		
+		}
+	}
+	tr(it,v)
+		if(*it>=0)
+		printf("%c",s[(*it)-1]);
+	printf("\n");	
+	return 0;
+}
+//LooK aT mY COde ONlinE +_+

@@ -1,0 +1,125 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int MAXN = 200000 + 2;
+const int MAXK = 10;
+
+char s[MAXN];
+int n, m, k;
+
+struct segtree
+{
+    int node[MAXN << 2][MAXK][MAXK], lazy[MAXN << 2], lf[MAXN << 2], rg[MAXN << 2];
+
+    void modify(int rt, int c, int len)
+    {
+        lazy[rt] = c;
+        memset(node[rt], 0, sizeof(node[rt]));
+        lf[rt] = rg[rt] = c;
+        node[rt][c][c] = len;
+    }
+
+    void pushup(int rt)
+    {
+        int lson = rt << 1, rson = rt << 1 | 1;
+        for(int i = 0; i < k; ++i)
+        {
+            for(int j = 0; j < k; ++j)
+            {
+                node[rt][i][j] = node[lson][i][j] + node[rson][i][j];
+            }
+        }
+        ++node[rt][rg[lson]][lf[rson]];
+        lf[rt] = lf[lson], rg[rt] = rg[rson];
+    }
+
+    void pushdown(int rt, int l, int r)
+    {
+        if(~lazy[rt])
+        {
+            int m = (l + r) >> 1;
+            modify(rt << 1, lazy[rt], m - l + 1);
+            modify(rt << 1 | 1, lazy[rt], r - m);
+            lazy[rt] = -1;
+        }
+    }
+
+    void build(int rt, int l, int r)
+    {
+        lazy[rt] = -1;
+        if(l == r)
+        {
+            memset(node, 0, sizeof(node));
+            int c = s[l] - 'a';
+            node[rt][c][c] = 1;
+            lf[rt] = rg[rt] = c;
+            return;
+        }
+        int m = (l + r) >> 1;
+        build(rt << 1, l, m);
+        build(rt << 1 | 1, m + 1, r);
+    }
+
+    void update(int rt, int l, int r, int x, int y, int c)
+    {
+        if(x <= l && r <= y)
+        {
+            modify(rt, c, r - l + 1);
+            return;
+        }
+        pushdown(rt, l, r);
+        int m = (l + r) >> 1;
+        if(x <= m)
+        {
+            update(rt << 1, l, m, x, y, c);
+        }
+        if(m < y)
+        {
+            update(rt << 1 | 1, m + 1, r, x, y, c);
+        }
+        pushup(rt);
+    }
+
+    int query(int rt, int i, int j)
+    {
+        return node[rt][i][j];
+    }
+} tree;
+
+int main()
+{
+    while(~scanf("%d%d%d", &n, &m, &k))
+    {
+        scanf("%s", s + 1);
+        tree.build(1, 1, n);
+        while(m--)
+        {
+            int op;
+            scanf("%d", &op);
+            if(op == 1)
+            {
+                int l, r;
+                scanf("%d%d%s", &l, &r, s);
+                tree.update(1, 1, n, l, r, *s - 'a');
+            }
+            else
+            {
+                scanf("%s", s);
+                int ans = n;
+                for(int i = 0; i < k - 1; ++i)
+                {
+                    for(int j = i + 1; j < k; ++j)
+                    {
+                        ans -= tree.query(1, s[i] - 'a', s[j] - 'a');
+                    }
+                }
+                printf("%d\n", ans);
+            }
+        }
+    }
+    return 0;
+}

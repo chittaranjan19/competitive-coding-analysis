@@ -1,0 +1,131 @@
+/*
+*Rainto96
+*Beijing University of Posts and Telecommunications School of Software Engineering
+*http://blog.csdn.net/u011775691
+*/
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <queue>
+#include <cstring>
+#include <string>
+#include <cmath>
+#include <set>
+#include <map>
+#include <vector>
+#include <climits>
+using namespace std;
+#define pb push_back
+#define ALL(x) x.begin(),x.end()
+#define VINT vector<int>
+#define PII pair<int,int>
+#define MP(x,y) make_pair((x),(y))
+#define ll long long
+#define ull unsigned long long
+#define MEM0(x)  memset(x,0,sizeof(x))
+#define MEM(x,val) memset((x),val,sizeof(x))
+#define scan(x) scanf("%d",&(x))
+#define scan2(x,y) scanf("%d%d",&(x),&(y))
+#define scan3(x,y,z) scanf("%d%d%d",&(x),&(y),&(z))
+#define scan4(x,y,z,k) scanf("%d%d%d%d",&(x),&(y),&(z),&(k))
+#define Max(a,b) a=max(a,b)
+#define Min(a,b) a=min(a,b)
+#define fuck(x) cout<<#x<<" -> "<<x<<endl
+int P(char s[]){
+    int sum=0;
+    int k=8;
+    for(int i=0;i<4;i++){
+        sum += (s[i]-'0')*k;
+        k/=2;
+    }
+    return sum;
+}
+int b[999];
+int t[4][2];
+void init(){
+    b['+'] = P("1111");
+    b['-'] = P("0101"); b['L'] = P("1110");
+    b['|'] = P("1010"); b['R'] = P("1011");
+    b['^'] = P("1000"); b['U'] = P("0111");
+    b['>'] = P("0100"); b['D'] = P("1101");
+    b['<'] = P("0001"); b['*'] = P("0000");
+    b['V'] = P("0010");
+
+    t[0][0] = P("1000") , t[0][1] = P("0010");
+    t[1][0] = P("0100") , t[1][1] = P("0001");
+    t[2][0] = P("0010") , t[2][1] = P("1000");
+    t[3][0] = P("0001") , t[3][1] = P("0100");
+}
+int quxuan(int s, int xuan){
+    int di = ((1<<xuan)-1) & s;
+    return ( (di<<(4-xuan)) | (s>>xuan));
+}
+bool goon(int dir ,int sb, int st, int xuan){
+    sb = quxuan(sb,xuan);
+    st = quxuan(st,xuan);
+    return (t[dir][0]&sb) && (t[dir][1]&st);
+}
+int g[1111][1111];
+char s[1111];
+int arv[1111][1111][4];
+int dir[4][2] = {-1,0, 0,1, 1,0, 0,-1};
+
+struct Info{
+    int x,y,xuan, step;
+};
+
+int main(){
+    //freopen("in.txt","r",stdin);
+    init();
+    memset(arv,-1,sizeof(arv));
+    int n,m;
+    scan2(n,m);
+    for(int i=1;i<=n;i++){
+        scanf("%s",s);
+        for(int j=1;j<=m;j++){
+            g[i][j] = b[s[j-1]];
+            //(i);
+            //(j);
+            //(s[j-1]);
+            //(b[s[j-1]]);
+        }
+    }
+    int xt,yt;
+    scan2(xt,yt);
+    queue<Info > que;
+    arv[xt][yt][0] = 0;
+    que.push((Info){xt,yt,0,0});
+
+    int xm,ym;
+    scan2(xm, ym);
+    while(!que.empty()){
+        Info now = que.front();
+        que.pop();
+        int x = now.x, y = now.y , xuan = now.xuan, step = now.step;
+        //(x);
+        //(y);
+        //(xuan);
+        //(step);
+        if(x == xm && y == ym) break;
+        if(arv[x][y][(xuan+1)%4] == -1) {
+            arv[x][y][(xuan+1)%4] = step+1;
+            que.push((Info){x,y,(xuan+1)%4,step+1});
+        }
+        for(int i=0;i<4;i++){
+            int xx = x + dir[i][0];
+            int yy = y + dir[i][1];
+            if(xx > n || xx < 1 || yy <1 || yy>m) continue;
+            if(goon(i, g[x][y], g[xx][yy], xuan) && arv[xx][yy][xuan] == -1){
+                arv[xx][yy][xuan] = step+1;
+                que.push((Info){xx,yy,xuan,step+1});
+            }
+        }
+    }
+    int minn = 0x3f3f3f3f;///mind!
+    for(int i=0;i<4;i++){
+        if(arv[xm][ym][i] != -1) minn = min(minn, arv[xm][ym][i]);
+    }
+    if(minn == 0x3f3f3f3f) puts("-1");
+    else printf("%d\n", minn);
+    return 0;
+}

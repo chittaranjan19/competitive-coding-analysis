@@ -1,0 +1,113 @@
+#include <iostream>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+int autom[105][26];
+string  s, s1,s2;
+void construct_auto(){
+        int i = 0;
+        for(int j = 0; j < 26; j++){
+                if (s[i] - 'A' == j){
+                        autom[i][j] = i+1;
+                }
+                else autom[i][j] = i;
+        }
+
+        int prev = 0;
+        for(i = 1; i < s.length(); i++){
+                for(int j = 0; j < 26; j++){
+                        if (s[i] - 'A' == j){
+                                autom[i][j] = i+1;
+                        }
+                        else autom[i][j] = autom[prev][j];
+                }
+                prev = autom[prev][s[i]];
+        }
+        return;
+}
+
+int dp[105][105][105];
+int prev[105][105][105][3];
+int main(){
+
+        cin >> s1 >> s2 >> s;
+        
+        int sz1 = s1.length(), sz2 = s2.length(), v = s.length();
+        s = s+'1';
+        s1 ='0' + s1;
+        s2 = '0' + s2;
+        
+        construct_auto();
+        memset(dp,-1,sizeof(dp));
+        dp[0][0][0] = 0;
+
+        for(int i = 0; i <=  sz1; i++){
+                for(int j = 0; j <= sz2; j++){
+                        for(int k = 0; k < v; k++){
+                                if (dp[i][j][k] != -1){
+                                        if (s1[i+1] == s2[j+1]){
+                                                int x = autom[k][s1[i+1]-'A'];
+                                                if (x < v){
+                                                        if (dp[i+1][j+1][x] < dp[i][j][k] + 1){
+                                                                dp[i+1][j+1][x] = dp[i][j][k]+1;
+                                                                prev[i+1][j+1][x][0] = i;
+                                                                prev[i+1][j+1][x][1] = j;
+                                                                prev[i+1][j+1][x][2] = k;
+
+                                                        }
+                                                }
+                                        }
+                                        if (dp[i+1][j][k] < dp[i][j][k]){
+                                                prev[i+1][j][k][0] = i;
+                                                prev[i+1][j][k][1] = j;
+                                                prev[i+1][j][k][2] = k;
+                                                dp[i+1][j][k] = dp[i][j][k];
+                                        }
+                                        if (dp[i][j+1][k] < dp[i][j][k]){
+                                                prev[i][j+1][k][0] = i;
+                                                prev[i][j+1][k][1] = j;
+                                                prev[i][j+1][k][2] = k;
+                                                dp[i][j+1][k] = dp[i][j][k];
+                                        }
+
+                                }
+
+                                
+                        }
+                }
+        }
+        int mx = 0;
+        int cnt = 0;
+        for(int k = 0; k < v; k++){
+                mx = max(dp[sz1][sz2][k], mx);
+                if (mx == dp[sz1][sz2][k]) cnt = k;
+        }
+        
+        if (mx == 0) {
+                cout << mx << endl;
+                return 0;
+        }
+        string str = "";
+        int i = sz1, j  = sz2, k = cnt;
+        while (mx){
+                int pri = prev[i][j][k][0];
+                int prj = prev[i][j][k][1];
+                int prk = prev[i][j][k][2];
+                if (dp[pri][prj][prk] < dp[i][j][k]){
+                        str += s1[i];
+                        mx--;
+                }
+                i = pri, j = prj, k = prk;
+        }
+
+        reverse(str.begin(), str.end());
+        cout << str << endl;
+        
+                
+}
+                
+                                        
+        
+        

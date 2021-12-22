@@ -1,0 +1,106 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define y1 Minotaur
+#define f(x,y,z,t) mp(mp(x,y),mp(z,t))
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+typedef pair<PII,PII> maze;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int way[1009][1009][4];
+int vis[1009][1009][4];
+int dis[1009][1009][4];
+void get(char f,int x,int y){
+	if(f=='-')
+		way[x][y][1]=way[x][y][3]=1;
+	if(f=='|')
+		way[x][y][0]=way[x][y][2]=1;
+	if(f=='^')
+		way[x][y][0]=1;	
+	if(f=='>')
+		way[x][y][1]=1;
+	if(f=='<')
+		way[x][y][3]=1;
+	if(f=='v')
+		way[x][y][2]=1;	
+	if(f=='+' or f=='L' or f=='R' or f=='U' or f=='D'){
+		for(int i=0;i<4;i++)
+			way[x][y][i]=1;
+		if(f=='U')
+			way[x][y][0]=0;	
+		if(f=='R')
+			way[x][y][1]=0;	
+		if(f=='D')
+			way[x][y][2]=0;	
+		if(f=='L')
+			way[x][y][3]=0;				
+	}
+}
+int dx[]={-1,0,+1,0};
+int dy[]={0,+1,0,-1};
+int main(){
+	int n,m;
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++){
+			char c[3];
+			scanf(" %c",&c[0]);
+			get(c[0],i,j);
+		}
+	priority_queue<maze,vector<maze>,greater<maze> >q;
+	int x1,y1,x2,y2;
+	scanf("%d%d%d%d",&x1,&y1,&x2,&y2);
+	q.push(f(0,0,x1,y1));
+	while(!q.empty()){
+		maze k=q.top();
+		q.pop();
+		if(vis[k.ss.ff][k.ss.ss][k.ff.ss])
+			continue;
+		dis[k.ss.ff][k.ss.ss][k.ff.ss]=k.ff.ff;
+		vis[k.ss.ff][k.ss.ss][k.ff.ss]=1;
+		if(!vis[k.ss.ff][k.ss.ss][(k.ff.ss+1)%4])
+			q.push(f(k.ff.ff+1,(k.ff.ss+1)%4,k.ss.ff,k.ss.ss));	
+		for(int i=0;i<4;i++){
+			int to=(i-k.ff.ss+4)%4;
+			int to1=(((i+2)%4)-k.ff.ss+4)%4;
+			int tox=dx[i]+k.ss.ff;
+			int toy=dy[i]+k.ss.ss;
+			if(tox>=1 and tox<=n and toy>=1 and toy<=m and !vis[tox][toy][k.ff.ss] and way[k.ss.ff][k.ss.ss][to] and way[tox][toy][to1])
+				q.push(f(k.ff.ff+1,k.ff.ss,tox,toy));
+		}
+	}int mn=INF;
+	for(int i=0;i<4;i++)
+		if(vis[x2][y2][i])
+			umin(mn,dis[x2][y2][i]);
+	if(mn==INF)
+		printf("-1\n");
+	else
+		printf("%d\n",mn); 			
+	return 0;
+}
+/*
+2 2
++*
+*U
+1 1
+2 2
+
+2 3
+<><
+><>
+1 1
+2 1
+*/

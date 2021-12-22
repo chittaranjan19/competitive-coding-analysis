@@ -1,0 +1,120 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef complex<ll> point;
+const int MAXN = 1505;
+
+int N;
+vector<int> adj[MAXN];
+pair<point, int> pts[MAXN];
+int ans[MAXN];
+int subtree[MAXN];
+
+ll cross (const point &a, const point &b) {
+	return imag(conj(a) * b);
+}
+
+ll cross (const point &pt, const point &a, const point &b) {
+	return cross(a - pt, b - pt);
+}
+
+point cmp;
+bool cmpangle (pair<point, int> a, pair<point, int> b) {
+	return cross(cmp, a.first, b.first) > 0;
+}
+
+int calc_subsize (int x, int p) {
+	int &ref = subtree[x];
+	ref = 1;
+	rep(it, adj[x]) {
+		int t = *it;
+		if (t != p) {
+			ref += calc_subsize(t, x);
+		}
+	}
+	return ref;
+}
+
+void dfs (int node, int par, vector<pair<point, int> > rem) {
+	//ok now let's get the remaining ones
+	//decide what to take... dafuq
+	__typeof(rem.begin()) it = rem.begin();
+	for (__typeof(it) t = it + 1; t != rem.end(); t++) {
+		if (t->first.real() < it->first.real() || (t->first.real() == it->first.real() && t->first.imag() < it->first.imag())) {
+			it = t;
+		}
+	}
+	iter_swap(rem.begin(), it);
+	ans[rem.front().second] = node;	//ans[point] = node #
+	// ans[node] = rem.front().second;	//ans[tree] = point. WRONG!
+	cmp = rem.front().first;
+	sort(rem.begin() + 1, rem.end(), cmpangle);
+	int ptr = 1;
+	rep(it, adj[node]) {
+		int t = *it;
+		if (t != par) {
+			__typeof(rem) v;
+			for (int i = 0; i < subtree[t]; i++) {
+				v.push_back(rem[ptr++]);
+			}
+			dfs(t, node, v);
+		}
+	}
+}
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces196C.in", "r", stdin);
+#endif
+	cin >> N;
+	for (int i = 1, a, b; i < N; i++) {
+		cin >> a >> b;
+		adj[a].push_back(b);
+		adj[b].push_back(a);
+	}
+	for (int i = 1; i <= N; i++) {
+		ll x, y;
+		cin >> x >> y;
+		pts[i] = make_pair(point(x, y), i);
+	}
+	calc_subsize(1, -1);
+	dfs(1, -1, vector<pair<point, int> > (pts + 1, pts + N + 1));
+	for (int i = 1; i <= N; i++) {
+		cout << ans[i] << ' ';
+	}
+}

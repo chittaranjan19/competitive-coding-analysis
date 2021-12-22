@@ -1,0 +1,119 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+
+int N, S;
+vector<int> num;
+
+vector<int> construct (int siz, int s, bool can0) {
+	// cerr << "sz = " << siz << ", sum = " << s << endl;
+	if (s < 0 || s > 9 * siz) {
+		return vector<int> ();
+	}
+	if (s == 0) {
+		return vector<int> (can0 ? siz : 0);
+	}
+	vector<int> r(siz);
+	// cerr << "a\n";
+	//otherwise the first digit must be at least a 1
+	for (int i = siz - 1; i > 0; i--) {
+		// cerr << "i = " << i << endl;
+		for (int j = (i == siz - 1) && (!can0); j < 10; j++) {
+			//ok try to do this
+			// cerr << "try j = " << j << '\n';
+			int ns = s - j;
+			if (ns <= 9 * i) {
+				// cerr << "add " << j << '\n';
+				r[i] = j;
+				s = ns;
+				break;
+			}
+		}
+	}
+	// cerr << "fds\n";
+	assert(0 <= s && s < 10);
+	r[0] = s;
+	return r;
+}
+
+vector<int> get (vector<int> v, int s, bool mas) {
+	if (s < 0) {
+		return vector<int> ();
+	}
+	if (v.size() == 1) {
+		//hello there
+		if (0 <= s && s < 10) {
+			//then try to put s
+			if (mas || (s > v[0])) {
+				return vector<int> (1, s);
+			}
+		}
+		return vector<int> ();
+	}
+	//if "mas", then already you have exceeded greatness
+	if (mas) {
+		//you have v.size() digits. ok. you are done
+		//try 9999...9
+		return construct(v.size(), s, true);
+	}
+	//otherwise you either continue not being good.
+	int b = v.back();
+	v.pop_back();
+	//try it b
+	vector<int> r = get(v, s - b, false);
+	if (!r.empty()) {
+		r.push_back(b);
+		return r;
+	}
+	//otherwise, it cannot be possible
+	for (int i = b + 1; i < 10; i++) {
+		//try adding "i"
+		r = get(v, s - i, true);
+		if (!r.empty()) {
+			r.push_back(i);
+			return r;
+		}
+	}
+	return vector<int> ();
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 0; i < N; i++) {
+		cin >> S;
+		//find the number with S
+		//k let's now recursively try to construct it. SAME length as vector
+		vector<int> v = i ? get(num, S, false) : vector<int> ();
+		if (v.empty()) {
+			// cerr << "cannot\n";
+			//if cannot construct it, then just find the least number with at least d + 1 digits
+			for (int i = num.size() + 1; ; i++) {
+				// cerr << "try size = " << i << endl;
+				v = construct(i, S, false);
+				if (!v.empty()) {
+					assert(v.size() == i);
+					break;
+				}
+			}
+		}
+		for (auto it = v.rbegin(); it != v.rend(); it++) {
+			cout << *it;
+		}
+		num = v;
+		cout << '\n';
+	}
+}

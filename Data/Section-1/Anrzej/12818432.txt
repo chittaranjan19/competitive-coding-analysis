@@ -1,0 +1,115 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <set>
+#include <algorithm>
+#include <deque>
+#include <cstdio>
+#include <stdio.h>
+#include <string.h>
+
+#define sc second
+#define fs first
+#define ll long long
+
+using namespace std;
+
+int t[2][1000000], n, q, N;
+
+int tp[500000], x[500000], y[500000], realx[200000], realy[200000];
+pair<int, int> xx[500000], yy[500000];
+
+void build()
+{
+    memset(t, -1, sizeof(t));
+}
+
+void update(int p, int v, int tl, int tr, int pos, int vl)
+{
+    if (tl == tr)
+        t[p][v] = vl;
+    else
+    {
+        int tm = (tl + tr) >> 1;
+        if (tm >= pos)
+            update(p, v * 2, tl, tm, pos, vl);
+        else update(p, v * 2 + 1, tm + 1, tr, pos, vl);
+        t[p][v] = max(max(t[p][v*2], t[p][v*2 + 1]), t[p][v]);
+    }
+
+}
+
+int maxx(int p, int v, int tl, int tr, int l, int r)
+{
+    if (l > r)
+        return -1;
+    if (tl == l && tr == r)
+        return t[p][v];
+    int tm = (tl + tr) >> 1;
+    int a = maxx(p, v * 2, tl, tm, l, min(tm, r));
+    int b = maxx(p, v * 2 + 1, tm + 1, tr, max(tm + 1, l), r);
+    return max(a,b);
+}
+
+int main()
+{
+    cin >> N >> q;
+    n = q;
+    for (int i = 0; i < q; i++)
+    {
+        char ch;
+        cin >> xx[i].fs >> yy[i].fs >> ch;
+        xx[i].sc = yy[i].sc = i;
+        if (ch == 'U')
+            tp[i] = 1;
+        else tp[i] = 2;
+    }
+    sort(xx, xx + n);
+    sort(yy, yy + n);
+    for (int i = 0; i < q; i++)
+    {
+        x[xx[i].sc] = i;
+        realx[xx[i].sc] = xx[i].fs;
+        y[yy[i].sc] = i;
+        realy[yy[i].sc] = yy[i].fs;
+    }
+    n += 1;
+    build();
+    for (int i = 0; i < q; i++)
+    {
+        int cx = x[i], cy = y[i], rx = realx[i], ry = realy[i];
+        if (tp[i] == 1)
+        {
+            if (i == 5)
+            {
+                int lll = 12312;
+            }
+            int dw, lf = maxx(0, 1, 0, n - 1, 0, cy);
+            if (lf == -1){
+                dw = 0;
+                lf = 0;
+            }
+            else dw = yy[lf].fs;
+            cout << ry - dw << endl;
+            update(1, 1, lf, n-1, cx, cx);
+            /*if (i == 5)
+            {
+                cout << maxx(0, 1, 0, n - 1, 0, cy) << endl;
+                for (int j = 0; j < n; j++)
+                    cout << maxx(0, 1, 0, n - 1, j, j) << ' ';
+                cout << endl;
+            }*/
+        }
+        else
+        {
+            int dw, lf = maxx(1, 1, 0, n - 1, 0, cx);
+            if (lf == -1){
+                dw = 0; lf = 0;
+            }
+            else dw = xx[lf].fs;
+            cout << rx - dw << endl;
+            update(0, 1, lf, n-1, cy, cy);
+        }
+    }
+    return 0;
+}

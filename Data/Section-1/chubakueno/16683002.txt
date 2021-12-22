@@ -1,0 +1,72 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef pair<ll,char> ii;
+const ull base=1000000007LL;
+void read(vector<ii> &str, int n){
+	char last=-1;
+	ll acc=0;
+	for(int i=0;i<n;++i){
+		int d;
+		char let[5];
+		scanf("%d",&d);
+		scanf("%s",let);
+		if(i&&last!=let[1]){
+			str.push_back(ii(acc,last));
+			acc=0;
+		}
+		acc+=d;
+		last=let[1];
+	}
+	str.push_back(ii(acc,last));
+}
+ull phash[200005];
+ull pot[500005];
+int main(){
+	int n,m;
+	scanf("%d %d",&n,&m);
+	vector<ii> str1,str2;
+	read(str1,n);
+	read(str2,m);
+	n=str1.size();
+	m=str2.size();
+	long long ans=0;
+	pot[0]=1;
+	for(int i=1;i<500005;++i)
+		pot[i]=pot[i-1]*base;
+	if(m==1){
+		ll len=str2[0].first;
+		char c=str2[0].second;
+		for(int i=0;i<n;++i){
+			if(str1[i].second==c)
+				ans+=max(str1[i].first-len+1,0LL);
+		}
+	}
+	else{
+		char c0=str2[0].second;
+		char c1=str2[m-1].second;
+		ll  n0=str2[0].first;
+		ll  n1=str2[m-1].first;
+		ull target=0,hash=0;
+		for(int i=1;i<m-1;++i){
+			target+=((ll)str2[i].first)*pot[2*(i-1)];
+			target+=((ll)str2[i].second)*pot[2*(i-1)+1];
+		}
+		for(int i=0;i<n;++i){
+			hash+=((ll)str1[i].first)*pot[2*i];
+			hash+=((ll)str1[i].second)*pot[2*i+1];
+			phash[i]=hash;
+		}
+		for(int i=1;i+m-2<n;++i){
+			target*=base*base;
+			if(target==phash[i+m-3]-phash[i-1]){
+				if(str1[i-1].second==c0&&str1[i+m-2].second==c1){
+					if(str1[i-1].first>=n0&&str1[i+m-2].first>=n1)
+						++ans;
+				}
+			}
+		}
+	}
+	cout<<ans<<endl;
+}

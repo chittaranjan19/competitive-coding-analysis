@@ -1,0 +1,120 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+vector<pair<int, int> > graph[62][62];
+int in[62][62],out[62][62];
+
+int get(char c)
+{
+    if(c >= 'a' && c <= 'z') return c - 'a';
+    if(c >= 'A' && c <= 'Z') return c - 'A' + 26;
+    return c - '0' + 2 * 26;
+}
+
+void euler(int i, int j, stack<pair<int, int> > &tour)
+{
+    while(graph[i][j].size() != 0)
+    {
+        pair<int,int> temp = graph[i][j][graph[i][j].size() - 1];
+        graph[i][j].pop_back();
+        euler(temp.first, temp.second, tour);
+    }
+    tour.push(mp(i, j));
+}
+
+char inverse(int c)
+{
+    if(c < 26) return c + 'a';
+    if(c < 2 * 26) return c - 26 + 'A';
+    return c - 2 * 26 + '0';
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int n;
+    cin >> n;
+    string s;
+    for(int i=0;i<n;i++)
+    {
+        cin >> s;
+        graph[get(s[0])][get(s[1])].pb(mp(get(s[1]), get(s[2])));
+        out[get(s[0])][get(s[1])]++;
+        in[get(s[1])][get(s[2])]++;
+    }
+    int cnt = 0,cnt2 = 0;
+    pair<int, int> ch;
+    for(int i=0;i<62 && cnt < 3;i++)
+    {
+        for(int j=0;j<62 && cnt < 3;j++)
+        {
+            if(in[i][j] == out[i][j]) continue;
+            if(in[i][j] == out[i][j] + 1)
+            {
+                cnt2++;
+                continue;
+            }
+            if(in[i][j] + 1 != out[i][j])
+            {
+                cnt+=3;
+                break;
+            }
+            cnt++;
+            ch = mp(i, j);
+        }
+    }
+    if(!(cnt == 1 && cnt2 == 1) && !(cnt == 0 && cnt2 == 0))
+    {
+        cout << "NO";
+        return 0;
+    }
+    if(cnt == 0)
+        ch = mp(get(s[0]), get(s[1]));
+    stack<pair<int,int> > res;
+    euler(ch.first, ch.second, res);
+    if(res.size() != n + 1)
+    {
+        cout << "NO";
+        return 0;
+    }
+    cout << "YES\n";
+    cout << inverse(res.top().first);
+    while(!res.empty())
+    {
+        ch = res.top();
+        cout << inverse(ch.second);
+        res.pop();
+    }
+    return 0;
+}

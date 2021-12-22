@@ -1,0 +1,134 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+#include <complex>
+
+typedef complex<double> point;
+
+#define X real()
+#define Y imag()
+#define polar(r, t) (r * exp(point(0, t)))
+#define length(a) hypot(a.X, a.Y)
+#define angle(a) atan2(a.Y, a.X)
+#define vec(a, b) (b - a)
+#define dot(a, b) ((conj(a) * b).X)
+#define cross(a, b) ((conj(a) * b).Y)
+#define lengthsqr(a) dot(a, a)
+#define vec_rot(v, t) (v * exp(point(0, t)))
+#define vec_rot_around(v, t, a) (vec_rot(vec(a, v), t) + a)
+#define reflect(v, m) (conj(v / m) * m)
+#define normalize(v) (v / length(v))
+#define ccw(a, b, c) (cross(vec(a, b), vec(a, c)) > EPS)
+#define same(a, b) (lengthsqr(vec(a, b)) < EPS)
+
+pair<pair<int, int>, int> arr[100005];
+
+bool three_points_collinear(const pair<int, int> &a, const pair<int, int> &b, const pair<int, int> &c)
+{
+  return (a.s - b.s) * 1LL * (a.f - c.f) == (a.s - c.s) * 1LL * (a.f - b.f);
+}
+
+point divide_line_by_ratio(const point &a, const point &b, const long double &r)
+{
+  return a + (double)(r) * (b - a);
+}
+
+long double point_line_distance(const point &a, const point &b, const point &p, point &res)
+{
+  long double temp = dot(vec(a, b), vec(a, p)) / lengthsqr(vec(a, b));
+  res = divide_line_by_ratio(a, b, temp);
+  return length(vec(res, p));
+}
+
+LL dist(pair<int, int> a, pair<int, int> b)
+{
+  return (a.f - b.f) * 1LL * (a.f - b.f) + (a.s - b.s) * 1LL * (a.s - b.s);
+}
+
+point src;
+
+bool cmp(pair<pair<int, int>, int> x, pair<pair<int, int>, int> y)
+{
+  point a = point(x.f.f, x.f.s);
+  point b = point(y.f.f, y.f.s);
+  long double tmp = angle(vec(src, a));
+  long double tmp2 = angle(vec(src, b));
+  if(fabs(tmp - tmp2) < EPS)
+    return dist(x.f, arr[0].f) < dist(y.f, arr[0].f);
+  return tmp < tmp2;
+}
+
+int main()
+{
+  //freopen("bishops.in", "r", stdin);
+  //freopen("bishops.out", "w", stdout);
+  int n, x, y, z;
+  cin >> n;
+  srand(time(0));
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d %d", &x, &y);
+    arr[i] = mp(mp(x, y), i);
+  }
+  x = 0;
+  src = point(arr[0].f.f, arr[0].f.s);
+  sort(arr + 1, arr + n, cmp);
+  for(int i=1;i<n;i++)
+  {
+    if(i != 1 && three_points_collinear(arr[i].f, arr[i - 1].f, arr[0].f)) continue;
+    long double d = 1e15;
+    z = -1;
+    point a = point(arr[i].f.f, arr[i].f.s), b, pp;
+    for(int j=1;j<n;j++)
+    {
+      if(i == j) continue;
+      if(three_points_collinear(arr[i].f, arr[0].f, arr[j].f)) continue;
+      b = point(arr[j].f.f, arr[j].f.s);
+      long double tmp = point_line_distance(src, a, b, pp);
+      if(tmp < d)
+        d = tmp, z = arr[j].s + 1;
+    }
+    if(z != -1)
+    {
+      printf("%d %d %d", 1, arr[i].s + 1, z);
+      return 0;
+    }
+  }
+  assert(false);
+  return 0;
+}

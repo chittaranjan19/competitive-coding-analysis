@@ -1,0 +1,90 @@
+Const Fi='';//'214B.INP';
+      Fo='';//'214B.OUT';
+      maxN=100001;
+Var   n:Longint;
+      A:Array[0..maxN]Of Longint;
+      Tr,F:Array[0..maxN,0..2]Of Longint;
+      Cs:Array[0..2]Of Longint;
+      Ok:Boolean;
+Procedure Enter;
+Var i:Longint;
+  Begin
+    Readln(n);
+    For i:=1 to n do
+      Read(A[i]);
+  End;
+Procedure Sort(l,h:Longint);
+Var i,j,Key,Tmp:Longint;
+  Begin
+    If l>=h then Exit;
+    i:=l;j:=h;
+    Key:=A[l+Random(h-l+1)];
+    Repeat
+      While A[i]>Key do Inc(i);
+      While A[j]<Key do Dec(j);
+      If i<=j then
+        Begin
+          If i<j then
+            Begin
+              Tmp:=A[i];
+              A[i]:=A[j];
+              A[j]:=Tmp;
+            End;
+          Inc(i);Dec(j);
+        End;
+    Until i>j;
+    Sort(l,j);Sort(i,h);
+  End;
+Function  Sub(a,b:Longint):Longint;
+Var Res:Longint;
+  Begin
+    Res:=(b mod 3-a mod 3) mod 3;
+    If Res<0 then Inc(Res,3);
+    Exit(Res);
+  End;
+Procedure Trace(i,J:Longint);
+  Begin
+    If i=0 then Exit;
+    Trace(Tr[i,J],Sub(A[i],J));
+    If A[i]<>0 then
+      Begin
+        Write(A[i]);
+        Ok:=True;
+      End
+      Else
+    If Ok or (i=N) then
+      Write(A[i]);
+  End;
+Procedure Main;
+Var i,J:Longint;
+  Begin
+    Sort(1,n);
+    If A[n]<>0 then
+      Begin
+        Writeln(-1);
+        Exit;
+      End;
+    Fillchar(F,Sizeof(F),0);
+    F[0,1]:=-(n+1);F[0,2]:=-(n+1);
+    Fillchar(Cs,Sizeof(Cs),0);
+    For i:=1 to n do
+      Begin
+        For J:=0 to 2 do
+          Begin
+            F[i,J]:=F[Cs[Sub(A[i],J)],Sub(A[i],J)]+1;
+            Tr[i,J]:=Cs[Sub(A[i],J)];
+          End;
+        For J:=0 to 2 do
+          If F[i,J]>F[Cs[J],J] then
+            Cs[J]:=i;
+      End;
+    Ok:=False;
+    Trace(N,0);
+  End;
+Begin
+  Assign(Input,Fi);Reset(Input);
+  Assign(Output,Fo);Rewrite(Output);
+  Enter;
+  Main;
+  Close(Input);Close(Output);
+End.

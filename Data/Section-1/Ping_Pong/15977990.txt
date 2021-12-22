@@ -1,0 +1,70 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e8;
+const int P = 239;
+const int MAX_N = 100000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+int add(int x, int d)
+{
+    x += d;
+    if (x > MOD)
+        x -= MOD;
+    return x;
+}
+
+int main()
+{
+    //ifstream ifs("input.in");
+    //ofstream ofs("output.out");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n[2], k[2];
+    cin >> n[0] >> n[1] >> k[0] >> k[1];
+    int dp[n[0] + n[1] + 1][n[0] + 1][n[1] + 1][2];
+    for (int i = 0; i < n[0] + n[1] + 1; i++)
+        for (int j = 0; j < n[0] + 1; j++)
+            for (int m = 0; m < n[1] + 1; m++)
+                for (int r = 0; r < 2; r++)
+                    dp[i][j][m][r] = 0;
+    dp[0][0][0][0] = 1;
+    dp[1][1][0][0] = 1;
+    dp[1][0][1][1] = 1;
+    for (int i = 2; i <= n[0] + n[1]; i++)
+        for (int j = 0; j <= n[0]; j++)
+            for (int m = 0; m <= n[1]; m++)
+                for (int r = 0; r < 2; r++)
+                    if (r == 0)
+                    {
+                        for (int l = 1; l <= k[r]; l++)
+                            if (l <= i && l <= j)
+                                dp[i][j][m][r] = add(dp[i][j][m][r], dp[i - l][j - l][m][1 - r]);
+                    }
+                    else
+                    {
+                        for (int l = 1; l <= k[r]; l++)
+                            if (l <= i && l <= m)
+                                dp[i][j][m][r] = add(dp[i][j][m][r], dp[i - l][j][m - l][1 - r]);
+                    }
+    int ans = 0;
+    ans = add(ans, dp[n[0] + n[1]][n[0]][n[1]][0]);
+    ans = add(ans, dp[n[0] + n[1]][n[0]][n[1]][1]);
+    cout << ans;
+    return 0;
+}

@@ -1,0 +1,163 @@
+#include<stdio.h>
+#include<vector>
+#include<map>
+using namespace std;
+#define INF 1000000007
+#define pp pair<int,int>
+map<pp,int> m1;
+typedef long long int ll;
+ll up[100005]={0},down[100005]={0},LCA[100005][20]={0},depth[100005]={0},ret=0;
+vector<ll> G[100005];
+ll pow(ll a,ll b)
+{
+    if(b==0)
+        return 1;
+    if(b==1)
+        return a;
+    ll ret=pow(a,b/2);
+    ret=(ret*ret)%INF;
+    if(b%2==0)
+        return ret%INF;
+    return (ret*a)%INF;
+}
+void dfs(ll u)
+{
+    //printf("#u=%d\n",u);
+    ll i,si=G[u].size();
+    for(i=0;i<si;i++)
+    {
+        ll v=G[u][i];
+        if(v==LCA[u][0])
+        {
+            //printf("u=%d v=%d\n",u,v);
+            continue;
+        }
+        LCA[v][0]=u;
+        depth[v]=depth[u]+1;
+        dfs(v);
+    }
+}
+void swap(ll &x,ll &y)
+{
+    ll temp=x;
+    x=y;
+    y=temp;
+}
+ll getlca(ll a,ll b)
+{
+    if(depth[a]>depth[b])
+    {
+        swap(a,b);
+    }
+    ll i;
+    for(i=19;i>=0;i--)
+    {
+        if(depth[LCA[b][i]]>=depth[a])
+        {
+            b=LCA[b][i];
+        }
+    }
+    if(a==b)
+    {
+        return a;
+    }
+    for(i=19;i>=0;i--)
+    {
+        if(LCA[a][i]!=LCA[b][i])
+        {
+            a=LCA[a][i];
+            b=LCA[b][i];
+        }
+    }
+    return LCA[a][0];
+}
+ll getans1(ll u)
+{
+    ll i,si=G[u].size(),sum=up[u];
+    for(i=0;i<si;i++)
+    {
+       ll v=G[u][i];
+       if(v==LCA[u][0])
+            continue;
+        sum+=getans1(v);
+        sum%=INF;
+    }
+    if(m1[pp(LCA[u][0],u)]){
+        ll temp=pow(2,sum)-1+INF;
+        //temp=(temp*500000004LL)%INF;
+        ret+=temp;
+        ret%=INF;
+    }
+    return sum;
+}
+ll getans2(ll u)
+{
+    ll i,si=G[u].size(),sum=down[u];
+    for(i=0;i<si;i++)
+    {
+       ll v=G[u][i];
+       if(v==LCA[u][0])
+            continue;
+        sum+=getans2(v);
+        sum%=INF;
+    }
+    if(m1[pp(u,LCA[u][0])]){
+        ll temp=pow(2,sum)-1+INF;
+        //temp=(temp*500000004LL)%INF;
+        ret+=temp;
+        ret%=INF;
+    }
+    return sum;
+}
+int main()
+{
+    ll n,i,j;
+    scanf("%I64d",&n);
+    for(i=0;i<n-1;i++)
+    {
+        //printf("i=%d\n",i);
+        ll u,v,w;
+        scanf("%I64d%I64d%I64d",&u,&v,&w);
+        G[u].push_back(v);
+        G[v].push_back(u);
+        if(w==0)
+        {
+            m1[pp(u,v)]=0;
+            m1[pp(v,u)]=0;
+        }
+        else
+        {
+            m1[pp(u,v)]=0;
+            m1[pp(v,u)]=1;
+        }
+    }
+    depth[1]=1;
+    dfs(1);
+    for(i=1;i<20;i++)
+    {
+        for(j=1;j<=n;j++)
+        {
+            LCA[j][i]=LCA[LCA[j][i-1]][i-1];
+            if(LCA[j][i] && 0)
+            {
+                printf("j=%d i=%d lca=%d\n",j,i,LCA[j][i]);
+            }
+        }
+    }
+    ll K,u=1,v;
+    scanf("%I64d",&K);
+    for(i=0;i<K;i++)
+    {
+        scanf("%I64d",&v);
+        int L=getlca(u,v);
+        up[L]--;
+        down[L]--;
+        up[u]++;
+        down[v]++;
+        u=v;
+    }
+    getans1(1);
+    getans2(1);
+    printf("%I64d\n",ret);
+    return 0;
+}

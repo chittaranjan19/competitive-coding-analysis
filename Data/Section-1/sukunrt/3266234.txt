@@ -1,0 +1,133 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std;
+
+vector <long long> bit[100005];
+long long root[100005];
+int depth[100005];
+int chain[100005];
+int par[100005];
+vector <int> g[100005];
+
+void dfs(){
+    int x = 1;
+    depth[1] = 0;
+    chain[1] = 0;
+    for(int i = 0; i < g[1].size(); i++){
+        bit[x].push_back(0);
+        int p = g[1][i];
+        int d = 1;
+        par[p] = 1;
+        depth[p] = 1;
+        chain[p] = x;
+        bit[x].push_back(0);
+        while(g[p].size() == 2){
+            int y = g[p][0];
+            if (y == par[p]) y = g[p][1];
+            d++;
+            depth[y] = d;
+            chain[y] = x;
+            par[y] = p;
+            p = y;
+            bit[x].push_back(0);
+        }
+        
+        bit[x].push_back(0);
+        bit[x].push_back(0);
+        bit[x].push_back(0);
+        x++;
+    }
+}
+
+void update(int x, int idx, int val){
+    while (idx <= bit[x].size()){
+        bit[x][idx] += val;
+        idx += (idx & (-idx));
+    }
+    return;
+}
+
+int read(int x, int idx){
+    long long sum = 0;
+    while (idx > 0){
+        sum += bit[x][idx];
+        idx -= (idx & (-idx));
+    }
+    return sum;
+}
+void up_root(int d, int val){
+    while (d <= 100005){
+        root[d] += val;
+        d += (d&-d);
+    }
+}
+int rd_root(int d){
+    long long sum = 0;
+    while (d > 0){
+        sum += root[d];
+        d -= (d & -d);
+    }
+    return sum;
+}
+            
+        
+            
+        
+int main(){
+    int n, q;
+    cin >> n >> q;
+    for(int i = 1; i < n; i++){
+        int x,y;
+        scanf("%d %d", &x, &y);
+        g[x].push_back(y);
+        g[y].push_back(x);
+    }
+    dfs();
+
+    for(int i = 0; i < q; i++){
+        int t;
+        scanf("%d" , &t);
+        if ( t == 0){
+            int x,y ,z;
+            scanf("%d %d %d" , &x, &z, &y);
+            if (x == 1){
+                up_root(y+1 + 1, -z);
+                up_root(1,z);
+            }
+            else{
+                update(chain[x], depth[x], z);
+                update(chain[x], depth[x] + y + 1, -z);
+                int d = y;
+                int r = x;
+                while (x  != 1 && d > 0){
+                    d--;
+                    x = par[x];
+                }
+                if (x != 1){
+                    update(chain[r], depth[x], z);
+                    update(chain[r], depth[r],-z);
+                }
+                else {
+                    up_root (1, z);
+                    up_root (d+1+1, -z);
+                    update (chain[r], d+1 , z);
+                    update (chain[r], depth[r], -z);
+                }
+            }
+        }
+        else {
+            int x;
+            scanf("%d", &x);
+            long long res = rd_root(depth[x]+1);
+            if ( x != 1)
+                res += read(chain[x], depth[x]);
+            cout << res <<  endl;
+        }
+    }
+                    
+                
+    return 0;
+    
+
+}

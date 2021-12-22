@@ -1,0 +1,135 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-12
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+struct disjointset
+{
+	vector<int> rank, parent;
+	int subtrees;
+
+	disjointset(int n)
+	{
+		subtrees = n;
+		for(int i=0;i<n;i++)
+			rank.pb(1),parent.pb(i);
+	}
+
+	int find_set(int x)
+	{
+		if(x == parent[x])
+			return x;
+		return parent[x] = find_set(parent[x]);
+	}
+
+	void link(int x,int y)
+	{
+		if(rank[x] > rank[y])
+			swap(x, y);
+		parent[x] = y;
+		if(rank[x] == rank[y])
+			rank[y]++;
+	}
+
+	bool union_sets(int x,int y)
+	{
+		x = find_set(x),y = find_set(y);
+		if(x != y)
+		{
+			link(x,y);
+			subtrees--;
+		}
+		return x != y;
+	}
+
+	bool same_set(int x,int y)
+	{
+		return find_set(x) == find_set(y);
+	}
+};
+
+vector<pair<int, int> > e1, e2;
+set<pair<pair<int, int>, bool> > s;
+set<pair<pair<int, int>, bool> > curr;
+vector<pair<int, bool> > g[300005];
+
+clock_t a;
+
+bool dfs(int node, int dist, int cnt = 0, int parent = -1)
+{
+  if(((clock() - a) * 1.0 / CLOCKS_PER_SEC > 1.5)) return false;
+  if(node == dist && cnt) return true;
+  if(cnt)
+  {
+    if(s.find(mp(mp(node, dist), 0)) != s.end() || s.find(mp(mp(node, dist), 1)) != s.end())
+    {
+      if(curr.find(mp(mp(node, dist), 0)) == curr.end() && curr.find(mp(mp(node, dist), 1)) == curr.end())
+        return true;
+    }
+  }
+  else
+  {
+    if(s.find(mp(mp(node, dist), 1)) != s.end())
+    {
+      if(curr.find(mp(mp(node, dist), 1)) == curr.end())
+        return true;
+    }
+  }
+  for(auto x : g[node])
+  {
+    if(curr.find(mp(mp(node, x.f), x.s)) != curr.end())
+      continue;
+    curr.insert(mp(mp(node, x.f), x.s));
+    curr.insert(mp(mp(x.f, node), x.s));
+    if(dfs(x.f, dist, cnt + x.s, node))
+      return true;
+    curr.erase(mp(mp(node, x.f), x.s));
+    curr.erase(mp(mp(x.f, node), x.s));
+  }
+  return false;
+}
+
+int main()
+{
+  int n, m, x, y, z;
+  cin >> n >> m;
+  a = clock();
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d %d %d", &x, &y, &z);
+    x--, y--;
+    g[x].pb(mp(y, z));
+    g[y].pb(mp(x, z));
+    s.insert(mp(mp(x, y), z));
+    s.insert(mp(mp(y, x), z));
+  }
+  scanf("%d %d", &x, &y);
+  x--, y--;
+  while((clock() - a) * 1.0 / CLOCKS_PER_SEC < 2.0)
+  {
+    for(int i=0;i<n;i++)
+      random_shuffle(g[i].begin(), g[i].end());
+    if(dfs(x, y))
+    {
+      cout << "YES";
+      return 0;
+    }
+  }
+  cout << "NO";
+  return 0;
+}

@@ -1,0 +1,130 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+#include <complex>
+
+typedef complex<double> point;
+
+#define X real()
+#define Y imag()
+#define polar(r, t) (r * exp(point(0, t)))
+#define length(a) hypot(a.X, a.Y)
+#define angle(a) atan2(a.Y, a.X)
+#define vec(a, b) (b - a)
+#define dot(a, b) ((conj(a) * b).X)
+#define cross(a, b) ((conj(a) * b).Y)
+#define lengthsqr(a) dot(a, a)
+#define vec_rot(v, t) (v * exp(point(0, t)))
+#define vec_rot_around(v, t, a) (vec_rot(vec(a, v), t) + a)
+#define reflect(v, m) (conj(v / m) * m)
+
+point arr[8];
+int ch = -1;
+
+bool check_square(vector<point> &points)
+{
+    vector<LL> y;
+    for(int i=0;i<4;i++)
+        for(int j=i+1;j<4;j++)
+            y.push_back(lengthsqr(vec(points[i], points[j])));
+    sort(y.begin(),y.end());
+    if(y[0] > EPS && fabs(y[0]-y[1]) <= EPS && fabs(y[0]-y[2]) <= EPS && fabs(y[0]-y[3]) <= EPS)
+        if(fabs(y[4]-y[5]) <= EPS)
+            return true;
+    return false;
+}
+
+bool check_rect(vector<point> &points)
+{
+    vector<LL> y;
+    for(int i=0;i<4;i++)
+        for(int j=i+1;j<4;j++)
+            y.push_back(lengthsqr(vec(points[i], points[j])));
+    sort(y.begin(),y.end());
+    if(y[0] > EPS && fabs(y[0]-y[1]) <= EPS && fabs(y[3]-y[2]) <= EPS)
+        if(fabs(y[4]-y[5]) <= EPS)
+            return true;
+    return false;
+}
+
+bool solve(int ind, int r, int mask)
+{
+  if(r > ind) return false;
+  if(r == 0)
+  {
+    vector<point> sq, rec;
+    for(int i=1;i<=8;i++)
+    {
+      if(mask & (1 << i))
+        sq.pb(arr[i]);
+      else rec.pb(arr[i]);
+    }
+    if(check_square(sq) && check_rect(rec))
+    {
+      ch = mask;
+      return true;
+    }
+    return false;
+  }
+  if(solve(ind - 1, r, mask)) return true;
+  if(solve(ind - 1, r - 1, mask | (1 << ind))) return true;
+  return false;
+}
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  //freopen("test.in", "r", stdin);
+  //freopen("report.out", "w", stdout);
+  int x, y;
+  for(int i=1;i<=8;i++)
+  {
+    cin >> x >> y;
+    arr[i] = point(x, y);
+  }
+  solve(8, 4, 0);
+  if(ch == -1) cout << "NO";
+  else
+  {
+    cout << "YES\n";
+    for(int i=1;i<=8;i++)
+      if(ch & (1 << i))
+        cout << i << " ";
+    cout << "\n";
+    for(int i=1;i<=8;i++)
+      if((ch & (1 << i)) == 0)
+        cout << i << " ";
+  }
+  return 0;
+}

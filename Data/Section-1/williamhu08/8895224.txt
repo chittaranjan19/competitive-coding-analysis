@@ -1,0 +1,80 @@
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset(a, s, sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1024;
+
+ll tree[2][2][MAXN][MAXN];
+
+void update (int x, int y, ll v) {
+	bool xp = x & 1, yp = y & 1;
+	for (int i = x; i < MAXN; i += (i & -i)) {
+		for (int j = y; j < MAXN; j += (j & -j)) {
+			tree[xp][yp][i][j] ^= v;
+		}
+	}
+}
+
+ll query (int x, int y) {
+	ll res = 0;
+	bool xp = x & 1, yp = y & 1;
+	for (int i = x; i; i &= i - 1) {
+		for (int j = y; j; j &= j - 1) {
+			res ^= tree[xp][yp][i][j];
+		}
+	}
+	return res;
+}
+
+int main() {
+#ifndef ONLINE_JUDGE
+	freopen("codeforces341D.in", "r", stdin);
+#endif
+	int m, q, x0, y0, x1, y1;
+	cin >> m >> m;
+	while (m--) {
+		cin >> q >> x0 >> y0 >> x1 >> y1;
+		if (q == 1) {
+			cout << (query(x1, y1) ^ query(x0 - 1, y1) ^ query(x1, y0 - 1) ^ query(x0 - 1, y0 - 1)) << '\n';
+		} else {
+			ll v;
+			cin >> v;
+			update(x0, y0, v);
+			update(x0, y1 + 1, v);
+			update(x1 + 1, y0, v);
+			update(x1 + 1, y1 + 1, v);
+		}
+	}
+}

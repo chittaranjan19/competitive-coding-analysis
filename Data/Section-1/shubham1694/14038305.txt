@@ -1,0 +1,83 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int arr[1000010], pos[1000010], segtree[1000010], dp[1000010];
+vector<int> modified;
+
+void update(int s, int e, int q, int val, int node)
+{
+    if(s>e || s>q || q>e)
+        return;
+    if(s==e){
+        segtree[node] = val;
+        return;
+    }
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*node+1;
+    rc = lc+1;
+    update(s, mid, q, val, lc);
+    update(mid+1, e, q, val, rc);
+    segtree[node] = max(segtree[lc], segtree[rc]);
+}
+
+int query(int s, int e, int qs, int qe, int node)
+{
+    if(s>e || s>qe || qs>e || qs>qe)
+        return 0;
+    if(s>=qs && e<=qe)
+        return segtree[node];
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*node+1;
+    rc = lc+1;
+    return max(query(s, mid, qs, qe, lc), query(mid+1, e, qs, qe, rc));
+}
+
+int main()
+{
+    memset(pos, -1, sizeof(pos));
+    int n, i, j, mx=0, p, ans, temp;
+    scanf("%d", &n);
+    for(i=0; i<n; i++){
+        scanf("%d", &arr[i]);
+        pos[arr[i]] = i;
+        mx = max(mx, arr[i]);
+    }
+    if(n==1){
+        printf("1\n");
+        return 0;
+    }
+    ans = 0;
+    for(i=2; i<=mx; i++){
+        modified.clear();
+        for(j=i; j<=mx; j+=i){
+            p = pos[j];
+            if(p==-1)
+                continue;
+            update(0, n-1, p, dp[p], 0);
+            modified.push_back(p);
+        }
+        for(j=i; j<=mx; j+=i){
+            if(pos[j]==-1)
+                continue;
+            p = pos[j];
+            temp = query(0, n-1, 0, p-1, 0) + 1;
+            dp[p] = max(temp, dp[p]);
+            update(0, n-1, p, dp[p], 0);
+            modified.push_back(p);
+            //cout << p << " " << temp << " " << i << "\n";
+        }   
+        for(j=0; j<modified.size(); j++)
+            update(0, n-1, modified[j], 0, 0);
+        //for(j=0; j<n; j++)
+        //  cout << dp[j] << " ";
+        //cout << "\n"; 
+    }
+    for(i=0; i<n; i++){
+        ans = max(ans, dp[i]);
+    }
+    printf("%d\n", ans);
+    return 0;
+}

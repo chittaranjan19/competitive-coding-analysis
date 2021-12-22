@@ -1,0 +1,51 @@
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <cstring>
+#include <set>
+
+using namespace std;
+typedef pair<int, int> pii;
+const int N = 5000;
+
+vector<int> adj[N];
+int sz[N];
+
+bool seen[N];
+
+void dfs(int u) {
+    seen[u] = true;
+    sz[u] = 1;
+    for (int v : adj[u]) {
+        if (seen[v]) continue;
+        dfs(v);
+        sz[u] += sz[v];
+    }
+    seen[u] = false;
+}
+
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+
+    int n; cin >> n;
+    for (int i = 0; i < n-1; i++) {
+        int a, b; cin >> a >> b; a--; b--;
+        adj[a].push_back(b);
+        adj[b].push_back(a);
+    }
+    memset(seen, 0, sizeof seen);
+    dfs(0);
+
+    set<pii> sol;
+    for (int i = 0; i < n ; i++) {
+        if (sz[i]-1 >= 1 && n-sz[i] >= 1) {
+            sol.insert(pii(sz[i]-1, n-sz[i]));
+            sol.insert(pii(n-sz[i], sz[i]-1));
+        }
+    }
+    cout << sol.size() << endl;
+    for (pii x : sol) {
+        cout << x.first << " " << x.second << endl;
+    }
+}

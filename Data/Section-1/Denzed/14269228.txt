@@ -1,0 +1,77 @@
+#include <fstream>
+#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <cmath>
+#include <complex>
+#include <map>
+#include <set>
+#include <cstring>
+
+using namespace std;
+
+const int MN = 1e5 + 100;
+
+typedef long long ll;
+
+string s;
+int n, m;
+int ans[105][105][30];
+int shifts[MN];
+
+ll calc(ll tl, ll tr, ll left, ll right, char c, int k)
+{
+    if (left < s.size() && right < s.size())
+        return ans[left][right][c - 'a'];
+    if (left <= tl && tr <= right)
+    {
+        return ans[0][s.size() - 1][c - 'a'] * ((tr - tl + 1) / s.size());
+    }
+    ll m = (tl + tr) / 2;
+    ll res = 0;
+    if (m >= left)
+        res += calc(tl, m, left, min(right, m), c, k - 1);
+    if (m < right)
+    {
+        ll tmp = (tr - m);
+        left = max(m + 1, left);
+        left  = (left - shifts[k] + tmp) % tmp;
+        right = (right - shifts[k] + tmp) % tmp;
+        res += calc(tl, m, left, right, c, k - 1);
+    }
+    return res;
+}
+
+int main()
+{
+    cin.tie(0);
+    ios_base::sync_with_stdio(0);
+    cin >> s;
+    cin >> n >> m;
+    for (int i = 0; i < n; ++i)
+        cin >> shifts[i];
+    for (int i = 0; i < s.size(); ++i)
+    {
+        ans[i][i][s[i] - 'a']++;
+        for (int j = i + 1; j < s.size(); ++j)
+        {
+            for (int k = 0; k < 30; ++k)
+                ans[i][j][k] = ans[i][j - 1][k];
+            ans[i][j][s[j] - 'a']++;
+        }
+    }
+    int k = -1;
+    ll  tr = s.size();
+    while (tr < 1e18)
+    {
+        ++k;
+        tr *= 2;
+    }
+    for (int i = 0; i < m; ++i)
+    {
+        ll l, r;
+        char c;
+        cin >> l >> r >> c;
+        cout << calc(0, tr - 1, l - 1, r - 1, c, k) << '\n';
+    }
+}

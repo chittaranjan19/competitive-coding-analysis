@@ -1,0 +1,152 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+int toNumber (string s)
+{
+	int Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (int number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+struct Terna
+{
+	Terna (tint ll, tint mm, tint rr)
+	{
+		left = ll;
+		mid = mm;
+		right = rr;
+	}
+	tint left,mid,right;
+};
+
+bool operator == (Terna t1, Terna t2)
+{
+	return (t1.left == t2.left && t1.mid == t2.mid && t1.right == t2.right);
+}
+
+int main()
+{
+	tint n,m;
+	string s;
+	cin >> n >> m >> s;
+	s+= "aaaa";
+	s = "aaaa" + s;
+	n+= 8;
+	vector<tint> v (n);
+	vector<Terna> p (n,Terna(-1,-1,-1));
+	tint sumaUnos = 0;
+	tint qIntervalos = 0;
+	bool encendido = false;
+	forn(i,n)
+	{
+		if (s[i] == '.')
+		{
+			v[i] = 1;
+			encendido = true;
+			sumaUnos++;
+		}
+		else if (encendido)
+		{
+			encendido = false;
+			qIntervalos++;
+			v[i] = 0;
+		}
+		else
+			v[i] = 0;
+		
+	}
+	tint ans = sumaUnos - qIntervalos;
+	p[0] = Terna (0,s[0],s[1]);
+	forsn(i,1,n-1)
+		p[i] = Terna(v[i-1],v[i],v[i+1]);
+	p[n-1] = Terna(v[n-2],v[n-1],0);
+	forn(i,m)
+	{
+		tint ind;
+		char c;
+		cin >> ind >> c;
+		tint x = (c == '.');
+		ind+=3;
+		if (p[ind].mid == x)
+			cout << ans << endl;
+		else if (p[ind] == Terna(0,0,0) or p[ind] == Terna(0,1,0))
+			cout << ans << endl;
+		else if ((p[ind]) == Terna(0,0,1) or p[ind] == Terna(1,0,0))
+			cout << ++ans << endl;
+		else if (p[ind] == Terna(0,1,1) or p[ind] == Terna(1,1,0))
+			cout << --ans << endl;
+		else if (p[ind] == Terna(1,0,1))
+		{
+			ans += 2;
+			cout << ans << endl;
+		}
+		else
+		{
+			ans -= 2;
+			cout << ans << endl;
+		}
+			
+		p[ind].mid = x;
+		p[ind+1].left = x;
+		p[ind-1].right = x;
+			
+	}
+	
+	
+	
+	return 0;
+}
+
+
+

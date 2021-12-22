@@ -1,0 +1,74 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+
+using namespace std;
+
+const ll N = 1000000;
+const ll inf = (ll)1e18;
+
+int root = 0;
+int nv = 1;
+vector<vector<int> > go(1, vector<int> (2, -1));
+
+void add_str(ll x)
+{
+    int curr = root;
+    for (int i = 39; i >= 0; i--)
+    {
+        int c = (x >> i) & 1;
+        if (go[curr][c] == -1)
+        {
+            go[curr][c] = nv++;
+            go.push_back(vector<int> (2, -1));
+        }
+        curr = go[curr][c];
+    }
+}
+
+ll get(ll x)
+{
+    ll res = 0;
+    int curr = root;
+    for (int i = 39; i >= 0; i--)
+    {
+        int c = (x >> i) & 1;
+        if (go[curr][c ^ 1] != -1)
+        {
+            res += (1LL << i);
+            curr = go[curr][c ^ 1];
+        }
+        else
+        {
+            curr = go[curr][c];
+        }
+    }
+    return res;
+}
+
+int main()
+{
+    //freopen("power.in", "r", stdin);
+    //freopen("power.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n;
+    cin >> n;
+    ll a[n];
+    for (int i = 0; i < n; i++)
+        cin >> a[i];
+    ll c1 = 0, c2 = 0;
+    for (int i = 0; i < n; i++)
+        c1 ^= a[i];
+    add_str(c2);
+    ll ans = get(c1);
+    for (int i = n - 1; i >= 0; i--)
+    {
+        c1 ^= a[i];
+        c2 ^= a[i];
+        add_str(c2);
+        ans = max(ans, get(c1));
+    }
+    cout << ans << endl;
+    return 0;
+}

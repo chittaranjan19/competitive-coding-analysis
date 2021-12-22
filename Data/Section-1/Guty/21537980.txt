@@ -1,0 +1,182 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+#include <valarray>
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+
+#define forn(i,n) for(tint i=0;i<(tint)(n); i++)
+#define forsn(i,s,n) for(tint i=(s);i<(tint)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) )
+		Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+// CRIBA
+
+//const tint maxN = 1000500;
+//int p[maxN + 1] = {1, 1};
+//
+//map<tint,tint> factorizar (tint n)
+//{
+//	map<tint,tint> f;
+//	while (n > 1) 
+//	{ 
+//		f[p[n]]++;
+//		n /= p[n]; 
+//	}
+//	return f;
+//}
+// ESTO VA EN EL MAIN
+//	for (int i = 1; i <= maxN; ++i)
+//		if (p[i] == 1)
+//			for (int j = i; j <= maxN; j += i)
+//				p[j] = i;
+
+struct Materia
+{
+	tint dia,id;
+	Materia(tint dd, tint ii)
+	{
+		dia = dd;
+		id = ii;
+	}
+};
+
+bool operator < (Materia m1, Materia m2)
+{
+	return make_pair(m1.dia, m1.id) < make_pair(m2.dia,m2.id);
+}
+
+bool alcanzaEstudio(vector<tint> &a, vector<tint> &d, tint r,tint &m)
+{
+	// Chequeamos si se puede con r dias
+	
+	// Me guardo la ultima fecha de cada examen
+	vector<Materia> ultima (m,Materia(-1,-1));
+	forn(i,r)
+		if (d[i] > 0)
+			ultima[d[i]-1] = Materia(i,d[i]-1);
+			// La materia se da el dia i, y es la "d[i]-1"
+			
+	// Ordeno las materias por fecha de examen
+	sort(ultima.begin(),ultima.end());
+	bool sePuede = true;
+	tint estudio = 0; // lo que estudie para otras materias
+	forn(k,m) // k indica examenes dados antes que la fecha
+	{
+		// ultima[k].dia - k - estudio son los dias que tengo de estudio
+		if ((ultima[k].dia == -1) or (ultima[k].dia - k - estudio < a[ultima[k].id]))
+		{
+			sePuede = false;
+			break;
+		}
+		estudio += a[ultima[k].id];
+	}
+	return sePuede;
+}
+
+
+int main()
+{
+	#ifdef ACMTUYO
+		assert(freopen("entrada.in", "r", stdin));
+	#endif
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	
+	tint n,m;
+	while (cin >> n >> m)
+	{
+		// Leemos entrada
+		vector<tint> d (n);
+		forn(i,n)
+			cin >> d[i];
+		vector<tint> a (m);
+		forn(i,m)
+			cin >> a[i];
+		
+		if (a[0] == 0 && d[0] == 1)
+		{
+			cout << "0\n";
+		}
+		else if (alcanzaEstudio(a,d,n,m)) // si se puede con n dias
+		{
+			tint csup = n; // con n se puede
+			tint cinf = 0; // con 0 no se puede (salvo el primer if)
+			while (csup - cinf > 1)
+			{
+				tint c = (csup + cinf)/2;
+				if (alcanzaEstudio(a,d,c,m))
+					csup = c;
+				else
+					cinf = c;
+			}
+			cout << csup << "\n";
+		}
+		else
+			cout << "-1\n";
+			
+		
+		
+			
+		
+	}
+	
+	
+	return 0;
+}
+
+
+

@@ -1,0 +1,71 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+const int MAX_N = 1000005;
+
+vector<int> c[1005];
+int comp[1005];
+int color[1005];
+int sz[1005];
+
+struct P {
+    int x, y, z, i;
+    inline bool operator < (const P &other) const {
+        return z > other.z;
+    }
+} a[MAX_N];
+
+int main() {
+    //ifstream cin("f.in");
+    int n, m, q;
+    cin >> n >> m >> q;
+    for (int i = 1; i <= m; ++ i) {
+        cin >> a[i].x >> a[i].y >> a[i].z;
+        a[i].i = i;
+    }
+    sort(a + 1, a + m + 1);
+    for (int l, r, i = 1; i <= q; ++ i) {
+        cin >> l >> r;
+        for (int j = 1; j <= n; ++ j) {
+            comp[j] = j;
+            color[j] = 1;
+            sz[j] = 1;
+            c[j].clear();
+            c[j].push_back(j);
+        }
+        int answer = -1;
+        for (int j = 1; j <= m; j += 1) {
+            if (a[j].i >= l && a[j].i <= r) {
+                int x, y;
+                x = a[j].x; y = a[j].y;
+                if (comp[x] == comp[y]) {
+                    if (color[x] == color[y]) {
+                        answer = a[j].z;
+                        break;
+                    }
+                } else {
+                    if (sz[comp[x]] < sz[comp[y]]) {
+                        swap(x, y);
+                    }
+                    if (color[x] != color[y]) {
+                        for (auto p : c[comp[y]]) {
+                            c[comp[x]].push_back(p);
+                            comp[p] = comp[x];
+                        }
+                    } else {
+                        for (auto p : c[comp[y]]) {
+                            c[comp[x]].push_back(p);
+                            comp[p] = comp[x];
+                            color[p] = 3 - color[p];
+                        }
+                    }
+                    sz[comp[x]] += sz[comp[y]];
+                }
+            }
+        }
+        cout << answer << "\n";
+    }
+    return 0;
+}

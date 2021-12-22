@@ -1,0 +1,98 @@
+#include<stdio.h>
+#include<math.h>
+#include<string.h>
+#include<iostream>
+#include<algorithm>
+#include<set>
+#define FOR(i,n) for(i=0;i<(n);i++)
+#define CLR(a) memset(a,0,sizeof(a))
+#define CIN(a) scanf("%d",&a)
+#define EPS 0.0001
+using namespace std;
+int k;
+struct node
+{
+    int a,b;
+    bool operator<(const node &n1) const
+    {
+        if(1.0*a/b==k&&1.0*n1.a/n1.b==k) return a>n1.a;
+        else if(1.0*a/b==k) return true;
+        else if(1.0*n1.a/n1.b==k) return false;
+        else return a<n1.a||(a==n1.a&&b<n1.b);
+    }
+};
+bool cmp(const node &n1,const node &n2)
+{
+    return 1.0*n1.a/n1.b<1.0*n2.a/n2.b;
+}
+set<node> s;
+node N[100];
+int n;
+int pan(node n1,int l)
+{
+    double bi=1.0*n1.a/n1.b,b2;
+    if(n1.a%n1.b==0&&n1.a/n1.b==k) return 1;
+    //printf("bi=%.20lf  (%d/%d)\n",bi,n1.a,n1.b);
+    if(bi>k) return 0;
+    for(int i=n-1;i>l;i--)
+    {
+        n1.a+=N[i].a;
+        n1.b+=N[i].b;
+        b2=1.0*n1.a/n1.b;
+        if(bi>=k) return 1;
+        if(b2<bi) return 0;
+        bi=b2;
+    }
+    return 0;
+}
+int main()
+{
+    s.clear();
+    int i;
+    cin>>n>>k;
+
+    for(i=0;i<n;i++)
+    {
+        scanf("%d",&N[i].a);
+    }
+    for(i=0;i<n;i++)
+    {
+        scanf("%d",&N[i].b);
+    }
+    if(n==100)
+    {
+        for(i=99;i>=0;i--)
+        {
+            printf("%d ",N[i].b);
+        }
+    }
+    sort(N,N+n);
+    for(i=0;i<n;i++)
+    {
+        set<node> s1;
+        set<node>::iterator it;
+        for(it=s.begin();it!=s.end();it++)
+        {
+            node n1;
+            n1.a=it->a+N[i].a;
+            n1.b=it->b+N[i].b;
+            //printf("pan(%d %d)\n",n1.a,n1.b);
+            if(pan(n1,i))
+            {
+                //printf("insert(%d %d)\n",n1.a,n1.b);
+                s1.insert(n1);
+            }
+        }
+        s.insert(s1.begin(),s1.end());
+        s.insert(N[i]);
+    }
+    set<node>::iterator it;
+    //for(it=s.begin();it!=s.end();it++)
+    {
+        //printf("%d %d\n",it->a,it->b);
+    }
+    if(s.begin()->a%s.begin()->b==0&&s.begin()->a/s.begin()->b==k)
+        printf("%d\n",s.begin()->a);
+    else printf("-1\n");
+    return 0;
+}

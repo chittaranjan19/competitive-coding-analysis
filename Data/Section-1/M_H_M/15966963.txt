@@ -1,0 +1,108 @@
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <unordered_map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <cstring>
+#include <iomanip>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 1600;
+const int E = 1600;
+const int oo = 1e9;
+
+int from[E], to[E], cap[E], pre[E], head[N];
+int ecnt;
+int n, m;
+bool mark[N];
+int a[N];
+int b[N];
+int mat[N][N];
+
+void add_edge(int u, int v, int uv, int vu = 0){
+	from[ecnt] = u, to[ecnt] = v, cap[ecnt] = uv, pre[ecnt] = head[u], head[u] = ecnt ++;
+	from[ecnt] = v, to[ecnt] = u, cap[ecnt] = vu, pre[ecnt] = head[v], head[v] = ecnt ++;
+}
+
+int dfs(int v, int sink, int f = oo){
+	if(v == sink)
+		return f;
+	if(mark[v]) 
+		return 0;
+	mark[v] = true;
+	for(int i = head[v]; i != -1; i = pre[i]){
+		if(cap[i]){
+			int x = dfs(to[i], sink, min(f, cap[i]));
+			if(x){
+				cap[i] -= x;
+				cap[i ^ 1] += x;
+				return x;
+			}
+		}
+	}
+	return 0;
+}
+
+int flow(int source, int sink){
+	int f = 0, x;
+	while((x = dfs(source, sink))){
+		f += x;
+		memset(mark, 0, sizeof mark);
+	}
+	return f;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	memset(head, -1, sizeof head);
+	memset(mat, -1, sizeof mat);
+	int source = N - 1;
+	int sink = N - 2;
+	int sum1 = 0;
+	int sum2 = 0;
+	cin >> n >> m;
+	for(int i = 0; i < n; ++i) cin >> a[i], add_edge(source, 2 * i, a[i]), sum1 += a[i];
+	for(int i = 0; i < n; ++i) cin >> b[i], add_edge(2 * i + 1, sink, b[i]), sum2 += b[i];
+	for(int i = 0; i < n; ++i) mat[i][i] = ecnt, add_edge(2 * i, 2 * i + 1, oo);
+	for(int i = 0; i < m; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; v --;
+		mat[u][v] = ecnt;
+		add_edge(2 * u, 2 * v + 1, oo);
+		mat[v][u] = ecnt;
+		add_edge(2 * v, 2 * u + 1, oo);
+	}
+	if(sum1 != flow(source, sink) || sum2 != sum1){
+		cout << "NO\n";
+		return 0;
+	}
+	cout << "YES\n";
+	for(int i = 0; i < n; ++i){
+		for(int j = 0; j < n; ++j){
+			if(mat[i][j] == -1) cout << "0 ";
+			else cout << oo - cap[mat[i][j]] << " ";
+		}
+		cout << "\n";
+	}
+	return 0;
+}

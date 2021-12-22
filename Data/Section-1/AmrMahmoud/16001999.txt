@@ -1,0 +1,80 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int n;
+int arr[200005];
+
+bool compare(pair<LL, LL> a, pair<LL, LL> b)
+{
+  LL tmp = a.f * 1LL * b.s - b.f * 1LL * a.s;
+  return tmp > 0;
+}
+
+int main()
+{
+  scanf("%d", &n);
+  for(int i=0;i<n;i++)
+    scanf("%d", &arr[i]);
+  sort(arr, arr + n);
+  pair<LL, LL> res = mp(0, 1);
+  vector<int> ans;
+  ans.pb(arr[0]);
+  // one median
+  for(int i=1;i+1<n;i++)
+  {
+    pair<LL, LL> tmp = mp(arr[i] + arr[i - 1] + arr[n - 1], 3);
+    tmp.f -= 3 * arr[i];
+    if(compare(tmp, res))
+    {
+      res = tmp;
+      ans.clear();
+      ans.pb(arr[i - 1]);
+      ans.pb(arr[i]);
+      ans.pb(arr[n - 1]);
+    }
+  }
+  // two medians
+  /*
+    (a + b + c + d) / 4 - (b + c) / 2
+    (a + b + c + d) / 4 - (2 * b + 2 * c) / 4
+    (a - b - c + d) / 4
+    minimize b, c, maximize a, d
+  */
+  for(int i=1;i+2<n;i++)
+  {
+    pair<LL, LL> tmp = mp(arr[i - 1] - arr[i] - arr[i + 1] + arr[n - 1], 4);
+    if(compare(tmp, res))
+    {
+      res = tmp;
+      ans.clear();
+      ans.pb(arr[i - 1]);
+      ans.pb(arr[i]);
+      ans.pb(arr[i + 1]);
+      ans.pb(arr[n - 1]);
+    }
+  }
+  cout << ans.size() << "\n";
+  for(int i=0;i<ans.size();i++)
+  {
+    if(i) printf(" ");
+    printf("%d", ans[i]);
+  }
+  return 0;
+}

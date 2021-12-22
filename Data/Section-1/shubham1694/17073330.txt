@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.en()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 2010;
+
+const ll a = 141;
+
+ll modpow(ll a, ll b)
+{
+	ll x=1, y=a;
+	while(b){
+		if(b&1)
+			x = (x*y)%mod;
+		y = (y*y)%mod;
+		b/=2;
+	}
+	return x;
+}
+
+string str, s1, s2, temp;
+ll hsh[maxn], pa[maxn], mpa[maxn];
+set<ll> mset;
+int start[maxn], en[maxn];
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	boost
+	cin.tie(0);
+	cout.tie(0);
+	int n, m, i, j, l1, l2;
+	ll tmp;
+	pa[0] = mpa[0] = 1;
+	for(i=1; i<maxn; i++){
+		pa[i] = (pa[i-1]*a)%mod;
+		mpa[i] = modpow(pa[i], mod-2);
+	}
+	cin >> str >> s1 >> s2;
+	n = (int)str.size();
+	l1 = (int)s1.size();
+	l2 = (int)s2.size();
+	for(i=1; i<=n; i++){
+		hsh[i] = (hsh[i-1] + (pa[i]*1ll*(str[i-1]-'a'))%mod)%mod;
+		temp = str.substr(i-1, l1);
+		if(temp==s1)
+			start[i-1] = 1;
+		if((n-i+1)>=l2){
+			temp = str.substr(i-1, l2);
+			if(temp==s2)
+				en[i-2+l2] = 1;
+		}
+	}
+	for(i=0; i<n; i++){
+		if(start[i]){
+			for(j=i; j<n; j++){
+				if(en[j]){
+					tmp = (hsh[j+1]-hsh[i+1]+mod)%mod;
+					tmp = (tmp*mpa[i])%mod;
+					if(mset.find(tmp)==mset.end())
+						mset.insert(tmp);
+				}
+			}
+		}
+	}
+	printf("%d\n", (int)mset.size());
+	return 0;
+}

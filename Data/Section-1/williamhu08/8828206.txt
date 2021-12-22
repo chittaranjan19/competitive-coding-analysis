@@ -1,0 +1,180 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+
+ll A, B;
+ll X, Y;
+pii ans(200, 200);
+
+void decompose (ll &a, ll &b, int num, bool half) {
+	if (half) {
+		while (num--) {
+			if (a % 2) {
+				b /= 2;
+			} else {
+				a /= 2;
+			}
+		}
+	} else {
+		while (num--) {
+			if (a % 3) {
+				b = (2 * b) / 3;
+			} else {
+				a = (2 * a) / 3;
+			}
+		}
+	}
+}
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces490D.in", "r", stdin);
+#endif
+	cin >> A >> B >> X >> Y;
+	ll x = A * B, y = X * Y;
+	ll cx = x;
+	pair<bool, bool> mult1, mult2;
+	for (int i = 0; ; i++) {
+		ll cy = y;
+		for (int j = 0; ; j++) {
+			//multiply B
+			if (cx == cy) {
+				if (ans.first + ans.second > i + j) {
+					ans = make_pair(i, j);
+					mult1 = make_pair(true, false);
+					mult2 = make_pair(false, true);
+				}
+			}
+			if (cy % 3) {
+				break;
+			}
+			cy = (cy * 2) / 3;
+		}
+		//multiply
+		if (cx % 2) {
+			break;
+		}
+		cx /= 2;
+	}
+	cx = x;
+	for (int i = 0; ; i++) {
+		ll cy = y;
+		for (int j = 0; ; j++) {
+			if (cx == cy) {
+				if (ans.first + ans.second > i + j) {
+					ans = make_pair(i, j);
+					mult1 = make_pair(false, true);
+					mult2 = make_pair(true, false);
+				}
+			}
+			if (cy % 2) {
+				break;
+			}
+			cy /= 2;
+		}
+		//multiply
+		if (cx % 3) {
+			break;
+		}
+		cx = (cx * 2) / 3;
+	}
+	//ok let's multiply
+	cx = x;
+	for (int i = 0; ; i++) {
+		//i is the # of times you mult by 2/3
+		ll d = cx;
+		for (int j = 0; ; j++) {
+			//j is # of times u mult by 1/2
+			if (d == y) {
+				if (ans.first + ans.second > i + j) {
+					ans = make_pair(j, i);
+					mult1 = make_pair(true, true);
+					mult2 = make_pair(false, false);
+				}
+			}
+			if (d % 2) {
+				break;
+			}
+			d /= 2;
+		}
+		if (cx % 3) {
+			break;
+		}
+		cx = (2 * cx) / 3;
+	}
+	ll cy = y;
+	for (int i = 0; ; i++) {
+		ll d = cy;
+		for (int j = 0; ; j++) {
+			if (d == x) {
+				if (ans.first + ans.second > i + j) {
+					ans = make_pair(j, i);
+					mult1 = make_pair(false, false);
+					mult2 = make_pair(true, true);
+				}
+			}
+			if (d % 2) {
+				break;
+			}
+			d /= 2;
+		}
+		if (cy % 3) {
+			break;
+		}
+		cy = (2 * cy) / 3;
+	}
+	if (ans.first == 200) {
+		puts("-1");
+		return 0;
+	}
+	if (mult1.first == mult1.second) {
+		if (mult1.first) {
+			//what a boss
+			decompose(A, B, ans.second, false);
+			decompose(A, B, ans.first, true);
+		} else {
+			decompose(X, Y, ans.second, false);
+			decompose(X, Y, ans.first, true);
+		}
+	} else {
+		bool b = mult1.first;
+		decompose(A, B, ans.first, b);
+		decompose(X, Y, ans.second, !b);
+	}
+	cout << ans.first + ans.second << endl << A << ' ' << B << endl << X << ' ' << Y << endl;
+}

@@ -1,0 +1,65 @@
+const
+  tfi = '';//'586d.inp';
+
+var
+  t,n,k,sx,sy : longint;
+  s : array [1..3,1..200] of char;
+  f : array [1..3,0..200] of longint;
+
+procedure enter;
+  var i,j : longint;
+  begin
+    readln(n,k);
+    for i := 1 to 3 do
+      begin
+        for j := 1 to n do
+          begin
+            read(s[i,j]);
+            if s[i,j] = 's' then sx := i;
+          end;
+        s[i,n+1] := '.';
+        s[i,n+2] := '.';
+        s[i,n+3] := '.';
+        readln;
+      end;
+  end;
+
+function check(i,j : longint) : longint;
+  begin
+    if j = 0 then exit(0);
+    if s[i,j] = '.' then exit(1) else exit(0);
+  end;
+
+procedure print;
+  var i,j,tt : longint;
+  begin
+    tt := n + 3;
+    fillchar(f,sizeof(f),0);
+    f[sx,1] := 1;
+    for j := 4 to tt + 1 do
+      begin
+        f[1,j] := check(1,j) and check(1,j-1) and check(1,j-2) and (f[1,j-3] or ((check(1,j-3) or check(2,j-2)) and f[2,j-3]));
+        f[2,j] := check(2,j) and check(2,j-1) and check(2,j-2) and (f[2,j-3] or ((check(2,j-3) or check(1,j-2)) and f[1,j-3]) or ((check(2,j-3) or check(3,j-2)) and f[3,j-3]));
+        f[3,j] := check(3,j) and check(3,j-1) and check(3,j-2) and (f[3,j-3] or ((check(3,j-3) or check(2,j-2)) and f[2,j-3]));
+      end;
+    dec(t);
+    for i := 1 to 3 do
+      for j := n+1 to n+3 do
+        if f[i,j] = 1 then
+          begin
+            writeln('YES');
+            exit;
+          end;
+    writeln('NO');
+  end;
+
+begin
+  assign(input,tfi); reset(input);
+  read(t);
+  while t > 0 do
+    begin
+      enter;
+      print;
+    end;
+  close(input);
+end.

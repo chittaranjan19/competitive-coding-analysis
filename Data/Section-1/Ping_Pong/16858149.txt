@@ -1,0 +1,68 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+
+vector<vector<pair<int, int> > > graph;
+vector<vector<int> > road;
+vector<set<int> > busy;
+
+void dfs(int x, int par)
+{
+    int curr = 0;
+    for (int i = 0; i < graph[x].size(); i++)
+        if (graph[x][i].first != par)
+        {
+            while (busy[x].find(curr) != busy[x].end())
+                curr++;
+            road[curr].push_back(graph[x][i].second);
+            busy[graph[x][i].first].insert(curr);
+            curr++;
+            dfs(graph[x][i].first, x);
+        }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n;
+    cin >> n;
+    graph.resize(n);
+    busy.resize(n);
+    int ans = 0;
+    for (int i = 0; i < n - 1; i++)
+    {
+        int s, f;
+        cin >> s >> f;
+        graph[s - 1].push_back(make_pair(f - 1, i));
+        graph[f - 1].push_back(make_pair(s - 1, i));
+        ans = max(ans, (int)graph[s - 1].size());
+        ans = max(ans, (int)graph[f - 1].size());
+    }
+    road.resize(ans);
+    dfs(0, -1);
+    cout << ans << endl;
+    for (int i = 0; i < ans; i++)
+    {
+        cout << road[i].size() << " ";
+        for (int j = 0; j < road[i].size(); j++)
+            cout << road[i][j] + 1 << " ";
+        cout << endl;
+    }
+    return 0;
+}

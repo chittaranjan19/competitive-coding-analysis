@@ -1,0 +1,92 @@
+#include <iostream>
+#include <cstdio>
+#include <set>
+#include <cstring>
+
+using namespace std;
+
+typedef pair<int, int> P;
+
+const int maxn = 100000 + 5;
+
+struct node
+{
+    int x, y;
+} ans[maxn];
+set<P> st;
+int dp[3][maxn], e[maxn];
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        st.clear();
+        memset(e, -1, sizeof(e));
+        memset(dp, 0, sizeof(dp));
+        int *now = dp[0], *nxt = dp[1];
+        int m = -1;
+        for(int i = 0; i < n; ++i)
+        {
+            int x, y;
+            scanf("%d%d", &x, &y);
+            e[y] = max(e[y], x);
+            m = max(y, m);
+        }
+        for(int i = 1; i <= n; ++i)
+        {
+            int w;
+            scanf("%d", &w);
+            st.insert(P(w, i));
+        }
+        bool flag = true;
+        for(int y = 0; y <= m; ++y)
+        {
+            for(int x = 0; x <= e[y]; ++x)
+            {
+                set<P>::iterator p = st.lower_bound(P(y - x, 0));
+                if(p == st.end() || p->first != y - x)
+                {
+                    flag = false;
+                    goto output;
+                }
+                int tmp = now[x];
+                if(x != 0)
+                {
+                    tmp = max(nxt[x - 1], tmp);
+                }
+                if(p->second < tmp)
+                {
+                    flag = false;
+                    goto output;
+                }
+                ans[p->second].x = x;
+                ans[p->second].y = y;
+                nxt[x] = p->second;
+                if(x != 0)
+                {
+                    nxt[x] = max(nxt[x], nxt[x - 1]);
+                }
+                st.erase(p);
+            }
+            for(int x = 0; x <= e[y]; ++x)
+            {
+                now[x] = max(nxt[x], now[x]);
+            }
+        }
+        output:
+        if(flag)
+        {
+            puts("YES");
+            for(int i = 1; i <= n; ++i)
+            {
+                printf("%d %d\n", ans[i].x, ans[i].y);
+            }
+        }
+        else
+        {
+            puts("NO");
+        }
+    }
+    return 0;
+}

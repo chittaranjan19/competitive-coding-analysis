@@ -1,0 +1,84 @@
+#include <iostream> 
+#include <cstdio>
+
+using namespace std;
+
+#define For(i , a , b) for (int i = a , _b = b ; i <= _b ; ++i)
+#define Ford(i , a  ,b) for (int i = a , _b = b ; i >= _b ; --i)
+#define Rep(i , n) for (int i = 0 , _n = n ; i < _n ; ++i)
+#define sz(A) ((int)A.size())
+#define LL(x) (x << 1)
+#define RR(x) ((x << 1) | 1)
+
+typedef pair<int , int> pt;
+
+const int md = 1e9 + 7;
+const int maxn = 1000 + 33;
+int n , a[maxn];
+int Sum = 0;
+
+void ReadData() {
+	cin >> n; 
+	For(i , 1 , n) cin >> a[i];
+	For(i , 1 , n) Sum += a[i];
+}
+
+void do_add(int &a , const int &b) {
+	a += b; if (a >= md) a -= md;
+}
+int mul(int a , int b) {
+	return 1LL * a * b % md;
+}
+
+
+int res = 0;
+int lef[20000 + 3] , rig[20000 + 3];
+int Next[20000 + 3];
+int TotalRig[20000 + 3];
+void Solve(int l , int r) {
+	if (l == r) return;
+	int mid = (l + r) >> 1;
+	Solve(l , mid); Solve(mid + 1 , r);
+
+	For(s , -Sum , Sum) lef[s + Sum] = rig[s + Sum] = TotalRig[s + Sum] = 0;
+	lef[Sum] = rig[Sum] = 1;
+	For(i , mid + 1 , r) {
+		For(s , -Sum , Sum) Next[s + Sum] = 0;
+		For(s , -Sum , Sum) {
+			if (s - a[i] >= -Sum) do_add(Next[s - a[i] + Sum] , rig[s + Sum]);
+			if (s + a[i] <= Sum) do_add(Next[s + a[i] + Sum] , rig[s + Sum]);
+		}
+		For(s , -Sum , Sum) {
+			rig[s + Sum] = Next[s + Sum];
+			do_add(TotalRig[s + Sum] , rig[s + Sum]);
+		}
+	}
+	Ford(i , mid , l) {
+		For(s , -Sum , Sum) Next[s + Sum] = 0;
+		For(s , -Sum , Sum) {
+			if (s - a[i] >= -Sum) do_add(Next[s - a[i] + Sum] , lef[s + Sum]);
+			if (s + a[i] <= Sum) do_add(Next[s + a[i] + Sum] , lef[s + Sum]);
+		}
+		For(s , -Sum , Sum) {
+			lef[s + Sum] = Next[s + Sum] ; 
+			do_add(res , mul(lef[s + Sum] , TotalRig[-s + Sum]));
+		}
+	}
+}
+
+void Process() {
+	Solve(1 , n);
+	cout << res << endl;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	
+	//freopen("input.inp" , "r" , stdin);
+	ReadData();
+	Process();
+
+	return 0;
+
+}			

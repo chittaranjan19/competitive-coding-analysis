@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+#define FORE(i, a, b) for(int i = a; i <= b; i++)
+#define FORD(i, a, b) for(int i = a; i >= b; i--)
+#define FOR(i, a, b) for(int i = a; i < b; i++)
+const int MAXN = 1e6 * 5 + 100;
+const int INF = 1e9 + 7;
+
+using namespace std;
+int a[MAXN], cnt[MAXN];
+map<int, int> last;
+int T[MAXN];
+
+int get(int x)
+{
+    int ans = 0;
+    for(; x; x -= x &(-x)) ans ^= T[x];
+    return ans;
+}
+
+void update(int x, int v)
+{
+    for(; x <= n; x += x & (-x)) T[x] ^= v;
+}
+int n, q;
+struct data{
+    int l, r, cs;
+    bool operator<(const data &y) const
+    {
+        return (y.r != r ? r < y.r : l < y.l);
+    }
+} p[MAXN];
+int xo[MAXN];
+int ans[MAXN];
+int main()
+{
+    ios::sync_with_stdio(0); cin.tie(0);
+    #ifndef ONLINE_JUDGE
+    freopen("D.inp", "r", stdin);
+    freopen("D.out", "w", stdout);
+    #endif //MIKELHPDATKE
+
+    cin >> n;
+    FORE(i, 1, n) cin >> a[i];
+    cin >> q;
+    FORE(i, 1, q) cin >> p[i].l >> p[i].r, p[i].cs = i;
+    sort(p + 1, p + q + 1);
+    //FORE(i, 1, q) cout << p[i].l<<" "<<p[i].r<<endl;
+    xo[1] = a[1]; FORE(i, 2, n) xo[i] = xo[i - 1] ^ a[i];
+    FORE(i, 1, p[1].r){
+        int vt = last[a[i]];
+        if (vt != 0) update(vt, a[i]);
+        last[a[i]] = i;
+        update(i, a[i]);
+    }
+    FORE(i, 1, q) ans[p[i].cs] = xo[p[i].r] ^ xo[p[i].l - 1];
+    ans[p[1].cs] ^= get(p[1].r) ^ get(p[1].l - 1);
+    FORE(i, 2, q){
+        FORE(j, p[i - 1].r + 1, p[i].r){
+            int vt = last[a[j]];
+            if (vt != 0) update(vt, a[j]);
+            last[a[j]] = j;
+            update(j, a[j]);
+        }
+        ans[p[i].cs] ^= get(p[i].r) ^ get(p[i].l - 1);
+    }
+    FORE(i, 1, q) cout << ans[i] << endl;
+    return 0;
+}

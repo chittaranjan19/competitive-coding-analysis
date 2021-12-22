@@ -1,0 +1,126 @@
+#include <cstdio>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <utility>
+#include <string>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <set>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define lsone(value) (value)&(-value)
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+class Fenwick {
+private:
+    vector<int> arr;
+    const int size;
+public:
+    Fenwick(int n) : arr(n+1), size(n) {
+        for (int it = 0; it < arr.size(); ++it)
+            arr[it] = 0;
+    }
+    void add(int v, int k) {
+        for (;k <= size; k += lsone(k)) {
+            arr[k] += v;
+        }
+    }
+    int get(int k) {
+        int total = 0;
+        for (;k > 0; k -= lsone(k))  {
+            total += arr[k];
+        }
+        return total;
+    }
+};
+
+template <typename U> class Comparator {
+public:
+    bool operator() (const U lhs, const U rhs) {
+        // implement
+        return true;
+    }
+};
+// end of template
+
+int main() {
+    // freopen("525D.in", "r", stdin);
+    int m, n;
+    scanf("%d %d", &m, &n);
+
+    string view[m];
+    for (int it = 0; it < m; ++it) {
+        cin >> view[it];
+    }
+
+    int xMov[] = {1, 0, -1, 0};
+    int yMov[] = {0, 1, 0, -1};
+
+    bool visited[m][n];
+    for (int i = 0; i < m; ++i)
+        for (int j = 0; j < n; ++j)
+            visited[i][j] = false;
+
+    for (int i = 0; i < m; ++i) {
+        for (int j = 0; j < n; ++j) {
+            if (view[i][j] != '*') {
+                if (visited[i][j])
+                    continue;
+                queue<pair<int, int> > bfs;
+                bfs.push(make_pair(i, j));
+
+                pair<int, int> y(i, i);
+                pair<int, int> x(j, j);
+                while (!bfs.empty()) {
+                    pair<int, int> curr = bfs.front();
+                    bfs.pop();
+
+                    y.first = min(y.first, curr.first);
+                    y.second = max(y.second, curr.first);
+                    x.first = min(x.first, curr.second);
+                    x.second = max(x.second, curr.second);
+
+                    for (int it = 0; it < 4; ++it) {
+                        pair<int, int> newPos = make_pair(curr.first+yMov[it], curr.second+xMov[it]);
+                        if (((0 <= newPos.first) and (newPos.first < m)) and ((0 <= newPos.second) and (newPos.second < n))) {
+                            if ((view[newPos.first][newPos.second] == '.') and (!visited[newPos.first][newPos.second])) {
+                                bfs.push(newPos);
+                                visited[newPos.first][newPos.second] = true;
+                            }
+                        }
+                    }
+                }
+                for (int a = y.first; a <= y.second; ++a)
+                    for (int b = x.first; b <= x.second; ++b)
+                        view[a][b] = '.';
+            }
+        }
+    }
+
+    for (int i = 0; i < m; ++i) {
+        for (int j = 0; j < n; ++j) {
+            printf("%c", view[i][j]);
+        }
+        printf("\n");
+    }
+
+    return 0;
+}

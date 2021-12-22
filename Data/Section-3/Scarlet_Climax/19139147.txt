@@ -1,0 +1,66 @@
+#include<cstdio>
+#include<cstring>
+#include<algorithm>
+#include<cmath>
+using namespace std;
+typedef long long LL;
+
+struct poi
+{
+	LL u,v,w;//u<v
+}op[2010];
+LL deep(LL a)
+{
+	return 64-__build_clzll(a);
+}
+LL lca(LL a,LL b)//O(64)
+{
+	if(a>b)swap(a,b);
+	b>>=(deep(b)-deep(a));
+	while(a^b)a>>=1,b>>=1;
+	return a;
+}
+int q,o,tot=0;
+LL calc(LL a)
+{
+	LL ans=0;
+	for(int i=0;i<tot;i++)
+	{
+//		LL w1=lca(a,op[i].u);
+		LL w2=lca(a,op[i].v);
+		if(w2==op[i].v)ans+=(deep(op[i].v)-deep(op[i].u))*op[i].w;else 
+		if(lca(w2,op[i].u)==op[i].u&&lca(w2,op[i].v)==w2)ans+=(deep(w2)-deep(op[i].u))*op[i].w;
+	}
+	return ans;
+}
+#define G c=getchar()
+inline LL read()
+{
+	LL x=0,f=1;char G;
+	while(c>57||c<48){if(c=='-')f=-1;G;}
+	while(c>47&&c<58){x=x*10+c-48;G;}
+    return x*f;
+}
+int main()
+{
+	scanf("%d",&q);
+	for(int i=1;i<=q;i++)
+	{
+		scanf("%d",&o);
+		if(o==1)
+		{
+			LL u=read(),v=read(),w=read();
+			LL x=lca(u,v);
+			op[tot++]=(poi){x,u,w};
+			op[tot++]=(poi){x,v,w};
+		}
+		else
+		{
+			LL u=read(),v=read();
+		//	printf("%I64d %I64d %I64d\n",calc(u),calc(v),calc(lca(u,v))*2);
+			ans=calc(u)+calc(v)-calc(lca(u,v))*2;
+			printf("%I64d\n",ans);
+		}
+		
+	}
+}

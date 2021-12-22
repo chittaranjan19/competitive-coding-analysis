@@ -1,0 +1,89 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN];
+vector<int>s[INF<<2],adj[INF];
+void merge(int nd){
+	int p=0,q=0;
+	while(p<s[nd<<1].size() or q<s[nd<<1|1].size()){
+		if(p>=s[nd<<1].size())
+			s[nd].pb(s[nd<<1|1][q++]);
+		else if(q>=s[nd<<1|1].size())
+			s[nd].pb(s[nd<<1][p++]);
+		else if(s[nd<<1][p]>=s[nd<<1|1][q])
+			s[nd].pb(s[nd<<1|1][q++]);
+		else
+			s[nd].pb(s[nd<<1][p++]);	
+	}
+}
+void build(int nd,int x,int y){
+	if(x==y){
+		sort(all(adj[x]));
+		for(int i=0;i<adj[x].size();i++)
+			s[nd].pb(adj[x][i]);
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+	merge(nd);
+}
+int tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r){
+		int p=upper_bound(all(s[nd]),r)-s[nd].begin();
+		return p;
+	}
+	int mid=(x+y)>>1;
+	int i1=tap(l,r,nd<<1,x,mid);
+	int i2=tap(l,r,nd<<1|1,mid+1,y);
+	return i1+i2;
+}
+int main(){
+	int n,m;
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;i++){
+		int l,r;
+		scanf("%d%d",&l,&r);
+		adj[l].pb(r);
+	}
+	build(1,1,INF);
+	while(m--){
+		vector<int>v;
+		int k,x,ans=0;
+		scanf("%d",&k);
+		v.pb(0);
+		while(k--){
+			scanf("%d",&x);
+			v.pb(x);
+		}
+		v.pb(INF+1);
+		for(int i=0;i<v.size()-1;i++){
+			int l=v[i]+1,r=v[i+1]-1;
+			if(l>r)
+				continue;
+			ans+=tap(l,r,1,1,INF);	
+		}
+		printf("%d\n",n-ans);
+	}
+	return 0;
+}
+

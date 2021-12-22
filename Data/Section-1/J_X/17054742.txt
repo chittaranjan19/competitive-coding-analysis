@@ -1,0 +1,150 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 1000 + 5;
+const int dir[4][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
+
+int a[maxn][maxn], tot, n, m, posx, posy;
+bool used[maxn][maxn];
+
+bool ok(int x, int y)
+{
+    return x >= 0 && x < n && y >= 0 && y < m;
+}
+
+bool dfs(int x, int y, int q)
+{
+    bool ret;
+    if(a[x][y] == q)
+    {
+        posx = x, posy = y;
+        ret = true;
+    }
+    else ret = false;
+    used[x][y] = false;
+    ++tot;
+    for(int i = 0; i < 4; ++i)
+    {
+        int dx = x + dir[i][0], dy = y + dir[i][1];
+        if(ok(dx, dy) && used[dx][dy]) ret |= dfs(dx, dy, q);
+    }
+    return ret;
+}
+
+bool setcolor(int x, int y, int q)
+{
+    a[x][y] = -q;
+    if((x != posx || y != posy) && --tot == 0) return true;
+    for(int i = 0; i < 4; ++i)
+    {
+        int dx = x + dir[i][0], dy = y + dir[i][1];
+        if(ok(dx, dy) && a[dx][dy] >= q && setcolor(dx, dy, q)) return true;
+    }
+    return false;
+}
+
+bool check(ll k, int q)
+{
+    memset(used, 0, sizeof(used));
+    for(int i = 0; i < n; ++i)
+    {
+        for(int j = 0; j < m; ++j)
+        {
+            if(a[i][j] >= q) used[i][j] = true;
+        }
+    }
+    for(int i = 0; i < n; ++i)
+    {
+        for(int j = 0; j < m; ++j)
+        {
+            if(used[i][j])
+            {
+                tot = 0;
+                if(dfs(i, j, q) && 1LL * tot * q >= k) return true;
+            }
+        }
+    }
+    return false;
+}
+
+int main()
+{
+    ll k;
+    scanf("%d%d%I64d", &n, &m, &k);
+    int _max = 0;
+    for(int i = 0; i < n; ++i)
+    {
+        for(int j = 0; j < m; ++j)
+        {
+            scanf("%d", &a[i][j]);
+            _max = max(_max, a[i][j]);
+        }
+    }
+    if(k > 1e15)
+    {
+        puts("NO");
+        return 0;
+    }
+    int ans = -1;
+    for(ll i = 1; i * i <= k && i <= _max; ++i)
+    {
+        if(k % i == 0)
+        {
+            if(check(k, i))
+            {
+                ans = i;
+                break;
+            }
+            ll tmp = k / i;
+            if(i != tmp && tmp <= _max && check(k, tmp))
+            {
+                ans = tmp;
+                break;
+            }
+        }
+    }
+    if(~ans)
+    {
+        puts("YES");
+        memset(used, 0, sizeof(used));
+        for(int i = 0; i < n; ++i)
+        {
+            for(int j = 0; j < m; ++j)
+            {
+                if(a[i][j] >= ans) used[i][j] = true;
+            }
+        }
+        for(int i = 0; i < n; ++i)
+        {
+            for(int j = 0; j < m; ++j)
+            {
+                if(used[i][j])
+                {
+                    tot = 0;
+                    if(dfs(i, j, ans) && 1LL * tot * ans >= k)
+                    {
+                        tot = k / ans - 1;
+                        setcolor(i, j, ans);
+                        a[posx][posy] = -ans;
+                        goto output;
+                    }
+                }
+            }
+        }
+        output:
+        for(int i = 0; i < n; ++i)
+        {
+            for(int j = 0; j < m; ++j)
+            {
+                if(a[i][j] < 0) printf("%d ", -a[i][j]);
+                else printf("0 ");
+            }
+            puts("");
+        }
+    }
+    else puts("NO");
+    return 0;
+}

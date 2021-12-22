@@ -1,0 +1,159 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 3e5 + 10, lg = 31, MAXN = 1111;
+ll mod = 1e9 + 7;
+
+ll gcd(ll a, ll b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll _gcd(ll a, ll b, ll & x, ll & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	ll _x1, _y1;
+	ll d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+ll binpow(ll a, ll n) {
+	ll res = 1;
+	while (n) {
+		if (n & 1)
+			res *= a;
+		a *= a;
+		n >>= 1;
+		a %= mod;
+		res %= mod;
+	}
+	return res;
+}
+
+int n, m, q;
+int ans = 0;
+int cnt[1111];
+bool inv[1111], mt[1111][1111];
+vector<int> g[N];
+int qq[N][4];
+int _ans[N];
+
+void dfs(int v = 0, int p = -1){
+	bool ch = 0;
+	int t = qq[v][0];
+	if (t == 1){
+		int c = qq[v][1], r = qq[v][2];
+		if ((!inv[c] && !mt[c][r]))
+			cnt[c]++, mt[c][r] = 1, ans++, ch = 1;
+		if ((inv[c] && mt[c][r]))
+			cnt[c]++, mt[c][r] = 0, ans++, ch = 1;
+	}
+	if (t == 2){
+		int c = qq[v][1], r = qq[v][2];
+		if (!inv[c] && mt[c][r])
+			cnt[c]--, mt[c][r] = 0, ans--, ch = 1;
+		if (inv[c] && !mt[c][r])
+			cnt[c]--, mt[c][r] = 1, ans--, ch = 1;
+	}
+	if (t == 3){
+		int c = qq[v][1];
+		ans += m - cnt[c] - cnt[c];
+		cnt[c] = m - cnt[c];
+		inv[c] ^= 1;
+	}
+	_ans[v] = ans;
+	for (int i = 0; i < g[v].size(); i++){
+		int to = g[v][i];
+		if (to == p) continue;
+		dfs(to, v);
+	}
+	if (t == 1){
+		int c = qq[v][1], r = qq[v][2];
+		if (ch){
+			if ((!inv[c] && mt[c][r]))
+				cnt[c]--, mt[c][r] = 0, ans--;
+			if ((inv[c] && !mt[c][r]))
+				cnt[c]--, mt[c][r] = 1, ans--;
+		}
+	}
+	if (t == 2){
+		if (ch){
+			int c = qq[v][1], r = qq[v][2];
+			if (!inv[c] && !mt[c][r])
+				cnt[c]++, mt[c][r] = 1, ans++;
+			if (inv[c] && mt[c][r])
+				cnt[c]++, mt[c][r] = 0, ans++;
+		}
+	}
+	if (t == 3){
+		int c = qq[v][1];
+		ans += m - cnt[c] - cnt[c];
+		cnt[c] = m - cnt[c];
+		inv[c] ^= 1;
+	}
+}
+
+
+int main()
+{	
+	cin >> n >> m >> q;
+	int prev = 0, t, ii, jj, k;
+	for (int i = 1; i <= q; i++){
+		cin >> t;
+		if (t < 3){
+			cin >> ii >> jj;
+			qq[i][0] = t;
+			qq[i][1] = ii;
+			qq[i][2] = jj;
+			g[prev].push_back(i);
+			g[i].push_back(prev);
+			prev = i;
+		}
+		if (t == 3){
+			cin >> k;
+			qq[i][0] = t, qq[i][1] = k;
+			g[prev].push_back(i);
+			g[i].push_back(prev);
+			prev = i;
+		}
+		if (t == 4){
+			cin >> k;
+			qq[i][0] = t, qq[i][1] = k;
+			prev = k;
+			g[prev].push_back(i);
+			g[i].push_back(prev);
+			prev = i;
+		}
+	}
+	dfs();
+	for (int i = 1; i <= q; i++)
+		cout << _ans[i] << '\n';
+	return 0;
+}

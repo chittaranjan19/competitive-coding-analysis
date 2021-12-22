@@ -1,0 +1,129 @@
+#include <bits/stdc++.h>
+#define forinc(i,a,b) for(int i = a, _key = b; i <= _key; ++i)
+#define fordec(i,a,b) for(int i = a, _key = b; i >= _key; --i)
+#define fori(i,n) for(int i = 0, _key = n; i < _key; ++i)
+#define ford(i,n) for(int i = n - 1; i >= 0; --i)
+#define forvct(i,v) for(int i = 0, _key = v.size(); i < _key; ++i)
+#define task "d"
+#define st first
+#define nd second
+#define m_p make_pair
+#define p_b push_back
+#define p_f push_front
+#define pp_b pop_back
+#define pp_f pop_front
+#define sn string::npos
+#define ll long long
+#define db double
+#define str string
+#define oo 1000000007
+#define nn 1010
+
+using namespace std;
+
+struct point
+{
+    int x, y;
+
+    void read()
+    {
+        cin >> x >> y;
+    }
+
+    bool operator < (point t)
+    {
+        return x < t.x || (x == t.x && y < t.y);
+    }
+
+    bool operator == (point t)
+    {
+        return x == t.x && y == t.y;
+    }
+};
+
+int n, k, top;
+vector<pair<point,int> > v[10];
+point a[10], m[nn];
+
+bool cmp(pair<point,int> x, pair<point,int> y)
+{
+    return x.st < y.st || (x.st == y.st && x.nd < y.nd);
+}
+
+void enter()
+{
+    cin >> k >> n;
+    forinc(i,1,k) a[i].read();
+    forinc(i,1,n) m[i].read();
+}
+
+bool line(const point &i, const point &j, const point &k)
+{
+    ll a1 = j.x - i.x, b1 = j.y - i.y, a2 = k.x - i.x, b2 = k.y - i.y;
+    return ((ll) a1 * b2 - (ll) a2 * b1) == 0;
+}
+
+bool check(const point &p)
+{
+    forinc(i,1,top) v[i].clear();
+    top = 0;
+    forinc(i,1,k)
+    {
+        bool ok = false;
+        forinc(j,1,top)
+            if (line(p,v[j].front().st,a[i]))
+            {
+                v[j].p_b(m_p(a[i],1));
+                ok = true;
+                break;
+            }
+        if (!ok) v[++top].p_b(m_p(a[i],1));
+    }
+    forinc(i,1,n)
+        forinc(j,1,top)
+            if (line(p,v[j].front().st,m[i]))
+            {
+                v[j].p_b(m_p(m[i],2));
+                break;
+            }
+    forinc(i,1,top)
+    {
+        v[i].p_b(m_p(p,0));
+        sort(v[i].begin(),v[i].end(),cmp);
+        int cnt = 0;
+        forvct(j,v[i])
+        {
+            if (!v[i][j].nd)
+            {
+                if (cnt) return true;
+                break;
+            }
+            if (v[i][j].nd == 1) cnt++;
+            else cnt = max(0,cnt-1);
+        }
+        ford(j,v[i].size())
+        {
+            if (!v[i][j].nd)
+            {
+                if (cnt) return true;
+                break;
+            }
+            if (v[i][j].nd == 1) cnt++;
+            else cnt = max(0,cnt-1);
+        }
+    }
+    return false;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    //freopen(task".inp","r",stdin);
+    //freopen(task".out","w",stdout);
+    int res = 0;
+    enter();
+    forinc(i,1,n)
+        if (check(m[i])) res++;
+    cout << res;
+}

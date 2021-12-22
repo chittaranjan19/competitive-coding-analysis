@@ -1,0 +1,85 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+char s[505][505];
+int DP[2][505][505];
+
+inline void add(int &a, int b)
+{
+  a += b;
+  if(a >= mod)
+    a-=mod;
+}
+
+int main()
+{
+  int n, m;
+  scanf("%d %d", &n, &m);
+  for(int i=0;i<n;i++)
+    scanf("%s", s[i]);
+  if(s[0][0] == s[n - 1][m - 1])
+    DP[0][0][n - 1] = 1;
+  int res = 0;
+  for(int i=0;i<n;i++)
+  {
+    for(int j=0;j<m;j++)
+    {
+      if(i + j + 1 > (n + m) / 2) break;
+      for(int ii=0;ii<n;ii++)
+      {
+        int jj = m + n - i - j - ii - 2;
+        if(jj >= m || jj < 0) continue;
+        if(s[i][j] != s[ii][jj]) continue;
+        if(j)
+        {
+          add(DP[i%2][j][ii], DP[i%2][j - 1][ii]);
+          add(DP[i%2][j][ii], DP[i%2][j - 1][ii + 1]);
+        }
+        add(DP[i%2][j][ii], DP[(i%2)^1][j][ii]);
+        add(DP[i%2][j][ii], DP[(i%2)^1][j][ii + 1]);
+        if(((i + j + 1) * 2 == n + m - 1 && ((j == jj && i == ii - 1) || (i == i && j == jj - 1))) || (i == ii && j == jj))
+          add(res, DP[i%2][j][ii]);
+      }
+    }
+    for(int j=0;j<m;j++)
+      for(int ii=0;ii<n;ii++)
+        DP[(i%2)^1][j][ii] = 0;
+  }
+  printf("%d", res);
+  return 0;
+}

@@ -1,0 +1,132 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll>PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+map<ll,ll>pm;
+ll c[MAXN];
+ll s[MAXN],baha[MAXN];
+vector<PII>adj[MAXN];
+ll renk[MAXN],ID[MAXN];
+ll par[MAXN];
+ll tap(ll x){
+	ll massa=0;
+	for(ll i=max(x-1,1LL);i<=x+1;i++)
+		umax(massa,baha[i]);
+	return massa;	
+}
+void upd(ll x,ll y,ll z){
+	if(baha[x]<y){
+		baha[x]=y;
+		renk[x]=z;
+	}
+}
+ll bul(ll x){
+	ll tower=0;
+	ll massa=0;
+	for(ll i=max(x-1,1LL);i<=x+1;i++)
+		if(umax(massa,baha[i]))
+			tower=renk[i];
+	return tower;
+}
+void yaz(ll tp1,ll tp2,ll x,ll y){
+	vector<ll>ans;
+	if(x==y){
+		for(ll i=0;i<x;i++)
+			ans.pb(adj[tp1][i].ss),ans.pb(adj[tp2][i].ss);
+	}	
+	if(x>y){
+		for(ll i=0;i<x;i++){
+			ans.pb(adj[tp1][i].ss);
+			if(i<y)
+				ans.pb(adj[tp2][i].ss);
+		}
+	}
+	if(y>x){
+		for(ll i=0;i<y;i++){
+			ans.pb(adj[tp2][i].ss);
+			if(i<x)
+				ans.pb(adj[tp1][i].ss);
+		}
+	}
+	printf("%lld\n",ll(ans.size()));
+	for(ll i=0;i<ans.size();i++)
+		printf("%lld ",ans[i]);
+	printf("\n");				
+}
+int main(){
+	ll a,cc=0;
+	ll mx=0;
+	scanf("%lld",&a);
+	PII zebra=mp(-1,-1);
+	for(ll i=1;i<=a;i++){
+		scanf("%lld%lld",c+i,s+i);
+		pm[c[i]]=1;
+		if(umax(mx,s[i]))
+			zebra.ff=c[i];
+	}		
+	tr(it,pm)
+		it->ss=++cc;	
+	for(ll i=1;i<=a;i++){
+		adj[pm[c[i]]].pb(mp(s[i],i));
+		ID[pm[c[i]]]=c[i];
+	}
+	for(ll i=1;i<=cc;i++){
+		sort(all(adj[i]));
+		reverse(all(adj[i]));
+	}
+	for(ll i=1;i<=cc;i++){
+		queue<PII>q;
+		ll sum=0;
+		for(ll j=0;j<adj[i].size();j++){
+			sum+=adj[i][j].ff;
+			q.push(mp(j+1,sum));
+			ll val=tap(j+1)+sum;
+			if(val==sum)
+				continue;
+			if(umax(mx,val)){
+				ll color=bul(j+1);
+				zebra=mp(ID[i],color);
+			}
+		}
+		while(!q.empty()){
+			PII gen=q.front();
+			upd(gen.ff,gen.ss,ID[i]);
+			q.pop();
+		}
+	}
+	printf("%lld\n",mx);
+	ll r1=zebra.ff;
+	ll r2=zebra.ss;
+	if(r2==-1){
+		printf("1\n%lld\n",adj[pm[r1]][0].ss);
+		return 0;
+	}ll sz=adj[pm[r2]].size(),cnt=0;
+	for(ll i=0;i<adj[pm[r2]].size();i++)
+		par[i+1]=par[i]+adj[pm[r2]][i].ff;ll sum=0;
+	for(ll i=0;i<adj[pm[r1]].size();i++){
+		sum+=adj[pm[r1]][i].ff;
+		for(ll j=max(i,1LL);j<=min(i+2,sz);j++)
+			if(par[j]+sum==mx){
+				yaz(pm[r1],pm[r2],i+1,j);
+				return 0;
+			}
+	}
+	return 0;
+}
+//LooK aT mY COde ONlinE +_+

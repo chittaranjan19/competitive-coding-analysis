@@ -1,0 +1,69 @@
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 5000 + 50;
+
+int g[N];
+int mark[N];
+
+int grundy(string s){
+	int k = 0;
+	int ret = 0;
+	for(int i = 1; i < SZ(s) - 1; ++i){
+		if(s[i + 1] == s[i - 1])
+			k ++;
+		else
+			ret ^= g[k], k = 0;
+	}
+	ret ^= g[k];
+	return ret;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	g[0] = 0;
+	for(int i = 1; i < N; ++i){
+		memset(mark, 0, sizeof mark);
+		for(int j = 0; j < i; ++j)
+			mark[g[max(j - 1, 0)] ^ g[max(i - j - 2, 0)]] = i;
+		while(mark[g[i]] == i)
+			g[i] ++;
+	}
+	string s;
+	cin >> s;
+	if(!grundy(s)){
+		cout << "Second\n";
+		return 0;
+	}
+	cout << "First\n";
+	for(int i = 1; i < SZ(s) - 1; ++i){
+		if(!(grundy(s.substr(0, i)) ^ grundy(s.substr(i + 1)))){
+			cout << i + 1 << "\n";
+			return 0;
+		}
+	}
+	return 0;
+}

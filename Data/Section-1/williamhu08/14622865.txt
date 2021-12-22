@@ -1,0 +1,56 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll, ll> pll;
+const int MAXN = 2010;
+
+int N;
+ll A[MAXN], B[MAXN], C[MAXN];
+
+ll gcd (ll a, ll b) {
+	return a ? gcd(b % a, a) : b;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 0; i < N; i++) {
+		ll a, b, c;
+		cin >> a >> b >> c;
+		A[i] = a * c;
+		B[i] = b * c;
+		C[i] = a * a + b * b;
+	}
+
+	ll ans = 0;
+	for (int i = 0; i < N; i++) {
+		map<pll, int> mp;
+		for (int j = i + 1; j < N; j++) {
+			ll x = A[i] * C[j] - A[j] * C[i], y = B[i] * C[j] - B[j] * C[i];
+			if (x || y) {
+				ll g = gcd(x, y);	//can't trust __gcd...
+				x /= g;
+				y /= g;
+			}
+			if (x < 0) {
+				x *= -1;
+				y *= -1;
+			}
+			if (x == 0 && y == 0) {
+				//consider zero...
+				ans += N - 2 - i;
+			} else {
+				int &ref = mp[pll(x, y)];
+				ans += ref;
+				ref++;
+			}
+		}
+	}
+
+	cout << ans << endl;
+}

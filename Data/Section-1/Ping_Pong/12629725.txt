@@ -1,0 +1,9 @@
+n, m = [int(i) for i in input().split()]
+img = [list(input()) for i in range(n)]
+cnt = 0
+for i in range(n - 1):
+    for j in range(m - 1):
+        arr = [img[i][j], img[i + 1][j], img[i][j + 1], img[i + 1][j + 1]]
+        if 'f' in arr and 'a' in arr and 'c' in arr and 'e' in arr:
+            cnt += 1
+print(cnt)

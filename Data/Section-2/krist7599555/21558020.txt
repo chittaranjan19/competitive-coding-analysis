@@ -1,0 +1,62 @@
+#include <bits/stdc++.h>
+#define fi first
+#define se second
+#define val first
+#define timee se.fi
+#define idxx se.se
+#define rep(i,n) for(int i=1;i<=n;i++)
+#define cin(i) (cin>>i,i)
+
+using namespace std;
+
+int mcom,msocket;
+pair<int,int> com[200200];
+int sock[200200];
+priority_queue< pair<int,pair<int,int>> > pq; // { socket val , { -time , idx } }
+
+int comtosock[200200];
+int sockadpt [200200];
+
+int main(){
+	
+	ios_base::sync_with_stdio(false);
+	cout.sync_with_stdio(false);
+	
+	int temp;
+	
+	cin >> mcom >> msocket;
+	
+	rep(i,mcom) com[i] = { cin(temp) , i }; // com
+	rep(i,msocket) pq.push({ cin(sock[i]) , {0,i} }); // socket
+		
+	sort(com+1,com+mcom+1,greater<pair<int,int>>()); // sort com val
+	
+	int cntconec(0),cntadpt(0);
+	
+	rep(i,mcom){ // max val computer 9 8 7 5 3 2 1
+		
+		while( !pq.empty() && pq.top().val > com[i].val ){ // PQ socket val < max com val
+			
+			pq.push({ (pq.top().val+1)>>1 , { pq.top().timee -1 , pq.top().idxx } });
+			pq.pop();
+			
+		}
+		
+		if( !pq.empty() && pq.top().val == com[i].val ){ // can match with com
+			
+			cntconec++; // com conec +1
+			cntadpt += -pq.top().timee; // used adpt += diff
+			
+			comtosock[com[i].se] = pq.top().idxx;
+			sockadpt[pq.top().idxx] = -pq.top().timee; 
+			
+			pq.pop(); // used it so dissapper
+			
+		}
+
+	}
+	
+	cout << cntconec << ' ' << cntadpt << endl;
+	rep(i,msocket) cout << sockadpt [i] << " \n"[i==msocket];
+	rep(i,mcom)    cout << comtosock[i] << " \n"[i==mcom];
+}

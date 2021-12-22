@@ -1,0 +1,76 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 20;
+
+template<class T>
+void setmin (T &a, T b) {
+	if (a > b) {
+		a = b;
+	}
+}
+
+template<class T>
+void setmax (T &a, T b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+int N, M;
+char S[MAXN][MAXN];
+int A[MAXN][MAXN];
+int dp[1 << MAXN];
+int smask[MAXN][MAXN], rcost[MAXN][MAXN];	//same mask, remove cost (all except most expensive)
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 0; i < N; i++) {
+		cin >> S[i];
+	}
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < M; j++) {
+			cin >> A[i][j];
+		}
+	}
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < M; j++) {
+			int maxcost = 0;
+			for (int k = 0; k < N; k++) {
+				if (S[i][j] == S[k][j]) {
+					smask[i][j] |= (1 << k);
+					rcost[i][j] += A[k][j];
+					setmax(maxcost, A[k][j]);
+				}
+			}
+			rcost[i][j] -= maxcost;
+		}
+	}
+	for (int i = 1; i < (1 << N); i++) {
+		dp[i] = 2e9;
+		int lo = __builtin_ctz(i);
+		for (int j = 0; j < M; j++) {
+			//rem one
+			setmin(dp[i], dp[i ^ (1 << lo)] + A[lo][j]);	//WHOOPS WRONG VAR
+			//rem ALL
+			setmin(dp[i], dp[i & (i ^ smask[lo][j])] + rcost[lo][j]);
+			//subset of i, also i excluding the same mask
+		}
+	}
+	cout << dp[(1 << N) - 1] << endl;
+}

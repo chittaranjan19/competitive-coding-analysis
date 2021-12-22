@@ -1,0 +1,123 @@
+program visited;
+
+const
+	tfi	=	'';//'visited.inp';
+	tfo	=	'';//'visited.out';
+
+var
+  n,m,res,root : longint;
+  ok,okt : boolean;
+  adj,next : array [-100000..100000] of longint;
+  head,pa,p,t : array [1..100000] of longint;
+  node : array [1..400000] of longint;
+  dd : array [1..100000] of boolean;
+  fi,fo : text;
+
+procedure add(i,x,y : longint);
+	begin
+		adj[i] := y;
+		next[i] := head[x];
+		head[x] := i;
+	end;
+
+procedure nosol;
+	begin
+		assign(fo,tfo);
+		rewrite(fo);
+		write(fo,-1);
+		close(fo);
+		halt;
+	end;
+
+procedure input;
+	var i,x,y : longint;
+	begin
+		assign(fi,tfi);
+		reset(fi);
+		read(fi,n,m);
+		for i := 1 to m do
+			begin
+				read(fi,x,y);
+				add( i,x,y);
+				add(-i,y,x);
+			end;
+		for i := 1 to n do read(fi,p[i]);
+		close(fi);
+	end;
+
+procedure visit(u : longint);
+	var v,j : longint;
+	begin
+		inc(res); node[res] := u;
+		t[u] := 1 - t[u];
+		j := head[u];
+		while j <> 0 do
+			begin
+				v := adj[j];
+				if pa[v] = 0 then
+					begin
+						pa[v] := u;
+						visit(v);
+						t[u] := 1 - t[u];
+						inc(res);
+						node[res] := u;
+					end;
+				j := next[j];
+			end;
+		if t[u] <> p[u] then
+			if u = root then dec(res)
+			else
+				begin
+					inc(res); node[res] := pa[u]; t[pa[u]] := 1 - t[pa[u]];
+					inc(res); node[res] := u; t[u] := 1 - t[u];
+				end;
+	end;
+
+procedure check(u : longint);
+	var v,j : longint;
+	begin
+		dd[u] := true;
+		if p[u] = 1 then
+			if ok then nosol else okt := true;
+		j := head[u];
+		while j <> 0 do
+			begin
+				v := adj[j];
+				if not dd[v] then check(v);
+				j := next[j];
+			end;
+	end;
+
+procedure process;
+	var u : longint;
+	begin
+		for u := 1 to n do
+			if not dd[u] then
+				begin
+					okt := false;
+					check(u);
+					ok := ok or okt;
+					if ok then
+            begin
+              root := u;
+              pa[u] := -1;
+              visit(u);
+            end;
+				end;
+	end;
+
+procedure output;
+	var i : longint;
+	begin
+		assign(fo,tfo);
+		rewrite(fo);
+		writeln(fo,res);
+		for i := 1 to res do write(fo,node[i],' ');
+		close(fo);
+	end;
+
+begin
+	input;
+	process;
+	output;
+end.

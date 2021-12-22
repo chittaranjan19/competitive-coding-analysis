@@ -1,0 +1,119 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ArtUnion {
+    private boolean[] working;
+    private List<Queue<Integer>> queues;
+
+    public ArtUnion() throws IOException {
+        BufferedReader rd = new BufferedReader(new InputStreamReader(System.in));
+        String h = rd.readLine();
+        String[] t = h.split("\\s+");
+        int m = Integer.parseInt(t[0]);
+        int n = Integer.parseInt(t[1]);
+        int[][] tm = new int[m][n];
+        for(int i=0;i<m;i++) {
+            h = rd.readLine();
+            t = h.split("\\s+");
+            for(int j = 0;j<n;j++) {
+                tm[i][j] = Integer.parseInt(t[j]);
+            }
+        }
+        int[] painterFinished = new int[n];
+        int[] paintingFinished = new int[m];
+        int[] lastPainting = new int[n];
+        Arrays.fill(lastPainting, -1);
+        working = new boolean[n];
+        queues = new ArrayList<>();
+        for(int i=0;i<n;i++) {
+            queues.add(new LinkedList<Integer>());
+        }
+
+        for(int i=0;i<m;i++) {
+            queues.get(0).add(i);
+        }
+        while(!allQueuesEmpty() || someoneWorking()) {
+            int painter = -1;
+            int time = Integer.MAX_VALUE;
+            for(int i=0;i<n;i++) {
+                if(working[i]) {
+                    if(painter == -1) {
+                        painter = i;
+                        time = painterFinished[i];
+                    } else if(painterFinished[i] < time) {
+                        painter = i;
+                        time = painterFinished[i];
+                    }
+                } else if(!queues.get(i).isEmpty()) {
+                    if(painter == -1) {
+                        painter = i;
+                        time = paintingFinished[queues.get(i).peek()];
+                    } else {
+                        int painting2 = queues.get(i).peek();
+                        if(paintingFinished[painting2] < time) {
+                            painter = i;
+                            time = paintingFinished[painting2];
+                        }
+                    }
+                }
+            }
+            if(working[painter]) {
+                int painting = lastPainting[painter];
+                if(painter < n-1) {
+                    queues.get(painter+1).add(painting);
+                }
+                working[painter] = !queues.get(painter).isEmpty();
+                if(working[painter]) {
+                    painting = queues.get(painter).poll();
+                    painterFinished[painter] += tm[painting][painter];
+                    paintingFinished[painting] = painterFinished[painter];
+                    lastPainting[painter] = painting;
+                }
+            } else if(!queues.get(painter).isEmpty()) {
+                working[painter] = true;
+                int painting = queues.get(painter).poll();
+                painterFinished[painter] = paintingFinished[painting] + tm[painting][painter];
+                paintingFinished[painting] = painterFinished[painter];
+                lastPainting[painter] = painting;
+            }
+        }
+        StringBuilder buf = new StringBuilder();
+        for(int i=0;i<m;i++) {
+            if(buf.length() != 0) {
+                buf.append(' ');
+            }
+            buf.append(paintingFinished[i]);
+        }
+        out(buf);
+    }
+
+    private boolean someoneWorking() {
+        for(boolean p: working) {
+            if(p) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean allQueuesEmpty() {
+        for(Queue<Integer> queue: queues) {
+            if(!queue.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ArtUnion();
+    }
+}

@@ -1,0 +1,100 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 5010, MOD = 1e9 + 7;
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+void addeq (int &x, int y) {
+	x = add(x, y);
+}
+
+int subtr (int x, int y) {
+    x -= y;
+    return x < 0 ? x + MOD : x;
+}
+
+int N;
+char S[MAXN];
+int lcp[MAXN][MAXN];	//compute LCP
+int dp[MAXN][MAXN];
+int psum[MAXN][MAXN];	//psum[i][j] = dp[1][i] + ... + dp[j][i]
+
+bool cmp (int x, int y) {
+	//x < y.
+	if (2 * y - 1 - x > N) {
+		return 0;
+	}
+	int pref = lcp[x][y];
+	if (pref >= y - x) {
+		return 0;
+	}
+	return S[x + pref] < S[y + pref];
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %s", &N, S + 1);
+	for (int i = 1; i <= N; i++) {
+		lcp[i][i] = N + 1 - i;
+	}
+	for (int j = N; j >= 1; j--) {
+		for (int i = 1; i <= N; i++) {
+			if (i != j) {
+				if (S[i] != S[j]) {
+					lcp[i][j] = 0;
+				} else {
+					lcp[i][j] = lcp[i + 1][j + 1] + 1;
+				}
+			}
+		}
+	}
+
+	//1st digit != 0: necessary & sufficient
+	for (int j = 1; j <= N; j++) {
+		dp[1][j] = 1;
+		for (int i = 2; i <= j; i++) {
+			if (S[i] == '0') {
+				//no point in starting w/0...
+				continue;
+			}
+			int pi = 2 * i - 1 - j;
+			if (pi <= 0) {
+				dp[i][j] = psum[i - 1][i - 1];
+				continue;
+			}
+			dp[i][j] = subtr(psum[i - 1][i - 1], psum[i - 1][pi]);
+			if (cmp(pi, i)) {
+				// printf("dp[%d][%d] += dp[%d][%d]\n", i, j, pi, i - 1);
+				addeq(dp[i][j], dp[pi][i - 1]);
+			}
+		}
+		for (int i = 1; i <= j; i++) {
+			psum[j][i] = add(psum[j][i - 1], dp[i][j]);
+			// printf("siemens psum[%d][%d] = %d\n", j, i, psum[j][i]);
+			// printf("dp[%d][%d] = %d\n", i, j, dp[i][j]);
+		}
+	}
+
+	int ans = 0;
+	for (int i = 1; i <= N; i++) {
+		addeq(ans, dp[i][N]);
+	}
+	printf("%d\n", ans);
+}

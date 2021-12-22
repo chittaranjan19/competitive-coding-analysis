@@ -1,0 +1,171 @@
+#include<iostream>
+#include<algorithm>
+#include<vector>
+#include<cstring>
+using namespace std;
+#define ll long long
+#define ld long double
+#define vi vector<int>
+#define pb push_back
+#define pii pair<int,int>
+#define mp make_pair
+#define st first
+#define nd second
+#define mini(a,b) a=min(a,(b))
+#define maxi(a,b) a=max(a,(b))
+#define RE(i,n) for(int i=0,_n=(n);i<_n;++i)
+#define RI(i,n) for(int i=1,_n=(n);i<=_n;++i)
+const int inf=1e9+5, nax=5005;
+const int pot = 1024 * 8;
+const int mod = 1000 * 1000 * 1000 + 7;
+
+char input[nax];
+int t[nax];
+int n;
+int wlk[nax][nax]; // id przedzialu
+
+bool vis[nax * nax / 2];
+int odw[nax * nax / 2];
+int LICZ = 2;
+int nn[nax];
+
+int tr[nax][2 * pot + 5];
+
+void sortPrzedzialy() {
+    RE(i, n) wlk[i][i] = t[i];
+    for(int d = 2; d <= n; ++d) {
+        int mi = inf, ma = -1;
+        for(int a = 0; a < n; ++a) {
+            int b = a + d - 1;
+            if(b < n) {
+                int liczba = wlk[a][b-1] * 2 + t[b];
+                mini(mi, liczba);
+                maxi(ma, liczba);
+                vis[liczba] = true;
+            }
+        }
+        for(int i = mi; i <= ma; ++i) if(vis[i]) {
+            odw[i] = LICZ++;
+            vis[i] = false;
+        }
+        for(int a = 0; a < n; ++a) {
+            int b = a + d - 1;
+            if(b < n) {
+                int liczba = wlk[a][b-1] * 2 + t[b];
+                wlk[a][b] = odw[liczba];
+            }
+        }
+    }
+}           
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    
+    cin >> input;
+    n = strlen(input);
+    RE(i, n) if(input[i] == '1') t[i] = 1;
+    nn[n] = n;
+    for(int i = n - 1; i >= 0; --i) {
+        if(t[i]) nn[i] = i;
+        else nn[i] = nn[i + 1];
+    }
+    
+    sortPrzedzialy();
+    
+    RE(b, n) {
+        RE(a, b + 1) if(t[a]) {
+            
+            int end = a - 1;
+            if(a == 0)
+                for(int x = a + pot; x; x /= 2)
+                    tr[b][x] = (tr[b][x] + 1) % mod;
+            else {
+                int low = 0, high = end;
+                while(low < high) {
+                    int med = (low + high) / 2;
+                    if(wlk[nn[med]][end] > wlk[a][b])
+                        low = med + 1;
+                    else 
+                        high = med;
+                }
+                if(t[low] == 1 && wlk[low][end] <= wlk[a][b]) {
+                    low = pot + low;
+                    high = pot + end;
+                    int licz = tr[end][low];
+                    if(low != high) licz += tr[end][high];
+                    while(low + 1 < high) {
+                        if(low % 2 == 0) licz = (licz + tr[end][low + 1]) % mod;
+                        if(high % 2 == 1) licz = (licz + tr[end][high - 1]) % mod;
+                        low /= 2;
+                        high /= 2;
+                    }
+                    for(int x = a + pot; x; x /= 2)
+                        tr[b][x] = (tr[b][x] + licz) % mod;
+                }
+            }
+        }
+    }
+    
+    int ways = 0;
+    RE(a, n) ways = (tr[n - 1][a + pot] + ways) % mod;
+    cout << ways << "\n";
+    
+    RE(b, n) RE(a, 2 * pot + 5) tr[b][a] = inf;
+    
+    RE(b, n) {
+        RE(a, b + 1) if(t[a]) {
+            int end = a - 1;
+            if(a == 0)
+                for(int x = a + pot; x; x /= 2)
+                    tr[b][x] = 1;
+            else {
+                int low = 0, high = end;
+                while(low < high) {
+                    int med = (low + high) / 2;
+                    if(wlk[nn[med]][end] > wlk[a][b])
+                        low = med + 1;
+                    else
+                        high = med;
+                }
+                if(t[low] == 1 && wlk[low][end] <= wlk[a][b]) {
+                    low = pot + low;
+                    high = pot + end;
+                    int mi = min(tr[end][low], tr[end][high]);
+                    while(low + 1 < high) {
+                        mini(mi, tr[end][low + 1]);
+                        mini(mi, tr[end][high - 1]);
+                        low /= 2;
+                        high /= 2;
+                    }
+                    tr[b][a + pot] = mi + 1;
+                    for(int x = (a + pot) / 2; x ; x /= 2)
+                        tr[b][x] = min(tr[b][2*x], tr[b][2 * x + 1]);
+                }
+            }
+        }
+    }
+    
+    bool male = true;
+    int rozwaz = inf;
+    
+    for(int a = n - 1; a >= 0; --a) if(tr[n - 1][pot + a] != inf) {
+        int liczba = tr[n-1][pot+a];
+        int x = 0;
+        for(int i = a; i < n; ++i) {
+            x = 2 * x + t[i];
+            if(x > (int) 1e6) male = false;
+            x %= mod;
+        }
+        if(male)
+            mini(rozwaz, liczba + x);
+        else {
+            if(rozwaz != inf) cout << rozwaz;
+            else cout << (liczba + x) % mod;
+            return 0;
+        }
+    }
+    cout << rozwaz;
+    
+    return 0;
+}

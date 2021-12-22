@@ -1,0 +1,176 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+string s, ss;
+int DP[2105][2105][2][2];
+bool v[2105][2105][2][2];
+
+int solve(int i, int j, bool rev, bool beg)
+{
+  if(j == s.size() || j < 0)
+  {
+    if(i == ss.size()) return 0;
+    if(beg) return min(solve(i, 0, 0, 0), solve(i, s.size() - 1, 1, 0));
+    return INF;
+  }
+  if(i == ss.size()) return 0;
+  int &temp = DP[i][j][rev][beg];
+  if(v[i][j][rev][beg]) return temp;
+  v[i][j][rev][beg] = true;
+  temp = INF;
+  if(beg)
+  {
+    if(s[j] != ss[i])
+    {
+      temp = min(solve(i, 0, 0, 0), solve(i, s.size() - 1, 1, 0));
+      return temp;
+    }
+    if(rev)
+      temp = solve(i + 1, j - 1, 1, 1);
+    else temp = solve(i + 1, j + 1, 0, 1);
+    return temp;
+  }
+  if(s[j] == ss[i])
+    temp = min(temp, solve(i, j, rev, 1) + 1);
+  if(rev)
+    temp = min(temp, solve(i, j - 1, rev, beg));
+  else temp = min(temp, solve(i, j + 1, rev, beg));
+  return temp;
+}
+
+vector<pair<int, int> > res;
+int last;
+
+void get(int i, int j, bool rev, bool beg)
+{
+  if(j == s.size() || j < 0)
+  {
+    if(j < 0)
+      res.pb(mp(last + 1, j + 2));
+    else res.pb(mp(last + 1, j));
+    if(i == ss.size()) return ;
+    if(solve(i, 0, 0, 0) < solve(i, s.size() - 1, 1, 0))
+      get(i, 0, 0, 0);
+    else get(i, s.size() - 1, 1, 0);
+    return ;
+  }
+  if(i == ss.size())
+  {
+    if(rev)
+      res.pb(mp(last + 1, j + 2));
+    else res.pb(mp(last + 1, j));
+    return ;
+  }
+  if(beg)
+  {
+    if(s[j] != ss[i])
+    {
+      if(rev)
+        res.pb(mp(last + 1, j + 2));
+      else res.pb(mp(last + 1, j));
+      if(solve(i, 0, 0, 0) < solve(i, s.size() - 1, 1, 0))
+        get(i, 0, 0, 0);
+      else get(i, s.size() - 1, 1, 0);
+      return;
+    }
+    if(rev)
+      get(i + 1, j - 1, 1, 1);
+    else get(i + 1, j + 1, 0, 1);
+    return ;
+  }
+  if(s[j] == ss[i])
+  {
+    if(rev)
+    {
+      if(solve(i, j, rev, 1) + 1 < solve(i, j - 1, rev, beg))
+      {
+        last = j;
+        get(i, j, rev, 1);
+      }
+      else get(i, j - 1, rev, beg);
+    }
+    else
+    {
+      if(solve(i, j, rev, 1) + 1 < solve(i, j + 1, rev, beg))
+      {
+        last = j;
+        get(i, j, rev, 1);
+      }
+      else get(i, j + 1, rev, beg);
+    }
+  }
+  else if(rev)
+    get(i, j - 1, rev, beg);
+  else get(i, j + 1, rev, beg);
+}
+
+int main()
+{
+  //freopen("aerodynamics.in", "r", stdin);
+  //freopen("aerodynamics.out", "w", stdout);
+  cin >> s >> ss;
+  int ans = solve(0, 0, 0, 0);
+  if(ans > solve(0, s.size() - 1, 1, 0))
+  {
+    ans = solve(0, s.size() - 1, 1, 0);
+    if(ans >= INF)
+    {
+      printf("-1");
+      return 0;
+    }
+    printf("%d\n", ans);
+    get(0, s.size() - 1, 1, 0);
+    for(int i=0;i<res.size();i++)
+    {
+      printf("%d %d\n", res[i].f, res[i].s);
+    }
+    return 0;
+  }
+  if(ans >= INF)
+  {
+    printf("-1");
+    return 0;
+  }
+  printf("%d\n", ans);
+  get(0, 0, 0, 0);
+  for(int i=0;i<res.size();i++)
+  {
+    printf("%d %d\n", res[i].f, res[i].s);
+  }
+  return 0;
+}

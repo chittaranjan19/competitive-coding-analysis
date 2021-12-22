@@ -1,0 +1,57 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 4010;
+
+int N;
+int V[MAXN], D[MAXN], P[MAXN];
+list<int> lst;
+bool treat[MAXN];
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 1; i <= N; i++) {
+		cin >> V[i] >> D[i] >> P[i];
+		lst.push_back(i);
+	}
+	for (int iter = 0; iter < 5000 && !lst.empty(); iter++) {
+		//treat first guy
+		int fst = *lst.begin();
+		lst.pop_front();
+		if (P[fst] >= 0) {
+			treat[fst] = true;
+		}
+		int val = P[fst] < 0 ? D[fst] : V[fst];
+		for (auto it = lst.begin(); it != lst.end() && val > 0; ) {
+			int np = (P[*it] -= val);
+			if (np < 0) {
+				//oops delete
+				lst.erase(it++);
+			} else {
+				it++;
+			}
+			if (P[fst] >= 0) {
+				val--;
+			}
+		}
+	}
+	cout << count(treat + 1, treat + N + 1, true) << endl;
+	for (int i = 1; i <= N; i++) {
+		if (treat[i]) {
+			cout << i << ' ';
+		}
+	}
+	cout << endl;
+}

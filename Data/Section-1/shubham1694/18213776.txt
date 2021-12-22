@@ -1,0 +1,112 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 310;
+
+int dp[maxn][maxn], mat[maxn][maxn], n, m, p;
+int st[2][maxn][maxn*5];
+vector<pii> pos[maxn*maxn];
+vector<pair<int, pii> > updates;
+
+void init(int t, int x, int s, int e, int node)
+{
+	if(s==e){
+		st[t][x][node] = inf;
+		return;
+	}
+	int mid, lc, rc;
+	mid = (s + e) >> 1;
+	lc = node*2 + 1;
+	rc = lc + 1;
+	init(t, x, s, mid, lc);
+	init(t, x, mid+1, e, rc);
+	st[t][x][node] = inf;
+}
+
+void update(int t, int x, int s, int e, int q, int node, int val)
+{
+	if(s>e || s>q || q>e)
+		return;
+	if(s == e){
+		st[t][x][node] = val;
+		return;
+	}
+	int mid, lc, rc;
+	mid = (s + e) >> 1;
+	lc = node*2 + 1;
+	rc = lc + 1;
+	update(t, x, s, mid, q, lc, val);
+	update(t, x, mid+1, e, q, rc, val);
+	st[t][x][node] = min(st[t][x][lc], st[t][x][rc]);
+}
+
+int query(int t, int x, int s, int e, int qs, int qe, int node)
+{
+	if(s>e || s>qe || qs>e)
+		return inf;
+	if(s>=qs && qe>=e)
+		return st[t][x][node];
+	int mid, lc, rc;
+	mid = (s + e) >> 1;
+	lc = node*2 + 1;
+	rc = lc + 1;
+	return min(query(t, x, s, mid, qs, qe, lc), query(t, x, mid+1, e, qs, qe, rc));
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, k;
+	memset(dp, -1, sizeof(dp));
+	scanf("%d%d%d", &n, &m, &p);
+	for(i=1; i<=n; i++){
+		for(j=1; j<=m; j++){
+			scanf("%d", &mat[i][j]);
+			pos[mat[i][j]].pb(mp(i, j));
+		}
+		init(0, i, 0, m, 0);
+		init(1, i, 0, m, 0);
+	}
+	int ans = inf, temp;
+	int x, y;
+	x = pos[p][0].f;
+	y = pos[p][0].s;
+	update(0, x, 0, m, y, 0, y);
+	update(1, x, 0, m, y, 0, -y);
+	for(i=p-1; i>=1; i--){
+		for(auto it:pos[i]){
+			temp = inf;
+			for(j=1; j<=n; j++)
+				temp = min(temp, abs(it.f-j) + min(query(1, j, 0, m, 0, it.s, 0) + it.s, query(0, j, 0, m, it.s, m, 0) - it.s));
+			updates.pb(mp(temp, mp(it.f, it.s)));
+		}
+		for(auto it:pos[i+1]){
+			update(0, it.f, 0, m, it.s, 0, inf);
+			update(1, it.f, 0, m, it.s, 0, inf);
+		}
+		for(auto it:updates){
+			update(0, it.s.f, 0, m, it.s.s, 0, it.f + it.s.s);
+			update(1, it.s.f, 0, m, it.s.s, 0, it.f - it.s.s);
+			if(i==1)
+				ans = min(ans, it.f + it.s.f + it.s.s - 2);
+		}
+		updates.clear();
+	}
+	printf("%d\n", ans);
+	return 0;
+}

@@ -1,0 +1,148 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+#include <cstring>
+#include <map>
+#include <unordered_map>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+#define x first
+#define y second
+
+using namespace std;
+
+int n, t[27][300000], lazy[27][300000], q, c[27], ans[60000];
+
+string s;
+
+void build(int v, int tl, int tr)
+{
+    if (tl == tr)
+    {
+        int ch = s[tl] - 'a';
+        t[ch][v] = 1;
+    }
+    else
+    {
+        int tm = (tl + tr) / 2;
+        build(v * 2, tl, tm);
+        build(v * 2 + 1, tm + 1, tr);
+        for (int i = 0; i < 26; i++)
+            t[i][v] = t[i][v * 2] + t[i][v * 2 + 1];
+    }
+}
+
+void push(int i, int v)
+{
+    if (lazy[i][v] != -1)
+    {
+        lazy[i][v * 2] = lazy[i][v * 2 + 1] = lazy[i][v];
+        lazy[i][v] = -1;
+    }
+}
+
+int cnt(int i, int v, int tl, int tr, int l, int r)
+{
+    if (l > r)
+        return 0;
+    if (lazy[i][v] != -1)
+        return (tr - tl + 1)*lazy[i][v];
+    if (tl == l && tr == r)
+        return t[i][v];
+    int tm = (tl + tr) >> 1;
+    return cnt(i, v * 2, tl, tm, l, min(tm, r)) + cnt(i, v * 2 + 1, tm + 1, tr, max(tm + 1, l), r);
+}
+
+void update(int i, int v, int tl, int tr, int l, int r, int vl)
+{
+    if (l > r)
+        return;
+    if (tl == l && tr == r)
+    {
+        lazy[i][v] = vl;
+        t[i][v] = vl*(tr - tl + 1);
+    }
+    else
+    {
+        //if (lazy[i][v] != -1)
+            //t[i][v] = lazy[i][v]*(tr - tl + 1);
+        push(i, v);
+        int tm = (tl + tr) >> 1;
+        update(i, v * 2, tl, tm, l, min(r, tm), vl);
+        update(i, v * 2 + 1, tm + 1, tr, max(tm + 1, l), r, vl);
+        t[i][v] = t[i][v * 2] + t[i][v * 2 + 1];
+    }
+}
+
+void get(int i, int v, int tl, int tr)
+{
+        if (tl == tr)
+        {
+            if (lazy[i][v] == 1)
+                ans[tl] = i;
+        }
+        else
+        {
+            push(i, v);
+            int tm = (tr + tl) >> 1;
+            get(i, v * 2, tl, tm);
+            get(i, v * 2 + 1, tm + 1, tr);
+        }
+}
+
+int main()
+{
+    memset(t, 0, sizeof(t));
+    memset(lazy, -1, sizeof(lazy));
+    cin >> n >> q;
+    cin >> s;
+    build(1, 0, n - 1);
+    while (q--)
+    {
+        int l, r, tp;
+        cin >> l >> r >> tp;
+        l--; r--;
+        memset(c, 0, sizeof(c));
+        for (int i = 0; i < 27; i++)
+            c[i] = cnt(i, 1, 0, n - 1, l, r);
+        int tl, tr;
+        for (int i = 0; i < 27; i++)
+            update(i, 1, 0, n - 1, l, r, 0);
+        if (tp)
+        {
+            tr = l;
+            for (int i = 0; i < 27; i++)
+            {
+                if (c[i] == 0) continue;
+                tl = tr;
+                tr += c[i];
+                update(i, 1, 0, n - 1, tl, tr-1, 1);
+            }
+        }
+        else
+        {
+            tr = l;
+            for (int i = 26; i > -1; i--)
+            {
+                if (c[i] == 0) continue;
+                tl = tr;
+                tr += c[i];
+                update(i, 1, 0, n - 1, tl, tr-1, 1);
+            }
+        }
+    }
+    for (int i = 0; i < 27;i++)
+        get(i, 1, 0, n - 1);
+    for (int i = 0; i < n; i++)
+        cout << (char)(ans[i] + 'a');
+    return 0;
+}

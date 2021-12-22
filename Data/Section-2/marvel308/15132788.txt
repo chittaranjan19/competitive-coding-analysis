@@ -1,0 +1,81 @@
+#include<stdio.h>
+#include<vector>
+#include<queue>
+#include<memory.h>
+using namespace std;
+#define INF 1000000007
+#define min(a,b) (a<b?a:b)
+typedef long long int ll;
+int dp[5005][5005]={0},valid[5005][5005];
+char s[5005];
+int main()
+{
+    int n,i,j,la;
+    memset(valid,-1,sizeof(valid));
+    scanf("%d",&n);
+    scanf("%s",s);
+    for(i=n;i>=0;i--)
+    {
+        for(j=n;j>=0;j--)
+        {
+            //printf("i=%d j=%d\n",i,j);
+            if(i==n || j==n)
+            {
+                valid[i][j]=INF;
+            }
+            else if(s[i]!=s[j])
+            {
+                valid[i][j]=0;
+            }
+            else
+            {
+                if(valid[i+1][j+1]!=INF)
+                    valid[i][j]=valid[i+1][j+1]+1;
+                else
+                    valid[i][j]=INF;
+            }
+        }
+    }
+    for(i=n-1;i>=0;i--)
+    {
+        int sum=0;
+        if(s[i]!='0')
+            dp[i][n-i]=1;
+        else
+            continue;
+        for(j=n;j>0;j--)
+        {
+            dp[i][j]=(dp[i][j]+dp[i][j+1])%INF;
+            if(i+2*j>n)
+                continue;
+            if(valid[i][i+j]!=INF)
+            {
+                int idx=valid[i][i+j];
+                //printf("i=%d j=%d idx=%d\n",i,j,idx);
+                if(s[i+idx]<s[i+j+idx])
+                    dp[i][j]=(dp[i][j]+dp[i+j][j])%INF;
+                else
+                    dp[i][j]=(dp[i][j]+dp[i+j][j+1])%INF;
+
+            }
+            else
+            {
+                dp[i][j]=(dp[i][j]+dp[i+j][j+1])%INF;
+            }
+
+        }
+    }
+    for(i=n;i>=0;i--)
+    {
+        for(j=n;j>=0;j--)
+        {
+            if(dp[i][j])
+            {
+                ;
+                //printf("i=%d j=%d dp=%d\n",i,j,dp[i][j]);
+            }
+        }
+    }
+    printf("%d\n",dp[0][1]);
+    return 0;
+}

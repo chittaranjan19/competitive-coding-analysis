@@ -1,0 +1,116 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct pp
+{
+	int first;
+	int second;
+};
+
+int n, x, y, d;
+int a[110000];
+pp kq[110000];
+
+bool check(int s, int t, int o)
+{
+	int u = 0, v = 0;
+	int se1 = 0, se2 = 0;
+	for(int i = 0; i < n; i++)
+	{
+		if(a[i] == o) u++;
+		else v++;
+		if(v == t)
+		{
+			se2++;
+			u = 0; v = 0;
+		}
+		if(u == t)
+		{
+			se1++;
+			u = 0;
+			v = 0;
+		}
+		if(se2 == s) return false;
+		if(se1 == s && i < n - 1) return false;
+		//if(se1 == s) cout << se1 << " " << se2 << " " << i << "\n";
+	}
+	if(se1 != s) return false;
+	return true;
+}
+
+bool cmp(pp a, pp b)
+{
+	if((a.first < b.first) || (a.first == b.first && a.second < b.second)) return true;
+	else
+		return false;
+}
+
+void qsort(pp a[], int l, int r)
+{
+	int i, j;
+	pp tam, x;
+	i = l;
+	j = r;
+	x = a[(l + r) / 2];
+while(true)
+{
+	while(a[i].first < x.first || (a[i].first == x.first && a[i].second < x.second)) i++;
+	while(a[j].first > x.first || (a[j].first == x.first && a[j].second > x.second)) j--;
+	if(i != j)
+	{
+		tam = a[i];
+		a[i]= a[j];
+		a[j] = tam;
+		i++; 
+		j--;
+	}
+	if(i > j) break;
+}
+if(i < r) qsort(a, i, r);
+if(j > l) qsort(a, l, j);
+}
+
+int main()
+{
+	int d = 0;
+	//freopen("in.txt", "r", stdin);
+	cin >> n;
+	x = 0; y = 0;
+	for(int i = 0; i < n; i++)
+	{
+		cin >> a[i];
+		if(a[i] == 1) x++;
+		else y++;
+	}
+	int s, t;
+	for(int i = 1; i <= x; i++)
+		if(x % i == 0)
+		{
+			s = i; t = x / i;
+			if(check(s, t, 1)) 
+			{
+				//cout << s << " " << t << "\n";
+				d++;
+				kq[d].first = s;
+				kq[d].second = t;
+			}
+		}
+	for(int i = 1; i <= y; i++)
+		if(y % i == 0)
+		{
+			s = i; t = y / i;
+			if(check(s, t, 2))
+			{
+				d++;
+				kq[d].first = s;
+				kq[d].second = t;
+			}
+		}
+	sort(kq + 1, kq + d + 1, cmp);
+	//qsort(kq, 1, d);
+	cout << d << "\n";
+	for(int i = 1; i <= d; i++)
+	{
+		cout << kq[i].first << " " << kq[i].second << "\n";
+	}
+}

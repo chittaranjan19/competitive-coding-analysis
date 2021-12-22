@@ -1,0 +1,115 @@
+#include<bits/stdc++.h>
+
+using namespace std;
+
+#define fill(a,val) memset(a, (val), sizeof a)
+#define pb push_back
+#define scantype int
+#define lli long long int
+#define N 55
+
+char a[N][N];
+
+int dx[]={1,0,-1,0};
+int dy[]={0,1,0,-1};
+
+bool vis[N][N],vis1[N][N];
+int n,m;
+int tcnt=0;
+
+bool in_range(int x,int y)
+{
+    if(x>=0 && x<n && y>=0 && y<m)
+        return true;
+    return false;
+}
+void dfs(int x,int y)
+{
+   vis[x][y]=true;
+   tcnt++;
+  // cout<<"vis: "<<x<<" "<<y<<endl;
+   for(int i=0;i<4;i++)
+   {
+       int nx,ny;
+       nx = x + dx[i];
+       ny = y + dy[i];
+
+       if(!vis[nx][ny] && in_range(nx,ny) && a[nx][ny]=='.') dfs(nx,ny);
+   }
+}
+
+void dfs1(int x,int y)
+{
+   vis1[x][y]=true;
+   tcnt++;
+   a[x][y]='*';
+   for(int i=0;i<4;i++)
+   {
+       int nx,ny;
+       nx = x + dx[i];
+       ny = y + dy[i];
+
+       if(!vis1[nx][ny] && in_range(nx,ny) && a[nx][ny]=='.') dfs1(nx,ny);
+   }
+}
+
+int main()
+{
+    int k;
+    cin>>n>>m>>k;
+
+    for(int i=0;i<n;i++)
+        for(int j=0;j<m;j++)
+            cin>>a[i][j];
+   
+    fill(vis,false);
+    fill(vis1,false);
+    
+    for(int i=0;i<n;i++)
+    {
+        if(!vis[i][0] && a[i][0]=='.')
+            dfs(i,0);
+        if(!vis[i][m-1] && a[i][m-1]=='.')
+            dfs(i,m-1);
+    }
+    for(int i=0;i<m;i++)
+    {
+        if(!vis[0][i] && a[0][i]=='.')
+            dfs(0,i);
+        if(!vis[n-1][i] && a[n-1][i]=='.')
+            dfs(n-1,i);
+    }
+    //cout<<"done"<<endl;
+    vector< pair<int, pair<int,int> > > vp;
+
+    int lim=0;
+
+    for(int i=1;i<n-1;i++)
+    {
+        for(int j=1;j<m-1;j++)
+        {
+            if(!vis[i][j] && a[i][j]=='.')
+                {
+                    tcnt=0;
+                    dfs(i,j);
+                    //cout<<i<<" "<<j<<endl;
+                    vp.pb({tcnt,{i,j}});
+                    lim++;
+                }
+
+        }
+    }
+    sort(vp.begin(),vp.end());
+
+    int tot=0;
+    for(int i=0;i<lim-k;i++)
+    {
+            //cout<<vp[i].second.first<<" "<<vp[i].second.second<<endl;
+            tot+=vp[i].first;
+            dfs1(vp[i].second.first,vp[i].second.second);
+    }
+    cout<<tot<<endl;
+    for(int i=0;i<n;i++,printf("\n"))
+        for(int j=0;j<m;j++)printf("%c",a[i][j]);
+
+}

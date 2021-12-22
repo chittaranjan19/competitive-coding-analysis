@@ -1,0 +1,55 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+const int MAXN = 5001;
+const int inf = 2e9;
+int used[MAXN];
+int d[MAXN];
+int n;
+vector < pair<int, int> > g[MAXN]; // first - u, second - t;
+vector <int> p;
+
+bool dfs(int v, int time, int cnt) {
+	if (time < 0) return false;
+	if (v == n - 1) {
+		if (d[v] < cnt) {
+			d[v] = cnt;
+			return true;
+		}
+		return false ;
+	}
+	bool check = false;
+	for (int i = 0; i < g[v].size(); ++i) {
+		if (dfs( g[v][i].first, time - g[v][i].second, cnt + 1)) {
+			p[ g[v][i].first ] = v;
+			check = true;
+ 		}
+	}
+	
+	return check;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	int m, T; cin >> n >> m >> T; p.resize(n);
+	for (int i = 0, s, f, t; i < m; ++i) {
+		cin >> s >> f >> t;
+		g[s - 1].push_back(make_pair(f - 1, t));
+	}
+	dfs(0, T, 1);
+	cout << d[n - 1] << "\n1 "; 
+	int we = n - 1;
+	vector <int> way;
+	while (we) {
+		way.push_back(we + 1);
+		we = p[we];
+	}
+	
+	for (int i = way.size() - 1; i >= 0; --i)
+		cout << way[i] << " ";
+	cout << endl;
+	return 0;
+}

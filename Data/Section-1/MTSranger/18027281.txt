@@ -1,0 +1,64 @@
+#include <iostream>
+#include <algorithm>
+#include <bitset>
+#include <vector>
+
+using namespace std;
+
+string input[20];
+int cols[1<<20];
+
+int groups[14][1<<7];
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	// read input
+	int n, m; cin >> n >> m;
+	string input[20];
+	for (int i = 0; i < n; i++) {
+		cin >> input[i];
+	}
+
+	// get bitmask of each column
+	for (int i = 0; i < m; i++) {
+		int x = 0;
+		for (int j = 0; j < n; j++) {
+			x = x * 2 + (int)(input[j][i] - '0');
+		}
+		cols[i] = x;
+	}
+
+	// special case: n = 1, always possible to get all 0's
+	if (n == 1) {
+		cout << 0 << endl;
+	} else {
+		// brute force over first 13 bits
+		int bestAns = n*m;
+		int split = min(max(1, n-5), 13);
+		for (int mask1 = 0; mask1 < (1 << split); mask1++) {
+			for (int i = 0; i <= split; i++) {
+				for (int j = 0; j < (1 << (n - split)); j++) {
+					groups[i][j] = 0;
+				}
+			}
+			for (int i = 0; i < m; i++) {
+				int x1 = __builtin_popcount((cols[i] & ((1 << split) - 1)) ^ mask1);
+				int x2 = cols[i] >> split;
+				groups[x1][x2]++;
+			}
+			for (int mask2 = 0; mask2 < (1 << (n - split)); mask2++) {
+				int currAns = 0;
+				for (int i = 0; i <= split; i++) {
+					for (int j = 0; j < (1 << (n - split)); j++) {
+						int popCount = i + __builtin_popcount(mask2 ^ j);
+						currAns += groups[i][j] * min(popCount, n - popCount);
+					}
+				}
+				bestAns = min(bestAns, currAns);
+			}
+		}
+		cout << bestAns << endl;
+	}
+}

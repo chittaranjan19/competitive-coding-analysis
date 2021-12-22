@@ -1,0 +1,78 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 1e5 + 5;
+
+char s[maxn], t[maxn];
+int bit[maxn], n, m;
+bool used[maxn];
+
+void add(int i, int v)
+{
+    ++i;
+    while(i <= n)
+    {
+        bit[i] += v;
+        i += i & -i;
+    }
+}
+
+int sum(int i)
+{
+    int ret = 0;
+    ++i;
+    while(i)
+    {
+        ret += bit[i];
+        i -= i & -i;
+    }
+    return ret;
+}
+
+bool check()
+{
+    for(int i = 0; i < n - m; ++i) if(!(sum(i + m - 1) - sum(i - 1))) return false;
+    return true;
+}
+
+int main()
+{
+    scanf("%d%s", &m, s);
+    n = strlen(s);
+    int len = 0;
+    for(int c = 0; c < 26; ++c)
+    {
+        for(int i = 0, j = -1; i < n; ++i)
+        {
+            if(s[i] == c + 'a') j = i;
+            if(i < m - 1 || sum(i) - sum(max(-1, i - m))) continue;
+//            cout << c << ' ' << j << endl;
+            if(~j)
+            {
+                add(j, 1);
+                t[len++] = s[j];
+                used[j] = true;
+                j = -1;
+            }
+        }
+        if(check()) break;
+        for(int i = 0; i < n; ++i)
+        {
+            if(s[i] == c + 'a' && !used[i])
+            {
+                add(i, 1);
+                t[len++] = s[i];
+                used[i] = true;
+            }
+        }
+//        for(int i = m - 1; i < n; ++i) cout << sum(i) - sum(i - m) << ' ';
+//        cout << endl;
+    }
+    t[len] = 0;
+    puts(t);
+    return 0;
+}

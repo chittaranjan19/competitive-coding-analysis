@@ -1,0 +1,144 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define maxC 2000000007
+#define mn 500005
+#define pb push_back
+#define mp make_pair
+#define base 29
+
+using namespace std;
+string s, t, s1, s2;
+int n, m, num[10], use[10];
+
+void setup()
+{
+    cin >> s >> t;
+    n = s.size();
+    m = t.size();
+    FOR(i, 0, n - 1)
+        num[s[i] - '0'] ++;
+    FOR(i, 0, m - 1)
+        num[t[i] - '0'] --;
+}
+
+bool ok(int x, int di)
+{
+    if (x <= 0)
+        return false;
+    int dem = 0, nonZ = 0;
+    FOR(i, 0, 9)
+        use[i] = 0;
+    FOR(i, 1, 9)
+        nonZ += (num[i] != 0);
+    while(x)
+    {
+        int y = x % 10;
+        if (++ use[y] > num[y])
+            return false;
+        if (use[y] == num[y] && y)
+            nonZ --;
+        x /= 10;
+        dem ++;
+    }
+    return dem == di && nonZ;
+}
+
+void makeS1()
+{
+    FOR(i, 0, 9)
+        use[i] = num[i];
+    int first = t[0] - '0';
+    FOR(i, 1, first - 1)
+    if (use[i])
+    {
+        s1 = '0' + i;
+        use[i] --;
+        FOR(j, 1, use[0])
+            s1 += '0';
+        FOR(j, i, first - 1)
+        FOR(k, 1, use[j])
+            s1 += '0' + j;
+        s1 += t;
+        FOR(j, first, 9)
+        FOR(k, 1, use[j])
+            s1 += '0' + j;
+        return;
+    }
+    s1 = t;
+    FOR(i, 0, 9)
+    FOR(j, 1, use[i])
+        s1 += '0' + i;
+    cout << s1;
+    exit(0);
+}
+
+void makeS2()
+{
+    FOR(i, 0, 9)
+        use[i] = num[i];
+    int first = t[0] - '0';
+    FOR(i, 1, first)
+    if (use[i])
+    {
+        s2 = '0' + i;
+        use[i] --;
+        FOR(j, 1, use[0])
+            s2 += '0';
+        FOR(j, i, first)
+        FOR(k, 1, use[j])
+            s2 += '0' + j;
+        s2 += t;
+        FOR(j, first + 1, 9)
+        FOR(k, 1, use[j])
+            s2 += '0' + j;
+        return;
+    }
+}
+
+void xuly()
+{
+    if (s == "01" || s == "10")
+    {
+        cout << 0;
+        return;
+    }
+    FORD(i, 7, 1)
+    {
+        int rest = n - i;
+        if (!ok(rest, i))
+            continue;
+        FOR(j, 0, 9)
+            num[j] -= use[j];
+        if (t[0] == '0')
+        {
+            FOR(q, 1, 9)
+            if (num[q])
+            {
+                cout << q;
+                num[q] --;
+                FOR(j, 1, num[0])
+                    cout << 0;
+                cout << t;
+                FOR(j, q, 9)
+                FOR(k, 1, num[j])
+                    cout << j;
+                return;
+            }
+        }
+        makeS1();
+        makeS2();
+        cout << min(s1, s2);
+        return;
+    }
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

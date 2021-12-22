@@ -1,0 +1,122 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+const int logn = 20;
+
+int n, q;
+vector<int> adj[maxn];
+int depth[maxn], siz[maxn], dp[logn][maxn];
+
+void dfs(int cur, int p, int d)
+{
+	depth[cur] = d;
+	dp[0][cur] = p;
+	siz[cur] = 1;
+	for(int it:adj[cur]){
+		if(it!=p){
+			dfs(it, cur, d+1);
+			siz[cur]+=siz[it];
+		}
+	}
+}
+
+void preprocess()
+{
+	dfs(1, 0, 0);
+	int i, j;
+	for(i=1; i<logn; i++){
+		for(j=1; j<=n; j++)
+			dp[i][j] = dp[i-1][dp[i-1][j]];
+	}
+}
+
+int find_lca(int u, int v)
+{
+	if(depth[u]<depth[v])
+		swap(u, v);
+	int diff = depth[u]-depth[v];
+	int i;
+	for(i=logn-1; i>=0; i--){
+		if(diff&(1<<i))
+			u = dp[i][u];
+	}
+	if(u==v)
+		return u;
+	for(i=logn-1; i>=0; i--){
+		if(dp[i][u]!=dp[i][v]){
+			u = dp[i][u];
+			v = dp[i][v];
+		}
+	}
+	return dp[0][u];
+}
+
+int find_kth_parent(int u, int k)
+{
+	int i;
+	for(i=0; i<logn; i++){
+		if(k&(1<<i))
+			u = dp[i][u];
+	}
+	return u;
+}
+
+int solve(int u, int v)
+{
+	int lca = find_lca(u, v);
+	int dist = depth[u] + depth[v] - (2*depth[lca]);
+	if(dist&1)
+		return 0;
+	if(depth[v]==depth[u]){
+		int p1 = find_kth_parent(u, (dist/2)-1);
+		int p2 = find_kth_parent(v, (dist/2)-1);
+		int ret = n-siz[p1]-siz[p2];
+		return ret;
+	}
+	if(depth[v]>depth[u])
+		swap(u, v);
+	int p1 = find_kth_parent(u, dist/2);
+	int p2 = find_kth_parent(u, (dist/2)-1);
+	int ret = siz[p1]-siz[p2];
+	return ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, u, v;
+	scanf("%d", &n);
+	for(i=1; i<n; i++){
+		scanf("%d%d", &u, &v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	preprocess();
+	scanf("%d", &q);
+	while(q--){
+		scanf("%d%d", &u, &v);
+		if(u==v){
+			printf("%d\n", n);
+			continue;
+		}
+		printf("%d\n", solve(u, v));
+	}
+	
+	return 0;
+}

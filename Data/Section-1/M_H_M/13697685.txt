@@ -1,0 +1,61 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+#define PB push_back
+#define MP make_pair
+#define X first
+#define Y second
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+const int N = 1000 * 1000 + 100;
+
+piii seg[N];
+
+int n, q;
+string str;
+
+piii merge(piii a, piii b){
+	piii c;
+	c.X.Y = a.X.Y + b.X.Y;
+	c.Y = a.Y + b.Y;
+	c.X.X = a.X.X + b.X.X + min(a.X.Y - a.X.X, b.Y - b.X.X);
+	return c;
+}
+
+void build(int v, int s, int e){
+	if(e - s == 1){
+		if(str[s] == '(') seg[v].X.Y = 1;
+		else seg[v].Y = 1;
+		return;
+	}
+	int mid = (s + e) / 2;
+	build(2 * v + 0, s, mid);
+	build(2 * v + 1, mid, e);
+	seg[v] = merge(seg[2 * v + 0], seg[2 * v + 1]);
+}
+
+piii get(int v, int s, int e, int l, int r){
+	if(r <= s || e <= l) return MP(MP(0, 0), 0);
+	if(l <= s && e <= r) return seg[v];
+	int mid = (s + e) / 2;
+	return merge(get(2 * v + 0, s, mid, l, r), get(2 * v + 1, mid, e, l, r));
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> str;
+	n = SZ(str);
+	build(1, 0, n);
+	cin >> q;
+	for(int i = 0; i < q; ++i){
+		int l, r;
+		cin >> l >> r;
+		l --;
+		cout << get(1, 0, n, l, r).X.X * 2 << "\n";
+	}
+	return 0;
+}

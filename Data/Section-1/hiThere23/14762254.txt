@@ -1,0 +1,80 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 200100
+#define maxC 1000000007
+#define mp make_pair
+#define F first
+#define S second
+#define pb push_back
+
+using namespace std;
+int n, val[mn << 1], ans = 1;
+pair<int, int> p[mn];
+map<int, int> Map;
+
+struct bitTree
+{
+    int tree[mn << 1];
+
+    void update(int x, int val)
+    {
+        for(; x < mn; x += (x & (-x)))
+            tree[x] = max(tree[x], val);
+    }
+
+    int get(int x)
+    {
+        int re = 0;
+        for(; x; x -= (x & (-x)))
+            re = max(re, tree[x]);
+        return re;
+    }
+} t;
+
+void setup()
+{
+    cin >> n;
+    int x, h;
+    FOR(i, 1, n)
+    {
+        cin >> x >> h;
+        p[i] = mp(x + h, x - h);
+        val[(i << 1) - 1] = x - h;
+        val[i << 1] = x + h;
+    }
+}
+
+void chuanbi()
+{
+    sort(val + 1, val + (n << 1) + 1);
+    Map[val[1]] = 1;
+    FOR(i, 2, n << 1)
+    if (val[i] != val[i - 1])
+        Map[val[i]] = Map[val[i - 1]] + 1;
+    FOR(i, 1, n)
+        p[i] = mp(Map[p[i].F], Map[p[i].S]);
+    sort(p + 1, p + n + 1);
+}
+
+void xuly ()
+{
+    FOR(i, 1, n)
+    {
+        int dp = t.get(p[i].S) + 1;
+        ans = max(ans, dp);
+        t.update(p[i].F, dp);
+    }
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    chuanbi();
+    xuly ();
+    return 0;
+}

@@ -1,0 +1,83 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+#include <stack>
+using namespace std;
+
+typedef long long ll;
+#define mod 1000000007
+#define INF mod
+#define pi acos(-1.0)
+#define LINF 1000000000000000000LL
+#define eps 1e-10
+
+const int START = 131072;
+
+struct pie
+{
+	ll r, h, i;
+	bool operator<(const pie& p) const
+	{
+		return this->V() < p.V();
+	}
+	ll V() const
+	{
+		return r * r * h;
+	}
+}a[100005];
+
+int n;
+ll tr[262200];
+
+ll getmax(int L, int R)
+{
+	L += START; R += START;
+	ll res = 0;
+	while(L <= R)
+	{
+		if(L & 1) res = max(res, tr[L++]);
+		if(~R & 1) res = max(res, tr[R--]);
+		L >>= 1; R >>= 1;
+	}
+	return res;
+}
+
+int main()
+{
+	cin >> n;
+	for(int i = 0; i < n; i++)
+	{
+		scanf("%I64d %I64d", &a[i].r, &a[i].h);
+		a[i].i = i;
+	}
+	sort(a, a + n);
+	for(int i = 0; i < n; )
+	{
+		vector <pair <ll, ll> > v;
+		int j;
+		for(j = i; j < n && a[i].V() == a[j].V(); j++)
+		{
+			v.push_back(make_pair(a[j].i, a[j].V() + getmax(0, a[j].i - 1)));
+		}
+		for(int k = 0; k < v.size(); k++)
+		{
+			tr[START+v[k].first] = v[k].second;
+			for(int p = (START+v[k].first) / 2; p > 0; p >>= 1)
+				tr[p] = max(tr[p*2], tr[p*2+1]);
+		}
+		i = j;
+	}
+	printf("%.9Lf\n", getmax(0, n - 1) * acos((long double)-1.0));
+	return 0;
+}

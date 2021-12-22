@@ -1,0 +1,104 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 5005;
+
+int N;
+bool adj[MAXN][MAXN];
+int par[MAXN];
+int nxt[MAXN];
+bool vis[MAXN];
+
+bool findcyc (int x, int p, int start, bool later) {
+	// printf("x = %d\n", x);
+	par[x] = p;
+	vis[x] = true;
+	if (x == start && later) {
+		return true;
+	}
+	for (int t = 1; t <= N; t++) {
+		if (adj[x][t]) {
+			if (t != start && vis[t]) {
+				continue;
+			}
+			if (findcyc(t, x, start, true)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces117C.in", "r", stdin);
+#endif
+	scanf("%d", &N);
+	for (int i = 1; i <= N; i++) {
+		getchar();
+		for (int j = 1; j <= N; j++) {
+			adj[i][j] = (getchar() == '1');
+		}
+	}
+	//k now find whatever cycle
+	for (int i = 1; i <= N; i++) {
+		// printf("i = %d\n", i);
+		memset(vis, false, sizeof(vis));
+		if (findcyc(i, -1, i, false)) {
+			//then hey you've found a cycle
+			int x = i;
+			do {
+				nxt[par[x]] = x;
+				x = par[x];
+			} while (x != i);
+			//k now let's do the cycle finding thing
+			//we know that x -> y -> z. patch up the hole z -> x
+			for (int y = nxt[i], z = nxt[y]; ;) {
+				if (adj[z][i]) {
+					printf("%d %d %d\n", i, y, z);
+					return 0;
+				} else {
+					y = z;
+					z = nxt[z];
+				}
+			}
+			puts("shouldn't be here");
+		}
+	}
+	puts("-1");
+}

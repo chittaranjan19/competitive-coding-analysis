@@ -1,0 +1,65 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define pb push_back
+#define f first
+#define s second
+#define mp make_pair
+
+typedef long long ll;
+typedef pair<int, int> pii;
+
+const int maxn = 200010;
+
+vector<int> adj[maxn];
+ll x, y;
+int n;
+
+pii dp[maxn];
+
+pii solve(int cur, int parent)
+{
+	if(dp[cur].f != -1)
+		return dp[cur];
+	pii ret = mp(0, 1), temp;
+	int c1 = 0, c2 = 0;
+	for(int it : adj[cur]){
+		if(it != parent){
+			temp = solve(it, cur);
+			if(!temp.s)
+				c1++;
+			else
+				c2++;
+			ret.f += temp.f;	
+		}
+	}
+	if(c2 >= 2){
+		ret.f += (c1+c2-2);
+		ret.s = 0;
+	}	
+	else
+		ret.f += c1;
+	return dp[cur] = ret;
+}
+
+int main()
+{
+	int i, u, v;
+	scanf("%d%lld%lld", &n, &x, &y);
+	for(i=1; i<n; i++){
+		scanf("%d%d", &u, &v);
+		adj[u].pb(v);
+		adj[v].pb(u);	
+	}
+	if(y < x){
+		printf("%lld\n", y*(n-1));
+		return 0;
+	}
+	for(i=0; i<maxn; i++)
+		dp[i].f = dp[i].s = -1;
+	pii parameters = solve(1, 0);
+	ll ans = x*(n-1-parameters.f) + y*parameters.f;
+	printf("%lld\n", ans); 
+	return 0;
+}

@@ -1,0 +1,135 @@
+#include<bits/stdc++.h>
+#define MOD 1000000007
+#define X first
+#define Y second
+using namespace std;
+class matrix
+{
+    public:
+    int a[2][2];
+    matrix(){init();};
+    void init()
+    {
+        a[0][0]=a[1][1]=1;
+        a[0][1]=a[1][0]=0;
+    }
+    matrix operator* (const matrix &x)
+    {
+        matrix z;
+        for(int i=0;i<2;i++)
+            for(int j=0;j<2;j++)
+                z.a[i][j]=(1ll*x.a[i][0]*a[0][j]%MOD+1ll*x.a[i][1]*a[1][j]%MOD)%MOD;
+        return z;
+    }
+    matrix operator+ (const matrix &x)
+    {
+        matrix z;
+        for(int i=0;i<2;i++)
+            for(int j=0;j<2;j++)
+                z.a[i][j]=(x.a[i][j]+a[i][j])%MOD;
+        return z;
+    }
+
+} lazy[400005],mul[60],seg[400005],gogo;
+matrix getfib(int x)
+{
+    matrix res;
+    int k=0;
+    while(x)
+    {
+        if(x&1) res=res*mul[k];
+        k++;
+        x/=2;
+    }
+    return res;
+}
+int arr[100005];
+bool ck[400005];
+int x,y,val,ans;
+void chklazy(int l,int r,int idx)
+{
+    if(ck[idx]!=0)
+    {
+        ck[idx]=0;
+        seg[idx]=seg[idx]*lazy[idx];
+        if(l!=r)
+        {
+            lazy[idx*2]=lazy[idx*2]*lazy[idx];
+            ck[idx*2]=1;
+            lazy[idx*2+1]=lazy[idx*2+1]*lazy[idx];
+            ck[idx*2+1]=1;
+        }
+        lazy[idx].init();
+    }
+}
+void build(int l,int r,int idx)
+{
+    if(l==r)
+    {
+        seg[idx]=getfib(arr[l]);
+        return;
+    }
+    int mid=(l+r)/2;
+    build(l,mid,idx*2);
+    build(mid+1,r,idx*2+1);
+    seg[idx]=seg[idx*2]+seg[idx*2+1];
+}
+void add(int l,int r,int idx)
+{
+    chklazy(l,r,idx);
+    if(x<=l&&r<=y)
+    {
+        ck[idx]=1;
+        lazy[idx]=gogo;
+        chklazy(l,r,idx);
+        return;
+    }
+    if(x>r||y<l) return;
+    int mid=(l+r)/2;
+    add(l,mid,idx*2);
+    add(mid+1,r,idx*2+1);
+    seg[idx]=seg[idx*2]+seg[idx*2+1];
+}
+void sum(int l,int r,int idx)
+{
+    chklazy(l,r,idx);
+    if(x<=l&&r<=y)
+    {
+        ans=(ans+seg[idx].a[1][0])%MOD;
+        return;
+    }
+    if(x>r||y<l) return;
+    int mid=(l+r)/2;
+    sum(l,mid,idx*2);
+    sum(mid+1,r,idx*2+1);
+}
+int main()
+{
+    int n,m,i,op;
+    scanf("%d%d",&n,&m);
+    for(i=0;i<n;i++) scanf("%d",&arr[i]);
+    mul[0].a[0][0]=mul[0].a[0][1]=mul[0].a[1][0]=1;
+    mul[0].a[1][1]=0;
+    for(int k=1;k<60;k++)
+        mul[k]=mul[k-1]*mul[k-1];
+    build(0,n-1,1);
+    while(m--)
+    {
+        scanf("%d",&op);
+        if(op==1)
+        {
+            scanf("%d%d%d",&x,&y,&val);
+            gogo=getfib(val);
+            x--;y--;
+            add(0,n-1,1);
+        }
+        else
+        {
+            scanf("%d%d",&x,&y);
+            x--;y--;
+            ans=0;
+            sum(0,n-1,1);
+            printf("%d\n",ans);
+        }
+    }
+}

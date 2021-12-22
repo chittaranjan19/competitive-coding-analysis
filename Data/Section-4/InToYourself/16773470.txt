@@ -1,0 +1,76 @@
+// ConsoleApplication18.cpp: определяет точку входа для консольного приложения.
+//
+
+#include <iostream>
+
+using namespace std;
+
+struct Que 
+{
+	long start;
+	long time;
+	long finish;
+};
+
+void insert(long i, Que *_queue)
+{
+	long tmp = 1;
+	while (_queue[i - tmp].finish == -1)
+	{
+		tmp++;
+	}
+	_queue[i].finish = _queue[i].time + _queue[i - tmp].finish;
+}
+
+int main()
+{
+	long n,b;
+	cin >> n >> b;
+	Que *_queue = new Que[n];
+	for (long i = 0; i < n; i++)
+	{
+		cin >> _queue[i].start>>_queue[i].time;
+	}
+	_queue[0].finish = _queue[0].start + _queue[0].time;
+	for (long i = 1; i < n; i++)
+	{
+		long p_b = 1;
+		long elements_inQ = 1;
+		while (elements_inQ <= b+1)
+		{
+			if (i - p_b >= 0)
+			{
+				if (_queue[i-p_b].finish == -1)
+				{
+					p_b++;
+				}
+				else if (_queue[i - p_b].finish <= _queue[i].start)
+				{
+					insert(i, _queue);
+					break;
+				}
+				else
+				{
+					elements_inQ++;
+					p_b++;
+				}
+			}
+			else
+			{
+				insert(i, _queue);
+				break;
+			}
+		}
+		if (elements_inQ>b+1)
+		{
+			_queue[i].finish = -1;
+		}
+		
+	}
+	for (long i = 0; i < n; i++)
+	{
+		cout<<_queue[i].finish << " ";
+	}
+    return 0;
+}
+

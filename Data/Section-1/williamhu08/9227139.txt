@@ -1,0 +1,105 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXM = 1010, MAXN = 100 * MAXM;
+
+int N, M;
+char S[MAXN], T[MAXM];
+int fwd[MAXM][26], rev[MAXM][26];
+int fmatch[MAXN], rmatch[MAXN];	//fowards, reverse match
+
+void read (char *str, int &n) {
+	n = strlen(gets(str));
+	for (int i = 0; i < n; i++) {
+		str[i] -= 'A';
+	}
+}
+
+void compute_match (int (&table)[MAXM][26], int (&match)[MAXN]) {
+	//don't forget to reset!!!
+	fillchar(table, 0);
+	fillchar(match, 0);
+	for (int i = 1; i < M; i++) {
+		int &ref = table[i - 1][T[i - 1]], prv = ref;
+		ref = i;
+		copy_n(table[prv], 26, table[i]);
+	}
+	table[M - 1][T[M - 1]] = M;
+	//ok now match everything in the string S
+	int cur = 0;
+	for (int i = 0; i < N; i++) {
+		match[i] = max(cur = table[cur][S[i]], match[i - 1]);
+	}
+}
+
+bool go() {
+	read(T, M);
+	if (M == 1) {
+		return false;
+	}
+	//construct automata. compute table
+	for (int i = 0; i < 2; i++) {
+		compute_match(i ? rev : fwd, i ? rmatch : fmatch);
+		reverse(S, S + N);
+		reverse(T, T + M);
+	}
+	reverse(rmatch, rmatch + N);
+	//do it forwards, then do it backwards
+	for (int i = 1; i < N; i++) {
+		int f = fmatch[i - 1], r = rmatch[i];
+		//careful: the matches must all be positive!!!
+		if (f && r && f + r >= M) {
+			return true;
+		}
+	}
+	return false;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	read(S, N);
+	if (N == 1) {
+		puts("0");
+		return 0;
+	}
+	int t, ans = 0;
+	for (scanf("%d\n", &t); t--; ans += go());
+	printf("%d\n", ans);
+}

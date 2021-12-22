@@ -1,0 +1,67 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+#define PB push_back
+#define MP make_pair
+#define X first
+#define Y second
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+
+const int N = 200 * 1000 + 1;
+
+int n, m;
+int p[N];
+int h[N];
+
+vector <pii> pnt;
+
+int seg[18][16 * N];
+
+void build(int d, int s, int e){
+	if(e - s == 1){
+		seg[d][s] = pnt[s].Y;
+		return;
+	}
+	int mid = (s + e) / 2;
+	build(d + 1, s, mid);
+	build(d + 1, mid, e);
+	merge(seg[d + 1] + s, seg[d + 1] + mid,
+		  seg[d + 1] + mid, seg[d + 1] + e, seg[d] + s);
+}
+	
+int getcnt(int d, int s, int e, int l, int r, int val){
+	if(r <= s || e <= l) return 0;
+	if(l <= s && e <= r)
+		return lower_bound(seg[d] + s, seg[d] + e, val) - (seg[d] + s);
+	int mid = (s + e) / 2;
+	return getcnt(d + 1, s, mid, l, r, val) + getcnt(d + 1, mid, e, l, r, val);
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	
+	for(int i = 0; i < n; ++i){
+		cin >> p[i];
+		h[p[i]] = i;
+	}
+
+	for(int i = 1; i <= n; ++i)
+		for(int j = i; j <= n; j += i)
+			pnt.PB(MP(min(h[i], h[j]), max(h[i], h[j])));
+
+	sort(pnt.begin(), pnt.end());
+	build(0, 0, SZ(pnt));
+	for(int i = 0; i < m; ++i){
+		int x, y;
+		cin >> x >> y;
+		x --;
+		cout << getcnt(0, 0, SZ(pnt), lower_bound(pnt.begin(), pnt.end(), MP(x, -1)) - pnt.begin(), SZ(pnt) , y) << "\n";
+	}
+
+	return 0;
+}

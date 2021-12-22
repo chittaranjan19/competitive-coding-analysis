@@ -1,0 +1,151 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemC {
+    BufferedReader rd;
+
+    ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int n = pint();
+        int[] a = intarr();
+        int[] d = new int[n];
+        NavigableMap<Integer, Integer> cMap = new TreeMap<>();
+        for(int x: a) {
+            Integer cur = cMap.get(x);
+            if(cur == null) {
+                cMap.put(x,1);
+            } else {
+                cMap.put(x,cur+1);
+            }
+        }
+        if(cMap.size() == 1) {
+            Arrays.fill(d, cMap.entrySet().iterator().next().getKey());
+        } else {
+            int p = n-1;
+            while(p >= 0) {
+                Map.Entry<Integer, Integer> last = cMap.lastEntry();
+                int k = last.getKey();
+                for(int i=p+1;i<n;i++) {
+                    int g = gcd(k,d[i]);
+                    rem(cMap, g, 2);
+                }
+                rem(cMap, k, 1);
+                d[p] = k;
+                p--;
+            }
+
+        }
+        StringBuilder buf = new StringBuilder();
+        for(int x: d) {
+            if(buf.length() != 0) {
+                buf.append(' ');
+            }
+            buf.append(x);
+        }
+        out(buf);
+    }
+
+    private void rem(Map<Integer, Integer> m, int k, int v) {
+        Integer cur = m.get(k);
+        cur -= v;
+        if(cur == 0) {
+            m.remove(k);
+        } else {
+            m.put(k, cur);
+        }
+    }
+
+    private int gcd(int a, int b) {
+        while (b > 0) {
+            int c = a % b;
+            a = b;
+            b = c;
+        }
+        return a;
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

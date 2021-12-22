@@ -1,0 +1,120 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 2000000000
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int h[mn], n, t;
+
+int gcd(int a, int b)
+{
+    if (b == 0)
+        return a;
+    return gcd(b, a % b);
+}
+
+struct interval{
+    pair<int, int> tree[mn * 4];
+
+    void build(int l, int r, int id)
+    {
+        if (l == r)
+        {
+            tree[id] = mp(h[l], 1);
+            return;
+        }
+        int g = ((l + r) >> 1);
+        build(l, g, id << 1);
+        build(g + 1, r, (id << 1) + 1);
+        if (tree[id << 1].F == tree[(id << 1) + 1].F)
+            tree[id] = mp(tree[id << 1].F, tree[id << 1].S + tree[(id << 1) + 1].S);
+        else
+            tree[id] = min(tree[id << 1], tree[(id << 1) + 1]);
+    }
+
+    pair<int, int> getMin(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return mp(maxC, maxC);
+        if (x <= l && r <= y)
+            return tree[id];
+        int g = ((l + r) >> 1);
+        pair<int, int> a = getMin(l, g, id << 1, x, y);
+        pair<int, int> b = getMin(g + 1, r, (id << 1) + 1, x, y);
+        if (a.F == b.F)
+            return mp(a.F, a.S + b.S);
+        return min(a, b);
+    }
+} t1;
+
+struct gcdTree{
+    int tree[mn * 4];
+
+    void build(int l, int r, int id)
+    {
+        if (l == r)
+        {
+            tree[id] = h[l];
+            return;
+        }
+        int g = ((l + r) >> 1);
+        build(l, g, id << 1);
+        build(g + 1, r, (id << 1) + 1);
+        tree[id] = gcd(tree[id << 1], tree[(id << 1) + 1]);
+    }
+
+    int getGcd(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return -1;
+        if (x <= l && r <= y)
+            return tree[id];
+        int g = ((l + r) >> 1);
+        int a = getGcd(l, g, id << 1, x, y);
+        int b = getGcd(g + 1, r, (id << 1) + 1, x, y);
+        if (a == -1)
+            return b;
+        if (b == -1)
+            return a;
+        return gcd(a, b);
+    }
+} t2;
+
+void setup ()
+{
+    cin >> n;
+    FOR(i, 1, n)
+    cin >> h[i];
+    t1.build(1, n, 1);
+    t2.build(1, n, 1);
+    cin >> t;
+}
+
+void xuly ()
+{
+    FOR(i, 1, t)
+    {
+        int l, r;
+        cin >> l >> r;
+        int z = t2.getGcd(1, n, 1, l, r);
+        pair<int, int> p = t1.getMin(1, n, 1, l, r);
+        if (z == p.F)
+            cout << r - l + 1 - p.S << '\n';
+        else
+            cout << r - l + 1 << '\n';
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

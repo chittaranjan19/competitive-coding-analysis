@@ -1,0 +1,167 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemB4 {
+    BufferedReader rd;
+    int[] p2 = new int[32];
+
+    private ProblemB4() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int qq = 1;
+        for(int i=0;i<32;i++) {
+            p2[i] = qq;
+            qq <<= 1;
+        }
+        int[] a = intarr();
+        int n = a[0];
+        int m = a[1];
+        NavigableMap<Integer, List<Interval>> p = new TreeMap<>();
+        int[] res = new int[n+1];
+        for(int i=0;i<m;i++) {
+            addToMap(p, new Interval(intarr()));
+        }
+        int nextIdx = 1;
+        int cx = 0;
+        int[] cur = new int[31];
+        for(Map.Entry<Integer, List<Interval>> e: p.entrySet()) {
+            int key = e.getKey();
+            for(int i=nextIdx;i<key;i++) {
+                res[i] = cx;
+            }
+            nextIdx = key;
+            for(Interval v: e.getValue()) {
+                if(v.from != key) {
+                    dec(cur, v.v);
+                }
+            }
+            for(Interval v: e.getValue()) {
+                if(v.from == key) {
+                    inc(cur, v.v);
+                }
+            }
+            cx = toCx(cur);
+        }
+        for(int i=nextIdx;i<=n;i++) {
+            res[i] = cx;
+        }
+        int[][] s = new int[n+2][32];
+        for(int i=1;i<=n;i++) {
+            for(int j=0;j<31;j++) {
+                int v = 0;
+                if((res[i]&p2[j])>0) {
+                    v = 1;
+                }
+                s[i][j] = s[i-1][j] + v;
+            }
+        }
+        boolean ok = true;
+        for(Map.Entry<Integer, List<Interval>> e: p.entrySet()) {
+            for(Interval v: e.getValue()) {
+                int y = 0;
+                for(int j=0;j<31;j++) {
+                    if(s[v.to][j]-s[v.from-1][j] == v.to-v.from+1) {
+                        y += p2[j];
+                    }
+                }
+                if(v.v != y) {
+                    ok = false;
+                }
+            }
+            if(!ok) {
+                break;
+            }
+        }
+
+        out(ok?"YES":"NO");
+        if(ok) {
+            StringBuilder buf = new StringBuilder();
+            buf.append(res[1]);
+            for(int i=2;i<=n;i++) {
+                buf.append(' ');
+                buf.append(res[i]);
+            }
+            out(buf);
+        }
+    }
+
+    private int toCx(int[] cur) {
+        int cx = 0;
+        for(int i=0;i<31;i++) {
+            if(cur[i] > 0) {
+                cx |= p2[i];
+            }
+        }
+        return cx;
+    }
+
+    private void inc(int[] cur, int v) {
+        for(int i=0;i<31;i++) {
+            if((p2[i]&v)>0) {
+                cur[i]++;
+            }
+        }
+    }
+
+    private void dec(int[] cur, int v) {
+        for(int i=0;i<31;i++) {
+            if((p2[i]&v)>0) {
+                cur[i]--;
+            }
+        }
+    }
+
+    private void addToMap(Map<Integer, List<Interval>> m, Interval x) {
+        addToMap(m, x, x.from);
+        addToMap(m, x, x.to+1);
+    }
+
+    private void addToMap(Map<Integer, List<Interval>> m, Interval x, int y) {
+        List<Interval> q = m.get(y);
+        if(q == null) {
+            q = new ArrayList<>();
+            m.put(y,q);
+        }
+        q.add(x);
+    }
+
+    class Interval {
+        int from;
+        int to;
+        int v;
+        boolean marked;
+
+        Interval(int[] a) {
+            this.from = a[0];
+            this.to = a[1];
+            this.v = a[2];
+        }
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = s.split(" ");
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB4();
+    }
+}

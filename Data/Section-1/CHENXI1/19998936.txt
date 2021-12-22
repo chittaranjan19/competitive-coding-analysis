@@ -1,0 +1,119 @@
+/***********************************************
+ |Author: Fry
+ |Created Time: 2016/8/20 21:37:29
+ |File Name: D.cpp
+ |Copyright: 
+ |  For personal use, feel free to use
+ |  Otherwise call me at http://blog.csdn.net/fry_guest 
+***********************************************/
+#include <bits/stdc++.h>
+using namespace std;
+const int N=1e5+5;
+int ans[N],t[N],x[N],y[N];
+set<int>s[N];
+vector<int>v[N];
+bool check[N];
+int n,m;
+void DW(int a,int sum)
+{
+	bool f=false;
+	if (t[a]!=4){
+		if (t[a]==3) {
+			f=true;
+/*			cout<<a<<"--"<<endl;
+			cout<<sum<<endl;
+			cout<<s[x[a]].size()<<endl;
+			cout<<check[x[a]]<<endl;
+			cout<<"--"<<endl;*/
+			if (!check[x[a]]) sum-=s[x[a]].size();
+			else sum-=m-s[x[a]].size();
+			check[x[a]]=!check[x[a]];
+			if (!check[x[a]]) sum+=s[x[a]].size();
+			else sum+=m-s[x[a]].size();
+		}
+		else if (t[a]==2) {
+			if (!check[x[a]]){
+				if (s[x[a]].find(y[a])!=s[x[a]].end()){
+					s[x[a]].erase(y[a]);
+					sum--;
+					f=true;
+				}
+			}
+			else {
+				if (s[x[a]].find(y[a])==s[x[a]].end()){
+					s[x[a]].insert(y[a]);
+					sum--;
+					f=true;
+				}
+			}
+		}
+		else if (t[a]==1) {
+			if (!check[x[a]]){
+				if (s[x[a]].find(y[a])==s[x[a]].end()){
+					s[x[a]].insert(y[a]);
+					sum++;
+					f=true;
+				}
+			}
+			else {
+				if (s[x[a]].find(y[a])!=s[x[a]].end()){
+					s[x[a]].erase(y[a]);
+					sum++;
+					f=true;
+				}
+	
+			}
+		}
+	}
+	ans[a]=sum;
+	for (int i=0;i<v[a].size();i++){
+		DW(v[a][i],sum);
+	}
+	if (f){
+		if (t[a]==3)check[x[a]]=!check[x[a]];
+		if (t[a]==2){
+			if (!check[x[a]]) s[x[a]].insert(y[a]);
+			else s[x[a]].erase(y[a]);
+		}
+		if (t[a]==1){
+			if (!check[x[a]]) s[x[a]].erase(y[a]);
+			else s[x[a]].insert(y[a]);
+		}
+	}
+}
+int main()
+{
+	int q;
+	while (~scanf("%d%d%d",&n,&m,&q)){
+		memset(check,0,sizeof(check));
+		for (int i=0;i<=n;i++) v[i].clear();
+		for (int i=0;i<=n;i++) s[i].clear();
+		for (int i=1;i<=q;i++){
+			scanf("%d",&t[i]);
+			if (t[i]<3){
+				scanf("%d%d",&x[i],&y[i]);
+			}
+			else scanf("%d",&x[i]);
+		}
+		for (int i=1;i<=q;i++){
+			if (t[i]==4){
+				v[x[i]].push_back(i);
+			}
+			if (i!=q&&t[i+1]!=4){
+				v[i].push_back(i+1);
+			}
+		}
+		if (t[1]!=4){
+			v[0].push_back(1);
+		}
+		for (int i=0;i<v[0].size();i++){
+			DW(v[0][i],0);
+		}
+		for (int i=1;i<=q;i++){
+			printf("%d\n",ans[i]);
+		}
+
+	}
+	return 0;
+}
+

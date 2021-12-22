@@ -1,0 +1,92 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 2e5 + 100;
+
+int n;
+int a[N];
+pii b[N];
+int l[N];
+int r[N];
+vector <int> c[N];
+int mark[N];
+ll sum[N];
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for(int i = 0; i < N; ++i) b[i].X = n, b[i].Y = -1;
+	for(int i = 0; i < n; ++i){
+		cin >> a[i];
+		b[a[i]].X = min(b[a[i]].X, i);
+		b[a[i]].Y = max(b[a[i]].Y, i);
+	}
+	for(int i = 1; i < N; ++i){
+		pii t = {n, -1};
+		for(int j = i; j < N; j += i){
+			t.X = min(t.X, b[j].X);
+			t.Y = max(t.Y, b[j].Y);
+		}
+		if(t.X != n){
+			c[t.X].PB(i);
+			c[t.Y].PB(i);
+		}		
+	}	
+	int mx = 0;
+	for(int i = 0; i < n; ++i){
+		l[i] = mx;
+		for(int j = 0; j < SZ(c[i]); ++j){
+			mark[c[i][j]] ++;
+			if(mark[c[i][j]] == 2 && c[i][j] > mx){
+				mx = c[i][j];
+			}
+		}
+	}
+	memset(mark, 0, sizeof mark);
+	mx = 0;
+	for(int i = n; i --;){
+		r[i] = mx;
+		sum[i] = sum[i + 1] + r[i];
+		for(int j = 0; j < SZ(c[i]); ++j){
+			mark[c[i][j]] ++;
+			if(mark[c[i][j]] == 2 && c[i][j] > mx){
+				mx = c[i][j];
+			}
+		}
+	}
+	ll ans = 0;
+	int k = 0, id = n - 1;
+	for(int i = 0; i < n; ++i){
+		while(id >= 0 && r[id] < l[i]){
+			id --;
+			k ++;
+		}
+		ans += sum[i + 1] - sum[id] + k * l[i];
+	}
+	cout << ans << "\n";
+	return 0;
+}

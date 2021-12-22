@@ -1,0 +1,96 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <list>
+
+using namespace std;
+
+struct par
+{
+	double p;
+	int t;
+};
+
+struct par2
+{
+	int c;
+	double P;
+};
+
+// e - ��������� �����������
+// c - ����� ���������
+void test (vector<par> &ms, list<par2> &ls, int T, int n, int limit, int c, double e)
+{
+	if ((n < limit) && (T > 1)) // ��������
+	{
+		if (ms[n].t == 1)
+		{
+			test (ms, ls, T - 1, n + 1, limit, c + 1, e);
+		}
+		else if (ms[n].p > 0)
+		{
+			ms[n].t--;
+			test (ms, ls, T - 1, n + 1, limit, c + 1, e * ms[n].p);
+			test (ms, ls, T - 1, n, limit, c, e * (1.0 - ms[n].p));
+		}
+		else
+		{
+			ms[n].t--;
+			test (ms, ls, T - 1, n, limit, c, e);
+		}
+	}
+	else // ��� ���
+	{
+		if (ms[n].t == 1)
+		{
+			par2 d;
+			d.c = c + 1;
+			d.P = e;
+			ls.push_back (d);
+		}
+		else if (ms[n].p > 0)
+		{
+			par2 d;
+			d.c = c + 1;
+			d.P = ms[n].p * e;
+			ls.push_back (d);
+			d.c = c;
+			d.P = (1 - ms[n].p) * e;
+			ls.push_back (d);
+		}
+		else
+		{
+			par2 d;
+			d.c = c;
+			d.P = e;
+			ls.push_back (d);
+		}
+	}
+}
+
+int main (int argc, char *argv[])
+{
+	int n, T;
+	cin >> n; cin >> T;
+	vector<par> mass;
+	mass.reserve (n);
+	list<par2> pars;
+	int i;
+	for (i = 0; i < n; i++)
+	{
+		par d;
+		cin >> d.p;
+		d.p /= 100;
+		cin >> d.t;
+		mass.push_back (d);
+	}
+	test (mass, pars, T, 0, n, 0, 1);
+	list<par2>::iterator liter;
+	double res = 0;
+	for (liter = pars.begin (); liter != pars.end (); liter++)
+		res += (*liter).c * (*liter).P;
+	cout << res;
+	system ("pause");
+	return 0;
+}
+

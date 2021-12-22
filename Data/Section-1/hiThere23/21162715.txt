@@ -1,0 +1,128 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 200005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, m, s, t, ds, dt, d[mn], conS[mn], conT[mn];
+vector< pair<int, int> > e;
+int st = 0, id = -1;
+vector<int> ans, es, et;
+
+int root(int a)
+{
+    if (d[a])
+        return (d[a] = root(d[a]));
+    return a;
+}
+
+void setup()
+{
+    cin >> n >> m;
+    int u, v;
+    e.pb(mp(0, 0));
+    FOR(i, 1, m)
+    {
+        cin >> u >> v;
+        e.pb(mp(u, v));
+    }
+    cin >> s >> t >> ds >> dt;
+}
+
+void xuly()
+{
+    FOR(i, 1, m)
+    {
+        int u = e[i].F;
+        int v = e[i].S;
+        if (u == s || v == s)
+        {
+            if (u == t || v == t)
+                st = i;
+            else
+                es.pb(i);
+            continue;
+        }
+        if (u == t || v == t)
+        {
+            et.pb(i);
+            continue;
+        }
+        int r1 = root(u);
+        int r2 = root(v);
+        if (r1 == r2)
+            continue;
+        d[r2] = r1;
+        ans.pb(i);
+    }
+    FOR(i, 0, int(es.size()) - 1)
+    {
+        int u = (e[es[i]].F == s? e[es[i]].S : e[es[i]].F);
+        conS[root(u)] = es[i];
+    }
+    FOR(i, 0, int(et.size()) - 1)
+    {
+        int u = (e[et[i]].F == t? e[et[i]].S : e[et[i]].F);
+        conT[root(u)] = et[i];
+    }
+    FOR(u, 1, n)
+    if (conS[u] && conT[u])
+    {
+        ans.pb(conS[u]);
+        ans.pb(conT[u]);
+        ds --, dt --;
+        id = u;
+        break;
+    }
+    if (id == -1)
+    {
+        if (st == 0)
+        {
+            cout << "No";
+            return;
+        }
+        ans.pb(st);
+        ds --, dt --;
+    }
+    FOR(u, 1, n)
+    if (conS[u] || conT[u])
+    {
+        if (conS[u] && conT[u])
+            continue;
+        if (conS[u])
+            ans.pb(conS[u]), ds --;
+        else
+            ans.pb(conT[u]), dt --;
+    }
+    FOR(u, 1, n)
+    if (conS[u] && conT[u] && u != id)
+    {
+        if(ds > dt)
+            ds --, ans.pb(conS[u]);
+        else
+            dt --, ans.pb(conT[u]);
+    }
+    if (ans.size() != n - 1 || ds < 0 || dt < 0)
+        cout << "No";
+    else
+    {
+        cout << "Yes\n";
+        FOR(i, 0, n - 2)
+            cout << e[ans[i]].F << ' ' << e[ans[i]].S << '\n';
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

@@ -1,0 +1,148 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+#include <iomanip>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 4010;
+
+void setmax (int &a, int b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+struct item {
+	int c, h, t;
+	void read() {
+		cin >> c >> h >> t;
+	}
+	bool operator < (const item &i) const {
+		return t < i.t;
+	}
+};
+
+int N, P;
+item items[MAXN];
+int dpl[MAXN][MAXN], dpr[MAXN][MAXN];
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	cin >> N >> P;
+	for (int i = 0; i < N; i++) {
+		items[i].read();
+	}
+	sort(items, items + N);
+	//compute DP for left side, right side...
+	//left side
+	for (int i = 0; i < N; i++) {
+		int c = items[i].c, h = items[i].h;
+		if (i == 0 || items[i].t / P != items[i - 1].t / P) {
+			//new component "P"
+			fill(dpl[i] + c, dpl[i] + MAXN, h);
+		} else {
+			for (int j = 0; j < MAXN; j++) {
+				int &ref = dpl[i][j];
+				ref = dpl[i - 1][j];
+				if (j >= c) {
+					setmax(ref, dpl[i - 1][j - c] + h);
+				}
+			}
+		}
+	}
+	//right side
+	for (int i = N - 1; i >= 0; i--) {
+		int c = items[i].c, h = items[i].h;
+		if (i == N - 1 || items[i].t / P != items[i + 1].t / P) {
+			//new component "P"
+			fill(dpr[i] + c, dpr[i] + MAXN, h);
+		} else {
+			for (int j = 0; j < MAXN; j++) {
+				int &ref = dpr[i][j];
+				ref = dpr[i + 1][j];
+				if (j >= c) {
+					setmax(ref, dpr[i + 1][j - c] + h);
+				}
+			}
+		}
+	}
+	int q, a, b;
+	for (cin >> q; q--; ) {
+		cin >> a >> b;
+		int pa = a - P + 1, lt = -1, rt = -1;
+		int lo = -1, hi = N;
+		while (hi - lo > 1) {
+			int mid = (lo + hi) / 2;
+			if (items[mid].t > a) {
+				hi = mid;
+			} else {
+				lo = mid;
+			}
+		}
+		if (lo != -1 && (items[lo].t / P) * P >= pa) {
+			lt = lo;
+		}
+		for (lo = -1, hi = N; hi - lo > 1; ) {
+			int mid = (lo + hi) / 2;
+			if (items[mid].t < pa) {
+				lo = mid;
+			} else {
+				hi = mid;
+			}
+		}
+		if (hi != N && (items[hi].t / P) * P + (P - 1) <= a) {
+			rt = hi;
+		}
+		if (pa >= 0 && pa % P == 0 && lt != -1 && rt != -1) {
+			rt = -1;
+		}
+		int ans = 0;
+		for (int i = 0; i <= b; i++) {
+			int h = 0;
+			if (lt != -1) {
+				h += dpl[lt][i];
+			}
+			if (rt != -1) {
+				h += dpr[rt][b - i];
+			}
+			setmax(ans, h);
+		}
+		cout << ans << '\n';
+	}
+}

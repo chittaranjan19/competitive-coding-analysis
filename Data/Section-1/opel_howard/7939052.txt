@@ -1,0 +1,104 @@
+#include <cstdio>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <utility>
+#include <string>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+// end of template
+
+typedef unsigned long long ull;
+template <typename U> class Comparator {
+public:
+	bool operator() (const U lhs, const U rhs) {
+		// implement
+		return true;
+	}
+};
+// end of template
+string lowercase(string s) {
+	for (string::iterator it = s.begin(); it != s.end(); it++) {
+		if (*it <= 90)
+			(*it) += 32;
+	}
+	return s;
+}
+int count_r(string s) {
+	int ans = 0;
+	for (string::iterator it = s.begin(); it != s.end(); it++) {
+		if (*it == 114)
+			ans++;
+	}
+	return ans;
+}
+map<string, pair<vector<string>, ii > > dictionary; // changable words, dp number of 'r's, dp length
+pair<int, int> get_dp(string str) {
+	if (!dictionary.count(str))
+		return make_pair(count_r(str), str.length());
+
+	pair<vector<string>, ii > &current = dictionary[str];
+	if (current.b.a == -1) { // if there has never been dp yet
+		pair<int, int> minimum = make_pair(count_r(str), str.length());
+		for (vector<string>::iterator it = current.a.begin(); it != current.a.end(); ++it) {
+			pair<int, int> temp = get_dp(*it);
+			if ((temp.a < minimum.a) || ((temp.a == minimum.a) && (temp.b < minimum.b))) {
+				minimum = temp;
+			}
+		}
+		current.b = minimum;
+	}
+	return current.b;
+}
+int main() {
+	// freopen("467D.in", "r", stdin);
+	int m;
+	scanf("%d", &m);
+	vector<string> essay(m);
+	for (int it = 0; it < m; ++it) {
+		string str;
+		cin >> str;
+		essay[it] = lowercase(str);
+	}
+
+	int n;
+	scanf("%d", &n);
+	for (int it = 0; it < n; ++it) {
+		string str1, str2;
+		cin >> str1 >> str2;
+		str1 = lowercase(str1);
+		str2 = lowercase(str2);
+		if (!dictionary.count(str1)) {
+			pair<vector<string>, ii > init;
+			init.b = make_pair(-1, -1);
+			dictionary[str1] = init;
+		}
+		dictionary[str1].a.push_back(str2);
+	}
+
+	ii ans = make_pair(0, 0);
+	for (int it = 0; it < m; ++it) {
+		ii ans_word = get_dp(essay[it]);
+		ans.a += ans_word.a;
+		ans.b += ans_word.b;
+	}
+	printf("%d %d\n", ans.a, ans.b);
+	return 0;
+}

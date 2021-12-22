@@ -1,0 +1,91 @@
+#include <iostream>
+
+#define mod 1000000007
+
+using namespace std;
+
+int n;
+long long k;
+long long a[100];
+
+long long ok[100][100];
+
+int countones(long long x) {
+    int ret(0);
+    while(x>0ll) {
+        x -= (x) & (-x);
+        ret++;
+    }
+
+    return ret;
+}
+
+void cpy(long long x[100][100], long long y[100][100]) {
+    for(int i=0; i<n; i++) {
+        for(int j=0; j<n; j++) {
+            y[i][j] = x[i][j];
+        }
+    }
+}
+
+void mul(long long x[100][100], long long y[100][100], long long z[100][100]) {
+    for(int i=0; i<n; i++) {
+        for(int j=0; j<n; j++) {
+            z[i][j] = 0ll;
+            for(int k=0; k<n; k++) {
+                z[i][j] = (z[i][j] + (x[i][k]*y[k][j])) % mod;
+            }
+        }
+    }
+}
+
+long long x[100][100];
+void mpow(long long m[100][100], long long p) {
+    if(p==0) {
+        for(int i=0; i<n; i++) {
+            for(int j=0; j<n; j++) {
+                m[i][j] = (i==j);
+            }
+        }
+        return;
+    }
+    if(p==1ll) {
+        cpy(ok,m);
+        return;
+    }
+
+    if(p%2ll) {
+        mpow(m,p-1ll);
+        mul(m,ok,x);
+        cpy(x,m);
+    } else {
+        mpow(m,p>>1ll);
+        mul(m,m,x);
+        cpy(x,m);
+    }
+}
+
+int main()
+{
+    cin >> n >> k;
+    for(int i=0; i<n; i++) {
+        cin >> a[i];
+        for(int j=0; j<=i; j++) {
+            ok[i][j] = ok[j][i] = (!(countones(a[i]^a[j])%3));
+        }
+    }
+
+    long long m[100][100];
+    mpow(m,k-1ll);
+
+    long long sol(0ll);
+    for(int i=0; i<n; i++) {
+        for(int j=0; j<n; j++) {
+            sol = (sol + m[i][j]) % mod;
+        }
+    }
+
+    cout << sol << endl;
+
+    return 0;
+}

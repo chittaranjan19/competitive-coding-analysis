@@ -1,0 +1,126 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class ProblemA {
+    BufferedReader rd;
+    boolean[][] edges;
+    boolean possible;
+    StringBuilder buf = new StringBuilder();
+
+    private ProblemA() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int n = pint();
+        char[][] c = new char[n][];
+        for(int i=0;i<n;i++) {
+            c[i] = rd.readLine().toCharArray();
+        }
+        edges = new boolean[26][26];
+        int[] z = new int[] { 0, 0, n-1 };
+        Queue<int[]> q = new LinkedList<>();
+        q.add(z);
+        possible = true;
+        while(!q.isEmpty() && possible) {
+            z = q.poll();
+            int st = 0;
+            for(int j=z[1];j<=z[2];j++) {
+                if(c[j].length <= z[0]) {
+                    if(st > 0) {
+                        possible = false;
+                        break;
+                    }
+                } else {
+                    if(st == 0) {
+                        st = 1;
+                    }
+                }
+            }
+            if(possible) {
+                char prev = '0';
+                int first = 0;
+                for(int j=z[1];j<=z[2];j++) {
+                    if(c[j].length > z[0]) {
+                        if(prev != '0') {
+                            char cur = c[j][z[0]];
+                            if(cur != prev) {
+                                if(first != j-1) {
+                                    q.add(new int[] { z[0]+1, first, j-1 });
+                                }
+                                if(edges[cur-'a'][prev-'a']) {
+                                    possible = false;
+                                    break;
+                                } else {
+                                    edges[prev-'a'][cur-'a'] = true;
+                                }
+                                first = j;
+                            }
+                        } else {
+                            first = j;
+                        }
+                        prev = c[j][z[0]];
+                    }
+                }
+                if(prev != '0') {
+                    if(first != z[2]) {
+                        q.add(new int[] { z[0]+1, first, z[2] });
+                    }
+                }
+            }
+        }
+        if(possible) {
+            dfs();
+        }
+        if(possible) {
+            out(buf.reverse().toString());
+        } else {
+            out("Impossible");
+        }
+    }
+
+    int[] col = new int[26];
+
+    private void dfs() {
+        for(int i=0;i<26;i++) {
+            if(col[i]==0) {
+                vs(i);
+            }
+        }
+    }
+
+    private void vs(int v) {
+        col[v] = 1;
+        for(int u=0;u<26;u++) {
+            if(edges[v][u]) {
+                if(col[u] == 0) {
+                    vs(u);
+                } else if(col[u] == 1) {
+                    possible = false;
+                }
+            }
+        }
+        col[v] = 2;
+        buf.append((char)(v+'a'));
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemA();
+    }
+}

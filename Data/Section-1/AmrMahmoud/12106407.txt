@@ -1,0 +1,98 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int v[100005], c[100005];
+LL res[100005];
+int vis[100005];
+pair<LL, int> maxi[2];
+
+inline void update(LL x, int ind, int i)
+{
+  if(vis[ind] != i) res[ind] = x;
+  else res[ind] = max(res[ind], x);
+  vis[ind] = i;
+  if(maxi[1].f > x || res[ind] > x) return;
+  for(int j=0;j<2;j++)
+  {
+    if(maxi[j].s == ind)
+    {
+      maxi[j] = mp(x, ind);
+      sort(maxi, maxi + 2, greater<pair<LL, int> >());
+      return;
+    }
+  }
+  maxi[1] = mp(x, ind);
+  sort(maxi, maxi + 2, greater<pair<LL, int> >());
+}
+
+int main()
+{
+  //ios_base::sync_with_stdio(0);
+  //freopen("test0.txt", "r", stdin);
+  //freopen("lca.out", "w", stdout);
+  int n, q, a, b;
+  scanf("%d %d", &n, &q);
+  for(int i=0;i<n;i++)
+    scanf("%d", &v[i]);
+  for(int i=0;i<n;i++)
+    scanf("%d", &c[i]);
+  for(int _=1;_<=q;_++)
+  {
+    scanf("%d %d", &a, &b);
+    LL sol = -(1LL << 60);
+    maxi[0] = mp(sol, -1);
+    maxi[1] = mp(sol, -1);
+    sol = 0;
+    for(int i=0;i<n;i++)
+    {
+      LL tmp = v[i] * 1LL * b;
+      if(vis[c[i]] == _)
+        tmp = max(tmp, res[c[i]] + v[i] * 1LL * a);
+      for(int j=0;j<2;j++)
+      {
+        if(maxi[j].s == -1 || maxi[j].s == c[i]) continue;
+        tmp = max(tmp, maxi[j].f + v[i] * 1LL * b);
+        break;
+      }
+      update(tmp, c[i], _);
+      sol = max(sol, tmp);
+    }
+    printf("%I64d\n", sol);
+  }
+  return 0;
+}

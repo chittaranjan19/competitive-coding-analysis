@@ -1,0 +1,121 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 4e5 + 5;
+
+struct edge
+{
+    int to, used, next;
+} G[maxn << 2];
+int head[maxn], head1[maxn], tot;
+int dfn[maxn], low[maxn], belong[maxn], st[maxn], num[maxn], clk, st_cnt, bcc_cnt;
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int *head, int u, int v)
+{
+    G[tot].to = v;
+    G[tot].used = -1;
+    G[tot].next = head[u];
+    head[u] = tot++;
+}
+
+void dfs1(int u, int fa)
+{
+    dfn[u] = low[u] = ++clk;
+    st[st_cnt++] = u;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(v == fa) continue;
+        if(!dfn[v])
+        {
+            dfs1(v, u);
+            if(low[v] <= low[u])
+            {
+                low[u] = low[v];
+                G[i].used = 1;
+            }
+        }
+        else if(dfn[v] <= low[u])
+        {
+            low[u] = dfn[v];
+            G[i].used = 1;
+        }
+    }
+    if(dfn[u] == low[u])
+    {
+        ++bcc_cnt;
+        head1[bcc_cnt] = -1;
+        num[bcc_cnt] = 0;
+        int v;
+        do
+        {
+            v = st[--st_cnt];
+            belong[v] = bcc_cnt;
+            ++num[bcc_cnt];
+        } while(u != v);
+    }
+}
+
+void find_bcc(int n)
+{
+    clk = st_cnt = bcc_cnt = 0;
+    memset(dfn, 0, sizeof(dfn));
+    dfs1(1, 0);
+}
+
+void dfs2(int u, int fa)
+{
+    for(int i = head1[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(v == fa) continue;
+        G[G[i ^ 1].used].used = 1;
+        dfs2(v, u);
+    }
+}
+
+int main()
+{
+    int n, m;
+    init();
+    scanf("%d%d", &n, &m);
+    for(int i = 0; i < m; ++i)
+    {
+        int u, v;
+        scanf("%d%d", &u, &v);
+        addedge(head, u, v);
+        addedge(head, v, u);
+    }
+    find_bcc(n);
+    for(int i = 0; i < m; ++i)
+    {
+        int u = G[i << 1 | 1].to, v = G[i << 1].to;
+        if(belong[u] != belong[v])
+        {
+            addedge(head1, belong[u], belong[v]);
+            G[tot - 1].used = i << 1;
+            addedge(head1, belong[v], belong[u]);
+            G[tot - 1].used = i << 1 | 1;
+        }
+    }
+    int root = 0;
+    for(int i = 1; i <= bcc_cnt; ++i) if(num[i] > num[root]) root = i;
+    dfs2(root, 0);
+    printf("%d\n", num[root]);
+    for(int i = 0; i < m << 1; i += 2)
+    {
+        if(~G[i].used) printf("%d %d\n", G[i ^ 1].to, G[i].to);
+        else printf("%d %d\n", G[i].to, G[i ^ 1].to);
+    }
+    return 0;
+}

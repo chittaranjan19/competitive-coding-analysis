@@ -1,0 +1,78 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdio>
+#include <stdlib.h>
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
+const int inf = (int)1e9;
+const int MAX_N = 50;
+const int MOD = (int)1e9 + 7;
+
+int main()
+{
+    //freopen("slalom.in", "r", stdin);
+    //freopen("output.txt", "w", stdout);
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    string s;
+    cin >> s;
+    int l = s.size(), k;
+    cin >> k;
+    int pal[l][l];
+    for (int i = 0; i < l; i++)
+        for (int j = 0; j < l; j++)
+            pal[i][j] = -1;
+    for (int i = 0; i < l; i++)
+        for (int j = i; j < l; j++)
+        {
+            int cnt = 0;
+            for (int d = 0; d < (j - i + 1) / 2; d++)
+                if (s[i + d] != s[j - d])
+                    cnt++;
+            pal[i][j] = cnt;
+        }
+    int dp[l][k], come[l][k];
+    for (int i = 0; i < l; i++)
+        for (int j = 0; j < k; j++)
+            dp[i][j] = inf;
+    for (int i = 0; i < l; i++)
+        for (int j = 0; j < k; j++)
+            if (j == 0)
+            {
+                if (pal[0][i] < dp[i][j])
+                {
+                    dp[i][j] = pal[0][i];
+                    come[i][j] = 0;
+                }
+            }
+            else
+            {
+                for (int d = 1; d <= i; d++)
+                    if (dp[i - d][j - 1] + pal[i - d + 1][i] < dp[i][j])
+                    {
+                        dp[i][j] = dp[i - d][j - 1] + pal[i - d + 1][i];
+                        come[i][j] = i - d + 1;
+                    }
+            }
+    int mi = 0;
+    for (int i = 0; i < k; i++)
+        if (dp[l - 1][i] < dp[l - 1][mi])
+            mi = i;
+    cout << dp[l - 1][mi] << endl;
+    int curr = l - 1;
+    string ans = "";
+    for (int i = mi; i >= 0; i--)
+    {
+        string s1 = s.substr(come[curr][i], curr - come[curr][i] + 1);
+        for (int d = 0; d < s1.size() / 2; d++)
+            if (s1[d] != s1[s1.size() - 1 - d])
+                s1[s1.size() - 1 - d] = s1[d];
+        ans = '+' + s1 + ans;
+        curr = come[curr][i] - 1;
+    }
+    ans = ans.substr(1, ans.size() - 1);
+    cout << ans;
+    return 0;
+}

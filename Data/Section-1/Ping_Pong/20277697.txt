@@ -1,0 +1,72 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll N = 100000;
+const ll inf = (ll)1e9;
+const ll MOD = (ll)1e9 + 7;
+const ld eps = 1e-6;
+const ll ABC = 26;
+const ll P = 239;
+
+vector<vector<ll> > g;
+vector<ll> color;
+vector<vector<ll> > dp;
+
+void dfs(ll u)
+{
+    for (ll v : g[u])
+        dfs(v);
+    if (color[u] == 0)
+    {
+        dp[u][0] = 1;
+        dp[u][1] = 0;
+        for (ll v : g[u])
+            dp[u][0] = (dp[u][0] * (dp[v][0] + dp[v][1])) % MOD;
+        ll cnt = g[u].size();
+        vector<ll> pref(cnt + 1), suff(cnt + 1);
+        pref[0] = 1;
+        for (ll i = 0; i < cnt; i++)
+            pref[i + 1] = (pref[i] * (dp[g[u][i]][0] + dp[g[u][i]][1])) % MOD;
+        suff[cnt] = 1;
+        for (ll i = cnt - 1; i >= 0; i--)
+            suff[i] = (suff[i + 1] * (dp[g[u][i]][0] + dp[g[u][i]][1])) % MOD;
+        for (ll i = 0; i < cnt; i++)
+            dp[u][1] = (dp[u][1] + dp[g[u][i]][1] * (pref[i] * suff[i + 1] % MOD)) % MOD;
+    }
+    else
+    {
+        dp[u][0]= 0;
+        dp[u][1] = 1;
+        for (ll v : g[u])
+            dp[u][1] = (dp[u][1] * (dp[v][0] + dp[v][1])) % MOD;
+    }
+}
+
+int main()
+{
+    //freopen("point.in", "r", stdin);
+    //freopen("point.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.precision(20);
+    ll n;
+    cin >> n;
+    g.resize(n);
+    color.resize(n);
+    dp.resize(n, vector<ll> (2));
+    for (ll i = 1; i < n; i++)
+    {
+        ll p;
+        cin >> p;
+        g[p].push_back(i);
+    }
+    for (ll i = 0; i < n; i++)
+        cin >> color[i];
+    dfs(0);
+    cout << dp[0][1] << endl;
+    return 0;
+}

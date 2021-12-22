@@ -1,0 +1,269 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD3 {
+    Map<String, Integer> byName = new HashMap<>();
+    List<String> byId = new ArrayList<>();
+    Map<Integer, List<Integer>> g1;
+    Map<Integer, List<Integer>> g2;
+    List<Set<Integer>> cycles = new ArrayList<>();
+    Map<Integer, Cycle> cycleByNode;
+    int[] rcon;
+    int[] lcon;
+    int nodeCount;
+
+    private ProblemD3() throws IOException {
+        BufferedReader rd = new BufferedReader(new InputStreamReader(System.in));
+        rd.readLine();
+        String h = rd.readLine();
+        String[] essay = h.toLowerCase().split(" ");
+        h = rd.readLine();
+        int n = Integer.parseInt(h);
+        g1 = new HashMap<>();
+        g2 = new HashMap<>();
+        for(int i=0;i<n;i++) {
+            h = rd.readLine();
+            String[] pair = h.toLowerCase().split(" ");
+            Integer a = idOf(pair[0]);
+            Integer b = idOf(pair[1]);
+            if(!a.equals(b)) {
+                List<Integer> succ = g1.get(a);
+                if(succ == null) {
+                    succ = new ArrayList<>();
+                    g1.put(a, succ);
+                }
+                succ.add(b);
+            }
+        }
+        nodeCount = byId.size();
+        rcon = new int[nodeCount];
+        lcon = new int[nodeCount];
+        for(int i=0;i<nodeCount;i++) {
+            rcon[i] = countR(byId.get(i));
+            lcon[i] = byId.get(i).length();
+        }
+
+        dfs();
+
+        cycleByNode = new HashMap<>();
+        for(Set<Integer> c: cycles) {
+            Cycle c1 = new Cycle();
+            c1.id = nodeCount;
+            for(Integer v: c) {
+                if(v < c1.id) {
+                    c1.id = v;
+                }
+            }
+            c1.elements = new HashSet<>(c);
+            for(Integer v: c) {
+                Cycle existing = cycleByNode.get(v);
+                if(existing != null) {
+                    c1.id = Math.min(c1.id, existing.id);
+                    c1.elements.addAll(existing.elements);
+                }
+            }
+            for(Integer v: c1.elements) {
+                cycleByNode.put(v, c1);
+            }
+            reduce(c1.id, c1.elements);
+        }
+
+        for(Map.Entry<Integer, Cycle> e: cycleByNode.entrySet()) {
+            List<Integer> succ = new ArrayList<>();
+            for(Integer y: e.getValue().elements) {
+                List<Integer> succ2 = g1.get(y);
+                if(succ2 != null) {
+                    for(Integer dest: succ2) {
+                        Cycle c1 = cycleByNode.get(dest);
+                        if(c1 == null) {
+                            succ.add(dest);
+                        } else {
+                            succ.add(c1.id);
+                        }
+                    }
+                }
+            }
+            g2.put(e.getKey(), succ);
+
+        }
+
+        Set<Integer> toCheck = new HashSet<>();
+        for(int i=0;i<nodeCount;i++) {
+            Cycle c1 = cycleByNode.get(i);
+            if(c1 == null) {
+                toCheck.add(i);
+            } else {
+                toCheck.add(c1.id);
+            }
+        }
+        for(Map.Entry<Integer, List<Integer>> e: g1.entrySet()) {
+            for(Integer y: e.getValue()) {
+                Cycle c1 = cycleByNode.get(y);
+                if(c1 == null) {
+                    toCheck.remove(y);
+                } else {
+                    toCheck.remove(c1.id);
+                }
+            }
+        }
+
+        dfs(toCheck);
+
+        int resR = 0;
+        int resLen = 0;
+        for(String word: essay) {
+            Integer id = byName.get(word);
+            if(id == null) {
+                resR += countR(word);
+                resLen += word.length();
+            } else {
+                resR += rcon[id];
+                resLen += lcon[id];
+            }
+        }
+        out(resR + " " + resLen);
+    }
+
+    class Cycle {
+        int id;
+        Set<Integer> elements;
+    }
+
+    private void dfs(Set<Integer> toCheck) {
+        int[] color = new int[nodeCount];
+        List<int[]> q = new LinkedList<>();
+        for(Integer start: toCheck) {
+            q.add(new int[] { start, 0 });
+            while(!q.isEmpty()) {
+                int[] e = q.remove(q.size()-1);
+                Cycle c1 = cycleByNode.get(e[0]);
+                if(c1 != null) {
+                    e[0] = c1.id;
+                }
+                color[e[0]] = 1;
+                List<Integer> succ = g2.get(e[0]);
+                if(succ == null) {
+                    succ = g1.get(e[0]);
+                }
+                Integer next = null;
+                if(succ != null) {
+                    while(e[1] < succ.size()) {
+                        Integer cur = succ.get(e[1]);
+                        Cycle c2 = cycleByNode.get(cur);
+                        if(c2 != null) {
+                            cur = c2.id;
+                        }
+                        if(color[cur] == 0) {
+                            next = cur;
+                            break;
+                        }
+                        e[1]++;
+                    }
+                }
+                if(next != null) {
+                    q.add(new int[] { e[0], e[1]+1 });
+                    q.add(new int[] { next, 0 });
+                } else {
+                    color[e[0]] = 2;
+                    reduce(e[0], succ);
+                }
+            }
+        }
+    }
+
+    private void reduce(int top, Collection<Integer> nodes) {
+        int r = rcon[top];
+        int l = lcon[top];
+        if(nodes != null) {
+            for(Integer v: nodes) {
+                if(rcon[v] < r || (rcon[v] == r && lcon[v] < l)) {
+                    r = rcon[v];
+                    l = lcon[v];
+                }
+            }
+        }
+        rcon[top] = r;
+        lcon[top] = l;
+    }
+
+    private void dfs() {
+        int[] color = new int[nodeCount];
+        int[] prev = new int[nodeCount];
+        Arrays.fill(prev, -1);
+        List<int[]> q = new LinkedList<>();
+        for(int i=0;i<nodeCount;i++) {
+            if(color[i] == 0) {
+                q.add(new int[] { i, 0 });
+                prev[i] = -1;
+                while(!q.isEmpty()) {
+                    int[] e = q.remove(q.size()-1);
+                    e[0] = e[0];
+                    color[e[0]] = 1;
+                    List<Integer> succ = g1.get(e[0]);
+                    Integer next = null;
+                    if(succ != null) {
+                        while(e[1] < succ.size()) {
+                            Integer cur = succ.get(e[1]);
+                            if(color[cur] == 0) {
+                                next = cur;
+                                break;
+                            } else if(color[cur] == 1) {
+                                saveCycle(prev, cur, e[0]);
+                            }
+                            e[1]++;
+                        }
+                    }
+                    if(next != null) {
+                        q.add(new int[] { e[0], e[1]+1 });
+                        q.add(new int[] { next, 0 });
+                        prev[next] = e[0];
+                    } else {
+                        color[e[0]] = 2;
+                    }
+                }
+            }
+        }
+    }
+
+    private void saveCycle(int[] prev, int first, int last) {
+        Set<Integer> cycle = new HashSet<>();
+        cycle.add(last);
+        cycle.add(first);
+        int x = last;
+        while(prev[x] != first) {
+            cycle.add(x);
+            x = prev[x];
+        }
+        cycles.add(cycle);
+    }
+
+    private int countR(String s) {
+        int x = 0;
+        for(int i=0;i<s.length();i++) {
+            if(s.charAt(i) == 'r') {
+                x++;
+            }
+        }
+        return x;
+    }
+
+    private Integer idOf(String name) {
+        Integer x = byName.get(name);
+        if(x == null) {
+            x = byId.size();
+            byName.put(name, x);
+            byId.add(name);
+        }
+        return x;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD3();
+    }
+}

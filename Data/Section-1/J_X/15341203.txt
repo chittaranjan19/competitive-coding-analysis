@@ -1,0 +1,147 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int MAXN = 200000 + 5;
+const int INF = 1e9 + 3;
+
+int a[MAXN];
+struct mystr
+{
+    int x, l, r, c;
+    mystr(int x = 0, int l = 0, int r = 0, int c = 0) :
+        x(x), l(l), r(r), c(c) {}
+} p[MAXN];
+struct segtree
+{
+    int minnode[MAXN << 2], sumnode[MAXN << 2], add[MAXN];
+
+    void nodeadd(int rt, int a)
+    {
+        minnode[rt] += a;
+    }
+
+    void pushup(int rt)
+    {
+        int lson = rt << 1, rson = rt << 1 | 1;
+        if(minnode[lson] < minnode[rson])
+        {
+            minnode[rt] = minnode[lson];
+            sumnode[rt] = sumnode[lson];
+        }
+        else if(minnode[lson] > minnode[rson])
+        {
+            minnode[rt] = minnode[rson];
+            sumnode[rt] = sumnode[rson];
+        }
+        else
+        {
+            minnode[rt] = minnode[lson];
+            sumnode[rt] = sumnode[lson] + sumnode[rson];
+        }
+    }
+
+    void pushdown(int rt)
+    {
+        if(add[rt])
+        {
+            nodeadd(rt << 1, add[rt]);
+            nodeadd(rt << 1 | 1, add[rt]);
+            add[rt] = 0;
+        }
+    }
+
+    void build(int rt, int l, int r)
+    {
+        add[rt] = 0;
+        if(r - l == 1)
+        {
+            minnode[rt] = 0;
+            sumnode[rt] = a[r] - a[l];
+            return;
+        }
+        int m = (l + r) >> 1;
+        build(rt << 1, l, m);
+        build(rt << 1 | 1, m, r);
+        pushup(rt);
+    }
+
+    void update(int rt, int l, int r, int x, int y, int a)
+    {
+        if(x <= l && r <= y)
+        {
+            nodeadd(rt, a);
+            return;
+        }
+        pushdown(rt);
+        int m = (l + r) >> 1;
+        if(x < m)
+        {
+            update(rt << 1, l, m, x, y, a);
+        }
+        if(m < y)
+        {
+            update(rt << 1 | 1, m, r, x, y, a);
+        }
+        pushup(rt);
+    }
+
+    int query(int rt)
+    {
+        return minnode[rt] ? 0 : sumnode[rt];
+    }
+} tree;
+
+bool cmp(const mystr &a, const mystr &b)
+{
+    return a.x != b.x ? a.x < b.x : a.c > b.c;
+}
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        n <<= 1;
+        for(int i = 0; i < n; i += 2)
+        {
+            int x1, y1, x2, y2;
+            scanf("%d%d%d%d", &x1, &y1, &x2, &y2);
+            if(x1 > x2)
+            {
+                swap(x1, x2);
+            }
+            if(y1 > y2)
+            {
+                swap(y1, y2);
+            }
+            ++x2, ++y2;
+            a[i] = y1, a[i + 1] = y2;
+            p[i] = mystr(x1, y1, y2, 1);
+            p[i + 1] = mystr(x2, y1, y2, -1);
+        }
+        a[n] = INF;
+        sort(a, a + n + 1);
+        sort(p, p + n, cmp);
+        int m = unique(a, a + n) - a;
+        ll len = a[m - 1] - a[0], ans = 0;
+        tree.build(1, 0, m);
+        for(int i = 0; i < n; ++i)
+        {
+            if(i)
+            {
+                ans += (p[i].x - p[i - 1].x) * (len - tree.query(1));
+//                cout << ans << endl;
+            }
+            int l = lower_bound(a, a + m, p[i].l) - a, r = lower_bound(a, a + m, p[i].r) - a;
+            tree.update(1, 0, m, l, r, p[i].c);
+        }
+        printf("%I64d\n", ans);
+    }
+    return 0;
+}

@@ -1,0 +1,168 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 300 * 1000 + 100;
+const int LG = 20;
+
+int n;
+int p[N];
+int q[N];
+int mn[N][LG];
+int mx[N][LG];
+int lg[N];
+ll ans;
+
+int mi(int l, int r){
+	if(r == l) return N;
+	int x = lg[r - l];
+	return min(mn[l][x], mn[r - (1 << x)][x]);
+}
+
+int ma(int l, int r){
+	if(r == l) return -2;
+	int x = lg[r - l];
+	return max(mx[l][x], mx[r - (1 << x)][x]);
+}
+
+int seg[4 * N];
+int lzy[4 * N];
+int add[4 * N];
+
+void shift(int v, int s, int e){
+	int mid = (s + e) / 2;
+	if(lzy[v] != -1){
+		seg[2 * v + 0] = (mid - s) * lzy[v];
+		seg[2 * v + 1] = (e - mid) * lzy[v];
+		lzy[2 * v + 0] = lzy[2 * v + 1] = lzy[v];
+		add[2 * v + 0] = add[2 * v + 1] = 0;
+		lzy[v] = -1;
+	}
+	seg[2 * v + 0] += (mid - s) * add[v];
+	seg[2 * v + 1] += (e - mid) * add[v];
+	add[2 * v + 0] += add[v];
+	add[2 * v + 1] += add[v];
+	add[v] = 0;
+}
+
+void update(int v, int s, int e, int l, int r, int x, bool act){
+	if(r <= s || e <= l) return;
+	if(l <= s && e <= r){
+		if(act){
+			seg[v] += (e - s) * x;
+			add[v] += x;
+		}
+		else{
+			seg[v] = (e - s) * x;
+			lzy[v] = x;
+			add[v] = 0;
+		}
+		return;
+	}
+	shift(v, s, e);
+	int mid = (s + e) / 2;
+	update(2 * v + 0, s, mid, l, r, x, act);
+	update(2 * v + 1, mid, e, l, r, x, act);
+	seg[v] = seg[2 * v + 0] + seg[2 * v + 1];
+}
+
+int get(int v, int s, int e, int l, int r){
+	if(r <= s || e <= l) return 0;
+	if(l <= s && e <= r) return seg[v];
+	shift(v, s, e);
+	int mid = (s + e) / 2;
+	return get(2 * v + 0, s, mid, l, r) + get(2 * v + 1, mid, e, l, r);
+}
+
+
+ll dv(int s, int e){
+	if(e - s == 1)
+		return 1;
+
+	int mid = (s + e) / 2;
+	ll ret = 0;
+	ret += dv(s, mid);
+	ret += dv(mid, e);
+	update(1, 0, n, 0, n, 0, 0);
+	int cur = mid;
+	int k = mid - 1;
+	int l = p[mid], r = p[mid];
+	int L = N, R = -1;
+	while(cur < e){
+		while(cur < e){
+			r = max(r, p[cur]);
+			l = min(l, p[cur]);
+	//		cerr << "log : " << l << " " << r + 1 << "\n";
+			if(ma(l, r + 1) > cur) cur ++;
+			else break;
+		}	
+		if(cur == e) break;
+	//	cerr << "bug1 : " << k << " " << cur << "\n";
+		int t = mi(l, r + 1);
+		int x = get(1, 0, n, t, t + 1);
+	//	cerr << "hoora : " << x << "\n";
+		ret += x;
+		update(1, 0, n, t, e, x, 0);
+		L = min(L, l);
+		R = max(R, r);
+		while(k >= s){
+			R = max(R, p[k]);
+			L = min(L, p[k]);
+			if(ma(L, R) > cur)	break;
+			else{
+				if(R - L == cur - k){
+					ret ++;
+					update(1, 0, n, k, e, 1, 1);
+				}
+				k --;
+			}
+		}
+	//	cerr << "bug2 : " << k << " " << cur << "\n";
+		cur ++;
+	}
+	//cerr << s << " " << e << " " << ret << "\n";
+	return ret;
+}
+
+int main(){
+	memset(lzy, -1, sizeof lzy);
+	scanf("%d", &n);
+	for(int i = 0; i < n; ++i){
+		int x, y; scanf("%d%d", &x, &y);
+		x --; y --;
+		q[x] = y;
+		p[y] = x;
+	}
+	for(int i = 2; i < N; ++i)
+		lg[i] = lg[i / 2] + 1;
+	for(int i = 0; i < n; ++i)
+		mn[i][0] = mx[i][0] = q[i];
+	for(int i = 1; i < LG; ++i)
+		for(int j = 0; j + (1 << i) <= n; ++j)
+			mn[j][i] = min(mn[j][i - 1], mn[j + (1 << (i - 1))][i - 1]),
+			mx[j][i] = max(mx[j][i - 1], mx[j + (1 << (i - 1))][i - 1]);
+	printf("%I64d\n", dv(0, n));
+	return 0;
+}

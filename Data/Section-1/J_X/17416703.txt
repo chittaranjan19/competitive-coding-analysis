@@ -1,0 +1,77 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 1e6 + 5;
+const int maxm = 32 * maxn;
+
+struct trie
+{
+    int ch[maxm][2], tot, val[maxm];
+
+    void init()
+    {
+        tot = 0;
+        memset(ch[0], 0, sizeof(ch[0]));
+    }
+
+    void insert(int x)
+    {
+        int u = 0;
+        for(int i = 30; i >= 0; --i)
+        {
+            int c = x >> i & 1;
+            if(!ch[u][c])
+            {
+                ch[u][c] = ++tot;
+                memset(ch[tot], 0, sizeof(ch[tot]));
+                val[tot] = 0;
+            }
+            u = ch[u][c];
+            ++val[u];
+        }
+    }
+
+    int cal(int x, int k)
+    {
+        int ret = 0, u = 0;
+        for(int i = 30; i >= 0; --i)
+        {
+            int c1 = x >> i & 1, c2 = k >> i & 1;
+            if(c2)
+            {
+                ret += val[ch[u][c1]];
+                u = ch[u][!c1];
+            }
+            else
+            {
+                u = ch[u][c1];
+            }
+            if(!u) break;
+        }
+        return ret;
+    }
+} tree;
+
+int main()
+{
+    int n, k;
+    scanf("%d%d", &n, &k);
+    tree.init();
+    tree.insert(0);
+    int a = 0;
+    ll ans = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        int b;
+        scanf("%d", &b);
+        b ^= a;
+        ans += i - tree.cal(b, k);
+        tree.insert(b);
+        a = b;
+    }
+    printf("%I64d\n", ans);
+    return 0;
+}

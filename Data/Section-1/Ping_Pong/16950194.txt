@@ -1,0 +1,127 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll p = 239;
+const ll MAX_N = 10;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+bool comp(pair<pair<ll, ll>, ll> a, pair<pair<ll, ll>, ll> b)
+{
+    return (a.first.first != b.first.first ? a.first.first < b.first.first : a.second < b.second);
+}
+
+int main()
+{
+    //ifstream ifs("input.txt");
+    //ofstream ofs("output.txt");
+    //freopen("candies.in", "r", stdin);
+    //freopen("candies.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    ll n, a;
+    cin >> n >> a;
+    ll b[n][2];
+    vector<pair<pair<ll, ll>, ll> > event;
+    for (ll i = 0; i < n; i++)
+    {
+        ll x, d;
+        cin >> x >> d;
+        b[i][0] = x;
+        b[i][1] = x + d - 1;
+        event.push_back(make_pair(make_pair(x, i), 1));
+        event.push_back(make_pair(make_pair(x + d - 1, i), 2));
+    }
+    set<pair<ll, ll> > s;
+    sort(event.begin(), event.end(), comp);
+    /*for (ll i = 0; i < event.size(); i++)
+        cout << event[i].first.first << " " << event[i].first.second << " " << event[i].second << endl;*/
+    ll l = 0, r = n, mid;
+    while (r - l > 1)
+    {
+        mid = (l + r) / 2;
+        ll cnt = 0;
+        ll ans = 0;
+        s.clear();
+        for (ll i = 0; i < event.size(); i++)
+        {
+            /*for (set<pair<ll, ll> > ::iterator it = s.begin(); it != s.end(); it++)
+                cout << it->first << " " << it->second << endl;
+            cout << endl;*/
+            if (event[i].second == 1)
+            {
+                cnt++;
+                s.insert(make_pair(b[event[i].first.second][1], event[i].first.second));
+                if (cnt > mid)
+                {
+                    s.erase((--s.end()));
+                    cnt--;
+                }
+            }
+            else
+            {
+                if (s.find(event[i].first) != s.end())
+                {
+                    ans++;
+                    s.erase(event[i].first);
+                    cnt--;
+                }
+            }
+        }
+        if (ans >= a)
+            r = mid;
+        else
+            l = mid;
+    }
+    mid = r;
+    ll cnt = 0;
+    ll ans = 0;
+    s.clear();
+    cout << r << endl;
+    for (ll i = 0; i < event.size(); i++)
+    {
+        /*for (set<pair<ll, ll> > ::iterator it = s.begin(); it != s.end(); it++)
+            cout << it->first << " " << it->second << endl;
+        cout << endl;*/
+        if (event[i].second == 1)
+        {
+            cnt++;
+            s.insert(make_pair(b[event[i].first.second][1], event[i].first.second));
+            if (cnt > mid)
+            {
+                s.erase((--s.end()));
+                cnt--;
+            }
+        }
+        else
+        {
+            if (s.find(event[i].first) != s.end())
+            {
+                ans++;
+                cout << event[i].first.second + 1 << " ";
+                s.erase(event[i].first);
+                cnt--;
+            }
+        }
+    }
+    return 0;
+}

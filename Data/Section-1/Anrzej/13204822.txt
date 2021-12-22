@@ -1,0 +1,91 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <stdio.h>
+
+using namespace std;
+
+#define ll long long
+#define ull unsigned long long 
+#define sc second
+#define fs first
+#define mp make_pair
+ll k, m[1111][1111], gn[1000];
+
+int main()
+{
+    gn[0] = 1;
+    for (int i = 1; i <= 8; i++)
+        gn[i] = gn[i - 1] * 2;
+    cin >> k;
+    if (k == 1)
+    {
+        cout << 2 << "\nNY\nYN" << endl;
+        return 0;
+    }
+    vector<int> g;
+    while (k != 0)
+    {
+        int i = 30;
+        while (k < (1 << i))
+            i--;
+        g.push_back(i);
+        k -= (1 << i);
+    }
+    int mx = -1;
+    for (int i = 0; i < g.size(); i++)
+        mx = max(g[i], mx);
+    vector<int> v[50];
+    int n = g.size();
+    for (int i = 0; i < g.size(); i++)
+    {
+        for (int j = 0; j < g[i]; j++)
+            v[i].push_back(2);
+        while (v[i].size() != mx)
+            v[i].push_back(1);
+    }
+    int cur = 3;
+    for (int j = 0; j < n; j++)
+    {
+        for (int i = cur; i < cur + v[j][0]; i++)
+        {
+            m[1][i] = 1;
+            m[i][1] = 1;
+        }
+        for (int i = 0; i < mx - 1; i++)
+        {
+            int cnt1 = v[j][i], cnt2 = v[j][i + 1];
+            for (int x = cur; x < cnt1 + cur; x++)
+            {
+                for (int y = cur + cnt1; y < cur + cnt1 + cnt2; y++)
+                {
+                    m[x][y] = 1;
+                    m[y][x] = 1;
+                }
+            }
+            cur += cnt1;
+        }
+        for (int i = cur; i < cur + v[j][mx-1]; i++)
+        {
+            m[2][i] = 1;
+            m[i][2] = 1;
+        }
+        cur += v[j][mx - 1];
+    }
+    cout << 1000 << endl;
+    for (int i = 1; i <= 1000; i++)
+    {
+        for (int j = 1; j <= 1000; j++)
+        if (m[i][j])
+            printf("Y");
+        else printf("N");
+        printf("\n");
+    }
+    return 0;
+}

@@ -1,0 +1,83 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+#define fi first
+#define se second
+#define pb push_back
+#define mp make_pair
+#define Fit(i,c) for (__typeof__((c).begin()) i = (c).begin(); i != (c).end(); i++)
+#define inf 1000000005
+#define all(a) (a).begin(), (a).end()
+#define ms(a,x) memset(a, x, sizeof(a))
+#define mod 1000000007
+
+template<class T> int getbit(T s, int i) { return (s >> i) & 1; }
+template<class T> T onbit(T s, int i) { return s | (T(1) << i); }
+template<class T> T offbit(T s, int i) { return s & (~(T(1) << i)); }
+template<class T> int cntbit(T s) { return s == 0 ? 0 : cntbit(s >> 1) + (s & 1);}
+
+#define Rep(i,n) for(int i = 0; i < (n); ++i)
+#define Repd(i,n) for(int i = (n)-1; i >= 0; --i)
+#define For(i,a,b) for(int i = (a); i <= (b); ++i)
+#define Ford(i,a,b) for(int i = (a); i >= (b); --i)
+
+typedef unsigned long long ull;
+typedef long long ll;
+typedef long double ld;
+#define eps 1e-15
+typedef pair<int, int> II;
+#define maxn 100005
+
+II P[maxn];
+int n;
+int add = 100010;
+vector<int> Vx[maxn], Vy[maxn], Vxy[maxn + maxn + 30];
+
+bool county(int x, int y, int d){
+    int t = lower_bound(all(Vy[y]), x - d) - Vy[y].begin();
+    return (t < Vy[y].size() && Vy[y][t] == x - d);
+}
+
+bool countx(int x, int y, int d){
+    int t = lower_bound(all(Vx[x]), y - d) - Vx[x].begin();
+    return (t < Vx[x].size() && Vx[x][t] == y - d);
+}
+
+bool countxy(int x, int y, int d){
+    int t = lower_bound(all(Vxy[x - y + add]), x - d) - Vxy[x - y + add].begin();
+    return (t < Vxy[x - y + add].size() && Vxy[x - y + add][t] == x - d);
+}
+
+int main(){
+//  freopen("in.txt", "r", stdin);
+//  freopen("out.txt", "w", stdout);
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    cin >> n;
+    For(i, 1, n) cin >> P[i].fi >> P[i].se;
+    sort(P + 1, P + n + 1);
+    int res = 0;
+    int d;
+    for(int i = 1; i <= n; i++){
+        int x = P[i].fi, y = P[i].se;
+        if((int)(Vx[x].size()) <= (int)(Vy[y].size())){
+            for(int j = 0; j < (int)Vx[x].size(); j++){
+                d = y - Vx[x][j];
+                res += (county(x, y, d) & countxy(x, y, d));
+            }
+        }
+        else{
+            for(int j = 0; j < (int)Vy[y].size(); j++){
+                d = x - Vy[y][j];
+                res += (countx(x, y, d) & countxy(x, y, d));
+            }
+        }
+        Vx[x].pb(y);
+        Vy[y].pb(x);
+        Vxy[x - y + add].pb(x);
+    }
+
+    cout << res << endl;
+}

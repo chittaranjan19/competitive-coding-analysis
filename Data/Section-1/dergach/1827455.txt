@@ -1,0 +1,126 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <algorithm>
+#include <ctype.h>
+using namespace std;
+
+#define eps 1e-10
+
+int i, j, res1 = -1, res2 = -1, x, y, cur1, cur2;
+struct team{
+    int points, zabito, prop, sigr;
+    string name;
+}a[4], b[4];
+string s1, s2;
+
+bool sort_f(team a, team b)
+{
+    if(a.points != b.points)
+        return a.points > b.points;
+    if(a.zabito - a.prop != b.zabito - b.prop)
+        return a.zabito - a.prop > b.zabito - b.prop;
+    if(a.zabito != b.zabito)
+        return a.zabito > b.zabito;
+    return a.name < b.name;
+}
+
+int main()
+{
+    for(i = 0; i < 5; i++)
+    {
+        cin >> s1 >> s2;
+        scanf("%d:%d", &x, &y);
+        cur1 = cur2 = -1;
+        for(j = 0; j < 4; j++)
+        {
+            if(a[j].name == s1)
+                cur1 = j;
+            if(a[j].name == s2)
+                cur2 = j;
+        }
+        if(cur1 == -1)
+        {
+            for(j = 0; j < 4; j++)
+                if(a[j].name == "")
+                {
+                    cur1 = j;
+                    break;
+                }
+        }
+        if(cur2 == -1)
+        {
+            for(j = 0; j < 4; j++)
+                if(a[j].name == "" && cur1 != j)
+                {
+                    cur2 = j;
+                    break;
+                }
+        }
+        a[cur1].name = s1;
+        a[cur1].zabito += x;
+        a[cur1].prop += y;
+        a[cur1].sigr++;
+
+        a[cur2].name = s2;
+        a[cur2].zabito += y;
+        a[cur2].prop += x;
+        a[cur2].sigr++;
+
+        if(x > y)
+            a[cur1].points += 3;
+        else
+            if(x < y)
+                a[cur2].points += 3;
+            else
+            {
+                a[cur1].points += 1;
+                a[cur2].points += 1;
+            }
+    }
+    cur1 = cur2 = -1;
+    for(i = 0; i < 4; i++)
+    {
+        if(a[i].sigr == 2)
+        {
+            if(cur1 == -1)
+                cur1 = i;
+            else
+                cur2 = i;
+        }
+        b[i] = a[i];
+    }
+    if(a[cur2].name == "BERLAND")
+        swap(cur1, cur2);
+
+    a[cur1].points += 3;
+    b[cur1].points += 3;
+    for(i = 1; i < 100; i++)
+        for(j = 0; j < i; j++)
+        {
+            a[cur1].zabito = b[cur1].zabito + i;
+            a[cur1].prop = b[cur1].prop + j;
+            a[cur2].zabito = b[cur2].zabito + j;
+            a[cur2].prop = b[cur2].prop + i;
+            sort(a, a + 4, sort_f);
+            if(a[0].name == "BERLAND" || a[1].name == "BERLAND")
+                if(res1 == -1 || i - j < res1 - res2 || (i - j == res1 - res2 && j < res2))
+                    res1 = i, res2 = j;
+            for(x = 0; x < 4; x++)
+                a[x] = b[x];
+        }
+    if(res1 == -1)
+        printf("IMPOSSIBLE\n");
+    else
+        printf("%d:%d\n", res1, res2);
+    return 0;
+}

@@ -1,0 +1,84 @@
+// In The Name Of ALLAH
+
+#include<bits/stdc++.h>
+#define LL long long
+#define LB long double
+#define ALL(X) X.begin(),X.end()
+#define DD(X) cout<<#X<<' '<<X<<endl;
+#define Speed_Up; ios_base::sync_with_stdio(0),cin.tie(0),cout.tie(0);
+
+using namespace std;
+
+const long long MOD=1000*1000*1000+7;
+const long long MAXN=2000+100;
+const long long MAXM=200+50;
+const long long INF=1e9+7;
+
+const long long dx[4]={0,0,-1,+1};
+const long long dy[4]={+1,-1,0,0};
+
+ifstream fin("input.txt");
+ofstream fout("output.txt");
+
+bool vis[MAXN][MAXN][2];
+pair<pair<int,int>,bool> par[MAXN][MAXN][2];
+int val[MAXN][MAXN][2];
+vector<int>ver[MAXN];
+queue<pair<pair<int,int>,bool> >q;
+int main(){
+	Speed_Up;
+	int n,m;
+	cin>>n>>m;
+	for(int i=0;i<m;i++){
+		int x,y;
+		cin>>x>>y;
+		x--,y--;
+		ver[x].push_back(y);
+		ver[y].push_back(x);
+	}
+	q.push(make_pair(make_pair(0,n-1),false));
+	vis[0][n-1][0]=true;
+	while(q.size()){
+		int x=q.front().first.first;
+		int y=q.front().first.second;
+		bool f=q.front().second;
+		q.pop();
+		if(f){
+			for(auto u:ver[y])
+				if(!vis[x][u][0]){
+					vis[x][u][0]=true;
+					val[x][u][0]=val[x][y][f]+1;
+					par[x][u][0]=make_pair(make_pair(x,y),f);
+					q.push(make_pair(make_pair(x,u),!f));
+				}
+		}
+		else if(x==y)continue;
+		else{
+			for(auto u:ver[x])
+				if(!vis[u][y][1]){
+					vis[u][y][1]=true;
+					val[u][y][1]=val[x][y][f]+1;
+					par[u][y][1]=make_pair(make_pair(x,y),f);
+					q.push(make_pair(make_pair(u,y),!f));
+				}
+		}
+	}
+	if(vis[n-1][0][0]){
+		cout<<val[n-1][0][0]/2<<endl;
+		vector<int>ans1,ans2;
+		int x=n-1,y=0;
+		bool f=0;
+		for(int i=0;i<val[n-1][0][0]+1;i++){
+			ans1.push_back(x);
+			ans2.push_back(y);
+			pair<pair<int,int>,bool>h=par[x][y][f];
+			x=h.first.first;
+			y=h.first.second;
+			f=!f;
+		}
+		for(int i=0;i<ans2.size();i++)if(ans2[i]!=ans2[i-1])cout<<ans2[i]+1<<' ';cout<<endl;
+		for(int i=0;i<ans1.size();i++)if(ans1[i]!=ans1[i-1])cout<<ans1[i]+1<<' ';cout<<endl;
+	}
+	else cout<<-1;
+	
+}

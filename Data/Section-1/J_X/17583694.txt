@@ -1,0 +1,125 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int, int> pii;
+
+const int maxn = 3000 + 5;
+const int INF = 1 << 30;
+
+int tot, head[maxn], d[maxn][maxn], n, m, pre[maxn][5], ans[5];
+bool used[maxn];
+int dd[maxn][5];
+struct edge
+{
+    int to, next;
+
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxn << 1];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u]);
+    head[u] = tot++;
+}
+
+void dijsktra(int s)
+{
+    priority_queue<pii, vector<pii>, greater<pii> > pque;
+    fill(d[s], d[s] + n + 1, INF);
+    d[s][s] = 0;
+    pque.push(pii(d[s][s], s));
+    while(!pque.empty())
+    {
+        pii p = pque.top();
+        pque.pop();
+        int u = p.second;
+        if(p.first > d[s][u]) continue;
+        for(int i = head[u]; ~i; i = G[i].next)
+        {
+            int v = G[i].to;
+            if(d[s][v] > d[s][u] + 1)
+            {
+                d[s][v] = d[s][u] + 1;
+                pque.push(pii(d[s][v], v));
+            }
+        }
+    }
+}
+
+int solve(int s)
+{
+    pre[s][0] = 0;
+    memset(dd, -1, sizeof(dd));
+    dd[s][0] = 0;
+    for(int i = 0; i < 3; ++i)
+    {
+        for(int u = 1; u <= n; ++u)
+        {
+            if(dd[u][i] == -1) continue;
+            int ss = u, dep = i;
+            while(ss)
+            {
+                used[ss] = true;
+                ss = pre[ss][dep];
+                --dep;
+            }
+            for(int v = 1; v <= n; ++v)
+            {
+                if(used[v] || d[u][v] >= INF) continue;
+                if(dd[v][i + 1] < dd[u][i] + d[u][v])
+                {
+                    dd[v][i + 1] = dd[u][i] + d[u][v];
+                    pre[v][i + 1] = u;
+                }
+            }
+            ss = u, dep = i;
+            while(ss)
+            {
+                used[ss] = false;
+                ss = pre[ss][dep];
+                --dep;
+            }
+        }
+    }
+    int res = 0;
+    for(int i = 1; i <= n; ++i) if(d[i][3] < INF && d[res][3] < d[i][3]) res = i;
+    return res;
+}
+
+int main()
+{
+    scanf("%d%d", &n, &m);
+    init();
+    for(int i = 0; i < m; ++i)
+    {
+        int u, v;
+        scanf("%d%d", &u, &v);
+        addedge(u, v);
+    }
+    for(int i = 1; i <= n; ++i) dijsktra(i);
+    int dis = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        int tmp = solve(i);
+        if(d[tmp][3] > dis)
+        {
+            dis = d[tmp][3];
+            int ss = tmp;
+            for(int j = 3; j >= 0; ss = pre[ss][j--])
+            {
+                ans[j] = ss;
+            }
+        }
+    }
+    for(int i = 0; i < 4; ++i) printf("%d ", ans[i]);
+    puts("");
+    return 0;
+}

@@ -1,0 +1,93 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int poss[1000003];
+vector<vector<int> > pos(1000003);
+bool visited[4005][4005];
+int arr[4005];
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int n;
+    cin >> n;
+    for(int i=0;i<n;i++)
+    {
+        cin >> arr[i];
+        if(poss[arr[i]] == 0 && (!i || arr[i] != arr[0]))
+            poss[arr[i]] = i;
+        pos[arr[i]].push_back(i);
+    }
+    int sol = 1;
+    for(int i=0;i<n;i++)
+    {
+        for(int j=i+1;j<n;j++)
+        {
+            if(!visited[poss[arr[i]]][poss[arr[j]]])
+            {
+                visited[poss[arr[i]]][poss[arr[j]]] = true;
+                visited[poss[arr[j]]][poss[arr[i]]] = true;
+                int curr = j, counter = 2;
+                while(1)
+                {
+                    int L = 0, R = pos[arr[i]].size() - 1;
+                    if(curr >= pos[arr[i]][R]) break;
+                    while(R > L)
+                    {
+                        int mid = L + (R - L) / 2;
+                        if(pos[arr[i]][mid] > curr)
+                            R = mid;
+                        else L = mid + 1;
+                    }
+                    curr = pos[arr[i]][R];
+                    counter++;
+                    L = 0, R = pos[arr[j]].size() - 1;
+                    if(curr >= pos[arr[j]][R]) break;
+                    while(R > L)
+                    {
+                        int mid = L + (R - L) / 2;
+                        if(pos[arr[j]][mid] > curr)
+                            R = mid;
+                        else L = mid + 1;
+                    }
+                    curr = pos[arr[j]][R];
+                    counter++;
+                }
+                sol = max(sol, counter);
+            }
+        }
+    }
+    cout << sol;
+    return 0;
+}

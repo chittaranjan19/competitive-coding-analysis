@@ -1,0 +1,58 @@
+#include <bits/stdc++.h>
+#define INF 2147483647
+#define LOGN 16
+using namespace std;
+int stab[5][100000][LOGN+1];
+void sparse(int k, vector<int> &A){
+    int i, j, N=A.size();
+    for (i = 0; i < N; i++)
+        stab[k][i][0] = A[i];
+    for (j = 1; 1 << j <= N; j++)
+        for (i = 0; i + (1 << j) - 1 < N; i++)
+            stab[k][i][j]=max(stab[k][i][j - 1], stab[k][i + (1 << (j - 1))][j - 1]);
+}
+int query(int k, int l, int r){
+    int log2=0;
+    while(true){
+        if(l+(1<<(log2+1))>r) break;
+        ++log2;
+    }
+    return max(stab[k][l][log2], stab[k][r-(1<<log2)+1][log2]);
+}
+int main(){
+    int n,m,k;
+    ios_base::sync_with_stdio(false);
+    cin>>n>>m>>k;
+    vector <int> dets[5];
+    for(int i=0;i<m;++i)
+        dets[i].resize(n);
+    for(int i=0;i<n;++i)
+        for(int j=0;j<m;++j)
+            cin>>dets[j][i];
+    for(int i=0;i<m;++i)
+        sparse(i, dets[i]);
+    int lo=1, hi=n;
+    int ans[5];
+    for(int i=0;i<m;++i) ans[i]=0;
+    while(lo<=hi){
+        int mid=(lo+hi)/2;
+        bool ok=false;
+        for(int i=0;i+mid<=n;++i){
+            int res=0;
+            int max[5];
+            for(int j=0;j<m;++j){
+                max[j]=query(j,i,i+mid-1);
+                res+=max[j];
+            }
+            if(res<=k){
+                ok=true;
+                for(int j=0;j<m;++j) ans[j]=max[j];
+                break;
+            }
+        }
+        if(ok)  lo=mid+1;
+        else    hi=mid-1;
+    }
+    for(int i=0;i<m;++i)
+        cout<<ans[i]<<" ";
+}

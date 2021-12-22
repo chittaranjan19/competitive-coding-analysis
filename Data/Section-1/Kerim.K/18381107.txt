@@ -1,0 +1,113 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+vector<PII>adj[MAXN];
+void no(){
+	printf("NO\n");
+	exit(0);
+	cerr<<"Kerim.K"<<endl;
+}
+set<PII>s;
+struct dsu{
+	ll ata[MAXN],sz[MAXN],rank[MAXN];
+	void init(ll x){
+		for(ll i=1;i<=x;i++)
+			ata[i]=i,sz[i]=0,rank[i]=i;
+	}
+	ll tap(ll x){
+		if(ata[x]==x)
+			return x;
+		return ata[x]=tap(ata[x]);	
+	}
+	char merge(ll x,ll y,ll z){
+		if((x=tap(x))==(y=tap(y))){
+			sz[x]+=z;
+			return 'z';
+		}
+		if(rank[x]<rank[y]){
+			rank[y]+=rank[x];
+			sz[y]+=sz[x]+z;
+			ata[x]=y;
+			return 'y';
+		}
+		else{
+			rank[x]+=rank[y];
+			sz[x]+=sz[y]+z;
+			ata[y]=x;	
+			return 'x';
+		}
+	}
+	vector<PII> comp(ll x){
+		vector<PII>on;
+		for(ll i=1;i<=x;i++)
+			if(ata[i]==i)
+				on.pb(mp(sz[i],i));
+		return on;			
+	}
+}T;
+int main(){
+	ll n,m,p,q;
+	scanf("%d%d%d%d",&n,&m,&p,&q);
+	T.init(n);
+	ll uu=-1,vv=-1;
+	for(ll i=1;i<=m;i++){
+		ll u,v,w;
+		scanf("%d%d%d",&u,&v,&w);
+		//adj[u].pb(mp(v,w));
+		//adj[v].pb(mp(u,w));
+		uu=u;vv=v;
+		T.merge(u,v,w);
+	}
+	vector<PII>vec=T.comp(n);
+	vector<PII>ans;
+	if(vec.size()<q)
+		no();
+	tr(it,vec)
+		s.insert(*it);
+	if(p==0){
+		if(vec.size()!=q)
+			no();
+		printf("YES\n");	
+		return 0;
+	}
+	ll cc=vec.size();
+	for(ll i=1;i<=p;i++){
+		if(s.size()>1 and cc>q){
+			PII x=*s.begin();
+			s.erase(x);
+			PII y=*s.begin();
+			s.erase(y);
+			ans.pb(mp(x.ss,y.ss));
+			char kind=T.merge(x.ss,y.ss,min(ll(1e9),x.ff+y.ff+1));
+			if(kind=='y')
+				s.insert(mp(T.sz[y.ss],y.ss));
+			if(kind=='x')
+				s.insert(mp(T.sz[x.ss],x.ss));	
+			cc--;
+			continue;
+		}
+		if(uu==-1 or vv==-1)
+			no();
+		ans.pb(mp(uu,vv));
+	}
+	printf("YES\n");
+	tr(it,ans)
+		printf("%lld %lld\n",it->ff,it->ss);
+	return 0;
+}

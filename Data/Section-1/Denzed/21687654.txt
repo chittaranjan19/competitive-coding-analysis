@@ -1,0 +1,168 @@
+#include <bits/stdc++.h>
+
+#define t       first
+#define w       second
+#define f       first
+#define s       second
+
+using namespace std;
+
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+
+struct node {
+    node *left, *right;
+    ll priority, sum, value, size;
+    
+    node(ll x) {
+        sum = value = x;
+        size = 1;
+        priority = rand();
+        left = right = nullptr;
+    }
+};
+
+ll get_sum(node *v) {
+    return v == nullptr ? 0 : v->sum;
+}
+
+ll get_size(node *v) {
+    return v == nullptr ? 0 : v->size;
+}
+
+void update(node *v) {
+    if (v == nullptr) {
+        return;
+    }
+    v->sum = get_sum(v->left) + get_sum(v->right) + v->value;
+    v->size = get_size(v->left) + get_size(v->right) + 1;
+}
+
+pair<node*, node*> split(node *root, ll key) {
+    if (root == nullptr) {
+        return make_pair(nullptr, nullptr);
+    }
+    if (key < root->value) {
+        pair<node*, node*> splitted = split(root->left, key);
+        root->left = splitted.s;
+        update(root);
+        return make_pair(splitted.f, root);
+    } else {
+        pair<node*, node*> splitted = split(root->right, key);
+        root->right = splitted.f;
+        update(root);
+        return make_pair(root, splitted.s);
+    }
+}
+
+pair<node*, node*> split_by_sum(node *root, ll sum) {
+    if (root == nullptr) {
+        return make_pair(nullptr, nullptr);
+    }
+    ll root_sum = get_sum(root->left);
+    if (sum < root_sum) {
+        pair<node*, node*> splitted = split(root->left, sum);
+        root->left = splitted.s;
+        update(root);
+        return make_pair(splitted.f, root);
+    } else {
+        pair<node*, node*> splitted = split(root->right, sum - root_sum);
+        root->right = splitted.f;
+        update(root);
+        return make_pair(root, splitted.s);
+    }
+}
+
+node* merge(node *left, node *right) {
+    if (left == nullptr || right == nullptr) {
+        return right == nullptr ? left : right;
+    }
+    if (left->priority > right->priority) {
+        left->right = merge(left->right, right);
+        update(left);
+        return left;
+    } else {
+        right->left = merge(left, right->left);
+        update(right);
+        return right;
+    }
+}
+
+void insert(node *&root, ll key, node *new_node) {
+    if (root == nullptr) {
+        root = new_node;
+    } else if (new_node->priority > root->priority) {
+        auto tmp = split(root, key);
+        root = new_node;
+        root->left = tmp.f;
+        root->right = tmp.s;
+    } else {
+        if (key < root->value) {
+            insert(root->left, key, new_node);
+        } else {
+            insert(root->right, key, new_node);
+        }
+    }
+    update(root);
+}
+
+void dfs(node *root, bool debug = 0, int level = 0) {
+    ostream &o = (debug ? cerr : cout);
+    if (root != nullptr) {
+        dfs(root->left, debug, level + 1);
+        for (int i = 0; i < level * debug; ++i) {
+            o << "    ";
+        }
+        o << root->value << "," << get_size(root) << (debug ? "\n" : " ");
+        dfs(root->right, debug, level + 1);
+    }
+    if (!level) {
+        o << (debug ? "________________________" : "") << "\n";
+    }
+}
+
+ll n, t, w, place;
+multiset<pair<ll,ll>> teams;
+node *better_teams = nullptr;
+
+ll get_place() {
+    // dfs(better_teams, 1, 0);
+    ll result = get_size(better_teams) + 1;
+    ll can_spend = (teams.empty() ? t : t - teams.begin()->t);
+    auto tmp = split_by_sum(better_teams, can_spend);
+    result -= get_size(tmp.f);
+    better_teams = merge(tmp.f, tmp.s);
+    return result;
+}
+
+void insert(ll key) {
+    insert(better_teams, key, new node(key));
+}
+
+int main() {
+    cin.sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n >> t >> w;
+    for (ll i = 1, a, b; i < n; ++i) {
+        cin >> a >> b;
+        if (a > t) {
+            insert(b - a + 1);
+        } else {
+            teams.insert({a, b});
+        }
+    }
+    place = get_size(better_teams) + 1;
+    for (; !teams.empty(); ) {
+        ll cur_level = teams.begin()->t;
+        for (; !teams.empty() && teams.begin()->t == cur_level; ) {
+            insert(teams.begin()->w - teams.begin()->t + 1);
+            teams.erase(teams.begin());
+        }
+        place = min(place, get_place());
+    }
+    cout << place << "\n";
+    cerr << "Time elapsed: " << (ld) clock() / CLOCKS_PER_SEC << "\n";
+    return 0;
+}

@@ -1,0 +1,82 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+char arr[59][59];
+int vis[59][59],n,m,k;
+int ok(int x,int y){
+	return (x>=1 and y>=1 and x<=n and y<=m and !vis[x][y] and arr[x][y]=='.');
+}
+int dx[]={+1,-1,0,0};
+int dy[]={0,0,+1,-1};
+void dfs(int x,int y){
+	vis[x][y]=1;
+	for(int i=0;i<4;i++){
+		int tox=dx[i]+x;
+		int toy=dy[i]+y;
+		if(ok(tox,toy))
+			dfs(tox,toy);
+	}
+}
+vector<PII>adj[123];
+int cnt=0;
+PII sz[MAXN];
+void bfs(int col,int x,int y){
+	vis[x][y]=1;
+	adj[col].pb(mp(x,y));
+	sz[col].ff++;
+	for(int i=0;i<4;i++){
+		int tox=dx[i]+x;
+		int toy=dy[i]+y;
+		if(ok(tox,toy))
+			bfs(col,tox,toy);
+	}
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	scanf("%d%d%d",&n,&m,&k);
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++)
+			scanf(" %c",&arr[i][j]);
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++)
+			if((i==1 or j==1 or i==n or j==m) and ok(i,j))
+				dfs(i,j);
+	for(int i=2;i<n;i++)			
+		for(int j=2;j<m;j++)
+			if(ok(i,j)){
+				cnt++;
+				bfs(cnt,i,j);
+				sz[cnt].ss=cnt;
+			}		
+	sort(sz+1,sz+cnt+1);
+	int need=cnt-k,ans=0;
+	for(int i=1;i<=need;i++){
+		ans+=sz[i].ff;
+		tr(it,adj[sz[i].ss])
+			arr[it->ff][it->ss]='*';
+	}
+	printf("%d\n",ans);
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=m;j++)
+			printf("%c",arr[i][j]);
+		printf("\n");
+	}
+	return 0;
+}

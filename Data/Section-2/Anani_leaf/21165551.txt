@@ -1,0 +1,160 @@
+//#include<bits/stdc++.h>
+#include<iostream>
+#include<cstdio>
+#include<cstring>
+#include<algorithm>
+#include<string>
+#include<queue>
+#include<vector>
+#include<map>
+#include<cmath>
+#define lowbit(x) ((x)&(-x))
+#define Max(a,b) (a>b?a:b)
+#define Min(a,b) (a>b?b:a)
+#define INF 0x3f3f3f3f
+#define rep(i,a,b) for(int i=a;i<(b);++i)
+using namespace std;
+typedef __int64 ll;
+int const Max_N = 505;
+char str1[Max_N][Max_N];
+char str2[Max_N][Max_N]; 
+int n,m,k;
+struct Node
+{
+	int x,y;
+	int cnt;
+}arr[Max_N*Max_N];
+int xx[] = {-1,0,0,1};
+int yy[] = {0,1,-1,0};
+int bfs(int x,int y)
+{
+	Node t;
+	str2[x][y] = '#';
+	t.x = x;t.y = y;
+	queue<Node>que;
+	que.push(t);
+	int cnt = 1;
+	bool f = false;
+	while(!que.empty())
+	{
+		t = que.front();
+		que.pop();
+		if(t.x == 0||t.x == n-1||t.y ==0||t.y==m-1) f = true;
+		for (int i = 0; i < 4; ++i)
+		{
+			int X = xx[i] + t.x;
+			int Y = yy[i] + t.y;
+			if(X>0&&X < n&&Y > 0 && Y < m && str2[X][Y]=='.')
+			{
+				str2[X][Y] = '*';
+				Node tt;
+				tt.x = X;tt.y = Y;
+				que.push(tt);				
+				++cnt;
+			}
+		}
+	}
+	if(f)return-1;
+	return cnt;
+}
+int bfs2(int x,int y)
+{
+	Node t;
+	str1[x][y] = '*';
+	t.x = x;t.y = y;
+	queue<Node>que;
+	que.push(t);
+	//Node pos[Max_N*Max_N] = {0};
+	int cnt = 1;
+	while(!que.empty())
+	{
+		t = que.front();
+		que.pop();
+		for (int i = 0; i < 4; ++i)
+		{
+			int X = xx[i] + t.x;
+			int Y = yy[i] + t.y;
+			if(X>0&&X < n&&Y > 0 && Y < m && str1[X][Y]=='.')
+			{
+				str1[X][Y] = '*';
+				Node tt;
+				tt.x = X;tt.y = Y;
+				que.push(tt);				
+				++cnt;
+				
+			}
+		}
+	}
+	return cnt;
+}
+void bfs3(int x,int y,int tot)
+{
+	Node t;
+	str2[x][y] = '*';
+	t.x = x;t.y = y;
+	queue<Node>que;
+	que.push(t);
+	int cnt = 1;
+	while(!que.empty())
+	{
+		t = que.front();
+		que.pop();
+		for (int i = 0; i < 4; ++i)
+		{
+			int X = xx[i] + t.x;
+			int Y = yy[i] + t.y;
+			if(X>0&&X < n&&Y > 0 && Y < m && str1[X][Y]=='.')
+			{
+				str1[X][Y] = '*';
+				Node tt;
+				tt.x = X;tt.y = Y;
+				que.push(tt);				
+				++cnt;
+				if(cnt == tot)return;
+			}
+		}
+	}
+}
+bool cmp(Node  a,Node  b){return a.cnt > b.cnt;}
+int main()
+{
+	cin >> n >> m >> k;
+	for (int i = 0; i < n; ++i) scanf("%s",str1[i]),strcpy(str2[i],str1[i]);
+	int cnt = 0;
+	for (int i = 0; i < n; ++i)
+	{
+		for (int j = 0; j < m; ++j)
+		{
+			if(str2[i][j] == '.')
+			{
+				int t = bfs(i,j);
+				if(t!=-1)
+				{
+					arr[cnt].x = i;arr[cnt].y = j;
+					arr[cnt++].cnt = t;
+				}
+			}
+		}
+	}
+	sort(arr,arr+cnt,cmp);
+	int mi = arr[k-1].cnt;	
+	int ans = 0;
+	for (int i = k; i < cnt; ++i)
+	{
+		int x = arr[i].x;
+		int y = arr[i].y;
+		ans += bfs2(x,y);
+	}
+//	for(int i = 0;i < k-1; ++i)
+//	{
+//		int x = arr[i].x;
+//		int y = arr[i].y;
+//		int cnt = arr[i].cnt;
+//		ans += cnt-mi;
+//		bfs3(x,y,cnt-mi);
+//	}
+	printf("%d\n",ans);
+	for (int i = 0; i < n; ++i) printf("%s\n",str1[i]);
+	return 0;
+}
+

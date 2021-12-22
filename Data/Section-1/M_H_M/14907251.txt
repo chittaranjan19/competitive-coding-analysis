@@ -1,0 +1,82 @@
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <unordered_map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+
+int n, m;
+vector <int> clr[N];
+
+map<int, int> mp[N];
+map<pii, int> slv;
+
+int get_par(int v, int c){
+	if(mp[c].find(v) == mp[c].end()) return v;
+	return mp[c][v] = get_par(mp[c][v], c);
+}
+
+inline void merge(int v, int u, int c){
+	v = get_par(v, c);
+	u = get_par(u, c);
+	if(u != v)
+		mp[c][v] = u;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	for(int i = 0; i < m; ++i){
+		int u, v, c;
+		cin >> u >> v >> c;
+		u --; v --; c --;
+		merge(v, u, c);
+		clr[u].PB(c);
+		clr[v].PB(c);
+	}
+	for(int i = 0; i < n; ++i){
+		sort(clr[i].begin(), clr[i].end());
+		clr[i].resize(unique(clr[i].begin(), clr[i].end()) - clr[i].begin());
+	}
+	int Q;
+	cin >> Q;
+	while(Q --){
+		int u, v;
+		cin >> u >> v;
+		u --; v --;
+		if(SZ(clr[u]) < SZ(clr[v])) swap(u, v);
+		if(SZ(clr[u]) == SZ(clr[v]) && u < v) swap(u, v); 
+		if(slv.find({v, u}) != slv.end()){
+			cout << slv[{v, u}] << "\n";
+			continue;
+		}
+		int ans = 0;
+		for(int i = 0; i < SZ(clr[v]); ++i)
+			if(get_par(v, clr[v][i]) == get_par(u, clr[v][i])) ans ++;
+		slv[{v, u}] = ans;
+		cout << ans << "\n";
+	}
+	return 0;
+}

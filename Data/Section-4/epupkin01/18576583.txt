@@ -1,0 +1,113 @@
+#include <iostream>
+#include <climits>
+#include <string>       // string s; cin >> s;
+#include <cstring>      // memset(b, 0, sizeof(arr)); strcpy(a1, a2); strcat(a1, a2);
+#include <cmath>
+#include <cstdio>       // getchar(), gets()
+#include <cstdlib>      // rand(), max(), min()
+#include <ctime>        // rand(): srand(int(time(0)));
+#include <algorithm>    // std::sort(a + 0, a + n); n - amount; pair
+#include <iomanip>      // setw(4), setfill('.'), setprecision(2)
+#include <vector>
+#include <array>
+#include <fstream>      // file IO (input-output)
+#include <cctype>       // isupper()
+#include <memory>       // shared_ptr<>, uniqu_ptr<>
+#include <iterator>     // ostream_iterator<int, char> out_iter(cout, " ");
+#include <set>
+#include <map>
+#include <list>
+#include <queue>
+#include <functional>   // function
+#define SRT srand(int(time(0)))
+
+using namespace std;
+
+typedef long long ll;
+typedef long double ld;
+typedef unsigned long long ull;
+ld pi = 3.14159265358979323846;
+int ten[8] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000};
+inline void eatline() { while (getchar() != '\n'); }
+
+typedef map<int, int> Map;
+typedef Map::iterator mIter;
+typedef pair<int, int> Pair;
+typedef set<ll> Set;
+typedef Set::iterator sIter;
+typedef multiset<int> mSet;
+typedef mSet::iterator msIter;
+typedef list<Pair> List;
+typedef List::iterator lIter;
+typedef deque<int> Deque;
+typedef Deque::iterator dIter;
+
+const int S = 100001;
+List tr[S];
+bool passed[S];
+int a[S], n, FunnyAmnt = 0;
+Set st;
+
+inline void show_in_dfs(const int &i, const ll &sum)
+{
+    cout << ' ' << i;
+    if (!st.empty())
+        cout << '(' << sum - *(--st.end()) << ", " << sum << ')';
+}
+
+void dfs(const int &i, ll sum = 0)
+{
+    if ( !st.empty() && (sum > a[i] || sum - *st.begin() > a[i]) )
+        return;
+    
+    //
+    //show_in_dfs(i, sum);
+    //
+    
+    ++FunnyAmnt;
+    passed[i] = true;
+    for (auto x : tr[i])
+        if (!passed[x.first])
+        {
+            pair<sIter, bool> pr_it = st.insert(sum + x.second);
+            dfs(x.first, sum + x.second);
+            st.erase(pr_it.second);
+        }
+}
+
+inline void show_tr()
+{
+    cout << '\n';
+    for (int i = 1; i <= n; ++i)
+    {
+        cout << i << ": ";
+        for (auto x : tr[i])
+            cout << ' ' << x.first << '(' << x.second << ')';
+        cout << '\n';
+    }
+    cout << '\n';
+}
+
+int main()
+{
+    cin >> n;
+    for (int i = 1; i <= n; ++i)
+        scanf("%d", a + i);
+    for (int i = 2, p, r; i <= n; ++i)
+    {
+        scanf("%d%d", &p, &r);
+        tr[i].push_back(Pair(p, r));
+        tr[p].push_back(Pair(i, r));
+    }
+    
+    //
+    //show_tr();
+    //
+    
+    dfs(1);
+    cout << '\n';
+    
+    cout << n - FunnyAmnt << '\n';
+    
+    return 0;
+}

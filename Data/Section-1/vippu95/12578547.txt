@@ -1,0 +1,76 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+const int lmt = 25;
+lli in[lmt];
+
+lli power(lli a,lli b){
+    lli ans = 1LL;
+    while(b){
+        if(b&1LL)
+            ans = ((ans%mod)*(a%mod))%mod;
+        a = ((a%mod)*(a%mod))%mod;
+        b = b>>1LL;
+    }
+    return ans;
+}
+
+lli inv(lli n){
+    return power(n,mod-2);
+}
+
+lli comb(lli n,lli r){
+//    DEBUG(n);
+//    DEBUG(r);
+    lli ans = 1;
+    for(lli i=n;i>n-r;i--)
+        ans = ((ans%mod)*(i%mod))%mod;
+//    DEBUG(ans);
+    for(lli i=1;i<=r;i++){
+        ans = ((ans%mod)*(inv(i)%mod))%mod;
+//        DEBUG(i);
+//        DEBUG(ans);
+    }
+//    DEBUG(ans);
+//    DEBUG(inv(2));
+    return ans;
+}
+
+int main(){
+    int n;
+    lli s;
+    cin>>n>>s;
+    for(int i=0;i<n;i++)
+        cin>>in[i];
+    lli ans = comb(s+n-1,n-1);
+//    DEBUG(ans);
+    int upto = 1<<n;
+    for(int i=1;i<upto;i++){
+        int cnt = 0;
+        lli tot = s;
+        for(int j=0;j<n;j++){
+            if(i&(1<<j)){
+                tot -= in[j]+1;
+                cnt++;
+            }
+        }
+        if(tot < 0) continue;
+//        DEBUG(tot);
+        if(cnt%2==0)
+            ans += comb(tot+n-1,n-1);
+        else
+            ans -= comb(tot+n-1,n-1);
+        ans = ((ans%mod)+mod)%mod;
+//        DEBUG(ans);
+    }
+    cout<<ans<<endl;
+    return 0;
+}

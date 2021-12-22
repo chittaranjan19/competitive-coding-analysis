@@ -1,0 +1,58 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int main() {
+	string s; cin >> s;
+	int n = s.length();
+	int c1 = 0, c2 = 0;
+	vector<int> pos;
+	vector<int> ans;
+	vector<int> height;
+	for (int i = 0; i < n; i++) {
+		if (s[i] == '#') {
+			pos.push_back(i);
+			ans.push_back(1);
+			c2++;
+			if (c2 > c1) {
+				cout << -1 << endl;
+				return 0;
+			}
+		} else {
+			if (s[i] == '(') c1++;
+			else if (s[i] == ')') c2++;
+			if (c2 > c1) {
+				cout << -1 << endl;
+				return 0;
+			}
+		}
+		height.push_back(c1 - c2);
+	}
+	int mh = height[n-1];
+	vector<int> mheight(n, 0);
+	for (int i = n-1; i >= 0; i--) {
+		mh = min(mh, height[i]);
+		mheight[i] = mh;
+	}
+
+	int added = 0;
+	for (int i = 0; i < pos.size(); i++) {
+		int ii = pos[i];
+		if (ii == n-1) {
+			ans[n-1] += height[n-1] - added;
+		} else {
+			int diff = min(height[n-1] - added, mheight[ii] - added);
+			added += diff;
+			ans[i] += diff;
+		}
+	}
+	if (height[n-1] - added != 0) {
+		cout << -1 << endl;
+	} else {
+		for (int i = 0; i < pos.size(); i++) {
+			cout << ans[i] << endl;
+		}
+	}
+}

@@ -1,0 +1,92 @@
+#include<stdio.h>
+#include<math.h>
+#include<map>
+using namespace std;
+typedef pair<int,int> P;
+map<int,int> M[100005]; //first->to  second -> 个数
+int n,m;
+int d[100005];
+P ans[100005];
+int anslen=0;
+int f(int i)
+{
+    while(1)
+    {
+        map<int,int>::iterator it;
+        int maxd=0,maxi=-1;
+        for(it=M[i].begin();it!=M[i].end();it++)
+        {
+            if(maxi==-1|| maxd < d[it->first] )
+            {
+                maxd=d[it->first];
+                maxi=it->first;
+            }
+        }
+        if(maxi==-1) break;
+
+        M[i][maxi]--;
+        M[maxi][i]--;
+        d[i]--;
+        d[maxi]--;
+        if(M[i][maxi]==0)
+        {
+            M[i].erase(maxi);
+            M[maxi].erase(i);
+        }
+        ans[anslen].first=i;
+        ans[anslen].second=maxi;
+        anslen++;
+        i=maxi;
+    }
+}
+int main()
+{
+    int t,i;
+    int a,b;
+    scanf("%d%d",&n,&m);
+    for(i=0;i<m;i++)
+    {
+        scanf("%d%d",&a,&b);
+        M[a][b]++;
+        M[b][a]++;
+        d[a]++;
+        d[b]++;
+    }
+    int k=0;
+    for(i=0;i<m;i++)
+    {
+        if(d[i]%2)
+        {
+            if(k)
+            {
+                a=i;
+            }
+            else
+            {
+                b=i;
+                M[a][b]++;
+                M[b][a]++;
+                d[a]++;
+                d[b]++;
+            }
+            k=1-k;
+        }
+    }
+    f(1);
+    if(anslen%2==1)
+    {
+        printf("%d\n",anslen+1);
+    }
+    else printf("%d\n",anslen);
+    for(i=0;i<anslen;i++)
+    {
+        if(i%2) printf("%d %d\n",ans[i].first,ans[i].second);
+        else printf("%d %d\n",ans[i].second,ans[i].first);
+    }
+    if(i%2)
+    {
+        i--;
+        printf("%d %d\n",ans[i].second,ans[i].second);
+    }
+    return 0;
+}

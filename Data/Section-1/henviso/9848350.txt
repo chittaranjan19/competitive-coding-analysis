@@ -1,0 +1,135 @@
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <stack>
+#include <algorithm>
+#include <cctype>
+#include <vector>
+#include <queue>
+#include <tr1/unordered_map>
+#include <cmath>
+#include <map>
+#include <bitset>
+#include <set>
+#include <iomanip>
+#include <cstring>
+using namespace std;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef vector<int> vi;
+typedef pair<int,int> ii;
+typedef vector< ii > vii;
+///////////////////////////////UTIL/////////////////////////////////
+#define ALL(x) (x).begin(),x.end()
+#define CLEAR0(v) memset(v, 0, sizeof(v))
+#define CLEAR(v, x) memset(v, x, sizeof(v))
+#define COPY(a, b) memcpy(a, b, sizeof(a))
+#define CMP(a, b) memcmp(a, b, sizeof(a))
+#define REP(i,n) for(int i = 0; i<n; i++)
+#define REPP(i,a,n) for(int i = a; i<n; i++)
+#define REPD(i,n) for(int i = n-1; i>-1; i--)
+#define REPDP(i,a,n) for(int i = n-1; i>=a; i--)
+#define pb push_back
+#define pf push_front
+#define sz size()
+#define mp make_pair
+/////////////////////////////NUMERICAL//////////////////////////////
+#define INF 0x3f3f3f3f
+#define EPS 1e-9
+/////////////////////////////BITWISE////////////////////////////////
+#define CHECK(S, j) (S & (1 << j))
+#define CHECKFIRST(S) (S & (-S)) 
+#define SET(S, j) S |= (1 << j)
+#define SETALL(S, j) S = (1 << j)-1  
+#define UNSET(S, j) S &= ~(1 << j)
+#define TOOGLE(S, j) S ^= (1 << j)
+///////////////////////////////64 BITS//////////////////////////////
+#define LCHECK(S, j) (S & (1ULL << j))
+#define LSET(S, j) S |= (1ULL << j)
+#define LSETALL(S, j) S = (1ULL << j)-1ULL 
+#define LUNSET(S, j) S &= ~(1ULL << j)
+#define LTOOGLE(S, j) S ^= (1ULL << j)
+//__builtin_popcount(m)
+//scanf(" %d ", &t);
+
+#define UNVISITED 0
+#define EXPLORED 1
+#define VISITED 2
+
+#define MAXS 300000
+#define MAXN 600100
+#define B 33ULL
+#define C 5381ULL
+
+typedef long long unsigned hash;
+
+int n, m;
+string a[300100];
+vector<hash> h[300100];
+vector<hash> r[300100];
+
+ull power[MAXN];
+vector<hash> x, y;
+
+void precalc(){
+    power[0] = 1ULL;
+    REPP(i, 1, MAXN) power[i] = power[i-1]*B;
+    REP(i, n){
+        int T = a[i].length();
+        h[i].resize(T+1);
+        r[i].resize(T+1);
+        r[i][0] = h[i][0] = 0ULL;
+        REP(j, T){
+            h[i][j+1] = h[i][j]*B + a[i][j];
+            r[i][j+1] = r[i][j]*B + a[i][T-1-j];
+        }
+    }
+}
+
+hash calc_dhash(int e, int a, int b) {
+    if (a > b) return 0;
+    return h[e][b+1] - h[e][a] * power[b - a + 1];
+}
+
+hash calc_dhash(vector<hash> &H, int a, int b) {
+    if (a > b) return 0;
+    return H[b+1] - H[a] * power[b - a + 1];
+}
+ 
+int main(){
+    cin >> n >> m;
+    REP(i, n) cin >> a[i];
+    precalc();
+    string s;
+    REP(i, m){
+        cin >> s;
+        int T = s.length();
+        x.resize(T+1);
+        y.resize(T+1);
+        y[0] = x[0] = 0ULL;
+        REP(j, a[i].length()){
+            x[j+1] = x[j]*B + s[j];
+            y[j+1] = y[j]*B + s[T-1-j];
+        }
+        bool pos = false;
+        REP(j, n){
+            int hi = T+1, lo = 0, ans = 0, mid;
+            while(hi-lo>1){
+                mid = (hi+lo)/2;
+                if(a[j].length() >= mid && x[mid] == h[j][mid]){
+                    ans = mid;
+                    lo = mid;
+                }
+                else hi = mid;
+            }
+            ans--;
+            int k = ans+2;
+            if(k<T && k<a[j].length() && y[T-k] == r[j][T-k]){
+                pos = true;
+                break;
+            }
+        }
+        if(pos) cout << "YES\n";
+        else cout << "NO\n";
+    }
+}

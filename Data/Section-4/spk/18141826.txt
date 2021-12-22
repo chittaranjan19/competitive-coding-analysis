@@ -1,0 +1,152 @@
+#include<iostream>
+#include<cstdio>
+#include<map>
+#include<string>
+#include<cstring>
+#include<vector>
+#include<algorithm>
+#include<queue>
+
+#define fill(a,val) memset(a, (val), sizeof a)
+#define pb push_back
+#define scantype int
+#define min(a,b) a<b?a:b
+#define max(a,b) a>b?a:b
+
+using namespace std;
+
+void scan(scantype &x); //IMPORTANT: for positive only
+
+int main(void)
+{
+  int n,t;
+  cin >> n >> t;
+
+
+  vector< pair<int,double> > vp[n];
+
+  vp[0].pb({1,1});
+
+  for(int i=1;i<n;i++)
+  {
+      for(int j=0;j<=i;j++)
+      {
+          if(!j)
+          {
+              double flow = vp[i-1][j].second/2;
+              double td= 1/flow;
+              int time = vp[i-1][j].first+(long)td;
+              vp[i].pb({time,flow});
+          }
+          else if(j==i)
+          {
+              double flow = vp[i-1][j-1].second/2;
+              double td= 1/flow;
+              int time = vp[i-1][j-1].first+(long)td;
+              vp[i].pb({time,flow});
+          }
+          else
+          {
+              if(vp[i-1][j].first<vp[i-1][j-1].first)
+              {
+                   int diff =  vp[i-1][j-1].first-vp[i-1][j].first;
+                   double flow = vp[i-1][j].second/2,tempt;
+                   double tflow = flow+ (vp[i-1][j-1].second/2);
+
+
+                   tempt = 1/flow;
+                   if( ((long)tempt)-tempt !=(double)0) tempt=tempt+1;
+
+                   if((long)tempt>diff)
+                   {
+                       tempt = (1-( double(diff*flow)))/tflow;
+
+                       if(tempt - (long)tempt !=(double)0) tempt = tempt+1;
+
+                       int time =  vp[i-1][j].first + diff + (long)tempt;
+                       vp[i].pb({time,tflow});
+                   }
+                   else
+                   {
+                       int time =  vp[i-1][j].first+ (long)tempt;
+                       vp[i].pb({time,tflow});
+                   }
+
+              }
+              else if(vp[i-1][j].first==vp[i-1][j-1].first)
+              {
+                  double tflow = (vp[i-1][j-1].second/2) + (vp[i-1][j].second/2);
+                  double tempt;
+
+                  tempt = 1/tflow;
+                  if(tempt-(long)tempt!=(double)0) tempt=tempt+1;
+
+                  int time = vp[i-1][j].first + (long)tempt;
+                  vp[i].pb({time,tflow});
+              }
+              else
+              {
+                   int diff =  vp[i-1][j].first - vp[i-1][j-1].first;
+                   double flow = vp[i-1][j-1].second/2,tempt;
+                   double tflow = flow+ (vp[i-1][j].second/2);
+
+
+                   tempt = 1/flow;
+                   if( ((long)tempt)-tempt !=(double)0) tempt=tempt+1;
+
+                   if((long)tempt>diff)
+                   {
+                       tempt = (1-( double(diff*flow)))/tflow;
+
+                       if(tempt - (long)tempt !=(double)0) tempt = tempt+1;
+
+                       int time =  vp[i-1][j-1].first + diff + (long)tempt;
+                       vp[i].pb({time,tflow});
+                   }
+                   else
+                   {
+                       int time = vp[i-1][j-1].first+ (long)tempt;
+                       vp[i].pb({time,tflow});
+                   }
+              }
+          }
+      }
+  }
+
+  int ans=0;
+  for(int i=0;i<n;i++)
+  {
+      for(int j=0;j<vp[i].size();j++)
+      {
+          if(vp[i][j].first<=t)
+            ans++;
+      }
+  }
+
+  cout << ans;
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+void scan(scantype &x)
+{
+    register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+
+   /* register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x; */
+}

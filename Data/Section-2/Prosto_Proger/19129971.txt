@@ -1,0 +1,67 @@
+#include <iostream>
+#include <map>
+#include <vector>
+
+using namespace std;
+
+vector< pair <long long, long long> > way;
+
+int log(long long u)
+{
+    int res = 0;
+    while (u != 0) u >>= 1, ++res;
+    return res;
+}
+
+void path(long long u, long long v)
+{
+    way.clear();
+    int p1 = log(u);
+    int p2 = log(v);
+    if (p1 > p2) swap(p1, p2), swap(u, v);
+    while (p1 != p2)
+    {
+        long long to = v >> 1;
+        way.push_back( make_pair(to, v) );
+        v = to;
+        p2--;
+    }
+    while (u != v)
+    {
+        long long tu = u >> 1;
+        long long tv = v >> 1;
+        way.push_back( make_pair(tu, u) );
+        way.push_back( make_pair(tv, v) );
+        u = tu, v = tv;
+    }
+}
+
+map < pair<long long, long long>, long long> my_map;
+
+int main()
+{
+    int q;
+    cin >> q;
+    for (int i = 0, type, u, v; i < q; ++i)
+    {
+        cin >> type >> u >> v;
+        path(u, v);
+        if (type == 1)
+        {
+            int w;
+            cin >> w;
+            for (int j = 0; j < way.size(); ++j)
+                my_map[ way[j] ] += w;
+        }
+        else
+        {
+            long long res = 0;
+            for (int j = 0; j < way.size(); ++j)
+                if (my_map.find( way[j] ) != my_map.end())
+                    res += my_map[ way[j] ];
+
+            cout << res << endl;
+        }
+    }
+    return 0;
+}

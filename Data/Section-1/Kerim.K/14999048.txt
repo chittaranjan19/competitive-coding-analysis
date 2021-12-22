@@ -1,0 +1,59 @@
+#include<bits/stdc++.h>
+#define MAXN 200009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define lg(x) ceil(log2(x))
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll u[MAXN],v[MAXN],w[MAXN],vis[MAXN],way[MAXN],arr[MAXN],n,m;
+vector<PII>adj[MAXN];
+map<int,map<int,ll> >pm;
+int main(){
+	cin>>n>>m;
+	for(int i=0;i<m;i++){
+		cin>>u[i]>>v[i]>>w[i];
+		adj[u[i]].pb(mp(v[i],w[i]));
+		adj[v[i]].pb(mp(u[i],w[i]));
+		pm[v[i]][u[i]]=pm[u[i]][v[i]]=w[i];
+	}
+	priority_queue<pair<PII,int>,vector<pair<PII,int> >,greater<pair<PII,int> > >q;
+	q.push(mp(mp(0,1),0));
+	ll ans=0;
+	while(!q.empty()){
+		int nd=q.top().ff.ss,cost=q.top().ff.ff,pr=q.top().ss;
+		q.pop();
+		if(vis[nd])
+			continue;
+		ans+=cost;	
+		way[nd]=pr;
+		vis[nd]=1;
+		for(int i=0;i<adj[nd].size();i++){
+			int to=adj[nd][i].ff,c=adj[nd][i].ss;
+			if(!vis[to])
+				q.push(mp(mp(c,to),nd));
+		}
+	}	
+	for(int i=1;i<=n;i++)
+		arr[i]=pm[way[i]][i];
+	for(int i=0;i<m;i++){
+		if(way[v[i]]==u[i] or way[u[i]]==v[i])
+			cout<<ans<<endl;
+		else
+			cout<<ans-max(arr[u[i]],arr[v[i]])+w[i]<<endl;
+	}
+	return 0;
+}
+

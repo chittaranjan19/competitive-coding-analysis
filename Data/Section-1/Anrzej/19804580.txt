@@ -1,0 +1,176 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 3e5 + 10, lg = 31, MAXN = 1111;
+ll mod = 1e9 + 7;
+
+ll gcd(ll a, ll b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll _gcd(ll a, ll b, ll & x, ll & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	ll _x1, _y1;
+	ll d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+ll binpow(ll a, ll n) {
+	ll res = 1;
+	while (n) {
+		if (n & 1)
+			res *= a;
+		a *= a;
+		n >>= 1;
+		a %= mod;
+		res %= mod;
+	}
+	return res;
+}
+
+struct node{
+	node* zero, *one;
+	bool end;
+	int cnt;
+
+	node(){
+		zero = nullptr;
+		one = nullptr;
+		cnt = 0;
+		end = 0;
+	}
+};
+
+node* root = new node();
+
+int n, q;
+multiset<int> ml;
+
+void add(int num){
+	node * cur = root;
+	for (int i = 0; i < lg; i++){
+		int cr = (num&(1 << (lg-i-1)));
+		if (cr){
+			if (cur->one == nullptr)
+				cur->one = new node();
+			cur = cur->one;
+		}
+		else{
+			if (cur->zero == nullptr)
+				cur->zero = new node();
+			cur = cur->zero;
+		}
+		cur->cnt += 1;
+	}
+}
+
+void del(int num){
+	node* cur = root;
+	for (int i = 0; i < lg; i++){
+		int cr = (num&(1 << (lg - i - 1)));
+		if (cr){
+			if (cur->one->cnt == 1){
+				cur->one = nullptr;
+				return;
+			}
+			cur = cur->one;
+		}
+		else{
+			if (cur->zero->cnt == 1){
+				cur->zero = nullptr;
+				return;
+			}
+			cur = cur->zero;
+		}
+		cur->cnt -= 1;
+	}
+}
+
+ll ans = 0;
+
+void find_ans(int num){
+	node* cur = root;
+	ans = 0;
+	for (int i = 0; i < lg; i++){
+		int cr = (num&(1 << (lg - i - 1)));
+		if (cr){
+			if (cur->zero != nullptr)
+				ans += (1 << (lg - i - 1)), cur = cur->zero;
+			else{
+				if (cur->one != nullptr)
+					cur = cur->one;
+				else return;
+			}
+		}
+		else{
+			if (cur->one != nullptr)
+				ans += (1 << (lg - i - 1)), cur = cur->one;
+			else{
+				if (cur->zero != nullptr)
+					cur = cur->zero;
+				else return;
+			}
+		}
+	}
+}
+
+int main()
+{
+	node* cur = root;
+	for (int i = 0; i < lg; i++){
+		cur->zero = new node();
+		cur->cnt = 1e9;
+		cur = cur->zero;
+		if (i + 1 == lg)
+			cur->end = 1;
+	}
+	cin >> n;
+	for (int i = 0; i < n; i++){
+		char ch;
+		int vl;
+		cin >> ch >> vl;
+		if (ch == '+'){
+			//if (ml.count(vl != 0))
+				add(vl);
+			//ml.insert(vl);
+		}
+		if (ch == '-'){
+			//ml.erase(ml.find(vl));
+			del(vl);
+		}
+		if (ch == '?'){
+			find_ans(vl);
+			cout << ans;
+		}
+	}
+	return 0;
+}

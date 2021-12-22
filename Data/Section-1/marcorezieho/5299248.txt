@@ -1,0 +1,64 @@
+type
+     point=^node;
+     node=record
+       data,len:longint;
+       next:point;
+     end;
+var
+    n,i,x,y,z,l:longint;
+    head:array[0..200010] of point;
+    q,key,fa,ans:array[0..200010] of longint;
+    v,ok:array[0..200010] of boolean;
+
+procedure push(x,y,z:longint);
+var
+    p:point;
+begin
+  new(p);p^.data:=y;p^.len:=z;p^.next:=head[x];head[x]:=p;
+end;
+
+procedure bfs();
+var
+    f,r,i:longint;
+    p:point;
+begin
+  fillchar(v,sizeof(v),false);
+  f:=1;r:=1;q[1]:=1;v[1]:=true;
+  repeat
+    p:=head[q[f]];
+    while p<>nil do
+      begin
+        if not v[p^.data] then
+          begin
+            inc(r);q[r]:=p^.data;key[q[r]]:=p^.len;fa[q[r]]:=q[f];v[q[r]]:=true;
+          end;
+        p:=p^.next;
+      end;
+    inc(f);
+  until f>r;
+  l:=0;
+  fillchar(ok,sizeof(ok),false);
+  for i:=n downto 1 do
+    begin
+      ok[fa[q[i]]]:=(ok[fa[q[i]]]) or (key[q[i]]=2) or (ok[q[i]]);
+      if (not ok[q[i]]) and (key[q[i]]=2) then
+        begin
+          inc(l);ans[l]:=q[i];
+        end;
+    end;
+end;
+
+begin {main}
+  readln(n);
+  for i:=1 to n do head[i]:=nil;
+  for i:=1 to n-1 do
+    begin
+      readln(x,y,z);
+      push(x,y,z);push(y,x,z);
+    end;
+  bfs();
+  writeln(l);
+  for i:=1 to l-1 do
+    write(ans[i],' ');
+  if l=0 then writeln else writeln(ans[l]);
+end.

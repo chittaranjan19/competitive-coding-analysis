@@ -1,0 +1,127 @@
+#include<iostream>
+#include<vector>
+#include<algorithm>
+#include<queue>
+#include<set>
+#include<map>
+#include<unordered_map>
+#include<stack>
+#include<climits>
+#include<utility>
+#include<string>
+
+using namespace std;
+
+#define pii pair<int, int>
+#define S second
+#define F first
+#define pb push_back
+#define mp make_pair
+#define boostio ios_base::sync_with_stdio(0);cin.tie(0);
+
+class prioritize{
+  public: bool operator()(pii &p1, pii &p2){
+    return p1.S > p2.S;
+  }
+};
+
+vector<pii> adj[100005];
+int wt[100005];
+bool vis[100005];
+bool delet[100005];
+int dis[100005];
+int par[100005];
+
+int main(){
+  int i, j, t, n, p, c, counter = 0;
+
+  cin >> n;
+
+  for(i = 0; i < n; i++){
+    adj[i].clear();
+    wt[i] = 0;
+    vis[i] = false;
+    delet[i] = false;
+  }
+
+  //vector<int> a;
+  for(i = 1; i <= n; i++){
+    cin >> wt[i];
+  }
+
+  for(i = 2; i <= n; i++){
+    cin >> p >> c;
+    adj[i].pb(mp(p, c));
+    adj[p].pb(mp(i, c));
+  }
+
+  /*
+
+  for(i = 1; i <= n; i++){
+    cout << i << ":" << endl;
+    for(pii x: adj[i])cout << x.first << ' ' << x.second << endl;
+    cout << endl;
+  }
+  
+  */
+  stack<int> dfss;
+  dfss.push(1);
+  dis[1] = 0;
+  par[1] = 0;
+
+  while(!dfss.empty()){
+    int curr = dfss.top();
+    dfss.pop();
+    if(vis[curr])continue;
+    vis[curr] = true;
+    
+    for(pii x : adj[curr]){
+      if(vis[x.F])continue;
+      par[x.F] = curr;
+      x.second += dis[curr];      
+      if(x.second < 0)x.S = 0;
+      dis[x.F] = x.second;
+      if(wt[x.F] < dis[x.F]){
+	delet[x.F] = true;       
+      }
+      //else if(delet[par[x.F]] == true) delet[x.F] = true;
+      else{
+	dfss.push(x.F);
+      }
+    }
+  }
+  /*
+  for(i = 1 ; i <= n; i++){
+    cout << i << ' ' << delet[i] << endl;
+    cout << par[i] << endl;
+  }
+  */
+  for(i = 0; i <= n; i++)vis[i] = false;
+  stack<int>df;
+  df.push(1);
+  
+  while(!df.empty()){
+    int curr = df.top();
+    df.pop();
+    if(vis[curr])continue;
+    vis[curr] = true;
+    if(delet[par[curr]] == true)delet[curr] = true;
+    for(pii x: adj[curr]){
+      if(vis[x.F])continue;
+      if(delet[curr])delet[x.F] = true;
+      df.push(x.F);
+    }
+  }
+  /*
+  for(i = 1 ; i <= n; i++){
+    cout << i << ' ' << delet[i] << endl;
+    cout << par[i] << endl;
+  }
+  */
+  for(i = 1; i <= n; i++){
+    if(delet[i])counter++;
+  }
+  cout << counter;
+	 
+  return 0;
+}

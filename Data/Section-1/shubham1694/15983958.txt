@@ -1,0 +1,134 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1000010;
+
+vector<int> G[maxn];
+set<pii> edges;
+int n, m, N;
+int dx[] = {2, 2, -2, -2, 1, 1, -1, -1};
+int dy[] = {1, -1, 1, -1, 2, -2, 2, -2};
+int a, b, ar[maxn], pos[maxn];
+int dis[maxn], Q[maxn], parent[maxn], L[maxn], R[maxn];
+
+int isvalid(int i, int j)
+{
+	if(i>=1 && i<=n && j>=1 && j<=m)
+		return 1;
+	return 0;
+}
+
+bool dfs(int i){
+    int j = 0;
+    int len = G[i].size();
+    for (j = 0; j < len; j++){
+        int x = G[i][j];
+        if (L[x] == -1 || (parent[L[x]] == i)){
+            if (L[x] == -1 || dfs(L[x])){
+                L[x] = i;
+                R[i] = x;
+                return (true);
+            }
+        }
+    }
+    return false;
+}
+
+bool bfs(){
+    int i, j, x, f = 0, l = 0;
+    memset(dis, -1, sizeof(dis));
+
+    for (i = 1; i <= N; i++){
+        if (R[i] == -1){
+            Q[l++] = i;
+            dis[i] = 0;
+        }
+    }
+
+    while (f < l){
+        i = Q[f++];
+        int len = G[i].size();
+        for (j = 0; j < len; j++){
+            x = G[i][j];
+            if (L[x] == -1) return true;
+            else if (dis[L[x]] == -1){
+                parent[L[x]] = i;
+                dis[L[x]] = dis[i] + 1;
+                Q[l++] = L[x];
+            }
+        }
+    }
+    return false;
+}
+
+int hopcroft_karp(){
+    int i, j, counter = 0;
+    memset(L, -1, sizeof(L));
+    memset(R, -1, sizeof(R));
+
+    while (bfs()){
+        for (i = 1; i <= N; i++){
+            if (R[i] == -1 && dfs(i)) counter++;
+        }
+    }
+    return counter;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, k, u, v, n1, n2;
+	scanf("%d%d", &n, &m);
+	/*N = n*m;
+	for(i=1; i<=n; i++){
+		for(j=1; j<=m; j++){
+			n1 = (i-1)*m + j;
+			for(k=0; k<8; k++){
+				u = i+dx[k];
+				v = j+dy[k];
+				if(!isvalid(u, v))
+					continue;
+				n2 = (u-1)*m + v;
+				if(edges.find(mp(n1, n2))==edges.end()){
+					G[n1].pb(n2);
+					edges.insert(mp(n1, n2));
+				}
+			}
+		}
+	}
+	/*for(i=1; i<=N; i++){
+		cout << i << " ";
+		for(auto it:G[i])
+			cout << it << " ";
+		cout << "\n";
+	}
+	int matching_size = hopcroft_karp()/2;
+	printf("%d\n", matching_size);
+	int ans = 0, x, y;
+	x = y = 0;
+	for(i=1; i<=n; i+=3)
+		x+=m;
+	ans = max(x, ans);
+	for(i=1; i<=m; i+=3)
+		y+=n;
+	ans = max(y, ans);
+	printf("%d\n", ans);*/
+	int ans = (n*m)/2;
+	printf("%d\n", ans);
+	return 0;
+}

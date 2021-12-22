@@ -1,0 +1,101 @@
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <cstdio>
+#include <memory>
+#include <algorithm>
+#include <iomanip>
+#include <vector>
+#include <list>
+#include <set>
+#include <map>
+#include <string>
+#include <memory.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef long double ld;
+typedef unsigned uint;
+
+const ll posinf = 1000000000000000001;
+const ll neginf = -1000000000000000001;
+
+ll n, i, j, maxlen, len;
+vector<ll> a;
+list<pair<ll, ll> > post;
+
+int main ()
+{
+#ifdef CONTEST_ONME
+	freopen ("input.txt", "r", stdin);
+	freopen ("output.txt", "w", stdout);
+#endif
+
+	cin >> n;
+	a.resize (n);
+	post.push_back (make_pair (0, 0));
+	for (i = 0; i < n; i++)
+	{
+		cin >> a[i];
+		if (i != 0)
+		{
+			if (a[i - 1] >= a[i])
+			{
+				post.back ().second = i - 1;
+				post.push_back (make_pair (i, i));
+			}
+			else
+				post.back ().second = i;
+		}
+	}
+	if (post.size () == 1)
+	{
+		cout << n;
+		return 0;
+	}
+	maxlen = 2;
+	auto prev = post.begin ();
+	auto it = post.begin (); it++;
+	while (it != post.end ())
+	{
+		if (it->second == it->first)
+		{
+			len = prev->second - prev->first + 2;
+			if (len > maxlen)
+				maxlen = len;
+		}
+		else
+		{
+			if (a[it->first + 1] - a[prev->second] > 1)
+			{
+				len = (it->second - it->first) + (prev->second - prev->first) + 2;
+				if (len > maxlen)
+					maxlen = len;
+			}
+		}
+		if (prev->second == prev->first)
+		{
+			len = it->second - it->first + 2;
+			if (len > maxlen)
+				maxlen = len;
+		}
+		else
+		{
+			if (a[it->first] - a[prev->second - 1] > 1)
+			{
+				len = (it->second - it->first) + (prev->second - prev->first) + 2;
+				if (len > maxlen)
+					maxlen = len;
+			}
+		}
+		prev++;
+		it++;
+	}
+	cout << maxlen;
+
+#ifdef CONTEST_ONME
+	//system ("pause");
+#endif
+	return 0;
+}

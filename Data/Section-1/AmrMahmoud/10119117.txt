@@ -1,0 +1,246 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int tree[400005][6], arr[100005], lazy[400005];
+int powers[100005][6];
+
+void build(int i,int L,int R)
+{
+  if(L == R)
+  {
+    tree[i][0] = arr[L];
+    for(int j=1;j<=5;j++)
+      tree[i][j] = (tree[i][j-1] * 1LL * (L + 1)) % mod;
+    lazy[i] = -1;
+    return ;
+  }
+  build(i*2 + 1, L, (L + R) / 2);
+  build(i*2 + 2, (L + R) / 2 + 1, R);
+  for(int j=0;j<=5;j++)
+    tree[i][j] = (tree[i*2 + 1][j] + tree[i*2 + 2][j]) % mod;
+  lazy[i] = -1;
+}
+
+void update(int i,int L,int R,int x,int y,int val)
+{
+  if(lazy[i] != -1)
+  {
+    for(int j=0;j<=5;j++)
+    {
+      int temp = powers[R][j] - powers[L - 1][j];
+      temp%=mod;
+      temp+=mod;
+      temp%=mod;
+      tree[i][j] = (lazy[i] * 1LL * temp) % mod;
+    }
+    if(L != R)
+    {
+      lazy[i*2+1]=lazy[i];
+      lazy[i*2+2]=lazy[i];
+    }
+    lazy[i] = -1;
+  }
+  if(L >= x && R <= y)
+  {
+    lazy[i] = val;
+    for(int j=0;j<=5;j++)
+    {
+      int temp = powers[R][j] - powers[L - 1][j];
+      temp%=mod;
+      temp+=mod;
+      temp%=mod;
+      tree[i][j] = (lazy[i] * 1LL * temp) % mod;
+    }
+    if(L != R)
+    {
+      lazy[i*2+1]=lazy[i];
+      lazy[i*2+2]=lazy[i];
+    }
+    lazy[i] = -1;
+    return;
+  }
+  if(L > y || R < x)
+    return;
+  update(i*2 + 1, L, (L + R) / 2, x, y, val);
+  update(i*2 + 2, (L + R) / 2 + 1, R, x, y, val);
+  for(int j=0;j<=5;j++)
+    tree[i][j] = (tree[i*2 + 1][j] + tree[i*2 + 2][j]) % mod;
+}
+
+int query(int i,int L,int R,int x,int y, int k)
+{
+  if(lazy[i] != -1)
+  {
+    for(int j=0;j<=5;j++)
+    {
+      int temp = powers[R][j] - powers[L - 1][j];
+      temp%=mod;
+      temp+=mod;
+      temp%=mod;
+      tree[i][j] = (lazy[i] * 1LL * temp) % mod;
+    }
+    if(L != R)
+    {
+      lazy[i*2+1]=lazy[i];
+      lazy[i*2+2]=lazy[i];
+    }
+    lazy[i] = -1;
+  }
+  if(L >= x && R <= y)
+    return tree[i][k];
+  if(L > y || R < x)
+    return 0;
+  return (query(i*2 + 1, L, (L + R) / 2, x, y, k) + query(i*2 + 2, (L + R) / 2 + 1, R, x, y, k)) % mod;
+}
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  //freopen("test.in", "r", stdin);
+  //freopen("report.out", "w", stdout);
+  int n, m;
+  cin >> n >> m;
+  for(int i=1;i<=n;i++)
+    cin >> arr[i];
+  for(int i=0;i<=6;i++) powers[0][i] = 1;
+  for(int i=2;i<=n+1;i++)
+  {
+    int tmp = 1;
+    powers[i-1][0] = (powers[i-2][0] + tmp) % mod;
+    tmp = (tmp * 1LL * i) % mod;
+    powers[i-1][1] = (powers[i-2][1] + tmp) % mod;
+    tmp = (tmp * 1LL * i) % mod;
+    powers[i-1][2] = (powers[i-2][2] + tmp) % mod;
+    tmp = (tmp * 1LL * i) % mod;
+    powers[i-1][3] = (powers[i-2][3] + tmp) % mod;
+    tmp = (tmp * 1LL * i) % mod;
+    powers[i-1][4] = (powers[i-2][4] + tmp) % mod;
+    tmp = (tmp * 1LL * i) % mod;
+    powers[i-1][5] = (powers[i-2][5] + tmp) % mod;
+  }
+  build(0, 1, n);
+  string in;
+  int x, y, z;
+  while(m--)
+  {
+    cin >> in >> x >> y >> z;
+    if(in == "=") update(0, 1, n, x, y, z);
+    else
+    {
+      LL res, pw = x, A, B, C, D, E, F;
+      if(z == 0)
+      {
+        res = query(0, 1, n, x, y, 0);
+      }
+      else if(z == 1)
+      {
+        A = query(0, 1, n, x, y, 1);
+        B = (query(0, 1, n, x, y, 0) * 1LL * pw) % mod;
+        res = (A - B) % mod;
+        res+=mod;
+        res%=mod;
+      }
+      else if(z == 2)
+      {
+        A = query(0, 1, n, x, y, 2);
+        B = (query(0, 1, n, x, y, 1) * 2LL * pw) % mod;
+        pw = (x *1LL *pw) % mod;
+        C = (query(0, 1, n, x, y, 0) * 1LL * pw) % mod;
+        res = (A - B + C) % mod;
+        res+=mod;
+        res%=mod;
+      }
+      else if(z == 3)
+      {
+        A = query(0, 1, n, x, y, 3);
+        B = (query(0, 1, n, x, y, 2) * 3LL * pw) % mod;
+        pw = (x *1LL *pw) % mod;
+        C = (query(0, 1, n, x, y, 1) * 3LL * pw) % mod;
+        pw = (x *1LL *pw) % mod;
+        D = (query(0, 1, n, x, y, 0) * 1LL * pw) % mod;
+        res = (A - B + C) % mod;
+        res+=mod;
+        res%=mod;
+        res =(res - D) % mod;
+        res+=mod;
+        res%=mod;
+      }
+      else if(z == 4)
+      {
+        A = query(0, 1, n, x, y, 4);
+        B = (query(0, 1, n, x, y, 3) * 4LL * pw) % mod;
+        pw = (x *1LL *pw) % mod;
+        C = (query(0, 1, n, x, y, 2) * 6LL * pw) % mod;
+        pw = (x *1LL *pw) % mod;
+        D = (query(0, 1, n, x, y, 1) * 4LL * pw) % mod;
+        pw = (x *1LL *pw) % mod;
+        E = (query(0, 1, n, x, y, 0) * 1LL * pw) % mod;
+        res = (A - B + C) % mod;
+        res+=mod;
+        res%=mod;
+        res = (res - D + E) % mod;
+        res+=mod;
+        res%=mod;
+      }
+      else
+      {
+        A = query(0, 1, n, x, y, 5);
+        B = (query(0, 1, n, x, y, 4) * 5LL * pw) % mod;
+        pw = (x *1LL *pw) % mod;
+        C = (query(0, 1, n, x, y, 3) * 1LL * pw) % mod;
+        C = (C * 10LL) % mod;
+        pw = (x *1LL *pw) % mod;
+        D = (query(0, 1, n, x, y, 2) * 1LL * pw) % mod;
+        D = (D * 10LL) % mod;
+        pw = (x *1LL *pw) % mod;
+        E =  (query(0, 1, n, x, y, 1) * 5LL * pw) % mod;
+        pw = (x *1LL *pw) % mod;
+        F = (query(0, 1, n, x, y, 0) * 1LL * pw) % mod;
+        res = (A - B + C) % mod;
+        res+=mod;
+        res%=mod;
+        res = (res - D + E) % mod;
+        res+=mod;
+        res%=mod;
+        res = (res - F) % mod;
+        res+=mod;
+        res%=mod;
+      }
+      cout << res << "\n";
+    }
+  }
+  return 0;
+}

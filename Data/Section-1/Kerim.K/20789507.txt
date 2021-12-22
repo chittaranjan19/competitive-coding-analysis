@@ -1,0 +1,124 @@
+#include "bits/stdc++.h"
+#define MAXN 200009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int l[MAXN],r[MAXN],w[MAXN];
+map<int,int>ID;
+int L[MAXN],R[MAXN],arr[MAXN];
+vector<int>sz[MAXN],adj[MAXN];
+vector<int>v;
+class node{
+	public:
+	int pre,suf,mx,len;
+	node(){pre=0;suf=0;mx=0;len=0;}
+	void sign(int t){pre=t;suf=t;mx=t;len=t;};
+}empty,s[MAXN<<2];
+node merge(node x,node y){
+	node z;
+	z.len=x.len+y.len;
+	z.mx=max(x.mx,y.mx);
+	umax(z.mx,x.suf+y.pre);
+	if(x.len==x.pre)
+		z.pre=x.len+y.pre;
+	else
+		z.pre=x.pre;
+	if(y.len==y.suf)
+		z.suf=y.len+x.suf;
+	else
+		z.suf=y.suf;
+	return z;
+}
+node tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return empty;
+	if(l<=x and y<=r)
+		return s[nd];
+	int mid=(x+y)>>1;
+	node i1=tap(l,r,nd<<1,x,mid);
+	node i2=tap(l,r,nd<<1|1,mid+1,y);
+	return merge(i1,i2);
+}
+void upd(int p,int v,int nd,int x,int y){
+	if(x==y){
+		s[nd].sign(v);
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,v,nd<<1,x,mid);
+	else
+		upd(p,v,nd<<1|1,mid+1,y);
+	s[nd]=merge(s[nd<<1],s[nd<<1|1]);	
+}
+int main(){
+	//Man it is just Paralell binary search 8*)
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	int a;
+	scanf("%d",&a);
+	for(int i=1;i<=a;i++){
+		scanf("%d",arr+i);
+		v.pb(arr[i]);
+	}
+	v.pb(-INF);sort(all(v));
+	v.erase(unique(all(v)),v.end());
+	for(int j=1;j<int(v.size());j++)
+		ID[v[j]]=j;
+	for(int i=1;i<=a;i++)
+		sz[ID[arr[i]]].pb(i);
+	int q;
+	scanf("%d",&q);
+	for(int i=1;i<=q;i++){
+		scanf("%d%d%d",l+i,r+i,w+i);
+		L[i]=1;R[i]=v.size()-1;
+	}
+	for(int i=1;i<=22;i++){
+		bool flag=0;
+		for(int j=1;j<=a;j++){
+			upd(j,0,1,1,a);
+			adj[j].resize(0);
+		}
+		for(int j=1;j<=q;j++)
+			if(L[j]!=R[j]){
+				int mid=(L[j]+R[j])>>1;
+				if(R[j]-1==L[j])
+					mid++;
+				adj[mid].pb(j);
+				flag=1;
+			}	
+		if(!flag)
+			break;
+		for(int j=v.size()-1;j>=1;j--){
+			tr(it,sz[j])
+				upd(*it,1,1,1,a);
+			tr(it,adj[j]){
+				if(tap(l[*it],r[*it],1,1,a).mx>=w[*it])
+					L[*it]=j;
+				else
+					R[*it]=j-1;
+			}
+		}
+	}
+	//~ for(int i=1;i<=q;i++)
+		//~ cout<<L[i]<<" "<<R[i]<<endl;
+	for(int i=1;i<=q;i++){
+		assert(L[i]==R[i]);//avoid some enemies check dis out :*^)
+		printf("%d\n",v[L[i]]);
+	}
+	return 0;
+}

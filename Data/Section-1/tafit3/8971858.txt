@@ -1,0 +1,111 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+
+public class ProblemC {
+    BufferedReader rd;
+
+    private ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        long[] q = longarr();
+        long n = q[0];
+        long r = q[1];
+        long avg = q[2];
+        long req = n*avg;
+
+        NavigableMap<Integer, Long> byCost = new TreeMap<>();
+
+        long sum = 0;
+        for(int i=0;i<n;i++) {
+            int[] a = intarr();
+            long avail = r - a[0];
+            Long cnt = byCost.get(a[1]);
+            if(cnt == null) {
+                cnt = avail;
+            } else {
+                cnt += avail;
+            }
+            byCost.put(a[1], cnt);
+            sum += a[0];
+        }
+
+        long essays = 0;
+        while(sum < req) {
+            Integer minCost = byCost.firstKey();
+            Long cnt = byCost.remove(minCost);
+            if(sum + cnt < req) {
+                sum += cnt;
+                essays += cnt*minCost;
+            } else {
+                long c = req - sum;
+                sum += c;
+                essays += c*minCost;
+            }
+        }
+        out(essays);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    private String[] split(String s) {
+        int n = s.length();
+        int sp = 0;
+        for(int i=0;i<n;i++) {
+            if(s.charAt(i)==' ') {
+                sp++;
+            }
+        }
+        String[] res = new String[sp+1];
+        int last = 0;
+        int x = 0;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(c == ' ') {
+                res[x++] = s.substring(last,i);
+                last = i+1;
+            }
+        }
+        res[x] = s.substring(last,n);
+        return res;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

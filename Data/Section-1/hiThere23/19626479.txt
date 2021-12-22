@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 1000006
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+#define ex 0.000001
+
+using namespace std;
+int n, q, a[mn], ans[mn], r = 0;
+pair< pair<int, int> , int > que[mn];
+map<int, int> Map;
+
+struct tree
+{
+    int tree[mn];
+
+    void update(int x, int val)
+    {
+        for(; x <= n; x += (x & (-x)))
+            tree[x] ^= val;
+    }
+
+    int get(int x)
+    {
+        int re = 0;
+        for(; x; x -= (x & (-x)))
+            re ^= tree[x];
+        return re;
+    }
+} tAll, tQ;
+
+void setup()
+{
+    cin >> n;
+    FOR(i, 1, n)
+    {
+        cin >> a[i];
+        tAll.update(i, a[i]);
+    }
+    cin >> q;
+    FOR(i, 1, q)
+    {
+        cin >> que[i].F.S >> que[i].F.F;
+        que[i].S = i;
+    }
+    sort(que + 1, que + q + 1);
+}
+
+void xuly()
+{
+    FOR(i, 1, q)
+    {
+        while(r < que[i].F.F)
+        {
+            r ++;
+            if (Map[a[r]])
+                tQ.update(Map[a[r]], a[r]);
+            Map[a[r]] = r;
+            tQ.update(r, a[r]);
+        }
+        int xorAll = tQ.get(que[i].F.F) ^ tQ.get(que[i].F.S - 1);
+        int xorOdd = tAll.get(que[i].F.F) ^ tAll.get(que[i].F.S - 1);
+        ans[que[i].S] = xorAll ^ xorOdd;
+    }
+    FOR(i, 1, q)
+        cout << ans[i] << '\n';
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

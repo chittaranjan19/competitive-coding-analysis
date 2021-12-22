@@ -1,0 +1,91 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define ll long long
+
+const ll mod = 1000000007;
+
+ll ft[5010][5010];
+int n;
+
+ll read(int t, int x)
+{
+    ll ret = 0;
+    while(x>0){
+        ret+=ft[t][x];
+        x-=(x&(-x));
+    }
+    return ret;
+}
+
+ll range_read(int t, int a, int b)
+{
+    if(b<a)
+        return 0;
+    ll ret = (read(t, b)-read(t, a-1))%mod;
+    if(ret<0)
+        ret+=mod;
+    return ret;
+}
+
+void update(int t, int x, ll val)
+{
+    while(x<=n){
+        ft[t][x] = (ft[t][x]+val)%mod;
+        x+=(x&(-x));
+    }
+}
+
+int main()
+{
+    int a, b, k, i, j, p;
+    ll x, y;
+    memset(ft, 0, sizeof(ft));
+    scanf("%d%d%d%d", &n, &a, &b, &k);
+    for(i=1; i<=n; i++){
+        if(i==b)
+            continue;
+        update(k, i, 1);
+    }
+    for(i=k-1; i>=1; i--){
+        for(j=1; j<=n; j++){
+            if(j==b)
+                x = 0;
+            else{
+                p = abs(j-b);
+                if(j<b){
+                    x = range_read(i+1, max(1, j-p+1), j-1);
+                    y = range_read(i+1, j+1, min(n, b-1));
+                    x = (x+y)%mod;
+                }
+                else{
+                    x = range_read(i+1, b+1, j-1);
+                    y = range_read(i+1, j+1, min(n, j+p-1));
+                    x = (x+y)%mod;
+                }
+            }
+            update(i, j, x);
+        }
+    }
+    ll ans = 0;
+    p = abs(a-b);
+    j = a;
+    if(a<b){
+        x = range_read(1, max(1, j-p+1), j-1);
+        y = range_read(1, j+1, min(n, b-1));
+        ans = (x+y)%mod;
+    }
+    else{
+        x = range_read(1, b+1, j-1);
+        y = range_read(1, j+1, min(n, j+p-1));
+        ans = (x+y)%mod;
+    }
+    /*for(i=1; i<=2; i++){
+        for(j=1; j<=n; j++)
+            cout << range_read(i, j, j) << " ";
+        cout << "\n";
+    }*/
+    cout << ans << "\n";
+    return 0;
+}

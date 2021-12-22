@@ -1,0 +1,80 @@
+// in the name of allah
+
+#include<bits\stdc++.h>
+#define LL long long
+#define LB long double
+#define ALL(X) X.begin(),X.end()
+#define DD(X) cout<<#X<<' '<<X<<endl;
+
+using namespace std;
+
+const int MOD=1000*1000*1000+7;
+const int MAXN=100*1000+200;
+const int MAXM=200+50;
+const long long INF=1e9+7;
+
+const int dx[4]={0,0,-1,+1};
+const int dy[4]={+1,-1,0,0};
+
+ifstream fin("input.txt");
+ofstream fout("output.txt");
+
+bool vis[MAXN];
+vector<pair<int,bool> >ver[MAXN];
+vector<pair<pair<int,int>,bool> >e,ans;
+int dp[MAXN];
+int par[MAXN];
+int flo[MAXN];
+queue <int> q;
+set<pair<int,int> >s;
+
+int main(){
+	ios_base::sync_with_stdio(false);
+	cin.tie();cout.tie();
+	fill(dp,dp+MAXN,INF);
+	int n,m;
+	cin>>n>>m;
+	for(int i=0;i<m;i++){
+		int x,y;
+		bool f;
+		cin>>x>>y>>f;
+		x--,y--;
+		ver[x].push_back(make_pair(y,f));
+		ver[y].push_back(make_pair(x,f));
+		e.push_back(make_pair(make_pair(x,y),f));
+	}
+	q.push(0);
+	dp[0]=0;
+	vis[0]=true;
+	par[0]=-1;
+	flo[0]=0;
+	while(q.size()){
+		int v=q.front();
+		q.pop();
+		for(auto u:ver[v])
+			if(vis[u.first]){
+				if(dp[u.first]+!u.second<dp[v] && flo[u.first]<flo[v])dp[v]=dp[u.first]+!u.second,par[v]=u.first;
+			}
+			else{
+				q.push(u.first);
+				vis[u.first]=true;
+				flo[u.first]=1+flo[v];
+			}
+	}
+	int k=n-1;
+	while(par[k]!=-1 && k!=-1){
+		s.insert(make_pair(k,par[k]));
+		s.insert(make_pair(par[k],k));
+		k=par[k];
+	}
+	for(auto E:e){
+		int u=E.first.first;
+		int v=E.first.second;
+		bool f=E.second;
+		if(f^(s.find(make_pair(u,v))!=s.end()))
+			ans.push_back(make_pair(make_pair(u,v),!f));
+	}
+	cout<<ans.size()<<endl;
+	for(auto E:ans)
+		cout<<E.first.first+1<<' '<<E.first.second+1<<' '<<E.second<<'\n';
+}

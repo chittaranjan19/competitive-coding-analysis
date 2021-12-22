@@ -1,0 +1,69 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+const int lmt = 500005;
+lli cost[lmt], sum[lmt];
+lli n, a, b, t;
+
+bool solveIt(int idx, lli chk, int n){
+    lli cur = sum[n-1] - sum[idx - 1];
+    cur += (n - 1 - idx) * a;
+    cur += (n - 1 - idx + 1);
+    return (cur <= chk);
+}
+
+int solve(int i,lli chk,int n){
+    int st = 0, en = n - 1;
+    while(st < en){
+            int mid = (st + en) / 2;
+            if(solveIt(mid, chk, n)){
+                en = mid;
+            }
+            else{
+                st = mid + 1;
+            }
+    }
+    return (i + 1 + n - 1 - st + 1);
+}
+
+int main(){
+
+    int n;
+    cin>>n>>a>>b>>t;
+    string str;
+    cin>>str;
+    lli tot = 0;
+    for(int i=0; i<n; i++){
+        if(str[i] == 'w'){
+            cost[i] = b;
+            tot += b;
+        }
+    }
+    sum[0] = cost[0];
+    for(int i=1; i<n; i++){
+        sum[i] = cost[i] + sum[i-1];
+    }
+    tot += a * (n - 1);
+    tot += n;
+    if(tot <= t){
+        cout<<n<<"\n";
+        return 0;
+    }
+    int ans = 0;
+    for(int i=0; i<n; i++){
+        lli cur = sum[i] + i + 1 + i * a;
+        lli chk = t - cur - (i + 1) * a;
+        if(chk < 0) break;
+        ans = max(ans, solve(i,chk,n));
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

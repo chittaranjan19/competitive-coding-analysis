@@ -1,0 +1,119 @@
+import java.util.*;
+
+/**
+ * Created by leen on 6/17/16.
+ *
+ *
+-1000000000 -1000000000 1000000000 1000000000
+1
+1000000000 1000000000 1
+ *
+ */
+public class _681E {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+        long x0 = scan.nextLong();
+        long y0 = scan.nextLong();
+        long v = scan.nextLong();
+        long T = scan.nextLong();
+        int n = scan.nextInt();
+
+        List<Pair> pairs = new ArrayList<Pair>(n);
+
+        for(int i = 0; i < n; i++) {
+            double xi = (scan.nextDouble() - x0 );
+            double yi = (scan.nextDouble() - y0);
+            double ri = scan.nextDouble();
+
+            if(v > 0) {
+                xi /= v;
+                yi /= v;
+                ri /= v;
+            }
+
+            double ttt = xi * xi + yi * yi;
+            double sqrttt = Math.sqrt(ttt);
+            double squareRi = ri * ri;
+
+            if(ttt <= squareRi) {
+                System.out.println(1);
+                System.out.flush();
+                return;
+            }
+
+            if(v == 0)
+                continue;
+
+            if(sqrttt < ri + T) {
+
+                double angle;
+                if (ttt - ri * ri <= T * T)
+                    angle = Math.asin(ri / sqrttt);
+                else {
+                    double cos = (T * T + ttt - squareRi) / (2 * T * sqrttt);
+                    angle = Math.acos(cos);
+                }
+
+                if(angle == 0.0)
+                    continue;
+
+                double initTan = yi / xi;
+                double initAngle = Math.atan(initTan);
+                if (yi < 0)
+                    initAngle += Math.PI;
+
+                double minAngle = (initAngle - angle + 2 * Math.PI) % (2 * Math.PI);
+                double maxAngle = (initAngle + angle + 2 * Math.PI) % (2 * Math.PI);
+
+                pairs.add(new Pair(minAngle, maxAngle));
+            }
+        }
+
+        if(v == 0) {
+            System.out.println(0);
+            System.out.flush();
+            return;
+        }
+
+        Collections.sort(pairs, new Comparator<Pair>() {
+            @Override
+            public int compare(Pair o1, Pair o2) {
+                if(o1.minAngle < o2.minAngle)
+                    return -1;
+                if(o1.minAngle == o2.minAngle)
+                    return 0;
+                return 1;
+            }
+        });
+
+        double lastMaxAngle = 0;
+        double angleSum = 0.0;
+        for(Pair pair : pairs) {
+            double minAngle = pair.minAngle;
+            if(minAngle < lastMaxAngle)
+                minAngle = lastMaxAngle;
+
+            double diff1 = (minAngle - pair.minAngle + 2 * Math.PI) % (2 * Math.PI);
+            double diff2 = (pair.maxAngle - pair.minAngle + 2 * Math.PI) % (2 * Math.PI);
+
+            if(diff1 < diff2) {
+                angleSum += (pair.maxAngle - minAngle + 2 * Math.PI) % (2 * Math.PI);
+                lastMaxAngle = pair.maxAngle;
+            }
+        }
+
+        System.out.println(angleSum / (2 * Math.PI));
+        System.out.flush();
+    }
+
+    static class Pair {
+        final double minAngle;
+        final double maxAngle;
+
+        Pair(double minAngle, double maxAngle) {
+            this.minAngle = minAngle;
+            this.maxAngle = maxAngle;
+        }
+    }
+
+}

@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long int LL;
+
+class C
+{
+public:
+	LL x;
+	LL y;
+	LL a;
+	LL b;
+	LL total;
+	C()
+	{
+		a=0; b=0;
+	}
+};
+
+bool cmp(C x, C y)
+{
+	return x.total>y.total;
+}
+
+LL board[2001][2001];
+C arr[4000000];
+
+int main()
+{
+	LL n,l=0,i,j,x,y;
+	cin>>n;
+	for(i=1;i<=n;i++)
+	{
+		for(j=1;j<=n;j++)
+		{
+			cin>>board[i][j];
+			arr[l].x=i;
+			arr[l].y=j;
+			l++;
+		}
+	}
+	for(i=1;i<=n;i++)
+	{
+		for(j=1;j<=n;j++)
+		{
+			if(i==1 || j==1)
+			{
+				for(x=i,y=j;x<=n && y<=n;x++,y++)
+				{
+					arr[(i-1)*n+j-1].a+=board[x][y];
+				}
+			}
+			else arr[(i-1)*n+j-1].a=arr[(i-2)*n+j-2].a;
+			if(i==1 || j==n)
+			{
+				for(x=i,y=j;x<=n && y>=1;x++,y--)
+				{
+					arr[(i-1)*n+j-1].b+=board[x][y];
+				}
+			}
+			else arr[(i-1)*n+j-1].b=arr[(i-2)*n+j].b;
+			arr[(i-1)*n+j-1].total=arr[(i-1)*n+j-1].a+arr[(i-1)*n+j-1].b-board[i][j];
+		}
+	}
+	sort(arr,arr+n*n,cmp);
+	LL max=-1;
+	for(i=0;i<n*n;i++)
+	{
+		if(arr[i].total<max/2) break;
+		for(j=i+1;j<n*n;j++)
+		{
+			if(fabs(arr[i].x-arr[j].x)!=fabs(arr[i].y-arr[j].y))
+			{
+				if(arr[i].total+arr[j].total>max) {max=arr[i].total+arr[j].total; x=i; y=j;}
+				else break;
+			}
+		}
+	}
+	cout<<max<<endl<<arr[x].x<<" "<<arr[x].y<<" "<<arr[y].x<<" "<<arr[y].y<<endl;
+	return 0;
+}

@@ -1,0 +1,78 @@
+// in the name of allah
+
+#include<bits\stdc++.h>
+#define LL long long
+#define LB long double
+#define ALL(X) X.begin(),X.end()
+#define DD(X) cout<<#X<<' '<<X<<endl;
+
+using namespace std;
+
+const int MOD=1000*1000*1000+7;
+const int MAXN=100*1000+200;
+const int MAXM=200+50;
+const long long INF=1e9+7;
+
+const int dx[4]={0,0,-1,+1};
+const int dy[4]={+1,-1,0,0};
+
+ifstream fin("input.txt");
+ofstream fout("output.txt");
+
+bool vis[MAXN];
+vector<int>ver[MAXN];
+vector<pair<int,int> >e;
+int mx=-1,mxv=-1;
+
+void dfs1(int v,int p=-1,int f=0){
+	vis[v]=true;
+	if(f>mx)mx=f,mxv=v;
+	for(auto u:ver[v])
+		if(!vis[u])dfs1(u,v,f+1);
+}
+
+void dfs2(int v,int p=-1,int f=0){
+	vis[v]=false;
+	if(f>mx)mx=f,mxv=v;
+	for(auto u:ver[v])
+		if(vis[u])dfs2(u,v,f+1);
+}
+
+int calc(int v,int u){
+	mx=-1;
+	mxv=v;
+	vis[u]=true;
+	dfs1(v);
+	vis[u]=false;
+	dfs2(mxv);
+	int mx1=mx;
+	
+	mx=-1;
+	mxv=u;
+	vis[v]=true;
+	dfs1(u);
+	vis[v]=false;
+	dfs2(mxv);
+	int mx2=mx;
+	
+	//cout<<mx1<<' '<<mx2<<'\n';
+	return mx1*mx2;
+}
+int main(){
+	ios_base::sync_with_stdio(false);
+	cin.tie();cout.tie();
+	int n;
+	cin>>n;
+	for(int i=1;i<n;i++){
+		int x,y;
+		cin>>x>>y;
+		x--,y--;
+		ver[x].push_back(y);
+		ver[y].push_back(x);
+		e.push_back(make_pair(x,y));
+	}
+	int ans=0;
+	for(auto E:e)
+		ans=max(ans,calc(E.first,E.second));
+	cout<<ans;
+}

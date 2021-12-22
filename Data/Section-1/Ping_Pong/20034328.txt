@@ -1,0 +1,74 @@
+#include <bits/stdc++.h>
+//#define int long long
+
+using namespace std;
+
+const int inf = (int)1e9;
+const int MAX_N = 1000000;
+
+int n;
+vector<int> F;
+
+void build()
+{
+    F.resize(n, 0);
+}
+
+void update(int x, int dv)
+{
+    for (; x < n; x = x | (x + 1))
+        F[x] ^= dv;
+}
+
+int get(int x)
+{
+    int ans = 0;
+    for (; x >= 0; x = (x & (x + 1)) - 1)
+        ans ^= F[x];
+    return ans;
+}
+
+bool comp(pair<int, pair<int, int> > a, pair<int, pair<int, int> > b)
+{
+    return a.second.second < b.second.second;
+}
+
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int q;
+    cin >> n;
+    int a[n];
+    for (int i = 0; i < n; i++)
+        cin >> a[i];
+    int pref[n + 1];
+    pref[0] = 0;
+    for (int i = 0; i < n; i++)
+        pref[i + 1] = pref[i] ^ a[i];
+    cin >> q;
+    vector<pair<int, pair<int, int> > > qu(q);
+    for (int i = 0; i < q; i++)
+    {
+        qu[i].first = i;
+        cin >> qu[i].second.first >> qu[i].second.second;
+    }
+    sort(qu.begin(), qu.end(), comp);
+    map<int, int> last;
+    build();
+    int ans[q];
+    int curr = 0;
+    for (int i = 0; i < q; i++)
+    {
+        while (curr < qu[i].second.second)
+        {
+            if (last.find(a[curr]) != last.end())
+                update(last[a[curr]], a[curr]);
+            update(curr, a[curr]);
+            last[a[curr]] = curr;
+            curr++;
+        }
+        ans[qu[i].first] = get(qu[i].second.second - 1) ^ get(qu[i].second.first - 2) ^ pref[qu[i].second.second] ^ pref[qu[i].second.first - 1];
+    }
+    for (int i = 0; i < q; i++)
+        cout << ans[i] << endl;
+}

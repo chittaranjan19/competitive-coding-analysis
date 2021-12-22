@@ -1,0 +1,62 @@
+#include <cstdio>
+using namespace std;
+
+#define forn( i,n ) for ( int i=0; i<(int)(n); i++ )
+
+int n, k, T, t[30], a[30][30], next[200010][23], penalty[1<<22], ans, all;
+char s[200010];
+
+void rec( int i, int mask, int curp ) {
+  if ( curp > T ) return;
+  if ( i == k ) {
+    if ( mask < all && curp + penalty[mask] <= T ) {
+      ans++;
+    }
+    return;
+  } 
+
+  rec( i+1, mask, curp );
+  rec( i+1, mask | ( 1<<i ), curp + t[i] );
+}
+
+int main() {
+  scanf( "%d %d %d", &n, &k, &T );
+  scanf( "%s", s );
+  forn( i, n ) s[i] -= 'A';
+  forn( i, k ) scanf( "%d", &t[i] );
+  forn( i, k )
+    forn( j, k )
+      scanf( "%d", &a[i][j] );
+
+  forn( i, k ) next[n-1][i] = n;
+  for ( int i=n-2; i>=0; i-- ) {
+    forn( j, k ) next[i][j] = next[i+1][j];
+    next[i][ s[i+1] ] = i+1;
+  }
+
+  all = ( 1<<k ) - 1;
+
+  int mi, mq, mask, j;
+  forn( i, n ) {
+    mask = 0;
+    j = i;
+    while ( j < n && mask != all ) {
+      mi = n;
+      mq = -1; 
+      forn( q, k )
+        if ( (mask&q) == 0 )
+          if ( next[j][q] < mi ) {
+            mi = next[j][q];
+            mq = q;
+          }
+
+      j = mi;
+      if ( j < n ) penalty[mask] += a[ s[i] ][ s[j] ];
+      mask |= 1 << mq;
+    } 
+  }
+
+  rec( 0, 0, 0 );
+
+  printf( "%d\n", ans );
+}

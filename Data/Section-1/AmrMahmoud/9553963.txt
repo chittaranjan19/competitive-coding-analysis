@@ -1,0 +1,165 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setDP(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+string ans[105];
+
+void check(int x,int y,char &a)
+{
+    bool ch = 0;
+    if(x && ans[x-1][y] == a)
+        a++, ch = 1;
+    if(y && ans[x][y-1] == a)
+        a++, ch = 1;
+    if(ans[x][y+1] == a)
+        a++, ch = 1;
+    if(ans[x+1][y] == a)
+        a++, ch = 1;
+    if(ch) check(x, y, a);
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int n, m, a, b, c;
+    cin >> n >> m >> a >> b >> c;
+    if((n % 2 == 1 && m % 2 == 1) || n * m > c * 4 + b * 2 + a * 2)
+    {
+        cout << "IMPOSSIBLE";
+        return 0;
+    }
+    bool test = true;
+    string temp = "";
+    for(int i=0;i<=m;i++)
+        temp+="#";
+    for(int i=0;i<=n;i++)
+        ans[i] = temp;
+    if(n & 1)
+    {
+        for(int i=0;i<m && test;i+=2)
+        {
+            if(a == 0)
+            {
+                test = false;
+                break;
+            }
+            a--;
+            ans[n-1][i] = ans[n-1][i+1] = 'a' + ((i / 2) & 1);
+        }
+    }
+    if(m & 1)
+    {
+        for(int i=0;i<n && test;i+=2)
+        {
+            if(b == 0)
+            {
+                test = false;
+                break;
+            }
+            b--;
+            ans[i][m-1] = ans[i+1][m-1] = 'a' + ((i / 2) & 1);
+        }
+    }
+    for(int i=0;i<n - 1 && test;i+=2)
+    {
+        for(int j=0;j<m - 1 && test;j+=2)
+        {
+            if(c != 0)
+            {
+                char res = 'a';
+                check(i, j, res);
+                check(i + 1, j, res);
+                check(i, j + 1, res);
+                check(i + 1, j + 1, res);
+                ans[i][j] = res;
+                ans[i+1][j] = res;
+                ans[i][j+1] = res;
+                ans[i+1][j+1] = res;
+                c--;
+            }
+            else if(a > 1)
+            {
+                char res = 'a';
+                for(int _=0;_<4;_++)
+                {
+                    check(i, j, res);
+                    check(i, j + 1, res);
+                }
+                ans[i][j] = res;
+                ans[i][j+1] = res;
+                res = 'a';
+                for(int _=0;_<4;_++)
+                {
+                    check(i + 1, j, res);
+                    check(i + 1, j + 1, res);
+                }
+                ans[i+1][j] = res;
+                ans[i+1][j+1] = res;
+                a-=2;
+            }
+            else if(b > 1)
+            {
+                char res = 'a';
+                for(int _=0;_<4;_++)
+                {
+                    check(i, j, res);
+                    check(i + 1, j, res);
+                }
+                ans[i][j] = res;
+                ans[i+1][j] = res;
+                res = 'a';
+                for(int _=0;_<4;_++)
+                {
+                    check(i, j + 1, res);
+                    check(i + 1, j + 1, res);
+                }
+                ans[i][j+1] = res;
+                ans[i+1][j+1] = res;
+                b-=2;
+            }
+            else test = false;
+        }
+    }
+    if(!test)
+    {
+        cout << "IMPOSSIBLE";
+        return 0;
+    }
+    for(int i=0;i<n;i++)
+    {
+        for(int j=0;j<m;j++)
+            cout << ans[i][j];
+        cout << '\n';
+    }
+    return 0;
+}

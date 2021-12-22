@@ -1,0 +1,103 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <algorithm>
+#include <iostream>
+using namespace std;
+
+int n, k;
+char a[2005];
+int dp[2005][2005], dp2[2005][2005];
+
+int solve(int i, int beauty)
+{
+    if(i == n)
+        return beauty == 0;
+    if(beauty < 0)
+        return 0;
+    if(dp[i][beauty] != -1)
+        return dp[i][beauty];
+    long long res = 0;
+    int j;
+    for(j = i; j < n && beauty - (j - i + 1) * (n - j) >= 0; j++)
+    {
+        long long lit = 'z' - a[j];
+        res = (res + lit * solve(j + 1, beauty - (j - i + 1) * (n - j))) % 1000000007;
+    }
+    if(j < n)
+    {
+        for(j = n - 1; beauty - (j - i + 1) * (n - j) >= 0; j--)
+        {
+            long long lit = 'z' - a[j];
+            res = (res + lit * solve(j + 1, beauty - (j - i + 1) * (n - j))) % 1000000007;
+        }
+    }
+    for(j = i; j < n; j++)
+    {
+        long long lit = 'z' - a[j];
+        res = (res + (25 - lit) * solve(j + 1, beauty)) % 1000000007;
+        if(j == n - 1)
+            res = (res + solve(j + 1, beauty)) % 1000000007;
+    }
+    return dp[i][beauty] = res;
+}
+/*
+int solve(int i, int beauty, int prefixEqualFrom)
+{
+    if(i == n)
+        return beauty == 0;
+    if(beauty < 0)
+        return 0;
+    if(dp[i][beauty][prefixEqualFrom] != -1)
+        return dp[i][beauty][prefixEqualFrom];
+    long long res = 0;
+    long long lit = 'z' - a[i];
+    res = (res + lit * solve(i + 1, beauty - (i - prefixEqualFrom + 1) * (n - i), i + 1)) % 1000000007;
+    res = (res + (25 - lit) * solve(i + 1, beauty, i + 1)) % 1000000007;
+    res = (res +              solve(i + 1, beauty, prefixEqualFrom)) % 1000000007;
+    return dp[i][beauty][prefixEqualFrom] = res;
+}*/
+
+int main()
+{
+    scanf("%d %d", &n, &k);
+    scanf("%s", a);
+    //printf("%d\n", solve(0, k));
+
+    dp[n][0] = 1;
+    dp2[n][0] = 25 - ('z' - a[n-1]);
+    for(int i = n - 1; i >= 0; i--)
+    {
+        for(int beauty = 0; beauty <= k; beauty++)
+        {
+            int j;
+            for(j = i; j < n && beauty - (j - i + 1) * (n - j) >= 0; j++)
+            {
+                long long lit = 'z' - a[j];
+                dp[i][beauty] = (dp[i][beauty] + lit * dp[j + 1][beauty - (j - i + 1) * (n - j)]) % 1000000007;
+            }
+            if(j < n)
+            {
+                for(j = n - 1; beauty - (j - i + 1) * (n - j) >= 0; j--)
+                {
+                    long long lit = 'z' - a[j];
+                    dp[i][beauty] = (dp[i][beauty] + lit * dp[j + 1][beauty - (j - i + 1) * (n - j)]) % 1000000007;
+                }
+            }
+            dp[i][beauty] = (dp[i][beauty] + dp2[i+1][beauty]) % 1000000007;
+            if(beauty == 0)
+                dp[i][beauty] = (dp[i][beauty] + 1) % 1000000007;
+            if(i > 0)
+                dp2[i][beauty] = ((long long)dp[i][beauty] * (25 - ('z' - a[i-1])) + dp2[i+1][beauty]);
+        }
+    }
+    printf("%d\n", dp[0][k]);
+    return 0;
+}

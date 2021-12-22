@@ -1,0 +1,112 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int n, m;
+
+vector<pair<int, int> > g[100005];
+int zero[100005], one[100005];
+map<pair<int, int>, bool> mm;
+int cnt;
+
+bool dfs(int parent, int x, int y, bool z, bool beg)
+{
+  if(beg)
+  {
+    bool nxt = 0;
+    if(mm[mp(parent, x)] + z == 2 || mm[mp(parent, x)] + z == 0)
+      nxt = true;
+    if(mm.find(mp(parent, y)) == mm.end())
+    {
+      mm[mp(parent, y)] = nxt;
+      g[parent].pb(mp(y, nxt));
+      g[y].pb(mp(parent, nxt));
+    }
+    else if(mm[mp(parent, y)] != nxt)
+      return false;
+    return true;
+  }
+  if(mm.find(mp(x, y)) != mm.end())
+  {
+    if(mm[mp(x, y)] != z) return false;
+    return true;
+  }
+  mm[mp(x, y)] = z;
+  mm[mp(y, x)] = z;
+  if(!beg) cnt++;
+  for(int i=0;i<g[y].size();i++)
+    if(!dfs(x, y, g[y][i].f, g[y][i].s, 1))
+      return false;
+  return true;
+}
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  //freopen("ebola.in", "r", stdin);
+  //freopen("ebola.out", "w", stdout);
+  int x, y, z;
+  cin >> n >> m;
+  for(int i=0;i<m;i++)
+  {
+    cin >> x >> y >> z;
+    g[x].pb(mp(y, z));
+    g[y].pb(mp(x, z));
+  }
+  for(int i=0;i<n;i++)
+  {
+    x = i;
+    for(int j=0;j<g[i].size();j++)
+    {
+      y = g[i][j].f;
+      z = g[i][j].s;
+      if(!dfs(x, x, y, z, 0))
+      {
+        cout << 0;
+        return 0;
+      }
+    }
+  }
+  int res = 1;
+  for(int i=0;i<n - cnt - 1;i++)
+  {
+    res*=2;
+    if(res >= mod) res-=mod;
+  }
+  cout << res;
+  return 0;
+}

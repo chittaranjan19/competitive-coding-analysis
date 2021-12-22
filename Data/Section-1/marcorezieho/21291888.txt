@@ -1,0 +1,104 @@
+#include <map>
+#include <set>
+#include <cmath>
+#include <ctime>
+#include <cstdio>
+#include <vector>
+#include <cstring>
+#include <cstdlib>
+#include <algorithm>
+
+using namespace std;
+
+#define mp make_pair
+#define pb push_back
+#define x first
+#define y second
+
+typedef long long ll;
+typedef vector<int> vi;
+typedef pair<int,int> pii;
+typedef vector<pii> vpii;
+
+const int mod=1000000007;
+
+struct edge
+{
+	int to,next;
+	ll key;
+}e[400010];
+
+bool v[100010];
+ll s[64][2];
+int cnt,g[100010][64][2],head[100010];
+ll d[100];
+int num[100];
+
+void push(int k,int x,int y,ll z)
+{
+	e[k].to=y;e[k].key=z;e[k].next=head[x];head[x]=k;
+}
+
+void dfs(int k,int pre)
+{
+	int p=head[k];v[k]=1;
+	for (int i=0;i<60;i++) {g[k][i][0]=1;g[k][i][1]=0;}
+	while (p)
+	{
+		if (!v[e[p].to])
+		{
+			d[e[p].to]=d[k]^e[p].key;
+			dfs(e[p].to,p);
+			for (int i=0;i<60;i++)
+			{
+				bool t=bool(e[p].key&(1ll<<i));
+				s[i][0]+=ll(g[k][i][0])*(g[e[p].to][i][t])+ll(g[k][i][1])*g[e[p].to][i][t^1];
+				s[i][1]+=ll(g[k][i][1])*(g[e[p].to][i][t])+ll(g[k][i][0])*g[e[p].to][i][t^1];
+				g[k][i][0]+=g[e[p].to][i][t];
+				g[k][i][1]+=g[e[p].to][i][t^1];
+			}
+		}
+		else
+			if (p!=(pre^1))
+			{
+				ll t=e[p].key^d[k]^d[e[p].to];
+				for (int i=1;i<=cnt;i++) if (t&(1ll<<num[i])) t^=d[i];
+				if (t) {d[++cnt]=t;for (int j=0;j<60;j++) if (t&(1ll<<j)) num[cnt]=j;}
+			}
+		p=e[p].next;
+	}
+}
+
+int main()
+{
+	#ifndef ONLINE_JUDGE
+		freopen("input.txt","r",stdin);
+		freopen("output.txt","w",stdout);
+	#endif
+	int n,m;scanf("%d%d",&n,&m);
+	for (int i=1;i<=m;i++)
+	{
+		int x,y;ll z;scanf("%d%d%I64d",&x,&y,&z);
+		push(2*i,x,y,z);push(2*i+1,y,x,z);
+	}
+	int ans=0;
+	memset(v,0,sizeof(v));
+	for (int i=1;i<=n;i++)
+		if (!v[i])
+		{
+			memset(s,0,sizeof(s));
+			cnt=0;d[i]=0;
+			dfs(i,-1);
+			for (int j=0;j<60;j++)
+			{
+				bool ok=0;
+				for (int k=1;k<=cnt;k++) if (d[k]&(1ll<<j)) ok=1;
+				int t0,t1;
+				if (ok) t0=t1=(1ll<<(cnt-1))%mod; else {t0=(1ll<<cnt)%mod;t1=0;}
+				int tmp=(s[j][0]%mod*t1+s[j][1]%mod*t0)%mod*((1ll<<j)%mod)%mod;
+				ans=(ans+tmp)%mod;
+			}
+		}
+	printf("%d\n",ans);
+	return 0;
+}

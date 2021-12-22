@@ -1,0 +1,78 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<ll, ll> pii;
+const int MAXN = 25, MAXF = 19;	//max factorial
+
+int N, K;
+ll S, A[MAXN];
+ll fact[MAXF];
+map<ll, map<int, ll> > lt, rt;	//map[sum][fact] = # of ways
+
+void rec (map<ll, map<int, ll> > &v, int a, int b, int u, ll s) {
+	if (s > S || u > K) {
+		return;
+	}
+	if (a == b) {
+		v[s][u]++;
+		return;
+	}
+	//factorial
+	ll x = A[a];
+	if (x < MAXF) {
+		rec(v, a + 1, b, u + 1, s + fact[x]);
+	}
+	//choose it, but don't fact it
+	rec(v, a + 1, b, u, s + x);
+	//don't choose it
+	rec(v, a + 1, b, u, s);
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> K >> S;
+	for (int i = 0; i < N; i++) {
+		cin >> A[i];
+	}
+	fact[0] = 1;
+	for (int i = 1; i < MAXF; i++) {
+		fact[i] = fact[i - 1] * i;
+	}
+	//ok let's do the half thingy shit
+	int half = (N + 1) / 2;
+	//ok let's merge those two
+	rec(lt, 0, half, 0, 0);
+	rec(rt, half, N, 0, 0);
+	ll ans = 0;
+	for (auto &it : lt) {
+		ll s = it.first, t = S - s;
+		if (!rt.count(t)) {
+			continue;
+		}
+		map<int, ll> &mpl = it.second, &mpr = rt[t];
+		for (auto &i : mpl) {
+			int u = i.first;
+			ll w = i.second;
+			for (auto &j : mpr) {
+				if (u + j.first > K) {
+					break;
+				}
+				ans += w * j.second;
+			}
+		}
+	}
+	cout << ans << endl;
+}

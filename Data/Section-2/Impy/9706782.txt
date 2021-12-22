@@ -1,0 +1,177 @@
+uses math;
+var A:array[0..4,0..1001,0..1001] of longint;
+    MP:array[1..4] of record x,y:longint; end;
+    L1,L2,M1,M2:array[1..1000] of longint;
+    i,j,c,ii,jj,n,m,q,k,qq,mx,c1,c2,count,l,r,h:longint;
+function norm(i,n:longint):boolean;
+begin
+ if (i>0)and(i<=n) then norm:=true;
+end;
+begin
+// assign(input,'input.txt'); reset(input);
+ read(n,m,q);
+ MP[1].x:=1; MP[1].y:=0;
+ MP[2].x:=0; MP[2].y:=1;
+ MP[3].x:=-1; MP[3].y:=0;
+ MP[4].x:=0; MP[4].y:=-1;
+ for i:=1 to n do
+  for j:=1 to m do
+  begin
+   read(A[0][i,j]);
+  { if A[0][i,j]=1 then
+    for k:=1 to 4 do
+     begin
+     ii:=i; jj:=j;
+      while norm(ii,n) and norm(jj,m) and (A[0][ii,jj]=1) do
+       begin
+        A[k][ii,jj]:=A[k][ii-MP[k].x,jj-MP[k].y]+1;
+        inc(ii,MP[k].x); inc(jj,MP[k].y);
+       end;
+     end;}
+  end; 
+  i:=1;
+  while i<=n do
+   begin
+    j:=1;
+    while j<=m do
+     begin
+      c:=0;
+      while (j<=n) and (A[0][i,j]=1) do begin inc(c); inc(j) end;
+      for k:=c downto 1 do
+       begin
+        A[4][i,j-c+k-1]:=k;
+        A[2][i,j-k]:=k;
+       end;
+      inc(j);
+     end;
+    inc(i);
+   end;
+  j:=1;
+  while j<=m do
+   begin
+    i:=1;
+    while i<=n do
+     begin
+      c:=0;
+      while (i<=m) and (A[0][i,j]=1) do begin inc(c); inc(i) end;
+      for k:=c downto 1 do
+       begin
+        A[3][i-c+k-1,j]:=k;
+        A[1][i-k,j]:=k;
+       end;
+      inc(i);
+     end;
+    inc(j);
+   end;
+ { for i:=1 to n do
+  begin
+   for j:=1 to m do
+    write('[',A[1,i,j],' ',A[2,i,j],' ',A[3,i,j],' ',A[4,i,j],']');
+  writeln;
+  end;}
+ for qq:=1 to q do
+  begin
+   readln(h,i,j);
+   if h=1 then
+    begin
+     if A[0][i,j]=0 then
+     begin
+     A[0][i,j]:=1;
+      for k:=1 to 4 do
+      begin
+       ii:=i; jj:=j;
+       while norm(ii,n) and norm(jj,m) and (A[0][ii,jj]=1) do
+        begin
+         A[k][ii,jj]:=A[k][ii-MP[k].x,jj-MP[k].y]+1;
+         inc(ii,MP[k].x); inc(jj,MP[k].y);
+        end;
+     end;
+     end else
+      begin
+       A[0][i,j]:=0;
+       for k:=1 to 4 do
+       begin
+        A[k][i,j]:=0;
+        ii:=i; jj:=j;
+        inc(ii,MP[k].x); inc(jj,MP[k].y);
+        while norm(ii,n) and norm(jj,m) and (A[0][ii,jj]=1) do
+         begin
+          A[k][ii,jj]:=A[k][ii-MP[k].x,jj-MP[k].y]+1;
+          inc(ii,MP[k].x); inc(jj,MP[k].y);
+         end;
+       end
+      end;  
+      {    for i:=1 to n do
+  begin
+   for j:=1 to m do
+    write('[',A[1,i,j],' ',A[2,i,j],' ',A[3,i,j],' ',A[4,i,j],']');
+  writeln;
+  end;
+   }
+    end;
+   if h=2 then 
+    begin
+     mx:=0;
+     for k:=1 to 4 do
+      begin
+        ii:=i; jj:=j;
+        c1:=1; M1[c1]:=A[k][i,j]; count:=1;
+        while norm(ii,n) and norm(jj,m) and (A[0][ii,jj]=1) do
+         begin
+          if A[k][ii,jj]<M1[c1] then  
+           begin
+            L1[c1]:=count-1;
+            inc(c1);
+            M1[c1]:=A[k][ii,jj];
+           end;
+          inc(count);
+          inc(ii,MP[(k mod 4)+1].x); inc(jj,MP[(k mod 4)+1].y);
+         end;
+         L1[c1]:=count-1;
+         M1[c1+1]:=0;
+        ii:=i; jj:=j;
+        c2:=1; M2[c2]:=A[k][i,j]; count:=1;
+        while norm(ii,n) and norm(jj,m) and (A[0][ii,jj]=1) do
+         begin
+          if A[k][ii,jj]<M2[c2] then  
+           begin
+            L2[c2]:=count-1;
+            inc(c2);
+            M2[c2]:=A[k][ii,jj];
+           end;
+          inc(count);
+          dec(ii,MP[(k mod 4)+1].x); dec(jj,MP[(k mod 4)+1].y);
+         end;
+         L2[c2]:=count-1;
+         M2[c2+1]:=0;
+        { for ii:=1 to c1 do
+         write(M1[ii],'-',L1[ii],' ');
+        write('/\ ');
+        for ii:=1 to c2 do
+         write(M2[ii],'-',L2[ii],' ');
+        writeln;}
+         for ii:=1 to c1 do
+          begin
+           l:=1; r:=c2+1;
+           while (r-l>1) do
+            if M2[(l+r)div 2]<M1[ii] then r:=(l+r) div 2 else l:=((l+r) div 2);
+            if M2[r]>=M1[ii] then l:=r;
+//           writeln(M1[ii],' ',L1[ii]+L2[l]-1);
+           mx:=max(mx,M1[ii]*(L1[ii]+L2[l]-1)); 
+          end;
+         for ii:=1 to c2 do
+          begin
+           l:=1; r:=c1+1;
+           while (r-l>1) do
+            if M1[(l+r)div 2]<M2[ii] then r:=(l+r) div 2 else l:=((l+r) div 2);
+            if M1[r]>=M2[ii] then l:=r;
+//           while (l<r) do
+//            if M1[(l+r)div 2]<M2[ii] then r:=(l+r) div 2 else l:=((l+r) div 2)+1;
+//           writeln(M2[ii],' ',L2[ii]+L1[l]-1);
+           mx:=max(mx,M2[ii]*(L2[ii]+L1[l]-1)); 
+          end;
+      end;
+      writeln(mx);
+    end;
+  end;
+end.

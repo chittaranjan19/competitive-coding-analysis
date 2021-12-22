@@ -1,0 +1,106 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <string>
+#include <cstdlib>
+#include <algorithm>
+#include <queue>
+#define ll long long
+#define MAXN 1003
+#define MAXM 40004
+using namespace std; 
+const int INF = 0x3f3f3f3f;
+int dir[4][2]={1, 0, -1, 0, 0, 1, 0, -1};
+
+int n, m;
+struct point{
+	int x, y, cnt;
+	friend bool operator < (point a, point b){
+		return a.cnt > b.cnt;
+	}
+}s,e;
+int c[MAXN][MAXN];
+char g[MAXN][MAXN];
+bool vis[MAXN][MAXN];
+priority_queue<point> q;
+void fun(int x, int y, int cnt){
+	if (x < 0 || x >= n || y < 0 || y >= m)	return ;
+	if (vis[x][y] || g[x][y] == '*')	return ;
+	point t;
+	t.x = x;
+	t.y = y;
+	t.cnt = cnt+1;
+	q.push(t);
+	vis[x][y] = true;
+	return ;
+}
+int bfs(){
+	while(!q.empty())q.pop();
+	q.push(s);
+	point t1, t2;
+	int x, y, cnt, len;
+	while(!q.empty()){
+		len = q.size();
+		t1 = q.top();
+		q.pop();
+		if (t1.x == e.x && t1.y == e.y){
+			return t1.cnt;
+		}
+		x = t1.x;
+		y = t1.y;
+		cnt = t1.cnt;
+		len = q.size();
+		switch(g[x][y]){
+			case '+': fun(x+1, y, cnt); fun(x-1, y, cnt); fun(x, y+1, cnt); fun(x, y-1, cnt); break;
+			case '-': fun(x, y+1, cnt); fun(x, y-1, cnt); break;
+			case '|': fun(x+1, y, cnt); fun(x-1, y, cnt); break;
+			case '^': fun(x-1, y, cnt); break;
+			case '>': fun(x, y+1, cnt); break;
+			case '<': fun(x, y-1, cnt); break;
+			case 'v': fun(x+1, y, cnt); break;
+			case 'L': fun(x, y+1, cnt); fun(x+1, y, cnt); fun(x-1, y, cnt); break;
+			case 'R': fun(x, y-1, cnt); fun(x+1, y, cnt); fun(x-1, y, cnt); break;
+			case 'U': fun(x, y-1, cnt); fun(x, y+1, cnt); fun(x+1, y, cnt); break;
+			case 'D': fun(x, y-1, cnt); fun(x, y+1, cnt); fun(x-1, y, cnt); break;
+		}
+		len = q.size();
+		if (c[t1.x][t1.y] < 4){
+			switch(g[t1.x][t1.y]){
+				case '-': g[t1.x][t1.y] = '|'; t1.cnt++; q.push(t1); c[t1.x][t1.y]++; break;
+				case '|': g[t1.x][t1.y] = '-'; t1.cnt++; c[t1.x][t1.y]++; q.push(t1); break;
+				case '^': g[t1.x][t1.y] = '>'; t1.cnt++; c[t1.x][t1.y]++; q.push(t1); break;
+				case '>': g[t1.x][t1.y] = 'v'; t1.cnt++; c[t1.x][t1.y]++; q.push(t1); break;
+				case '<': g[t1.x][t1.y] = '^'; t1.cnt++; c[t1.x][t1.y]++; q.push(t1); break;
+				case 'v': g[t1.x][t1.y] = '<'; t1.cnt++; c[t1.x][t1.y]++; q.push(t1); break;
+				case 'L': g[t1.x][t1.y] = 'U'; t1.cnt++; c[t1.x][t1.y]++; q.push(t1); break;
+				case 'R': g[t1.x][t1.y] = 'D'; t1.cnt++; c[t1.x][t1.y]++; q.push(t1); break;
+				case 'U': g[t1.x][t1.y] = 'R'; t1.cnt++; c[t1.x][t1.y]++; q.push(t1); break;
+				case 'D': g[t1.x][t1.y] = 'L'; t1.cnt++; c[t1.x][t1.y]++; q.push(t1); break;
+			}
+		}
+		len = q.size();
+	}
+	return -1;
+}
+int main(){
+#ifndef ONLINE_JUDGE
+//	freopen("1.txt", "r", stdin);
+#endif
+	int i, j, k, t;
+	scanf("%d%d", &n, &m);
+	memset(vis, 0, sizeof(vis));
+	memset(c, 0, sizeof(c));
+	for (i = 0;  i < n; i++){
+		scanf("%s", g[i]);
+	}
+	scanf("%d%d", &s.x, &s.y);
+	s.x--;
+	s.y--;
+	s.cnt = 0;
+	scanf("%d%d", &e.x, &e.y);
+	e.x--;
+	e.y--;
+	printf("%d", bfs());
+	return 0;
+}

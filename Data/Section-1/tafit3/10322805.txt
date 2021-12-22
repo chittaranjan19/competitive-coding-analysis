@@ -1,0 +1,108 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemB {
+    BufferedReader rd;
+
+    private ProblemB() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int n = pint();
+        NavigableMap<Long, Set<Long>> m = new TreeMap<>();
+        NavigableSet<Long> toVisit = new TreeSet<>();
+        for(int i=0;i<n;i++) {
+            long[] a = longarr();
+            long a1 = a[0] - a[1];
+            long a2 = a[0] + a[1];
+            Set<Long> p = m.get(a1);
+            if(p == null) {
+                p = new HashSet<>();
+                m.put(a1,p);
+            }
+            p.add(a2);
+            toVisit.add(a1);
+            toVisit.add(a2);
+        }
+        long max = 0;
+        Map<Long, Long> byIndex = new HashMap<>();
+        while(!toVisit.isEmpty()) {
+            long v = toVisit.first();
+            toVisit.remove(v);
+
+            Long curMax = byIndex.remove(v);
+            if(curMax != null) {
+                max = Math.max(curMax, max);
+            }
+
+            Set<Long> nextSet = m.get(v);
+            if(nextSet != null) {
+                for(Long next: nextSet) {
+                    Long cur = byIndex.get(next);
+                    if(cur == null) {
+                        byIndex.put(next, max+1);
+                    } else {
+                        byIndex.put(next, Math.max(cur, max+1));
+                    }
+                }
+            }
+        }
+        out(max);
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    private String[] split(String s) {
+        int n = s.length();
+        int sp = 0;
+        for(int i=0;i<n;i++) {
+            if(s.charAt(i)==' ') {
+                sp++;
+            }
+        }
+        String[] res = new String[sp+1];
+        int last = 0;
+        int x = 0;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(c == ' ') {
+                res[x++] = s.substring(last,i);
+                last = i+1;
+            }
+        }
+        res[x] = s.substring(last,n);
+        return res;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB();
+    }
+}

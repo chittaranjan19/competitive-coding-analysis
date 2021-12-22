@@ -1,0 +1,108 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int par[509],arr[509],dp[504][504],n,m,way[504][504],res[509];
+int CEP,SAG,pos;
+int rec(int x,int y){
+	if(x==CEP and y==SAG)
+		return 1;
+	int &ret=dp[x][y];
+	if(~ret)
+		return ret;ret=0;
+	if(x>CEP and par[y]-par[x-1]>arr[x-1])
+		ret|=rec(x-1,y);
+	if(ret){
+		way[x][y]=1;
+		return ret;
+	}	
+	if(y<SAG and par[y]-par[x-1]>arr[y+1])
+		ret|=rec(x,y+1);
+	way[x][y]=2;	
+	return ret;	
+}
+void go(int x,int y){
+	if(x==CEP and y==SAG)
+		return;
+	if(way[x][y]==1){
+		printf("%d L\n",pos);pos--;
+		go(x-1,y);
+	}	
+	else{
+		printf("%d R\n",pos);
+		go(x,y+1);
+	}
+}
+void no(){
+	printf("NO\n");
+	exit(0);
+}
+int main(){
+	memset(dp,-1,sizeof dp);
+	scanf("%d",&n);
+	for(int i=1;i<=n;i++){
+		scanf("%d",arr+i);
+		par[i]=par[i-1]+arr[i];
+	}		
+	scanf("%d",&m);
+	vector<PII>v;int last=1;
+	for(int i=1;i<=m;i++){
+		int x;
+		scanf("%d",&x);
+		if(last>n)
+			no();
+		int sum=0;
+		for(int j=last;j<=n;j++){
+			sum+=arr[j];
+			if(sum>x)
+				no();
+			if(sum==x){
+				v.pb(mp(last,j));
+				last=j+1;
+				break;
+			}	
+		}
+		if(sum<x)
+			no();
+	}
+	if(v.back().ss<n)
+		no();
+	for(int i=0;i<int(v.size());i++){
+		CEP=v[i].ff;
+		SAG=v[i].ss;
+		int flag=0;
+		for(int j=CEP;j<=SAG;j++){
+			flag|=rec(j,j);
+			if(flag){
+				res[i]=j;
+				break;
+			}
+		}
+		if(!flag)
+			no();
+	}
+	printf("YES\n");
+	int far=0;
+	for(int i=0;i<int(v.size());i++){
+		CEP=v[i].ff;
+		SAG=v[i].ss;
+		pos=i+(res[i]-far);
+		go(res[i],res[i]);
+		far+=SAG;
+	}
+	return 0;
+}

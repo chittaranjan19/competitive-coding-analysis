@@ -1,0 +1,141 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+const int MAXN = 50010;
+
+#define fi first
+#define se second
+#define all(v) (v).begin(), (v).end()
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+
+int N;
+int A[MAXN];
+vector<int> vals;
+vector<int> prefs[MAXN];
+int L, R;
+vector<int> adj[MAXN];
+int rev[32 * MAXN], match[MAXN], dist[MAXN];
+bool use[MAXN], vis[MAXN];
+
+void bfs() {
+	fillchar(dist, -1);
+	static queue<int> que;
+	for (int i = 0; i < L; i++) {
+		if (!use[i]) {
+			que.push(i);
+			dist[i] = 0;
+		}
+	}
+	while (!que.empty()) {
+		int u = que.front();
+		que.pop();
+		for (int foo : adj[u]) {
+			int v = rev[foo];
+			if (v != -1 && dist[v] == -1) {
+				dist[v] = dist[u] + 1;
+				que.push(v);
+			}
+		}
+	}
+}
+
+bool dfs (int x) {
+	vis[x] = true;
+	for (int v : adj[x]) {
+		int m = rev[v];
+		if (m == -1 || (!vis[m] && dist[m] == dist[x] + 1 && dfs(m))) {
+			//m = -1: happy to assign you for first time
+			//otherwise: happy to change REV-matching thru augmenting path
+			rev[v] = x;
+			match[x] = v;
+			use[x] = true;
+			return true;
+		}
+	}
+	return false;
+}
+
+int max_match() {
+	fillchar(use, 0);
+	fillchar(vis, 0);
+	fillchar(rev, -1);
+	fillchar(match, -1);
+	int res = 0;
+	while (true) {
+		bfs();
+		fillchar(vis, false);
+		int f = 0;
+		for (int i = 0; i < L; i++) {
+			f += (!use[i] && dfs(i));
+		}
+
+		if (f) {
+			res += f;
+		} else {
+			break;
+		}
+	}
+	return res;
+}
+
+bool moo (int ind) {
+	for (int i = 0; i < N; i++) {
+		adj[i].clear();
+		for (int p : prefs[i]) {
+			if (p < ind) {
+				//printf("%d -> %d\n", i, p);
+				adj[i].push_back(p);
+			} else {
+				break;
+			}
+		}
+	}
+
+	int mtch = max_match();
+	/*
+	printf("mtch %d\n", mtch);
+	for (int i = 0; i < N; i++) {
+		printf("match[%d] = %d\n", i, match[i]);
+	}
+	*/
+
+	return mtch == N;
+}
+
+int main() {
+	scanf("%d", &N);
+	for (int i = 0; i < N; i++) {
+		scanf("%d", &A[i]);
+		for (int j = A[i]; j; j /= 2) {
+			vals.push_back(j);
+		}
+	}
+
+	sort(all(vals));
+	vals.resize(unique(all(vals)) - vals.begin());
+	L = N;
+	R = vals.size();
+
+	for (int i = 0; i < N; i++) {
+		for (int j = A[i]; j; j /= 2) {
+			prefs[i].push_back(lower_bound(all(vals), j) - vals.begin());
+		}
+		reverse(all(prefs[i]));
+	}
+
+	assert(moo(vals.size()));
+	int lo = 0, hi = vals.size();
+	while (hi - lo > 1) {
+		int mid = (lo + hi) / 2;
+		if (moo(mid)) {
+			hi = mid;
+		} else {
+			lo = mid;
+		}
+	}
+
+	assert(moo(hi));
+	for (int i = 0; i < N; i++) {
+		printf("%d ", vals[match[i]]);
+	}
+}

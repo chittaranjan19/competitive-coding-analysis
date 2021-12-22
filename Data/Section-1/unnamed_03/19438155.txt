@@ -1,0 +1,81 @@
+#include<cstdio>
+#include<cstring>
+#include<iostream>
+#include<cmath>
+#include<algorithm>
+#include<queue>
+using namespace std;
+char g[1010][1010];int n,m;
+int d[4][1010][1010];
+int dx[4]={0,0,1,-1};
+int dy[4]={-1,1,0,0};
+bool vis [1010][1010];
+int dist[4][4];
+queue <pair<int,int> > q;
+void work(int k)
+{
+	memset(vis,0,sizeof(vis));
+	for(int i=1;i<=n;i++)
+	for(int j=1;j<=m;j++)
+	if(g[i][j]-'0'==k)
+	q.push(make_pair(i,j)),
+	vis[i][j]=1,d[k][i][j]=0;
+	else d[k][i][j]=99999999;
+	while(!q.empty())
+	{
+		pair<int,int> buf=q.front();q.pop();
+		int x=buf.first,y=buf.second;
+//		cout<<x<<" "<<y<<" "<<d[k][x][y]<<endl;
+		for(int i=0;i<4;i++)
+		{
+			int nx=x+dx[i],ny=y+dy[i];
+			if(nx<1||ny<1||nx>n||ny>m)continue;
+			if(g[nx][ny]=='#'||vis[nx][ny])continue;
+			vis[nx][ny]=1;d[k][nx][ny]=d[k][x][y]+1;
+			q.push(make_pair(nx,ny));
+			if(g[nx][ny]>='1'&&g[nx][ny]<='3')
+			{
+				int j=g[nx][ny]-'0';
+//				cout<<"&&"<<nx<<" "<<ny<<" "<<g[nx][ny]<<endl;
+				dist[j][k]=min(dist[j][k],d[k][nx][ny]);
+			}
+		}
+	}
+//	cout<<dist[1][k]<<" "<<dist[2][k]<<" "<<dist[3][k]<<endl;
+//	system("pause");
+	return ;
+}
+int main()
+{
+	cin>>n>>m;
+	for(int i=1;i<=n;i++)
+	for(int j=1;j<=m;j++)
+	scanf(" %c",&g[i][j]);
+	
+/*	for(int i=1;i<=n;i++)
+	{
+		for(int j=1;j<=m;j++)
+		cout<<g[i][j];
+		cout<<endl;
+	}*/
+	for(int i=1;i<=3;i++)
+	for(int j=1;j<=3;j++)
+	if(i==j)dist[i][j]=0;
+	else dist[i][j]=99999999;
+	work(1),work(2),work(3);
+	int ans=min((dist[1][2]+dist[2][3],dist[1][3]+dist[2][3]),dist[1][2]+dist[1][3])-2;
+//	cout<<dist[1][2]<<" "<<dist[1][3]<<" "<<dist[2][3]<<endl; 
+//	cout<<ans<<endl;
+	if(ans>99999990)
+	{
+		cout<<-1<<endl;
+		return 0;
+	}
+	for(int i=1;i<=n;i++)
+	for(int j=1;j<=m;j++)
+	if(g[i][j]=='.')
+	ans=min(ans,d[1][i][j]+d[2][i][j]+d[3][i][j]-2);
+//	cout<<i<<" "<<j<<d[1][i][j]<<" "<<d[2][i][j]<<" "<<d[3][i][j]<<endl;
+	cout<<ans<<endl;
+	return 0;
+} 

@@ -1,0 +1,63 @@
+#include <cstdio>
+#include <vector>
+#include <ctime>
+#include <cstdlib>
+using namespace std;
+const int MX=100100;
+int n,m,i,j,le,ri,h,x,y,t,cst,ct[MX],st[MX],a[MX],s[MX],c[MX],r[MX],r2[MX];
+vector<pair<int,int> > g[MX];
+int main() {
+  scanf("%d",&n);
+  //srand(time(0));
+  //n=rand()%1000;
+  //printf("%d\n",n);
+  for (i=1; i<=n; i++) {
+    scanf("%d",&a[i]);
+    //a[i]=rand()%100;
+    //printf("%d \n",a[i]);
+    s[i]=s[i-1]+a[i];
+  }
+  //puts("");
+  scanf("%d",&m);
+  for (i=1; i<=m; i++) {
+    scanf("%d%d",&x,&y);
+    g[y].push_back(make_pair(x,i));
+  }
+  //for (i=1; i<=n; i++) for (j=1; j<=i; j++) g[i].push_back(make_pair(j,++m));
+  for (i=1; i<=n; i++) {
+    while (t>0 && a[st[t]]>=a[i]) {
+      if (ct[cst]==t) cst--;
+      t--;
+    }
+    st[++t]=i;
+    //for (int ii=1; ii<=t; ii++) printf("%d, ",st[ii]); puts(" st");
+    while (cst>0) {
+      j=st[ct[cst]];
+      c[t]=(s[i]-s[j]+(j-i)*a[j]+a[i]-a[j]-1)/(a[i]-a[j])-i;
+      if (c[ct[cst]]<=c[t]) cst--; else break;
+    }
+    if (cst==0) c[t]=2100000000;
+    /*if (t>1) {
+      j=st[t-1];
+      c[t]=(s[i]-s[j]+(j-i)*a[j]+a[i]-a[j]-1)/(a[i]-a[j])-i;
+    } else c[t]=2100000000;
+    while (cst>0 && c[ct[cst]]<=c[t]) cst--;*/
+    ct[++cst]=t;
+    //for (int ii=1; ii<=cst; ii++) printf("%d(%d), ",ct[ii],c[ct[ii]]); puts(" ct");
+    for (j=0; j<g[i].size(); j++) {
+      x=g[i][j].first;
+      le=1; ri=cst;
+      while (le<ri) {
+        h=(le+ri)/2+1;
+        if (c[ct[h]]>x-i) le=h; else ri=h-1;
+      }
+      y=st[ct[ri]];
+      r[g[i][j].second]=s[i]-s[y]+(x-i+y)*a[y];
+      r2[g[i][j].second]=x*a[i];
+      for (int jj=0; i-jj>0 && jj<=x; jj++) r2[g[i][j].second]=min(r2[g[i][j].second],s[i]-s[i-jj]+(x-jj)*a[i-jj]);
+    }
+  }
+  for (i=1; i<=m; i++) printf("%d\n",r[i]);
+  //if (r[i]!=r2[i]) r[i]/=0;
+  return 0;
+}

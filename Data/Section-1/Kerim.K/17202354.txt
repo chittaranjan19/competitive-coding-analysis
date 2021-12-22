@@ -1,0 +1,77 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define f(x,y,z) mp(x,mp(y,z))
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int R[MAXN],C[MAXN],ans[1009][1009];
+set<PII>s,t,RR[1009],CC[1009];
+void oper(){
+	tr(it,s)
+		RR[it->ff].insert(*it),CC[it->ss].insert(*it);
+	while(s.size()>0){
+		queue<PII>q;int mx=0;
+		vector<PII>table;
+		q.push(*s.begin());
+		while(!q.empty()){
+			PII k=q.front();q.pop();
+			table.pb(k);
+			RR[k.ff].erase(k);
+			CC[k.ss].erase(k);
+			s.erase(k);
+			umax(mx,max(R[k.ff],C[k.ss]));
+			tr(it,RR[k.ff])
+				q.push(*it);
+			tr(it,CC[k.ss])
+				q.push(*it);	
+		}
+		tr(it,table){
+			ans[it->ff][it->ss]=mx+1;
+			umax(R[it->ff],mx+1);
+			umax(C[it->ss],mx+1);
+			//umax(val,mx+1);
+		}
+	}
+}
+int main(){
+	int n,m,x;
+	scanf("%d%d",&n,&m);
+	vector<pair<int,PII> >v;
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++){
+			scanf("%d",&x);
+			v.pb(f(x,i,j));
+		}
+	sort(all(v));
+	for(int i=0;i<v.size();i++){
+		s.insert(mp(v[i].ss.ff,v[i].ss.ss));
+		if(i<v.size()-1 and v[i].ff!=v[i+1].ff){
+			oper();
+			s.clear();
+		}
+	}
+	if(s.size()>0)
+		oper();
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=m;j++)
+			printf("%d ",ans[i][j]);
+		printf("\n");	
+	}
+//	printf("Max value %d\n",val);
+	return 0;
+}

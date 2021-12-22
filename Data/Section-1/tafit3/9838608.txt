@@ -1,0 +1,120 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
+
+public class ProblemC {
+    BufferedReader rd;
+
+    private ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        Map<Integer, Node> nodeMap = new HashMap<>();
+        int[] a = intarr();
+        int n = a[0];
+        int m = a[1];
+        for(int i=0;i<n;i++) {
+            String s = rd.readLine();
+            Node node = nodeMap.get(s.length());
+            if(node == null) {
+                node = new Node();
+            }
+            nodeMap.put(s.length(), node);
+            for(char c: s.toCharArray()) {
+                if(node.next == null) {
+                    node.next = new Node[3];
+                }
+                int ix = c-'a';
+                Node nextNode = node.next[ix];
+                if(nextNode == null) {
+                    nextNode = new Node();
+                    node.next[ix] = nextNode;
+                }
+                node = nextNode;
+            }
+        }
+        for(int i=0;i<m;i++) {
+            String s = rd.readLine();
+            Node node = nodeMap.get(s.length());
+            boolean res = false;
+            if(node != null) {
+                res = check(s.toCharArray(), 0, node, true);
+            }
+            out(res?"YES":"NO");
+        }
+    }
+
+    private boolean check(char[] c, int from, Node node, boolean firstRun) {
+        for(int i=from;i<c.length;i++) {
+            int ix = c[i]-'a';
+            if(node.next[ix] == null) {
+                if(firstRun) {
+                    char d = c[i];
+                    for(char n='a';n<='c';n++) {
+                        if(n!=d) {
+                            c[i] = n;
+                            if(check(c,i,node,false)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+            node = node.next[ix];
+        }
+        return !firstRun;
+    }
+
+    private class Node {
+        Node[] next;
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private String[] split(String s) {
+        int n = s.length();
+        int sp = 0;
+        for(int i=0;i<n;i++) {
+            if(s.charAt(i)==' ') {
+                sp++;
+            }
+        }
+        String[] res = new String[sp+1];
+        int last = 0;
+        int x = 0;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(c == ' ') {
+                res[x++] = s.substring(last,i);
+                last = i+1;
+            }
+        }
+        res[x] = s.substring(last,n);
+        return res;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

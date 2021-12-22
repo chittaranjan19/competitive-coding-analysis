@@ -1,0 +1,83 @@
+import java.io.BufferedInputStream;
+import java.util.*;
+
+/**
+ * Created by leen on 16/10/2016.
+ */
+public class _731C {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024 * 74));
+
+        int n = scan.nextInt(), m = scan.nextInt(), k = scan.nextInt();
+
+        Node[] nodes = new Node[n];
+
+        for(int i = 0; i < n; i++)
+            nodes[i] = new Node(i, scan.nextInt());
+
+        for(int i = 0; i < m; i++) {
+            Node n1 = nodes[scan.nextInt()-1], n2 = nodes[scan.nextInt()-1];
+            n1.neighbours.add(n2);
+            n2.neighbours.add(n1);
+        }
+
+        int numChanges = 0;
+
+        for(int i = 0; i < n; i++) {
+            Node node = nodes[i];
+            if(node.visited)
+                continue;
+
+            Map<Integer,Integer> color2num = new HashMap<Integer, Integer>();
+            dfs(node, color2num);
+            int maxColorNum = -1;
+
+            int totalNum = color2num.remove(0);
+
+            for(int num : color2num.values()) {
+                if(num > maxColorNum)
+                    maxColorNum = num;
+            }
+
+            numChanges += totalNum - maxColorNum;
+        }
+
+        System.out.println(numChanges);
+
+    }
+
+    static void dfs(Node node, Map<Integer, Integer> color2num) {
+        node.visited = true;
+
+        Integer num1 = color2num.get(node.color);
+        if(num1 == null)
+            num1 = 0;
+        color2num.put(node.color, num1+1);
+
+        Integer num2 = color2num.get(0);
+        if(num2 == null)
+            num2 = 0;
+        color2num.put(0, num2+1);
+
+
+        for(Node next : node.neighbours) {
+            if(next.visited)
+                continue;
+            dfs(next, color2num);
+        }
+    }
+
+
+    static class Node {
+        int color;
+        int index;
+        boolean visited;
+
+        List<Node> neighbours = new ArrayList<Node>();
+
+        Node(int index, int color) {
+            this.index = index;
+            this.color = color;
+        }
+    }
+}

@@ -1,0 +1,72 @@
+#include <fstream>
+#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <cmath>
+#include <complex>
+#include <map>
+#include <set>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MN = 200;
+
+vector<pii> e;
+int mt;
+int d[MN];
+
+bool check(int l)
+{
+    memset(d, 0, MN * sizeof(int));
+    set<pii> ue;
+    int i = 0;
+    for (int t = 0; t < mt; ++t)
+    {
+        while (!ue.empty() && ue.begin()->first == t)
+            ue.erase(ue.begin());
+        while (i < e.size() && e[i].first == t)
+        {
+            ue.insert(make_pair(e[i].second, i));
+            i++;
+        }
+        if (!ue.empty())
+        {
+            d[ue.begin()->second]++;
+            if (d[ue.begin()->second] >= l)
+                ue.erase(ue.begin());
+        }
+    }
+    for (int i = 0; i < e.size(); ++i)
+    {
+        if (d[i] < l)
+            return false;
+    }
+    return true;
+}
+
+int bs(int l, int r)
+{
+    if (l == r)
+        return l;
+    int m = (l + r + 1) / 2;
+    if (check(m))
+        return bs(m, r);
+    else
+        return bs(l, m - 1);
+}
+
+int main()
+{
+    int n;
+    cin >> n;
+    e.resize(n);
+    for (int i = 0; i < n; ++i)
+    {
+        cin >> e[i].first >> e[i].second;
+        mt = max(mt, e[i].second);
+    }
+    sort(e.begin(), e.end());
+    cout << bs(0, 10005) * n;
+}

@@ -1,0 +1,109 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+
+int n,m;
+LL arr[1000005];
+vector<LL> temp;
+
+LL check(LL pos)
+{
+    int L = 0,R = n-1;
+    while(R - L > 1)
+    {
+        int mid = L + (R - L) / 2;
+        if(arr[mid] > pos)
+            R = mid;
+        else L = mid;
+    }
+    if(arr[L] > pos)
+    {
+        if(arr[L-1] == pos)
+            R = L,L-=2;
+        else R = L,L--;
+    }
+    else if(arr[L] == pos)
+    {
+        L--;
+        R = L + 2;
+    }
+    LL res=0;
+    if(L >= 0)
+    {
+        for(int i=L-m+1;;i-=m)
+        {
+            if(i <= 0)
+            {
+                res+=abs(pos - arr[0]) * 2;
+                break;
+            }
+            res+=abs(pos - arr[i]) * 2;
+        }
+    }
+    if(R < n)
+    {
+        for(int i=R+m-1;;i+=m)
+        {
+            if(i >= n-1)
+            {
+                res+=abs(pos - arr[n-1]) * 2;
+                break;
+            }
+            res+=abs(pos - arr[i]) * 2;
+        }
+    }
+    return res;
+}
+
+int main()
+{
+    cin >> n >> m;
+    for(int i=0;i<n;i++)
+        scanf("%I64d",&arr[i]);
+    temp.push_back(arr[0]);
+    for(int i=1;i<n;i++)
+    {
+        if(abs(arr[i] - arr[i-1]) > 1)
+            temp.push_back(arr[i] - 1);
+        if(arr[i] != arr[i-1])
+            temp.push_back(arr[i]);
+    }
+    int L = 0,R = temp.size() - 1;
+    while(R - L > 2)
+    {
+        int m1 = L + (R - L) / 3,m2 = L + 2 * (R - L) / 3;
+        if(check(temp[m1]) > check(temp[m2]))
+            L = m1;
+        else R = m2;
+    }
+    printf("%I64d",min(min(check(temp[L]),check(temp[R])),check(temp[(R+L)/2])));
+    return 0;
+}

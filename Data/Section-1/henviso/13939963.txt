@@ -1,0 +1,66 @@
+#include <iostream>
+#include <queue>
+#include <cstring>
+#include <cstdio>
+#define INF 0x3f3f3f3f
+#define REP(i, n) for(int i = 0; i<n; i++)
+
+using namespace std;
+
+typedef pair<int, int> ii;
+
+int n, m;
+char a[1100][1100];
+vector<ii> g[1100];
+int dr[] = {-1, 0, 0, 1};
+int dc[] = {0, -1, 1, 0};
+
+int dijkstra(int s, int t){
+    priority_queue<ii, vector<ii>, greater<ii> > q;
+    vector<int> d(n*m+1, INF);
+    q.push(ii(s, 0)); d[s] = 0;
+    while(!q.empty()){
+        int v = q.top().first; 
+        int w = q.top().second; q.pop();
+        if(d[v] == w){
+            for(int i = 0; i<g[v].size(); i++){
+                int y = g[v][i].first;
+                int wy = g[v][i].second;
+                if(d[y] > d[v] + wy){
+                    d[y] = d[v] + wy;
+                    q.push(ii(y, d[v]+wy));
+                }   
+            }
+        }
+    }
+    return d[t];
+}
+
+int main(){
+    scanf(" %d %d ", &n, &m);
+    
+    int tag[5];
+    
+    REP(i, n)
+    REP(j, m){
+        scanf(" %c ", &a[i][j]);
+        if(a[i][j] == '1') tag[0] = i*n + j;
+        else if(a[i][j] == '2') tag[1] = i*n + j;
+        else if(a[i][j] == '3') tag[2] = i*n + j;   
+    }
+    REP(i, n){
+        REP(j, m){
+            REP(k, 4){
+                int r = i+dr[k], c = j+dc[k];
+                if(a[i][j] != '#' && r >= 0 && c >= 0 && r<n && c < m && a[r][c] != '#'){
+                    int v = i*n+j, w = r*n+c;
+                    g[v].push_back(ii(w, (a[i][j] == '.')));
+                }
+            }
+        }
+    }
+    int a = dijkstra(tag[0], tag[1]), b = dijkstra(tag[1], tag[2]), c = dijkstra(tag[2], tag[0]);
+    int ans = min(min(a+b, a+c), (b+c));
+    if(ans >= INF) printf("-1\n");
+    else printf("%d\n", ans);
+}

@@ -1,0 +1,103 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1000010;
+const ll llim = -1ll<<50;
+const ll rlim = 1ll<<50;
+
+int ft[maxn], n;
+ll arr[maxn];
+
+void update(int idx, int val)
+{
+	while(idx<maxn){
+		ft[idx]+=val;
+		idx+=(idx&(-idx));
+	}
+}
+
+int read(int idx)
+{
+	ll ret = 0;
+	while(idx>0){
+		ret+=ft[idx];
+		idx-=(idx&(-idx));
+	}
+	return ret;
+}
+
+vector<ll> compress;
+
+ll count(ll val)
+{
+	compress.clear();
+	int i, j, ind;
+	ll temp1, temp2, ret = 0;
+	temp1 = 0;
+	temp2 = val;
+	for(i=1; i<=n; i++){
+		temp1+=arr[i];
+		if(temp2+arr[i]<=rlim && temp2+arr[i]>=llim)
+			temp2+=arr[i];
+		compress.pb(temp1);
+		compress.pb(temp2);
+	}
+	compress.pb(val);
+	sort(all(compress));
+	temp1 = 0;
+	for(i=1; i<=n; i++){
+		temp1+=arr[i];
+		ind = (lower_bound(all(compress), temp1) - compress.begin())+1;
+		update(ind, 1);
+	}
+	temp1 = 0;
+	temp2 = val;
+	for(i=1; i<=n; i++){
+		ind = (lower_bound(all(compress), temp2) - compress.begin())+1;
+		ret+=(read(maxn-1)-read(ind-1));
+		if(temp2+arr[i]<=rlim && temp2+arr[i]>=llim)
+			temp2+=arr[i];
+		temp1+=arr[i];
+		ind = (lower_bound(all(compress), temp1) - compress.begin())+1;
+		update(ind, -1);
+	}
+	return ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j;
+	ll k, lo, mid, hi;
+	scanf("%d%lld", &n, &k);
+	for(i=1; i<=n; i++)
+		scanf("%lld", &arr[i]);
+	lo = llim;
+	hi = rlim;
+	while(lo<hi){
+		mid = (lo+hi)>>1;
+		if((lo+hi)%2)
+			mid++;
+		if(count(mid)>=k)
+			lo = mid;
+		else
+			hi = mid-1;
+	}
+	printf("%lld\n", lo);
+	return 0;
+}

@@ -1,0 +1,89 @@
+/*
+ID: qiealex1
+PROG: friday
+LANG: C++
+*/
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
+
+using namespace std;
+
+int max_score(const vector<int> v1, const vector<int> v2){
+    //vector<vector<int>> s;
+    int n = v1.size();
+    //for (size_t i = 0; i < n; ++i)
+        //s.push_back(vector<int>(n));
+
+    int** s = new int*[n];
+    for (int i = 0; i < n; ++i)
+        s[i] = new int[n];
+
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < n; ++j)
+            s[i][j] = 0;
+
+    for (int i = 1; i < n; ++i)
+        s[i][i] = v1[i] * v2[i - 1];
+
+
+    for (int l = 2; l < n; ++l){
+        for (int i = 1; i < n - l + 1; ++i){
+            int j = i + l - 1;
+            for (int k = i; k <= j; ++k){
+                int cur_score = v1[k] * v2[k - 1];
+                int low = k - 2;
+                if (k - 1 > 0 && v2[k - 1] - v2[k - 2] != 1)
+                    low = k - 1;
+                if (low >= i)
+                    cur_score += s[i][low];
+
+                int up = k + 2;
+                if (k - 1 < n - 2 && v2[k] - v2[k - 1] != 1)
+                    up = k + 1;
+                if (up <= j)
+                    cur_score += s[up][j];
+                s[i][j] = max(s[i][j], cur_score);
+            }
+            //cout << i << " " << j << " " << s[i][j] << endl;
+        }
+    }
+
+    return s[1][n - 1];
+}
+
+int main()
+{
+    int n;
+    cin >> n;
+    vector<int> v1(n);
+    int max_num = 0;
+    for (int i = 0; i < n; ++i){
+        cin >> v1[i];
+        max_num = max(v1[i], max_num);
+    }
+    vector<int> v2(v1);
+    sort(v2.begin(), v2.end());
+    v2.erase(unique(v2.begin(), v2.end()), v2.end());
+    map<int, int> m;
+    for (int i = 0; i < v2.size(); ++i)
+        m[v2[i]] = i + 1;
+
+    //cout << max_num << endl;
+    vector<int> v(v2.size() + 1, 0);
+    for (int i = 0; i < n; ++i)
+        v[m[v1[i]]]++;
+
+    /*
+    for (int i = 0 ; i < v.size(); ++i)
+        cout << v[i] << " ";
+    cout << endl;
+
+    for (int i = 0 ; i < v2.size(); ++i)
+        cout << v2[i] << " ";
+    cout << endl << endl;
+    */
+    cout << max_score(v, v2) << endl;
+
+}

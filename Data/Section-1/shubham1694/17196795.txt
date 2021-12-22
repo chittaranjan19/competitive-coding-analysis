@@ -1,0 +1,134 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1000010;
+
+int ok, cnt, moves, flip;
+string temp, t1, t2;
+
+void euclid(int a, int b)
+{
+    if(min(a, b)==0 && max(a, b)==1){
+        ok = 1;
+        return;
+    }
+    if(min(a, b)==0){
+        ok = 0;
+        return;
+    }
+    if(a>b){
+        moves+=(a/b);
+        cnt+=((a/b)-1);
+        euclid(a%b, b);
+    }
+    else{
+        moves+=(b/a);
+        cnt+=((b/a)-1);
+        euclid(a, b%a);
+    }
+}
+
+void generate(int a, int b)
+{
+    if(a==1 && b==1){
+        temp+='T';
+        return;
+    }
+    if(a>b){
+        temp+='T';
+        generate(a-b, b);
+    }
+    else{
+        temp+='B';
+        generate(a, b-a);
+    }
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int n, r, i, j, mcnt = inf, ind, c1, c2;
+    scanf("%d%d", &n, &r);
+    for(i=1; i<=r; i++){
+        ok = cnt = moves = 0;
+        euclid(r, i);
+        if(moves!=n || !ok)
+            continue;
+        if(mcnt > cnt){
+            mcnt = cnt;
+            ind = i;
+        }
+    }
+    if(mcnt==inf){
+        printf("IMPOSSIBLE\n");
+        return 0;
+    }
+    flip = 0;
+    temp = "";
+    generate(ind, r);
+    reverse(all(temp));
+    if(n>=2){
+        if(temp[n-1]==temp[n-2]){
+            if(temp[n-1]=='T')
+                temp[n-1] = 'B';
+            else
+                temp[n-1] = 'T';
+        }
+    }
+    t1 = temp;
+    c1 = 0;
+    for(i=0; i<n; ){
+        j = i;
+        while(j<n){
+            if(temp[j]!=temp[i])
+                break;
+            j++;
+        }
+        c1+=(j-i-1);
+        i = j;
+    }
+    temp = "";
+    generate(r, ind);
+    reverse(all(temp));
+    if(n>=2){
+        if(temp[n-1]==temp[n-2]){
+            if(temp[n-1]=='T')
+                temp[n-1] = 'B';
+            else
+                temp[n-1] = 'T';
+        }
+    }
+    t2 = temp;
+    c2 = 0;
+    for(i=0; i<n; ){
+        j = i;
+        while(j<n){
+            if(temp[j]!=temp[i])
+                break;
+            j++;
+        }
+        c2+=(j-i-1);
+        i = j;
+    }
+    printf("%d\n", min(c1, c2));
+    if(c1<c2)
+        cout << t1 << "\n";
+    else
+        cout << t2 << "\n";
+    return 0;
+}

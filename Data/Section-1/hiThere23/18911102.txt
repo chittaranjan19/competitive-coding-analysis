@@ -1,0 +1,322 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define maxC 15000000000000005ll
+#define mn 100005
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+#define top mp(maxC, maxC)
+
+using namespace std;
+int n, q;
+long long pow42[] = {1ll, 42ll, 1764ll, 74088ll, 3111696ll, 130691232ll, 5489031744ll,
+230539333248ll, 9682651996416ll, 406671383849472ll, 17080198121677824ll, 717368321110468608ll};
+
+struct valTree
+{
+    long long a[mn], f[mn << 2];
+
+    void pushVal(int id)
+    {
+        f[id << 1] = min(maxC, f[id << 1] + f[id]);
+        f[(id << 1) + 1] = min(maxC, f[(id << 1) + 1] + f[id]);
+        f[id] = 0;
+    }
+
+    void plusVal(int l, int r, int id, int x, int y, long long v)
+    {
+        if (l > y || r < x)
+            return;
+        if (x <= l && r <= y)
+        {
+            f[id] = min(maxC, f[id] + v);
+            return;
+        }
+        pushVal(id);
+        int g = ((l + r) >> 1);
+        plusVal(l, g, id << 1, x, y, v);
+        plusVal(g + 1, r, (id << 1) + 1, x, y, v);
+    }
+
+    void setVal(int l, int r, int id, int x, long long v)
+    {
+        if (l > x || r < x)
+            return;
+        if (l == r)
+        {
+            a[l] = v;
+            f[id] = 0;
+            return;
+        }
+        pushVal(id);
+        int g = ((l + r) >> 1);
+        setVal(l, g, id << 1, x, v);
+        setVal(g + 1, r, (id << 1) + 1, x, v);
+    }
+
+    long long getVal(int l, int r, int id, int x)
+    {
+        if (l > x || r < x)
+            return 0;
+        if (l == r)
+            return a[x] + f[id];
+        pushVal(id);
+        int g = ((l + r) >> 1);
+        return getVal(l, g, id << 1, x) + getVal(g + 1, r, (id << 1) + 1, x);
+    }
+} vT;
+
+struct markTree
+{
+    int tree[mn << 2], f[mn << 2];
+
+    int build(int l, int r, int id)
+    {
+        f[id] = -1;
+        if (l == r)
+            return tree[id] = 1;
+        int g = ((l + r) >> 1);
+        return tree[id] = build(l, g, id << 1) + build(g + 1, r, (id << 1) + 1);
+    }
+
+    void push(int l, int r, int id)
+    {
+        if (f[id] != -1)
+        {
+            int g = ((l + r) >> 1);
+            tree[id << 1] = (f[id]? g - l + 1 : 0);
+            tree[(id << 1) + 1] = (f[id]? r - g : 0);
+            f[id << 1] = f[(id << 1) + 1] = f[id];
+            f[id] = -1;
+        }
+    }
+
+    void update(int l, int r, int id, int x, int y, int v)
+    {
+        if (l > y || r < x)
+            return;
+        if (x <= l && r <= y)
+        {
+            tree[id] = v * (r - l + 1);
+            f[id] = v;
+            return;
+        }
+        push(l, r, id);
+        int g = ((l + r) >> 1);
+        update(l, g, id << 1, x, y, v);
+        update(g + 1, r, (id << 1) + 1, x, y, v);
+        tree[id] = tree[id << 1] + tree[(id << 1) + 1];
+    }
+
+    int get(int l, int r, int id, int x)
+    {
+        if (l > x)
+            return 0;
+        if (r <= x)
+            return tree[id];
+        push(l, r, id);
+        int g = ((l + r) >> 1);
+        return get(l, g, id << 1, x) + get(g + 1, r, (id << 1) + 1, x);
+    }
+
+    int findVal(int l, int r, int id, int v)
+    {
+        if (l == r)
+            return l;
+        push(l, r, id);
+        int g = ((l + r) >> 1);
+        if (v <= tree[id << 1])
+            return findVal(l, g, id << 1, v);
+        return findVal(g + 1, r, (id << 1) + 1, v - tree[id << 1]);
+    }
+} mT;
+
+int close(long long x)
+{
+    int l = -1, r = 11;
+    while(r - l > 1)
+    {
+        int g = ((l + r) >> 1);
+        if (pow42[g] >= x)
+            r = g;
+        else
+            l = g;
+    }
+    //cout << "find " << x << ' ' << pow42[r] << '\n';
+    return r;
+}
+
+struct difTree
+{
+    pair<long long, int> maxDif[mn << 2];
+    long long f[mn << 2];
+    int po[mn];
+
+    pair<long long, int> build(int l, int r, int id)
+    {
+        if (l == r)
+        {
+            maxDif[id].F = vT.a[l] - pow42[po[l] = close(vT.a[l])];
+            maxDif[id].S = l;
+            return maxDif[id];
+        }
+        int g = ((l + r) >> 1);
+        return maxDif[id] = max(build(l, g, id << 1), build(g + 1, r, (id << 1) + 1));
+    }
+
+    void push(int id)
+    {
+        maxDif[id << 1].F += f[id];
+        maxDif[(id << 1) + 1].F += f[id];
+        f[id << 1] += f[id];
+        f[(id << 1) + 1] += f[id];
+        f[id] = 0;
+    }
+
+    void plusDif(int l, int r, int id, int x, int y, long long v)
+    {
+        if (l > y || r < x)
+            return;
+        if (x <= l && r <= y)
+        {
+            maxDif[id].F = min(maxDif[id].F + v, maxC);
+            f[id] = min(f[id] + v, maxC);
+            return;
+        }
+        push(id);
+        int g = ((l + r) >> 1);
+        plusDif(l, g, id << 1, x, y, v);
+        plusDif(g + 1, r, (id << 1) + 1, x, y, v);
+        maxDif[id] = max(maxDif[id << 1], maxDif[(id << 1) + 1]);
+    }
+
+    void resetPoint(int l, int r, int id, int x)
+    {
+        if (l > x || r < x)
+            return;
+        if (l == r)
+        {
+            long long val = maxDif[id].F + pow42[po[l]];
+            maxDif[id].F = val - pow42[po[l] = close(val)];
+            return;
+        }
+        push(id);
+        int g = ((l + r) >> 1);
+        resetPoint(l, g, id << 1, x);
+        resetPoint(g + 1, r, (id << 1) + 1, x);
+        maxDif[id] = max(maxDif[id << 1], maxDif[(id << 1) + 1]);
+    }
+
+    void resetPoint(int l, int r, int id, int x, long long val)
+    {
+        if (l > x || r < x)
+            return;
+        if (l == r)
+        {
+            maxDif[id].F = val - pow42[po[l] = close(val)];
+            return;
+        }
+        push(id);
+        int g = ((l + r) >> 1);
+        resetPoint(l, g, id << 1, x, val);
+        resetPoint(g + 1, r, (id << 1) + 1, x, val);
+        maxDif[id] = max(maxDif[id << 1], maxDif[(id << 1) + 1]);
+    }
+} dT;
+
+void setup()
+{
+    cin >> n >> q;
+    FOR(i, 1, n)
+        cin >> vT.a[i];
+    mT.build(1, n, 1);
+    dT.build(1, n, 1);
+}
+
+long long restore(int x)
+{
+    int num = mT.get(1, n, 1, x);
+    int pos = mT.findVal(1, n, 1, num);
+    long long re = vT.getVal(1, n, 1, pos);
+    if (pos != x)
+    {
+        vT.setVal(1, n, 1, x, re);
+        mT.update(1, n, 1, x, x, 1);
+    }
+    return re;
+}
+
+void querry1()
+{
+    int x;
+    cin >> x;
+    cout << restore(x) << '\n';
+}
+
+void querry2()
+{
+    int x, y;
+    long long v;
+    cin >> x >> y >> v;
+    restore(y + 1);
+    dT.plusDif(1, n, 1, x + 1, y, maxC);
+    mT.update(1, n, 1, x + 1, y, 0);
+    vT.setVal(1, n, 1, x, v);
+    dT.resetPoint(1, n, 1, x, v);
+    mT.update(1, n, 1, x, x, 1);
+}
+
+void querry3()
+{
+    int x, y;
+    long long v;
+    cin >> x >> y >> v;
+    long long total = v;
+    restore(x);
+    restore(y + 1);
+    dT.plusDif(1, n, 1, x, y, v);
+    while(dT.maxDif[1].F >= 0)
+    {
+        //cout << dT.maxDif[1].F << ' ' << dT.maxDif[1].S << '\n';
+        if (dT.maxDif[1].F > 0)
+        {
+            int x = dT.maxDif[1].S;
+            dT.resetPoint(1, n, 1, x);
+        }
+        else
+        {
+            dT.plusDif(1, n, 1, x, y, v);
+            total += v;
+        }
+    }
+    vT.plusVal(1, n, 1, x, y, total);
+}
+
+void xuly()
+{
+    int type;
+    FOR(i, 1, q)
+    {
+        cin >> type;
+        if (type == 1)
+            querry1();
+        if (type == 2)
+            querry2();
+        if (type == 3)
+            querry3();
+    }
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    //freopen("FILE.INP", "r", stdin);
+    //freopen("FILE.OUT", "w", stdout);
+    setup();
+    xuly();
+    return 0;
+}

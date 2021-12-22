@@ -1,0 +1,50 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 200000 + 5;
+const ll INF = 1LL << 61;
+
+priority_queue<ll> pque[5];
+ll sum[5];
+int a[maxn];
+
+ll cal(ll x, int m, bool flag, int b, int c)
+{
+    if(flag) return (m - x - 4) / 5 * b + ((m - x) % 5 + 5) % 5 * c;
+    return -x;
+}
+
+int main()
+{
+    int n, k, b, c;
+    scanf("%d%d%d%d", &n, &k, &b, &c);
+    bool flag = b < 5 * c;
+    ll ans = INF;
+    for(int i = 0; i < n; ++i)
+    {
+        scanf("%d", &a[i]);
+        a[i] += 1e9;
+    }
+    sort(a, a + n);
+    for(int i = 0; i < n; ++i)
+    {
+        for(int j = a[i]; j < a[i] + 5; ++j)
+        {
+            int m = (j % 5 + 5) % 5;
+            ll tmp = cal(a[i], m, flag, b, c);
+            pque[m].push(tmp);
+            sum[m] += tmp;
+            if(pque[m].size() > k)
+            {
+                sum[m] -= pque[m].top();
+                pque[m].pop();
+            }
+            if(pque[m].size() == k) ans = min(ans, 1LL * j / 5 * k * b + sum[m]);
+        }
+    }
+    printf("%I64d\n", ans);
+    return 0;
+}

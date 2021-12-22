@@ -1,0 +1,60 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+class FT {
+private:
+	int size;
+	int ft[1000013];
+public:
+	FT(int s=0) {
+		size = s;
+		fill(ft,ft+size+1,0);
+	}
+	void update(int a) { while (a<=size) ft[a]+=1, a+=a&(-a); }
+	int query(int a) {
+		a-=1;
+		int res = 0;
+		while (a>0) res-=ft[a], a-=a&(-a);
+		a = size;
+		while (a>0) res+=ft[a], a-=a&(-a);
+		return res;
+	}
+};
+
+int n;
+int w[4013];
+int h[4013];
+FT tree;
+vector<int> order;
+
+bool byW(int a, int b) { return w[a]>w[b]; }
+
+int main() {
+	scanf("%d",&n);
+	for (int i=0;i<n;i++) {
+		scanf("%d%d",&w[i],&h[i]);
+		if (w[i]>h[i]) swap(w[i],h[i]);
+		order.push_back(i);
+	}
+	sort(order.begin(),order.end(),byW);
+	tree = FT(1000000);
+	long long ans = 0;
+	int height = 0, width = 0;
+	for (int i: order) {
+		int a = w[i];
+		tree.update(h[i]);
+		for (int j=0;j<n;j++) {
+			int b = h[j];
+			long long cur = (long long) tree.query(b)*a*b;
+			if (cur>ans) {
+				ans = cur;
+				height = a;
+				width = b;
+			}
+		}
+	}
+	printf("%lld\n",ans);
+	printf("%d %d\n",height,width);
+
+	return 0;
+}

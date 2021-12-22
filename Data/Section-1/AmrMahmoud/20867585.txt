@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<pair<int, int> > tree[100005];
+pair<int, int> DP[200005];
+bool v[200005];
+
+const int b1 = 29, m1 = mod;
+const int b2 = 31, m2 = mod + 2;
+
+pair<int, int> solve(int node, int parent, int id)
+{
+  pair<int, int> &temp = DP[id];
+  if(v[id]) return temp;
+  v[id] = true;
+  vector<pair<int, int> > v;
+  for(auto p : tree[node])
+  {
+    if(parent == p.f) continue;
+    v.pb(solve(p.f, node, p.s));
+  }
+  temp = mp(1, 1);
+  sort(v.begin(), v.end());
+  for(int i=0;i<v.size();i++)
+  {
+    temp.f = (temp.f * 1LL * b1 + v[i].f) % m1;
+    swap(v[i].f, v[i].s);
+  }
+  sort(v.begin(), v.end());
+  for(int i=0;i<v.size();i++)
+    temp.s = (temp.s * 1LL * b2 + v[i].f) % m2;
+  return temp;
+}
+
+int main()
+{
+  int n, x, y;
+  cin >> n;
+  for(int i=0;i<n-1;i++)
+  {
+    scanf("%d %d", &x, &y);
+    tree[x].pb(mp(y, i*2));
+    tree[y].pb(mp(x, i*2+1));
+  }
+  set<pair<int, int> > s;
+  for(int i=1;i<=n;i++)
+  {
+    if(tree[i].size() == 4) continue;
+    vector<pair<int, int> > v;
+    for(auto p : tree[i])
+      v.pb(solve(p.f, i, p.s));
+    pair<int, int> temp = mp(1, 1);
+    sort(v.begin(), v.end());
+    for(int i=0;i<v.size();i++)
+    {
+      temp.f = (temp.f * 1LL * b1 + v[i].f) % m1;
+      swap(v[i].f, v[i].s);
+    }
+    sort(v.begin(), v.end());
+    for(int i=0;i<v.size();i++)
+      temp.s = (temp.s * 1LL * b2 + v[i].f) % m2;
+    s.insert(temp);
+  }
+  cout << s.size();
+  return 0;
+}

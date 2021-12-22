@@ -1,0 +1,130 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemC {
+    BufferedReader rd;
+
+    ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int n = a[0];
+        int x1 = a[1];
+        int y1 = a[2];
+        int x2 = a[3];
+        int y2 = a[4];
+        int[][] c = new int[n][];
+        for(int i=0;i<n;i++) {
+            c[i] = intarr();
+        }
+        NavigableMap<Double, List<Integer>> f = new TreeMap<>();
+        double[] f2 = new double[n];
+        for(int i=0;i<n;i++) {
+            f2[i] = dist(x2,y2,c[i][0],c[i][1]);
+            double d = dist(x1,y1,c[i][0],c[i][1]);
+            List<Integer> u = f.get(d);
+            if(u == null) {
+                u = new ArrayList<>();
+                f.put(d, u);
+            }
+            u.add(i);
+        }
+        Set<Integer> rest = new HashSet<>();
+        for(int i=0;i<n;i++) {
+            rest.add(i);
+        }
+        double min = 1e20;
+        for(Map.Entry<Double, List<Integer>> e: f.entrySet()) {
+            rest.removeAll(e.getValue());
+            double v = 0;
+            for(Integer r: rest) {
+                v = Math.max(v, f2[r]);
+            }
+            double u = e.getKey();
+            min = Math.min(min, u*u + v*v);
+        }
+        out(min);
+    }
+
+    private double dist(double x1, double y1, double x2, double y2) {
+        double dx = Math.abs(x1 - x2);
+        double dy = Math.abs(y1 - y2);
+        return Math.floor(Math.sqrt(dx*dx + dy*dy)*1e10)/1e10;
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

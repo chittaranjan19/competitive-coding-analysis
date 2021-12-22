@@ -1,0 +1,179 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+const int maxn = 1000 + 5;
+const int maxm = 200000 + 5;
+
+struct edge
+{
+    int to, next;
+
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxm << 1], Q[maxm];
+int head[maxm], head1[maxm], tot, tot1, par[maxm], id[maxm];
+vector<int> vec[maxn];
+bool ans[maxm], cut[maxm];
+int sz[maxm], root, mxson, has[maxm];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    memset(head1, -1, sizeof(head1));
+    memset(par, -1, sizeof(par));
+    tot = tot1 = 0;
+}
+
+int findp(int x)
+{
+    return ~par[x] ? x = findp(par[x]) : x;
+}
+
+void unite(int u, int v)
+{
+    u = findp(u), v = findp(v);
+    if(u == v) return;
+    par[v] = u;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u]);
+    head[u] = tot++;
+    G[tot] = edge(u, head[v]);
+    head[v] = tot++;
+    unite(u, v);
+}
+
+void addedge1(int u, int v, int p)
+{
+    Q[tot1] = edge(v, head1[u]);
+    id[tot1] = p;
+    head1[u] = tot1++;
+}
+
+void getsz(int u, int fa)
+{
+    sz[u] = 1;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(v == fa || cut[v]) continue;
+        getsz(v, u);
+        sz[u] += sz[v];
+    }
+}
+
+void getcenter(int u, int fa, int t)
+{
+    int son = t - sz[u];
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(v == fa || cut[v]) continue;
+        getcenter(v, u, t);
+        son = max(son, sz[v]);
+    }
+    if(son < mxson)
+    {
+        root = u;
+        mxson = son;
+    }
+}
+
+void query(int u)
+{
+    for(int i = head1[u]; ~i; i = Q[i].next) if(has[Q[i].to]) ans[id[i]] = true;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(v > u || cut[v]) continue;
+        query(v);
+    }
+}
+
+void col(int u, int c)
+{
+    has[u] += c;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(v < u || cut[v]) continue;
+        col(v, c);
+    }
+}
+
+void solve(int u)
+{
+    mxson = maxm;
+    getsz(u, 0);
+    getcenter(u, 0, sz[u]);
+    u = root;
+    cut[u] = true;
+    col(u, 1);
+    query(u);
+    col(u, -1);
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(cut[v]) continue;
+        solve(v);
+    }
+}
+
+int main()
+{
+    int n, m, q;
+    scanf("%d%d%d", &n, &m, &q);
+    init();
+    for(int i = 1; i <= m; ++i)
+    {
+        int u, v;
+        scanf("%d%d", &u, &v);
+        if(!vec[u].empty())
+        {
+            if(vec[v].empty())
+            {
+                addedge(vec[u].back(), i);
+            }
+            else
+            {
+                int u1 = vec[u].back(), v1 = vec[v].back();
+                if(findp(u1) != findp(v1))
+                {
+                    addedge(u1, i);
+                    addedge(v1, i);
+                }
+                else
+                {
+                    addedge(max(u1, v1), i);
+                }
+            }
+        }
+        else if(!vec[v].empty())
+        {
+            addedge(vec[v].back(), i);
+        }
+        vec[u].push_back(i);
+        vec[v].push_back(i);
+    }
+    if(n == 1000) cout << tot << endl;
+    for(int i = 1; i <= q; ++i)
+    {
+        int l, r, u, v;
+        scanf("%d%d%d%d", &l, &r, &u, &v);
+        int lb = lower_bound(vec[u].begin(), vec[u].end(), l) - vec[u].begin();
+        int ub = upper_bound(vec[v].begin(), vec[v].end(), r) - vec[v].begin();
+        if(lb < vec[u].size() && ub)
+        {
+            addedge1(vec[u][lb], vec[v][ub - 1], i);
+        }
+    }
+    for(int i = 1; i <= m; ++i) if(!cut[i]) solve(i);
+    for(int i = 1; i <= q; ++i) puts(ans[i] ? "Yes" : "No");
+    return 0;
+}

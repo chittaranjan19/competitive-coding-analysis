@@ -1,0 +1,241 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD2 {
+    BufferedReader rd;
+    Map<Integer, Map<Integer, Integer>> rm = new HashMap<>();
+    private int[] yk = new int[] { 1, 0, 2 };
+
+    ProblemD2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] q = intarr();
+        int n = q[0];
+        long costRem = q[1];
+        long costChange = q[2];
+        int[] a = intarr();
+        List<List<Map<Integer, Integer>>> s = new ArrayList<>(n);
+        for(int i=0;i<n;i++) {
+            List<Map<Integer, Integer>> x = new ArrayList<>();
+            s.add(x);
+            for(int j=-1;j<=1;j++) {
+                x.add(getPrimeDivisors(a[i] + j));
+            }
+        }
+        Set<Integer> z = new HashSet<>();
+        for(List<Map<Integer, Integer>> x: new List[] { s.get(0), s.get(n-1) }) {
+            for(Map<Integer, Integer> u: x) {
+                z.addAll(u.keySet());
+            }
+        }
+        int[] cost = new int[n];
+        long min = Long.MAX_VALUE;
+        for(Integer p: z) {
+            long leftCost = 0;
+            int left = 0;
+            int lowx = -1;
+            int highx = -1;
+            while(left < n) {
+                cost[left] = c(s.get(left), p);
+                if(cost[left] < 0) {
+                    break;
+                } else if(cost[left] > 0) {
+                    leftCost += costChange;
+                    if(lowx == -1) {
+                        lowx = left;
+                    }
+                    highx = left;
+                }
+                left++;
+            }
+            if(left < n) {
+                int right = n-1;
+                long rightCost = 0;
+                while(right > left) {
+                    cost[right] = c(s.get(right), p);
+                    if(cost[right] < 0) {
+                        break;
+                    } else if(cost[right] > 0) {
+                        rightCost += costChange;
+                    }
+                    right--;
+                }
+                if(left > 0 || right < n-1) {
+                    long minLeft = leftCost;
+                    long cur = leftCost;
+                    for (int i = left - 1; i >= 0; i--) {
+                        cur += costRem;
+                        if (cost[i] == 1) {
+                            cur -= costChange;
+                        }
+                        minLeft = Math.min(minLeft, cur);
+                    }
+                    long minRight = rightCost;
+                    cur = rightCost;
+                    for (int i = right + 1; i < n; i++) {
+                        cur += costRem;
+                        if (cost[i] == 1) {
+                            cur -= costChange;
+                        }
+                        minRight = Math.min(minRight, cur);
+                    }
+                    min = Math.min(min, minLeft + minRight + (right - left + 1) * costRem);
+                }
+            } else if(lowx != -1) {
+                long minCost = leftCost;
+                long beforeCost = 0;
+                long afterCost = leftCost;
+                int from = lowx;
+                int to = lowx;
+                while(from <= highx) {
+                    if(to <= highx) {
+                        long cn = beforeCost + afterCost - cost[to]*costChange + (to + 1 - from)*costRem;
+                        if(cn <= minCost) {
+                            afterCost -= cost[to]*costChange;
+                            to++;
+                            minCost = cn;
+                        } else if(from < to) {
+                            beforeCost += cost[from]*costChange;
+                            from++;
+                            cn = beforeCost + afterCost + (to - from)*costRem;
+                            minCost = Math.min(minCost, cn);
+                        } else {
+                            afterCost -= cost[to]*costChange;
+                            to++;
+                            cn = beforeCost + afterCost + (to - from)*costRem;
+                            minCost = Math.min(minCost, cn);
+                        }
+                    } else {
+                        beforeCost += cost[from]*costChange;
+                        from++;
+                        long cn = beforeCost + afterCost + (to - from)*costRem;
+                        minCost = Math.min(minCost, cn);
+                    }
+                }
+                min = Math.min(min, minCost);
+            } else {
+                min = 0;
+                break;
+            }
+        }
+        out(min);
+    }
+
+    private int c(List<Map<Integer, Integer>> x, Integer p) {
+        for(int i: yk) {
+            if(x.get(i).containsKey(p)) {
+                return i==1?0:1;
+            }
+        }
+        return -1;
+    }
+
+    private Map<Integer,Integer> getPrimeDivisors(int n) {
+        Map<Integer, Integer> m = rm.get(n);
+        if(m == null) {
+            int on = n;
+            m = new HashMap<>();
+            int p = 2;
+            int s = (int) Math.round(Math.floor(Math.sqrt(n)));
+            while (n > 1 && p <= s) {
+                while ((n % p) == 0) {
+                    inc(m, p);
+                    n /= p;
+                }
+                s = (int) Math.round(Math.floor(Math.sqrt(n)));
+                if (p == 2) {
+                    p++;
+                } else {
+                    p += 2;
+                }
+            }
+            if (n > 1) {
+                inc(m, n);
+            }
+            rm.put(on, m);
+        }
+        return m;
+    }
+
+    private void inc(Map<Integer, Integer> map, int key) {
+        Integer value = map.get(key);
+        value = value == null ? 1 : value+1;
+        map.put(key, value);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD2();
+    }
+}

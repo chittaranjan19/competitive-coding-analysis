@@ -1,0 +1,108 @@
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <vector>
+#include <set>
+#include <algorithm>
+#include <iomanip>
+#include <map>
+#include <cmath>
+#include <queue>
+using namespace std;
+
+typedef long long ll;
+ 
+
+#if _DEBUG
+#include <fstream>
+ifstream cin ("input.txt");
+ofstream cout("output.txt");
+#else
+#include <iostream>
+#endif
+
+const ll MOD = 1e9 + 7, x1 = 5, x2 = 17;
+
+set <ll> ss1, ss2;
+
+
+const int sz = 300002;
+ll power1[sz], power2[sz];
+
+int main() {
+	int n, m;
+	cin >> n >> m;
+	power1[0] = 1;
+	power2[0] = 1;
+	for(int i = 1; i < 300002; i++) {
+		power1[i] = (power1[i - 1] * x1) % MOD;
+		power2[i] = (power2[i - 2] * x2) % MOD;
+	}
+	for(int i = 0; i < n; i++) {
+		string s;
+		cin >> s;
+		ll h1 = 0, h2 = 0;
+		for(int j = 0; j < s.size(); j++) {
+			h1 = h1 * x1 + (s[j] - 'a' + 1);
+			h1 %= MOD;
+			h2 = h2 * x2 + (s[j] - 'a' + 1);
+			h2 %= MOD;
+		}
+		for(int j = 0; j < s.size(); j++) {
+			ll h_now1 = h1, h_now2 = h1;
+			if(s[j] == 'a') {
+				h_now1 += power1[s.size() - j - 1];
+				h_now2 += power1[s.size() - j - 1] * 2;
+			}
+			if(s[j] == 'b') {
+				h_now1 += MOD;
+				h_now1 -= power1[s.size() - j - 1];
+				h_now2 += power1[s.size() - j - 1];
+			}
+			if(s[j] == 'c') {
+				h_now1 += MOD;
+				h_now2 += 2 * MOD;
+				h_now1 -= power1[s.size() - j - 1];
+				h_now2 -= power1[s.size() - j - 1] * 2;
+			}
+			ss1.insert(h_now1 % MOD);
+			ss1.insert(h_now2 % MOD);
+			h_now1 = h2, h_now2 = h2;
+			if(s[j] == 'a') {
+				h_now1 += power2[s.size() - j - 1];
+				h_now2 += power2[s.size() - j - 1] * 2;
+			}
+			if(s[j] == 'b') {
+				h_now1 += MOD;
+				h_now1 -= power2[s.size() - j - 1];
+				h_now2 += power2[s.size() - j - 1];
+			}
+			if(s[j] == 'c') {
+				h_now1 += MOD;
+				h_now2 += 2 * MOD;
+				h_now1 -= power2[s.size() - j - 1];
+				h_now2 -= power2[s.size() - j - 1] * 2;
+			}
+			ss2.insert(h_now1 % MOD);
+			ss2.insert(h_now2 % MOD);
+		}
+	}
+	for(int i = 0; i < m; i++) {
+		string s;
+		cin >> s;
+		ll h1 = 0, h2 = 0;
+		for(int j = 0; j < s.size(); j++) {
+			h1 = h1 * x1 + (s[j] - 'a' + 1);
+			h1 %= MOD;
+			h2 = h2 * x2 + (s[j] - 'a' + 1);
+			h2 %= MOD;
+		}
+		if(ss1.find(h1) != ss1.end() && ss2.find(h2) != ss2.end()) {
+			cout << "YES\n";
+		} else {
+			cout << "NO\n";
+		}
+	}
+
+    return 0;
+}

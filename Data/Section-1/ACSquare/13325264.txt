@@ -1,0 +1,91 @@
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+using namespace std;
+const int MAX_n = 1000,MAX_m = 10,MAX_s = 10;
+const int MOD = 1e9 + 9,MAX_STATE = MAX_m*(MAX_s+1);
+const char AGCT[] = "AGCT";
+int n,m;
+string s[MAX_m];
+
+bool tail[MAX_STATE];
+int trans[MAX_STATE][4];
+int dp[MAX_n+1][MAX_STATE][MAX_s+1];//dp[i][j][k]长度为i,状态为j,末尾未匹配数为k的字符串总数
+
+int solve()
+{
+    vector<string> pfx;
+    for(int i = 0;i < m; ++i)
+        for(int j = 0; j <= s[i].length(); ++j)
+            pfx.push_back(s[i].substr(0,j));
+    
+    sort(pfx.begin(),pfx.end());
+    pfx.erase(unique(pfx.begin(),pfx.end()) , pfx.end());
+    int K = pfx.size();
+    
+    memset(tail,false,sizeof tail);
+    for(int i = 0;i < m ; ++i)
+    {
+        int k = lower_bound(pfx.begin(),pfx.end(),s[i]) - pfx.begin();
+        tail[k] = true;
+    }
+    
+    for(int i = 0;i < K; ++i)
+    {
+        for(int j = 0; j < 4; ++j)
+        {
+            string t = pfx[i] + AGCT[j];
+            int k;
+            while(1)
+            {
+                k = lower_bound(pfx.begin(),pfx.end(),t) - pfx.begin();
+                if(k < K && t == pfx[k])  break;
+                t = t.substr(1);
+            }
+            trans[i][j] = k;
+        }
+    }
+    
+
+    memset(dp,0,sizeof dp);
+    dp[0][0][0] = 1;
+    for(int l = 0; l < n; ++l)
+    {
+        for(int i = 0; i < K; ++i)
+        {
+            for(int j = 0; j < 4; ++j)
+            {
+                int ti = trans[i][j];
+                
+                if(tail[ti])
+                    for(int k = 0;k < pfx[ti].length(); ++k)
+                        dp[l+1][ti][0] = (dp[l+1][ti][0] + dp[l][i][k]) % MOD;
+                else
+                    for(int k = 0;k < pfx[ti].length(); ++k)
+                        dp[l+1][ti][k+1] = (dp[l+1][ti][k+1] + dp[l][i][k])%MOD;
+            }
+        }
+    }
+    
+    int res = 0;
+    for(int i = 0; i < K; ++i)
+        res = (res + dp[n][i][0]) % MOD;
+    
+    return res;
+    
+}
+
+int main()
+{
+    while(cin>>n>>m)
+    {
+        for(int i = 0; i < m; ++i)
+            cin>>s[i];
+        int ans = solve();
+        printf("%d\n",ans);
+        
+    }
+}

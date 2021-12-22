@@ -1,0 +1,126 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include <queue>
+#include <deque>
+#include <bitset>
+#include <iterator>
+#include <list>
+#include <stack>
+#include <map>
+#include <set>
+#include <functional>
+#include <numeric>
+#include <utility>
+#include <limits>
+#include <time.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <assert.h>
+using namespace std;
+
+#define INF (1 << 30
+#define INFL (1LL << 50
+#define pb push_back
+#define loop_it(it, elements) for(auto it = elements.begin(); it != elements.end(); it++)
+#define loop(i, l, r) for(auto i = l; i < r; i++)
+#define loop_r(i, r, l) for(auto i = r; i >= l; i--)
+#define loop_k(i, l, r, k) for(auto i = l; i < r; i+=k)
+#define test_cases int test_cases;scanf("%d", &test_cases);for (int tc_0 = 1; tc_0 <= test_cases; tc_0++)
+
+typedef long long i64;
+typedef set<int> si;
+typedef vector<int> vi;
+typedef vector<i64> vi64;
+typedef vector<vi> vvi;
+typedef vector<vi64> vvi64;
+typedef pair<int, int> pii;
+typedef set<pii> spii;
+typedef vector<pii> vpii;
+typedef map<pii, vi> mpiivi;
+typedef map<int, int> mii;
+typedef map<int, vi> mivi;
+
+struct node {
+	vector<pii> we;
+};
+
+struct ele {
+	int node;
+	int time;
+	int count;
+	int last_e;
+	ele(int _n, int _t, int _c, int _l) {
+		node = _n;
+		time = _t;
+		count = _c;
+		last_e = _l;
+	}
+};
+
+
+vector<ele> eles;
+
+struct LessThanByTime {
+	bool operator()(const int& lhs, const int& rhs) {
+		return eles[lhs].time < eles[rhs].time; 
+	}
+};
+priority_queue<int, vi, LessThanByTime> q;
+
+int main() {
+	int n, m, T;
+	cin >> n >> m >> T;
+	vector<node> nodes(n);
+	loop(i, 0, m) {
+		int u, v, t;
+		cin >> u >> v >> t;
+		u--; v--;
+		nodes[u].we.pb(pii(t, v));
+	}
+	loop(i, 0, n) {
+		sort(nodes[i].we.begin(), nodes[i].we.end());
+	}
+	vi ans(n);
+	ele ans_e = ele(0, 0, 1, -1);
+	eles.pb(ele(0, 0, 1, -1));
+	q.push(0);
+	while (!q.empty()) {
+		int e_idx = q.top();
+		q.pop();
+		ele e = eles[e_idx];
+		if (ans[e.node] >= e.count) {
+			continue;
+		}
+		ans[e.node] = e.count;
+		if (e.node == n - 1) {
+			ans_e = e;
+		}
+		loop(i, 0, nodes[e.node].we.size()) {
+			int tot_t = e.time + nodes[e.node].we[i].first;
+			if (tot_t <= T) {
+				ele tmp = ele(nodes[e.node].we[i].second, tot_t, e.count + 1, e_idx);
+				eles.pb(tmp);
+				q.push(eles.size() - 1);
+			}
+		}
+	}
+	cout << ans[n - 1] << endl;
+
+	vi ans_i;
+	ans_i.pb(ans_e.node);
+
+	while (ans_e.last_e != -1) {
+		ans_e = eles[ans_e.last_e];
+		ans_i.pb(ans_e.node);
+	}
+	loop_r(i, (int) ans_i.size() - 1, 0) {
+		cout << ans_i[i] + 1 << " ";
+	}
+	cout << endl;
+	return 0;
+}

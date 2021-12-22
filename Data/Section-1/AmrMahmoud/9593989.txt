@@ -1,0 +1,92 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+vector<pair<int,int> > segs;
+
+bool DP[605][1205];
+bool v[605][1205];
+int ch[605][1205], n;
+
+bool solve(int ind, int e)
+{
+    if(ind == n || e == 0) return 1;
+    if(v[ind][e]) return DP[ind][e];
+    v[ind][e] = 1;
+    for(int i=segs[ind].first;i<=segs[ind].second && i <= e;i++)
+    {
+        if(i % 2 == 0) continue;
+        if(solve(ind + 1, i - 1) && solve(ind + 1 + (i - 1) / 2, e - i - 1))
+        {
+            ch[ind][e] = i;
+            DP[ind][e] = 1;
+            return 1;
+        }
+    }
+    DP[ind][e] = 0;
+    return 0;
+}
+
+string res = "";
+
+void get(int ind,int e,int i)
+{
+    if(ind == n || e == 0) return ;
+    res[i] = '(';
+    res[i + ch[ind][e]] = ')';
+    get(ind + 1, ch[ind][e] - 1, i + 1);
+    get(ind + 1 + (ch[ind][e] - 1) / 2, e - ch[ind][e] - 1, i + ch[ind][e] + 1);
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int  x , y;
+    cin >> n;
+    for(int i=0;i<n;i++)
+    {
+        cin >> x >> y;
+        segs.push_back(mp(x, y));
+    }
+    setdp(DP);
+    if(!solve(0, 2 * n))
+        cout << "IMPOSSIBLE";
+    else
+    {
+        for(int i=0;i<2*n;i++)
+            res += '#';
+        get(0, n * 2, 0);
+        cout << res;
+    }
+    return 0;
+}

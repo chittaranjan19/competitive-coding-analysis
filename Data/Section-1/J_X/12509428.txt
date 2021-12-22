@@ -1,0 +1,165 @@
+#include <iostream>
+#include <string>
+#include <cstring>
+#include <cstdlib>
+#include <ctime>
+#include <cmath>
+#include <vector>
+#include <cstdio>
+#include <algorithm>
+#include <set>
+#include <stack>
+#include <queue>
+#define ls rt << 1
+#define rs rt << 1 | 1
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 300000 + 5;
+
+char s[maxn];
+int n, m;
+
+struct segtree
+{
+    ll node[maxn << 2];
+
+    void pushup(int rt)
+    {
+        node[rt] = node[ls] + node[rs];
+    }
+
+    void build(int rt, int l, int r)
+    {
+        if(l == r)
+        {
+            node[rt] = s[l] == '.' ? 1 : -maxn;
+            return;
+        }
+        int m = (l + r) >> 1;
+        build(ls, l, m);
+        build(rs, m + 1, r);
+        pushup(rt);
+    }
+
+    void update(int rt, int l, int r, int x, int c)
+    {
+        if(l == r)
+        {
+            node[rt] = c;
+            return;
+        }
+        int m = (l + r) >> 1;
+        if(x <= m)
+        {
+            update(ls, l, m, x, c);
+        }
+        else
+        {
+            update(rs, m + 1, r, x, c);
+        }
+        pushup(rt);
+    }
+
+    ll query(int rt, int l, int r, int x, int y)
+    {
+        if(x <= l && r <= y)
+        {
+            return node[rt];
+        }
+        int m = (l + r) >> 1;
+        ll res = 0;
+        if(x <= m)
+        {
+            res += query(ls, l, m, x, y);
+        }
+        if(m < y)
+        {
+            res += query(rs, m + 1, r, x, y);
+        }
+        return res;
+    }
+} t;
+
+bool C(int s, int e)
+{
+    return t.query(1, 1, n, s, e) > 0;
+}
+
+int main()
+{
+    while(~scanf("%d%d", &n, &m))
+    {
+        scanf("%s", s + 1);
+        int p = 0, ans = 0;
+        for(int i = 1; i <= n + 1; ++i)
+        {
+            if(s[i] != '.' || i == n + 1)
+            {
+                if(p > 1)
+                {
+                    ans += p - 1;
+                }
+                p = 0;
+            }
+            else
+            {
+                ++p;
+            }
+        }
+//        cout << ans << endl;
+        t.build(1, 1, n);
+        while(m--)
+        {
+            int x;
+            char c[10];
+            scanf("%d%s", &x, c);
+            if(c[0] == '.' && s[x] != '.' || c[0] != '.' && s[x] == '.')
+            {
+
+                t.update(1, 1, n, x, c[0] == '.');
+                s[x] = c[0];
+                int lb1 = 0, ub1 = x;
+                while(ub1 - lb1 > 1)
+                {
+                    int m = (lb1 + ub1) >> 1;
+                    if(C(x - m, x - 1))
+                    {
+                        lb1 = m;
+                    }
+                    else
+                    {
+                        ub1 = m;
+                    }
+                }
+                int lb2 = 0, ub2 = n - x + 1;
+                while(ub2 - lb2 > 1)
+                {
+                    int m = (lb2 + ub2) >> 1;
+                    if(C(x + 1, x + m))
+                    {
+                        lb2 = m;
+                    }
+                    else
+                    {
+                        ub2 = m;
+                    }
+                }
+//                cout << lb1 << ' ' << lb2 << endl;
+                if(c[0] == '.')
+                {
+                    ans = ans - max((lb1 - 1), 0) - max((lb2 - 1), 0) + lb1 + lb2;
+                }
+                else
+                {
+                    ans = ans - (lb1 + lb2) + max((lb1 - 1), 0) + max((lb2 - 1), 0);
+                    t.update(1, 1, n, x, -maxn);
+                }
+            }
+            printf("%d\n", ans);
+        }
+    }
+    return 0;
+}

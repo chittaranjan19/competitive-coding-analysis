@@ -1,0 +1,114 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+#include <iomanip>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 17;
+
+int N, M;
+int X[MAXN], H[MAXN];
+double L[MAXN], R[MAXN];
+pii arr[MAXN];
+double tree[2 * MAXN], lazy[2 * MAXN];
+
+void add (int cur, int diff, double v) {
+	lazy[cur] += v;
+	tree[cur] += v * diff;
+}
+
+void down (int cur, int l, int r) {
+	if (lazy[cur]) {
+		for (int i = 0; i < 2; i++) {
+			add(2 * cur + i, (r - l) / 2, lazy[cur]);
+		}
+		lazy[cur] = 0;
+	}
+}
+
+void update (int a, int b, double v, int cur = 1, int l = 0, int r = MAXN) {
+	if (r <= a || b <= l) {
+		return;
+	}
+	if (a <= l && r <= b) {
+		add(cur, r - l, v);
+		return;
+	}
+	down(cur, l, r);
+	int mid = (l + r) / 2;
+	update(a, b, v, 2 * cur, l, mid);
+	update(a, b, v, 2 * cur + 1, mid, r);
+}
+
+void alldown (int cur = 1, int l = 0, int r = MAXN) {
+	down(cur, l, r);
+	if (r - l > 2) {
+		int mid = (l + r) / 2;
+		alldown(2 * cur, l, mid);
+		alldown(2 * cur + 1, mid, r);
+	}
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 0; i < N; i++) {
+		cin >> X[i] >> H[i] >> L[i] >> R[i];
+		L[i] /= 100;
+		R[i] /= 100;
+	}
+	for (int i = 0; i < M; i++) {
+		cin >> arr[i].first >> arr[i].second;
+	}
+	sort(arr, arr + M);
+	for (int i = 0; i < N; i++) {
+		int lt = lower_bound(arr, arr + M, pii(X[i] - H[i], 0)) - arr;
+		int rt = lower_bound(arr, arr + M, pii(X[i], 0)) - arr;
+		update(lt, rt, log(1 - L[i]));
+		lt = upper_bound(arr, arr + M, pii(X[i], 1000)) - arr;
+		rt = upper_bound(arr, arr + M, pii(X[i] + H[i], 1000)) - arr;
+		update(lt, rt, log(1 - R[i]));
+	}
+	alldown();
+	double ans = 0;
+	for (int i = 0; i < M; i++) {
+		ans += exp(tree[i + MAXN]) * arr[i].second;
+	}
+	cout << setprecision(10) << ans << endl;
+}

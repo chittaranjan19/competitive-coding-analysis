@@ -1,0 +1,76 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define ll long long
+
+const int maxn = 300000;
+const ll mod = 1000000007, hval = 137;
+
+ll a[maxn], b[maxn];
+vector<ll> v[maxn];
+vector<int> sol; 
+
+ll modpow(ll a, ll b)
+{
+    ll x=1ll, y=a;
+    while(b){
+        if(b%2)
+            x=(x*y)%mod;
+        y=(y*y)%mod;
+        b/=2;
+    }
+    return x;
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    int n, i, j, p, m;
+    ll hash_req, cur, cur_hash;
+    scanf("%d%d%d", &n, &m, &p);
+    for(i=0; i<n; i++){
+        scanf("%I64d", &a[i]);
+        v[(i%p)].push_back(a[i]);
+    }
+    /*for(i=0; i<p; i++){
+        for(j=0; j<v[i].size(); j++)
+            cout << v[i][j] << " ";
+        cout << "\n";
+    }*/
+    hash_req = 0;
+    for(i=0; i<m; i++){
+        scanf("%I64d", &b[i]);
+        cur = modpow(hval, b[i]);
+        hash_req = (hash_req+cur)%mod;
+    }
+    //cout << hash_req << "\n";
+    sol.clear();
+    for(i=0; i<p; i++){
+        if(v[i].size()<m)
+            continue;
+        cur_hash = 0;
+        for(j=0; j<m; j++){
+            cur = modpow(hval, v[i][j]);
+            cur_hash = (cur_hash+cur)%mod;
+        }
+        if(cur_hash==hash_req)
+            sol.push_back(i);
+        for(j=0; (j+m)<v[i].size(); j++){
+            cur = modpow(hval, v[i][j]);
+            cur_hash = (cur_hash-cur+mod)%mod;
+            cur = modpow(hval, v[i][j+m]);
+            cur_hash = (cur_hash+cur)%mod;
+            if(cur_hash==hash_req){
+                sol.push_back(i + (j+1)*p);
+                //cout << i << " " << j << "\n";
+            }
+        }
+    }
+    printf("%d\n", sol.size());
+    sort(sol.begin(), sol.end());
+    for(i=0; i<sol.size(); i++)
+        printf("%d ", sol[i]+1);
+    printf("\n");
+    return 0;
+}

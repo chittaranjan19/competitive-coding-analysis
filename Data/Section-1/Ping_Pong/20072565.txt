@@ -1,0 +1,112 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+
+using namespace std;
+
+const ll N = 1000000;
+const ll inf = (ll)1e18;
+const int MOD = (int)1e9 + 7;
+
+vector<vector<int> > g;
+vector<pair<int, int> > ver;
+vector<int> order;
+vector<bool> used;
+vector<int> height;
+vector<vector<int> > up;
+
+int dfs(int u, int h, int par)
+{
+    used[u] = true;
+    height[u] = h;
+    if (h > 0)
+        up[u][0] = par;
+    for (int p = 1; (1 << p) <= h; p++)
+        up[u][p] = up[up[u][p - 1]][p - 1];
+    ver[u] = {order.size(), 1};
+    order.push_back(height[u]);
+    for (int v : g[u])
+        if (!used[v])
+            ver[u].second += dfs(v, h + 1, u);
+    return ver[u].second;
+}
+
+int l_a(int u, int k)
+{
+    for (int i = 0; i < 17; i++)
+        if ((k >> i) & 1)
+            u = up[u][i];
+    return u;
+}
+
+int n;
+vector<vector<int> > F;
+
+void build()
+{
+    F.resize(n);
+}
+
+void add(int x, int val)
+{
+    for (; x < n; x = x | (x + 1))
+        F[x].push_back(val);
+}
+
+int ans(int x, int val)
+{
+    int res = 0;
+    for (; x >= 0; x = (x & (x + 1)) - 1)
+        res += (upper_bound(F[x].begin(), F[x].end(), val) - lower_bound(F[x].begin(), F[x].end(), val));
+    return res;
+}
+
+int main()
+{
+    //freopen("power.in", "r", stdin);
+    //freopen("power.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n;
+    g.resize(n);
+    for (int i = 0; i < n; i++)
+    {
+        int x;
+        cin >> x;
+        if (x != 0)
+        {
+            g[i].push_back(x - 1);
+            g[x - 1].push_back(i);
+        }
+    };
+    ver.resize(n);
+    used.resize(n, false);
+    up.resize(n, vector<int> (17, -1));
+    height.resize(n);
+    for (int i = 0; i < n; i++)
+        if (!used[i])
+            dfs(i, 0, -1);
+    build();
+    vector<pair<int, int> > tmp(n);
+    for (int i = 0; i < n; i++)
+        tmp[i] = {order[i], i};
+    sort(tmp.begin(), tmp.end());
+    for (int i = 0; i < n; i++)
+        add(tmp[i].second, tmp[i].first);
+    int q;
+    cin >> q;
+    for (int i = 0; i < q; i++)
+    {
+        int v, p;
+        cin >> v >> p;
+        v--;
+        if (height[v] < p)
+        {
+            cout << 0 << " ";
+            continue;
+        }
+        v = l_a(v, p);
+        cout << ans(ver[v].first + ver[v].second - 1, height[v] + p) - ans(ver[v].first - 1, height[v] + p) - 1 << " ";
+    }
+    return 0;
+}

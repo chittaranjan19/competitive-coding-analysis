@@ -1,0 +1,186 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 5003
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+#define mid ((l + r) >> 1)
+
+using namespace std;
+struct shop
+{
+    int c, k, p;
+
+    shop(int c = 0, int k = 0, int p = 0): c(c), k(k), p(p) {};
+
+    bool operator < (const shop& x)
+    {
+        if (p != x.p)
+            return p < x.p;
+        return k < x.k;
+    }
+};
+
+int n, m, que[mn], l, r, mark[mn];
+int d[mn][mn], w, q, hig = - maxC, low = maxC;
+vector<shop> all;
+vector<int> g[mn], inC[mn], far[mn];
+
+struct interval
+{
+    int l, r, num, mark;
+    long long sum;
+    interval* lc;
+    interval* rc;
+
+    interval(int l = 0, int r = 0): l(l), r(r)
+    {
+        num = sum = mark = 0;
+        if (l == r)
+            lc = rc = NULL;
+        else
+        {
+            lc = new interval(l, mid);
+            rc = new interval(mid + 1, r);
+        }
+    }
+
+    void update(int x, int v)
+    {
+        if (mark != q)
+            mark = q, num = sum = 0;
+        if (l > x || r < x)
+            return;
+        if (l == r)
+        {
+            num += v;
+            sum += 1ll * x * v;
+            return;
+        }
+        lc -> update(x, v);
+        rc -> update(x, v);
+        num = lc -> num + rc -> num;
+        sum = lc -> sum + rc -> sum;
+    }
+
+    void makeSure()
+    {
+        if (lc -> mark != q)
+            lc -> mark = q, lc -> sum = lc -> num = 0;
+        if (rc -> mark != q)
+            rc -> mark = q, rc -> sum = rc -> num = 0;
+    }
+
+    long long getP(int v)
+    {
+        if (l == r)
+            return 1ll * l * v;
+        makeSure();
+        if (lc -> num >= v)
+            return lc -> getP(v);
+        return lc -> sum + rc -> getP(v - lc -> num);
+    }
+} t;
+
+void bfs(int s)
+{
+    que[l = r = 0] = s;
+    mark[s] = s;
+    d[s][s] = 0;
+    while(l <= r)
+    {
+        int u = que[l ++];
+        FOR(i, 0, int(inC[u].size()) - 1)
+            far[s].pb(inC[u][i]);
+        FOR(i, 0, int(g[u].size()) - 1)
+        {
+            int v = g[u][i];
+            if (mark[v] == s)
+                continue;
+            mark[v] = s;
+            d[s][v] = d[s][u] + 1;
+            que[++ r] = v;
+        }
+    }
+    far[s].pb(0);
+}
+
+void setup()
+{
+    cin >> n >> m;
+    int u, v;
+    FOR(i, 1, m)
+    {
+        cin >> u >> v;
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+    cin >> w;
+    int c, k, p;
+    FOR(i, 0, w - 1)
+    {
+        cin >> c >> k >> p;
+        all.pb(shop(c, k, p));
+        inC[c].pb(i);
+        hig = max(hig, p);
+        low = min(low, p);
+    }
+    t = interval(low, hig);
+}
+
+bool com(int a, int b)
+{
+    return all[a] < all[b];
+}
+
+void querry()
+{
+    int g, r, a;
+    cin >> g >> r >> a;
+    FOR(i, 0, int(far[g].size()) - 2)
+    {
+        int id = far[g][i];
+        int nid = far[g][i + 1];
+        t.update(all[id].p, all[id].k);
+        if (i == int(far[g].size()) - 2 || d[g][all[id].c] != d[g][all[nid].c])
+        {
+            //cout << id << ' ' << t.num << '\n';
+            if (t.num < r)
+                continue;
+            long long x = t.getP(r);
+            //cout << x << '\n';
+            if (x <= a)
+            {
+                cout << d[g][all[id].c] << '\n';
+                q --;
+                return;
+            }
+        }
+    }
+    cout << -1 << '\n';
+    q --;
+}
+
+void xuly()
+{
+    FOR(i, 1, n)
+        sort(inC[i].begin(), inC[i].end(), com);
+    FOR(i, 1, n)
+        bfs(i);
+    cin >> q;
+    while(q)
+        querry();
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

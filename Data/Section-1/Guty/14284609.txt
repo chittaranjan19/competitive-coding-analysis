@@ -1,0 +1,178 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+int toNumber (string s)
+{
+	int Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (int number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+struct Par
+{
+	Par(tint xx, tint yy)
+	{
+		x = xx;
+		y = yy;
+	}
+	tint x, y;
+};
+
+bool operator < (Par p1, Par p2)
+{
+	return make_tuple(p1.x, p1.y) < make_tuple(p2.x,p2.y); // no nos importa la segunda coordenada porque adentro del set los puntos esta en diagonal.
+}
+
+
+
+int main()
+{
+	ios_base::sync_with_stdio(0);
+	tint n;
+	tint xLimit = 100000;
+	cin >> n;
+	vector<set<Par> > diagonal(2*xLimit + 100); // Alcanza con "+1" en vez de "+100", pero changui
+	forn(i,n)
+	{
+		tint xx,yy;
+		cin >> xx >> yy;
+		diagonal[yy-xx+xLimit].insert(Par(xx,yy));
+	}
+	vector<tint> w (n);
+	vector<tint> cantidadW (2*xLimit + 100);
+	forn(i,n)
+	{
+		cin >> w[i];
+		w[i] += xLimit;
+		cantidadW[w[i]]++;
+	}
+	bool tutti = true;
+	forn(i,2*xLimit+100)
+	{
+		tint largo = diagonal[i].size();
+		tutti &= (cantidadW[i] == largo);
+	}
+	
+	if (!tutti)
+	{
+		cout << "NO" << endl;
+		return 0;
+	}
+	
+	set<Par> agregue;
+	vector<Par> agregueEnOrden;
+	
+	forn(i,n)
+	{
+		Par puntoQueAgrego = *diagonal[w[i]].begin();
+		if (agregue.empty() && ((puntoQueAgrego < Par(0,0)) or  (Par(0,0) < puntoQueAgrego))) // El segundo parentesis loco es para decir que son distintos.
+		{
+			cout << "NO" << endl;
+			return 0;
+		}
+		else if (agregue.empty())
+		{
+			agregue.insert(puntoQueAgrego);
+			diagonal[w[i]].erase(puntoQueAgrego);
+			agregueEnOrden.push_back(puntoQueAgrego);
+		}
+		else
+		{
+			bool sigoPaDelante = true;
+			if (puntoQueAgrego.x == 0)
+			{
+				Par p = Par(puntoQueAgrego.x,puntoQueAgrego.y-1);
+				if (agregue.find(p) == agregue.end())
+					sigoPaDelante = false;
+			}
+			else if (puntoQueAgrego.y == 0)
+			{
+				Par p = Par(puntoQueAgrego.x-1,puntoQueAgrego.y);
+				if (agregue.find(p) == agregue.end())
+					sigoPaDelante = false;
+			}
+			else
+			{
+				Par p1 = Par(puntoQueAgrego.x,puntoQueAgrego.y-1);
+				Par p2 = Par(puntoQueAgrego.x-1,puntoQueAgrego.y);
+				if ((agregue.find(p1) == agregue.end()) or (agregue.find(p2) == agregue.end()))
+					sigoPaDelante = false;
+			}
+			
+			if (sigoPaDelante)
+			{
+				agregue.insert(puntoQueAgrego);
+				diagonal[w[i]].erase(puntoQueAgrego);
+				agregueEnOrden.push_back(puntoQueAgrego);
+			}
+			else
+			{
+				cout << "NO" << endl;
+				return 0;
+			}
+		}
+	}
+	cout << "YES" << endl;
+	forn(i,n)
+		cout << agregueEnOrden[i].x << " " << agregueEnOrden[i].y << endl;
+	
+	
+		
+	
+	
+	return 0;
+}
+
+
+

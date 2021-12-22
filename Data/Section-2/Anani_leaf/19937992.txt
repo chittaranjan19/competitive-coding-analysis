@@ -1,0 +1,90 @@
+#include<iostream>
+#include<cstdio>
+#include<cstring>
+#include<algorithm>
+#include<string>
+#include<queue>
+#include<vector>
+#include<map>
+#include<stack>
+#include<cmath>
+#define lowbit(x) ((x)&(-x))
+#define Max(a,b) (a>b?a:b)
+#define Min(a,b) (a>b?b:a)
+#define lron(x)  ((x) << 1)
+#define rson(x) ((x)<<1|1)
+#define dad(x) ((x)>>1)
+#define INF 0x3f3f3f3f
+#define rep(i,a,b) for(int i=a;i<(b);++i)
+#define all(x) (x).begin(),(x).end()
+#define sz(x) (int)(x).size()
+#define pb push_back
+#define de(x) cout << #x << "=" << x << endl
+using namespace std;
+int const Max_N = 100005;
+typedef __int64 ll;
+void change(char *s1,char *s2)
+{
+	int n = strlen(s1);
+	memset(s2,'\0',sizeof(s2));
+	for(int i = 0; i < n; i++)
+	{
+		s2[i] = s1[n-1-i];
+	}
+	 
+} 
+ll arr[Max_N] = {0}; 
+int main()
+{
+	ll dp1[2] = {0};
+	ll dp2[2] = {0};
+	
+	char s1[Max_N],s2[Max_N];
+	char s3[Max_N],s4[Max_N];
+	
+	int N;
+	
+	scanf("%d",&N);
+	for (int i = 0; i < N; i++) scanf("%I64d",arr+i);
+	scanf("%s",s1);
+	change(s1,s2);
+	dp2[0] = arr[0];
+	
+	bool f = true;
+	for (int i = 1; i < N; i++)
+	{
+		scanf("%s",s3);
+		if(!f) continue;
+		change(s3,s4);
+		if(strlen(s1) > strlen(s3)) f = false;		
+		if(!f) continue;		
+		if(strcmp(s1,s3)<=0&&strcmp(s2,s3)<=0)
+		{
+			dp1[i%2] = Min(dp1[(i-1)%2],dp2[(i-1)%2]);
+		}  
+		else if(strcmp(s1,s3)<=0) dp1[i%2] = dp1[(i-1)%2];
+		else if(strcmp(s2,s3)<=0) dp1[i%2] = dp2[(i-1)%2];
+		else dp1[i%2] = 1e18;
+		
+		if(strcmp(s1,s4)<=0&&strcmp(s2,s4)<=0)
+		{
+			dp2[i%2] = Min(dp1[(i-1)%2],dp2[(i-1)%2]) + arr[i];
+		}  
+		else if(strcmp(s1,s4)<=0) dp2[i%2] = dp1[(i-1)%2] + arr[i];
+		else if(strcmp(s2,s4)<=0) dp2[i%2] = dp2[(i-1)%2] + arr[i];
+		else dp2[i%2] = 1e18;
+		if(dp1[i%2] == 1e18&&dp2[i%2] == 1e18) f = false;
+//		memset(s1,'\0',sizeof(s1));
+//		memset(s2,'\0',sizeof(s2));
+		strcpy(s1,s3);
+		strcpy(s2,s4);
+		memset(s3,'\0',sizeof(s3));
+		memset(s4,'\0',sizeof(s4));
+	}
+	int t = (N-1)%2;
+	if(!f) printf("-1\n");
+	else printf("%I64d\n",Min(dp1[t],dp2[t]));
+	return 0;
+}
+
+

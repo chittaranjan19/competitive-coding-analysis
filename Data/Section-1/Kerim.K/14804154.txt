@@ -1,0 +1,64 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int x,n,s,l,lgN;
+int P[MAXN][27],M[MAXN][27],dp[MAXN];
+void build(){
+	for(int j=1;j<lgN;j++)
+		for(int i=1;i<=n;i++)	
+			if(i+(1<<j)-1<=n){
+				P[i][j]=min(P[i][j-1],P[i+(1<<(j-1))][j-1]);
+				M[i][j]=max(M[i][j-1],M[i+(1<<(j-1))][j-1]);
+			}
+}
+int query1(int x,int y){
+	int z=log2(y-x+1);
+	return min(P[x][z],P[y-(1<<z)+1][z]);
+}
+int query2(int x,int y){
+	int z=log2(y-x+1);
+	return max(M[x][z],M[y-(1<<z)+1][z]);
+}
+int rec(int x){
+	if(x>n)
+		return 0;
+	int &r=dp[x];
+	if(r!=INF)
+		return r;	
+	for(int i=x+l-1;i<=n;i++)
+		if(query2(x,i)-query1(x,i)<=s)
+			umin(r,rec(i+1)+1);	
+	return r;		
+}
+int main(){
+	cin>>n>>s>>l;
+	fill(dp,dp+(n+1),INF);
+	lgN=log2(n)+1;
+	for(int i=1;i<=n;i++){
+		scanf("%d",&x);
+		P[i][0]=M[i][0]=x;
+	}
+	build();
+	int k=rec(1);
+	if(k==INF)
+		cout<<"-1"<<endl;
+	else
+		cout<<k<<endl;	
+	return 0;
+}

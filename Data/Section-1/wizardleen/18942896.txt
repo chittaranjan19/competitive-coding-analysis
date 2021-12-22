@@ -1,0 +1,114 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.TreeSet;
+
+public class _687C {
+
+    static int[] c;
+    static int n;
+    static int k;
+    static TreeSet<Node>[] nodesByK;
+
+    public static void main(String[] args) {
+
+        Scanner scan = new Scanner(System.in);
+
+        n = scan.nextInt();
+        k = scan.nextInt();
+
+        nodesByK = new TreeSet[k + 1];
+
+        c = new int[n + 1];
+
+        for(int i = 1; i <= n; i++)
+            c[i] = scan.nextInt();
+
+        dp();
+        Node root = nodesByK[k].last();
+        solve(root);
+
+        StringBuilder buf = new StringBuilder();
+        boolean isFirst = true;
+        for(Integer i : root.values) {
+            if(isFirst)
+                isFirst = false;
+            else
+                buf.append(' ');
+            buf.append(i);
+        }
+        System.out.println(root.values.size());
+        System.out.println(buf.toString());
+    }
+
+    static void dp() {
+
+        for(int i = 0; i <=k; i++)
+            nodesByK[i] = new TreeSet<Node>();
+
+        nodesByK[0].add(new Node(0, 0));
+
+        for(int i = 1; i <= k; i++) {
+            for(int j = 1; j <= n; j++) {
+                int lastK = i - c[j];
+                boolean optional = lastK >= 0 && !nodesByK[lastK].isEmpty()
+                        && nodesByK[lastK].first().index < j;
+                if(optional)
+                    nodesByK[i].add(new Node(i, j));
+            }
+        }
+
+    }
+
+    static void solve(Node node) {
+
+        node.visited = true;
+
+        if(node.k == 0) {
+            node.values.add(0);
+            return;
+        }
+
+        Node upLeft = nodesByK[node.k - node.value].lower(node);
+
+        if(!upLeft.visited)
+            solve(upLeft);
+
+        for(Integer v : upLeft.values) {
+            node.values.add(v);
+            node.values.add(v + node.value);
+        }
+
+        Node left = nodesByK[node.k].lower(node);
+
+        if(left == null)
+            return;
+
+        if(!left.visited)
+            solve(left);
+
+        for(Integer v : left.values)
+            node.values.add(v);
+
+    }
+
+    static class Node implements Comparable<Node> {
+        int index;
+        int k;
+        boolean visited;
+        int value;
+        TreeSet<Integer> values = new TreeSet<Integer>();
+
+        Node(int k, int index) {
+            this.k = k;
+            this.index = index;
+            value = c[index];
+        }
+
+        @Override
+        public int compareTo(Node o) {
+            return index - o.index;
+        }
+    }
+
+}

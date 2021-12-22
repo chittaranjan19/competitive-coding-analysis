@@ -1,0 +1,92 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool checkMin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool checkMax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+map<int,set<PII> >pa,pb;
+map<int,int>ta,tb;
+PII arr[3*MAXN],rr[3*MAXN];
+int main(){
+	int a,c=0;
+	cin>>a;
+	for(int i=0;i<a;i++)
+		cin>>arr[i].ff>>arr[i].ss,rr[i].ff=arr[i].ss,rr[i].ss=arr[i].ff;
+	sort(arr,arr+a);
+	sort(rr,rr+a);
+	for(int i=0;i<a;i++){
+		if(ta[arr[i].ff]==0){
+			c=1;
+			pa[arr[i].ff].insert(mp(INF,INF));
+		}
+		pa[arr[i].ff].insert(mp(arr[i].ss,c));
+		ta[arr[i].ff]++;
+		c++;
+	}
+	for(int i=0;i<a;i++){
+		if(tb[rr[i].ff]==0){
+			c=1;
+			pb[rr[i].ff].insert(mp(INF,INF));
+		}
+		pb[rr[i].ff].insert(mp(rr[i].ss,c));
+		tb[rr[i].ff]++;
+		c++;
+	}
+	cin>>a;
+	while(a--){
+		int x1,y1,x2,y2,ans=0;
+		cin>>x1>>y1>>x2>>y2;
+		PII t=*pa[x1].lower_bound(mp(y1,-1));
+		PII tt=*pa[x1].upper_bound(mp(y2,INF));
+		if(t.ff==INF)
+			ans=0;
+		else if(tt.ff==INF)	
+			ans=(ta[x1]-t.ss)+1;
+		else
+			ans=tt.ss-t.ss;
+		if(x1<x2){
+			PII t=*pa[x2].lower_bound(mp(y1,-1));
+			PII tt=*pa[x2].upper_bound(mp(y2,INF));
+			if(t.ff==INF)
+				ans=ans;
+			else if(tt.ff==INF)	
+				ans+=(ta[x2]-t.ss)+1;
+			else
+				ans+=tt.ss-t.ss;
+		}
+		if(x1+1<x2){
+			PII t=*pb[y1].lower_bound(mp(x1+1,-1));
+			PII tt=*pb[y1].upper_bound(mp(x2-1,INF));
+			if(t.ff==INF)
+				ans=ans;
+			else if(tt.ff==INF)	
+				ans+=(tb[y1]-t.ss)+1;
+			else
+				ans+=tt.ss-t.ss;
+			if(y1<y2){
+				PII t=*pb[y2].lower_bound(mp(x1+1,-1));
+				PII tt=*pb[y2].upper_bound(mp(x2-1,INF));
+				if(t.ff==INF)
+					ans=ans;
+				else if(tt.ff==INF)	
+					ans+=(tb[y2]-t.ss)+1;
+				else
+					ans+=tt.ss-t.ss;
+			}	
+		}
+		cout<<ans<<endl;	
+	}
+	return 0;
+}
+

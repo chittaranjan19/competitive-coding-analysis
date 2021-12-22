@@ -1,0 +1,99 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <queue>
+using namespace std;
+#define N 200020
+int n;
+int w,h;
+int popvis[2][N];
+priority_queue<int> que[2];
+int c[2][N];// 每个C数组代表v[i-lowbit(i)+1]到v[i]之间的和
+void add(int i,int x,int flag)
+{
+    i++;
+    while(i<=max(w,h))
+    {
+        c[flag][i]+=x;
+        //c[flag][i]%=mod;
+        i+= i & -i;
+    }
+}
+int getsum(int i,int flag)
+{
+    i++;
+    int cnt=0;
+    while(i>0)
+    {
+        cnt+=c[flag][i];
+        i-=i & -i;
+    }
+    return cnt;
+}
+
+void hvinsert(int pos,int hv)
+{
+    int left,right;
+    int lb=-1,ub=max(w,h);
+    int cursum=getsum(pos,hv);
+    while(ub-lb>1)
+    {
+        int mid=(lb+ub)/2;
+        if(getsum(mid,hv)>=cursum) ub=mid;
+        else lb=mid;
+    }
+    left=ub;
+    lb=-1,ub=max(w,h);
+    while(ub-lb>1)
+    {
+        int mid=(lb+ub)/2;
+        if(getsum(mid,hv)>cursum) ub=mid;
+        else lb=mid;
+    }
+    right=ub;
+
+    popvis[hv][right-left]++;
+    add(pos,1,hv);
+    que[hv].push(right-pos);
+    que[hv].push(pos-left);
+}
+
+void solve(int pos,int hv)
+{
+    hvinsert(pos,hv);
+    long long ans=1;
+    for(int i=0;i<2;i++){
+        while(!que[i].empty() && popvis[i][que[i].top()])
+        {
+            popvis[i][que[i].top()]--;
+            que[i].pop();
+        }
+        ans*=que[i].top();
+    }
+    printf("%I64d\n",ans);
+}
+
+int main()
+{
+    scanf("%d%d%d",&w,&h,&n);
+    add(0,1,0);
+    add(0,1,1);
+    add(h,1,0);
+    add(w,1,1);
+    que[0].push(h);
+    que[1].push(w);
+    for(int i=0;i<n;i++)
+    {
+        char str[2];
+        int tmp;
+        scanf("%s %d",str,&tmp);
+        int flag=0;
+        if(str[0]=='V') flag=1;
+        solve(tmp,flag);
+    }
+    int aaaa=4;
+    int bbbb=9;
+    int cc=11;
+    return 0;
+}

@@ -1,0 +1,117 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+const int LG = 20;
+
+int n;
+pii edg[N];
+vector <int> g[N];
+int h[N];
+int a[N];
+int ans[N];
+int fen[N];
+int st[N];
+int ft[N];
+int T;
+int par[N][LG];
+
+void add(int p, int val){
+	for(p ++; p < N; p += p & -p)
+		fen[p] += val;
+}
+
+int get(int p, int sum = 0){
+	for(; p; p -= p & -p)
+		sum += fen[p];
+	return sum;
+}
+
+void dfs(int v, int p){
+	st[v] = T ++;
+	h[v] = h[p] + 1;
+	par[v][0] = p;
+	for(int i = 1; i < LG; ++i)
+		par[v][i] = par[par[v][i - 1]][i - 1];
+	for(int u : g[v]){
+		if(u == p) continue;
+		dfs(u, v);
+	}
+	ft[v] = T;
+}
+
+int get_par(int v, int k){
+	for(int i = LG; i --;)
+		if((k >> 1) & 1)
+			v = par[v][i];
+	return v;
+}
+
+int lca(int u, int v){
+	if(h[v] < h[u]) swap(u, v);
+	v = get_par(v, h[v] - h[u]);
+	if(u == v) return v;
+	for(int i = LG; i --;)
+		if(par[v][i] != par[u][i])
+			v = par[v][i], u = par[u][i];
+	return par[v][0];
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for(int i = 0; i < n - 1; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; v --;
+		g[u].PB(v);
+		g[v].PB(u);
+		edg[i] = {u, v};
+	}
+	dfs(0, -1);
+	for(int i = 0; i < n - 1; ++i){
+		if(h[edg[i].Y] < h[edg[i].X]) swap(edg[i].X, edg[i].Y);
+		a[edg[i].Y] = i;
+	}
+	int k;
+	cin >> k;
+	for(int i = 0; i < k; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; v --;
+		int p = lca(u, v);
+		add(st[u], +1);
+		add(st[v], +1);
+		add(st[p], -2);
+	}
+	for(int i = 1; i < n; ++i)
+		ans[a[i]] = get(ft[i]) - get(st[i]);
+	for(int i = 0; i < n - 1; ++i)
+		cout << ans[i] << " ";
+	cout << "\n";
+	return 0;
+}

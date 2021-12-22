@@ -1,0 +1,86 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ( (int)x.size() )
+
+using namespace std;
+typedef long long ll;
+const int N = 100 * 1000 + 100;
+
+struct node{
+    int p,q,s;
+};
+
+int low,up;
+int n,x[N],y[N];
+int m,t,t1,t2;
+node seg[2 * N];
+node c;
+
+node merge(node a , node b ,int l ,int mid ,int r){
+    c.p = a.p + b.p + (r - mid) * (x[mid] - x[l]);
+    c.q = b.q + a.q + (mid - l) * ( x[r - 1] - x[mid - 1]);
+    c.s =  a.s + b.s + (mid - l)* (r - mid) * (x[mid] - x[mid - 1] )+
+        (mid - l) * b.p + (r - mid) * a.q;
+    return c;
+}
+
+void build(int u,int l, int r){
+    if(r - l == 1){
+        seg[u].s = 0;
+        seg[u].p = 0;
+        seg[u].q = 0;
+        return;
+    }
+    int mid = (r + l)/2;
+    build(2 * u, l, mid);
+    build(2 * u + 1, mid, r);
+    seg[u] = merge(seg[2 * u] , seg[2 * u + 1] , l , mid , r);
+}
+
+node ask(int u, int l , int r , int li , int ri){
+    if(l == li && r == ri){
+        return seg[u];
+    }
+    int mid = (r + l)/2;
+    if( mid <= li){
+        return ask(2 * u + 1 , mid , r , li , ri);
+    }
+    else if(ri <= mid){
+        return ask(2 * u , l , mid , li , ri);
+    }
+    else{
+        return merge( ask(2 * u , l , mid , li , mid),
+                     ask(2 * u + 1 , mid , r , mid , ri) ,
+                     li , mid , ri
+                     );
+    }
+}
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+    cin >> n;
+    for(int i = 0; i < n; ++i)
+        cin >> y[i];
+    cin >> m;
+    for(int i = 0; i < m; ++i){
+        cin >> t >> t1 >> t2;
+        if(t == 2){
+
+            for(int i = 0; i < n; ++i)
+            x[i] = y[i];
+            sort(x , x + n);
+            build(1,0,n);
+
+            low = lower_bound(x , x + n , t1) - x;
+            up = upper_bound(x, x + n , t2) - x;
+            cout << ask(1 , 0 , n , low , up).s << "\n";
+        }
+        else{
+            t1--;
+            y[t1] += t2;
+        }
+    }
+    return 0;
+}

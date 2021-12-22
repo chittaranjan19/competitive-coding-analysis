@@ -1,0 +1,128 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+
+struct node{
+	int l, r, ans, sz;
+	node(){
+		l = r = ans = sz = 0;
+	}
+};
+
+int n; 
+pii a[N];
+int NFI;
+int L[20 * N];
+int R[20 * N];
+int ids[N];
+node seg[20 * N];
+
+node merge(node a, node b){
+	node c;
+	c.sz = a.sz + b.sz;
+	if(a.l == a.sz)
+		c.l = a.l + b.l;
+	else
+		c.l = a.l;
+	
+	if(b.r == b.sz)
+		c.r = b.r + a.r;
+	else
+		c.r = b.r;
+	
+	c.ans = max(a.ans, b.ans);
+	c.ans = max(c.ans, a.r + b.l);
+	return c;
+}
+
+void build(int id, int s, int e){
+	seg[id].sz = e - s;
+	if(e - s == 1) return;
+	int mid = (s + e) / 2;
+	L[id] = ++NFI;
+	R[id] = ++NFI;
+	build(L[id], s, mid);
+	build(R[id], mid, e);
+}
+
+int update(int p, int id, int s, int e){
+	int ID = ++NFI;
+	if(e - s == 1){
+		seg[ID].l = seg[ID].r = seg[ID].ans = seg[ID].sz = 1;
+		return ID;
+	}
+	int mid = (s + e) / 2;
+	L[ID] = L[id];
+	R[ID] = R[id];
+	if(p < mid)
+		L[ID] = update(p, L[ID], s, mid);
+	else
+		R[ID] = update(p, R[ID], mid, e);
+	seg[ID] = merge(seg[L[ID]], seg[R[ID]]);
+	return ID;
+}
+
+node get(int id, int s, int e, int l, int r){
+	if(l == s && e == r) return seg[id];
+	int mid = (s + e) / 2;
+	if(r <= mid)
+		return get(L[id], s, mid, l, r);
+	else if(l >= mid)
+		return get(R[id], mid, e, l, r);
+	else
+		return merge(get(L[id], s, mid, l, mid), get(R[id], mid, e, mid, r));
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for(int i = 0; i < n; ++i)
+		cin >> a[i].X, a[i].Y = i;
+	sort(a, a + n);
+	reverse(a, a + n);
+	build(0, 0, n);
+	ids[0] = 0;
+	for(int i = 0; i < n; ++i)
+		ids[i + 1] = update(a[i].Y, ids[i], 0, n);
+	int q;
+	cin >> q;
+	for(int i = 0; i < q; ++i){
+		int l, r, w;
+		cin >> l >> r >> w;
+		l --;
+		int down = 0, up = n + 1;
+		while(up - down > 1){
+			int mid = (down + up) / 2;
+			if(get(ids[mid], 0, n, l, r).ans < w)
+				down = mid;
+			else
+				up = mid;
+		}
+		cout << a[down].X << "\n";
+	}
+	return 0;
+}

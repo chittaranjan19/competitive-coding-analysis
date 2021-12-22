@@ -1,0 +1,114 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+const int inf = 1e9;
+
+int n, m, a[1000], b[1000], c[1000][1000], f[1000][1000];
+pair<int, int> v[1000];
+
+int main()
+{
+    //freopen("aquarium.in", "r", stdin);
+    //freopen("aquarium.out", "w", stdout);
+    cin >> n >> m;
+    for (int i = 0; i < n; i++)
+        cin >> a[i];
+    for (int i = 0; i < n; i++)
+        cin >> b[i];
+    for (int i = 0; i < m; i++)
+        cin >> v[i].fs >> v[i].sc;
+    memset(c, 0, sizeof(c));
+    //1-n первая группа
+    for (int i = 1; i <= n; i++)
+        c[0][i] = c[i][0] = a[i-1];
+    for (int i = 0; i < m; i++)
+    {
+        int fr = v[i].fs, to = v[i].sc;
+        c[fr][to + n] = inf;
+        c[to][fr + n] = inf;
+    }
+    for (int i = 1; i <= n; i++)
+    {
+        c[i][i + n] = c[i + n][i] = inf;
+        int to = i + n;
+        c[to][2 * n + 1] = c[2 * n + 1][to] = b[i - 1];
+    }
+    memset(f, 0, sizeof(f));
+    while (1)
+    {
+        vector<int> from(2 * n + 2, -1), q(10 * n);
+        int h = 0, t = 0;
+        q[t++] = 0;
+        for (int cur; h < t;)
+        {
+            cur = q[h++];
+            for (int i = 0; i < 2 * n + 2; i++)
+            {
+                if (from[i] == -1 && c[cur][i] - f[cur][i] > 0)
+                {
+                    q[t++] = i;
+                    from[i] = cur;
+                }
+            }
+        }
+        if (from[2 * n + 1] == -1) break;
+        int fl = inf;
+        for (int cur = 2 * n + 1; cur != 0;)
+        {
+            int prev = from[cur];
+            fl = min(fl, c[prev][cur] - f[prev][cur]);
+            cur = prev;
+        }
+        for (int cur = 2 * n + 1; cur != 0;)
+        {
+            int prev = from[cur];
+            f[prev][cur] += fl;
+            f[cur][prev] -= fl;
+            cur = prev;
+        }
+    }
+    int check = 0;
+    for (int i = 0; i < n; i++)
+        check += b[i];
+    for (int i = n + 1; i <= n + n; i++)
+        check -= f[i][2 * n + 1];
+    bool go = 1;
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (f[i + 1][j + 1 + n] < 0)
+                go = 0;
+        }
+    }
+    if (check != 0 || !go)
+        cout << "NO";
+    else
+    {
+        cout << "YES" << endl;
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                cout << f[i + 1][j + 1 + n] << ' ';
+            }
+            cout << endl;
+        }
+    }
+    return 0;
+}

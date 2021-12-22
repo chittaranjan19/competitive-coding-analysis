@@ -1,0 +1,64 @@
+using namespace std;
+#include<bits/stdc++.h>
+#define FOR(i, a, b) for (int i = a; i < b; i++)
+#define FORE(i, a, b) for (int i = a; i <= b; i++)
+#define FORD(i, a, b) for (int i = a; i >= b; i--)
+#define MP make_pair
+const int MAXN = 5*1e5;
+const int INF = 1e9 + 7;
+
+int n, m, c, f[501][501];
+vector< int > adj[2][501];
+vector< int > ::iterator it, jt;
+
+bool b[501][501];
+typedef pair<int, int> ii;
+typedef pair<int, pair<int, int> > iii;
+priority_queue< iii, vector< iii >, greater< iii > > q;
+
+int main()
+{
+    ios::sync_with_stdio(false); cin.tie(0);
+    #ifndef ONLINE_JUDGE
+    freopen("C.inp", "r", stdin);
+    freopen("C.out", "w", stdout);
+    #endif // ONLINE_JUDGE
+    //MIKELHPDATKE;
+    cin >> n >> m;
+    int u, v;
+    FORE(i, 1, m){
+        cin >> u >> v;
+        b[u][v] = 1;
+        b[v][u] = 1;
+        adj[0][u].push_back(v);
+        adj[0][v].push_back(u);
+    }
+    FORE(i, 1, n) FORE(j, 1, n) if (i != j && b[i][j] == 0) adj[1][i].push_back(j);
+    FORE(u, 0, 500) FORE(v, 0, 500) f[u][v] = INF;
+    f[1][1] = 0;
+    q.push(MP(f[1][1], MP(1, 1)));
+    while (q.size()){
+        int c = q.top().first;
+        int u = q.top().second.first;
+        int v = q.top().second.second;
+        q.pop();
+        if (c > f[u][v]) continue;
+        if (u == n && u == v){
+            cout<<c;
+            return 0;
+        }
+        for(it = adj[0][u].begin(); it != adj[0][u].end(); it++)
+        for(jt = adj[1][v].begin(); jt != adj[1][v].end(); jt++){
+            if (*it != *jt && f[*it][*jt] > c + 1){
+                f[*it][*jt] = c + 1;
+                q.push(MP(f[*it][*jt], MP(*it, *jt)));
+            }
+            if (*it == n && f[*it][*jt] > c + 1){
+                f[*it][*jt] = c + 1;
+                q.push(MP(f[*it][*jt], MP(n, n)));
+            }
+        }
+    }
+    cout<<-1;
+    return 0;
+}

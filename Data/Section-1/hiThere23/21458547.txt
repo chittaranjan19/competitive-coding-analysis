@@ -1,0 +1,95 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 2000006
+#define base1 29
+#define base2 31
+#define maxC 1000000007
+#define mp make_pair
+
+using namespace std;
+int n, k, siz, sz, g;
+long long hashVal1[mn], hashVal2[mn], po1 = 1, po2 = 1;
+map< pair<long long, long long> , int > game;
+map< pair<int, int> , int > mark;
+string s;
+bool good[mn];
+
+void buildHash(int base, long long* hashVal, long long& po)
+{
+    FOR(i, 1, k)
+        po = (po * base) % maxC;
+    FOR(i, 1, sz)
+        hashVal[i] = (hashVal[i - 1] * base + s[i - 1] - 'a' + 1) % maxC;
+}
+
+void getGame(int id)
+{
+    cin >> s;
+    long long hashVal1 = 0, hashVal2 = 0;
+    FOR(i, 0, int(s.size()) - 1)
+    {
+        hashVal1 = (hashVal1 * base1 + s[i] - 'a' + 1) % maxC;
+        hashVal2 = (hashVal2 * base2 + s[i] - 'a' + 1) % maxC;
+    }
+    game[mp(hashVal1, hashVal2)] = id;
+}
+
+long long getHash(int l, long long* hashVal, long long& po)
+{
+    long long re = (hashVal[l + k - 1] - hashVal[l - 1] * po) % maxC;
+    return (re + maxC) % maxC;
+}
+
+void setup()
+{
+    cin >> n >> k >> s;
+    siz = s.size();
+    s = s + s;
+    sz = s.size();
+    buildHash(base1, hashVal1, po1);
+    buildHash(base2, hashVal2, po2);
+    cin >> g;
+    FOR(i, 1, g)
+        getGame(i);
+}
+
+void xuly()
+{
+    int belong = 0;
+    FOR(i, 1, siz)
+    {
+        if (++ belong > k)
+            belong = 1;
+        long long get1 = getHash(i, hashVal1, po1);
+        long long get2 = getHash(i, hashVal2, po2);
+        int gam = game[mp(get1, get2)];
+        if (gam == 0 || mark[mp(gam, belong)] == 1)
+            good[belong] = true;
+        else
+            mark[mp(gam, belong)] = 1;
+    }
+    FOR(i, 1, k)
+    if (!good[i])
+    {
+        cout << "YES\n";
+        FOR(q, 0, n - 1)
+        {
+            long long get1 = getHash(i + q * k, hashVal1, po1);
+            long long get2 = getHash(i + q * k, hashVal2, po2);
+            cout << game[mp(get1, get2)] << ' ';
+        }
+        return;
+    }
+    cout << "NO";
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

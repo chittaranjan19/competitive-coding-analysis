@@ -1,0 +1,172 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <queue>
+#include <cstring>
+#include <string>
+#include <cmath>
+#include <set>
+#include <map>
+#include <vector>
+#include <climits>
+using namespace std;
+#define pb push_back
+#define ALL(x) x.begin(),x.end()
+#define PII pair<int,int>
+#define MP(x,y) make_pair((x),(y))
+#define ll long long
+#define ull unsigned ll
+#define Max(a,b) a=max(a,b)
+#define Min(a,b) a=min(a,b)
+#define F first
+#define S second
+#define fuck(x) cout<<#x<<" - "<<x<<endl
+ll n,M;
+const ll MX = 101111;
+struct edge{
+    ll to, w;
+};
+vector<edge> g[MX];
+ll ni10[MX],z10[MX];
+namespace Niyuan{
+    ll extend_gcd(ll a,ll b,ll &x,ll &y)
+    {
+        if(a==0&&b==0) return -1;//无最大公约数
+        if(b==0){x=1;y=0;return a;}
+        ll d=extend_gcd(b,a%b,y,x);
+        y-=a/b*x;
+        return d;
+    }
+    //*********求逆元素*******************
+    //ax = 1(mod n)
+    ll mod_r(ll a,ll n)
+    {
+        ll x,y;
+        ll d=extend_gcd(a,n,x,y);
+        if(d==1) return (x%n+n)%n;
+        else return -1;
+    }
+}
+
+
+ll wt[MX];
+ll del[MX];
+ll newroot;
+ll maxn=0x3f3f3f3f;
+ll dfs(ll now,ll fa,ll all,ll& newroot , ll dep){
+    wt[now]=1;
+    ll mx=0;
+    //if(dep>100000) cerr<<"fuck";
+    for(ll i=0;i<g[now].size();i++){
+        ll to=g[now][i].to;
+        if(to==fa || del[to]) continue;
+        ll siz=dfs(to,now,all,newroot,dep+1);
+        Max(mx,siz);
+        wt[now]+=siz;
+    }
+    Max(mx,all-wt[now]);
+    if(mx < maxn) maxn=mx ,newroot=now;
+    return wt[now];
+}
+
+ll searchit(ll root,ll all){
+    maxn=0x3f3f3f3f;
+    dfs(root,-1,all,newroot,1);
+    return newroot;
+}
+map<ll,ll> mp;
+ll ans=0;
+#define G(x) (((x)%M+M)%M)
+ll tque[101111];
+ll tl=0;
+void gao(ll u,ll fa,ll zv,ll fv, ll dep, ll sef){
+    //in son
+    ll cha = G(-zv * ni10[dep]);
+    if(mp.count(cha))ans += mp[cha];
+    //self
+    if(zv == 0 && sef) {
+        ans++;
+        //cout<<"z:"<<u<<endl;
+    }
+    if(fv == 0 && sef) {
+        ans++;
+        //cout<<"f:"<<u<<endl;
+    }
+    //in map!
+    if(fa!=-1){
+        tque[tl++] = fv;
+    }
+    for(ll i=0;i<g[u].size();i++){
+        ll to = g[u][i].to;
+        if(to == fa || del[to]) continue;
+        ll w = g[u][i].w;
+        ll nzv = G(zv * 10 + w);
+        ll nfv = G(w * z10[dep] + fv);
+        gao(to, u, nzv, nfv, dep+1, sef);
+    }
+}
+
+void fz(ll rt,ll sz){
+    queue<PII > sq;
+    sq.push(MP(rt,sz));
+    while(!sq.empty()){
+        PII now = sq.front(); sq.pop();
+        ll nr = searchit(now.F , now.S);
+        del[nr] = true;
+        mp.clear();
+        //fuck(nr);
+        for(ll i=0;i<g[nr].size();i++){
+            ll to = g[nr][i].to;
+            //fuck(to);
+            if(del[to]) continue;
+            ll w = g[nr][i].w % M;
+            tl=0;
+            gao(to, nr,w,w,1, 1);
+            //cout<<"nr:"<<nr<<endl;
+            for(ll j=0;j<tl;j++) {
+                mp[tque[j]]++;
+                //fuck(tque[j]);
+            }
+            sq.push(MP(to, wt[to]));
+        }
+        //fuck(ans);
+        ll gsz = g[nr].size();
+        mp.clear();
+        for(ll i=gsz-1;i>=0;i--){
+            ll to = g[nr][i].to;
+            if(del[to]) continue;
+            ll w = g[nr][i].w % M;
+            tl=0;
+            gao(to, nr,w,w,1, 0);
+            //cout<<"nr:"<<nr<<endl;
+            for(ll j=0;j<tl;j++) {
+                mp[tque[j]]++;
+                //fuck(tque[j]);
+            }
+        }
+        //fuck(ans);
+    }
+}
+
+int main(){
+    //freopen("in.txt","r",stdin);
+    scanf("%I64d%I64d",&n,&M);
+
+    ni10[0] = 1;
+    z10[0] = 1;
+    ll nn10 = Niyuan::mod_r(10,M);
+    for(ll i=1;i<MX;i++){
+        ni10[i] = ni10[i-1] * nn10 % M;
+        z10[i] = z10[i-1] * 10 % M;
+    }
+
+    for(ll i=0;i<n-1;i++){
+        ll u,v,w;
+        scanf("%I64d%I64d%I64d",&u,&v,&w);
+        g[u].pb((edge){v, w});
+        g[v].pb((edge){u, w});
+    }
+    fz(0,n);
+    cout<<ans<<endl;
+    return 0;
+}

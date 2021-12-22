@@ -1,0 +1,150 @@
+#include<iostream>
+#include<algorithm>
+#include<cstdlib>
+#include<cstdio>
+#include<queue>
+using namespace std;
+struct node
+{
+    int bt,tmm,dp,n;
+    node* lsn;
+    node* rsn;
+    node* prt;
+}rt;
+queue <node*> q;
+void btfnd(int n)
+{
+    node *p;
+    int mxx=n,dd=0,bt=-1,tmp;
+    q.push(&rt);
+    while(!q.empty())
+    {
+        p=q.front();
+        if(p->dp==dd&&p->bt!=bt&&bt!=-1&&p->dp<17)
+        {
+            q.pop();
+            continue;
+        }
+        if(p->dp==31)
+        {
+            mxx=max(((p->n)^n),mxx);
+            q.pop();
+            continue;
+        }
+        if(p->lsn!=NULL)
+        {
+            tmp=((n>>(31-p->lsn->dp))&1);
+            if(tmp^(p->lsn->bt))
+            {
+                dd=p->lsn->dp;
+                bt=p->lsn->bt;
+            }
+            q.push(p->lsn);
+        }
+        if(p->rsn!=NULL)
+        {
+            tmp=((n>>(31-p->rsn->dp))&1);
+            if(tmp^(p->rsn->bt))
+            {
+                dd=p->rsn->dp;
+                bt=p->rsn->bt;
+            }
+            q.push(p->rsn);
+        }
+        q.pop();
+    }
+    printf("%d\n",mxx);
+}
+void btadd(int n)
+{
+    node* p=&rt;
+    int bt=1<<30;
+    while(bt)
+    {
+        if(bt&n)
+        {
+            if(p->rsn==NULL)
+            {
+                p->rsn=(node*)malloc(sizeof(node));
+                p->rsn->bt=1;
+                p->rsn->tmm=0;
+                p->rsn->lsn=NULL;
+                p->rsn->rsn=NULL;
+                p->rsn->prt=p;
+                p->rsn->dp=p->dp+1;
+            }
+            p=p->rsn;
+        }else{
+            if(p->lsn==NULL)
+            {
+                p->lsn=(node*)malloc(sizeof(node));
+                p->lsn->bt=0;
+                p->lsn->tmm=0;
+                p->lsn->lsn=NULL;
+                p->lsn->rsn=NULL;
+                p->lsn->prt=p;
+                p->lsn->dp=p->dp+1;
+            }
+            p=p->lsn;
+        }
+        bt>>=1;
+    }
+    p->tmm++;
+    p->n=n;
+}
+void bters(int n)
+{
+    node* p=&rt;
+    int bt=1<<30;
+    while(bt)
+    {
+        if(bt&n)
+        {
+            if(p->rsn==NULL) return;
+            p=p->rsn;
+        }else{
+            if(p->lsn==NULL) return;
+            p=p->lsn;
+        }
+        bt>>=1;
+    }
+    if(p->tmm>1) p->tmm--;
+    else{
+        while(p->prt!=NULL)
+        {
+            if(p==p->prt->rsn)
+            {
+                p=p->prt;
+                free(p->rsn);
+                p->rsn=NULL;
+                if(p->lsn!=NULL) break;
+            }else{
+                p=p->prt;
+                free(p->lsn);
+                p->lsn=NULL;
+                if(p->rsn!=NULL) break;
+            }
+        }
+    }       
+}
+int main()
+{
+    rt.bt=0;
+    rt.tmm=0;
+    rt.lsn=NULL;
+    rt.rsn=NULL;
+    rt.prt=NULL;
+    rt.dp=0;
+    int q,n;
+    char op;
+    scanf("%d",&q);
+    while(q--)
+    {
+        scanf("%c",&op);
+        scanf("%c %d",&op,&n);
+        if(op=='?') btfnd(n);
+        else if(op=='+') btadd(n);
+        else bters(n);
+    }
+    return 0;
+}

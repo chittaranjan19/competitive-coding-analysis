@@ -1,0 +1,95 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+int n, m, tm[200000], fp[200000], ft[200000], qn = 1, p[200000], sz[200000], tin[200000], tout[200000]; //dp[40][200000]
+vector<int> g[200000];
+vector<bool> isAns;
+vector<pair<int, int> > q;
+
+int find(int a){
+	if (p[a] == a) return a;
+	else return find(p[a]);
+}
+
+void merge(int a, int b){
+	if ((a = find(a)) != (b = find(b))){
+		if (sz[a] < sz[b])
+			swap(a, b);
+		sz[a] += sz[b];
+		p[b] = a;
+	}
+}
+
+int t = 0;
+
+void dfs(int v, int p = 0){
+	tin[v] = t++;
+	for (int i = 0; i < g[v].size(); i++){
+		if (g[v][i] != p)
+			dfs(g[v][i], v);
+	}
+	tout[v] = t++;
+}
+
+bool isUp(int a, int b){
+	return tin[a] <= tin[b] && tout[a] >= tout[b];
+}
+
+int main()
+{
+	//freopen("forest.in", "r", stdin);
+	//freopen("forest.out", "w", stdout);
+	cin >> n >> m;
+	for (int i = 1; i <= n; i++){
+		p[i] = i;
+		sz[i] = 1;
+	}
+	for (int i = 0; i < m; i++){
+		int tp;
+		cin >> tp;
+		if (tp == 1){
+			int a, b;
+			cin >> a >> b;
+			merge(a, b);
+			g[b].push_back(a);
+			g[a].push_back(b);
+		}
+		if (tp == 2){
+			int a;
+			cin >> a;
+			fp[qn++] = a;
+		}
+		if (tp == 3){
+			int a, b;
+			cin >> a >> b;
+			q.push_back(mp(a, b));
+			isAns.push_back(find(a) == find(fp[b]));
+		}
+	}
+	for (int i = 1; i <= n; i++){
+		if (find(i) == i)
+			dfs(i);
+	}
+	for (int i = 0; i < q.size(); i++){
+		int wrk = q[i].fs, doc = q[i].sc, fwrk = fp[doc];
+		if (isAns[i] && isUp(wrk, fwrk))
+			cout << "YES" << endl;
+		else cout << "NO" << endl;
+	}
+	return 0;
+}

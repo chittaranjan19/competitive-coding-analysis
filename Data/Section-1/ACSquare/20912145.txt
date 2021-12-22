@@ -1,0 +1,132 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+typedef long long int64;
+const int MAX_n = 100000, MAX_m = 100000;
+const int64 MOD = 1000000007;
+const int MAX_LOG_n = 17, MAX_sz = (1<<MAX_LOG_n)*2-1;
+
+struct vec
+{
+    int64 dat[2];
+    vec (){}
+    vec(int64 a0,int64 a1)
+    {   dat[0] = a0, dat[1] = a1;   }
+    vec operator + (const vec & op2)
+    {   return vec((dat[0] + op2.dat[0])%MOD,(dat[1] + op2.dat[1])%MOD);    }
+};
+
+struct mat
+{
+    int64 dat[2][2];
+    mat (){}
+    mat (int64 a00,int64 a01,int64 a10,int64 a11)
+    {
+        dat[0][0] = a00, dat[0][1] = a01;
+        dat[1][0] = a10, dat[1][1] = a11;
+    }
+};
+
+inline vec multi(const mat & A,const vec & v)
+{   return vec((A.dat[0][0]*v.dat[0] + A.dat[0][1]*v.dat[1])%MOD,
+               (A.dat[1][0]*v.dat[0] + A.dat[1][1]*v.dat[1])%MOD);}
+
+inline mat multi(const mat & A,const mat & B)
+{
+    return mat((A.dat[0][0]*B.dat[0][0]+A.dat[0][1]*B.dat[1][0])%MOD,
+               (A.dat[0][0]*B.dat[0][1]+A.dat[0][1]*B.dat[1][1])%MOD,
+               (A.dat[1][0]*B.dat[0][0]+A.dat[1][1]*B.dat[1][0])%MOD,
+               (A.dat[1][0]*B.dat[0][1]+A.dat[1][1]*B.dat[1][1])%MOD);
+}
+
+mat power(int n)
+{
+    mat A(1,1,1,0),ret(1,0,0,1);
+    while(n)
+    {
+        if(n&1) ret = multi(ret, A);
+        A = multi(A, A);
+        n >>= 1;
+    }
+    return ret;
+}
+
+struct SegementTree
+{
+    int l,r,sz;
+    mat data[MAX_sz];
+    vec datb[MAX_sz];
+    void init(int n)
+    {
+        l = 0, r = 1;
+        while(r < n)    r *= 2;
+        sz = 2*r - 1;
+        build(0, l, r);
+    }
+    void build(int k,int l,int r)
+    {
+        data[k] = mat(1,0,0,1);
+        datb[k] = vec(r-l, r-l);
+        if(r-l>1)
+        {
+            build(k*2+1, l, (l+r)/2);
+            build(k*2+2, (l+r)/2, r);
+        }
+    }
+    void multi(int a,int b,const mat &An, int k,int l,int r)
+    {
+        if(a <= l && r <= b)    data[k] = ::multi(data[k], An);
+        else if(l < b && a < r)
+        {
+            int lch = k*2+1,rch = k*2+2, mid = (l+r)/2;
+            multi(a, b, An, lch, l, mid);
+            multi(a, b, An, rch, mid, r);
+            datb[k] = ::multi(data[lch], datb[lch]) + ::multi(data[rch], datb[rch]);
+        }
+    }
+    vec sum(int a,int b,int k,int l,int r)
+    {
+        if(b <= l || r <= a)    return vec(0,0);
+        else if(a <= l && r <= b)   return ::multi(data[k], datb[k]) ;
+        else
+        {
+            vec ret(0,0);
+            ret = ret + sum(a, b, k*2+1, l, (l+r)/2);
+            ret = ret + sum(a, b, k*2+2, (l+r)/2, r);
+            ret = ::multi(data[k], ret);
+            return ret;
+        }
+    }
+};
+
+SegementTree tree;
+
+int a[MAX_n];
+int main()
+{
+    int n,m;
+    scanf("%d%d",&n,&m);
+    tree.init(n);
+    for(int i = 0; i < n; ++i)
+        scanf("%d", a + i);
+    for(int i = 0; i < n; ++i)
+        tree.multi(i, i+1, power(a[i]-1), 0, 0, tree.r);
+    
+    while(m--)
+    {
+        int op,l,r;
+        scanf("%d%d%d",&op,&l,&r);
+        if(op == 1)
+        {
+            int x;
+            scanf("%d",&x);
+            tree.multi(l-1, r, power(x), 0, 0, tree.r);
+        }
+        else
+        {
+            vec ans = tree.sum(l-1, r, 0, 0, tree.r);
+            printf("%d\n",(int)ans.dat[1]);
+        }
+    }
+}

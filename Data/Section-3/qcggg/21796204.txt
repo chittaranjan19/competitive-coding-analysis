@@ -1,0 +1,107 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+vector<int> max_decompose(int s){
+    vector<int> v(10, 0);
+    int i = 9;
+    while (s > 0){
+        v[i] = s / i;
+        v[0] += v[i];
+        //cout << v[i] << " ";
+        s = s % i;
+        --i;
+    }
+
+    return v;
+}
+
+vector<int> min_decompose(int s, int m){
+
+    vector<int> v = max_decompose(s);
+
+    if (m > v[0] && v[1] == 0){
+        int i = 9;
+        while (v[i] != 0){
+            --v[i];
+            ++v[1];
+            if (i != 1){
+                ++v[i - 1];
+                ++v[0];
+            }
+            --i;
+            break;
+        }
+    }
+
+    return v;
+}
+
+void print_min_number(vector<int> digits, int zero){
+    int i = 1;
+    vector<int> number;
+    while (number.empty()){
+        //cout << number << endl;
+        if (digits[i] > 0){
+            number.push_back(i);
+            digits[i] -= 1;
+        }
+        ++i;
+    }
+    //cout << number << endl;
+
+    while (zero){
+        number.push_back(0);
+        --zero;
+    }
+
+    for (int i = 1; i < 10; ++i){
+        while (digits[i]){
+            number.push_back(i);
+            --digits[i];
+        }
+    }
+
+    for (size_t i = 0; i < number.size(); ++i)
+        cout << number[i];
+}
+
+void print_max_number(vector<int> digits, int zero){
+    vector<int> number;
+    for (int i = 9; i > 0; --i){
+        while (digits[i]){
+            number.push_back(i);
+            --digits[i];
+        }
+    }
+
+    while (zero){
+        number.push_back(0);
+        --zero;
+    }
+
+    for (size_t i = 0; i < number.size(); ++i)
+        cout << number[i];
+}
+
+int main(){
+    int m, s;
+    cin >> m >> s;
+
+    vector<int> max_digits = max_decompose(s);
+    vector<int> min_digits = min_decompose(s, m);
+    //cout << digits[0];
+    if (m == 1 && s == 0)
+        cout << 0 << " " << 0 << endl;
+    else if (max_digits[0] == 0 || m < max_digits[0])
+        cout << -1  << " " << -1 << endl;
+    else{
+        print_min_number(min_digits, m - min_digits[0]);
+        cout << " ";
+        print_max_number(max_digits, m - max_digits[0]);
+        cout << endl;
+    }
+
+    return 0;
+}

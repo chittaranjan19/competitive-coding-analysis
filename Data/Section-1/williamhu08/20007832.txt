@@ -1,0 +1,44 @@
+//w dan's idea
+#include <bits/stdc++.h>
+
+using namespace std;
+const int MAXN = 1010, MAXQ = 100010;
+
+int N, M, Q;
+int last[MAXQ][MAXN];	//last[query number][bookshelf number]
+bool arr[MAXQ][MAXN];	//arr[query change]
+int ans[MAXQ];
+
+int main() {
+	scanf("%d %d %d", &N, &M, &Q);
+	for (int qi = 1, qt, qa, qb; qi <= Q; qi++) {
+		copy_n(last[qi - 1], N, last[qi]);
+		scanf("%d %d", &qt, &qa);
+		ans[qi] = ans[qi - 1];
+		if (qt <= 2) {
+			scanf("%d", &qb);
+			qa--;
+			qb--;
+			copy_n(arr[last[qi][qa]], M, arr[qi]);
+			last[qi][qa] = qi;
+			bool &ref = arr[qi][qb];
+			ans[qi] -= ref;
+			ref = (qt == 1);
+			ans[qi] += ref;
+		} else if (qt == 3) {
+			//ok invert the book shelving
+			qa--;
+			copy_n(arr[last[qi][qa]], M, arr[qi]);
+			last[qi][qa] = qi;
+			for (int i = 0; i < M; i++) {
+				ans[qi] += (arr[qi][i] ? -1 : 1);
+				arr[qi][i] ^= 1;
+			}
+		} else {
+			copy_n(last[qa], N, last[qi]);
+			ans[qi] = ans[qa];
+		}
+		printf("%d\n", ans[qi]);
+	}
+}
+

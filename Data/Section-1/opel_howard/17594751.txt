@@ -1,0 +1,165 @@
+#define DEBUG
+
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <climits>
+#include <ctime>
+#include <cassert>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define vl vector <long long>
+#define vb vector <bool>
+#define vs vector <string>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define lsone(value) (value)&(-value)
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define loop(i, n) for(int i = 0; i < n; ++i)
+#define loop1(i, n) for(int i = 1; i <= n; ++i)
+#define reverse_iterate(a, b) for(__typeof(b.rend()) a = b.rbegin(); a != b.rend(); ++a)
+#define iterate(a, b) for(__typeof(b.begin()) a = b.begin(); a != b.end(); ++a)
+#define all(i) i.begin(), i.end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const double PI = acos(-1);
+
+#ifdef DEBUG
+	#define debug(...) printf(__VA_ARGS__)
+	#define GetTime() fprintf(stderr,"Running time: %.3lf second\n",((double)clock())/CLOCKS_PER_SEC)
+#else
+	#define debug(...) 
+	#define GetTime() 
+#endif
+
+// end of template
+
+int main() {
+    // freopen("525E.in", "r", stdin);
+    
+    int n, k;
+    ll s;
+    scanf("%d %d %I64d", &n, &k, &s);
+
+    vl arr(n);
+    iterate(elem, arr) {
+    	scanf("%I64d", elem);
+    }
+
+    vl fact_arr(n, 1);
+    loop(idx, n) {
+    	ll val = arr[idx];
+    	if (val > 18)
+    		continue;
+    	ll res = 1;
+    	while (val) {
+    		res *= (val--);
+    	}
+    	fact_arr[idx] = res;
+    }
+
+    // do the left part first
+    int left_part_begin = 0;
+    int half = n/2;
+    int right_part_begin = half;
+    int rest_half = n-half;
+    map<ll, ll> count_exc[half+1];
+    loop(bm, (1 << half)) {
+    	int count_1 = __builtin_popcount(bm);
+    	map<ll, ll> &count = count_exc[count_1];
+
+    	map<ll, ll> dict;
+    	dict[0] = 1;
+    	ll init_val = 0;
+
+    	loop(idx, half) {
+    		int arr_idx = idx;
+    		if (bm & (1 << (half-1-idx))) {
+    			if (arr[arr_idx] > 18)
+    				goto finish1;
+    			init_val += fact_arr[arr_idx];
+    		} else {
+    			reverse_iterate(it, dict) {
+    				ll sum = it->first+arr[arr_idx];
+    				if (!dict.count(sum))
+    					dict[sum] = 0;
+    				dict[sum] += it->second;
+    			}
+    		}
+    	}
+
+    	iterate(it, dict) {
+    		ll new_sum = it->first+init_val;
+    		if (!count.count(new_sum))
+    			count[new_sum] = 0;
+    		count[new_sum] += it->second;
+    	}
+    	finish1:;
+    }
+
+    ll ans = 0;
+    loop(bm, (1 << rest_half)) {
+    	map<ll, ll> dict;
+    	dict[0] = 1;
+    	ll init_val = 0;
+    	loop(idx, rest_half) {
+    		int arr_idx = right_part_begin+idx;
+    		if (bm & (1 << (rest_half-1-idx))) {
+    			if (arr[arr_idx] > 18)
+    				goto finish2;
+    			init_val += fact_arr[arr_idx];
+    		} else {
+    			reverse_iterate(it, dict) {
+    				ll sum = it->first+arr[arr_idx];
+    				if (!dict.count(sum))
+    					dict[sum] = 0;
+    				dict[sum] += it->second;
+    			}
+    		}
+    	}
+    	for (int used_k = 0; used_k <= k; ++used_k) {
+    		int count_1 = __builtin_popcount(bm);
+	    	int left_used_k = used_k-count_1;
+	    	if ((left_used_k < 0) or (left_used_k > half))
+	    		continue;
+	    	map<ll, ll> &count = count_exc[left_used_k];
+	    	iterate(it, dict) {
+	    		ans += count[s-((it->first)+init_val)]*(it->second);
+	    	}
+    	}
+    	finish2:;
+    }
+    printf("%I64d\n", ans);
+
+    return 0;
+}

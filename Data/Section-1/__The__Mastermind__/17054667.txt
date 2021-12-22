@@ -1,0 +1,108 @@
+#include <bits/stdc++.h>
+#define forinc(i,a,b) for(int i = a; i <= b; i++)
+#define fordec(i,a,b) for(int i = a; i >= b; i--)
+#define fori(i,n) for(int i = 0; i < n; i++)
+#define ford(i,n) for(int i = n - 1; i; i--)
+#define forvct(i,v) for(int i = 0; i < v.size(); i++)
+#define task "x"
+#define st first
+#define nd second
+#define m_p make_pair
+#define p_b push_back
+#define p_f push_front
+#define ll long long
+#define db double
+#define str string
+#define base 1000000007
+#define nn 1010
+#define lm 1000010
+
+using namespace std;
+
+const int r[4] = {0,-1,0,1};
+const int c[4] = {-1,0,1,0};
+
+ll k;
+int a[nn][nn], b[nn][nn], p[nn][nn], m, n, cnt, lab[lm], cc[lm], key, id[nn][nn], l;
+pair <int, int> t[lm];
+
+int getroot(int i)
+{
+    if (lab[i] != i) lab[i] = getroot(lab[i]);
+    return lab[i];
+}
+
+void visit(int u, int v)
+{
+    b[u][v] = key;
+    cnt--;
+    if (!cnt) return;
+    forinc(i,0,3)
+    {
+        int x = u + r[i], y = v + c[i];
+        if (1 <= x && x <= m && 1 <= y && y <= n && a[x][y] >= key && b[x][y] == 0) visit(x,y);
+        if (!cnt) return;
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    //freopen(task".inp","r",stdin);
+    //freopen(task".out","w",stdout);
+    cin >> m >> n >> k;
+    forinc(i,1,m)
+        forinc(j,1,n)
+        {
+            cin >> a[i][j];
+            id[i][j] = ++l;
+            lab[l] = l;
+            cc[l] = 1;
+            t[l] = m_p(a[i][j],l);
+        }
+    if (m == 1 && n == 1)
+    {
+        if (a[1][1] != k) cout << "NO";
+        else
+        {
+            cout << "YES\n";
+            cout << k;
+        }
+    }
+    sort(t+1,t+l+1);
+    key = -1;
+    fordec(i,l,1)
+    {
+        int tmp = t[i].nd, u = (tmp - 1) / n + 1, v = tmp - (u - 1) * n, x, y;
+        getroot(tmp);
+        forinc(j,0,3)
+        {
+            x = u + r[j];
+            y = v + c[j];
+            if (1 <= x && x <= m && 1 <= y && y <= n && a[x][y] >= a[u][v] && getroot(id[x][y]) != lab[tmp])
+            {
+                cc[lab[tmp]] += cc[lab[id[x][y]]];
+                lab[lab[id[x][y]]] = lab[tmp];
+            }
+        }
+        p[u][v] = cc[lab[tmp]];
+        if (k % a[u][v] == 0 && k / a[u][v] <= p[u][v])
+        {
+            key = a[u][v];
+            cnt = k / a[u][v];
+            visit(u,v);
+            break;
+        }
+    }
+    if (key == -1) cout << "NO";
+    else
+    {
+        cout << "YES\n";
+        forinc(i,1,m)
+        {
+            forinc(j,1,n) cout << b[i][j] << " ";
+            cout << "\n";
+        }
+    }
+}

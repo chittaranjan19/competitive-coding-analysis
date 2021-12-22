@@ -1,0 +1,200 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+const int MAXN = 100005;
+const int LN = 20;
+
+vector<int> g[MAXN];
+int h[MAXN], P[MAXN][LN], kth[MAXN][LN][10];
+vector<int> people[MAXN];
+
+int LCA_query(int p, int q)
+{
+  int log;
+  if(h[p] < h[q])
+    swap(p, q);
+  for(log = 1; (1 << log) <= h[p]; log++);
+  log--;
+  for(int i = log; i >= 0; i--)
+    if(h[p] - (1 << i) >= h[q])
+      p = P[p][i];
+  if(p == q)
+    return p;
+  for(int i = log; i >= 0; i--)
+    if(P[p][i] != -1 && P[p][i] != P[q][i])
+      p = P[p][i], q = P[q][i];
+  return P[p][0];
+}
+
+void dfs(int node, int depth = 1, int parent = -1)
+{
+  h[node] = depth;
+  P[node][0] = parent;
+  int L = 0, R = 0;
+  for(int i=0;i<10;i++)
+  {
+    if(people[node].size() != L && people[parent].size() != R)
+    {
+      if(people[node][L] == people[parent][R])
+        kth[node][0][i] = people[node][L++], R++;
+      else if(people[node][L] < people[parent][R])
+        kth[node][0][i] = people[node][L++];
+      else kth[node][0][i] = people[parent][R++];
+    }
+    else if(people[node].size() != L)
+      kth[node][0][i] = people[node][L++];
+    else if(people[parent].size() != R)
+      kth[node][0][i] = people[parent][R++];
+    else kth[node][0][i] = INF;
+  }
+  for(int i=0;i<g[node].size();i++)
+  {
+    if(g[node][i] == parent) continue;
+    dfs(g[node][i], depth + 1, node);
+  }
+}
+
+int res[2][12];
+bool ch;
+
+inline void solve(int x, int k)
+{
+  int log, L, R;
+  for(log = 1; (1 << log) <= h[x]; log++);
+  log--;
+  for(int i = log; i >= 0; i--)
+  {
+    if(h[x] - (1 << i) >= k)
+    {
+      ch = !ch;
+      L = 0, R = 0;
+      for(int j=0;j<10;j++)
+      {
+        if(kth[x][i][L] != INF && res[!ch][R] != INF)
+        {
+          if(kth[x][i][L] == res[!ch][R])
+            res[ch][j] = kth[x][i][L++], R++;
+          else if(kth[x][i][L] < res[!ch][R])
+            res[ch][j] = kth[x][i][L++];
+          else res[ch][j] = res[!ch][R++];
+        }
+        else if(kth[x][i][L] != INF)
+          res[ch][j] = kth[x][i][L++];
+        else if(res[!ch][R] != INF)
+          res[ch][j] = res[!ch][R++];
+        else break;
+      }
+      x = P[x][i];
+    }
+  }
+}
+
+int main()
+{
+  int n, m, q, x, y, z;
+  scanf("%d %d %d", &n, &m, &q);
+  for(int i=0;i<n-1;i++)
+  {
+    scanf("%d %d", &x, &y);
+    g[x].pb(y);
+    g[y].pb(x);
+  }
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d", &x);
+    people[x].pb(i + 1);
+  }
+  setdp(P);
+  for(int j = 0; (1 << j) <= n; j++)
+    for(int i = 0; i <= n; i++)
+      for(int k=0;k<10;k++)
+        kth[i][j][k] = INF;
+  dfs(1);
+  int L = 0, R = 0;
+  for(int j = 1; (1 << j) <= n; j++)
+    for(int i = 1; i <= n; i++)
+      if(P[i][j - 1] != -1)
+      {
+        P[i][j] = P[P[i][j - 1]][j - 1];
+        L = 0, R = 0, z = P[i][j - 1];
+        for(int k=0;k<10;k++)
+        {
+          if(kth[i][j - 1][L] != INF && kth[z][j - 1][R] != INF)
+          {
+            if(kth[i][j - 1][L] == kth[z][j - 1][R])
+              kth[i][j][k] = kth[i][j - 1][L++], R++;
+            else if(kth[i][j - 1][L] < kth[z][j - 1][R])
+              kth[i][j][k] = kth[i][j - 1][L++];
+            else kth[i][j][k] = kth[z][j - 1][R++];
+          }
+          else if(kth[i][j - 1][L] != INF)
+            kth[i][j][k] = kth[i][j - 1][L++];
+          else if(kth[z][j - 1][R] != INF)
+            kth[i][j][k] = kth[z][j - 1][R++];
+          else break;
+        }
+      }
+  while(q--)
+  {
+    int k;
+    scanf("%d %d %d", &x, &y, &z);
+    if(x == y)
+    {
+      k = min(z, (int)(people[x].size()));
+      printf("%d", k);
+      for(int i=0;i<k;i++)
+        printf(" %d", people[x][i]);
+      printf("\n");
+      continue;
+    }
+    int lca = LCA_query(x, y);
+    ch = 0;
+    for(int i=0;i<10;i++)
+      res[0][i] = res[1][i] = INF;
+    solve(x, h[lca]);
+    solve(y, h[lca]);
+    k = 0;
+    while(res[ch][k] != INF && k < z)
+      k++;
+    printf("%d", k);
+    for(int i=0;i<k;i++)
+      printf(" %d", res[ch][i]);
+    printf("\n");
+  }
+  return 0;
+}

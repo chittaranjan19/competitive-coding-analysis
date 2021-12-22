@@ -1,0 +1,87 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 200009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll arr[MAXN],pos[MAXN],s[MAXN<<2],a,ans[MAXN],ata[MAXN];
+vector<int>adj[MAXN];
+vector<PII>dj[MAXN];
+void upd(int p,int nd,int x,int y){
+	if(x==y){
+		s[nd]--;
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,nd<<1,x,mid);
+	else
+		upd(p,nd<<1|1,mid+1,y);
+	s[nd]=s[nd<<1]+s[nd<<1|1];		
+}
+void build(int nd,int x,int y){
+	if(x==y){
+		s[nd]=ata[x];
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+	s[nd]=s[nd<<1]+s[nd<<1|1];
+}
+ll tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)	
+		return s[nd];
+	int mid=(x+y)>>1;	
+	ll i1=tap(l,r,nd<<1,x,mid);
+	ll i2=tap(l,r,nd<<1|1,mid+1,y);
+	return i1+i2;
+}
+int main(){
+	int q;
+	scanf("%d%d",&a,&q);
+	for(int i=1;i<=a;i++)
+		scanf("%lld",arr+i),pos[arr[i]]=i;
+	for(int i=1;i<=a;i++){
+		int pw=i;
+		while(pw<=a){
+			int b1=pos[i],b2=pos[pw],b3=pos[i];
+			if(b1>b2)
+				b1=b2,b2=b3;
+			adj[b1].pb(b2);
+			ata[b2]++;
+			pw+=i;
+		}	
+	}	
+	build(1,1,a);
+	int l,r;
+	for(int i=1;i<=q;i++)
+		scanf("%d%d",&l,&r),dj[l].pb(mp(r,i));	
+	for(int i=1;i<=a;i++){
+		for(int j=0;j<dj[i].size();j++)
+			ans[dj[i][j].ss]=tap(i,dj[i][j].ff,1,1,a);
+		for(int j=0;j<adj[i].size();j++)
+			upd(adj[i][j],1,1,a);	
+	}
+	for(int i=1;i<=q;i++)
+		printf("%lld\n",ans[i]);
+	return 0;
+}
+/*
+*/

@@ -1,0 +1,62 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 400001
+#define maxC 20000000
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+int tree[mn], n, sum[mn], g[mn], maxS = -1, add[mn], ans = 0;
+
+void setup ()
+{
+    cin >> n;
+    FOR (i, 2, (1 << (n + 1)) - 1)
+    {
+        cin >> tree[i];
+        g[i / 2] = 1;
+    }
+}
+
+void dfs(int u, int val)
+{
+    sum[u] = val;
+    if (g[u])
+    {
+        dfs(u * 2, val + tree[u * 2]);
+        dfs(u * 2 + 1, val + tree[u * 2 + 1]);
+    }
+    else
+        maxS = max(maxS, val);
+}
+
+void xuly ()
+{
+    dfs(1, 0);
+    FOR (i, 1 << n, (1 << (n + 1)) - 1)
+    {
+        add[i] = maxS - sum[i];
+        ans += add[i];
+    }
+    for(int i = (1 << (n + 1)) - 2; i; i -= 2)
+    if (add[i] && add[i + 1])
+    {
+        int x = min(add[i], add[i + 1]);
+        add[i] -= x;
+        add[i + 1] -= x;
+        add[i / 2] = x;
+        ans -= x;
+    }
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

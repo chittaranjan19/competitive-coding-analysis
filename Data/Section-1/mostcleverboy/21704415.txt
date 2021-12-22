@@ -1,0 +1,66 @@
+program j01;
+type xx=record
+          s,t,last,id:int64;
+        end;
+var a:array[0..300]of xx;
+    n,ss,dd,i,j,k,x:longint;
+
+procedure qsort(l,r:longint);
+var i,j,x:int64;
+    y:xx;
+begin
+  i:=l;j:=r;x:=a[(i+j)div 2].s;
+  repeat
+    while a[i].s<x do inc(i);
+    while x<a[j].s do dec(j);
+    if i<=j then
+    begin
+      y:=a[i];a[i]:=a[j];a[j]:=y;
+      inc(i);
+      dec(j);
+    end;
+  until i>j;
+  if i<r then qsort(i,r);
+  if l<j then qsort(l,j);
+end;
+
+begin
+  readln(n);
+  fillchar(a,sizeof(a),0);
+  for i:=1 to n do
+  begin
+    readln(ss,dd);
+    a[i].id:=i;
+    for j:=1 to i-1 do
+      if (a[j].last<ss)and(a[j].s>ss+dd-1) then
+      begin
+        a[i].s:=ss;
+        a[i].t:=ss+dd-1;
+      end;
+    if ss>a[i-1].t then
+    begin
+      a[i].s:=ss;
+      a[i].t:=ss+dd-1;
+    end;
+    if a[i].s=0 then
+    begin
+      for j:=1 to i-1 do
+        if a[j].s-a[j].last-1>=dd then
+        begin
+          a[i].s:=a[j].last+1;
+          a[i].t:=a[j].last+dd;
+          break;
+        end;
+    end;
+    if a[i].s=0 then
+    begin
+      a[i].s:=a[i-1].t+1;
+      a[i].t:=a[i-1].t+dd;
+    end;
+    qsort(1,i);
+    for j:=1 to i do a[j].last:=a[j-1].t;
+  end;
+  for i:=1 to n do
+    for j:=1 to n do
+      if a[j].id=i then writeln(a[j].s,' ',a[j].t);
+end.

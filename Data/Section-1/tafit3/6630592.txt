@@ -1,0 +1,198 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+/**
+ * Date: 11.05.14
+ * Time: 17:48
+ */
+public class PrimeSwaps {
+    private static int ERA_MAX = 100000;
+
+    private boolean[] prime = new boolean[ERA_MAX];
+    private int swaps;
+    private int[] a;
+    private StringBuilder buf;
+
+    private void start() {
+        prime[2] = true;
+        for (int i = 2; i < ERA_MAX; i++) {
+            if (i % 2 != 0) {
+                prime[i] = true;
+            }
+        }
+        int s = (int) Math.round(Math.floor(Math.sqrt(ERA_MAX)));
+        for (int i = 3; i <= s; i += 2) {
+            if(prime[i]) {
+                for (int j = i * i; j < ERA_MAX; j += i) {
+                    prime[j] = false;
+                }
+            }
+        }
+    }
+
+    private PrimeSwaps() throws IOException {
+        BufferedReader rd = new BufferedReader(new InputStreamReader(System.in));
+        String h = rd.readLine();
+        int n = Integer.parseInt(h);
+        h = rd.readLine();
+        String[] q = h.split("\\s+");
+        a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i])-1;
+        }
+
+        start();
+        int pc = 0;
+        for(int i=2;i<100000;i++) {
+            if(prime[i]) {
+                pc++;
+            }
+        }
+        int[] p = new int[pc];
+        pc = 0;
+        for(int i=2;i<100000;i++) {
+            if(prime[i]) {
+                p[pc] = i;
+                pc++;
+            }
+        }
+        SortedMap<Integer, Map<Integer, Integer>> lenMap = new TreeMap<Integer, Map<Integer, Integer>>(new Comparator<Integer>() {
+            public int compare(Integer a, Integer b) {
+                return b-a;
+            }
+        });
+        for(int i=0;i<n;i++) {
+            if(a[i] != i) {
+                add(lenMap, a[i], i);
+            }
+        }
+
+        buf = new StringBuilder();
+        int next = 0;
+        while(!lenMap.isEmpty()) {
+            int maxLen = 0;
+            if(next == 0) {
+                maxLen = lenMap.firstKey();
+            } else {
+                Iterator<Integer> it = lenMap.keySet().iterator();
+                int t = 0;
+                while(it.hasNext() && t <= next) {
+                    t++;
+                    maxLen = it.next();
+                }
+            }
+            Map<Integer, Integer> m = lenMap.remove(maxLen);
+            if(!m.isEmpty()) {
+                List<int[]> toAdd = new ArrayList<int[]>();
+                Set<Integer> toSkip = new HashSet<Integer>();
+                boolean swapped = false;
+                for(Map.Entry<Integer, Integer> e: m.entrySet()) {
+                    int v = e.getKey();
+                    if(!toSkip.contains(v)) {
+                        int i = e.getValue();
+                        Integer opposite = m.get(i);
+                        boolean oppositeExists = false;
+                        if(opposite != null && opposite == v) {
+                            toSkip.add(i);
+                            oppositeExists = true;
+                        }
+                        int y = Arrays.binarySearch(p, maxLen+1);
+                        if(y < 0) {
+                            y = -2-y;
+                        }
+                        if(v > i) {
+                            int v2 = i+p[y]-1;
+                            if(a[v2] <= v) {
+                                boolean eq = a[v2] == v;
+                                swap(i, v2);
+                                swapped = true;
+                                add(lenMap, a[v2], v2);
+                                add(lenMap, a[i], i);
+                                if(!eq) {
+                                    remove(lenMap, a[i], v2);
+                                    if(oppositeExists && (a[i]-v2 != maxLen)) {
+                                        toAdd.add(new int[] { i, v });
+                                    }
+                                }
+                            } else {
+                                toAdd.add(new int[] { v, i });
+                            }
+                        } else {
+                            int v2 = i-p[y]+1;
+                            if(a[v2] >= v) {
+                                boolean eq = a[v2] == v;
+                                swap(v2, i);
+                                swapped = true;
+                                add(lenMap, a[v2], v2);
+                                add(lenMap, a[i], i);
+                                if(!eq) {
+                                    remove(lenMap, a[i], v2);
+                                    if(oppositeExists && (a[i]-v2 != maxLen)) {
+                                        toAdd.add(new int[] { i, v });
+                                    }
+                                }
+                            } else {
+                                toAdd.add(new int[] { v, i });
+                            }
+                        }
+                    }
+                }
+                for(int[] pair: toAdd) {
+                    add(lenMap, pair[0], pair[1]);
+                }
+                if(!swapped) {
+                    next++;
+                } else {
+                    next = 0;
+                }
+            }
+        }
+        out(swaps);
+        if(swaps > 0) {
+            out(buf);
+        }
+    }
+
+    private void swap(int i, int v2) {
+        int tmp = a[i];
+        a[i] = a[v2];
+        a[v2] = tmp;
+        swaps++;
+        buf.append(i+1);
+        buf.append(' ');
+        buf.append(v2+1);
+        buf.append('\n');
+    }
+
+    private void remove(SortedMap<Integer, Map<Integer, Integer>> lenMap, int v, int i) {
+        int len = Math.abs(v - i);
+        if(len > 0) {
+            Map<Integer, Integer> x = lenMap.get(len);
+            if(x != null) {
+                x.remove(v);
+            }
+        }
+    }
+
+    private void add(SortedMap<Integer, Map<Integer, Integer>> lenMap, int v, int i) {
+        int len = Math.abs(v - i);
+        if(len > 0) {
+            Map<Integer, Integer> x = lenMap.get(len);
+            if(x == null) {
+                x = new HashMap<Integer, Integer>();
+                lenMap.put(len, x);
+            }
+            x.put(v, i);
+        }
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new PrimeSwaps();
+    }
+}

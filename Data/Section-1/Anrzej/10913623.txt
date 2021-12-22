@@ -1,0 +1,79 @@
+#include <iostream>
+#include <vector>
+#include <stack>
+
+using namespace std;
+
+char mas[50][50];
+int n;
+vector<pair<int, int> > iks, fs;
+vector<bool> findd;
+stack<pair<int, int> > steps;
+pair<int, int> point;
+
+int main(){
+    cin >> n;
+    for (int i = 0; i < n; i++){
+        for (int j = 0; j < n; j++){
+            cin >> mas[i][j];
+            point.first = i;
+            point.second = j;
+            if (mas[i][j] == 'x'){
+                iks.push_back(point);
+                findd.push_back(false);
+            }
+            if (mas[i][j] == 'o'){
+                fs.push_back(point);
+                iks.push_back(point);
+                findd.push_back(true);
+            }
+        }
+    }
+    for (int i = 0; i < fs.size(); i++){
+        for (int j = 0; j < iks.size(); j++){
+            if (findd[j])
+                continue;
+            int dx = iks[j].first - fs[i].first, dy = iks[j].second - fs[i].second;
+            bool good = true;
+            for (int l = 0; l < fs.size(); l++){
+                if (good){
+                    int tx = fs[l].first + dx, ty = fs[l].second + dy;
+                    if ((tx >= 0) && (tx < n) && (ty >= 0) && (ty < n)){
+                        if (mas[tx][ty] != 'x' && mas[tx][ty] != 'o')
+                            good = false;
+                    }
+                }
+            }
+            if (good){
+                point.first = dx; point.second = dy;
+                steps.push(point);
+                findd[j] = true;
+            }
+        }
+    }
+    for (int i = 0; i < iks.size(); i++){
+        if (findd[i] == false){
+            cout << "NO";
+            return 0;
+        }
+    }
+    vector<vector<char> > ans;
+    vector<char> temp;
+    temp.assign(2 * n - 1, '.');
+    ans.assign(2 * n - 1, temp);
+    int k = steps.size();
+    for (int i = 0; i < k; i++){
+        point = steps.top();
+        steps.pop();
+        ans[n + point.first-1][n + point.second-1] = 'x';
+    }
+    ans[n - 1][n - 1] = 'o';
+    cout << "YES" << "\n";
+    for (int i = 0; i < 2*n-1; i++){
+        for (int j = 0; j < 2*n-1; j++){
+            cout << ans[i][j];
+        }
+        cout << "\n";
+    }
+    return 0;
+}

@@ -1,0 +1,99 @@
+#include <iostream>
+#include <cstring>
+#include <cstdio>
+
+using namespace std;
+
+const int maxn = 1e4 + 5;
+const int maxm = 1e6 + 5;
+
+char s[maxn * 10][maxn / 10];
+char t[maxn];
+bool dp[maxn];
+
+struct trie
+{
+    int ch[maxm][26], val[maxm], tot;
+
+    void init()
+    {
+        tot = 0;
+        memset(ch[0], 0, sizeof(ch[0]));
+    }
+
+    void insert(int k)
+    {
+        int n = strlen(s[k]), u = 0;
+        for(int i = 0; i < n; ++i)
+        {
+            int c = s[k][i] >= 'a' ? s[k][i] - 'a' : s[k][i] - 'A';
+            if(!ch[u][c])
+            {
+                ch[u][c] = ++tot;
+                memset(ch[tot], 0, sizeof(ch[tot]));
+                val[tot] = 0;
+            }
+            u = ch[u][c];
+        }
+        val[u] = k;
+    }
+
+    void solve(int n)
+    {
+        dp[0] = true;
+        for(int i = 1; i <= n; ++i)
+        {
+            dp[i] = false;
+            int u = 0;
+            for(int j = i; j; --j)
+            {
+                int c = t[j] >= 'a' ? t[j] - 'a' : t[j] - 'A';
+                u = ch[u][c];
+                if(!u) break;
+                if(val[u] && dp[j - 1])
+                {
+                    dp[i] = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    void print(int k)
+    {
+        if(!k) return;
+        int u = 0;
+        for(int i = k; i; --i)
+        {
+            int c = t[i] >= 'a' ? t[i] - 'a' : t[i] - 'A';
+            u = ch[u][c];
+            if(val[u] && dp[i - 1])
+            {
+                print(i - 1);
+                printf("%s ", s[val[u]]);
+                return;
+            }
+        }
+    }
+} tree;
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        tree.init();
+        scanf("%s", t + 1);
+        int m;
+        scanf("%d", &m);
+        for(int i = 1; i <= m; ++i)
+        {
+            scanf("%s", s[i]);
+            tree.insert(i);
+        }
+        tree.solve(n);
+        tree.print(n);
+        puts("");
+    }
+    return 0;
+}

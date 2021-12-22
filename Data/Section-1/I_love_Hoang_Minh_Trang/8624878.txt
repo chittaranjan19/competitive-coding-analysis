@@ -1,0 +1,58 @@
+uses    math;
+const   fi      ='';
+        fo      ='';
+        maxn    =1000;
+        maxK    =10;
+
+var     n       :longint;
+        Prime   :array[1..maxK] of int64=(2,3,5,7,11,13,17,19,23,29);
+        f       :array[0..maxN,0..maxK] of int64;
+
+
+Procedure Optimize;
+var     i, j, k, l :longint;
+        tmp     :int64;
+
+begin
+        fillchar(f,sizeof(f),0);
+        for j:=1 to maxK do f[1,j]:=1;
+        for i:=1 to n do f[i,0]:=1;
+        f[2,1]:=2;
+        for i:=3 to n do
+                if i<=59 then
+                f[i,1]:=(int64(1) shl (i-1))
+                else
+                f[i,1]:=high(int64);
+
+        for i:=2 to n do
+                for j:=2 to maxK do
+                        begin
+                                f[i,j]:=f[i,j-1];
+                                if f[i,j]=0 then f[i,j]:=high(int64);
+                                for k:=1 to maxK do
+                                        if i mod (k+1)=0 then
+                                        begin
+                                        tmp:=1;
+                                        for l:=1 to k do tmp:=tmp*prime[j];
+                                        if trunc(ln(f[i div (k+1),j-1])/ln(10))+trunc(ln(tmp)/ln(10))>18 then
+                                                f[i,j]:=min(f[i,j],high(int64));
+                                        f[i,j]:=min(f[i,j],f[i div (k+1),j-1]*tmp);
+                                        end;
+                        end;
+       // writeln(f[2,1]);
+
+end;
+
+Procedure xuly;
+begin
+        assign(input,fi);assign(output,fo);
+        reset(input);rewrite(output);
+        readln(n);
+        Optimize;
+        writeln(f[n,maxK]);
+        close(input);close(output);
+end;
+
+begin
+        xuly;
+end.

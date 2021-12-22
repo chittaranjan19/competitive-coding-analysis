@@ -1,0 +1,188 @@
+#include <iostream>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+using namespace std;
+
+struct pairhash {
+public:
+	template <typename T, typename U>
+	std::size_t operator()(const std::pair<T, U> &x) const
+	{
+		return std::hash<T>()(x.first) ^ std::hash<U>()(x.second);
+	}
+};
+
+vector<pair<int, int>> sensor_order;
+unordered_map<pair<int, int>, int, pairhash> sensors;
+int n, m, k;
+
+bool is_sensor(int x, int y)
+{
+	unordered_map<pair<int, int>, int, pairhash>::iterator element = sensors.find(make_pair(x, y));
+	return element != sensors.end();
+}
+
+unordered_map<pair<int, int>, int, pairhash>::iterator get_sensor(int x, int y)
+{
+	return sensors.find(make_pair(x, y));
+}
+
+int get_sensor_time(int x, int y)
+{
+	unordered_map<pair<int, int>, int, pairhash>::iterator element = sensors.find(make_pair(x, y));
+	return element->second;
+}
+
+void update_sensor_time(int x, int y, int time)
+{
+	unordered_map<pair<int, int>, int, pairhash>::iterator element = sensors.find(make_pair(x, y));
+	if (element != sensors.end())
+	{
+		element->second = time;
+	}
+}
+
+int main()
+{
+	int x, y, angle, nr;
+	cin >> n >> m >> k;
+	for (int i = 0; i < k; i++)
+	{
+		cin >> x >> y;
+		pair<int, int> p = make_pair(y, x);
+		sensor_order.push_back(p);
+		sensors.emplace(p, -1);
+	}
+
+	x = 1;
+	y = 1;
+	nr = 1;
+	unordered_map<pair<int, int>, int, pairhash>::iterator element = get_sensor(x, y);
+	if (element != sensors.end() && element->second == -1)
+	{
+		element->second = nr;
+	}
+	angle = 1;
+	int justchange = 1;
+	while (1)
+	{
+		if (angle == 1)
+		{
+			if ((x == m || y == n)&&justchange==0)
+			{
+				if (x == m&&y == n)
+					break;
+				if (x == m)
+					angle = 4;
+				else
+					if (y == n)
+						angle = 2;
+				justchange = 1;
+			}
+			else
+			{
+				justchange = 0;
+				x++;
+				y++;
+				nr++;
+				unordered_map<pair<int, int>, int, pairhash>::iterator element = get_sensor(x, y);
+				if (element != sensors.end() && element->second == -1)
+				{
+					element->second = nr;
+				}
+			}
+				
+		}
+		else
+		if (angle == 2)
+		{
+			if ((x == m || y == 0)&&justchange == 0)
+			{
+				if (x == m&&y == 0)
+					break;
+				if (x == m)
+					angle = 3;
+				else
+					if (y == 0)
+						angle = 1;
+				justchange = 1;
+			}
+			else
+			{
+				justchange = 0;
+				x++;
+				y--;
+				nr++;
+				unordered_map<pair<int, int>, int, pairhash>::iterator element = get_sensor(x, y);
+				if (element != sensors.end() && element->second == -1)
+				{
+					element->second = nr;
+				}
+			}
+			
+		}
+		else
+		if (angle == 3)
+		{
+			if ((x == 0 || y == 0) && justchange == 0)
+			{
+				if (x == 0 && y == 0)
+					break;
+				if (x == 0)
+					angle = 2;
+				else
+					if (y == 0)
+						angle = 4;
+				justchange = 1;
+			}
+			else
+			{
+				justchange = 0;
+				x--;
+				y--;
+				nr++;
+				unordered_map<pair<int, int>, int, pairhash>::iterator element = get_sensor(x, y);
+				if (element != sensors.end() && element->second == -1)
+				{
+					element->second = nr;
+				}
+			}
+				
+		}
+		else
+		if (angle == 4)
+		{
+			if ((x == 0 || y == n) && justchange == 0)
+			{
+				if (x == 0 && y == n)
+					break;
+				if (x == 0)
+					angle = 1;
+				else
+					if (y == n)
+						angle = 3;
+				justchange = 1;
+			}
+			else
+			{
+				justchange = 0;
+				x--;
+				y++;
+				nr++;
+				unordered_map<pair<int, int>, int, pairhash>::iterator element = get_sensor(x, y);
+				if (element != sensors.end() && element->second == -1)
+				{
+					element->second = nr;
+				}
+			}	
+		}
+	}
+
+	for (auto it = sensor_order.begin(); it != sensor_order.end(); it++)
+	{
+		cout << get_sensor_time(it->first, it->second) << "\n";
+	}
+
+	return 0;
+}

@@ -1,0 +1,235 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD {
+    BufferedReader rd;
+
+    char[][] c;
+    char[][] rotp = new char[4][128];
+
+    ProblemD() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int n = a[0];
+        int m = a[1];
+        c = new char[n][];
+        for(int i=0;i<n;i++) {
+            c[i] = rd.readLine().toCharArray();
+        }
+        int[] t = intarr();
+        t[0]--;
+        t[1]--;
+        int[] mino = intarr();
+        mino[0]--;
+        mino[1]--;
+
+        for(int i=0;i<128;i++) {
+            rotp[0][i] = (char)i;
+        }
+        for(char z: "+^v<>LUPD*|-".toCharArray()) {
+            for(int p=1;p<=3;p++) {
+                rotp[p][z] = rot(rotp[p-1][z]);
+            }
+        }
+
+        int minutes = -1;
+        if(t[0] != mino[0] || t[1] != mino[1]) {
+            List<List<Integer>> e = new ArrayList<>();
+            int base = n*m;
+            int nodes = base << 2;
+            for (int i = 0; i < nodes; i++) {
+                e.add(new ArrayList<>(1));
+            }
+            int[] g = new int[] { 0, 0, 1, -1 };
+            int[] h = new int[] { 1, -1, 0, 0 };
+            for(int p = 0; p < 4; p++) {
+                for (int i = 0; i < n; i++) {
+                    for (int j = 0; j < m; j++) {
+                        int cur = p * n * m + i * m + j;
+                        for (int k = 0; k < 4; k++) {
+                            int ro = i + g[k];
+                            int co = j + h[k];
+                            if (ro >= 0 && ro < n && co >= 0 && co < m) {
+                                if(door(i,j,p,k) && door(ro,co,p,k<2?1-k:5-k)) {
+                                    int other = p * base + ro * m + co;
+                                    e.get(cur).add(other);
+                                    e.get(other).add(cur);
+                                }
+                            }
+                        }
+                        int np = (p + 1)%4;
+                        int other = np * base + i * m + j;
+                        e.get(cur).add(other);
+                    }
+                }
+            }
+
+            Queue<Integer> q = new ArrayDeque<>();
+            boolean[] vis = new boolean[nodes];
+            int[] d = new int[nodes];
+            Arrays.fill(d, Integer.MAX_VALUE);
+            int start = t[0]*m+t[1];
+            q.add(start);
+            d[start] = 0;
+            vis[start] = true;
+            while(!q.isEmpty()) {
+                int v = q.poll();
+                for(Integer u: e.get(v)) {
+                    if(!vis[u]) {
+                        vis[u] = true;
+                        q.add(u);
+                        d[u] = d[v]+1;
+                    }
+                }
+            }
+            int dest = mino[0]*m+mino[1];
+            for(int p=0;p<4;p++) {
+                int v = p*base + dest;
+                if(d[v] != Integer.MAX_VALUE) {
+                    if (minutes == -1) {
+                        minutes = d[v];
+                    } else {
+                        minutes = Math.min(minutes, d[v]);
+                    }
+                }
+            }
+        } else {
+            minutes = 0;
+        }
+        out(minutes);
+    }
+
+    private boolean door(int i, int j, int p, int k) {
+        char d = rotp[p][c[i][j]];
+        switch(d) {
+            case '+':
+                return true;
+            case '|':
+                return k > 1;
+            case '-':
+                return k < 2;
+            case '^':
+                return k == 3;
+            case 'v':
+                return k == 2;
+            case '>':
+                return k == 0;
+            case '<':
+                return k == 1;
+            case 'L':
+                return k != 1;
+            case 'R':
+                return k != 0;
+            case 'U':
+                return k != 3;
+            case 'D':
+                return k != 2;
+            default:
+                return false;
+        }
+    }
+
+    private char rot(char x) {
+        switch(x) {
+            case '-':
+                return '|';
+            case '|':
+                return '-';
+            case '^':
+                return '>';
+            case '>':
+                return 'v';
+            case 'v':
+                return '<';
+            case '<':
+                return '^';
+            case 'L':
+                return 'U';
+            case 'R':
+                return 'D';
+            case 'U':
+                return 'R';
+            case 'D':
+                return 'L';
+            default:
+                return x;
+        }
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

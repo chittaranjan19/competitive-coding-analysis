@@ -1,0 +1,84 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+const int MAXN = 500 + 5;
+
+int a[MAXN], b[MAXN], match[MAXN], d[MAXN], pre[MAXN];
+int n;
+bool vis[MAXN];
+
+bool dfs(int u)
+{
+    for(int v = n; v >= 1; --v)
+    {
+        if(a[u] != b[v] || vis[v]) continue;
+        vis[v] = true;
+        if(!match[v] || dfs(match[v]))
+        {
+            match[v] = u;
+            return true;
+        }
+    }
+    return false;
+}
+
+void solve()
+{
+    memset(match, 0, sizeof(match));
+    for(int i = 1; i <= n; ++i)
+    {
+        memset(vis, 0, sizeof(vis));
+        dfs(i);
+    }
+}
+
+int main()
+{
+    while(~scanf("%d", &n))
+    {
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", a + i);
+            b[n - i + 1] = a[i];
+        }
+        solve();
+        int ans = 0, tot = n;
+        while(tot)
+        {
+            int tmp = 0, pos = 0;
+            for(int i = 1; i <= n; ++i)
+            {
+                if(match[i] == -1) continue;
+                d[i] = 1;
+                pre[i] = 0;
+                for(int j = 1; j < i; ++j)
+                {
+                    if(~match[j] && match[j] < match[i])
+                    {
+                        if(d[j] + 1 > d[i])
+                        {
+                            d[i] = d[j] + 1;
+                            pre[i] = j;
+                        }
+                    }
+                }
+                if(d[i] > tmp)
+                {
+                    tmp = d[i];
+                    pos = i;
+                }
+            }
+            tot -= tmp;
+            ++ans;
+            for(int j = pos; j; j = pre[j])
+            {
+                match[j] = -1;
+            }
+        }
+        printf("%d\n", ans);
+    }
+    return 0;
+}

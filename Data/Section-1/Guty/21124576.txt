@@ -1,0 +1,133 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+#include <valarray>
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+
+#define forn(i,n) for(tint i=0;i<(tint)(n); i++)
+#define forsn(i,s,n) for(tint i=(s);i<(tint)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) )
+		Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+const tint maxN = 1000500;
+int p[maxN + 1] = {1, 1};
+
+
+vector<pair<tint,tint> > factorizar (tint n)
+{
+	vector<pair<tint,tint> > acc;
+	tint k = p[n];
+	pair<tint,tint> ans = make_pair(k,0);
+	while (n > 1) 
+	{ 
+		if (p[n] == ans.first)
+			ans.second++;
+		else
+		{
+			acc.push_back(ans);
+			ans = make_pair(p[n],1);
+		}
+		n /= p[n]; 
+	}
+	acc.push_back(ans);
+	return acc;
+}
+
+
+
+int main()
+{
+	#ifdef ACMTUYO
+		assert(freopen("entrada.in", "r", stdin));
+	#endif
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	for (int i = 1; i <= maxN; ++i)
+		if (p[i] == 1)
+			for (int j = i; j <= maxN; j += i)
+				p[j] = i;
+	tint n,k;
+	
+	while (cin >> n >> k)
+	{
+		vector<tint> fk (maxN);
+		vector<tint> gk (maxN);
+		while (k > 1) 
+		{ 
+			fk[p[k]]++;
+			k /= p[k]; 
+		}
+		forn(i,n)
+		{
+			tint c;
+			cin >> c;
+			vector<pair<tint,tint> > aux = factorizar(c);
+			for (auto x : aux)
+				gk[x.first] = max(gk[x.first],x.second);
+		}
+		bool sePuede = true;
+		forn(i,maxN)
+			sePuede &= (fk[i] <= gk[i]);
+		if (sePuede)
+			cout << "Yes\n";
+		else
+			cout << "No\n";
+	}
+	return 0;
+}
+
+

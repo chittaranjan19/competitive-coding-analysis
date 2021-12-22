@@ -1,0 +1,52 @@
+#include "bits/stdc++.h"
+#define MAXN 200009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int dp[MAXN][2],a,par[MAXN],arr[MAXN];
+int rec(int x,int turn){
+	if(x>a)
+		return 0;
+	int &ret=dp[x][turn];
+	if(~ret)
+		return ret;
+	if(!turn){
+		ret=-INF;
+		for(int i=x;i<=a;i++)
+			umax(ret,rec(i+1,turn^1)+par[i]);
+	}	
+	else{
+		ret=INF;
+		for(int i=x;i<=a;i++)
+			umin(ret,rec(i+1,turn^1)-par[i]+par[x-1]);
+	}
+	return ret;
+}
+int main(){
+	memset(dp,-1,sizeof dp);
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	scanf("%d",&a);
+	for(int i=1;i<=a;i++){
+		scanf("%d",arr+i);
+		par[i]=par[i-1]+arr[i];
+	}int ans=-INF;
+	for(int i=3;i<=a;i++)
+		umax(ans,rec(i,1));
+	printf("%d\n",max(ans,par[a]));	
+	return 0;
+}

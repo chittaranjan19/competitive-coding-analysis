@@ -1,0 +1,182 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const double ninf = -1e15;
+const double pinf = 1e15;
+const int maxn = 100010;
+const ll lim = 1ll<<60;
+
+int n, m, p, h[maxn], t[maxn];
+ll d[maxn], pt[maxn], pref[maxn], dp[maxn];
+
+struct CHT{
+	struct line{
+		ll slope, off, val;
+		double xleft;
+		int query_type;
+		line(ll a = 0, ll b = 0){
+			slope = a;
+			off = b;
+			xleft = -(1e16);
+			val = query_type = 0;
+		}
+		ll get_value(ll x) const{
+			return (slope*x + off);
+		}
+		friend int are_parallel(const line &l1, const line &l2){
+			return l1.slope==l2.slope;
+		}
+		friend double intersectX(const line &l1, const line &l2){
+			if(are_parallel(l1, l2))
+				return lim;
+			double ret = (double)(l2.off-l1.off)/(l1.slope-l2.slope);
+			return ret;
+		}
+		bool operator<(const line &l2) const{
+			if(!l2.query_type)
+				return (slope<(l2.slope));
+			return xleft>(l2.val);
+		}
+	};
+	set<line> hull;
+	void refresh(){
+		hull.clear();
+	}
+	int irrelevant(const line &l1, const line &l2, const line &l3){
+		return intersectX(l1, l3)<=intersectX(l1, l2);
+	}
+	int irrelevant(set<line> :: iterator it){
+		set<line> :: iterator p, n;
+		if(it!=hull.begin() && it!=hull.end()){
+			n = p = it;
+			n++;
+			p--;
+			if(n!=hull.end()){
+				if(irrelevant(*n, *it, *p))
+					return 1;
+			}
+		}
+		return 0;
+	}
+	int has_next(set<line> :: iterator it){
+		set<line> :: iterator n = it;
+		n++;
+		return (it!=hull.end() && n!=hull.end());
+	}
+	set<line> :: iterator update_xleft(set<line> :: iterator it){
+		if(!has_next(it)){
+			return it;
+		}
+		set<line> :: iterator n = it;
+		n++;
+		double cut = intersectX(*it, *n);
+		line l(*it);
+		hull.erase(it);
+		l.xleft = cut;
+		it = hull.insert(hull.begin(), l);
+		return it;
+	}
+	void insert(ll slope, ll off){
+		line l3 = line(slope, off);
+		set<line> :: iterator it = hull.lower_bound(l3);
+		set<line> :: iterator jt;
+		if(it!=hull.end() && are_parallel(*it, l3)){
+			if(it->off > off){
+				jt = it;
+				hull.erase(jt);
+				it--;
+			}
+			else
+				return;
+		}
+		it = hull.insert(it, l3);
+		if(irrelevant(it)){
+			hull.erase(it);
+			return;
+		}
+		set<line> :: iterator p, n;
+		while(1){
+			p = it;
+			p--;
+			if(it!=hull.begin() && irrelevant(p))
+				hull.erase(p);
+			else
+				break;
+		}
+		while(1){
+			n = it;
+			n++;
+			if(it!=hull.end() && n!=hull.end() && irrelevant(n))
+				hull.erase(n);
+			else
+				break;
+		}
+		it = update_xleft(it);
+		if(it!=hull.begin()){
+			p = it;
+			p--;
+			update_xleft(p);
+		}
+		n = it;
+		n++;
+		if(it!=hull.end() && n!=hull.end()){
+			update_xleft(n);
+		}
+	}
+	ll query(ll x){
+		line l;
+		l.query_type = 1;
+		l.val = x;
+		set<line> :: iterator it = hull.lower_bound(l);
+		if(it==hull.end())
+			return lim;
+		return it->get_value(x);
+	}
+};
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j;
+	ll temp, val;
+	CHT cht;
+	scanf("%d%d%d", &n, &m, &p);
+	for(i=2; i<=n; i++){
+		scanf("%lld", &d[i]);
+		d[i]+=d[i-1];
+	}
+	for(i=1; i<=m; i++){
+		scanf("%d%d", &h[i], &t[i]);
+		pt[i] = t[i] - d[h[i]];
+	}
+	sort(pt+1, pt+1+m);
+	for(i=1; i<=m; i++)
+		pref[i] = pref[i-1] + pt[i];
+	for(i=1; i<=m; i++)
+		dp[i] = pt[i]*i - pref[i];
+	for(i=2; i<=p; i++){
+		cht.refresh();
+		for(j=1; j<=m; j++){
+			temp = cht.query(pt[j]);
+			val = temp + pt[j]*j - pref[j];
+			cht.insert(-j, dp[j]+pref[j]);
+			dp[j] = val;
+		}
+	}
+	printf("%lld\n", dp[m]);
+	return 0;
+}

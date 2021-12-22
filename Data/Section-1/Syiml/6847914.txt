@@ -1,0 +1,147 @@
+#include<stdio.h>
+#include<math.h>
+#include<string.h>
+#include<iostream>
+#include<algorithm>
+#define FOR(i,n) for(i=0;i<(n);i++)
+#define CLR(a) memset(a,0,sizeof(a))
+using namespace std;
+int a[3005];
+bool bo[3005];
+int fa[3005];
+int s[3005];//geshu
+int init(int fa[],int n)
+{
+    int i;
+    FOR(i,n)
+    {
+        fa[i]=i;
+        s[i]=1;
+    }
+}
+int Find(int fa[],int p)
+{
+    int r=p,q;
+    while(r!=fa[r]) r=fa[r];
+    while(p!=r)
+    {
+        q=fa[p];
+        fa[p]=r;
+        p=q;
+    }
+    return r;
+}
+int Union(int fa[],int u,int v)
+{
+    int s1=Find(fa,u),s2=Find(fa,v);
+    if(s1!=s2)
+    {
+        fa[s1]=s2;
+        s[s2]+=s[s1];
+        return 1;
+    }
+    return 0;
+}
+int set_n(int fa[],int n)
+{
+    int x=0;
+    while(n>0)/*要返回1~n的集合数为n>0*/
+    {
+        if(fa[n]==n) x+=s[n]-1;
+        n--;
+    }
+    return x;
+}
+int main()
+{
+    int n,i,k;
+    cin>>n;
+    for(i=1;i<=n;i++)
+    {
+        cin>>a[i];
+    }
+    init(fa,n+1);
+    CLR(bo);
+    for(i=1;i<=n;i++)
+    {
+        if(!bo[i])
+        {
+            bo[i]=true;
+            k=a[i];
+            bo[k]=true;
+            while(k!=i)
+            {
+                Union(fa,k,i);
+                k=a[k];
+                bo[k]=true;
+            }
+        }
+    }
+    /*for(i=1;i<=n;i++)
+    {
+        cout<<fa[i]<<endl;
+    }*/
+    int swapn=set_n(fa,n);
+    int sn;
+    //cout<<swapn<<endl;
+    cin>>sn;
+    if(swapn==sn)
+    {
+        printf("0\n\n");
+    }
+    else if(swapn<sn)
+    {
+        printf("%d\n",sn-swapn);
+        while(swapn<sn)
+        {
+            int i=1,x1,x2;
+            for(;i<=n;i++)
+            {
+                if(fa[i]==i) {x1=i;break;}
+            }
+            i++;
+            for(;i<=n;i++)
+            {
+                if(fa[i]==i) {x2=i;break;}
+            }
+            printf("%d %d",x1,x2);
+            swapn++;
+            Union(fa,x1,x2);
+            if(swapn<sn) printf(" ");
+            else printf("\n");
+        }
+    }
+    else
+    {
+        printf("%d\n",swapn-sn);
+        while(swapn>sn)
+        {
+            for(i=1;i<=n;i++)
+            {
+                if(a[i]!=i)
+                {
+            /*for(int i=1;i<=n;i++)
+            {
+                printf("~%d",a[i]);
+            }*/
+                    printf("%d %d",i,a[i]);
+                    swapn--;
+                    int t=a[i];
+                    //cout<<"!!"<<t<<endl;
+                    int t2=a[a[i]];
+                    //cout<<"!!"<<t2<<endl;
+                    a[a[i]]=t;
+                    a[i]=t2;
+            /*for(int i=1;i<=n;i++)
+            {
+                printf("~%d",a[i]);
+            }*/
+                    break;
+                }
+            }
+            if(swapn>sn) printf(" ");
+            else printf("\n");
+        }
+    }
+    return 0;
+}

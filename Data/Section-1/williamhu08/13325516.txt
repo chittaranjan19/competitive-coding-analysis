@@ -1,0 +1,107 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 2e5 + 10;
+
+int E, S, N, M;
+map<int, int> psum[3];
+int F[MAXN];
+map<int, vector<int> > ans;
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d %d %d", &E, &S, &N, &M);
+	for (int i = 0; i < 3; i++) {
+		psum[i][E];
+	}
+	for (int i = 0, t, x; i < N; i++) {
+		scanf("%d %d", &t, &x);
+		t = 3 - t;
+		psum[t][x]++;
+		psum[t][x + S]--;
+		for (int j = 0; j < 3; j++) {
+			if (j != t) {
+				psum[j][x];
+				psum[j][x + S];
+			}
+		}
+	}
+	for (int i = 0; i < M; i++) {
+		scanf("%d", &F[i]);
+		F[i] += S;
+		for (int j = 0; j < 3; j++) {
+			psum[j][F[i]];
+		}
+	}
+	for (int i = 0; i < 3; i++) {
+		auto j = psum[i].begin();
+		while (true) {
+			auto k = next(j);
+			if (k == psum[i].end()) {
+				break;
+			}
+			k->second += j->second;
+			j = k;
+			// printf("psum[%d][%d] = %d\n", i, k->first, k->second);
+		}
+	}
+	map<int, int>::iterator its[3];
+	bool dead = false;	//no way to go
+	for (int i = 0; i < 3; i++) {
+		its[i] = psum[i].find(E);
+	}
+	while (true) {
+		int nx = its[0]->first;
+		for (int i = 0; i < 3; i++) {
+			its[i]--;
+		}
+		int x = its[0]->first;
+		vector<int> &pans = ans[x];
+		if (!dead) {
+			bool ok = false;
+			for (int i = 0; i < 3; i++) {
+				if (its[i]->second) {
+					ok = true;
+					pans.resize(3);
+					pans[i] += nx - x;
+					// printf("ans[%d][%d] += %d\n", x, i, nx - x);
+					break;
+				}
+			}
+			dead |= !ok;
+		}
+		if (dead) {
+			// printf("dead x = %d\n", x);
+			pans = {-1, -1, -1};
+		} else {
+			auto it = next(ans.find(x));
+			if (it != ans.end()) {
+				for (int i = 0; i < 3; i++) {
+					pans[i] += it->second[i];
+				}
+			}
+		}
+		if (its[0] == psum[0].begin()) {
+			break;
+		}
+	}
+	for (int i = 0; i < M; i++) {
+		if (F[i] >= E) {
+			//shoot
+			puts("0 0");
+			continue;
+		}
+		vector<int> p = ans[F[i]];
+		printf("%d %d\n", p[2], p[1]);
+	}
+}

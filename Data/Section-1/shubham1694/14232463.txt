@@ -1,0 +1,77 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define mp make_pair
+
+int n, m;
+int mat[1001][1001], vis[1001][1001];
+int dx[] = {0, 0, 1, -1};
+int dy[] = {-1, 1, 0, 0};
+char grid[1001][1001];
+int ans[1000010];
+
+int isvalid(int x, int y)
+{
+    if(x>=0 && x<n && y>=0 && y<m)
+        return 1;
+    return 0;
+}
+
+void bfs(int cx, int cy, int parity)
+{
+    queue<pair<int, int> > q;
+    q.push(mp(cx, cy));
+    vis[cx][cy] = parity;
+    int i, j, ret=0, x, y, nx, ny;
+    while(!q.empty()){
+        x = q.front().first;
+        y = q.front().second;
+        //cout << x << " " << y << "\n";
+        q.pop();
+        /*if(grid[x][y]=='*'){
+            ret++;
+            continue;
+        }*/
+        for(i=0; i<4; i++){
+            nx = x+dx[i];
+            ny = y+dy[i];
+            if(isvalid(nx, ny) && vis[nx][ny]!=parity && grid[nx][ny]=='.'){
+                vis[nx][ny] = parity;
+                q.push(mp(nx, ny));
+            }
+            else if(isvalid(nx, ny) && grid[nx][ny]=='*')
+                ret++;
+        }
+    }
+    //cout << parity << " " << ret << "\n";
+    ans[parity] = ret;
+}
+
+void fun()
+{
+    int i, j, parity=1;
+    for(i=0; i<n; i++){
+        for(j=0; j<m; j++){
+            if(!vis[i][j] && grid[i][j]=='.'){
+                bfs(i, j, parity++);
+            }
+        }
+    }
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    int i, j, k, x, y;
+    scanf("%d%d%d", &n, &m, &k);
+    for(i=0; i<n; i++)
+        scanf("%s", grid[i]);
+    fun();
+    while(k--){
+        scanf("%d%d", &x, &y);
+        x--, y--;
+        printf("%d\n", ans[vis[x][y]]);
+    }
+    return 0;
+}

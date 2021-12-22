@@ -1,0 +1,108 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+void imprimirVector (vector<int> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint elevarModuloP (tint n, tint b, tint p)
+{
+	tint c = 1;
+	while (b > 0)
+	{
+		tint k = 1;
+		tint r = n;
+		while (2*k <= b)
+		{
+			k *= 2;
+			r = (r*r)%p;
+		}
+		c = (r*c)%p;
+		b -= k;
+	}
+	return c; 
+}
+
+tint inversoModuloP(tint n, tint p) // FALTA IMPLEMENTAR IDEA USANDO FERMATITO, SOLO HAY QUE COMPUTAR n^(p-2) (mod p) USANDO EXPONENCIACION RAPIDA.
+{
+    return elevarModuloP(n,p-2,p);
+}
+
+
+int main()
+{
+	tint p = 1000000007;
+	vector<tint> factorialModuloP (1001);
+	factorialModuloP[0] = 1;
+	forsn(i,1,1001)
+		factorialModuloP[i] = (factorialModuloP[i-1]*i)%p;
+	tint k;
+	cin >> k;
+	vector<tint> c (k);
+	vector<tint> parcialesC(k);
+	tint n = -1;
+	forn(i,k)
+	{
+		cin >> c[i];
+		n += c[i];
+		if (i == 0)
+			parcialesC[i] = c[i];
+		else
+			parcialesC[i] = c[i] + parcialesC[i-1];
+	}
+	tint arriba = factorialModuloP[n];
+	tint abajo1 = 1;
+	forn(i,k)
+	{
+		abajo1 *= factorialModuloP[c[i]-1];
+		abajo1 %= p;
+	}
+	tint abajo2 = 1;
+	forn(i,k-1)
+	{
+		abajo2 *= parcialesC[i];
+		abajo2 %= p;
+	}
+	tint abajo = (abajo1*abajo2)%p;
+	tint res = (arriba * inversoModuloP(abajo,p))%p; 
+	cout << res << endl;
+		
+	
+	return 0;
+}

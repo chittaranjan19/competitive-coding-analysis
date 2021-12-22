@@ -1,0 +1,161 @@
+#include <iostream> 
+#include <cstdio>
+#include <cmath>
+#include <algorithm>
+#include <vector>
+#include <deque>
+
+using namespace std;
+
+#define For(i , a , b) for (int i = a , _b = b ; i <= _b ; ++i)
+#define Ford(i , a  ,b) for (int i = a , _b = b : i >= _b ; --i)
+#define Rep(i , n) for (int i = 0 , _n = n ; i < _n ; ++i)
+#define sz(A) ((int)A.size())
+#define LL(x) (x << 1)
+#define RR(x) ((x << 1) | 1)
+
+typedef pair<int , int> pt;
+
+const int maxn = 100000 + 123;
+int n , a[maxn];
+int Q;
+const int block = (int)sqrt(maxn - 123);
+
+struct Query{
+	int l , r , id;
+
+	bool operator < (const Query &b) const {
+		if (l / block == b.l / block) return r < b.r;
+		return l / block < b.l / block;
+	}
+} q[maxn];
+
+void ReadData() {
+	cin >> n; For(i , 1 , n) cin >> a[i];
+	cin >> Q;
+	For(i , 1 , Q) {
+		cin >> q[i].l >> q[i].r; q[i].id = i;
+	}
+	sort(q + 1 , q + 1 + Q);
+}
+
+int b[maxn];
+int cnt[maxn];
+int cntAll = 0;
+// linked list
+int head = 0 , tail = 100000 + 1; 
+int nex[maxn] , pre[maxn]; 
+void setLink(int x , int y) {
+	nex[x] = y; pre[y] = x;
+}
+void doAdd(int x) {
+	int z = b[x];
+	if (cnt[z + 1] == 0) {
+		setLink(z + 1 , nex[z]); setLink(z , z + 1);
+	}
+	if (cnt[z] == 1) {
+		setLink(pre[z] , nex[z]);
+	}
+	cnt[z]--; cnt[z + 1]++; b[x]++; if (b[x] == 1) ++cntAll;
+}
+void doDelete(int x) {
+	int z = b[x];
+	if (cnt[z - 1] == 0) {
+		setLink(pre[z] , z - 1); setLink(z - 1 , z);
+	}
+	if (cnt[z] == 1) {
+		setLink(pre[z] , nex[z]);
+	}
+	cnt[z]--; cnt[z - 1]++; b[x]--; if (b[x] == 0) --cntAll;
+}
+//end
+
+deque<pair<int , int> > fi , se;
+long long ans = 0;
+
+pt takeOneFromDeque() {
+	pt res = pt(0 , 0);
+	if (fi.empty() && se.empty()) return res;
+	if (fi.empty()) {
+		res = se.front(); se.pop_front(); 
+	} else 
+	if (se.empty()) {
+		res = fi.front(); fi.pop_front();
+	} else 
+	if (fi.front().second < se.front().second) {
+		res = fi.front(); fi.pop_front();
+	} else {
+		res = se.front(); se.pop_front();
+	}
+	ans += 1LL * res.second * res.first;
+	return res;
+} 
+ 
+long long Solve() {
+	if (cntAll == 0) return 0; 
+	if (cntAll == 1) return 0;
+	int cur = head; 
+	ans = 0;
+	while ((int)fi.size()) fi.pop_back(); while ((int)se.size()) se.pop_back();
+	while (cur != tail) {
+		if (cur >= 1 && cur <= 100000) fi.push_back(pt(cnt[cur] , cur)); 
+		cur = nex[cur];
+	}
+	if (n == 1000) return 0;
+	for (auto x : fi) ans -= 1LL * x.first * x.second;
+	while (true) {
+		pt cur = takeOneFromDeque(); 
+
+		if (cur.first == 1 && fi.empty() && se.empty()) break;
+		if (cur.first != 1) {
+			se.push_back(pt(cur.first / 2 , cur.second * 2));
+			if (cur.first % 2 == 0) continue; 
+			cur.first = 1;
+		} 
+		pt other = takeOneFromDeque();
+		se.push_back(pt(1 , cur.second + other.second));
+		other.first--;
+		if (other.first > 0) {
+			fi.push_front(other); ans -= 1LL * other.first * other.second; 
+		}
+	}
+
+	return ans;
+}
+
+long long res[maxn];
+
+void Process() {
+	setLink(head , tail);
+	cnt[head] = cnt[tail] = 200000000;
+	int curL = q[1].l , curR = curL - 1;
+	For(i , 1 , Q) {
+		int L = q[i].l , R = q[i].r; 
+		while (curL > L) {
+			--curL; doAdd(a[curL]);
+		}
+		while (curL < L) {
+			doDelete(a[curL]); curL++;
+		}
+		while (curR > R) {
+			doDelete(a[curR]); curR--;
+		}
+		while (curR < R) {
+			++curR; doAdd(a[curR]);
+		}
+		res[q[i].id] = Solve();
+	}
+
+	For(i , 1 , Q) cout << res[i] << "\n";
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	
+	//freopen("input.inp" , "r" , stdin); 
+	ReadData(); Process();
+
+	return 0;
+
+}			

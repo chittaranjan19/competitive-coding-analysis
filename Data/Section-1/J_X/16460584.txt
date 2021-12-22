@@ -1,0 +1,84 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const ll INF = 1LL << 60;
+const int maxn = 2e5 + 5;
+
+ll dp[maxn];
+int n, d, m, que[maxn];
+struct node
+{
+    int x, p;
+} Q[maxn];
+
+bool cmp(const node &a, const node &b)
+{
+    return a.x < b.x;
+}
+
+ll getx(int i)
+{
+    return Q[i].x;
+}
+
+ll gety(int i)
+{
+    return dp[i];
+}
+
+ll getdp(int i, int j)
+{
+    return dp[j] + 1LL * Q[i].p * max(0, (Q[j].x - Q[i].x - max(n - Q[i].x, 0)));
+}
+
+bool check(int x, int k)
+{
+    return gety(que[x]) - gety(que[x + 1]) <= (getx(que[x]) - getx(que[x + 1])) * k;
+}
+
+int main()
+{
+    while(~scanf("%d%d%d", &d, &n, &m))
+    {
+        ++m;
+        Q[0].x = 0;
+        Q[0].p = 1;
+        for(int i = 1; i < m; ++i)
+        {
+            scanf("%d%d", &Q[i].x, &Q[i].p);
+        }
+        Q[m].x = d;
+        sort(Q, Q + m + 1, cmp);
+        dp[0] = INF;
+        dp[m] = 0;
+        int head = 0, tail = 0;
+        que[tail++] = m;
+        for(int i = m - 1; i >= 0; --i)
+        {
+            while(tail > head && Q[que[head]].x - Q[i].x > n) ++head;
+            int l = head, r = tail - 1;
+            if(l > r) continue;
+//            while(r > l)
+//            {
+//                int mid = (l + r) >> 1;
+//                check(mid, -Q[i].p) ? r = mid : l = mid + 1;
+//            }
+            for(l = head; l < r && gety(que[l]) - gety(que[l + 1]) > (getx(que[l]) - getx(que[l + 1])) * -Q[i].p; ++l);
+//            if(r == l)
+            {
+                dp[i] = getdp(i, que[l]);
+                while(tail - head > 1 && (gety(que[tail - 2]) - gety(que[tail - 1])) * (getx(que[tail - 1]) - getx(i)) <=
+                      (gety(que[tail - 1]) - gety(i)) * (getx(que[tail - 2]) - getx(que[tail - 1]))) --tail;
+                que[tail++] = i;
+            }
+        }
+        printf("%I64d\n", dp[0] != INF ? dp[0] : -1);
+    }
+    return 0;
+}

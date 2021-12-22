@@ -1,0 +1,101 @@
+program j01;
+const md=1000000007;
+var q,next,fx:array[0..500000]of longint;
+    l,dfn,low,head,num:array[0..200010]of longint;
+    inl:array[0..200010]of boolean;
+    n,i,j,top,tot,time,tt,x:longint;
+    ans:int64;
+
+procedure add(u,v:longint);
+begin
+  inc(tt);
+  q[tt]:=v;
+  next[tt]:=head[u];
+  head[u]:=tt;
+  fx[tt]:=tt+1;
+  inc(tt);
+  q[tt]:=u;
+  next[tt]:=head[v];
+  head[v]:=tt;
+  fx[tt]:=tt-1;
+end;
+
+function min(a,b:longint):longint;
+begin
+  if a<b then exit(a) else exit(b);
+end;
+
+function orz(x,i:longint):int64;
+var y:int64;
+begin
+  if i=1 then exit(x);
+  y:=orz(x,i div 2);
+  y:=y*y mod md;
+  if i mod 2=1 then y:=y*x mod md;
+  exit(y);
+end;
+
+procedure tarjan(i,pre:longint);
+var j:longint;
+begin
+  inc(time);
+  dfn[i]:=time;
+  low[i]:=time;
+  inc(top);
+  l[top]:=i;
+  inl[i]:=true;
+  j:=head[i];
+  while j>0 do
+  begin
+    if fx[j]<>pre then
+    begin
+      if dfn[q[j]]=0 then
+      begin
+        tarjan(q[j],j);
+        low[i]:=min(low[i],low[q[j]]);
+      end
+      else
+        if inl[q[j]] then low[i]:=min(low[i],dfn[q[j]]);
+    end;
+    j:=next[j];
+  end;
+  if dfn[i]=low[i] then
+  begin
+    j:=0;
+    inc(tot);
+    while j<>i do
+    begin
+      j:=l[top];
+      inc(num[tot]);
+      inl[j]:=false;
+      dec(top);
+    end;
+  end;
+end;
+
+begin
+  readln(n);
+  tt:=0;
+  fillchar(head,sizeof(head),0);
+  for i:=1 to n do
+  begin
+    read(x);
+    add(i,x);
+  end;
+  top:=0;
+  time:=0;
+  tot:=0;
+  fx[0]:=0;
+  fillchar(inl,sizeof(inl),0);
+  fillchar(num,sizeof(num),0);
+  fillchar(dfn,sizeof(dfn),0);
+  for i:=1 to n do
+    if dfn[i]=0 then tarjan(i,0);
+  ans:=1;
+  for i:=1 to tot do
+  begin
+    if num[i]=1 then ans:=ans*2 mod md
+      else ans:=ans*(orz(2,num[i])-2) mod md;
+  end;
+  writeln(ans);
+end.

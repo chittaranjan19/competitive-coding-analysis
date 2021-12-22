@@ -1,0 +1,90 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int n;
+LL arr[200005];
+LL suff[200005];
+
+inline bool compare(const pair<LL, LL> &a, const pair<LL, LL> &b)
+{
+  return a.f * 1LL * b.s - b.f * 1LL * a.s > 0;
+}
+
+int main()
+{
+  scanf("%d", &n);
+  for(int i=0;i<n;i++)
+    scanf("%I64d", &arr[i]);
+  sort(arr, arr + n);
+  for(int i=0;i<n;i++)
+  {
+    suff[i] = arr[i];
+    if(i) suff[i] += suff[i - 1];
+  }
+  pair<LL, LL> res = mp(0, 1);
+  pair<int, pair<int, int> > ans = mp(0, mp(0, 0));
+  // one median
+  for(int i=1;i+1<n;i++)
+  {
+
+    int L = 1, R = min(i, n - i - 1);
+    while(R - L > 4)
+    {
+      int m1 = L + (R - L) / 3;
+      int m2 = L + 2 * (R - L) / 3;
+      pair<LL, LL> a = mp(suff[i] + suff[n - 1] - suff[n - m1 - 1], 2 * m1 + 1);
+      if(i >= m1 - 1) a.f -= suff[i - m1 - 1];
+      pair<LL, LL> b = mp(suff[i] + suff[n - 1] - suff[n - m2 - 1], 2 * m2 + 1);
+      if(i >= m2 - 1) b.f -= suff[i - m2 - 1];
+      if(compare(a, b))
+        R = m2;
+      else L = m1;
+    }
+
+    pair<LL, LL> tmp = mp(suff[i] + suff[n - 1] - suff[n - L - 1], 2 * L + 1);
+    int len = L;
+    if(i >= L - 1) tmp.f -= suff[i - L - 1];
+    for(int j=L+1;j<=R;j++)
+    {
+      pair<LL, LL> a = mp(suff[i] + suff[n - 1] - suff[n - j - 1], 2 * j + 1);
+      if(i >= j - 1) a.f -= suff[i - j - 1];
+      if(compare(a, tmp))
+      {
+        tmp = a;
+        len = j;
+      }
+    }
+    tmp.f -= (2 * len + 1) * 1LL * arr[i];
+    if(compare(tmp, res))
+    {
+      res = tmp;
+      ans = mp(len, mp(i, 0));
+    }
+  }
+  cout << ans.f * 2 + 1 + ans.s.s << "\n";
+  printf("%I64d", arr[ans.s.f]);
+  if(ans.s.s) printf(" %I64d", arr[ans.s.f + 1]);
+  for(int i=0;i<ans.f;i++)
+  {
+    printf(" %I64d", arr[ans.s.f - i - 1]);
+    printf(" %I64d", arr[n - i - 1]);
+  }
+  return 0;
+}

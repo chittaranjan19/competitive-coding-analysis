@@ -1,0 +1,76 @@
+#include <iostream>
+#include <vector>
+#include <map>
+#include <math.h>
+#include <algorithm>
+#include <utility>
+#include <string>
+#include <stdio.h>
+using namespace std;
+int n;
+vector<string> vec;
+bool men[26][26];
+bool vis[26];
+int ranks[26];
+bool dfs(int i){
+	if(vis[i]) return true;
+	vis[i]=true;
+	for(int j=0;j<26;++j){
+		if(men[i][j]) if(dfs(j)) return true;
+	}
+	return false;
+}
+void rankit(int i, int rank){
+	if(ranks[i]>=rank) return;
+	ranks[i]=rank;
+	for(int j=0;j<26;++j)
+		if(men[i][j]) rankit(j,rank+1);
+	return;
+}
+int main(){
+	cin>>n;
+	vec.resize(n+1);
+	for(int i=0;i<n;++i)
+		cin>>vec[i];
+	
+	for(int i=0;i<26;++i)
+		for(int j=0;j<26;++j)
+			men[i][j]=false;
+	
+	bool impossible=false;
+	for(int i=0;i+1<n;++i){
+		int find;
+		bool dif=false;
+		for(int j=0;j<vec[i].length()&&j<vec[i+1].length();++j){
+			if(vec[i][j]!=vec[i+1][j]){
+				dif=true;
+				find=j;
+				break;
+			}
+		}
+		if(!dif&&vec[i].length()>vec[i+1].length()){impossible=true;break;}		
+		if(dif){
+			men[vec[i][find]-'a'][vec[i+1][find]-'a']=true;
+		}
+	}
+	if(impossible) {cout<<"Impossible"<<endl; return 0;}
+	for(int i=0;i<26;++i){
+		for(int j=0;j<26;++j) vis[j]=false;
+		if(dfs(i)){impossible=true;break;}
+	}
+	if(impossible) {cout<<"Impossible"<<endl; return 0;}
+	vector<int> mins;
+	for(int i=0;i<26;++i){
+		bool min=true;
+			for(int j=0;j<26;++j)
+				if(men[j][i]){min=false;break;}
+		if(min) mins.push_back(i);
+	}
+	for(int i=0;i<26;++i) ranks[i]=-1;
+	for(int i=0;i<mins.size();++i)
+		rankit(mins[i],0);
+	for(int rank=0;rank<26;++rank)
+		for(int i=0;i<26;++i){
+			if(ranks[i]==rank) cout<<(char)(i+'a');
+		}
+}

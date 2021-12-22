@@ -1,0 +1,152 @@
+Const Fi='';//'342E.INP';
+      Fo='';//'342E.OUT';
+      maxN=100001;
+Var   n,m,nA:Longint;
+      Head,D,Dad,red,Q,F,Dp:Array[0..maxN]Of Longint;
+      s:Array[1..2,0..maxN]Of Longint;
+      A:Array[0..2*maxN]Of Longint;
+      B:Array[0..maxN,0..21]Of Longint;
+      Free,Fr:Array[0..maxN]Of Boolean;
+Procedure Enter;
+Var i,u,v:Longint;
+  Begin
+    Readln(n,m);
+    Fillchar(Head,Sizeof(Head),0);
+    For i:=1 to n-1 do
+      Begin
+        Readln(u,v);
+        s[1,i]:=u;s[2,i]:=v;
+        Inc(Head[u]);Inc(Head[v]);
+      End;
+    For i:=2 to n+1 do
+      Head[i]:=Head[i-1]+Head[i];
+    For i:=1 to n-1 do
+      Begin
+        u:=s[1,i];v:=s[2,i];
+        A[Head[u]]:=v;A[Head[v]]:=u;
+        Dec(Head[u]);Dec(Head[v]);
+      End;
+  End;
+Procedure Visit(u:Longint);
+Var i,v:Longint;
+  Begin
+    Free[u]:=False;
+    For i:=Head[u]+1 to Head[u+1] do
+      If Free[A[i]] then
+        Begin
+          v:=A[i];
+          Free[v]:=False;
+          D[v]:=D[u]+1;
+          Dad[v]:=u;
+          Visit(v);
+        End;
+  End;
+Procedure Creat;
+Var i,J:Longint;
+  Begin
+    For i:=1 to n do
+      B[i,0]:=Dad[i];
+    For i:=1 to n do
+      For J:=1 to 20 do
+        B[i,J]:=B[B[i,J-1],J-1];
+  End;
+Function  GetBit(x,i:Longint):Longint;
+  Begin
+    GetBit:=(x shr i) and 1;
+  End;
+Function  Min(a,b:Longint):Longint;
+  Begin
+    If a<b then Min:=a
+    Else
+      Min:=b;
+  End;
+Function  LCA(u,v:Longint):Longint;
+Var i,Bit:Longint;
+  Begin
+    If D[u]<D[v] then
+      Exit(LCA(v,u));
+    i:=D[u]-D[v];
+    For Bit:=0 to 20 do
+      If GetBit(i,Bit)=1 then
+        u:=B[u,Bit];
+    If u=v then Exit(u);
+    For i:=20 downto 0 do
+      If B[u,i]<>B[v,i] then
+        Begin
+          u:=B[u,i];
+          v:=B[v,i];
+        End
+      Else
+        LCA:=B[u,i];
+  End;
+Procedure BFS;
+Var i,u,v,Top,Bot:Longint;
+  Begin
+    Fillchar(Free,Sizeof(Free),True);
+    For i:=1 to nA do
+      Begin
+        Q[i]:=red[i];
+        F[Q[i]]:=0;
+        Free[Q[i]]:=False;
+      End;
+    Top:=nA;Bot:=1;
+    Repeat
+      u:=Q[Bot];
+      Inc(Bot);
+      For i:=Head[u]+1 to Head[u+1] do
+        If Free[A[i]] then
+          Begin
+            v:=A[i];
+            Free[v]:=False;
+            F[v]:=F[u]+1;
+            Dp[v]:=Min(Dp[v],F[v]);
+            Inc(Top);
+            Q[Top]:=v;
+          End;
+    Until Bot>Top;
+  End;
+Function  Dis(u,v:Longint):Longint;
+  Begin
+    Exit(D[u]+D[v]-2*D[LCA(u,v)]);
+  End;
+Procedure Main;
+Var i,J,k,u,v,Mm:Longint;
+  Begin
+    Fillchar(Free,Sizeof(Free),True);
+    D[1]:=0;Visit(1);
+    Creat;
+    Fillchar(Fr,Sizeof(Fr),True);
+    nA:=1;red[1]:=1;
+    Fr[1]:=False;
+    Mm:=Trunc(Sqrt(n));
+    For i:=1 to n do
+      Dp[i]:=n+1;
+    Dp[1]:=0;
+    For i:=1 to m do
+      Begin
+        Readln(k,u);
+        If k=1 then
+          Begin
+            If Fr[u] then
+              Begin Inc(nA);red[nA]:=u;Dp[u]:=0;Fr[u]:=False;End;
+          End
+        Else
+          Begin
+            For J:=1 to nA do
+              Dp[u]:=Min(Dp[u],Dis(u,red[J]));
+            Writeln(Dp[u]);
+          End;
+        If nA>=Mm then
+          Begin
+            BFS;
+            nA:=0;
+          End;
+      End;
+  End;
+Begin
+  Assign(Input,Fi);Reset(Input);
+  Assign(Output,Fo);Rewrite(Output);
+  Enter;
+  Main;
+  Close(Input);Close(Output);
+End.

@@ -1,0 +1,234 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.math.BigInteger;
+import java.util.*;
+
+public class ProblemC2 {
+    BufferedReader rd;
+    int[] a;
+    int nnum;
+
+    private ProblemC2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        nnum = pint();
+        a = new int[nnum];
+        for(int i=0;i<nnum;i++) {
+            a[i] = pint();
+        }
+        String last = getFirst(a[0]);
+        out(last);
+        for(int i=1;i<nnum;i++) {
+            last = smallestGreaterThan(last, a[i]);
+            out(last);
+        }
+    }
+
+    private String smallestGreaterThan(String last, int sum) {
+        char[] c = last.toCharArray();
+        int n = c.length;
+        int k = n-1;
+        int ps = partialSum(c,0,n-1);
+        int cs = sum-ps;
+        while(cs > 0 && k >= 0) {
+            while(k >= 0 && c[k] == '9') {
+                k--;
+            }
+            if(k >= 0) {
+                c[k]++;
+                cs--;
+            }
+        }
+        if(cs > 0) {
+            return getFirst(sum);
+        }
+
+        k = n-1;
+        while(k >= 1 && c[k-1] == '9') k--;
+        while(true) {
+            if(k == 0) {
+                if(c[0] < '9') {
+                    k++;
+                } else {
+                    n++;
+                    c = new char[n];
+                    Arrays.fill(c,'0');
+                    c[0] = '1';
+                    int j = n-1;
+                    for(int i=1;i<sum;i++) {
+                        while(j > 0 && c[j] == '9') {
+                            j--;
+                        }
+                        if(j <= 0) {
+                            break;
+                        }
+                        c[j]++;
+                    }
+                    if(j > 0) {
+                        return new String(c);
+                    } else {
+                        k = n-1;
+                        while(k >= 1 && c[k-1] == '9') k--;
+                    }
+                }
+            } else {
+                if(c[k-1] < '9') {
+                    c[k-1]++;
+                    Arrays.fill(c,k,n,'0');
+                    int rs = partialSum(c, 0, k-1);
+                    rs = sum-rs;
+                    int j = n-1;
+                    for(int i=0;i<rs;i++) {
+                        while(j >= k && c[j] == '9') {
+                            j--;
+                        }
+                        if(j < k) {
+                            break;
+                        }
+                        c[j]++;
+                    }
+                    if(j >= k) {
+                        return new String(c);
+                    }
+                } else {
+                    while(k >= 1 && c[k-1] > c[k]) k--;
+                }
+            }
+        }
+    }
+                         /*
+    private String greatestLessThan(String cur, int sum) {
+        int n = cur.length();
+        String last = getLast(sum);
+        if(last.length() > n) {
+            return null;
+        }
+        char[] c = new char[n];
+        Arrays.fill(c, '0');
+        c[0] = '1';
+        int k = 0;
+        for(int i=1;i<sum;i++) {
+            while(k < n && (c[k] >= cur.charAt(k))) {
+                k++;
+            }
+            if(k == n) {
+                break;
+            }
+            c[k]++;
+        }
+        if(k < n) {
+            String sc = new String(c);
+            if(sc.compareTo(cur) < 0) {
+                return sc;
+            }
+        }
+        k = n-1;
+        while(true) {
+            if(k > 1) {
+                while(k > 1) {
+                    if(c[k-1]=='0') {
+                        k--;
+                        continue;
+                    }
+                    c[k-1]--;
+                    int rs = partialSum(c, 0, k-1);
+                    rs = sum-rs;
+                    Arrays.fill(c,k,n,'0');
+                    for(int i=0;i<rs;i++) {
+                        while(k < n && c[k] == '9') {
+                            k++;
+                        }
+                        if(k == n) {
+                            break;
+                        }
+                        c[k]++;
+                    }
+                    if(k < n) {
+                        return new String(c);
+                    } else {
+                        k--;
+                    }
+                }
+            } else {
+                if(c[0] != '1') {
+                    c[0]--;
+                    Arrays.fill(c,1,n,'0');
+                    k = 1;
+                    for(int i=(c[0]-'0');i<sum;i++) {
+                        while(k < n && c[k] == '9') {
+                            k++;
+                        }
+                        if(k == n) {
+                            break;
+                        }
+                        c[k]++;
+                    }
+                    if(k < n) {
+                        return new String(c);
+                    } else {
+                        return null;
+                    }
+                }
+                if(c.length - 1 < last.length()) {
+                    return null;
+                } else {
+                    n--;
+                    c = new char[n];
+                    Arrays.fill(c, '0');
+                    k = 0;
+                    for(int i=0;i<sum;i++) {
+                        while(k < n && c[k] == '9') {
+                            k++;
+                        }
+                        if(k == n) {
+                            break;
+                        }
+                        c[k]++;
+                    }
+                    if(k < n) {
+                        return new String(c);
+                    } else {
+                        return null;
+                    }
+                }
+            }
+        }
+    }
+                    */
+    private int partialSum(char[] c, int from, int to) {
+        int rs = 0;
+        for(int i=from;i<=to;i++) {
+            rs += c[i]-'0';
+        }
+        return rs;
+    }
+
+    private String getFirst(int x) {
+        StringBuilder buf = new StringBuilder();
+        while(x >= 9) {
+            buf.append('9');
+            x -= 9;
+        }
+        return (x > 0 ? Integer.toString(x) : "") + buf.toString();
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC2();
+    }
+}

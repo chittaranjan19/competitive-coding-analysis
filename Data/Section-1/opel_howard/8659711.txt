@@ -1,0 +1,227 @@
+#include <cstdio>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <utility>
+#include <string>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <set>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define lsone(value) (value)&(-value)
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+class Fenwick {
+private:
+	vector<int> arr;
+	const int size;
+public:
+	Fenwick(int n) : arr(n+1), size(n) {
+		for (int it = 0; it < arr.size(); ++it)
+			arr[it] = 0;
+	}
+	void add(int v, int k) {
+		for (;k <= size; k += lsone(k)) {
+			arr[k] += v;
+		}
+	}
+	int get(int k) {
+		int total = 0;
+		for (;k > 0; k -= lsone(k))  {
+			total += arr[k];
+		}
+		return total;
+	}
+};
+class Combinatoric {
+private:
+	vector<bool> isPrime;
+	vector<int> prime;
+public:
+	Combinatoric(int n) : isPrime(n+5) {
+		for (int it = 0; it <= n; ++it)
+			isPrime[it] = true;
+		isPrime[0] = isPrime[1] = false;
+		for (int i = 2; i <= sqrt(n); ++i) {
+			if (isPrime[i])
+				for (int j = i; j <= n; ++j) {
+					isPrime[i*j] = false;
+				}
+		}
+		for (int it = 2; it <= 1000000; ++it)
+			if (isPrime[it])
+				prime.push_back(it);
+	}
+	bool checkPrime(int val) {
+		return (isPrime[val]);
+	}
+	ull getnCr(int n, int r) {
+		if (n < r)
+			return 0;
+
+		vector<int> primeFactorN(prime.size());
+		vector<int> primeFactorR(prime.size());
+		int b = n-r;
+		vector<int> primeFactorB(prime.size());
+		for (int it = 0; it < prime.size(); ++it)
+			primeFactorN[it] = primeFactorB[it] = primeFactorR[it] = 0;
+
+		for (int it = 0; (n <= prime[it]) && (it < prime.size()); ++it) {
+			int temp = n;
+			primeFactorN[it] = 0;
+			while (temp != 0) { // Legendre
+				primeFactorN[it] += (temp/prime[it]);
+				temp /= prime[it];
+			}
+		}
+		for (int it = 0; (r <= prime[it]) && (it < prime.size()); ++it) {
+			int temp = r;
+			primeFactorR[it] = 0;
+			while (temp != 0) { // Legendre
+				primeFactorN[it] += (temp/prime[it]);
+				temp /= prime[it];
+			}
+		}
+		for (int it = 0; (b <= prime[it]) && (it < prime.size()); ++it) {
+			int temp = b;
+			primeFactorB[it] = 0;
+			while (temp != 0) { // Legendre
+				primeFactorN[it] += (temp/prime[it]);
+				temp /= prime[it];
+			}
+		}
+
+		vector<int> primeFactorAns(prime.size());
+		ull ans = 1;
+		for (int it = 0; it < prime.size(); ++it) {
+			primeFactorAns[it] = primeFactorN[it]-primeFactorR[it]-primeFactorB[it];
+			ans *= bigMod(prime[it] , primeFactorAns[it]);
+		}
+		return ans;
+	}
+	ull bigMod(int a, int b) {
+		if (b == 0)
+			return 1;
+		else {
+			if (b%2 == 0) {
+				ull temp = bigMod(a, b/2);
+				return temp*temp;
+			}
+			else {
+				return a*bigMod(a, b-1);
+			}
+		}
+		return 0;
+	}
+};
+template <typename U> class Comparator {
+public:
+    bool operator() (const U lhs, const U rhs) {
+        // implement
+        return true;
+    }
+};
+// end of template
+
+int main() {
+    // freopen("486B.in", "r", stdin);
+
+    int m, n;
+    scanf("%d %d", &m, &n);
+    int map[105][105];
+    int countRow[105], countColumn[105];
+    for (int it = 0; it < 101; ++it)
+    	countRow[it] = countColumn[it] = 0;
+    for (int i = 0; i < m; ++i) {
+    	for (int j = 0; j < n; ++j) {
+    		scanf("%d", &map[i][j]);
+    		if (map[i][j] == 1) {
+	    		countRow[i]++;
+	    		countColumn[j]++;
+	    	}
+    	}
+    }
+    int mapA[105][105];
+    bool rowA[105], columnA[105];
+    for (int it = 0; it < 101; ++it) {
+    	rowA[it] = columnA[it] = false;
+    }
+
+    bool ans = true;
+    for (int i = 0; i < m; ++i) {
+    	for (int j = 0; j < n; ++j) {
+    		if (map[i][j] == 1) {
+    			if ((countRow[i] == n) and (countColumn[j] == m)) {
+    				rowA[i] = true;
+    				columnA[j] = true;
+    				mapA[i][j] = 1;
+    			}
+    			else
+    				mapA[i][j] = 0;
+    		}
+    	}
+    }
+    for (int i = 0; (i < m) and (ans); ++i) {
+    	for (int j = 0; (j < n) and (ans); ++j) {
+    		if (map[i][j]) {
+				if (!(rowA[i] || columnA[j])) {
+					ans = false;
+					continue;
+				}
+    			int sumEdge;
+	    		if (columnA[j]) {
+	    			if (m != 1)
+						sumEdge = (i == 0 ? map[i+1][j] : map[i-1][j])+(i == m-1 ? map[i-1][j] : map[i+1][j]);
+					else
+						sumEdge = 0;
+					if (sumEdge%2) {
+						ans = false;
+						continue;
+					}
+				}
+				if (rowA[i]) {
+					if (n != 1)
+						sumEdge = (j == 0 ? map[i][j+1] : map[i][j-1])+(j == n-1 ? map[i][j-1] : map[i][j+1]);
+					else
+						sumEdge = 0;
+					if (sumEdge%2) {
+						ans = false;
+						continue;
+					}
+				}
+    		}
+    	}
+    }
+    if (ans) {
+    	printf("YES\n");
+    	for (int i = 0; i < m; ++i) {
+    		for (int j = 0; j < n; ++j) {
+    			if (j)
+    				printf(" ");
+    			printf("%d", mapA[i][j]);
+    		}
+    		printf("\n");
+    	}
+    }
+    else
+    	printf("NO\n");
+    return 0;
+}

@@ -1,0 +1,65 @@
+
+#include <set>
+#include <cstdio>
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+const int N = 510;
+const int M = 10010;
+int u[M], v[M];
+struct dsu{
+    int check[N];
+    void initi(){
+        for(int i = 0;i <= N;i++)
+            check[i] = i;
+    }
+
+    int Find(int x){
+        return check[x] = (check[x] == x?x:Find(check[x]));
+    }
+
+    void Union(int x, int y){
+        int fx = Find(x);
+        int fy = Find(y);
+        if(fx != fy)
+            check[fx] = fy;
+    }
+}s[M], e[M];
+
+int solve(dsu left, dsu right, int n){
+    /**将两个并查集合并**/
+    for(int i = 1;i <= n;i++)
+        right.Union(i, left.Find(i));
+    /**求出连通分量个数**/
+    int res = 0;
+    for(int i = 1;i <= n;i++)
+        if(right.Find(i) == i)
+            res++;
+    return res;
+}
+
+int main(){
+    int n, m, i;
+    cin >> n >> m;
+    for(i = 1;i <= m;i++)
+        scanf("%d%d", &u[i], &v[i]);
+    s[0].initi();
+    e[m + 1].initi();
+    for(i = 1;i <= m;i++){
+        s[i] = s[i - 1];
+        s[i].Union(u[i], v[i]);
+    }
+    for(i = m;i >= 1;i--){
+        e[i] = e[i + 1];
+        e[i].Union(u[i], v[i]);
+    }
+
+    int l, r, q;
+    cin >> q;
+    while(q--){
+        scanf("%d%d", &l, &r);
+        printf("%d\n", solve(s[l - 1], e[r + 1], n));
+    }
+    return 0;
+}

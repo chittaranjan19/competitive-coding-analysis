@@ -1,0 +1,86 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+
+using namespace std;
+string s;
+
+int find_ans(int l, int r)
+{
+    if (l == r) return 0;
+    ll temp = 0, ans = 0;
+    for (int i = l; i <= r; i += 2)
+    {
+        if (temp != 0 && (s[i + 1] == '+' || i + 1 >= r))
+        {
+            temp *= s[i] - 48;
+            ans += temp;
+            temp = 0;
+            continue;
+        }
+        //if (i == r) continue;
+        if (temp == 0 && (i == r || s[i + 1] == '+'))
+        {
+            ans += s[i] - 48;
+        }
+        if (s[i + 1] == '*')
+        {
+            if (temp == 0)
+                temp = 1;
+            temp *= s[i] - 48;
+        }
+    }
+    return ans;
+}
+
+int main()
+{//2*3*4*5+2*3+2*3
+
+    cin >> s;
+    s = "1*" + s;
+    s += "*1";
+    ll ans = 0, len = s.length();
+    vector<ll> astr;
+    for (int i = 0; i < s.length(); i++)
+    {
+        if (s[i] == '*')
+            astr.push_back(i);
+    }
+    for (int i = 0; i < astr.size(); i++)
+    {
+        for (int j = i+1; j < astr.size(); j++)
+        {
+            ll left = astr[i] - 1, rr = astr[j] + 1, lt = s[left] - '0', rt = s[rr] - '0'; rr += 2; left -= 2;
+            while (left > 0 && s[left + 1] == '*')
+            {
+                lt *= s[left ] - 48;
+                left -= 2;
+            }
+            while (rr < len && s[rr] == '*')
+            {
+                ll kr = s[rr+1] - 48;
+                rt *= kr;
+                rr += 2;
+            }
+            ll a, b, c;
+            a = find_ans(0, left);
+            b = find_ans(rr, len);
+            c = lt*rt*find_ans(astr[i] + 1, astr[j] - 1);
+            ll temp = a+b+c;
+            ans = max(ans, temp);
+        }
+    }
+    cout << ans;
+    return 0;
+}

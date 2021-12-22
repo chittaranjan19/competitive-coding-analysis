@@ -1,0 +1,138 @@
+#include<bits/stdc++.h>
+#define maxn 500009
+#define INF 1000000007
+#define ff first
+#define ss second
+#define mp make_pair
+#define pb push_back
+#define mid(a,b) (a+b)/2
+#define sz size()
+#define pii pair<int,int>
+#define all(x) x.begin(),x.end()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+bool vis[maxn];
+int siz[maxn];
+int rr[1005][1005];
+char arr[1005][1005];
+vector<int>d;
+int n;
+void dfs(int x, int y, int cn){
+	if(x>n or y>n or x<1 or y<1 or rr[x][y]!=0)
+		return;
+//	cout<<x<<" "<<y<<" "<<cn<<endl;
+	rr[x][y]=cn;
+	siz[cn]++;
+	if(arr[x+1][y]=='.')
+		dfs(x+1,y,cn);
+	if(arr[x][y+1]=='.')
+		dfs(x,y+1,cn);
+	if(arr[x-1][y]=='.')
+		dfs(x-1,y,cn);
+	if(arr[x][y-1]=='.')
+		dfs(x,y-1,cn);	
+}
+void rem(int i, int j, int k){
+	for(int t=i;t<i+k;t++){
+		if(arr[t][j]=='.')
+			siz[rr[t][j]]--;
+	}
+}
+
+int count(int i, int j, int k){
+	vector<int>v;
+	int e,ans=0;
+	for(int y=i;y<i+k&&j-1>=1;y++){
+		e=rr[y][j-1];
+		if(!vis[e] && e){
+			v.pb(e);
+			vis[e]=1;
+			ans+=siz[e];
+		}
+	}
+	for(int y=j;y<j+k&&i-1>=1;y++){
+		e=rr[i-1][y];
+		if(!vis[e] && e){
+			v.pb(e);
+			vis[e]=1;
+			ans+=siz[e];
+		}
+	}
+	for(int y=i;y<i+k&&j+k<=n;y++){
+		e=rr[y][j+k];
+		if(!vis[e] && e){
+			v.pb(e);
+			vis[e]=1;
+			ans+=siz[e];
+		}
+	}
+	for(int y=j;y<j+k&&i+k<=n;y++){
+		e=rr[i+k][y];
+		if(!vis[e] && e){
+			v.pb(e);
+			vis[e]=1;
+			ans+=siz[e];
+		}
+	}
+	for(int i=0;i<v.sz;i++){
+		vis[v[i]]=0;
+	}
+	return ans;
+}
+
+void add(int  i, int j, int k){
+	for(int t=i;t<i+k;t++){
+		if(arr[t][j]=='.')
+			siz[rr[t][j]]++;
+	}
+}
+
+int main(){
+	int k,e=0,a=0;
+	cin>>n>>k;
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=n;j++){
+			cin>>arr[i][j];	
+		}
+	}
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=n;j++){
+			if(arr[i][j]=='.' && rr[i][j]==0)
+				dfs(i,j,++e);
+		}
+	}
+//	cout<<endl<<endl;
+	for(int i=1;i<=n-k+1;i++){
+		for(int y=1;y<=k;y++){
+			rem(i,y,k);		
+		}
+		a = count(i,1,k);
+//		cout<<a<<" ";
+		d.pb(a);int last=1;
+		for(int j=2;j<=n-k+1;j++){
+			rem(i,j+k-1,k);
+			add(i,j-1,k	);last=j;
+//			cout<<"# "<<siz[rr[2][1]]<<" # ";
+			a = count(i,j,k);
+//			cout<<a<<" ";
+			d.pb(a);
+		}
+//		cout<<endl;
+		for(int y=last;y<=n;y++){
+			add(i,y,k);
+		}
+	}
+//	cout<<siz[rr[1][1]]<<endl;
+//	cout<<rr[1][1]<<" "<<rr[2][1]<<" "<<rr[3][1]<<" "<<rr[3][2]<<" "<<rr[3][3]<<endl;
+	sort(all(d));
+	cout<<d[d.sz-1]+(k*k)<<endl;
+
+return 0;
+}
+/*
+3 2
+.XX
+.XX
+...
+*/

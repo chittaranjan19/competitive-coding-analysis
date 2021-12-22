@@ -1,0 +1,157 @@
+import java.io.BufferedInputStream;
+import java.util.Arrays;
+import java.util.Scanner;
+import java.util.TreeSet;
+
+/**
+ * Created by leen on 7/26/16.
+ */
+public class _596C {
+
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024 * 128));
+        int n = scan.nextInt();
+        int[] positions = new int[n];
+        for(int i = 0; i < n; i++)
+            positions[i] = scan.nextInt();
+
+        Arrays.sort(positions);
+        Node head = null;
+        Node last = null;
+        Node tail = null;
+
+        TreeSet<Gap> gapSet = new TreeSet<Gap>();
+
+        for(int i = 0; i < n; i++) {
+            Node node = new Node(i, positions[i]);
+            tail = node;
+            if(head == null)
+                head = node;
+
+            if(last != null) {
+                last.connect(node);
+                gapSet.add(new Gap(last, node));
+            }
+
+            last = node;
+        }
+
+        Gap maxGap = null;
+        boolean fromLeft = true;
+        for(int i = 0; i < (n-2) / 2; i++) {
+            if(maxGap == null) {
+                maxGap = gapSet.pollLast();
+                Node left = maxGap.left;
+                Node right = maxGap.right;
+                Gap secondMaxGap = null;
+                boolean secondMaxGapInLeft = true;
+                while (left != null && right != null) {
+                    if (secondMaxGap == null || left.rightGap.length > secondMaxGap.length) {
+                        secondMaxGap = left.rightGap;
+                        secondMaxGapInLeft = true;
+                    } else if (right.leftGap.length > secondMaxGap.length) {
+                        secondMaxGap = right.leftGap;
+                        secondMaxGapInLeft = false;
+                    }
+
+                    left = left.prev;
+                    right = right.next;
+                }
+
+                if(left == null && right == null)
+                    fromLeft = secondMaxGapInLeft;
+                else
+                    fromLeft = left == null;
+            }
+
+            if(fromLeft) {
+                Node newHead = head.next;
+                gapSet.remove(head.rightGap);
+                head.unlink();
+                head = newHead;
+            }
+            else {
+                Node newTail = tail.prev;
+                gapSet.remove(tail.leftGap);
+                tail.unlink();
+                tail = newTail;
+            }
+
+            Gap minGap = gapSet.pollFirst();
+            if(minGap.left.prev == null) {
+                minGap.right.unlink();
+            }
+            else if(minGap.right.next == null) {
+                minGap.left.unlink();
+            }
+            else {
+                if(minGap.left.leftGap.length < minGap.right.rightGap.length) {
+                    gapSet.remove(minGap.left.leftGap);
+                    gapSet.add(new Gap(minGap.left.prev, minGap.right));
+                    minGap.left.unlink();
+                }
+                else {
+                    gapSet.remove(minGap.right.rightGap);
+                    gapSet.add(new Gap(minGap.left, minGap.right.next));
+                    minGap.right.unlink();
+                }
+            }
+        }
+
+        System.out.println(tail.value - head.value);
+    }
+
+    static class Node {
+        final int index;
+        final int value;
+        Node prev;
+        Node next;
+        Gap leftGap;
+        Gap rightGap;
+
+        Node(int index, int value) {
+            this.index = index;
+            this.value = value;
+        }
+
+        void connect(Node that) {
+            that.prev = this;
+            next = that;
+        }
+
+        void unlink() {
+            Node _prev = prev, _next = next;
+
+            if(_prev != null)
+                _prev.next = _next;
+
+            if(_next != null)
+                _next.prev = _prev;
+        }
+
+    }
+
+    static class Gap implements Comparable<Gap> {
+        int length;
+        Node left;
+        Node right;
+        int leftIndex;
+
+        Gap(Node left, Node right) {
+            left.rightGap = this;
+            right.leftGap = this;
+            this.left = left;
+            this.right = right;
+            length = right.value - left.value;
+        }
+
+        @Override
+        public int compareTo(Gap o) {
+            if(length != o.length)
+                return length - o.length;
+            else
+                return leftIndex - o.leftIndex;
+        }
+    }
+
+}

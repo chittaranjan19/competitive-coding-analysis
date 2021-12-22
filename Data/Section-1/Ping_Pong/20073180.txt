@@ -1,0 +1,130 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+
+using namespace std;
+
+const ll N = 1000000;
+const ll inf = (ll)1e18;
+const int MOD = (int)1e9 + 7;
+
+vector<vector<pair<int, int> > > g;
+vector<int> height;
+vector<vector<int> > up;
+vector<vector<int> > cnt;
+vector<pair<int, int> > order;
+vector<int> in;
+vector<int> enter;
+
+void dfs(int u, int par, int h, int edge)
+{
+    in[u] = edge;
+    height[u] = h;
+    if (h > 0)
+        up[u][0] = par;
+    for (int p = 1; (1 << p) <= h; p++)
+        up[u][p] = up[up[u][p - 1]][p - 1];
+    enter[u] = order.size();
+    order.push_back({h, u});
+    for (auto v : g[u])
+        if (v.first != par)
+        {
+            dfs(v.first, u, h + 1, v.second);
+            order.push_back({h, u});
+        }
+}
+
+vector<vector<pair<int, int> > > st;
+vector<int> log_2;
+
+void build()
+{
+    int n = order.size();
+    log_2.resize(n + 1);
+    log_2[1] = 0;
+    for (int i = 2; i <= n; i++)
+        if (i >= (1 << (log_2[i - 1] + 1)))
+            log_2[i] = log_2[i - 1] + 1;
+        else
+            log_2[i] = log_2[i - 1];
+    int sz = 1;
+    while ((1 << sz) <= n)
+        sz++;
+    st.resize(n, vector<pair<int, int> > (sz, {0, 0}));
+    for (int i = 0; i < n; i++)
+        st[i][0] = order[i];
+    for (int j = 1; j < sz; j++)
+        for (int i = 0; i < n; i++)
+            if (i + (1 << j) <= n)
+                st[i][j] = min(st[i][j - 1], st[i + (1 << (j - 1))][j - 1]);
+}
+
+pair<int, int> ans(int l, int r)
+{
+    int len = log_2[r - l];
+    return min(st[l][len], st[r - (1 << len)][len]);
+}
+
+void update(int u, int lca)
+{
+    int k = height[u] - height[lca];
+    for (int i = 0; i < 17; i++)
+        if ((k >> i) & 1)
+        {
+            cnt[u][i]++;
+            u = up[u][i];
+        }
+}
+
+int main()
+{
+    //freopen("power.in", "r", stdin);
+    //freopen("power.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n;
+    cin >> n;
+    g.resize(n);
+    height.resize(n);
+    up.resize(n, vector<int> (17, -1));
+    cnt.resize(n, vector<int> (17, 0));
+    in.resize(n);
+    enter.resize(n);
+    for (int i = 0; i < n - 1; i++)
+    {
+        int s, f;
+        cin >> s >> f;
+        g[s - 1].push_back({f - 1, i});
+        g[f - 1].push_back({s - 1, i});
+    }
+    dfs(0, -1, 0, -1);
+    build();
+    int k;
+    cin >> k;
+    for (int i = 0; i < k; i++)
+    {
+        int a, b;
+        cin >> a >> b;
+        a--; b--;
+        int p1 = enter[a], p2 = enter[b];
+        if (p1 > p2)
+            swap(p1, p2);
+        int lca = ans(p1, p2 + 1).second;
+        update(a, lca);
+        update(b, lca);
+    }
+    for (int j = 16; j > 0; j--)
+        for (int i = 0; i < n; i++)
+            if (height[i] >= (1 << j))
+            {
+                cnt[i][j - 1] += cnt[i][j];
+                cnt[up[i][j - 1]][j - 1] += cnt[i][j];
+            }
+    int out[n - 1];
+    for (int i = 0; i < n; i++)
+        if (in[i] != -1)
+            out[in[i]] = cnt[i][0];
+    for (int i = 0; i < n - 1; i++)
+        cout << out[i] << " ";
+    return 0;
+}

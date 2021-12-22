@@ -1,0 +1,170 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <queue>
+using namespace std;
+const int MAX_n = 13,MAX_t = 60;
+const int dir[4][2] ={{-1,0},{0,-1},{0,1},{1,0},};
+const int INF = 0x3f3f3f3f;
+struct state
+{
+    int x,y,t;
+    state(){}
+    state(int _x,int _y,int _t):x(_x),y(_y),t(_t){}
+    state move(int k)
+    {return state(x+dir[k][0],y+dir[k][1],t+1);}
+    bool in(int n,int _t)
+    {return 0 <= x && x < n && 0 <= y && y < n && t <= _t;}
+};
+char lab[MAX_n][MAX_n+1],cap[MAX_n][MAX_n+1];
+bool maze[MAX_t+1][MAX_n][MAX_n];
+queue<state>  que;
+bool visit[MAX_n][MAX_n];
+void build(int zx,int zy,int n,int t)
+{
+    memset(maze,false,sizeof maze);
+    for(int i = 0; i < n; ++i)
+        for(int j = 0; j < n; ++j)
+            maze[0][i][j] = lab[i][j] == 'Y';
+    memset(visit,false,sizeof visit);
+    que.push(state(zx,zy,0));   visit[zx][zy] = true;
+    while(!que.empty())
+    {
+        state s = que.front();  que.pop();
+        maze[s.t][s.x][s.y] = true;
+        for(int k = 0; k < 4; ++k)
+        {
+            state nxt = s.move(k);
+            if(!nxt.in(n,t) || visit[nxt.x][nxt.y] || lab[nxt.x][nxt.y] == 'Y')
+                continue;
+            visit[nxt.x][nxt.y] = true;
+            que.push(nxt);
+        }
+    }
+    for(int k = 0; k < t; ++k)
+        for(int i = 0; i < n; ++i)
+            for(int j = 0; j < n; ++j)
+                if(maze[k][i][j])
+                    maze[k+1][i][j] = true;
+
+}
+int can[MAX_n][MAX_n][MAX_n][MAX_n];
+void bfs(int sx,int sy,int n,int t)
+{
+    memset(visit,false,sizeof visit);
+    visit[sx][sy] = true;
+    que.push(state(sx,sy,0));
+    while(!que.empty())
+    {
+        state s = que.front();  que.pop();
+        can[sx][sy][s.x][s.y] = true;
+        if(maze[s.t][s.x][s.y]) continue;
+        for(int k = 0; k < 4; ++k)
+        {
+            state nxt = s.move(k);
+            if(!nxt.in(n,t) || visit[nxt.x][nxt.y] || maze[s.t][nxt.x][nxt.y] )
+                continue;
+            que.push(nxt);  visit[nxt.x][nxt.y] = true;
+        }
+    }
+}
+struct edge
+{
+    int to,cap,rev;
+    edge(){}
+    edge(int _to,int _cap,int _rev):to(_to),cap(_cap),rev(_rev){};
+};
+const int MAX_V = MAX_n*MAX_n*2 + 2;
+vector<edge> G[MAX_V];
+bool used[MAX_V];
+void add_edge(int u,int v,int cap)
+{
+    G[u].push_back(edge(v,cap,G[v].size()));
+    G[v].push_back(edge(v,0,G[u].size() - 1));
+}
+
+int dfs(int v,int t,int f)
+{
+    if(v == t)  return f;
+    used[v] = true;
+    for(int i = 0; i < G[v].size(); ++i)
+    {
+        edge &e = G[v][i];
+        if(!used[e.to] && e.cap > 0)
+        {
+            int d = dfs(e.to, t, min(f,e.cap));
+            if(d > 0)
+            {
+                e.cap -= d;
+                G[e.to][e.rev].cap += d;
+                return d;
+            }
+            
+        }
+    }
+    return 0;
+}
+
+int max_flow(int s,int t)
+{
+    int flow = 0;
+    while (1)
+    {
+        memset(used, false, sizeof used);
+        int f = dfs(s, t, INF);
+        if(f == 0)  return flow;
+        flow += f;
+    }
+}
+
+int solve(int n,int t)
+{
+    int zx = -1,zy = -1;
+    for(int i = 0; i < n;++i)
+        for(int j = 0; j < n; ++j)
+            if(lab[i][j] == 'Z')
+                zx = i,zy = j;
+    build(zx,zy,n,t);
+    
+    
+    memset(can,false,sizeof can);
+    for(int i = 0; i < n; ++i)
+        for(int j = 0; j < n; ++j)
+            if( '0' < lab[i][j] && lab[i][j] <= '9')
+                bfs(i,j,n,t);
+
+    int S = 2*n*n,T = S + 1;
+    for(int i = 0; i <= T; ++i) G[i].clear();
+    for(int i = 0; i < n; ++i)
+        for(int j = 0; j < n;++j)
+            if('0' < lab[i][j] && lab[i][j] <= '9')
+                add_edge(S, i*n+j, lab[i][j] - '0');
+    
+    for(int i = 0; i < n; ++i)
+        for(int j = 0; j < n; ++j)
+            if('0' < cap[i][j] && cap[i][j] <= '9')
+                add_edge(n*n + i*n + j, T, cap[i][j] - '0');
+    
+    for(int u = 0; u < n*n;++u)
+        for(int v = 0; v < n*n; ++v)
+            if('0' < lab[u/n][u%n] && lab[u/n][u%n] <= '9'
+            && '0' < cap[v/n][v%n] && cap[v/n][v%n] <= '9'
+            && can[u/n][u%n][v/n][v%n])
+                add_edge(u, v + n*n, INF);
+    
+    return max_flow(S, T);
+}
+
+int main()
+{
+    int n,t;
+    while(scanf("%d%d",&n,&t) != EOF)
+    {
+        for(int i = 0; i < n; ++i)
+            scanf(" %s",lab[i]);
+        for(int i = 0; i < n; ++i)
+            scanf(" %s",cap[i]);
+        int ans = solve(n, t);
+        printf("%d\n",ans);
+    }
+}

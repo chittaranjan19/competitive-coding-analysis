@@ -1,0 +1,107 @@
+#include<iostream>
+#include<cstring>
+#include<cstdlib>
+#include<cstdio>
+using namespace std;
+long long ans=0;
+int nnn=0;
+struct node
+{
+    int ord;
+    node* up;
+    node* down;
+    node* left;
+    node* right;
+}head[300005],tail[300005],hdl,tlr;
+node* last;
+node* frst;
+void nodeinit(int n)
+{
+    for(int i=1;i<=n;i++)
+    {
+        head[i].up=NULL;
+        head[i].down=tail+i;
+        head[i].left=NULL;
+        head[i].right=NULL;
+        tail[i].up=head+i;
+        tail[i].down=NULL;
+        tail[i].left=NULL;
+        tail[i].right=NULL;
+    }
+    hdl.up=NULL;
+    hdl.down=NULL;
+    hdl.left=NULL;
+    hdl.right=&tlr;
+    tlr.up=NULL;
+    tlr.down=NULL;
+    tlr.left=&hdl;
+    tlr.right=NULL;
+}
+void addd(int x)
+{
+    node* p;
+    p=(node*)malloc(sizeof(node));
+    p->ord=++nnn;
+    p->up=tail[x].up;
+    p->down=tail+x;
+    p->left=tlr.left;
+    p->right=&tlr;
+    tail[x].up->down=p;
+    tail[x].up=p;
+    tlr.left->right=p;
+    tlr.left=p;
+    ans++;
+}
+void rrd(int x)
+{
+    node* p=head[x].down;
+    while(p!=tail+x)
+    {
+        p->left->right=p->right;
+        p->right->left=p->left;
+        p->up->down=p->down;
+        p->down->up=p->up;
+        p=p->down;
+        free(p->up);
+        ans--;
+    }
+}
+void seg(int x)
+{
+    if(hdl.right==&tlr||hdl.right->ord>x) return;
+    node* p=hdl.right;
+    while(p->ord<=x&&p!=&tlr)
+    {
+        p->left->right=p->right;
+        p->right->left=p->left;
+        p->up->down=p->down;
+        p->down->up=p->up;
+        p=p->right;
+        free(p->left);
+        ans--;
+    }
+}    
+int main()
+{
+    int n,q,i,type,x;
+    cin>>n>>q;
+    nodeinit(n);
+    for(i=0;i<q;i++)
+    {
+        scanf("%d%d",&type,&x);
+        switch(type)
+        {
+            case 1:
+                addd(x);
+                break;
+            case 2:
+                rrd(x);
+                break;
+            case 3:
+                seg(x);
+                break;
+        }
+        printf("%I64d\n",ans);
+    }
+    return 0;
+}

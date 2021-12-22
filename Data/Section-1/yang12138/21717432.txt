@@ -1,0 +1,134 @@
+/* ***********************************************
+Author        :huriyang
+Created Time  :2016年10月23日 星期日 23时18分52秒
+File Name     :OJ/cf/484E.cpp
+************************************************ */
+
+#include <stdio.h>
+#include <string.h>
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <set>
+#include <map>
+#include <string>
+#include <math.h>
+#include <stdlib.h>
+#include <time.h>
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>P;
+#define mem(a,b) memset(a,b,sizeof(a))
+
+const int N=1e5+10;
+
+struct Node{
+	int lson,rson;
+	int tot,lx,rx,mx;
+}p[N*30];
+int cnt;
+
+void pushup(int root){
+	if(p[p[root].lson].lx == p[p[root].lson].tot) p[root].lx=p[p[root].lson].tot+p[p[root].rson].lx;
+	else p[root].lx=p[p[root].lson].lx;
+
+	if(p[p[root].rson].rx == p[p[root].rson].tot) p[root].rx=p[p[root].rson].tot+p[p[root].lson].rx;
+	else p[root].rx=p[p[root].rson].rx;
+
+	p[root].mx=max(max(p[p[root].lson].mx,p[p[root].rson].mx),p[p[root].lson].rx+p[p[root].rson].lx);
+}
+
+int build(int l,int r){
+	int root=cnt++;
+	p[root].tot=r-l+1;
+	if(l<r){
+		int m=(l+r)>>1;
+		p[root].lson=build(l,m);
+		p[root].rson=build(m+1,r);
+		pushup(root);
+	}
+	else{
+		p[root].lx=p[root].rx=p[root].mx=1;
+	}
+	return root;
+}
+
+int update(int root,int l,int r,int pos){
+	int newroot=cnt++;
+	p[newroot]=p[root];
+	if(l<r){
+		int m=(l+r)>>1;
+		if(pos<=m) p[newroot].lson=update(p[newroot].lson,l,m,pos);
+		else p[newroot].rson=update(p[newroot].rson,m+1,r,pos);
+		pushup(newroot);
+	}
+	else{
+		p[newroot].lx=p[newroot].rx=p[newroot].mx=0;
+	}
+	return newroot;
+}
+
+int query_l(int root,int a,int b,int l,int r){
+	if(a<=l && r<=b) return p[root].lx;
+	int m=(l+r)>>1;
+	if(b<=m) return query_l(p[root].lson,a,b,l,m);
+	if(a>m) return query_l(p[root].rson,a,b,m+1,r);
+	int ans=query_l(p[root].lson,a,m,l,m);
+	if(ans==m-a+1) return ans+query_l(p[root].rson,m+1,b,m+1,r);
+	else return ans;
+}
+
+int query_r(int root,int a,int b,int l,int r){
+	if(a<=l && r<=b) return p[root].rx;
+	int m=(l+r)>>1;
+	if(b<=m) return query_r(p[root].lson,a,b,l,m);
+	if(a>m) return query_r(p[root].rson,a,b,m+1,r);
+	int ans=query_r(p[root].rson,m+1,b,m+1,r);
+	if(ans==b-m) return ans+query_r(p[root].lson,a,m,l,m);
+	else return ans;
+}
+
+int query_all(int root,int a,int b,int l,int r){
+	if(a<=l && r<=b) return p[root].mx;
+	int m=(l+r)>>1;
+	if(b<=m) return query_all(p[root].lson,a,b,l,m);
+	if(a>m) return query_all(p[root].rson,a,b,m+1,r);
+	return max(max(query_all(p[root].lson,a,m,l,m),query_all(p[root].rson,m+1,b,m+1,r)),query_l(p[root].rson,m+1,b,m+1,r)+query_r(p[root].lson,a,m,l,m));
+}
+
+P g[N];
+int t[N],h[N];
+
+int main()
+{
+    //freopen("in.txt","r",stdin);
+    //freopen("out.txt","w",stdout);
+   	//std::ios_base::sync_with_stdio(false);
+	int n;
+	scanf("%d",&n);
+	for(int i=1;i<=n;i++){
+		scanf("%d",h+i);
+		g[i]=make_pair(h[i],i);
+	}
+	sort(g+1,g+n+1);
+	t[1]=build(1,n);
+	for(int i=2;i<=n;i++) t[i]=update(t[i-1],1,n,g[i-1].second);
+	int M;
+	scanf("%d",&M);
+	while(M--){
+		int L,R,w;
+		scanf("%d%d%d",&L,&R,&w);
+		int l=1,r=n,ans=1;
+		while(l<=r){
+			int m=(l+r)>>1;
+			if(query_all(t[m],L,R,1,n) >= w){
+				l=m+1,ans=m;
+			}
+			else r=m-1;
+		}
+		printf("%d\n",g[ans].first);
+	}
+    return 0;
+}

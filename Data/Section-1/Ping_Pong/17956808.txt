@@ -1,0 +1,122 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+#include <clocale>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e18;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const ll MAX_N = 500;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+int main()
+{
+    //freopen("input.txt", "r", stdin);
+    //freopen("output.txt", "w", stdout);
+    //setlocale(LC_CTYPE, "rus");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    ll n;
+    cin >> n;
+    ll a[n * 2], b[n * 2];
+    for (ll i = 0; i < n; i++)
+    {
+        cin >> a[i];
+        a[n + i] = a[i];
+    }
+    map<ll, ll> m;
+    m[0] = n * 2;
+    ll curr = 0;
+    for (ll i = n * 2 - 1; i >= 0; i--)
+    {
+        if (a[i] == 0)
+        {
+            b[i] = i;
+        }
+        else
+        {
+            if (m.find(curr + a[i]) != m.end())
+            {
+                b[i] = m[curr + a[i]];
+            }
+            else
+            {
+                b[i] = inf;
+            }
+        }
+        m[curr] = i;
+        curr += a[i];
+    }
+    ll cost[n * 2];
+    for (ll i = 0; i < n * 2; i++)
+        cost[i] = b[i] - i;
+    ll sq = round(sqrt(n));
+    ll next[n * 2];
+    ll fullcost[n * 2];
+    for (ll i = 0; i < n * 2; i++)
+    {
+        fullcost[i] = 0;
+        ll curr = i;
+        for (ll j = 0; j < sq && curr < n * 2; j++)
+        {
+            fullcost[i] += cost[curr];
+            curr = b[curr] + 1;
+        }
+        next[i] = curr;
+    }
+    /*for (ll i = 0; i < n * 2; i++)
+        cout << a[i] << " ";
+    cout << endl;
+    for (ll i = 0; i < n * 2; i++)
+        cout << b[i] << " ";
+    cout << endl;
+    for (ll i = 0; i < n * 2; i++)
+        cout << cost[i] << " ";
+    cout << endl;
+    for (ll i = 0; i < n * 2; i++)
+        cout << next[i] << " ";
+    cout << endl;
+    for (ll i = 0; i < n * 2; i++)
+        cout << fullcost[i] << " ";
+    cout << endl;*/
+    ll ans = inf;
+    for (ll i = 0; i < n; i++)
+    {
+        ll cnt = 0;
+        ll curr = i;
+        while (true)
+        {
+            if (next[curr] > i + n)
+                break;
+            cnt += fullcost[curr];
+            curr = next[curr];
+        }
+        while (true)
+        {
+            if (b[curr] + 1 > i + n)
+                break;
+            cnt += cost[curr];
+            curr = b[curr] + 1;
+        }
+        ans = min(ans, cnt);
+    }
+    cout << ans;
+    return 0;
+}

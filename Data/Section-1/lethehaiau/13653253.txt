@@ -1,0 +1,155 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+const int maxh = 20;
+int n, m, q;
+vector <int> a[101111];
+vector <int> b[101111];
+vector <int> d[101111][22];
+bool kt[101111];
+int t;
+int up[101111][22];
+int ta[101111], tin[101111], tout[101111];
+
+vector <int> insert(vector <int> a, vector <int> b)
+{
+	vector <int> c;
+	c.clear();
+	int u = 0, v = 0, k = 0;
+	while((u < a.size() && v < b.size()) && (k < 10))
+	{
+		if(k > 0)
+		{
+			while(u < a.size() && a[u] == c[k - 1]) u++;
+			while(v < b.size() && b[v] == c[k - 1]) v++;
+		}
+		if(u < a.size() && a[u] < b[v])
+		{
+			c.push_back(a[u]);
+			k++;
+			u++;
+		}
+		else
+		if(v < b.size())
+		{
+			c.push_back(b[v]);
+			k++;
+			v++;
+		}
+	}
+	if(u < a.size() && k > 0 && c[k - 1] == a[u]) u++;
+	if(v < b.size() && k > 0 && c[k - 1] == b[v]) v++;
+	while(u < a.size() && k < 10) 
+	{
+		c.push_back(a[u]);
+		u++;
+		k++;
+	}
+	while(v < b.size() && k < 10)
+	{
+		c.push_back(b[v]);
+		v++;
+		k++;
+	}
+	return c;
+}
+
+void dfs(int u)
+{
+	t++; tin[u] = t; ta[t] = u;
+	for(int i = 1; i < maxh; i++)
+	{
+		up[u][i] = up[up[u][i - 1]][i - 1];
+		d[u][i] = insert(d[u][i - 1], d[up[u][i - 1]][i - 1]);
+	}
+	for(int i = 0; i < a[u].size(); i++)
+	if(!kt[a[u][i]])
+	{
+		int v = a[u][i];
+		kt[v] = true;
+		up[v][0] = u;
+		d[v][0] = insert(b[v], b[u]);
+		dfs(v);
+	}
+	t++;
+	tout[u] = t; ta[t] = u;
+}
+
+bool upper(int u, int v)
+{
+	return((tin[u] <= tin[v]) && (tout[u] >= tout[v]));
+}
+
+void swap(int& u, int& v)
+{
+	int tmp;
+	tmp = u; u = v; v = tmp;
+}
+
+vector <int> lca(int u, int v)
+{
+	if(u == v) return b[u];
+	int x = u, y = v;
+	vector <int> c;
+	c.clear();
+	if(upper(u, v)) swap(u, v);
+	for(int i = maxh - 1; i >= 0; i--)
+		if((up[u][i] > 0) && !(upper(up[u][i], v))) u = up[u][i];
+	u = up[u][0];
+	for(int i = maxh - 1; i >= 0; i--)
+		if(up[x][i] > 0 && !upper(up[x][i], u))
+		{
+			c = insert(d[x][i], c);
+			x = up[x][i];
+		}
+		//cout << x;
+	if(x != u) c = insert(c, d[x][0]);
+	for(int i = maxh - 1; i >= 0; i--)
+		if(up[y][i] > 0 && !upper(up[y][i], u))
+		{
+			c = insert(c, d[y][i]);
+			y = up[y][i];
+		}
+	if(y != u) c = insert(c, d[y][0]);
+	return c;
+}
+
+int main()
+{
+	ios_base::sync_with_stdio(false);
+	//freopen("in.txt", "r", stdin);
+	cin >> n >> m >> q;
+	for(int i = 0; i < n - 1; i++)
+	{
+		int u, v;
+		cin >> u >> v;
+		a[u].push_back(v);
+		a[v].push_back(u);
+	}
+	for(int i = 1; i <= m; i++)
+	{
+		int u;
+		cin >> u;
+		b[u].push_back(i);
+	}
+	//cout << b[4][0];
+	vector <int> kk = insert(b[1], b[2]);
+	memset(kt, false, sizeof kt);
+	t = 0;
+	up[1][0] = 0;
+	kt[1] = true;
+	dfs(1);
+	for(int i = 0; i < q; i++)
+	{
+		int u, v, s;
+		cin >> u >> v >> s;
+		vector <int> rs = lca(u, v);
+		int k = rs.size();
+		k = min(k, s);
+		cout << k << " ";
+		for(int i = 0; i < k; i++)
+			cout << rs[i] << " ";
+		cout << "\n";
+	}
+	return 0;
+}

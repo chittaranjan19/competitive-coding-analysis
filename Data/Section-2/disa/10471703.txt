@@ -1,0 +1,86 @@
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <vector>
+#include <set>
+#include <algorithm>
+#include <iomanip>
+#include <map>
+#include <cmath>
+#include <queue>
+using namespace std;
+
+typedef long long ll;
+
+#if _DEBUG 
+#include <fstream>
+ifstream cin("input.txt");
+ofstream cout("output.txt");
+#else
+#include <iostream>
+#endif
+
+const int INF = 2005;
+
+bool used[INF][INF];
+int up, down, l, r;
+
+void dfs(int x, int y) {
+	up = max(up, y);
+	down = min(down, y);
+	l = min(l, x);
+	r = max(r, x);
+	used[x][y] = true;
+	if (!used[x + 1][y])
+		dfs(x + 1, y);
+	if (!used[x - 1][y])
+		dfs(x - 1, y);
+	if (!used[x][y + 1])
+		dfs(x, y + 1);
+	if (!used[x][y - 1])
+		dfs(x, y - 1);
+}
+
+char c[INF][INF];
+
+
+int main() {
+	int n, m;
+	cin >> n >> m;
+	for (int i = 0; i < INF; i++) {
+		for (int j = 0; j < INF; j++) {
+			used[i][j] = true;
+		}
+	}
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= m; j++) {
+			cin >> c[i][j];
+			if (c[i][j] == '.')
+				used[i][j] = false;
+		}
+	}
+	int ans = 0;
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= m; j++) {
+			if (!used[i][j]) {
+				up = -INF;
+				down = INF;
+				l = INF;
+				r = -INF;
+				dfs(i, j);
+				for (int i = l; i <= r; i++) {
+					for (int j = down; j <= up; j++) {
+						c[i][j] = '.';
+					}
+				}
+			}
+		}
+	}
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= m; j++) {
+			cout << c[i][j];
+		}
+		cout << '\n';
+	}
+	return 0;
+}

@@ -1,0 +1,160 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const int N = 100000;
+const int inf = (int)1e9;
+const int MOD = (int)1e9 + 7;
+const ld eps = 1e-6;
+const int ABC = 26;
+
+int root = 0, nv = 1;
+vector<vector<int> > go(1, vector<int> (ABC, -1));
+vector<int> par(1, -1);
+vector<int> in(1, -1);
+vector<int> suf(1, root);
+
+void add_str(string s)
+{
+    int curr = root;
+    for (int c : s)
+    {
+        c -= 'A';
+        if (go[curr][c] == -1)
+        {
+            go[curr][c] = nv++;
+            go.push_back(vector<int> (ABC, -1));
+            par.push_back(curr);
+            in.push_back(c);
+            suf.push_back(root);
+        }
+        curr = go[curr][c];
+    }
+}
+
+void build()
+{
+    vector<bool> used(nv, false);
+    queue<int> q;
+    used[root] = true;
+    q.push(root);
+    while (!q.empty())
+    {
+        int u = q.front();
+        q.pop();
+        if (u == root)
+            suf[u] = root;
+        else if (par[u] == root)
+            suf[u] = root;
+        else
+            suf[u] = go[suf[par[u]]][in[u]];
+        for (int c = 0; c < ABC; c++)
+            if (go[u][c] != -1)
+                continue;
+            else if (u == root)
+                go[u][c] = root;
+            else
+                go[u][c] = go[suf[u]][c];
+        for (int c = 0; c < ABC; c++)
+            if (!used[go[u][c]])
+            {
+                used[go[u][c]] = true;
+                q.push(go[u][c]);
+            }
+    }
+}
+
+vector<vector<vector<int> > > enter;
+
+void build1()
+{
+    enter.resize(nv, vector<vector<int> > (ABC));
+    for (int i = 0; i < nv; i++)
+        for (int j = 0; j < ABC; j++)
+            enter[go[i][j]][j].push_back(i);
+}
+
+int main()
+{
+    //freopen("point.in", "r", stdin);
+    //freopen("point.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.precision(20);
+    string s, t, v;
+    cin >> s >> t >> v;
+    add_str(v);
+    build();
+    build1();
+    int n = s.size(), m = t.size(), l = v.size();
+    int dp[n + 1][m + 1][l + 1];
+    pair<pair<int, int>, int> come[n + 1][m + 1][l + 1];
+    for (int i = 0; i <= n; i++)
+        for (int j = 0; j <= m; j++)
+            for (int k = 0; k <= l; k++)
+                dp[i][j][k] = -1;
+    for (int i = 0; i <= m; i++)
+        dp[0][i][0] = 0;
+    for (int i = 0; i <= n; i++)
+        dp[i][0][0] = 0;
+    for (int i = 1; i <= n; i++)
+        for (int j = 1; j <= m; j++)
+            for (int k = 0; k <= l; k++)
+            {
+                if (dp[i - 1][j][k] != -1 && dp[i - 1][j][k] > dp[i][j][k])
+                {
+                    dp[i][j][k] = dp[i - 1][j][k];
+                    come[i][j][k] = {{i - 1, j}, k};
+                }
+                if (dp[i][j - 1][k] != -1 && dp[i][j - 1][k] > dp[i][j][k])
+                {
+                    dp[i][j][k] = dp[i][j - 1][k];
+                    come[i][j][k] = {{i, j - 1}, k};
+                }
+                if (s[i - 1] == t[j - 1])
+                {
+                    for (int r : enter[k][s[i - 1] - 'A'])
+                            if (dp[i - 1][j - 1][r] != -1 && dp[i - 1][j - 1][r] + 1 > dp[i][j][k])
+                                {
+                                    dp[i][j][k] = dp[i - 1][j - 1][r] + 1;
+                                    come[i][j][k] = {{i - 1, j - 1}, r};
+                                }
+                }
+            }
+    int ans = 0;
+    for (int i = 0; i < l; i++)
+        ans = max(ans, dp[n][m][i]);
+    if (ans == 0)
+    {
+        cout << 0 << endl;
+        return 0;
+    }
+    int i0, j0, k0;
+    for (int r = 0; r < l; r++)
+        if (dp[n][m][r] == ans)
+        {
+            i0 = n;
+            j0 = m;
+            k0 = r;
+            break;
+        }
+    string res = "";
+    while (ans > 0)
+    {
+        int i1 = come[i0][j0][k0].first.first, j1 = come[i0][j0][k0].first.second, k1 = come[i0][j0][k0].second;
+        if (i1 + 1 == i0 && j1 + 1 == j0)
+        {
+            res += s[i1];
+            ans--;
+        }
+        i0 = i1;
+        j0 = j1;
+        k0 = k1;
+    }
+    reverse(res.begin(), res.end());
+    cout << res << endl;
+    return 0;
+}

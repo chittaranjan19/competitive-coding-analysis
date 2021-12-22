@@ -1,0 +1,87 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int dpmin[MAXN],dpmax[MAXN],w[MAXN],leaf=0;
+vector<int>adj[MAXN];
+void dfs(int nd,int pr){
+	dpmin[nd]=1;
+	if(adj[nd].size()==1 and pr!=-1){
+		dpmax[nd]=1;w[nd]=1;
+		return;
+	}
+	tr(it,adj[nd]){
+		if(*it==pr)
+			continue;
+		dfs(*it,nd);
+		w[nd]+=w[*it];	
+	}
+	tr(it,adj[nd]){
+		if(*it==pr)
+			continue;
+		umax(dpmax[nd],w[nd]-w[*it]+dpmin[*it]);	
+		dpmin[nd]+=dpmax[*it]-1;
+	}
+}
+void dfs1(int nd,int pr){
+	dpmax[nd]=0;
+	if(adj[nd].size()==1 and pr!=-1){
+		dpmin[nd]=dpmax[nd]=1;
+		return;
+	}
+	tr(it,adj[nd]){
+		if(*it==pr)
+			continue;
+		dfs1(*it,nd);
+	}
+	dpmin[nd]=INF;
+	tr(it,adj[nd]){
+		if(*it==pr)
+			continue;
+		umin(dpmin[nd],dpmax[*it]);	
+		dpmax[nd]+=dpmin[*it];
+	}
+}
+int main(){
+	int n;
+	scanf("%d",&n);
+	if(n<=2){
+		printf("1 1\n");
+		return 0;
+	}
+	for(int i=1;i<n;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	dfs(1,-1);
+	printf("%d ",dpmax[1]);
+	dfs1(1,-1);
+	printf("%d\n",dpmax[1]);
+	return 0;
+}
+/*
+7
+1 2
+2 3
+2 4
+3 5
+4 6
+4 7
+*/

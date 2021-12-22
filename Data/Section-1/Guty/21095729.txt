@@ -1,0 +1,155 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+#include <valarray>
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+
+#define forn(i,n) for(tint i=0;i<(tint)(n); i++)
+#define forsn(i,s,n) for(tint i=(s);i<(tint)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+
+
+using namespace std;
+
+
+
+void imprimirVector (deque<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) )
+		Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+struct Nodo
+{
+	tint tiempo,visitas,padre;
+	Nodo (tint vv, tint tt,tint pp)
+	{
+		visitas = vv;
+		tiempo = tt;
+		padre = pp;
+	}
+};
+
+bool operator < (Nodo n1, Nodo n2)
+{
+	return make_tuple(n1.visitas,n1.tiempo,n1.padre) > make_tuple(n2.visitas,n2.tiempo,n2.padre);
+}
+
+deque<tint> topo;
+
+void dfs (vector<bool> &visitado, tint actual, vector<vector<tint> > &vecinos)
+{
+	if (!visitado[actual])
+	{
+		visitado[actual] = true;
+		for (auto x : vecinos[actual])
+			dfs(visitado,x,vecinos);
+	}
+	topo.push_front(actual);
+	
+}
+
+
+int main()
+{
+	#ifdef ACMTUYO
+		assert(freopen("entrada.in", "r", stdin));
+	#endif
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	tint n,m,totalTime;
+	while(cin >> n >> m >> totalTime)
+	{
+		topo.clear();
+		vector<vector<tint> > vecinos (n);
+		vector<vector<tint> > time (n, vector<tint> (n));
+		forn(i,m)
+		{
+			tint u,v,t;
+			cin >> u >> v >> t;
+			vecinos[v-1].push_back(u-1);
+			time[v-1][u-1] = t;
+			
+		}
+		
+		
+		//vector<bool> visitado (n,false);
+		//for (auto x : dp)
+		//	cout << "(" << x.visitas << ", " << x.tiempo << ", " << x.padre << "), ";
+		//cout << endl;
+		//dfs(visitado,n-1,vecinos);
+		//imprimirVector(topo);
+		vector<Nodo> dp (n, Nodo(-1,-1,-1));
+		dp[n-1] = Nodo(1,totalTime,-1);
+		
+		forn(i,n)
+		{
+			
+			if (dp[n-i-1].visitas > 0)
+				for (auto vecino : vecinos[n-i-1])
+					if (dp[n-i-1].tiempo - time[n-i-1][vecino] >= 0)
+						dp[vecino] = min(dp[vecino],Nodo(dp[n-i-1].visitas + 1,dp[n-i-1].tiempo - time[n-i-1][vecino],n-i-1));
+		}
+		
+		cout << dp[0].visitas << endl;
+		tint w = 0;
+		while (w != -1)
+		{
+			cout << w + 1 << " ";
+			w = dp[w].padre;
+		}
+		cout << endl;
+		
+		
+		
+	}
+	
+	return 0;
+}
+
+
+

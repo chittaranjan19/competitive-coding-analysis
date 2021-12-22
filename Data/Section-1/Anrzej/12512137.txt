@@ -1,0 +1,149 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+#include <cstring>
+#include <map>
+#include <unordered_map>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+#define x first
+#define y second
+
+using namespace std;
+
+ll func(int len)
+{
+    return len - 1;
+}
+
+int main() 
+{
+    int n, q;
+    string st;
+    set<pair<int, int> > s;
+    set<pair<int, int> >::iterator it;
+    cin >> n >> q;
+    cin >> st;
+    st = '0' + st;
+    st += '0';
+    int l, r, cnt = 0;
+    ll cur = 0;
+    for (int i = 1; i <= n; i++)
+    {
+        if (st[i] == '.')
+            cnt++;
+        if (st[i] != '.' && cnt != 0)
+        {
+            s.insert(mp(i-1, cnt));
+            cnt = 0;
+        }
+    }
+    if (cnt != 0)
+        s.insert(mp(st.length()-2, cnt));
+    for (it = s.begin(); it != s.end(); it++)
+    {
+        pair<int, int> aa = *it;
+        cur += func(aa.y);
+    }
+    while (q--)
+    {
+        int k; char ch;
+        cin >> k >> ch;
+        k;
+        if (st[k] != ch)
+        {
+            if (ch != '.')
+            {
+                st[k] = ch;
+                if (st[k - 1] == '.' && st[k + 1] == '.')
+                {
+                    pair<int, int> t = *s.lower_bound(mp(k, -1));
+                    cur -= func(t.y);
+                    s.erase(t);
+                    int l, r;
+                    r = t.x - k;
+                    l = t.y - r - 1;
+                    cur += func(r);
+                    cur += func(l);
+                    if (r != 0)
+                        s.insert(mp(t.x, r));
+                    if (l != 0)
+                        s.insert(mp(k - 1, l));
+                }
+                else
+                {
+                    if (st[k - 1] == '.')
+                    {
+                        pair<int, int> t = *s.lower_bound(mp(k, -1));
+                        cur -= func(t.y);
+                        cur += func(t.y - 1);
+                        s.erase(t);
+                        t.x -= 1;
+                        t.y -= 1;
+                        if (t.y != 0)
+                            s.insert(t);
+                    }
+                    if (st[k + 1] == '.')
+                    {
+                        pair<int, int> t = *s.lower_bound(mp(k, -1));
+                        cur -= func(t.y);
+                        cur += func(t.y - 1);
+                        s.erase(t);
+                        t.y -= 1;
+                        if (t.y != 0)
+                            s.insert(t);
+                    }
+                }
+
+            }
+            else
+            {
+                st[k] = ch;
+                if (st[k - 1] == '.' && st[k + 1] == '.')
+                {
+                    pair<int, int> l = *s.lower_bound(mp(k - 1, -1)), r = *s.lower_bound(mp(k + 1, -1));
+                    cur -= func(l.y);
+                    cur -= func(r.y);
+                    s.erase(l);
+                    s.erase(r);
+                    int len = l.y + r.y + 1;
+                    cur += func(len);
+                    s.insert(mp(r.x, len));
+                }
+                else
+                {
+                    if (st[k - 1] == '.')
+                    {
+                        pair<int, int> t = *s.lower_bound(mp(k - 1, -1));
+                        cur -= func(t.y);
+                        cur += func(t.y + 1);
+                        s.erase(t);
+                        t.x += 1;
+                        t.y += 1;
+                        s.insert(t);
+                    }
+                    if (st[k + 1] == '.')
+                    {
+                        pair<int, int> t = *s.lower_bound(mp(k, -1));
+                        cur -= func(t.y);
+                        cur += func(t.y + 1);
+                        s.erase(t);
+                        t.y += 1;
+                        s.insert(t);
+                    }
+                }
+            }
+        }
+        printf("%d\n", cur);
+    }
+    return 0;
+}

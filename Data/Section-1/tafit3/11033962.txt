@@ -1,0 +1,227 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemB {
+    BufferedReader rd;
+    List<List<Integer>> edges;
+    int n;
+
+    ProblemB() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        n = a[0];
+        int m = a[1];
+        edges = new ArrayList<>();
+        for(int i=0;i<n;i++) {
+            edges.add(new ArrayList<Integer>());
+        }
+        for(int i=0;i<m;i++) {
+            a = intarr();
+            a[0]--;
+            a[1]--;
+            edges.get(a[0]).add(a[1]);
+            edges.get(a[1]).add(a[0]);
+        }
+        int[] x = intarr();
+        int[] y = intarr();
+        x[0]--;
+        x[1]--;
+        y[0]--;
+        y[1]--;
+
+        int[] lenx = new int[n];
+        int[] prevx = new int[n];
+        bfs(x[0],lenx,prevx);
+        int ax = lenx[x[1]];
+
+        int[] leny = new int[n];
+        int[] prevy = new int[n];
+        bfs(y[0],leny,prevy);
+        int ay = leny[y[1]];
+        if(ax <= x[2] && ay <= y[2]) {
+            Set<String> used = new HashSet<>();
+            int u = x[1];
+            while(u != x[0]) {
+                used.add(u+"_"+prevx[u]);
+                used.add(prevx[u]+"_"+u);
+                u = prevx[u];
+            }
+            u = y[1];
+            while(u != y[0]) {
+                used.add(u+"_"+prevy[u]);
+                used.add(prevy[u]+"_"+u);
+                u = prevy[u];
+            }
+            int m1 = m - used.size()/2;
+
+            Set<Integer> s1 = new HashSet<>();
+            u = y[1];
+            s1.add(u);
+            while(u != x[0]) {
+                u = prevx[u];
+                s1.add(u);
+            }
+            Set<Integer> s2 = new HashSet<>();
+            u = x[1];
+            s2.add(u);
+            while(u != y[0]) {
+                u = prevy[u];
+                s2.add(u);
+            }
+            Set<Integer> common = new HashSet<>(s1);
+            common.retainAll(s2);
+            if(!common.isEmpty()) {
+                boolean[] proc = new boolean[n];
+                Integer com = common.iterator().next();
+
+                int[] lencom = new int[n];
+                int[] prevcom = new int[n];
+                bfs(com, lencom, prevcom);
+                int best0 = lencom[x[0]] + lencom[y[0]];
+                int best0v = com;
+                int best1 = lencom[x[1]] + lencom[y[1]];
+                int best1v = com;
+
+                Queue<Integer> toCheck = new ArrayDeque<>();
+                toCheck.add(com);
+                proc[com] = true;
+                while(!toCheck.isEmpty()) {
+                    int v = toCheck.poll();
+                    for(Integer neigh: edges.get(v)) {
+                        if(!proc[neigh]) {
+                            lencom = new int[n];
+                            prevcom = new int[n];
+                            bfs(neigh, lencom, prevcom);
+                            int h0 = lencom[x[0]] + lencom[y[0]] + lencom[com];
+                            int h1 = lencom[x[1]] + lencom[y[1]] + lencom[com];
+                            boolean check = false;
+                            if(h0 < best0) {
+                                check = true;
+                                best0 = h0;
+                                best0v = neigh;
+                            }
+                            if(h1 < best1) {
+                                check = true;
+                                best1 = h1;
+                                best1v = neigh;
+                            }
+                            if(check) {
+                                proc[neigh] = true;
+                                toCheck.add(neigh);
+                            }
+                        }
+                    }
+                }
+
+                int[] lenbest0v = new int[n];
+                int[] prev0 = new int[n];
+                bfs(best0v, lenbest0v, prev0);
+
+                int[] lenbest1v = new int[n];
+                int[] prev1 = new int[n];
+                bfs(best1v, lenbest1v, prev1);
+
+                out(Math.min(m1,m - (lenbest0v[x[0]] + lenbest0v[y[0]] + lenbest1v[x[1]] + lenbest1v[y[1]] + lenbest0v[best1v])));
+            } else {
+                out(m - lenx[x[1]] + leny[y[1]]);
+            }
+        } else {
+            out(-1);
+        }
+    }
+
+    private void bfs(int x,int[] len,int[] prev) {
+        boolean[] processed = new boolean[n];
+        Queue<Integer> q = new ArrayDeque<>();
+        q.add(x);
+        processed[x] = true;
+        while(!q.isEmpty()) {
+            int v = q.poll();
+            for(Integer u: edges.get(v)) {
+                if(!processed[u]) {
+                    processed[u] = true;
+                    q.add(u);
+                    len[u] = len[v] + 1;
+                    prev[u] = v;
+                }
+            }
+        }
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB();
+    }
+}

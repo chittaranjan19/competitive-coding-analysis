@@ -1,0 +1,193 @@
+#include<stdio.h>
+#include<vector>
+#include<queue>
+#include<map>
+#include<string>
+#include<iostream>
+using namespace std;
+#define pp pair<int,int>
+vector<pp> G;
+map<int,int> m1;
+#define INF 1000000007
+class  priortise
+{
+public:
+    bool operator()(const int &x,const int &y)
+    {
+        return x>y;
+    }
+};
+bool check[100005];
+queue<pp> q1,q2;
+priority_queue<int,vector<int>,priortise> Q;
+int main()
+{
+    int n,i;
+    scanf("%d",&n);
+    for(i=0;i<n;i++)
+    {
+        string s;
+        cin>>s;
+        if(s=="getMin")
+        {
+            int x;
+            scanf("%d",&x);
+            q2.push(pp(i,x));
+        }
+        else if(s=="insert")
+        {
+            int x;
+            scanf("%d",&x);
+            q1.push(pp(i,x));
+        }
+        else
+        {
+            q1.push(pp(i,-INF));
+        }
+    }
+    while(!q1.empty() || !q2.empty())
+    {
+        if(Q.empty())
+        {
+            if(q1.empty())
+            {
+                //printf("#1\n");
+                Q.push(q2.front().second);
+                G.push_back(pp(1,q2.front().second));
+                //q2.pop();
+            }
+            else if(q2.empty())
+            {
+                if(q1.front().second==-INF)
+                {
+                    //printf("#2\n");
+                    G.push_back(pp(1,1));
+                    Q.push(1);
+                }
+                else
+                {
+                    //printf("#3\n");
+                    Q.push(q1.front().second);
+                    G.push_back(pp(1,q1.front().second));
+                    q1.pop();
+                }
+            }
+            else if(q1.front().first<q2.front().first)
+            {
+                if(q1.front().second>-INF)
+                {
+                    //printf("#4\n");
+                    Q.push(q1.front().second);
+                    G.push_back(pp(1,q1.front().second));
+                    q1.pop();
+                }
+                else
+                {
+                    //printf("#5\n");
+                    Q.push(q2.front().second);
+                    G.push_back(pp(1,q2.front().second));
+                    //q2.pop();
+                }
+            }
+            else
+            {
+                //printf("#6\n");
+                Q.push(q2.front().second);
+                G.push_back(pp(1,q2.front().second));
+                //q2.pop();
+            }
+        }
+        else
+        {
+            if(q1.empty())
+            {
+                //printf("#7\n");
+                while(!Q.empty() && Q.top()!=q2.front().second)
+                {
+                    G.push_back(pp(2,Q.top()));
+                    Q.pop();
+                }
+                if(!Q.empty())
+                {
+                    G.push_back(pp(3,Q.top()));
+                    //Q.pop();
+                    q2.pop();
+                    //printf("#8\n");
+                }
+            }
+            else if(q2.empty())
+            {
+                if(q1.front().second==-INF)
+                {
+                    //printf("#9\n");
+                    G.push_back(pp(2,Q.top()));
+                    Q.pop();
+                    q1.pop();
+                }
+                else
+                {
+                    //printf("#10\n");
+                    Q.push(q1.front().second);
+                    G.push_back(pp(1,q1.front().second));
+                    q1.pop();
+                }
+            }
+            else if(q1.front().first < q2.front().first)
+            {
+                if(q1.front().second==-INF)
+                {
+                    //printf("#11\n");
+                    G.push_back(pp(2,Q.top()));
+                    Q.pop();
+                    q1.pop();
+                }
+                else
+                {
+                    //printf("#12\n");
+                    Q.push(q1.front().second);
+                    G.push_back(pp(1,q1.front().second));
+                    q1.pop();
+                }
+            }
+            else
+            {
+                //printf("#13\n");
+                while(!Q.empty() && Q.top()!=q2.front().second)
+                {
+                    G.push_back(pp(2,Q.top()));
+                    Q.pop();
+                }
+                if(!Q.empty())
+                {
+                    G.push_back(pp(3,Q.top()));
+                    //Q.pop();
+                    q2.pop();
+                    //printf("#14\n");
+                }
+            }
+        }
+    }
+    while(!Q.empty() && 0)
+    {
+        G.push_back(pp(2,Q.top()));
+        Q.pop();
+    }
+    int si=G.size();
+    printf("%d\n",si);
+    for(i=0;i<si;i++)
+    {
+        if(G[i].first==1)
+        {
+            printf("insert %d\n",G[i].second);
+        }
+        else if(G[i].first==2)
+        {
+            printf("removeMin\n");
+        }
+        else
+        {
+            printf("getMin %d\n",G[i].second);
+        }
+    }
+    return 0;
+}

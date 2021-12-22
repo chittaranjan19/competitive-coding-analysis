@@ -1,0 +1,81 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+typedef long long ll;
+const int N =  10000 + 10;
+const int mod =  1000000007;
+
+int n, m,a[N];
+int c[N];
+int fib[N];
+int inv[N];
+int t;
+int w;
+int ans = 1;
+bool f = 1;
+int sum = 0;
+
+
+int bpow(int x, int y){
+	int z = 1;
+	while(y > 0){
+		if(y%2 == 1){	
+			z = (ll)z * (ll)x % mod;
+		}
+		y /= 2;
+		x = x * (ll)x % mod;
+	}
+	return z% mod;
+}
+
+int C(int x , int y){
+	if(y == 0)
+		return 1;
+	return fib[x] * (ll)inv[y] % mod * (ll)inv[x - y] % mod;
+}
+
+int main(){
+	cin >> n >> m;
+	for(int  i = 0; i < m; ++i){
+		cin >> t;
+		t--;
+		a[t] = 1;
+	}
+	fib[0] = inv[0] = 1;
+	for(int i = 1; i <= N; ++i){
+		fib[i] = fib[i - 1] * i % mod;
+		inv[i] = bpow(fib[i] , mod - 2);
+	}
+	for(int i = 0; i < n; ++i){
+		if(a[i] == 1)
+			break;
+		a[i] = 1;
+		w++;
+	}
+	for(int i = n-1; i >= 0; --i){
+		if(a[i] == 1)
+			break;
+		a[i] = 1;
+	}
+	int np = n - m;
+	for(int i = 0; i < n; ++i){
+		if(a[i] == 0 && f == 1){
+			sum = 1;
+			f = 0;
+		}
+		else if(a[i] == 0 && f == 0){
+			sum ++;
+		}
+		else if(a[i] == 1 && f == 0){
+			ans = ans * (ll)bpow(2 , sum-1) % mod;			
+			ans = ans * (ll)C(np , sum) % mod;
+			np -= sum;
+			f = 1;
+		}
+	}
+	ans = ans * (ll)C(np, w) % mod;
+	cout << ans << "\n";
+	return 0;
+}
+	

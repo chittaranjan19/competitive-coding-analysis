@@ -1,0 +1,97 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 17, SIZE = MAXN << 3;
+
+struct cow {
+	int left, right;
+	int id;
+	void read (int i) {
+		cin >> left >> right;
+		id = i;
+	}
+	bool operator < (const cow &c) const {
+		return left == c.left ? right > c.right : left < c.left;
+	}
+};
+
+int N, M;
+int ans[MAXN];
+int K[MAXN];
+cow notes[MAXN], actors[MAXN];
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 0; i < N; i++) {
+		notes[i].read(i);
+	}
+	sort(notes, notes + N);
+	cin >> M;
+	for (int i = 0; i < M; i++) {
+		actors[i].read(i);
+		cin >> K[i];
+	}
+	set<pii> st;
+	for (int i = 0, j = 0; i < N || j < M; ) {
+		if (i == N || (j != M && notes[i].left >= actors[j].left)) {
+			//insert an actor. this is the first thing to do before notes
+			st.insert(pii(actors[j].right, actors[j].id));
+			j++;
+		} else {
+			//process a note
+			set<pii>::iterator it = st.lower_bound(pii(notes[i].right, -1));
+			if (it == st.end()) {
+				cout << "NO";
+				return 0;
+			}
+			//choose the actor with the smallest highest-note
+			if (!--K[ans[notes[i].id] = it->second]) {
+				st.erase(it);
+			}
+			i++;
+		}
+	}
+	cout << "YES\n";
+	for (int i = 0; i < N; i++) {
+		cout << ans[i] + 1 << ' ';
+	}
+}

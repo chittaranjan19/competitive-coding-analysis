@@ -1,0 +1,134 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+ll n,q,c=0;
+map<ll,ll>pm;
+map<ll,PII>vis;
+vector<PII>adj[MAXN];
+ll dp[MAXN][2],vsz,way[MAXN][2];
+vector<ll>v;
+ll rec(ll x,ll last){
+	ll sz=v[x];
+	ll cost=vis[sz].ff;
+	ll ind=vis[sz].ss; 
+	ll &op=way[x][last];	
+	if(x>vsz){
+		if(last)
+			return 0;
+		if(adj[pm[sz]].size()>=1 and adj[pm[sz]][0].ff>=cost){
+			op=2;
+			return cost;
+		}
+		return 0;	
+	}
+	ll &ret=dp[x][last];
+	if(~ret)
+		return ret;
+	if(umax(ret,rec(x+1,0)))
+		op=0;
+	if(!last){
+		if(ind and ll(adj[pm[sz]].size())>=2 and v[x+1]-1==sz and vis[v[x+1]].ss){
+			PII a=mp(cost,vis[v[x+1]].ff);
+			PII b=mp(adj[pm[sz]][0].ff,adj[pm[sz]][1].ff);
+			if(a.ff<a.ss)
+				swap(a.ff,a.ss);
+			if(b.ff>=a.ff and b.ss>=a.ss){
+				if(umax(ret,rec(x+1,1)+a.ff+a.ss))
+					op=1;
+			}
+		}
+		if(ll(adj[pm[sz]].size())>=1){
+			if(ind and adj[pm[sz]][0].ff>=cost){
+				if(umax(ret,rec(x+1,0)+cost))
+					op=2;
+			}
+			if(vis[v[x+1]].ss and v[x+1]-1==sz and adj[pm[sz]][0].ff>=vis[v[x+1]].ff){
+				if(umax(ret,rec(x+1,1)+vis[v[x+1]].ff))
+					op=3;
+			}
+		}
+		return ret;
+	}
+	if(vis[v[x+1]].ss and ll(adj[pm[sz]].size())>=1 and v[x+1]-1==sz and adj[pm[sz]][0].ff>=vis[v[x+1]].ff){
+		if(umax(ret,rec(x+1,1)+vis[v[x+1]].ff))
+			op=3;
+	}
+	return ret;
+}
+vector<PII>ans; 
+void f(ll x,ll y){
+	ans.pb(mp(x,y));
+}
+void go(ll x,ll last){
+	if(x>vsz)
+		return;
+	ll sz=v[x];
+	ll cost=vis[sz].ff;
+	ll ind=vis[sz].ss; 	
+	//~ cout<<x<<" "<<last<<" "<<ind<<endl;
+	if(way[x][last]==1){
+		pair<PII,PII> a=mp(mp(cost,ind),vis[v[x+1]]);
+		PII b=mp(adj[pm[sz]][0].ff,adj[pm[sz]][1].ff);
+		if(a.ff.ff<a.ss.ff)
+			swap(a.ff,a.ss);
+		if(b.ff>=a.ff.ff and b.ss>=a.ss.ff)
+			f(b.ff,a.ff.ss),f(b.ss,a.ss.ss);
+	}
+	if(way[x][last]==2)
+		f(adj[pm[sz]][0].ss,ind);
+	if(way[x][last]==3)
+		f(adj[pm[sz]][0].ss,vis[v[x+1]].ss);		
+	go(x+1,way[x][last]&1);
+}
+int main(){
+	memset(dp,-1,sizeof dp);
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif
+	scanf("%lld",&n);
+	for(ll i=1;i<=n;i++){
+		ll c,s;
+		scanf("%lld%lld",&c,&s);
+		pm[s]=1;pm[s-1]=1;
+		vis[s]=mp(c,i);
+	}
+	v.pb(-1);
+	tr(it,pm){
+		it->ss=++c;
+		v.pb(it->ff);
+	}
+	vsz=ll(v.size());
+	scanf("%lld",&q);
+	for(ll i=1;i<=q;i++){
+		ll d,l;
+		scanf("%lld%lld",&d,&l);
+		if(!pm[l])
+			continue;
+		adj[pm[l]].pb(mp(d,i));
+	}
+	for(ll i=1;i<=c;i++){
+		sort(all(adj[i]));
+		reverse(all(adj[i]));
+	}
+	printf("%lld\n",rec(1,0));	
+	go(1,0);
+	printf("%lld\n",ll(ans.size()));
+	for(ll i=0;i<ll(ans.size());i++)
+		printf("%lld %lld\n",ans[i].ff,ans[i].ss);
+	return 0;
+}

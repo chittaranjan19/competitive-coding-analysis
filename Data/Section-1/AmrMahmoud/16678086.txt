@@ -1,0 +1,170 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+const int m = 95542721, limit = 48;
+
+int arr[100005];
+int tree[400005][50];
+int lazy[400005];
+int tmp[50];
+
+void build(int i,int L,int R)
+{
+  if(L == R)
+  {
+    tree[i][0] = arr[L];
+    for(int j=1;j<limit;j++)
+    {
+      tree[i][j] = (tree[i][j - 1] * 1LL * tree[i][j - 1]) % m;
+      tree[i][j] = (tree[i][j] * 1LL * tree[i][j - 1]) % m;
+    }
+    return ;
+  }
+  build(i*2 + 1, L, (L + R) / 2);
+  build(i*2 + 2, (L + R) / 2 + 1, R);
+  for(int j=0;j<limit;j++)
+  {
+    tree[i][j] = tree[i*2 + 1][j] + tree[i*2 + 2][j];
+    if(tree[i][j] >= m)
+      tree[i][j] -= m;
+  }
+}
+
+void update(int i,int L,int R,int x,int y)
+{
+  if(lazy[i] != 0)
+  {
+    for(int j=0;j<limit;j++)
+    {
+      tmp[j] = tree[i][lazy[i]];
+      lazy[i]++;
+      if(lazy[i] == limit)
+        lazy[i] = 0;
+    }
+    for(int j=0;j<limit;j++)
+      tree[i][j] = tmp[j];
+    if(L != R)
+    {
+      lazy[i*2+1]+=lazy[i];
+      if(lazy[i*2+1] >= limit)
+        lazy[i*2+1] -= limit;
+      lazy[i*2+2]+=lazy[i];
+      if(lazy[i*2+2] >= limit)
+        lazy[i*2+2] -= limit;
+    }
+    lazy[i] = 0;
+  }
+  if(L >= x && R <= y)
+  {
+    lazy[i]++;
+    if(lazy[i] == limit) lazy[i] = 0;
+    for(int j=0;j<limit;j++)
+    {
+      tmp[j] = tree[i][lazy[i]];
+      lazy[i]++;
+      if(lazy[i] == limit)
+        lazy[i] = 0;
+    }
+    for(int j=0;j<limit;j++)
+      tree[i][j] = tmp[j];
+    if(L != R)
+    {
+      lazy[i*2+1]+=lazy[i];
+      if(lazy[i*2+1] >= limit)
+        lazy[i*2+1] -= limit;
+      lazy[i*2+2]+=lazy[i];
+      if(lazy[i*2+2] >= limit)
+        lazy[i*2+2] -= limit;
+    }
+    lazy[i] = 0;
+    return;
+  }
+  if(L > y || R < x)
+    return;
+  update(i*2 + 1, L, (L + R) / 2, x, y);
+  update(i*2 + 2, (L + R) / 2 + 1, R, x, y);
+  for(int j=0;j<limit;j++)
+  {
+    tree[i][j] = tree[i*2 + 1][j] + tree[i*2 + 2][j];
+    if(tree[i][j] >= m)
+      tree[i][j] -= m;
+  }
+}
+
+int query(int i,int L,int R,int x,int y)
+{
+  if(lazy[i] != 0)
+  {
+    for(int j=0;j<limit;j++)
+    {
+      tmp[j] = tree[i][lazy[i]];
+      lazy[i]++;
+      if(lazy[i] == limit)
+        lazy[i] = 0;
+    }
+    for(int j=0;j<limit;j++)
+      tree[i][j] = tmp[j];
+    if(L != R)
+    {
+      lazy[i*2+1]+=lazy[i];
+      if(lazy[i*2+1] >= limit)
+        lazy[i*2+1] -= limit;
+      lazy[i*2+2]+=lazy[i];
+      if(lazy[i*2+2] >= limit)
+        lazy[i*2+2] -= limit;
+    }
+    lazy[i] = 0;
+  }
+  if(L >= x && R <= y)
+    return tree[i][0];
+  if(L > y || R < x)
+    return 0;
+  int ans = query(i*2 + 1, L, (L + R) / 2, x, y) + query(i*2 + 2, (L + R) / 2 + 1, R, x, y);
+  if(ans >= m) ans -= m;
+  return ans;
+}
+
+int main()
+{
+  int n, x, y, q;
+  cin >> n;
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d", &arr[i]);
+    arr[i] %= m;
+  }
+  build(0, 0, n - 1);
+  cin >> q;
+  while(q--)
+  {
+    scanf("%d", &x);
+    if(x == 1)
+    {
+      scanf("%d %d", &x, &y);
+      printf("%d\n", query(0, 0, n - 1, x - 1, y - 1));
+    }
+    else
+    {
+      scanf("%d %d", &x, &y);
+      update(0, 0, n - 1, x - 1, y - 1);
+    }
+  }
+  return 0;
+}

@@ -1,0 +1,150 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 5e5 + 10, l = 20;
+
+int gcd(int a, int b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll a[N], b[N], n, m, p;
+string s, c;
+
+ll t[N * 4], _t[N * 4];
+
+void build(int v, int tl, int tr) {
+	if (tl == tr)
+		t[v] = tl, _t[v] = tl;
+	else {
+		int tm = (tl + tr) / 2;
+		build(v * 2, tl, tm);
+		build(v * 2 + 1, tm + 1, tr);
+		t[v] = min(t[v * 2], t[v * 2 + 1]);
+		_t[v] = max(_t[v * 2], _t[v * 2 + 1]);
+	}
+}
+
+int _min(int v, int tl, int tr, int l, int r) {
+	if (l > r)
+		return 1e9;
+	if (l == tl && r == tr)
+		return t[v];
+	int tm = (tl + tr) / 2;
+	return min(_min(v * 2, tl, tm, l, min(r, tm)), _min(v * 2 + 1, tm + 1, tr, max(l, tm + 1), r));
+}
+
+int _max(int v, int tl, int tr, int l, int r) {
+	if (l > r)
+		return -1;
+	if (l == tl && r == tr)
+		return _t[v];
+	int tm = (tl + tr) / 2;
+	return max(_max(v * 2, tl, tm, l, min(r, tm)), _max(v * 2 + 1, tm + 1, tr, max(l, tm + 1), r));
+}
+
+void update_min(int v, int tl, int tr, int pos, int new_val) {
+	if (tl == tr)
+		t[v] = new_val;
+	else {
+		int tm = (tl + tr) / 2;
+		if (pos <= tm)
+			update_min(v * 2, tl, tm, pos, new_val);
+		else
+			update_min(v * 2 + 1, tm + 1, tr, pos, new_val);
+		t[v] = min(t[v * 2], t[v * 2 + 1]);
+	}
+}
+
+void update_max(int v, int tl, int tr, int pos, int new_val) {
+	if (tl == tr)
+		_t[v] = new_val;
+	else {
+		int tm = (tl + tr) / 2;
+		if (pos <= tm)
+			update_max(v * 2, tl, tm, pos, new_val);
+		else
+			update_max(v * 2 + 1, tm + 1, tr, pos, new_val);
+		_t[v] = max(_t[v * 2], _t[v * 2 + 1]);
+	}
+}
+
+stack<int> st;
+
+int main()
+{
+	cin >> n >> m >> p;
+	cin >> s >> c;
+
+	for (int i = 0; i < s.length(); i++){
+		char ch = s[i];
+		if (ch == '(')
+			st.push(i);
+		else{
+			int f = st.top();
+			st.pop();
+			a[f] = i, a[i] = f;
+		}
+	}
+
+	build(1, 0, n - 1);
+	int cur = p - 1;
+	for (int i = 0; i < c.length(); i++)
+	{
+		char ch = c[i];
+		if (ch == 'L')
+		{
+			cur = _max(1, 0, n - 1, 0, cur - 1);
+		}
+		if (ch == 'R')
+		{
+			cur = _min(1, 0, n - 1, cur + 1, n - 1);
+		}
+		if (ch == 'D')
+		{
+			int l = cur, r = a[cur];
+			if (l > r)
+				swap(l, r);
+			for (int j = l; j <= r;)
+			{
+				update_max(1, 0, n - 1, j, -1);
+				update_min(1, 0, n - 1, j, 1e9);
+				a[j] = -1;
+				j = _min(1, 0, n - 1, j + 1, n - 1);
+			}
+			int _cur = _min(1, 0, n - 1, r + 1, n - 1);
+			if (_cur == 1e9)
+				cur = _max(1, 0, n - 1, 0, l - 1);
+			else cur = _cur;
+		}
+	}
+	for (int i = 0; i < s.length(); i++)
+	{
+		if (a[i] != -1)
+			cout << s[i];
+	}
+	return 0;
+}

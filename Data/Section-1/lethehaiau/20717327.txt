@@ -1,0 +1,164 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+const long long maxc = 1000000001;
+int n, m, l, s, t;
+int size;
+long long a[1111][1111];
+long long d[1111], e[1111];
+int heap[1111], pos[1111];
+int trace[1111];
+
+void dijkstra(long long [], int);
+void upheap(int, long long []);
+void downheap(int, long long []);
+int main()
+{
+	//freopen("in.txt", "r", stdin);
+	cin >> n >> m >> l >> s >> t;
+	memset(a, 255, sizeof a);
+	for(int i = 0; i < m; i++)
+	{
+		int u, v, x;
+		cin >> u >> v >> x;
+		a[u][v] = x;
+		a[v][u] = a[u][v];
+	}
+	for(int i = 0; i < n; i++)
+	{
+		d[i] = maxc;
+		heap[i + 1] = i; pos[i] = i + 1;
+	}
+	d[s] = 0;
+	size = n;
+	upheap(s + 1, d);
+	dijkstra(d, 1);
+	int u = t;
+	int k = 0;
+	if(d[t] < maxc)
+	while(u != s)
+	{
+		if(a[u][trace[u]] == 0) 
+		{
+			a[u][trace[u]] = -2;
+			a[trace[u]][u] = -2;
+			k++;
+		}
+		u = trace[u];
+	}
+
+	for(int i = 0; i < n; i++)
+		for(int j = 0; j < n; j++)
+			if(a[i][j] == 0) 
+				{
+					//cout << i <<  " " << j << "\n";
+					a[i][j] = maxc;
+				}
+	for(int i = 0; i < n; i++)
+	{
+		e[i] = maxc;
+		heap[i+1] = i; pos[i] = i+1;
+	}
+	e[s] = 0;
+	size = n;
+	upheap(s + 1, e);
+	//cout << "a////////////\n";
+	dijkstra(e, 0);
+	//cout << e[t];
+	if(l < d[t] || l > e[t])
+	{
+		cout << "NO";
+		return 0;
+	}
+
+	l -= d[t];
+	u = t;
+	if(d[t] < maxc)
+	while(u != s)
+	{
+		if(a[u][trace[u]] == -2)
+		{
+			if(l >= e[u] - d[u])
+			{
+				a[u][trace[u]] = e[u] - d[u];
+				l -= (e[u] - d[u]);
+			}
+			else
+			{
+				a[u][trace[u]] = l;
+				l = 0;
+			}
+			a[u][trace[u]]++;
+			a[trace[u]][u] = a[u][trace[u]];
+		}
+		u = trace[u];
+	}
+	cout << "YES\n";
+	for(int i = 0; i < n; i++)
+		for(int j = 0; j < i; j++)
+			if(a[i][j] > 0)
+				cout << i << " " << j << " " << a[i][j] << "\n";
+	return 0;
+}
+
+void dijkstra(long long d[], int kk)
+{
+	int u = heap[1];
+	heap[1] = heap[size];
+	pos[heap[size]] = 1;
+	size--;
+	downheap(1, d);
+	//cout << u << "\n";
+	pos[u] = 0;
+	while(size > 0)
+	{
+		//cout << pos[2] << " " << size << "vv";
+		int v;
+		for(int i = 1; i <= size; i++)
+		{
+			v = heap[i];
+			int w = a[u][v];
+			if(a[u][v] == 0) w = 1;
+			if(w > 0 && d[v] > d[u] + w)
+			{
+				d[v] = d[u] + w;
+				if(kk) trace[v] = u;
+				upheap(i, d);
+			}
+		}
+		u = heap[1];
+		heap[1] = heap[size];
+		pos[heap[size]] = 1;
+		size--;
+		downheap(1, d);
+
+	}
+}
+
+void upheap(int i, long long d[])
+{
+	int j = i/2;
+	int x = heap[i];
+	while(j > 0 && d[heap[j]] > d[x])
+	{
+		heap[i] = heap[j]; pos[heap[j]] = i;
+		i = j; j = i/2;
+	}
+	heap[i] = x;
+	pos[x] = i;
+}
+
+void downheap(int i, long long d[])
+{
+	int j = i*2;
+	int x = heap[i];
+	while(j<=size)
+	{
+		if(j < size && (d[heap[j]] > d[heap[j + 1]])) j++;
+		if(d[x] <= d[heap[j]]) break;
+		heap[i] = heap[j]; pos[heap[j]] = i;
+		i = j; j = i*2;
+	}
+	heap[i] = x;
+	pos[x] = i;
+}

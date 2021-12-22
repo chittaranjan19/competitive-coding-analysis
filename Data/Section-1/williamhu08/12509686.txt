@@ -1,0 +1,97 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 19, MAXLG = 19;
+
+int N, M;
+vector<int> adj[MAXN];
+char S[MAXN];
+int fc[MAXN][MAXLG], lc[MAXN][MAXLG];
+int depth[MAXN], numd[MAXN], dmax[MAXN];
+vector<int> psum[MAXN][26];
+int ind[MAXN];
+
+int dfs (int x, int d) {
+	depth[x] = d;
+	ind[x] = ++numd[d];
+	for (int i = 0; i < 26; i++) {
+		vector<int> &v = psum[d][i];
+		if (v.empty()) {
+			v.push_back(0);
+		}
+		int val = v.back() + (i == S[x]);
+		v.push_back(val);
+	}
+	dmax[x] = d;
+	if (!adj[x].empty()) {
+		fc[x][0] = adj[x][0];
+		lc[x][0] = adj[x].back();
+		for (int t : adj[x]) {
+			dmax[x] = max(dmax[x], dfs(t, d + 1));
+		}
+	}
+	return dmax[x];
+}
+
+int get (int mat[MAXN][MAXLG], int x, int d) {
+	//go down by d
+	int res = x;
+	for (int i = 0; d; i++, d >>= 1) {
+		if (d & 1) {
+			res = mat[res][i];
+		}
+	}
+	return res;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d", &N, &M);
+	for (int i = 2, p; i <= N; i++) {
+		scanf("%d", &p);
+		adj[p].push_back(i);
+	}
+	scanf("%s", S + 1);
+	for (int i = 1; i <= N; i++) {
+		S[i] -= 'a';
+	}
+	//dfs the tree stupid...
+	dfs(1, 1);
+	for (int j = 1; j < MAXLG; j++) {
+		for (int i = 1; i <= N; i++) {
+			fc[i][j] = fc[fc[i][j - 1]][j - 1];
+			lc[i][j] = lc[lc[i][j - 1]][j - 1];
+		}
+	}
+	int x, h;
+	while (M--) {
+		scanf("%d %d", &x, &h);
+		int diff = h - depth[x];
+		if (diff < 0 || h > dmax[x]) {
+			puts("Yes");
+			continue;
+		}
+		int i1 = ind[get(fc, x, diff)], i2 = ind[get(lc, x, diff)];
+		bool seen = false, ans = true;
+		for (int i = 0; i < 26; i++) {
+			if ((psum[h][i][i2] - psum[h][i][i1 - 1]) & 1) {
+				if (seen) {
+					ans = false;
+					break;
+				}
+				seen = true;
+			}
+		}
+		puts(ans ? "Yes" : "No");
+	}
+}

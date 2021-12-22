@@ -1,0 +1,124 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 17, MAXLG = 17;
+
+int N;
+vector<int> adj[MAXN];
+int depth[MAXN], subsize[MAXN];
+int par[MAXN][MAXLG];
+
+int dfs (int x, int p, int d) {
+	par[x][0] = p;
+	depth[x] = d++;
+	int &ref = subsize[x];
+	for (int t : adj[x]) {
+		if (t != p) {
+			ref += dfs(t, x, d);
+		}
+	}
+	return ++ref;
+}
+
+int up (int x, int d) {
+	//advance x up by d steps
+	for (int i = 0; d; d >>= 1, i++) {
+		if (d & 1) {
+			x = par[x][i];
+		}
+	}
+	return x;
+}
+
+pii lca (int x, int y) {
+	//returns pii(node, dist)
+	if (depth[x] < depth[y]) {
+		swap(x, y);
+	}
+	int dist = 0;
+	if (depth[x] != depth[y]) {
+		dist = depth[x] - depth[y];
+		x = up(x, dist);
+	}
+	if (x == y) {
+		return pii(x, dist);
+	}
+	for (int i = MAXLG - 1; i >= 0; i--) {
+		if (par[x][i] != par[y][i]) {
+			x = par[x][i];
+			y = par[y][i];
+			dist += (1 << (i + 1));
+		}
+	}
+	return pii(par[x][0], dist + 2);
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	int nq, a, b;
+	scanf("%d", &N);
+	for (int i = 1; i < N; i++) {
+		scanf("%d %d", &a, &b);
+		adj[a].push_back(b);
+		adj[b].push_back(a);
+	}
+	dfs(1, 0, 0);
+	//calc parents
+	for (int j = 1; j < MAXLG; j++) {
+		for (int i = 1; i <= N; i++) {
+			int p = par[i][j - 1];
+			if (p) {
+				par[i][j] = par[p][j - 1];
+			}
+		}
+	}
+	for (scanf("%d", &nq); nq--; ) {
+		scanf("%d %d", &a, &b);
+		if (a == b) {
+			//careful!!!
+			printf("%d\n", N);
+			continue;
+		}
+		if (depth[a] > depth[b]) {
+			swap(a, b);
+		}
+		pii p = lca(a, b);
+		if (p.second & 1) {
+			//distance is odd
+			puts("0");
+			continue;
+		}
+		//ok determine the middle point
+		int half = p.second >> 1;
+		if (p.first == a) {
+			//careful!!
+			int v = up(b, half - 1);
+			b = par[v][0];
+			//well, hello.
+			printf("%d\n", subsize[b] - subsize[v]);
+		} else if (depth[a] != depth[b]) {
+			//advance b up. still do it
+			int v = up(b, half - 1);
+			b = par[v][0];
+			printf("%d\n", subsize[b] - subsize[v]);
+		} else {
+			//careful about this case!!!
+			int va = up(a, half - 1), vb = up(b, half - 1);
+			int t = p.first;
+			printf("%d\n", subsize[t] - subsize[va] - subsize[vb]);
+		}
+	}
+}

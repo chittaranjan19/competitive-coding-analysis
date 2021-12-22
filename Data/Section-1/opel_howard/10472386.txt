@@ -1,0 +1,121 @@
+#include <cstdio>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <utility>
+#include <string>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <set>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define lsone(value) (value)&(-value)
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+class Fenwick {
+private:
+    vector<int> arr;
+    const int size;
+public:
+    Fenwick(int n) : arr(n+1), size(n) {
+        for (int it = 0; it < arr.size(); ++it)
+            arr[it] = 0;
+    }
+    void add(int v, int k) {
+        for (;k <= size; k += lsone(k)) {
+            arr[k] += v;
+        }
+    }
+    int get(int k) {
+        int total = 0;
+        for (;k > 0; k -= lsone(k))  {
+            total += arr[k];
+        }
+        return total;
+    }
+};
+
+template <typename U> class Comparator {
+public:
+    bool operator() (const U lhs, const U rhs) {
+        // implement
+        return true;
+    }
+};
+// end of template
+
+int main() {
+    // freopen("525E.in", "r", stdin);
+    ll fact[19] = {0};
+    fact[0] = 1;
+    for (int it = 1; it < 19; ++it)
+        fact[it] = it*fact[it-1];
+
+    int n, k;
+    ll s;
+    scanf("%d %d %I64d", &n, &k, &s);
+    
+    map<ll, map<int, int> > ans;
+    ans[s][0] = 1;
+    for (int it = 0; it < n; ++it) {
+        int a;
+        scanf("%d", &a);
+
+        map<ll, map<int, int> > ansTemp = ans;
+        for (map<ll, map<int, int> >::iterator combinations = ansTemp.begin(); combinations != ansTemp.end(); ++combinations) {
+
+            ll result = combinations->first-a;
+            if (result < 0)
+                continue;
+
+            for (map<int, int>::iterator combination = combinations->second.begin(); combination != combinations->second.end(); ++combination) {
+                if (!ans[result].count(combination->first))
+                    ans[result][combination->first] = 0;
+                ans[result][combination->first] += combination->second;
+            }
+        }
+
+        if (a >= 19)
+            continue;
+        for (map<ll, map<int, int> >::iterator combinations = ansTemp.begin(); combinations != ansTemp.end(); ++combinations) {
+
+            ll result = combinations->first-fact[a];
+            if (result < 0)
+                continue;
+
+            for (map<int, int>::iterator combination = combinations->second.begin(); combination != combinations->second.end(); ++combination) {
+                if (!ans[result].count(combination->first+1))
+                    ans[result][combination->first+1] = 0;
+                ans[result][combination->first+1] += combination->second;
+            }
+        }
+    }
+
+    int total = 0;
+    if (ans.count(0)) {
+        for (map<int, int>::iterator combination = ans[0].begin(); combination != ans[0].end(); ++combination) {
+            if (combination->first <= k)
+                total += combination->second;
+        }
+    }
+    
+    printf("%d\n", total);
+    return 0;
+}

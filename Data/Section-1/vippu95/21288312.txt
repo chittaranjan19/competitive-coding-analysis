@@ -1,0 +1,70 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+const int lmt = 100005;
+bool picked[lmt];
+
+struct compare{
+    bool operator()(pair<char,int> a,pair<char,int> b) const{
+        if(a.first != b.first)
+            return (a.first<b.first);
+        return (a.second>b.second);
+    }
+};
+
+set<pair<char,int>,compare> sett;
+
+int main(){
+    memset(picked,0,sizeof(picked));
+    string s;
+    int m;
+    cin>>m;
+    cin>>s;
+    int n=s.size();
+    int last=(int)1e8;
+    int st = 0 , en = min(n-1,m-1);
+    for(int i=st;i<=en;i++)
+        sett.insert({s[i],i});
+    while(en<n){
+        if(st<=last && last<=en){
+            sett.erase({s[st],st});
+            if((en+1)<n)
+                sett.insert({s[en+1],en+1});
+            st++;
+            en++;
+            continue;
+        }
+        int chosen = sett.begin()->second;
+        picked[chosen]=true;
+        last = chosen;
+        sett.erase({s[st],st});
+        if((en+1)<n)
+                sett.insert({s[en+1],en+1});
+        st++;
+        en++;
+    }
+    char largest='a';
+    for(int i=0;i<n;i++){
+        if(picked[i])
+            largest=max(largest,s[i]);
+    }
+    for(int i=0;i<n;i++){
+        if(!picked[i] && s[i]<largest)
+            picked[i]=true;
+    }
+    string ans = "";
+    for(int i=0;i<n;i++){
+        if(picked[i])
+            ans += s[i];
+    }
+    sort(ans.begin(),ans.end());
+    cout<<ans<<"\n";
+    return 0;
+}

@@ -1,0 +1,127 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define MOD 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+ll mod(ll x){
+	return (x%MOD);	
+}
+struct matris{
+	ll A[2][2];
+	matris(){
+		memset(A,0,sizeof A);
+	}
+};
+matris mul(matris x,matris y){
+	matris z;
+	for(int i=0;i<2;i++)
+		for(int j=0;j<2;j++)
+			for(int k=0;k<2;k++)
+				z.A[i][j]=mod(z.A[i][j]+mod(x.A[i][k]*y.A[k][j]));
+	return z;
+}
+matris Fe(ll x){
+	matris now;
+	now.A[0][0]=1;
+	now.A[0][1]=1;
+	now.A[1][0]=1;
+	now.A[1][1]=0;
+	matris h=now;x--;
+	while(x){
+		if(x&1)
+			h=mul(h,now);
+		now=mul(now,now);
+		x>>=1;	
+	}
+	return h;	
+}
+ll t[MAXN<<2],s[MAXN<<2],lazy[MAXN<<2],arr[MAXN];
+void upd(int nd,ll v){
+	lazy[nd]+=v;
+	matris res=Fe(v);
+	ll bir=s[nd],iki=t[nd];
+	s[nd]=mod(mod(bir*res.A[1][1])+mod(iki*res.A[1][0]));
+	t[nd]=mod(mod(bir*res.A[0][1])+mod(iki*res.A[0][0]));
+}
+void shift(int nd){
+	ll &ret=lazy[nd];
+	if(!ret)
+		return;
+	upd(nd<<1,ret);
+	upd(nd<<1|1,ret);
+	ret=0;		
+}
+void build(int nd,int x,int y){
+	if(x==y){
+		matris res=Fe(arr[x]);
+		s[nd]=mod(res.A[0][1]);
+		t[nd]=mod(res.A[0][0]);
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+	s[nd]=mod(s[nd<<1]+s[nd<<1|1]);
+	t[nd]=mod(t[nd<<1|1]+t[nd<<1]);
+}
+void inc(int l,int r,ll v,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		upd(nd,v);
+		return;
+	}
+	shift(nd);
+	int mid=(x+y)>>1;
+	inc(l,r,v,nd<<1,x,mid);
+	inc(l,r,v,nd<<1|1,mid+1,y);
+	s[nd]=mod(s[nd<<1]+s[nd<<1|1]);
+	t[nd]=mod(t[nd<<1]+t[nd<<1|1]);
+}
+ll tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0LL;
+	if(l<=x and y<=r)
+		return s[nd];
+	shift(nd);
+	int mid=(x+y)>>1;
+	ll i1=tap(l,r,nd<<1,x,mid);
+	ll i2=tap(l,r,nd<<1|1,mid+1,y);
+	return mod(i1+i2);
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	//~ cout<<Fe(3).A[0][0]<<endl;
+	int n,q;
+	scanf("%d%d",&n,&q);
+	for(int i=1;i<=n;i++)
+		scanf("%lld",arr+i);
+	build(1,1,n);	
+	while(q--){
+		int type,l,r;
+		scanf("%d%d%d",&type,&l,&r);
+		if(type==1){
+			ll x;
+			scanf("%lld",&x);
+			inc(l,r,x,1,1,n);
+			continue;
+		}
+		printf("%lld\n",tap(l,r,1,1,n));
+	}	
+	return 0;
+}

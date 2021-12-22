@@ -1,0 +1,75 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+char s1[200100], s2[200100];
+long long l1[200100], l2[200100];
+char s[10];
+
+vector <int> ch[30];
+
+int main () {
+    int n, m;
+    scanf ("%d%d", &n, &m);
+    for (int i = 1; i <= 26; i++)
+        ch[i].clear();
+    int cnt = 1;
+    for (int i = 1; i <= n; i++) {
+        scanf ("%I64d%s", &l1[cnt], s);
+        if (cnt > 1) {
+            if (s[1] == s1[cnt - 1])
+                l1[cnt - 1] += l1[cnt];
+            else {
+                s1[cnt] = s[1];
+                ch[s[1] - 'a' + 1].push_back(cnt);
+                cnt++;
+            }
+        } else {
+            s1[cnt] = s[1];
+            ch[s[1] - 'a' + 1].push_back(cnt);
+            cnt++;
+        }
+    }
+    cnt = 1;
+    for (int i = 1; i <= m; i++) {
+        scanf ("%I64d%s", &l2[cnt], s);
+        if (cnt > 1) {
+            if (s[1] == s[cnt - 1])
+                l2[cnt - 1] += l2[cnt];
+            else {
+                s2[cnt] = s[1];
+                cnt++;
+            }
+        } else {
+            s2[cnt] = s[1];
+            cnt++;
+        }
+    }
+    cnt--;
+    long long ans = 0;
+    int t = s2[1] - 'a' + 1;
+    int siz = ch[t].size();
+    if (cnt > 1) {
+        for (int i = 0; i < siz; i++) {
+            if (l1[ch[t][i]] >= l2[1]) {
+                if (l1[ch[t][i] + cnt - 1] >= l2[cnt]) {
+                    int flag = 1;
+                    for (int j = 2; j < cnt; j++) {
+                        if (l1[ch[t][i] + j - 1] != l2[j]) {
+                            flag = 0;
+                            break;
+                        }
+                    }
+                    if (flag)
+                        ans++;
+                }
+            }
+        }
+    } else {
+        for (int i = 0; i < siz; i++) {
+            if (l1[ch[t][i]] >= l2[1])
+                ans += (l1[ch[t][i]] - l2[1] + 1);
+        }
+    }
+    printf ("%I64d\n", ans);
+    return 0;
+}

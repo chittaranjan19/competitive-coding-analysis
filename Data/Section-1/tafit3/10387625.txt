@@ -1,0 +1,153 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemA {
+    BufferedReader rd;
+
+    private ProblemA() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        char[] c = rd.readLine().toCharArray();
+        int n = c.length;
+        int[] h = new int[n+1];
+        for(int i=0;i<n;i++) {
+            h[i+1] = h[i] + (c[i]=='('?1:-1);
+        }
+        int diff = h[0] - h[n];
+        int min = Integer.MAX_VALUE;
+        for(int i=0;i<=n;i++) {
+            if(h[i] < min) {
+                min = h[i];
+            }
+        }
+        int[] curPos = new int[n];
+        int pc = 0;
+        Set<Integer> alive = new HashSet<>();
+        for(int i=0;i<=n;i++) {
+            if(h[i] == min) {
+                if(i < n || (pc == 0 || curPos[0] != 0)) {
+                    curPos[pc] = i%n;
+                    alive.add(pc);
+                    pc++;
+                }
+            }
+        }
+
+        int[] orig = Arrays.copyOf(curPos, n);
+        int[] ch = new int[n];
+        Map<Integer, Integer> origMap = new HashMap<>();
+        for(int i=0;i<pc;i++) {
+            origMap.put(orig[i], i);
+        }
+        int step = 0;
+        while(alive.size() > 1) {
+            step++;
+            Set<Integer> up = new HashSet<>();
+            Set<Integer> down = new HashSet<>();
+            for(Integer ix: alive) {
+                if(c[curPos[ix]] == '(') {
+                    up.add(ix);
+                } else {
+                    down.add(ix);
+                }
+            }
+            if(!up.isEmpty() && !down.isEmpty()) {
+                alive = up;
+            }
+            for(Integer ix: alive) {
+                if(c[curPos[ix]] == '(') {
+                    ch[ix]++;
+                } else {
+                    ch[ix]--;
+                }
+                curPos[ix] = (curPos[ix]+1)%n;
+            }
+            Set<Integer> cand = new TreeSet<>();
+            Map<Integer, Integer> mp = new HashMap<>();
+            for(Integer ix: alive) {
+                Integer y = origMap.get(curPos[ix]);
+                if(y != null) {
+                    if(alive.contains(y) && !y.equals(ix) && ch[y] == 0) {
+                        cand.add(y);
+                        mp.put(y, ix);
+                    }
+                }
+            }
+            if(!cand.isEmpty()) {
+                if(cand.size() == 1) {
+                    printResult(diff, n, c, orig[cand.iterator().next()]);
+                    return;
+                }
+                int last = -1;
+                int gs = 1;
+                int ms = 0;
+                int ss = -1;
+                Set<Integer> grs = new HashSet<>();
+                for(Integer ca: cand) {
+                    if(last != -1) {
+                        if((orig[last] + step) % n == orig[ca]) {
+                            gs++;
+                        } else {
+                            if(gs > ms) {
+                                ms = gs;
+                                grs = new HashSet<>();
+                                grs.add(ss);
+                            } else if(gs == ms) {
+                                grs.add(ss);
+                            }
+                            ss = ca;
+                            gs = 1;
+                        }
+                    }
+                    last = ca;
+                    if(ss == -1) {
+                        ss = last;
+                    }
+                }
+                if(last != -1) {
+                    if((orig[last] + step) % n == orig[cand.iterator().next()]) {
+                        gs++;
+                    }
+                    if(gs > ms) {
+                        grs = new HashSet<>();
+                        grs.add(ss);
+                    } else if(gs == ms) {
+                        grs.add(ss);
+                    }
+                }
+                alive = new HashSet<>();
+                for(Integer g: grs) {
+                    alive.add(mp.get(g));
+                }
+            }
+        }
+        printResult(diff, n, c, orig[alive.iterator().next()]);
+    }
+
+    private void printResult(int diff, int n, char[] c, int pos) {
+        char[] res = new char[Math.abs(diff) + n];
+        if(diff > 0) {
+            Arrays.fill(res,0,diff,'(');
+            System.arraycopy(c,pos,res,diff,n-pos);
+            System.arraycopy(c,0,res,diff + n-pos,pos);
+        } else {
+            System.arraycopy(c,pos,res,0,n-pos);
+            System.arraycopy(c,0,res,n-pos,pos);
+            Arrays.fill(res,n,res.length,')');
+        }
+        out(new String(res));
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemA();
+    }
+}

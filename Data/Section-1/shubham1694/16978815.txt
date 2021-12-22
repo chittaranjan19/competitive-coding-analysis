@@ -1,0 +1,95 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+vector<int> g1[maxn], g2[maxn], rg[maxn], current;
+stack<int> st;
+int n, m, seen1[maxn], seen2[maxn];
+
+void dfs1(int cur)
+{
+	seen1[cur] = 1;
+	for(auto it:g1[cur]){
+		if(!seen1[it])
+			dfs1(it);
+	}
+	current.pb(cur);
+}
+
+void dfs2(int cur)
+{
+	seen2[cur] = 1;
+	for(auto it:g2[cur]){
+		if(!seen2[it])
+			dfs2(it);
+	}	
+	st.push(cur);
+}
+
+int dfs3(int cur)
+{
+	seen2[cur] = 0;
+	int ret = 0;
+	for(auto it:rg[cur]){
+		if(seen2[it]){
+			ret = 1;
+			dfs3(it);
+		}
+	}
+	return ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, u, v, ans = 0, cycle;
+	scanf("%d%d", &n, &m);
+	for(i=1; i<=m; i++){
+		scanf("%d%d", &u, &v);
+		g1[u].pb(v);
+		g1[v].pb(u);
+		g2[u].pb(v);
+		rg[v].pb(u);
+	}
+	for(i=1; i<=n; i++){
+		if(!seen1[i]){
+			current.clear();
+			dfs1(i);
+			cycle = 0;
+			while(!st.empty())
+				st.pop();
+			for(auto it:current){
+				if(!seen2[it])
+					dfs2(it);
+			}
+			while(!st.empty()){
+				u = st.top();
+				st.pop();
+				if(seen2[u])
+					cycle|=dfs3(u);
+			}
+			if(cycle)
+				ans+=(int)current.size();
+			else
+				ans+=(int)current.size()-1;
+		}
+	}
+	cout << ans << "\n";
+	return 0;
+}

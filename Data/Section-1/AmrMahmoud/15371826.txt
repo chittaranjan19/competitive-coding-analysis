@@ -1,0 +1,118 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-6
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+pair<LL, int> arr[100005];
+LL sum[100005], sum2[100005];
+LL n, a, cf, cm;
+LL m;
+
+int get(LL rem, int to)
+{
+  if(to < 0) return a;
+  int L = arr[0].f, R = a;
+  while(R > L)
+  {
+    int mid = L + (R - L + 1) / 2;
+    int x = 0, y = to;
+    while(y > x)
+    {
+      int midd = x + (y - x + 1) / 2;
+      if(arr[midd].f >= mid)
+        y = midd - 1;
+      else x = midd;
+    }
+    if(arr[x].f >= mid) x--;
+    x++;
+    LL tmp = rem;
+    if(x) tmp -= (mid * 1LL * x) - sum[x - 1];
+    if(tmp < 0) R = mid - 1;
+    else L = mid;
+  }
+  return L;
+}
+
+int ans[100005];
+
+int main()
+{
+  cin >> n >> a >> cf >> cm >> m;
+  for(int i=0;i<n;i++)
+  {
+    scanf("%I64d", &arr[i].f);
+    arr[i].s = i;
+  }
+  sort(arr, arr + n);
+  for(int i=0;i<n;i++)
+  {
+    sum[i] = arr[i].f;
+    if(i) sum[i] += sum[i - 1];
+  }
+  for(int i=n-1;i>=0;i--)
+  {
+    sum2[i] = arr[i].f;
+    if(i != n - 1) sum2[i] += sum2[i + 1];
+  }
+  LL res = get(m, n - 1) * 1LL * cm;
+  int resc = n;
+  LL rem = m;
+  for(int i=n-1;i>=0;i--)
+  {
+    m -= (a - arr[i].f);
+    if(m < 0) break;
+    LL tmp = get(m, i - 1) * cm + cf * (n - i);
+    if(tmp > res)
+    {
+      res = tmp;
+      resc = i;
+      rem = m;
+    }
+  }
+  cout << res << "\n";
+  for(int i=n-1;i>=resc;i--)
+    arr[i].f = a;
+  resc = get(rem, resc - 1);
+  for(int i=0;i<n;i++)
+  {
+    if(arr[i].f < resc)
+      arr[i].f = resc;
+    ans[arr[i].s] = arr[i].f;
+  }
+  for(int i=0;i<n;i++)
+    printf("%d ", ans[i]);
+  return 0;
+}

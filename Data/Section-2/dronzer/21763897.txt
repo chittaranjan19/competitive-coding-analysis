@@ -1,0 +1,139 @@
+#include<bits/stdc++.h>
+
+#define LOCAL 0
+
+#define lli long long int
+#define llu unsigned long long int
+#define ld long double
+#define all(v) v.begin(),v.end()
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+#define si(n) scanf("%d",&n)
+#define slli(n) scanf("%lld",&n);
+#define ss(n) scanf("%s",n);
+
+const long double EPS = 1e-10;
+const lli MOD = 1000000007ll;
+const lli mod1 = 1000000009ll;
+const lli mod2 = 1100000009ll;
+int INF = (int)1e9;
+int debug = 0;
+
+using namespace std;
+
+void print(int a[],int s,int e){for(int i=s;i<=e;i++)cout<<a[i]<<" ";cout<<"\n";}
+void print(vector<int> &v,int s,int e){for(int i=s;i<=e;i++)cout<<v[i]<<" ";cout<<"\n";}
+void print(vector<int> &v){for(int x:v)cout<<x<<" ";cout<<"\n";}
+
+lli bit_count(lli _x){lli _ret=0;while(_x){if(_x%2==1)_ret++;_x/=2;}return _ret;}
+lli bit(lli _mask,lli _i){return (_mask&(1<<_i))==0?0:1;}
+lli powermod(lli _a,lli _b,lli _m){lli _r=1;while(_b){if(_b%2==1)_r=(_r*_a)%_m;_b/=2;_a=(_a*_a)%_m;}return _r;}
+lli add(lli a,lli b,lli m=MOD){lli x=a+b;while(x>=m)x-=m;return x;}
+lli sub(lli a,lli b,lli m=MOD){lli x=a-b;while(x<0)x+=m;return x;}
+lli mul(lli a,lli b,lli m=MOD){lli x=a*b;x%=m;if(x<m)x+=m;return x;}
+
+int n,m,T;
+vector<pair<int,int> > G[5010];
+bool vis[5010];
+stack<int> Stack;
+int dp[5010][5010];
+int parent[5010][5010];
+int rankk[5010];
+set<pair<int,int> > Edge;
+
+void dfs(int u){
+    vis[u] = true;
+    for(pair<int,int> it : G[u]){
+        int v = it.F;
+        if(!vis[v])
+            dfs(v);
+    }
+    Stack.push(u);
+}
+
+int main()
+{
+if(LOCAL){
+    freopen("input.txt","r",stdin);
+    //freopen("output.txt","w",stdout);
+    debug = 1;
+}
+    srand (time(NULL));
+
+    si(n);si(m);si(T);
+    for(int i=1;i<=m;i++){
+        int u,v,w;
+        si(u);si(v);si(w);
+        G[u].pb({v,w});
+        Edge.insert({u,v});
+    }
+
+    dfs(1);
+
+    for(int i=1;i<=n;i++)
+        for(int j=1;j<=n;j++)
+            dp[i][j] = INF;
+    dp[1][1] = 0;
+    parent[1][1] = -1;
+    int currank = 0;
+    rankk[1] = ++currank;
+    while(!Stack.empty()){
+        int u = Stack.top();
+        Stack.pop();
+        rankk[u] = ++currank;
+        for(pair<int,int> it : G[u]){
+            int v = it.F;
+            int w = it.S;
+            for(int i=1;i<=n;i++){
+                if(dp[u][i] + w > INF)
+                    continue;
+                if(dp[v][i+1] > dp[u][i]+w){
+                    dp[v][i+1] = dp[u][i]+w;
+                    parent[v][i+1] = w;
+                }
+            }
+        }
+    }
+    /*for(lli i=1;i<=n;i++){
+        for(lli j=1;j<=n;j++){
+            if(dp[i][j] == INF){
+                cout<<-1<<" ";
+            }
+            else
+                cout<<dp[i][j]<<" ";
+        }
+        cout<<"\n";
+    }*/
+
+    int sz;
+    for(int i=1;i<=n;i++){
+        if(dp[n][i] <= T){
+            sz = i;
+        }
+    }
+    vector<int> ans;
+    int temp = parent[n][sz];
+    int target = n;
+    while(target != -1){
+        ans.pb(target);
+        int nexttarget = -1;
+        for(int i=1;i<=n;i++){
+            if(rankk[i] < rankk[target] && (dp[i][sz-1]+temp == dp[target][sz]) && (Edge.find({i,target})!=Edge.end())){
+                sz--;
+                nexttarget = i;
+                temp = parent[i][sz];
+                break;
+            }
+        }
+        target = nexttarget;
+    }
+
+    reverse(all(ans));
+    cout<<ans.size()<<"\n";
+    for(int it : ans)
+        cout<<it<<" ";
+
+    return 0;
+}

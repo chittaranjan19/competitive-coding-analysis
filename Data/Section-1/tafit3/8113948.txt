@@ -1,0 +1,135 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+
+public class ProblemC {
+    private static final double SQRT_2 = Math.sqrt(2D);
+    BufferedReader rd;
+
+    private ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        int n = pint();
+        for(int i=0;i<n;i++) {
+            int[][] a = new int[4][];
+            for(int j=0;j<4;j++) {
+                a[j] = intarr();
+            }
+            out(solve(a));
+        }
+    }
+
+    private int solve(int[][] a) {
+        int res = -1;
+
+        int[][][] b = new int[4][4][2];
+        for(int i=0;i<4;i++) {
+            int[] home = new int[] { a[i][2], a[i][3] };
+            b[i][0][0] = a[i][0];
+            b[i][0][1] = a[i][1];
+            for(int j=1;j<4;j++) {
+                b[i][j] = rotate(b[i][j-1], home);
+            }
+        }
+
+        int minCost = 200;
+        for(int i=0;i<256;i++) {
+            int[] c = new int[] { (i&0xC0) >> 6, (i&0x30) >> 4, (i&0xC) >> 2, i&0x3 };
+
+            int[][] p = new int[4][];
+            for(int j=0;j<4;j++) {
+                p[j] = b[j][c[j]];
+            }
+            boolean ok = true;
+            for(int j=0;ok&&j<4;j++) {
+                for(int k=j+1;k<4;k++) {
+                    if(!diff(p[j],p[k])) {
+                        ok = false;
+                        break;
+                    }
+                }
+            }
+            if(ok && isSquare(p)) {
+                int cost = 0;
+                for(int j=0;j<4;j++) {
+                    cost += c[j];
+                }
+                minCost = Math.min(minCost, cost);
+            }
+        }
+        if(minCost < 200) {
+            res = minCost;
+        }
+
+        return res;
+    }
+
+    private boolean diff(int[] a, int[] b) {
+        return a[0] != b[0] || a[1] != b[1];
+    }
+
+    private boolean isSquare(int[][] a) {
+        double[] d = new double[6];
+        int k = 0;
+        for(int i=0;i<a.length;i++) {
+            for(int j=i+1;j<a.length;j++) {
+                d[k] = dist(a[i],a[j]);
+                k++;
+            }
+        }
+        Arrays.sort(d);
+        if(eq(d[0], d[1]) && eq(d[0], d[2]) && eq(d[0], d[3])) {
+            double s = d[0]*SQRT_2;
+            return eq(d[4], s) && eq(d[5], s);
+        }
+        return false;
+    }
+
+    private boolean eq(double a, double b) {
+        return Math.abs(a-b) < 1e-9;
+    }
+
+    private double dist(int[] a, int[] b) {
+        int c = a[0] - b[0];
+        int d = a[1] - b[1];
+        return Math.sqrt(c*c+d*d);
+    }
+
+    private int[] rotate(int[] p, int[] s) {
+        int x = p[0] - s[0];
+        int y = p[1] - s[1];
+        int xr = -y;
+        int yr = x;
+        return new int[] { xr + s[0], yr + s[1] };
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = s.split(" ");
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

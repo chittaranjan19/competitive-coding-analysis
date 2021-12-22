@@ -1,0 +1,89 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+map<int,int> incex;
+vector<int> prim;
+vector<int> vec;
+int n,q;
+void insert(vector<int> &pridiv, int signo){
+    for(int i=1;i<(1<<pridiv.size());++i){
+        ll acc=1;
+        for(int j=0;j<pridiv.size();++j){
+            if((i>>j)&1)
+                acc*=pridiv[j];
+        }
+        incex[acc]+=signo;
+    }
+}
+ll contar(vector<int> &pridiv){
+    ll ans=0;
+    if(pridiv.size()==0) return 0;
+    for(int i=0;i<(1<<pridiv.size());++i){
+        ll acc=1;
+        ll num=0;
+        for(int j=0;j<pridiv.size();++j){
+            if((i>>j)&1){
+                acc*=pridiv[j];
+                ++num;
+            }
+        }
+        if(num%2) ans+=incex[acc];
+        else ans-=incex[acc];
+    }
+    return ans-1;
+}
+void init(){
+    char tab[1001];
+    memset(tab,1,sizeof tab);
+    tab[0]=tab[1]=0;
+    for(int i=2;i<1001;++i)
+        if(tab[i])
+            for(int j=2*i;j<1001;j+=i)
+                tab[j]=0;
+    for(int i=2;i<1001;++i){
+        if(tab[i]) prim.push_back(i);
+    }
+}
+vector<vector<int> > divs;
+int main(){
+    scanf("%d %d",&n,&q);
+    vec.resize(n);
+    for(int i=0;i<n;++i)
+        scanf("%d",&vec[i]);
+    init();
+    divs.resize(n);
+    for(int i=0;i<n;++i){
+        int tn=vec[i];
+        for(int j=0;;++j){
+            int val=prim[j];
+            if(val*val>tn) break;
+            int tmp=0;
+            while(tn%val==0){
+                tn/=val;
+                ++tmp;
+            }
+            if(tmp) divs[i].push_back(val);
+        }
+        if(tn!=1) divs[i].push_back(tn);
+    }
+    ll tot=0;
+    ll nvivos=0;
+    vector<int> vivos(n,0);
+    for(int i=0;i<q;++i){
+        int t;
+        scanf("%d",&t);
+        t--;
+        if(vivos[t]){
+            tot-=contar(divs[t]);
+            insert(divs[t],-1);
+            --nvivos;
+        }
+        else{
+            insert(divs[t],1);
+            tot+=contar(divs[t]);
+            ++nvivos;
+        }
+        vivos[t]=!vivos[t];
+        printf("%I64d\n",nvivos*(nvivos-1)/2-tot);
+    }
+}

@@ -1,0 +1,107 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+int toNumber (string s)
+{
+	int Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (int number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+
+
+
+int main()
+{
+	ios_base::sync_with_stdio(0);
+	tint n,m,k;
+	cin >> n >> m >> k;
+	vector<tint> p (n);
+	forn(i,n)
+		cin >> p[i];
+	vector<tint> a (n-m+1);
+	tint total = 0;
+	forn(i,m)
+		total += p[i];
+	forsn(i,m,n+1)
+	{
+		a[i-m] = total;
+		if (i < n)
+		{
+			total -= p[i-m];
+			total += p[i];
+		}
+	}
+	//imprimirVector(a);
+	//cout << "----"<< endl;
+	vector<vector<tint> > dp (k+1,vector<tint> (n-m+1,0));
+	dp[1][0] = a[0];
+	forsn(i,1,n-m+1) 
+		dp[1][i] = max(dp[1][i-1],a[i]);
+	forsn(l,2,k+1)
+	{
+		forn(i,m)
+			dp[l][i] = dp[l-1][i];
+		forsn(i,m,n-m+1)
+			dp[l][i] = max(dp[l][i-1],dp[l-1][i-m] + a[i]);
+	}
+	//forsn(l,1,k+1)
+	//	imprimirVector(dp[l]);
+	tint ans = dp[k][n-m];
+	cout << ans << endl;
+	return 0;
+}
+
+
+

@@ -1,0 +1,114 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 500 + 5;
+const int dir[4][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
+
+char s[maxn][maxn];
+int comp[maxn][maxn], has[maxn * maxn], used[maxn * maxn], n, m, tot;
+int que[maxn * maxn];
+
+bool ok(int x, int y)
+{
+    return x >= 0 && x < n && y >= 0 && y < n && s[x][y] == '.';
+}
+
+int myhash(int x, int y)
+{
+    return x * n + y;
+}
+
+void bfs(int sx, int sy)
+{
+    int front = 0, rear = 0;
+    que[rear++] = myhash(sx, sy);
+    comp[sx][sy] = tot;
+    while(front < rear)
+    {
+        int u = que[front++];
+        ++has[tot];
+        int x = u / n, y = u % n;
+        for(int i = 0; i < 4; ++i)
+        {
+            int dx = x + dir[i][0], dy = y + dir[i][1];
+            if(ok(dx, dy) && !comp[dx][dy])
+            {
+                que[rear++] = myhash(dx, dy);
+                comp[dx][dy] = tot;
+            }
+        }
+    }
+}
+
+int main()
+{
+    scanf("%d%d", &n, &m);
+    for(int i = 0; i < n; ++i) scanf("%s", s[i]);
+    for(int i = 0; i < n; ++i)
+    {
+        for(int j = 0; j < n; ++j)
+        {
+            if(s[i][j] == '.' && !comp[i][j])
+            {
+                ++tot;
+                bfs(i, j);
+            }
+        }
+    }
+    int ans = 0;
+    for(int i = 0; i <= n - m; ++i)
+    {
+        memset(used, 0, sizeof(used));
+        int now = 0;
+        for(int j = i; j < i + m; ++j)
+        {
+            for(int k = 0; k < m; ++k)
+            {
+                if(comp[j][k])
+                {
+                    if(++used[comp[j][k]] == 1) now += has[comp[j][k]];
+                }
+                else ++now;
+                for(int l = 0; l < 4; ++l)
+                {
+                    int dx = j + dir[l][0], dy = k + dir[l][1];
+                    if(ok(dx, dy) && (dx < i || dx >= i + m || dy >= m))
+                    {
+                        if(++used[comp[dx][dy]] == 1) now += has[comp[dx][dy]];
+                    }
+                }
+            }
+        }
+        ans = max(ans, now);
+        for(int j = 1; j <= n - m; ++j)
+        {
+            for(int k = i; k < i + m; ++k)
+            {
+                if(s[k][j - 1] == 'X') --now;
+                if(s[k][j + m - 1] == 'X') ++now;
+                for(int l = 0; l < 4; ++l)
+                {
+                    int dx = k + dir[l][0], dy = j - 1 + dir[l][1];
+                    if(ok(dx, dy) && (dx < i || dy < j - 1 || dx >= i + m))
+                    {
+                        if(--used[comp[dx][dy]] == 0) now -= has[comp[dx][dy]];
+                    }
+                    dy = j + m - 1 + dir[l][1];
+                    if(ok(dx, dy) && (dx < i || dy >= j + m || dx >= i + m))
+                    {
+                        if(++used[comp[dx][dy]] == 1) now += has[comp[dx][dy]];
+                    }
+                }
+            }
+            ans = max(ans, now);
+        }
+    }
+    printf("%d\n", ans);
+    return 0;
+}

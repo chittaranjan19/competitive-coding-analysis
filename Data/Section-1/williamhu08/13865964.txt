@@ -1,0 +1,173 @@
+/*
+Let it go, let it go, can't hold me back anymore...
+*/
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define mp make_pair
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 70, MAXS = 7000;
+
+int L, B;
+string S;
+int N, M;
+vector<int> A;
+int suff[MAXN * 8][26][MAXS];	//BIG array
+
+void prs() {
+	cerr << "S = ";
+	for (char c : S) {
+		cerr << char(c + 'a');
+	}
+	cerr << endl;
+}
+
+void calc_suff() {
+	//calc dp 0 first
+	for (int i = 0; i < 26; i++) {
+		for (int j = 1; j < MAXS; j++) {
+			// cerr << "a " << i << ' ' << j << endl;
+			suff[0][i][j] = suff[0][i][j - 1] + (S[S.size() - j] == i);
+			// if (i == 0) cerr << "suff[0][" << i << "][" << j << "] = " << suff[0][i][j] << endl;
+			// assert(suff[0][i][j] == count(S.rbegin(), S.rbegin() + j, i));
+		}
+	}
+	//data becomes less trustworthy as we go along...
+	for (int i = 1; i < B; i++) {
+		// cerr << "ere i = " << i << endl;
+		int shift = A[i - 1];
+		// cerr << "shift = " << shift << endl;
+		//this was debugging code but forgot to comment out WHY
+		// if (i < 9) {
+		// 	string t = S;
+		// 	rotate(t.begin(), t.end() - shift, t.end());
+		// 	S += t;			
+		// }
+		// prs();
+		for (int j = 0; j < 26; j++) {
+			for (int k = 1; k < MAXS - 100 * i; k++) {
+				if (k + shift < MAXS) suff[i][j][k] = suff[i - 1][j][k + shift] - suff[i - 1][j][shift];
+				// cerr << i << ' ' << j << ' ' << k << ' ' << suff[i][j][k] << endl;
+				// if (i < 9) {
+				// 	int ct = count(S.rbegin(), S.rbegin() + k, j);
+				// 	if (suff[i][j][k] != ct) {
+				// 		cerr << "bad " << suff[i][j][k] << ' ' << ct << endl;
+				// 		assert(!"BAD COUNT");
+				// 	}
+				// }
+			}
+		}
+	}
+}
+
+int scnt[26];
+int pcnt[4 * MAXS][26];
+
+//the cold never bothered me anyway.
+//shit this is hard
+ll dfs (ll len, int ch, int pwr) {
+	// cerr << "len = " << len << endl;
+	if (len <= L) {
+		return pcnt[len][ch];
+	}
+	//ok let's see what else there can be
+	//L, L * 2, ..., L * 2^i <= len < L * 2^(i + 1)
+	ll qlen = len / L;
+	if (len % L == 0 && (qlen & (qlen - 1)) == 0) {
+		//easy just count power of 2 then
+		return qlen * scnt[ch];
+	}
+	//ok now what? this is overlap
+	while (pwr > 0 && (ll(L) << pwr) > qlen) {
+		pwr--;
+	}
+	// if (pwr-1<0 || pwr-1>=int(A.size())) {
+	// 	printf("%d 0 %d\n", pwr-1, int(A.size()));
+	// 	printf("BAD6\n");
+	// }
+	ll ans = ll(scnt[ch]) << pwr;
+	ll nlen = len - (ll(L) << pwr);
+	//which shift did you use? pwr - 1
+	// int shift = A[pwr - 1];
+	int shift = A[pwr];
+	if (nlen <= shift) {
+		ans += suff[pwr][ch][shift] - suff[pwr][ch][shift - nlen];
+	} else {
+		ans += suff[pwr][ch][shift];
+		ll rec = dfs(nlen - shift, ch, pwr);
+		ans += rec;
+	}
+	return ans;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> S >> N >> M;
+	// cerr << "S = " << S << endl;
+	for (int i = 0; i < int(1e5 + 10); i++) {
+		int x = 0;
+		if (i < N) {
+			cin >> x;
+		}
+		x %= S.size();
+		if (S.size() <= MAXS) {
+			//rotate it
+			string t = S;
+			if (x) {
+				rotate(t.begin(), t.end() - x, t.end());
+			}
+			S += t;
+		} else {
+			A.push_back(x);
+		}
+	}
+	// for (int i : A) {
+	// 	if (i) cout << i << ' ';
+	// }
+	// cout << endl;
+	A.resize(100);
+	// cerr << "S = " << S << endl;
+	// assert(count(S.rbegin(), S.rbegin() + 6399, 'a') == 581);
+	//clen
+	L = S.size();
+	for (char &c : S) {
+		scnt[c -= 'a']++;
+	}
+
+	for (int i = 1; i <= L; i++) {
+		for (int j = 0; j < 26; j++) {
+			pcnt[i][j] = pcnt[i - 1][j] + (S[i - 1] == j);
+		}
+	}
+
+	for (int i = 1; i < 64; i++) {
+		if ((ll(L) << i) > ll(1e18)) {
+			B = i + 1;	//B = # blocks
+			break;
+		}
+	}
+
+	// cerr << "B = " << B << endl;
+	calc_suff();	//THE PAST IS IN THE PAAAAAAAAAST!!!!!!
+
+	for (int i = 0; i < M; i++) {
+		ll lt, rt;
+		char ch;
+		cin >> lt >> rt >> ch;
+		ch -= 'a';
+		cout << dfs(rt, ch, B) - dfs(lt - 1, ch, B) << '\n';
+	}
+}

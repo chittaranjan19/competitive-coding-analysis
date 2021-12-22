@@ -1,0 +1,104 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 200010, MOD = 1e9 + 7;
+
+template<class T>
+void setmin (T &a, T b) {
+	if (a > b) {
+		a = b;
+	}
+}
+
+template<class T>
+void setmax (T &a, T b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+void addeq (int &x, int y) {
+	x = add(x, y);
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+void multeq (int &x, int y) {
+	x = mult(x, y);
+}
+
+int N;
+vector<int> adj[MAXN];
+int down[MAXN], up[MAXN];	//down dp
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d", &N);
+	for (int i = 2, p; i <= N; i++) {
+		scanf("%d", &p);
+		adj[p].push_back(i);
+	}
+	for (int i = N; i; i--) {
+		down[i] = 1;
+		for (int t : adj[i]) {
+			multeq(down[i], 1 + down[t]);
+		}
+		// printf("down[%d] = %d\n", i, down[i]);
+	}
+	up[1] = 1;
+	queue<int> que;
+	que.push(1);
+	vector<int> fwd, rev;
+	while (!que.empty()) {
+		int u = que.front();
+		que.pop();
+		//fwd
+		int mt = 1;
+		for (int v : adj[u]) {
+			multeq(mt, 1 + down[v]);
+			fwd.push_back(mt);
+		}
+		//rev
+		mt = 1;
+		for (int i = int(adj[u].size()) - 1; i >= 0; i--) {
+			multeq(mt, 1 + down[adj[u][i]]);
+			rev.push_back(mt);
+		}
+		reverse(all(rev));
+		//only depends on top
+		for (int i = 0, sz = adj[u].size(); i < sz; i++) {
+			int v = adj[u][i];
+			int lft = (i == 0 ? 1 : fwd[i - 1]);
+			int rt = (i == int(adj[u].size()) - 1 ? 1 : rev[i + 1]);
+			up[v] = 1 + mult(up[u], mult(lft, rt));
+		}
+		//push its children
+		for (int v : adj[u]) {
+			que.push(v);
+		}
+		fwd.clear();
+		rev.clear();
+	}
+	for (int i = 1; i <= N; i++) {
+		printf("%d ", mult(down[i], up[i]));
+	}
+}

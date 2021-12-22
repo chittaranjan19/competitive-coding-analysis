@@ -1,0 +1,102 @@
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <cstdio>
+#include <memory>
+#include <algorithm>
+#include <iomanip>
+#include <vector>
+#include <list>
+#include <set>
+#include <map>
+#include <string>
+#include <memory.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef long double ld;
+typedef unsigned uint;
+
+const ll posinf = 1000000000000000001;
+const ll neginf = -1000000000000000001;
+
+ll n, sum, i, j;
+vector<ll> a;
+vector<ll> z;
+
+vector<ll> otrez;
+
+void build (ll v = 1, ll tl = 1, ll tr = n)
+{
+	if (tl == tr)
+		otrez[v] = a[tl];
+	else
+	{
+		ll tm = (tl + tr) / 2;
+		build (v * 2, tl, tm);
+		build (v * 2 + 1, tm + 1, tr);
+		otrez[v] = otrez[v * 2] + otrez[v * 2 + 1];
+	}
+}
+
+ll getsum (ll v, ll tl, ll tr, ll l, ll r)
+{
+	if (l > r)
+		return 0;
+	if (l == tl && r == tr)
+		return otrez[v];
+	ll tm = (tl + tr) / 2;
+	return getsum (v * 2, tl, tm, l, min (r, tm)) + getsum (v * 2 + 1, tm + 1, tr, max (l, tm + 1), r);
+}
+
+set<ll> zach;
+
+int main ()
+{
+#ifdef CONTEST_ONME
+	freopen ("input.txt", "r", stdin);
+	freopen ("output.txt", "w", stdout);
+#endif
+
+	cin >> n;
+	a.resize (n + 1);
+	z.resize (n + 1);
+	otrez.resize (4 * n + 5);
+
+	zach.insert (0);
+	for (i = 1; i <= n; i++)
+	{
+		cin >> a[i];
+		zach.insert (i);
+	}
+	zach.insert (n + 1);
+	build (1, 1, n);
+	for (i = 0; i < n; i++)
+		cin >> a[n - i];
+
+	list<ll> otv;
+	otv.push_front (0);
+
+	sum = 0;
+	for (i = 1; i < n; i++)
+	{
+		zach.erase (a[i]);
+		auto it = zach.upper_bound (a[i]);
+		ll r = *it - 1;
+		ll l = *(--it) + 1;
+		ll sm = getsum (1, 1, n, l, r);
+		if (sm > sum)
+			sum = sm;
+		otv.push_front (sum);
+	}
+
+	for (const auto &kvp : otv)
+		cout << kvp << ' ';
+	cout << endl;
+
+#ifdef CONTEST_ONME
+	//system ("pause");
+#endif
+	return 0;
+}

@@ -1,0 +1,114 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 210;
+
+int graph[maxn][maxn], adj[maxn][maxn], a[maxn], b[maxn], vis[maxn], parent[maxn];
+int n, m, source, sink;
+
+int bfs()
+{
+	int i, j;
+	for(i=0; i<=n; i++)
+		vis[i] = 0;
+	queue<int> q;
+	q.push(0);
+	vis[0] = 1;
+	while(!q.empty()){
+		int u = q.front();
+		q.pop();
+		for(i=0; i<=n; i++){
+			if(!vis[i] && graph[u][i]>0){
+				vis[i] = 1;
+				parent[i] = u;
+				q.push(i);
+			}
+		}
+	}
+	return vis[n];
+}
+
+int solve()
+{
+	int i, j, flow = 0;
+	for(i=0; i<=n; i++){
+		for(j=0; j<=n; j++)
+			graph[i][j] = adj[i][j];
+	}
+	while(bfs()){
+		int minflow = 1e8;
+		int cur = n;
+		while(cur){
+			minflow = min(minflow, graph[parent[cur]][cur]);
+			cur = parent[cur];
+		}
+		cur = n;
+		flow += minflow;
+		while(cur){
+			graph[parent[cur]][cur] -= minflow;
+			graph[cur][parent[cur]] += minflow;
+			cur = parent[cur];
+		}
+	}
+	return flow;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int u, v, i, j, req_flow = 0, sum = 0;
+	scanf("%d%d", &n, &m);
+	source = 0, sink = 2*n+1;
+	for(i=1; i<=n; i++){
+		scanf("%d", &a[i]);
+		adj[source][i] = a[i];
+		adj[i][n+i] = inf;
+		req_flow += a[i];
+	}
+	sum = req_flow;
+	for(i=1; i<=n; i++){
+		scanf("%d", &b[i]);
+		adj[i+n][sink] = b[i];
+		sum -= b[i];
+	}
+	for(i=1; i<=m; i++){
+		scanf("%d%d", &u, &v);
+		adj[u][v+n] = inf;
+		adj[v][u+n] = inf;
+	}
+	n = 2*n + 1;
+	int flow = solve();
+	if(flow != req_flow || sum != 0)
+		printf("NO\n");
+	else{
+		printf("YES\n");
+		n -= 1;
+		n /= 2;
+		for(i=1; i<=n; i++){
+			for(j=1; j<=n; j++){
+				if(!graph[i][j+n])
+					printf("%d ", graph[i][j+n]);
+				else
+					printf("%d ", inf-graph[i][j+n]);
+			}
+			printf("\n");
+		}
+	}
+	return 0;
+}

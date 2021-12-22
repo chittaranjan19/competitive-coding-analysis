@@ -1,0 +1,138 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll>PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll n,ans=0;
+const ll sz=1000000;
+ll p[sz+9],szp=0,cnt,s[40000000],love[40000000];
+vector<ll>prime;
+ll get(ll x){
+	ll pos=upper_bound(all(prime),x)-prime.begin();
+	return pos;
+}
+PII problem[MAXN];
+bool cmp(PII x,PII y){
+	if(x.ff!=y.ff)
+		return (x.ff>y.ff);
+	return (x.ss>y.ss);	
+}
+map<ll,map<ll,ll> >dp;
+ll rec(ll N,ll K){
+	if(K==1)
+		return N;
+	if(N<10000000)
+		problem[++cnt]=mp(K,N);
+	else{
+		if(dp[N][K]==0)
+			dp[N][K]=rec(N,K-1)-rec(N/prime[K-1],K-1);
+		return dp[N][K];	
+	}
+}
+void upd(ll p,ll nd,ll x,ll y){
+	if(x==y){
+		s[nd]++;
+		return;
+	}
+	ll mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,nd<<1,x,mid);
+	else
+		upd(p,nd<<1|1,mid+1,y);	
+	s[nd]=s[nd<<1]+s[nd<<1|1];		
+}
+ll tap(ll l,ll r,ll nd,ll x,ll y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return s[nd];
+	ll mid=(x+y)>>1;
+	ll i1=tap(l,r,nd<<1,x,mid);
+	ll i2=tap(l,r,nd<<1|1,mid+1,y);
+	return i1+i2;		
+}
+vector<ll>adj[MAXN];
+void build(){
+	sort(problem+1,problem+cnt+1,cmp);
+	ll poll=prime.size()-1;
+	for(ll i=2;i<=sz;i++)
+		adj[p[i]].pb(i);
+	upd(1,1,1,10000000);
+	for(ll i=1;i<=cnt;i++){
+		ll j=i;
+		while(poll>=problem[i].ff){
+			for(ll h=0;h<adj[poll].size();h++){
+				upd(adj[poll][h],1,1,10000000);
+			}
+			poll--;	
+		}
+		while(problem[j].ff==problem[i].ff and j<=cnt){
+			love[j]=tap(1,problem[j].ss,1,1,10000000);
+			j++;	
+		}
+		i=j-1;	
+	}
+}
+ll bul(ll N,ll K){
+	if(K==1)
+		return N;
+	if(N<10000000){
+		ll idx=lower_bound(problem+1,problem+cnt+1,mp(K,N),greater<PII>())-problem;
+		return love[idx];
+	}
+	else
+		return dp[N][K];
+}
+int main(){
+	scanf("%lld",&n);
+	memset(p,-1,sizeof(p));
+	prime.pb(-1);ll d=0;
+	for(ll i=2;i<=sz;i++)
+		if(p[i]==-1){
+			p[i]=++szp;
+			if(!d and i*i*i*1LL<=n)
+				ans++;
+			else
+				d=1;	
+			prime.pb(i);
+			for(ll j=2;j*i<=sz;j++)
+				if(p[j*i]==-1)
+					p[j*i]=szp;
+	}	
+	for(ll i=1;i<prime.size();i++){
+		if(prime[i]>=sqrt(n))
+			continue;
+		ll h=n/prime[i];
+		if(h>prime[i])
+			rec(h,get(sqrt(h)));
+	}	
+	build();
+	for(ll i=1;i<prime.size();i++){
+		if(prime[i]>=sqrt(n))
+			continue;
+		ll h=n/prime[i];
+		if(h>prime[i]){
+			ll gen=get(sqrt(h));
+			ans+=bul(h,gen)+gen-1;
+			ans-=(p[prime[i]]+1);
+		}
+	}
+	printf("%lld\n",ans);
+	return 0;
+}
+//LooK aT mY COde ONlinE +_+

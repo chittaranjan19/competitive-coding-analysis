@@ -1,0 +1,58 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+typedef long long int64;
+const int MAX_n = 100000;
+int par[MAX_n];
+int64 sum[MAX_n];
+
+void init(int n)    {   for(int i = 0; i < n; ++i)  par[i] = i,sum[i] = 0;  }
+int find(int x) {   return par[x] == x? x : par[x] = find(par[x]);  }
+bool same(int u,int v)  {   return find(u) == find(v);  }
+void unite(int u,int v)
+{
+    u = find(u), v = find(v);
+    if(u == v)  return;
+    par[u] = v;
+}
+int a[MAX_n],p[MAX_n];
+bool exist[MAX_n];
+int64 ans[MAX_n];
+int main()
+{
+    int n;
+    scanf("%d",&n);
+    for(int i = 0; i < n; ++i)
+        scanf("%d",a + i);
+    for(int i = n-1; i >= 0; --i)
+    {
+        scanf("%d",p + i);
+        --p[i];
+    }
+    
+    int64 t = 0;
+    init(n);
+    for(int i = 0; i < n; ++i)
+    {
+        int crt = p[i];
+        ans[n-1-i] = t;
+
+        int l = -1, r = -1;
+        if(crt - 1 >= 0 && exist[crt-1])    l = find(crt-1);
+        if(crt + 1 <  n && exist[crt+1])    r = find(crt+1);
+        
+        sum[crt] = a[crt];
+        if(l != -1) sum[crt] += sum[l],   par[l] = crt;
+        if(r != -1) sum[crt] += sum[r],   par[r] = crt;
+
+        t = max(t,sum[crt]);
+        exist[crt] = true;
+    }
+    
+    for(int i = 0; i < n; ++i)
+        printf("%I64d\n",ans[i]);
+    
+    
+    
+}

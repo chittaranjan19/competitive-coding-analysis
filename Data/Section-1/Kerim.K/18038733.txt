@@ -1,0 +1,147 @@
+#include<bits/stdc++.h>
+#define MAXN 250009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define y1 DevC
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll dis(ll x,ll y,ll z,ll t){
+	ll x2=(x-z)*(x-z);
+	ll y2=(y-t)*(y-t);
+	return sqrt(x2+y2);
+}
+map<ll,ll>pm;
+struct query{
+	ll uzak;
+	ll mass,powr,rad;
+	void init(){
+		pm[uzak]=1;
+		pm[mass]=1;
+		pm[powr]=1;
+		pm[rad]=1;
+	}
+	void compress(){
+		uzak=pm[uzak];
+		mass=pm[mass];
+		powr=pm[powr];
+		rad=pm[rad];
+	}
+	void show(){
+		printf("%lld %lld %lld %lld\n",mass,uzak,powr,rad);
+	}
+}Q[MAXN];
+set<PII> adj[MAXN<<2];
+PII s[MAXN<<4];
+void build(ll nd,ll x,ll y){
+	if(x==y){
+		if(adj[x].size()==0)
+			s[nd]=mp(INF,INF);
+		else	
+			s[nd]=*adj[x].begin();	
+		return;	
+	}
+	ll mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);	
+	s[nd]=min(s[nd<<1],s[nd<<1|1]);
+}
+PII tap(ll l,ll r,ll nd,ll x,ll y){
+	if(l>y or x>r)
+		return mp(INF,INF);
+	if(l<=x and y<=r)
+		return s[nd];
+	ll mid=(x+y)>>1;
+	PII i1=tap(l,r,nd<<1,x,mid);		
+	PII i2=tap(l,r,nd<<1|1,mid+1,y);
+	return min(i1,i2);		
+}/*
+void upd(ll l,ll r,ll p,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){	
+		if(s[nd].size()==0)
+			return;
+		typeof((s[nd]).begin())	it=s[nd].begin();
+		while(it!=s[nd].end()){
+			if(it->ff>p)
+				break;
+			que[++tail]=*it;		
+			it++;
+		}
+		return;	
+	}
+	ll mid=(x+y)>>1;
+	upd(l,r,p,nd<<1,x,mid);
+	upd(l,r,p,nd<<1|1,mid+1,y);
+}*/
+void poz(ll p,PII z,ll nd,ll x,ll y){
+	if(x==y){
+		adj[x].erase(z);
+		if(adj[x].size()==0)
+			s[nd]=mp(INF,INF);
+		else	
+			s[nd]=*adj[x].begin();	
+		return;
+	}
+	ll mid=(x+y)>>1;
+	if(p<=mid)
+		poz(p,z,nd<<1,x,mid);
+	else
+		poz(p,z,nd<<1|1,mid+1,y);
+	s[nd]=min(s[nd<<1],s[nd<<1|1]);
+}
+int main(){
+	ll x1,y1,p1,r1,n,c=0;
+	scanf("%lld%lld%lld%lld%lld",&x1,&y1,&p1,&r1,&n);
+	pm[p1]=pm[r1]=1;
+	for(ll i=1;i<=n;i++){
+		ll x,y,m,p,r;
+		scanf("%lld%lld%lld%lld%lld",&x,&y,&m,&p,&r);
+		Q[i].uzak=dis(x,y,x1,y1);
+		Q[i].mass=m;
+		Q[i].powr=p;
+		Q[i].rad=r;
+		Q[i].init();
+	}
+	tr(it,pm)
+		it->ss=++c;
+	p1=pm[p1];r1=pm[r1];
+	for(ll i=1;i<=n;i++){
+		Q[i].compress();
+		adj[Q[i].mass].insert(mp(Q[i].uzak,i));
+	//	Q[i].show();
+	}
+	build(1,1,c);
+	queue<PII>q;ll ans=0;
+	q.push(mp(p1,r1));
+	while(!q.empty()){
+		ll pp=q.front().ff;
+		ll rr=q.front().ss;
+		q.pop();
+		while(1){
+			PII tt=tap(1,pp,1,1,c);
+			if(tt.ff>rr)
+				break;
+			//upd(1,pp,rr,1,1,c);	
+			ans++;
+			ll ind=tt.ss;
+			poz(Q[ind].mass,tt,1,1,c);
+			q.push(mp(Q[ind].powr,Q[ind].rad));
+		}
+	}
+	printf("%lld\n",ans);	
+	return 0;
+}

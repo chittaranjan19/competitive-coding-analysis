@@ -1,0 +1,197 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const ll MAX_N = 500000;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+vector<int> parent_set_f;
+vector<int> rank_set_f;
+vector<int> max_f;
+
+void build_f(int n)
+{
+    parent_set_f.resize(n);
+    rank_set_f.resize(n, 1);
+    max_f.resize(n);
+    for (int i = 0; i < n; i++)
+    {
+        parent_set_f[i] = i;
+        max_f[i] = i;
+    }
+}
+
+int find_parent_f(int x)
+{
+    if (parent_set_f[x] == x)
+        return parent_set_f[x];
+    parent_set_f[x] = find_parent_f(parent_set_f[x]);
+    return parent_set_f[x];
+}
+
+void union_set_f(int x, int y)
+{
+    x = find_parent_f(x);
+    y = find_parent_f(y);
+    if (x == y)
+        return;
+    if (rank_set_f[x] >= rank_set_f[y])
+        parent_set_f[y] = x;
+    else
+        parent_set_f[x] = y;
+    if (rank_set_f[x] == rank_set_f[y])
+        rank_set_f[x]++;
+    if (max_f[x] >= max_f[y])
+        max_f[y] = max_f[x];
+    else
+        max_f[x] = max_f[y];
+}
+
+vector<int> parent_set_b;
+vector<int> rank_set_b;
+vector<int> min_b;
+
+void build_b(int n)
+{
+    parent_set_b.resize(n);
+    rank_set_b.resize(n, 1);
+    min_b.resize(n);
+    for (int i = 0; i < n; i++)
+    {
+        parent_set_b[i] = i;
+        min_b[i] = i;
+    }
+}
+
+int find_parent_b(int x)
+{
+    if (parent_set_b[x] == x)
+        return parent_set_b[x];
+    parent_set_b[x] = find_parent_b(parent_set_b[x]);
+    return parent_set_b[x];
+}
+
+void union_set_b(int x, int y)
+{
+    x = find_parent_b(x);
+    y = find_parent_b(y);
+    if (x == y)
+        return;
+    if (rank_set_b[x] >= rank_set_b[y])
+        parent_set_b[y] = x;
+    else
+        parent_set_b[x] = y;
+    if (rank_set_b[x] == rank_set_b[y])
+        rank_set_b[x]++;
+    if (min_b[x] <= min_b[y])
+        min_b[y] = min_b[x];
+    else
+        min_b[x] = min_b[y];
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, m, p;
+    cin >> n >> m >> p;
+    string s, t;
+    cin >> s >> t;
+    int f[n], b[n];
+    stack<int> st;
+    for (int i = 0; i < n; i++)
+        if (s[i] == '(')
+            st.push(i);
+        else
+        {
+            int x = st.top();
+            st.pop();
+            f[x] = i;
+            f[i] = i;
+            b[x] = x;
+            b[i] = x;
+        }
+    build_f(n);
+    build_b(n);
+    p--;
+    for (int i = 0; i < m; i++)
+        if (t[i] == 'R')
+        {
+            p++;
+            if (max_f[find_parent_f(p)] != p)
+            {
+                p = max_f[find_parent_f(p)];
+                p++;
+            }
+        }
+        else if (t[i] == 'L')
+        {
+            p--;
+            if (min_b[find_parent_b(p)] != p)
+            {
+                p = min_b[find_parent_b(p)];
+                p--;
+            }
+        }
+        else
+        {
+            if (f[p] != p)
+            {
+                int x = p;
+                while (x < f[p])
+                {
+                    union_set_f(x, x + 1);
+                    x = max_f[find_parent_f(x)];
+                }
+                x = f[p];
+                while (x > p)
+                {
+                    union_set_b(x, x - 1);
+                    x = min_b[find_parent_b(x)];
+                }
+            }
+            else
+            {
+                int x = p;
+                while (x > b[p])
+                {
+                    union_set_b(x, x - 1);
+                    x = min_b[find_parent_b(x)];
+                }
+                x = b[p];
+                while (x < p)
+                {
+                    union_set_f(x, x + 1);
+                    x = max_f[find_parent_f(x)];
+                }
+            }
+            if (max_f[find_parent_f(p)] < n - 1)
+                p = max_f[find_parent_f(p)] + 1;
+            else
+                p = min_b[find_parent_b(p)] - 1;
+        }
+    for (int i = 0; i < n; i++)
+        if (max_f[find_parent_f(i)] == i && min_b[find_parent_b(i)] == i)
+            cout << s[i];
+    return 0;
+}

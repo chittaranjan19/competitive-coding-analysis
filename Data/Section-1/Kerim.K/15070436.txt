@@ -1,0 +1,93 @@
+//Cok tavsanin pesinde kosan hicbrini yakalmaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define lg(x) ceil(log2(x))
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+PII ans[MAXN];
+ll vis[MAXN],acys[MAXN];
+pair<PII,ll> arr[MAXN];
+vector<PII>adj[MAXN];
+bool cmp(pair<PII,ll> l,pair<PII,ll> r){
+	if(l.ff.ff==r.ff.ff)
+		return (l.ff.ss>r.ff.ss);	
+	return (l.ff.ff<r.ff.ff);
+}
+ll mst(){
+	ll jog=0;
+	priority_queue<PII,vector<PII>,greater<PII> >q;
+	q.push(mp(0,1));
+	while(!q.empty()){
+		ll nd=q.top().ss;
+		ll cost=q.top().ff;
+		q.pop();
+		if(vis[nd])
+			continue;
+		vis[nd]=1;	
+		jog+=cost;
+		for(ll i=0;i<adj[nd].size();i++){
+			ll v=adj[nd][i].ff,w=adj[nd][i].ss;
+			if(!vis[v])
+				q.push(mp(w,v));
+		}
+	}
+	return jog;
+}
+int main(){
+	ll a,b;
+	cin>>a>>b;
+	for(ll i=0;i<b;i++)
+		cin>>arr[i].ff.ff>>arr[i].ff.ss,arr[i].ss=i,acys[i]=arr[i].ff.ff;
+	sort(arr,arr+b);
+	ll sum=0;	
+	ll yol=1,road=2;
+	for(ll i=0;i<b;i++)
+		if(arr[i].ff.ss==1){
+			ans[arr[i].ss]=mp(yol,road);
+			sum+=arr[i].ff.ff;
+			road++;
+			if(road>a)
+				yol++,road=yol+1;
+		}
+	road = 3, yol = 2;
+	for(ll i=0;i<b;i++)
+		if(arr[i].ff.ss==0){
+			ans[arr[i].ss]=mp(yol,road);
+			/*road++;
+			if(road>a)
+				yol++,road=yol+1;*/
+			yol++;
+			if (yol == road)
+				road++, yol = 2;
+		}
+	for(ll i=0;i<b;i++)
+		adj[ans[i].ff].pb(mp(ans[i].ss,acys[i])),adj[ans[i].ss].pb(mp(ans[i].ff,acys[i]));		
+
+	if(mst()==sum)
+		for(ll i=0;i<b;i++)
+			cout<<ans[i].ff<<" "<<ans[i].ss<<endl;
+	else
+		cout<<"-1"<<endl;
+	return 0;
+}
+/*
+3 3
+4 1
+4 0
+4 1
+*/

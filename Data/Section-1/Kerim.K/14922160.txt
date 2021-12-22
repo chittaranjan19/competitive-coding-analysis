@@ -1,0 +1,91 @@
+/*
+PROG: ride
+LANG: C++
+*/
+
+#include<bits/stdc++.h>
+#define INF 1000000009
+#define ff first
+#define ss second
+#define mp make_pair
+#define all(x) x.begin(), x.end()
+#define MAXN 200009
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define sqr(x) ((x)*(x))
+#define lcm(x,y) (x/__gcd(x,y)*y)
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+#define gcd(x,y) (__gcd(x,y))
+#define sg(x) (atoi(x.c_str()))
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+//int palin(int n,int m,string s){int bl=0;for(int i=n;i<m;i++)if(s[i]!=s[m-i-1])bl++;if(bl==0)return 1;else return 0;}
+int arr[MAXN],z[4*MAXN],x[MAXN];
+PII rr[MAXN],r[MAXN];
+void build(int x,int y,int nd)
+{
+	if(x==y)
+	{
+		z[nd]=r[x].ss;
+		return;
+	}
+	int mid=(x+y)/2;
+	build(x,mid,nd*2);
+	build(mid+1,y,nd*2+1);
+	z[nd]=max(z[nd*2],z[nd*2+1]);
+}
+int tap(int x,int y,int nd,int l,int r)
+{
+	if(x>r or y<l)
+	return 0;
+	if(l<=x and y<=r)
+	return z[nd];
+	int mid=(x+y)>>1;
+	return max(tap(x,mid,nd*2,l,r),tap(mid+1,y,nd*2+1,l,r));
+}
+int main()
+{
+	int a;
+	cin>>a;
+	vector<int>v;
+	for(int i=1;i<=a;i++)
+	cin>>arr[i];
+	stack<int>s;
+	s.push(0);
+	for(int i=1;i<=a;i++)
+	{
+		while(arr[i]<arr[s.top()])
+		{
+				rr[s.top()].ss=i-1;
+				s.pop();
+		}
+		if(s.top()==arr[i])
+			rr[i].ff=rr[s.top()].ff;
+		else
+			rr[i].ff=s.top()+1;
+		rr[i].ss=a;
+		s.push(i);
+	}
+	int last=1,j=1;
+	for(int i=1;i<=a;i++)
+	r[i]={rr[i].ss-rr[i].ff+1,arr[i]};
+	sort(r+1,r+(a+1));
+	build(1,a,1);
+	v.pb(1);
+	for(int i=1;i<=a;i++)
+	{
+		if(last!=r[i].ff)
+		{
+			last=r[i].ff;
+			x[last]=i;
+			v.pb(last);
+		}
+	}
+	for(int i=0;i<v.size();i++)
+	{
+		for(;j<=v[i];j++)
+		cout<<tap(1,a,1,x[v[i]],a)<<" ";
+	}
+	return 0;
+}

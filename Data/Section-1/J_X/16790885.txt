@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 1e5 + 5;
+
+struct edge
+{
+    int to, next;
+
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxn];
+int head[maxn], tot, deg[maxn], que[maxn], u[maxn], v[maxn];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    memset(deg, 0, sizeof(deg));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(u, head[v]);
+    ++deg[u];
+    head[v] = tot++;
+}
+
+bool bfs(int n)
+{
+    int front = 0, rear = 0, cnt = 0, num = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        if(!deg[i])
+        {
+            ++num;
+            que[rear++] = i;
+        }
+    }
+    if(num > 1) return false;
+    while(front < rear)
+    {
+        int u = que[front++];
+        ++cnt;
+        num = 0;
+        for(int i = head[u]; ~i; i = G[i].next)
+        {
+            int v = G[i].to;
+            if(--deg[v] == 0)
+            {
+                que[rear++] = v;
+                ++num;
+            }
+        }
+        if(num > 1) return false;
+    }
+    return cnt == n;
+}
+
+bool check(int x, int n)
+{
+    init();
+    for(int i = 1; i <= x; ++i) addedge(u[i], v[i]);
+    return bfs(n);
+}
+
+int main()
+{
+    int n, m;
+    scanf("%d%d", &n, &m);
+    for(int i = 1; i <= m; ++i) scanf("%d%d", &u[i], &v[i]);
+    int l = 1, r = m + 1;
+    while(l < r)
+    {
+        int mid = (l + r) >> 1;
+        check(mid, n) ? r = mid : l = mid + 1;
+    }
+    printf("%d\n", l <= m ? l : -1);
+    return 0;
+}
+

@@ -1,0 +1,102 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int, int> P;
+
+const int mod1 = 5e7 + 7;
+const int mod2 = 3e7 + 7;
+const int b1 = 100007;
+const int b2 = 10007;
+const int MAXN = 2100 + 5;
+
+char s[MAXN], t[MAXN];
+int a[mod1 + 5], dp[MAXN], p[MAXN], c[mod2 + 5], p1[MAXN];
+vector<P> ans;
+
+void myhash(int st, int nd)
+{
+    int sum1 = 0, sum2 = 0;
+    for(int i = st; i <= nd; ++i)
+    {
+        sum1 = (1LL * sum1 * b1 + s[i]) % mod1;
+        sum2 = (1LL * sum2 * b2 + s[i]) % mod2;
+        a[sum1] = st * MAXN + i;
+        c[sum2] = st * MAXN + i;
+    }
+    sum1 = sum2 = 0;
+    for(int i = st; i; --i)
+    {
+        sum1 = (1LL * sum1 * b1 + s[i]) % mod1;
+        sum2 = (1LL * sum2 * b2 + s[i]) % mod2;
+        a[sum1] = st * MAXN + i;
+        c[sum2] = st * MAXN + i;
+    }
+}
+
+int main()
+{
+    p[0] = 1;
+    p1[0] = 1;
+    for(int i = 1; i < MAXN; ++i)
+    {
+        p[i] = (1LL * p[i - 1] * b1) % mod1;
+        p1[i] = (1LL * p1[i - 1] * b2) % mod2;
+    }
+    while(~scanf("%s%s", s + 1, t + 1))
+    {
+        ans.clear();
+        memset(a, 0, sizeof(a));
+        memset(c, 0, sizeof(c));
+        int len1 = strlen(s + 1), len2 = strlen(t + 1);
+        for(int i = 1; i <= len1; ++i)
+        {
+            myhash(i, len1);
+        }
+        for(int i = 1; i <= len2; ++i)
+        {
+            dp[i] = MAXN;
+            int sum1 = 0, sum2 = 0;
+            for(int j = i; j; --j)
+            {
+                sum1 = (1LL * t[j] * p[i - j] + sum1) % mod1;
+                sum2 = (1LL * t[j] * p1[i - j] + sum2) % mod2;
+                if(a[sum1] && c[sum2] && a[sum1] == c[sum2])
+                {
+                    dp[i] = min(dp[i], dp[j - 1] + 1);
+                }
+            }
+        }
+        if(dp[len2] == MAXN)
+        {
+            puts("-1");
+        }
+        else
+        {
+            printf("%d\n", dp[len2]);
+            int nd = len2, sum1 = 0, sum2 = 0;;
+            for(int st = len2; st; --st)
+            {
+                sum1 = (1LL * t[st] * p[nd - st] + sum1) % mod1;
+                sum2 = (1LL * t[st] * p1[nd - st] + sum2) % mod2;
+                if(a[sum1] && c[sum2] && a[sum1] == c[sum2] && dp[st - 1] + 1 == dp[nd])
+                {
+                    ans.push_back(P(a[sum1] / MAXN, a[sum1] % MAXN));
+                    sum1 = sum2 = 0;
+                    nd = st - 1;
+                }
+            }
+            reverse(ans.begin(), ans.end());
+            for(int i = 0; i < ans.size(); ++i)
+            {
+                printf("%d %d\n", ans[i].first, ans[i].second);
+            }
+        }
+    }
+    return 0;
+}

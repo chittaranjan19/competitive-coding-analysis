@@ -1,0 +1,62 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+
+const int MAXN = 21, INF = 0x3f3f3f3f;
+
+int N;
+char A[MAXN][MAXN];
+int dp[2 * MAXN][1 << MAXN];	//state = letter y be, not the cur pos!! wow interesting.
+
+int val (char c) {
+	return ((c == 'b') ? -1 : (c == 'a'));
+}
+
+int getdp (int x, int y) {
+	//x = # of xs, y = bitmask y
+	if (x == 2 * N - 2) {
+		return 0;
+	}
+	int &ref = dp[x][y];
+	if (ref != INF) {
+		return ref;
+	}
+	if (x & 1) {
+		ref *= -1;
+	}
+	for (char c = 'a'; c <= 'z'; c++) {
+		int ny = 0;
+		for (int i = 0; i < N; i++) {
+			int j = x - i + 1;
+			if (j < 0 || j >= N) {
+				continue;
+			}
+			if (A[i][j] == c && ((y & (1 << i)) || (y & (1 << (i - 1))))) {
+				ny |= (1 << i);
+			}
+		}
+		if (ny) {
+			int ndp = val(c) + getdp(x + 1, ny);
+			ref = (x & 1) ? max(ref, ndp) : min(ref, ndp);
+		}
+	}
+	return ref;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 0; i < N; i++) {
+		cin >> A[i];
+	}
+	fillchar(dp, 63);
+	int ans = val(A[0][0]) + getdp(0, 1);
+	cout << (ans > 0 ? "FIRST" : (ans ? "SECOND" : "DRAW")) << endl;
+}

@@ -1,0 +1,57 @@
+#include <cstdio>
+#include <vector>
+using namespace std;
+int i,j,x,y,n,m,M,need,a[1010],where[1010],f[1010],r[5050];
+vector <int> g[1010],e[1010],o[1010],z[1010];
+bool u[1010],w[1010];
+void ofs(int i) {
+  w[i]=true;
+  for (int j=0; j<o[i].size(); j++) if (!w[o[i][j]]) ofs(o[i][j]);
+}
+void dfs(int i) {
+  u[i]=true;
+  for (int j=0; j<g[i].size(); j++) {
+    int k=g[i][j];
+    if (w[k] && !u[k]) dfs(k);
+  }
+  where[i]=++m;
+  a[m]=i;
+}
+int main() {
+  scanf("%d%d",&n,&M);
+  for (i=0; i<M; i++) {
+    scanf("%d%d",&x,&y);
+    g[x].push_back(y); e[x].push_back(i);
+    o[y].push_back(x); z[y].push_back(i);
+  }
+  ofs(n);
+  dfs(1);
+  //for (i=1; i<=m; i++) printf("%d ",a[i]); puts("@");
+  for (i=m; i>0; i--) {
+    for (j=0; j<g[a[i]].size(); j++) {
+      x=g[a[i]][j];
+      if (where[x]>0) f[where[x]]=max(f[where[x]],f[i]+1);
+    }
+  }
+  //for (i=1; i<=m; i++) printf("%d ",f[i]); puts("~");
+  for (i=1; i<=m; i++) {
+    need=-1000000;
+    for (j=0; j<g[a[i]].size(); j++) {
+      x=g[a[i]][j];
+      if (where[x]>0) {
+        y=f[where[x]]-1-int(r[e[a[i]][j]]);
+        if (need==-1000000) need=y;
+        if (need!=y) { puts("No"); return 0; }
+      }
+    }
+    if (need!=-1000000) f[i]=need;
+    for (j=0; j<o[a[i]].size(); j++) {
+      x=o[a[i]][j];
+      if (where[x]>0) if (f[where[x]]<f[i]-1) r[z[a[i]][j]]=true;
+    }
+  }
+  //for (i=1; i<=m; i++) printf("%d ",f[i]); puts("");
+  puts("Yes");
+  for (i=0; i<M; i++) printf("%d\n",int(r[i])+1);
+  return 0;
+}

@@ -1,0 +1,51 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+const int maxn = 2000 + 5;
+const int mod = 1e9 + 7;
+
+int dp[maxn][maxn], cnt, m, d;
+char a[maxn], b[maxn];
+
+void add(int &a, int b)
+{
+    a += b;
+    if(a >= mod) a -= mod;
+}
+
+int dfs(int pos, int k, bool limit1, bool limit2)
+{
+    if(pos > cnt) return !k;
+    if(!limit1 && !limit2 && ~dp[pos][k]) return dp[pos][k];
+    int ret = 0;
+    int low = limit1 ? a[pos] - '0' : 0, upp = limit2 ? b[pos] - '0' : 9;
+    if(pos & 1)
+    {
+        for(int i = low; i <= upp; ++i)
+        {
+            if(i == d) continue;
+            add(ret, dfs(pos + 1, (k * 10 + i) % m, limit1 && i == low, limit2 && i == upp));
+        }
+    }
+    else if(d >= low && d <= upp) add(ret, dfs(pos + 1, (k * 10 + d) % m, limit1 && d == low, limit2 && d == upp));
+    if(!limit1 && !limit2) dp[pos][k] = ret;
+    return ret;
+}
+
+int main()
+{
+    while(~scanf("%d%d", &m, &d))
+    {
+        memset(dp, -1, sizeof(dp));
+        scanf("%s%s", a + 1, b + 1);
+        int len = strlen(a + 1);
+        cnt = strlen(b + 1);
+        for(int i = cnt; i > cnt - len; --i) a[i] = a[i - (cnt - len)];
+        for(int i = cnt - len; i; --i) a[i] = '0';
+        printf("%d\n", dfs(1, 0, true, true));
+    }
+    return 0;
+}

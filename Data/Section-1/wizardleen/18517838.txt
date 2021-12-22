@@ -1,0 +1,178 @@
+import java.util.*;
+
+/**
+ * Created by leen on 6/16/16.
+ */
+public class _681D {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+
+        int n = scan.nextInt();
+        int m = scan.nextInt();
+
+        scan.nextLine();
+
+        Man[] men = new Man[1 + n];
+
+        for(int i = 1; i <= n; i++)
+            men[i] = new Man(i);
+
+        for(int i = 0; i < m; i++) {
+            String relation = scan.nextLine();
+            String[] splits = relation.split(" ");
+            int fatherIdx = Integer.parseInt(splits[0]);
+            int sonIdx = Integer.parseInt(splits[1]);
+            men[sonIdx].father = men[fatherIdx];
+        }
+
+
+        Set<Man> receivers = new HashSet<Man>();
+        String giftInfo = scan.nextLine();
+        String[] splits = giftInfo.split(" ");
+        for(int i = 1; i <= n; i++) {
+            int receiverIdx = Integer.parseInt(splits[i - 1]);
+            men[receiverIdx].addSender(men[i]);
+            receivers.add(men[receiverIdx]);
+        }
+
+        // ===============  数据结构构件完成 ===============
+
+        List<Man> candTreeList = new ArrayList<Man>();
+
+        for(Man receiver : receivers) {
+            ListIterator<Man> candTreeIt = candTreeList.listIterator();
+
+            boolean inserted = false;
+            while(candTreeIt.hasNext()) {
+                Man candTree = candTreeIt.next();
+
+                int rs = candTree.insertIntoCandTree(receiver);
+
+                if(rs == 1) {
+                    inserted = true;
+                    break;
+                }
+
+                if(rs == -1) {
+                    System.out.println(-1);
+                    return;
+                }
+
+                // rs == 0
+
+                int rs2 = receiver.insertIntoCandTree(candTree);
+
+                if(rs2 == -1) {
+                    System.out.println(-1);
+                    return;
+                }
+
+                if(rs2 == 1) {
+                    candTreeIt.remove();
+                    candTreeIt.add(receiver);
+                    inserted = true;
+                }
+
+            }
+
+            if(!inserted)
+                candTreeIt.add(receiver);
+        }
+
+        List<Man> outputList = new ArrayList<Man>();
+
+        for(Man candTree : candTreeList)
+            candTree.inOrderTraverse(outputList);
+
+        System.out.println(outputList.size());
+
+        for(Man man : outputList)
+            System.out.println(man.index);
+
+        System.out.flush();
+
+    }
+
+    static class Man {
+        final int index;
+        Man father;
+        final List<Man> senders = new ArrayList<Man>();
+
+        Man leftChildInCandTree;
+        Man rightChildInCandTree;
+
+        Man(int index) {
+            this.index = index;
+        }
+
+        boolean isDescendantOf(Man that) {
+            Man test = this;
+            while(test != null) {
+                if(test == that)
+                    return true;
+                test = test.father;
+            }
+            return false;
+        }
+
+        int insertIntoCandTree(Man that) {
+
+            boolean right = false;
+
+            for(Man sender : senders) {
+                if(sender.isDescendantOf(that)) {
+                    right = true;
+                    break;
+                }
+            }
+
+            boolean left = false;
+            for(Man thatSender : that.senders) {
+                if (thatSender.isDescendantOf(this)) {
+                    left = true;
+                    break;
+                }
+            }
+
+            if(right && left)
+                return -1;
+
+            if(!right && !left)
+                return 0;
+
+            if(right) {
+                if(rightChildInCandTree == null) {
+                    rightChildInCandTree = that;
+                    return 1;
+                }
+                else
+                    return rightChildInCandTree.insertIntoCandTree(that);
+            }
+            else {
+                if(leftChildInCandTree == null) {
+                    leftChildInCandTree = that;
+                    return 1;
+                }
+                else
+                    return leftChildInCandTree.insertIntoCandTree(that);
+            }
+        }
+
+        void addSender(Man sender) {
+            senders.add(sender);
+        }
+
+        void inOrderTraverse(List<Man> output) {
+            if(leftChildInCandTree != null)
+                leftChildInCandTree.inOrderTraverse(output);
+
+            output.add(this);
+
+            if(rightChildInCandTree != null)
+                rightChildInCandTree.inOrderTraverse(output);
+
+        }
+
+    }
+
+}

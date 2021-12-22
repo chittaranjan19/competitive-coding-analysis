@@ -1,0 +1,149 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000000
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int n, m, q, pa[mn][18], h[mn];
+vector<int> g[mn];
+struct node{
+    int a[11];
+
+    node()
+    {
+        memset(a, 60, sizeof(a));
+    }
+
+    void ins(int x)
+    {
+        if (x >= a[10])
+            return;
+        a[10] = x;
+        sort(a + 1, a + 11);
+    }
+} ver[mn][18];
+
+node combine(node a, node b)
+{
+    node re;
+    int l1 = 1, l2 = 1;
+    FOR(i, 1, 10)
+    if (a.a[l1] < b.a[l2])
+        re.a[i] = a.a[l1 ++];
+    else
+        re.a[i] = b.a[l2 ++];
+    return re;
+}
+
+void setup()
+{
+    cin >> n >> m >> q;
+    int u, v;
+    FOR(i, 1, n - 1)
+    {
+        cin >> u >> v;
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+    FOR(i, 1, m)
+    {
+        cin >> u;
+        ver[u][0].ins(i);
+    }
+}
+
+void dfs(int u)
+{
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        if (v == pa[u][0])
+            continue;
+        pa[v][0] = u;
+        h[v] = h[u] + 1;
+        dfs(v);
+    }
+}
+
+void rmq()
+{
+    FOR(i, 1, 17)
+    FOR(j, 1, n)
+    {
+        pa[j][i] = pa[pa[j][i - 1]][i - 1];
+        ver[j][i] = combine(ver[j][i - 1], ver[pa[j][i - 1]][i - 1]);
+    }
+}
+
+node lca(int a, int b)
+{
+    node re = node();
+    if (h[a] > h[b])
+        swap(a, b);
+    int dif = h[b] - h[a];
+    FOR(i, 0, 17)
+    if ((dif >> i) & 1)
+    {
+        re = combine(re, ver[b][i]);
+        b = pa[b][i];
+    }
+    if (a == b)
+        return combine(re, ver[a][0]);
+    FORD(i, 17, 0)
+    if (pa[a][i] != pa[b][i])
+    {
+        re = combine(re, ver[a][i]);
+        re = combine(re, ver[b][i]);
+        a = pa[a][i];
+        b = pa[b][i];
+    }
+    re = combine(re, ver[a][0]);
+    re = combine(re, ver[b][1]);
+    return re;
+}
+
+void xuly ()
+{
+    int u, v, k, l;
+    node x;
+    h[1] = 1;
+    dfs(1);
+    rmq();
+    FOR(i, 1, q)
+    {
+        cin >> u >> v >> k;
+        x = lca(u, v);
+        FOR(i, 1, k + 1)
+        {
+            if (i == k + 1)
+            {
+                l = k;
+                break;
+            }
+            if (x.a[i] > m)
+            {
+                l = i - 1;
+                break;
+            }
+        }
+        cout << l << " ";
+        FOR(i, 1, l)
+            cout << x.a[i] << " ";
+        cout << "\n";
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

@@ -1,0 +1,97 @@
+#include <cstdio>
+#include <cmath>
+
+using namespace std;
+
+int n,m;
+int v[100][100];
+
+inline int sgn(int x) {
+    if(x<0) return -x;
+    return x;
+}
+
+int main()
+{
+    scanf("%d%d",&n,&m);
+    for(int i=0; i<n; i++) {
+        for(int j=0; j<m; j++) {
+            scanf("%d",&v[i][j]);
+        }
+    }
+
+    if(n == 1) {
+        printf("YES\n");
+        printf("%d\n",int(1e9)+7);
+        printf("0\n");
+        for(int i=0 ;i<m; i++) {
+            printf("%d ",v[0][i]);
+        }
+        printf("\n");
+        return 0;
+    }
+    if(m == 1) {
+        printf("YES\n");
+        printf("%d\n",int(1e9)+7);
+        for(int i=0 ;i<n; i++) {
+            printf("%d ",v[i][0]);
+        }
+        printf("\n");
+        printf("0\n");
+        return 0;
+    }
+
+    int ii = -1;
+    int jj = -1;
+
+    for(int i=0; i<n; i++) {
+        for(int j=i+1; j<n; j++) {
+            int no = sgn(v[j][0]-v[i][0]);
+            for(int k=1; k<m; k++) {
+                if(sgn(v[j][k]-v[i][k]) != no) {
+                    ii = i;
+                    jj = j;
+                    break;
+                }
+            }
+            if(ii >= 0) break;
+        }
+        if(ii >= 0) break;
+    }
+
+    long long k = -1;
+    if(ii<0) {
+        k = int(2e9) + 7;
+    } else {
+        bool ok = 1;
+        int mdiff = 1;
+        int diff = -1;
+        for(int i=0; diff < 0; i++) if(v[jj][i] > v[ii][i]) diff = v[jj][i]-v[ii][i];
+        for(int i=0; mdiff > 0; i++) if(v[jj][i] < v[ii][i]) mdiff = v[jj][i]-v[ii][i];
+
+        k = diff - mdiff;
+    }
+
+    int a[100],b[100];
+    a[0] = 0;
+    for(int i=0; i<m; i++) b[i] = v[0][i];
+    for(int i=0; i<n; i++) a[i] = (k+v[i][0]-b[0]) % k;
+
+    //check
+    for(int i=0; i<n; i++) {
+        for(int j=0; j<m; j++) {
+            if(v[i][j] != ((a[i]+b[j])%k)) {
+                printf("NO\n");
+                return 0;
+            }
+        }
+    }
+
+    printf("YES\n%l64d\n",k);
+    for(int i=0; i<n; i++) printf("%l64d ",a[i]);
+    printf("\n");
+    for(int i=0; i<m; i++) printf("%l64d ",b[i]);
+    printf("\n");
+
+    return 0;
+}

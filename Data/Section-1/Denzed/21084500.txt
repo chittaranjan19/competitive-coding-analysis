@@ -1,0 +1,55 @@
+#include <bits/stdc++.h>
+
+#define f       first
+#define s       second
+#define mp      make_pair
+#define rank    something_which_is_supposed_to_be_rank
+#define left    something_which_is_supposed_to_be_left
+#define right   something_which_is_supposed_to_be_right
+
+using namespace std;
+
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+
+const int N = 1e5;
+
+ll n, a[N], pref[N + 1];
+multiset<ll,greater<ll>> sums;
+set<pair<int,int>> segments;
+
+inline void add(int l, int r) {
+    segments.insert({l, r});
+    sums.insert(pref[r] - pref[l]);
+}
+
+int main() {
+    cin.sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n;
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+        pref[i + 1] = pref[i] + a[i];
+    }
+    add(0, n);
+    for (int i = 0, pos; i < n; ++i) {
+        cin >> pos;
+        auto it = --segments.upper_bound({--pos, n + 1});
+        assert(it != segments.end());
+        auto seg = *it;
+    // cerr << "cur: " << seg.f << " " << seg.s << "\n";
+    // for (auto seg1: segments) {
+    //     cerr << seg1.f << " " << seg1.s << "\n";
+    // }
+        assert(seg.f <= pos && pos < seg.s);
+        segments.erase(seg);
+        sums.erase(sums.find(pref[seg.s] - pref[seg.f]));
+        add(seg.f, pos);
+        add(pos + 1, seg.s);
+        cout << *sums.begin() << "\n";
+    }
+    cerr << "Time elapsed: " << (ld) clock() / CLOCKS_PER_SEC << "\n";
+    return 0;
+}

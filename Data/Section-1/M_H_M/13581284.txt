@@ -1,0 +1,79 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+#define PB push_back
+#define MP make_pair
+#define X first
+#define Y second
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+
+const int N = 100 * 1000 + 100;
+
+vector <int > g[N];
+vector <int > dg[N];
+pii edge[N];
+int dp[N];
+int d[N];
+int h[N];
+int par[N];
+bool mark[N];
+
+int n, m, cnt;
+
+void dfs(int v){
+	mark[v] = 1;
+	dp[v] = d[v] % 2;
+	for(int u : g[v]){
+		cnt ++;
+		if(!mark[u]){
+			h[u] = h[v] + 1;
+			par[u] = v;
+			dfs(u);
+			dp[v] += dp[u];
+		}
+	}
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	for(int i = 0; i < m; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; v--;
+		if(v < u) swap(u, v);
+		g[u].PB(v);
+		g[v].PB(u);
+		edge[i] = MP(u, v);
+		d[u] ++;
+	}
+	for(int v = 0; v < n; ++v){
+		cnt = 0;
+		if(!mark[v])
+			dfs(v);
+		if((cnt / 2) % 2){
+			cout << "No solution\n";
+			return 0;
+		}
+	}
+	for(int i = 0; i < m; ++i){
+		int u = edge[i].X;
+		int v = edge[i].Y;
+		if(par[u] == v || par[v] == u){
+			if(h[u] < h[v]) swap(u, v);
+			if(dp[u] % 2) swap(edge[i].X, edge[i].Y);
+		}
+		dg[edge[i].X].PB(edge[i].Y);
+	}
+	for(int i = 0; i < n; ++i){
+	//	cerr << "bug "  << SZ(dg[i]) << "\n";
+		for(int j = 0; j < SZ(dg[i]); j += 2){
+			cout << dg[i][j] + 1 << " " << i + 1 << " " << dg[i][j + 1] + 1 << "\n";	
+		}
+	}
+	return 0;
+}

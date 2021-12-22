@@ -1,0 +1,94 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 200010;
+
+int n, m;
+vector<pii> bus;
+int nxt[maxn], lst[maxn];
+ll dp[maxn], ft[maxn];
+map<int, int> compress;
+
+void update(int idx, ll val)
+{
+	while(idx<maxn){
+		ft[idx] = (ft[idx] + val)%mod;
+		idx+=(idx&(-idx));
+	}
+}
+
+ll query(int idx)
+{
+	ll ret = 0;
+	while(idx>0){
+		ret = (ret+ft[idx])%mod;
+		idx-=(idx&(-idx));
+	}
+	return ret;
+}
+
+ll solve(int cur)
+{
+	//
+	cout << cur << " " << bus[cur].f << " " << bus[cur].s << "\n";
+	if(bus[cur].s==n)
+		return 1;
+	if(dp[cur]!=-1)
+		return dp[cur];
+	ll ret = 0;
+	int i;
+	for(i=nxt[cur]; i<m; i++){
+		if(!(bus[i].f<=bus[cur].s && bus[i].s>=bus[cur].s))
+			break;
+		ret = (ret+solve(i))%mod;
+	}
+	return dp[cur] = ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, lo, mid, hi, ind;
+	scanf("%d%d", &n, &m);
+	bus.resize(m);
+	for(i=0; i<m; i++){
+		scanf("%d%d", &bus[i].s, &bus[i].f);
+		compress[bus[i].s] = 1;
+		compress[bus[i].f] = 1;
+	}
+	j = 1;
+	for(auto it=compress.begin(); it!=compress.end(); ++it)
+		it->s = j++;
+	sort(all(bus));
+	for(i=0; i<m; i++)
+		swap(bus[i].f, bus[i].s);
+	ll ans = 0, temp;
+	for(i=m-1; i>=0; i--){
+		ind = compress[bus[i].f];
+		j = compress[bus[i].s];
+		if(bus[i].s==n)
+			temp = 1;
+		else
+			temp = query(j);
+		if(!bus[i].f)
+			ans = (ans+temp)%mod;
+		update(ind, temp);
+	}
+	printf("%lld\n", ans);
+	return 0;
+}

@@ -1,0 +1,97 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+#include <queue>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 1e6 + 5;
+
+vector<int> p, r;
+bool check[maxn];
+bool used[maxn];
+
+int fast_pow(int x, int n)
+{
+    int res = 1;
+    while(n)
+    {
+        if(n & 1)
+        {
+            res *= x;
+        }
+        x *= x;
+        n >>= 1;
+    }
+    return res;
+}
+
+int main()
+{
+    for(int i = 2; i < maxn; ++i)
+    {
+        if(!check[i])
+        {
+            p.push_back(i);
+            for(int j = 2 * i; j < maxn; j += i)
+            {
+                check[j] = true;
+            }
+        }
+    }
+    queue<int> q;
+    for(int i = 1; i <= 9; ++i)
+    {
+        r.push_back(i);
+        r.push_back(i * 10 + i);
+        r.push_back(i * 100 + i);
+        q.push(i);
+        q.push(i * 10 + i);
+        q.push(i * 100 + i);
+    }
+    while(!q.empty())
+    {
+        int u = q.front();
+        q.pop();
+        int cnt = 0, x = u;
+        while(x)
+        {
+            x /= 10;
+            ++cnt;
+        }
+        for(int i = 1; i <= 9; ++i)
+        {
+            x = u * 10 + i + i * fast_pow(10, cnt + 1);
+            if(x > maxn || used[x]) continue;
+            used[x] = true;
+                q.push(x);
+                r.push_back(x);
+
+        }
+    }
+    sort(r.begin(), r.end());
+    int pp, qq;
+    while(cin >> pp >> qq)
+    {
+        for(int i = maxn - 1; i >= 0; --i)
+        {
+            int k = upper_bound(p.begin(), p.end(), i) - p.begin();
+            int l = upper_bound(r.begin(), r.end(), i) - r.begin();
+            if(i == 0)
+            {
+                cout << "Palindromic tree is better than splay tree\n";
+            }
+            if((ll)qq * k <= (ll)pp * l)
+            {
+                cout << i << endl;
+                break;
+            }
+        }
+    }
+    return 0;
+}

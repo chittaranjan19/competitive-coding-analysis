@@ -1,0 +1,95 @@
+#include <iostream>
+#include <cmath>
+
+#define mod 1000000009
+#define maxs 550
+
+using namespace std;
+
+int n,m,s;
+long long a[300000];
+
+long long f[300001];
+long long fs[300001];
+
+long long pl[maxs][2];
+long long sz[maxs];
+
+inline int segsize(int seg) {
+    return min(n-seg*s,s);
+}
+
+void upd(int seg) {
+    for(int i=seg*s; i<min((seg+1)*s,n); i++) {
+        a[i] = (a[i] + pl[seg][0]) % mod;
+        swap(pl[seg][0],pl[seg][1]);
+        pl[seg][0] = (pl[seg][0] + pl[seg][1]) % mod;
+    }
+    pl[seg][0] = pl[seg][1] = 0ll;
+}
+
+void add(int seg, int x) {
+    pl[seg][0] = (pl[seg][0] + f[x]) % mod;
+    pl[seg][1] = (pl[seg][1] + f[x-1]) % mod;
+
+    sz[seg] = (sz[seg] + fs[x+segsize(seg)-1] + mod - fs[x-1]) % mod;
+}
+
+int main()
+{
+    ios::sync_with_stdio(0);
+    cin.tie(NULL);
+    cin >> n >> m;
+    s = (int)sqrt(n);
+
+    fs[0] = f[0] = 0ll;
+    fs[1] = f[1] = 1ll;
+    for(int i=2; i<=n; i++) {
+        f[i] = (f[i-1] + f[i-2]) % mod;
+        fs[i] = (fs[i-1] + f[i]) % mod;
+    }
+
+    for(int i=0; i<n; i++) {
+        cin >> a[i];
+        sz[i/s] = (sz[i/s]+a[i]) % mod;
+    }
+
+    for(int i=0; i<m; i++) {
+        int t,l,r; cin >> t >> l >> r; l--; r--;
+
+        if(t==1) {
+            for(int i=l; (i<r) && (i/s == l/s); i++) {
+                a[i] = (a[i] + f[i+1-l]) % mod;
+                sz[l/s] = (sz[l/s] + f[i+1-l]) % mod;
+            }
+            for(int i=(l/s)+1; i<r/s; i++) {
+                add(i,(i*s)+1-l);
+            }
+            if(r/s != l/s) {
+                for(int i=r-(r%s); i<=r; i++) {
+                    a[i] = (a[i] + f[i+1-l]) % mod;
+                    sz[i/s] = (sz[i/s] + f[i+1-l]) % mod;
+                }
+            }
+        } else {
+            long long ans(0ll);
+            upd(l/s);
+            for(int i=l; (i<r) && (i/s == l/s); i++) {
+                ans = (ans+a[i]) % mod;
+            }
+            for(int i=(l/s)+1; i<r/s; i++) {
+                ans = (ans + sz[i]) % mod;
+            }
+            if(r/s != l/s) {
+                upd(r/s);
+                for(int i=r-(r%s); i<=r; i++) {
+                    ans = (ans+a[i]) % mod;
+                }
+            }
+
+            cout << ans << endl;
+        }
+    }
+
+    return 0;
+}

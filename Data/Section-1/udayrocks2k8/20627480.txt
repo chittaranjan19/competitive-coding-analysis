@@ -1,0 +1,140 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include <queue>
+#include <deque>
+#include <bitset>
+#include <iterator>
+#include <list>
+#include <stack>
+#include <map>
+#include <set>
+#include <functional>
+#include <numeric>
+#include <utility>
+#include <limits>
+#include <time.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <assert.h>
+using namespace std;
+
+#define INF (1 << 30)
+#define INFL (1LL << 50)
+#define pb push_back
+#define loop_it(it, elements) for(auto it = elements.begin(); it != elements.end(); it++)
+#define loop(i, l, r) for(auto i = l; i < r; i++)
+#define loop_r(i, r, l) for(auto i = r; i >= l; i--)
+#define loop_k(i, l, r, k) for(auto i = l; i < r; i+=k)
+#define test_cases int test_cases;scanf("%d", &test_cases);for (int tc_0 = 1; tc_0 <= test_cases; tc_0++)
+
+typedef long long i64;
+typedef set<int> si;
+typedef vector<int> vi;
+typedef vector<i64> vi64;
+typedef vector<vi> vvi;
+typedef vector<vi64> vvi64;
+typedef pair<int, int> pii;
+typedef set<pii> spii;
+typedef vector<pii> vpii;
+typedef map<pii, vi> mpiivi;
+typedef map<int, int> mii;
+typedef map<int, vi> mivi;
+
+int n; 
+
+int get_count(int x0, int y0, int x1, int y1) {
+    int minx = min(x0, x1);
+    int maxx = max(x0, x1);
+    int miny = min(y0, y1);
+    int maxy = max(y0, y1);
+    printf("? %d %d %d %d\n", minx, miny, maxx, maxy);
+    fflush(stdout);
+    int cnt1;
+    cin >> cnt1;
+    return cnt1;    
+}
+
+i64 get_area(int x0, int y0, int x1, int y1) {
+    int minx = min(x0, x1);
+    int maxx = max(x0, x1);
+    int miny = min(y0, y1);
+    int maxy = max(y0, y1);
+    return (maxy - miny + 1) * (i64) (maxx - minx + 1);
+}
+
+void print(int x0, int y0, int x1, int y1) {
+    int minx = min(x0, x1);
+    int maxx = max(x0, x1);
+    int miny = min(y0, y1);
+    int maxy = max(y0, y1);
+    printf(" %d %d %d %d", minx, miny, maxx, maxy);
+}
+
+bool compare_x(int x, int count) {
+    return get_count(x, 1, n, n) < count;
+}
+
+bool compare_x0(int x, int count) {
+    return get_count(1, 1, x, n) < count;
+}
+
+bool compare_y(int y, int count) {
+    return get_count(1, y, n, n) < count;
+}
+
+bool compare_y0(int y, int count) {
+    return get_count(1, 1, n, y) < count;
+}
+
+int main() {
+    cin >> n;
+    vi num(n);
+    loop(i, 0, n) {
+        num[i] = i + 1;
+    }
+    vi x0(2), x1(2), y0(2), y1(2);
+    x0[0] = *lower_bound(num.rbegin(), num.rend(), 1, compare_x);
+    x0[1] = *lower_bound(num.rbegin(), num.rend(), 2, compare_x);
+    x1[0] = *lower_bound(num.begin(), num.end(), 1, compare_x0);
+    x1[1] = *lower_bound(num.begin(), num.end(), 2, compare_x0);
+    y0[0] = *lower_bound(num.rbegin(), num.rend(), 1, compare_y);
+    y0[1] = *lower_bound(num.rbegin(), num.rend(), 2, compare_y);
+    y1[0] = *lower_bound(num.begin(), num.end(), 1, compare_y0);
+    y1[1] = *lower_bound(num.begin(), num.end(), 2, compare_y0);
+    i64 area = (1LL << 50);
+    loop(i, 0, 2) {
+        loop(j, 0, 2) {
+            loop(k, 0, 2) {
+                loop(l, 0, 2) {
+                    if (get_count(x0[i], y0[j], x1[k], y1[l]) == 1 && get_count(x0[1 - i], y0[1 - j], x1[1 - k], y1[1 - l]) == 1) {
+                        area = min(area, get_area(x0[i], y0[j], x1[k], y1[l]) + get_area(x0[1 - i], y0[1 - j], x1[1 - k], y1[1 - l]));
+                    }
+                }
+            }
+        }
+    }
+    loop(i, 0, 2) {
+        loop(j, 0, 2) {
+            loop(k, 0, 2) {
+                loop(l, 0, 2) {
+                    if (get_count(x0[i], y0[j], x1[k], y1[l]) == 1 && get_count(x0[1 - i], y0[1 - j], x1[1 - k], y1[1 - l]) == 1) {
+                        if (get_area(x0[i], y0[j], x1[k], y1[l]) + get_area(x0[1 - i], y0[1 - j], x1[1 - k], y1[1 - l]) == area) {
+                            printf("! ");
+                            print(x0[i], y0[j], x1[k], y1[l]);
+                            print(x0[1 - i], y0[1 - j], x1[1 - k], y1[1 - l]);
+                            printf("\n");
+                            fflush(stdout);
+                            return 0;                                
+                        }
+                    }
+                }
+            }
+        }
+    }        
+    return 0;
+}

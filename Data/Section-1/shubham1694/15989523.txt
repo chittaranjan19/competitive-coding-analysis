@@ -1,0 +1,91 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1000010;
+
+int n, k, z[maxn];
+char s[maxn], ans[maxn];
+vector<pii> range;
+
+void compute_z()
+{
+	int i, L = 0, R = 0;
+	for(i=1; i<n; i++){
+  		if(i>R){
+   	 		L = R = i;
+   	 		while(R<n && s[R-L]==s[R]) 
+   	 			R++;
+   	 		z[i] = R-L; 
+   	 		R--;
+  		} 
+  		else{
+    		int k = i-L;
+    		if(z[k]<R-i+1) 
+    			z[i] = z[k];
+    		else{
+      			L = i;
+      			while(R<n && s[R-L]==s[R]) 
+      				R++;
+      			z[i] = R-L; 
+      			R--;
+    		}
+  		}
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, f, l;
+	scanf("%d%d%s", &n, &k, s);
+	//for(i=0; i<maxn; i+=2)
+	//	s[i] = 'a', s[i+1] = 'b';
+	//s[i] =  '\0';
+	//n = maxn;
+	compute_z();
+	for(i=0; i<n; i++)
+		ans[i] = '0';
+	ans[n] = '\0';
+	for(i=1; i<=n; i++){								//length of A+B
+		f = 1;
+		for(j=i, l=1; j<n && l<k; j+=i, l++){
+			if(z[j]<i){
+				f = 0;
+				break;
+			}
+		}
+		if(l<k)
+			f = 0;
+		if(f){
+			//for(j=k*i - 1, l=0; l<=min(z[k*i], i); l++, j++)
+			//	ans[j] = '1';
+			range.pb(mp(k*i - 1, k*i - 1 + min(z[k*i], i)));
+		}
+		//cout << i << "\n";
+	}
+	sort(all(range));
+	int st = 0, en;
+	for(i=0; i<range.size(); i++){
+		st = max(st, range[i].f);
+		en = range[i].second;
+		for(j=st; j<=en; j++)
+			ans[j] = '1';
+		st = max(st, en+1);
+	}
+	printf("%s\n", ans);
+	return 0;
+}

@@ -1,0 +1,143 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+struct Intervalo
+{
+	tint s,e;
+	Intervalo(tint ss, tint ee)
+	{
+		s = ss;
+		e = ee;
+	}
+	Intervalo()
+	{
+		s = -1;
+		e = -1;
+	}
+};
+
+bool operator < (Intervalo i1, Intervalo i2)
+{
+	return make_tuple (i1.e,i1.s) < make_tuple(i2.e,i2.s);
+}
+
+int main()
+{
+	#ifdef ACMTUYO
+	if (!freopen("entrada.in", "r", stdin))
+		return 1;
+	#endif
+	ios_base::sync_with_stdio(0);
+	tint n;
+	while (cin >> n)
+	{
+		vector<tint> a (n);
+		forn(i,n)
+			cin >> a[i];
+		map<tint,Intervalo> app;
+		vector<Intervalo> bordes;
+		forn(i,n)
+		{
+			if (app[a[i]].s  != -1)
+			{
+				bordes.push_back(Intervalo(app[a[i]].s,i+1));
+				app[a[i]] = Intervalo(-1,-1);
+			}
+			else
+				app[a[i]].s = i+1;
+		}
+		//cout << " ------ " << endl;
+		//for(auto segment : bordes)
+		//	cout << segment.s << " " << segment.e << endl;
+		//cout << " ------ " << endl;
+		if (bordes.empty())
+			cout << -1 << endl;
+		else
+		{
+			sort(bordes.begin(),bordes.end());
+			vector<Intervalo> ans = {Intervalo(1,-1)};
+			tint k = 0;
+			tint last = bordes[0].e;
+			forsn(i,1,bordes.size())
+			{
+				if (bordes[i].s > last)
+				{
+					ans[k].e = last;
+					k++;
+					ans.push_back(Intervalo(last + 1,-1));
+					last = bordes[i].e;
+				}
+			}
+			if (ans[k].e != n)
+				ans[k].e = n;
+			cout << ans.size() << endl;
+			for(auto segment : ans)
+				cout << segment.s << " " << segment.e << endl;
+		}
+		
+	}
+	return 0;
+}
+
+
+

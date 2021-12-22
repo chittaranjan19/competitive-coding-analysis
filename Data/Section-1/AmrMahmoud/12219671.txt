@@ -1,0 +1,84 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+map<LL, LL> DP[100];
+int cnt[10], m;
+LL tmp;
+
+LL solve(LL mask, int rem, LL power)
+{
+  if(mask == 0) return (rem == 0);
+  if(DP[rem].find(mask) != DP[rem].end())
+    return DP[rem][mask];
+  LL res = 0, p = 1, n = mask;
+  if(mask == tmp) p*=18, n/=p;
+  for(int i=((mask == tmp)?1:0);i<10;i++)
+  {
+    if(n % 18 == 0)
+    {
+      p*=18;
+      n /= 18;
+      continue;
+    }
+    res+=solve(mask - p, (rem + (power % m) * i) % m, power / 10);
+    p*=18;
+    n /= 18;
+  }
+  DP[rem][mask] = res;
+  return res;
+}
+
+int main()
+{
+  //freopen("immetric.in", "r", stdin);
+  //freopen("immetric.out", "w", stdout);
+  LL n;
+  scanf("%I64d %d", &n, &m);
+  LL p = 1;
+  while(n)
+  {
+    cnt[n % 10]++;
+    n/=10;
+    p *= 10;
+  }
+  p/=10;
+  for(int i=9;i>=0;i--)
+    tmp = tmp * 18 + cnt[i];
+  printf("%I64d", solve(tmp, 0, p));
+  return 0;
+}

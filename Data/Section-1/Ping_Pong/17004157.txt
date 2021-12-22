@@ -1,0 +1,92 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll p = 239;
+const ll MAX_N = 10;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    ll n, k;
+    cin >> n >> k;
+    ll p[n + 300];
+    for (ll i = 0; i < n + 300; i++)
+        p[i] = 0;
+    ll a[n + 1];
+    for (ll i = 0; i <= n; i++)
+    {
+        cin >> a[i];
+        if (a[i] > 0)
+        {
+            for (ll k = 0; k < 40; k++)
+                if ((a[i] >> k) & 1)
+                    p[i + k]++;
+        }
+        else if (a[i] < 0)
+        {
+            for (ll k = 0; k < 40; k++)
+                if ((abs(a[i]) >> k) & 1)
+                    p[i + k]--;
+        }
+    }
+    /*for (ll i = 0; i < 10; i++)
+        cout << p[i] << " ";
+    cout << endl;*/
+    for (ll i = 0; i < n + 300 - 1; i++)
+        if (p[i] > 0)
+        {
+            p[i + 1] += p[i] / 2;
+            p[i] = p[i] % 2;
+        }
+        else if (p[i] < 0)
+        {
+            p[i + 1] -= (abs(p[i]) / 2);
+            p[i] = -(abs(p[i]) % 2);
+        }
+    /*for (ll i = 0; i < 10; i++)
+        cout << p[i] << " ";
+    cout << endl;*/
+    ll ans = 0;
+    ll curr = 0;
+    for (int i = 0; i < n + 300; i++)
+        if (p[i] != 0)
+        {
+            curr = i;
+            break;
+        }
+    ll c = 0;
+    for (ll i = curr; i < curr + 60; i++)
+        c += p[i] * (1 << (i - curr));
+    for (ll i = min(curr, n); i >= 0 && abs(c) <= k * 3; i--)
+    {
+        //cout << i << " " << c << endl;
+        if ((abs(a[i] - c)) <= k)
+            if (!(i == n && a[i] - c == 0))
+                ans++;
+        c *= 2;
+    }
+    cout << ans;
+    return 0;
+}

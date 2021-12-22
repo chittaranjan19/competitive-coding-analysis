@@ -1,0 +1,102 @@
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+const int md=1000000007;
+int n,h,w,i,j,x,y,nx,mx,ny,my,NX[500500],MX[500500],NY[500500],MY[500500],a[500500],b[500500],nl,nr,ml,mr,mxc,cur,s,r;
+char st[500500];
+int main() {
+  scanf("%d%d%d",&n,&h,&w);
+  scanf("%s",st);
+  for (i=0; i<n; i++) {
+    if (st[i]=='U') if (--x<-nx) NX[nx=-x]=i+1;
+    if (st[i]=='D') if (++x>mx) MX[mx=x]=i+1;
+    if (st[i]=='L') if (--y<-ny) NY[ny=-y]=i+1;
+    if (st[i]=='R') if (++y>my) MY[my=y]=i+1;
+  }
+  if (x==0 && y==0 && nx+mx+1<=h && ny+my+1<=w) {
+    puts("-1");
+    return 0;
+  }
+  if (x>0) {
+    for (i=mx+1; i<=h; i++) MX[i]=(n+MX[i-x])%md;
+    mx=h;
+  } else if (x<0) {
+    for (i=nx+1; i<=h; i++) NX[i]=(n+NX[i+x])%md;
+    nx=h;
+  }
+  if (y>0) {
+    for (i=my+1; i<=w; i++) MY[i]=(n+MY[i-y])%md;
+    my=w;
+  } else if (y<0) {
+    for (i=ny+1; i<=w; i++) NY[i]=(n+NY[i+y])%md;
+    ny=w;
+  }
+  for (i=0; i<w; i++) {
+    cur=md;
+    if (i+1<=ny) cur=min(cur,NY[i+1]);
+    if (w-i<=my) cur=min(cur,MY[w-i]);
+    a[i]=b[i]=cur;
+    if (cur>mxc) { mxc=cur; ml=mr=i; }
+  }
+  mr=ml+1;
+  if (h<=mx) {
+    for (; mr<w && a[mr]>MX[h]; mr++) a[mr]=MX[h];
+    for (; ml>=0 && a[ml]>MX[h]; ml--) a[ml]=MX[h];
+  }
+  nl=-1; nr=-2;
+  for (i=0; i<w; i++) {
+    if (1<=nx && NX[1]<a[i]) {
+      a[i]=NX[1];
+      if (nl<0) nl=i;
+      nr=i;
+    }
+    s+=a[i];
+    if (s>=md) s-=md;
+  }
+  r=s;
+  for (i=1; i<h; i++) {
+    if (h-i<=mx) {
+      if (ml<mr) s=(s+md-((mr-ml-1LL)*(MX[h-i+1]-MX[h-i]))%md)%md;
+      for (; mr<w && (a[mr]>MX[h-i] || (nl<=mr && mr<=nr && MX[h-i]<NX[i+1])); mr++) {
+        if (nl<=mr && mr<=nr && MX[h-i]<NX[i+1]) s-=NX[i]; else s-=a[mr];
+        if (s<0) s+=md;
+        a[mr]=MX[h-i];
+        s+=a[mr]; if (s>=md) s-=md;
+      }
+      for (; ml>=0 && (a[ml]>MX[h] || (nl<=ml && ml<=nr && MX[h-i]<NX[i+1])); ml--) {
+        if (nl<=ml && ml<=nr && MX[h-i]<NX[i+1]) s-=NX[i]; else s-=a[ml];
+        if (s<0) s+=md;
+        a[ml]=MX[h-i];
+        s+=a[ml]; if (s>=md) s-=md;
+      }
+    }
+    if (nl<=nr) {
+      if (i+1<=nx) {
+        for (; nl<=nr && ((ml<nl && nl<mr && a[nl]<NX[i+1]) || b[nl]<NX[i+1]); nl++)
+          if (!(ml<nl && nl<mr && a[nl]<NX[i+1])) {
+            s-=a[nl]; if (s<0) s+=md;
+            a[nl]=b[nl];
+            s+=a[nl]; if (s>=md) s-=md;
+          }
+        for (; nl<=nr && ((ml<nr && nr<mr && a[nr]<NX[i+1]) || b[nr]<NX[i+1]); nr--)
+          if (!(ml<nr && nr<mr && a[nr]<NX[i+1])) {
+            s-=a[nr]; if (s<0) s+=md;
+            a[nr]=b[nr];
+            s+=a[nr]; if (s>=md) s-=md;
+          }
+        if (nl<=nr) s=(s+(nr-nl+1LL)*(NX[i+1]-NX[i]))%md;
+      } else {
+        for (j=nl; j<=nr; j++) {
+          s-=a[j]; if (s<0) s+=md;
+          a[j]=b[j];
+          s+=a[j]; if (s>=md) s-=md;
+        }
+        nl=-1; nr=-2;
+      }
+    }
+    r+=s;
+    if (r>=md) r-=md;
+  }
+  printf("%d\n",r);
+  return 0;
+}

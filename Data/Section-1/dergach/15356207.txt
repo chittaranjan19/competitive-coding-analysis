@@ -1,0 +1,92 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <fstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+#include <stack>
+#include <bitset>
+using namespace std;
+
+typedef long long ll;
+typedef long long ull;
+#define pi acos(-1.0)
+#define eps 1e-7
+#define start 131072
+#define LINF 1000000000000000000LL
+#define pi acos(-1.0)
+
+class point
+{
+public:
+    double x, y, z;
+    point(double _x = 0.0, double _y = 0.0, double _z = 0.0) : x(_x), y(_y), z(_z) {}
+    double operator*(const point &p)
+    {
+        return x * p.x + y * p.y + z * p.z;
+    }
+    point operator%(const point &p)
+    {
+        return point(0, 0, x * p.y - y * p.x);
+    }
+    double operator~()
+    {
+        return sqrt(x * x + y * y + z * z);
+    }
+    point operator-(point p2)
+    {
+        return point(x - p2.x, y - p2.y, z - p2.z);
+    }
+};
+
+class segment
+{
+public:
+    point p1, p2;
+    segment(point _p1, point _p2) : p1(_p1), p2(_p2) {}
+    double distToPoint(point p)
+    {
+        if((p - p1) * (p2 - p1) >= 0 && (p - p2) * (p1 - p2) >= 0)
+        {
+            return ~((p - p1) % (p2 - p1)) / ~(p2 - p1);
+        }
+        else
+        {
+            return min(~(p - p1), ~(p - p2));
+        }
+    }
+};
+
+point a[100005];
+
+int main()
+{
+    int n, x, y;
+    cin >> n >> x >> y;
+    point center(x, y);
+    for(int i = 0; i < n; i++)
+    {
+        scanf("%d %d", &x, &y);
+        a[i] = point(x, y);
+    }
+    double minv = 1e99;
+    double maxv = -1e99;
+    for(int i = 0; i < n; i++)
+    {
+        segment s(a[i], a[(i+1)%n]);
+        minv = min(minv, s.distToPoint(center));
+        maxv = max(maxv, s.distToPoint(center));
+        maxv = max(maxv, ~(a[i] - center));
+    }
+    printf("%.9lf\n", acos(-1.0) * (maxv * maxv - minv * minv));
+    return 0;
+}

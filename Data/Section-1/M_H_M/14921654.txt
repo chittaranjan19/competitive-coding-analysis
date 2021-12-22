@@ -1,0 +1,83 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<ll, ll> pii;
+typedef pair<pii, ll> piii;
+
+const int N = 200 * 1000 + 100;
+const ll oo = 1e12;
+
+ll n, m, k, s;
+pii mn[2][N];
+ll t[N], c[N];
+piii g[N];
+
+bool isval(int x){
+	for(int i = 0; i < m; ++i){
+		g[i].Y = i;
+		g[i].X = {c[i] * mn[t[i]][x].X, mn[t[i]][x].Y};
+	}	
+	sort(g, g + m);
+	ll sum = 0;
+	for(int i = 0; i < k; ++i)
+		sum += g[i].X.X;
+	if(sum <= s) return true;
+	return false;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m >> k >> s;
+	mn[0][0] = mn[1][0] = {oo, oo};
+	for(ll i = 1; i <= n; ++i){
+		ll t; cin >> t;
+		mn[0][i] = min(MP(t, i), mn[0][i - 1]);
+	}
+	for(ll i = 1; i <= n; ++i){
+		ll t; cin >> t;
+		mn[1][i] = min(MP(t, i), mn[1][i - 1]);
+	}
+	for(int i = 0; i < m; ++i){
+		cin >> t[i] >> c[i];
+		t[i] --;
+	}
+	int down = 0, up = n + 1;
+	while(up - down > 1){
+		int mid = (down + up) / 2;
+		if(isval(mid))
+			up = mid;
+		else
+			down = mid;
+	}
+	if(up == n + 1){
+		cout << "-1\n";
+		return 0;
+	}
+	isval(up);
+	cout << up << "\n";
+	for(int i = 0; i < k; ++i){
+		cout << g[i].Y + 1 << " " << g[i].X.Y << "\n";
+	}
+	return 0;
+}

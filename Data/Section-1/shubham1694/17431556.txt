@@ -1,0 +1,85 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 200010;
+
+vector<int> adj[maxn];
+int req[maxn], dist[maxn], sub[maxn], ecnt[maxn], n, m;
+
+void dfs1(int cur, int p, int d)
+{
+	dist[cur] = d;
+	for(int it:adj[cur]){
+		if(it!=p){
+			dfs1(it, cur, d+1);
+		}
+	}
+}
+
+void dfs2(int cur, int p)
+{
+	sub[cur] = req[cur];
+	for(int it:adj[cur]){
+		if(it!=p){
+			dfs2(it, cur);
+			if(sub[it]){
+				sub[cur]+=sub[it];
+				ecnt[cur] += (1+ecnt[it]);
+			}
+		}
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int u, v, i, j, md, ind, st, en;
+	scanf("%d%d", &n, &m);
+	for(i=1; i<n; i++){
+		scanf("%d%d", &u, &v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	for(i=1; i<=m; i++){
+		scanf("%d", &j);
+		req[j] = 1;
+	}
+	dfs1(j, 0, 0);
+	md = 0;
+	st = j;
+	for(i=1; i<=n; i++){
+		if(req[i] && md<dist[i]){
+			md = dist[i];
+			st = i;
+		}
+	}
+	dfs1(st, 0, 0);
+	md = 0;
+	en = j;
+	for(i=1; i<=n; i++){
+		if(req[i] && md<dist[i]){
+			md = dist[i];
+			en = i;
+		}
+	}
+	dfs2(st, 0);
+	int ans = ecnt[st]*2 - md;
+	//cout << st << " " << ecnt[st] << " " << md << "\n";
+	printf("%d\n%d\n", st, ans);
+	return 0;
+}

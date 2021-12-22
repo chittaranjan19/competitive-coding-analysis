@@ -1,0 +1,100 @@
+#include <iostream>
+#include <cstring>
+#include <queue>
+#include <vector>
+
+using namespace std;
+
+typedef pair<int, int> pii;
+
+int n, k;
+
+int coins[505];
+int dp[505][505]; // dp[i][j] = make j using up to and including ith coin 
+vector<pii> par[505][505];
+bool possible[505];
+
+void dfs(int i, int j, bool res[505], int depth) {
+	//for (int z = 0; z < depth; z++) cerr << " ";
+	//cerr << "visit: " << i << "=" << coins[i] << " " << j << endl;
+
+	for (int z = 0; z <= k; z++) res[z] = false;
+	res[0] = true;
+	if (i < n && coins[i] <= k) {
+		res[coins[i]] = true;
+	}
+
+	bool buf[505];
+	for (int z = 0; z < i; z++) {
+		if (j - coins[z] >= 0 && dp[z][j - coins[z]] == 1) {
+			dfs(z, j - coins[z], buf, depth+1);
+			for (int y = 0; y <= k; y++) {
+				if (buf[y]) {
+					res[y] = true;
+					if (i < n && y + coins[i] <= k) {
+						res[y + coins[i]] = true;
+					}
+				}
+			}
+		}
+	}
+
+	//for (int z = 0; z < depth; z++) cerr << " ";
+	//for (int z = 0; z <= k; z++) cerr << res[z]; cerr << endl;
+}
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	cin >> n >> k;
+	for (int i = 0; i < n; i++) {
+		cin >> coins[i];
+	}
+
+	memset(dp, 0, sizeof dp);
+
+	dp[0][0] = 1;
+	dp[0][coins[0]] = 1;
+
+	for (int i = 1; i < n; i++) {
+		for (int j = 0; j <= k; j++) {
+			// try not using
+			if (dp[i-1][j] == 1) {
+				dp[i][j] = 1;
+				par[i][j].push_back(pii(i-1, j));
+			}
+
+			// try using
+			if (j - coins[i] >= 0 && dp[i-1][j - coins[i]] == 1) {
+				dp[i][j] = 1;
+				par[i][j].push_back(pii(i-1, j - coins[i]));
+			}
+		}
+	}
+
+	/*
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j <= k; j++) cerr << dp[i][j] << " ";
+		cerr << endl;
+	}
+	*/
+
+	// do the knapsack dp over tree
+	dfs(n, k, possible, 0);
+
+	vector<int> sol;
+	for (int i = 0; i <= k; i++) {
+		if (possible[i]) sol.push_back(i);
+	}
+
+	cout << sol.size() << endl;
+	for (int i = 0; i < sol.size(); i++) {
+		if (i > 0) cout << " ";
+		cout << sol[i];
+	}
+	cout << endl;
+
+	return 0;
+
+}

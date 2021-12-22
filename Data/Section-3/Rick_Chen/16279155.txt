@@ -1,0 +1,92 @@
+#include<cstdio>
+#include<cstring>
+#include<algorithm>
+#define ll long long
+#define MAXN 1000005
+#define PI 3.1415926535897932384626433832795
+using namespace std;
+
+struct point{
+	int l,r;
+	ll maxv;
+}tree[MAXN*4];
+
+struct node{
+	ll r,h,v;
+	int i;
+}cake[MAXN];
+
+int num[MAXN];
+ll dp[MAXN];
+
+bool cmp(node a,node b)
+{
+	return a.v<b.v;
+}
+
+void build(int t,int l,int r)
+{
+	tree[t].l=l;
+	tree[t].r=r;
+	tree[t].maxv=0;
+	if(l==r) return;
+	int mid=(l+r)/2;
+	build(2*t,l,mid);
+	build(2*t+1,mid+1,r);
+}
+
+void updata(int t,int v,ll c)
+{
+	int lc=tree[t].l;
+	int rc=tree[t].r;
+	if(lc==rc)
+	{
+ 		tree[t].maxv=c;
+ 		return;
+	}
+	int mid=(lc+rc)/2;
+	if(v<=mid) updata(t*2,v,c);
+	else updata(2*t+1,v,c);
+	tree[t].maxv=max(tree[t].maxv,c);
+}
+
+ll query(int t,int l,int r)
+{
+	int lc=tree[t].l;
+	int rc=tree[t].r;
+	if(lc>=l&&rc<=r) return tree[t].maxv;
+	int mid=(lc+rc)/2;
+	if(r<=mid) return query(2*t,l,r);
+	else if(l>mid) return query(2*t+1,l,r);
+	else return max(query(2*t,l,mid),query(2*t+1,mid+1,r));
+}
+
+int main()
+{
+	int n,i;
+	while(~scanf("%d",&n))
+	{
+		memset(dp,0,sizeof(dp));
+		for(i=1;i<=n;i++)
+		{
+			scanf("%d%d",&cake[i].r,&cake[i].h);
+			cake[i].v=cake[i].r*cake[i].r*cake[i].h;
+			cake[i].i=i;
+		}
+		sort(cake+1,cake+n+1,cmp);
+		int inc=0;
+		for(i=1;i<=n;i++)
+			if(cake[i].v!=cake[i-1].v) num[cake[i].i]=++inc;
+			else num[cake[i].i]=inc;
+		build(1,1,inc);
+		ll ans=0;
+		for(i=1;i<=n;i++)
+		{
+			dp[i]=query(1,1,num[i])+cake[i].v;
+			updata(1,num[i],dp[i]);
+			ans=max(ans,dp[i]);
+		}
+		printf("%.8lf\n",ans*PI);
+	}
+	return 0;
+}

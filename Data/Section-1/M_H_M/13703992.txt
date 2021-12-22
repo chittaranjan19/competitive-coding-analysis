@@ -1,0 +1,98 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+#define PB push_back
+#define MP make_pair
+#define X first
+#define Y second
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+
+const int N = 100 * 1000 + 100;
+
+struct Seg{
+	int seg[4 * N];
+	int lazy[4 * N];
+	void shift(int v, int s, int e){
+		if(lazy[v] == -1) return;
+		int mid = (s + e) / 2;
+		seg[2 * v + 0] = (mid - s) * lazy[v];
+		seg[2 * v + 1] = (e - mid) * lazy[v];
+		lazy[2 * v + 0] = lazy[v];
+		lazy[2 * v + 1] = lazy[v];
+		lazy[v] = -1;
+	}
+	void update(int v, int s, int e, int l, int r, int val){
+		if(r <= s || e <= l) return;
+		if(l <= s && e <= r){
+			seg[v] = (e - s) * val;
+			lazy[v] = val;
+			return;
+		}
+		int mid = (s + e) / 2;
+		shift(v, s, e);
+		update(2 * v + 0, s, mid, l, r, val);
+		update(2 * v + 1, mid, e, l, r, val);
+		seg[v] = seg[2 * v + 0] + seg[2 * v + 1];
+	}
+	int get(int v, int s, int e, int l, int r){
+		if(r <= s || e <= l) return 0;
+		if(l <= s && e <= r) return seg[v];
+		int mid = (s + e) / 2;
+		shift(v, s, e);
+		return get(2 * v + 0, s, mid, l, r) + get(2 * v + 1, mid, e, l, r);
+	}
+};
+
+int n, q;
+string s;
+Seg a[26];
+int tmp[26];
+
+int main(){
+	freopen("input.txt", "r", stdin);
+	freopen("output.txt", "w", stdout);
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> q;
+	cin >> s;
+	for(int i = 0; i < 26; ++i)
+		memset(a[i].lazy, -1, sizeof(a[i].lazy));
+	for(int i = 0; i < n; ++i)
+		a[s[i] - 'a'].update(1, 0, n, i, i + 1, 1);
+	for(int i = 0; i < q; ++i){
+		int l, r;
+		cin >> l >> r;
+		l --;
+		int t = 0, tx = 0;
+		for(int j = 0; j < 26; ++j){
+			tmp[j] = a[j].get(1, 0, n, l, r);
+			a[j].update(1, 0, n, l, r, 0);
+			if(tmp[j] % 2){ 
+				t++;
+				tx = j;
+			}
+		}
+		if(t > 1) continue;
+		if(t == 1 && (r - l) % 2 == 0 ) continue;
+		if(t == 1) a[tx].update(1, 0, n, l + (r - l) / 2, l + (r - l + 1) / 2, 1), tmp[tx] --;
+		for(int j = 0; j < 26; ++j){
+			a[j].update(1, 0, n, l, l + tmp[j] / 2, 1);
+			a[j].update(1, 0, n, r - tmp[j] / 2, r, 1);
+			l += tmp[j] / 2;
+			r -= tmp[j] / 2;
+		}
+	}
+	for(int i = 0; i < n; ++i){
+		for(int j = 0; j < 26; ++j){
+			if(a[j].get(1, 0, n, i, i + 1)){
+				char ch = 'a' + j;
+				cout << ch;
+			}
+		}
+	}
+	cout << "\n";
+	return 0;
+}

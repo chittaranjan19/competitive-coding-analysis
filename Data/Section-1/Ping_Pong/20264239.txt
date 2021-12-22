@@ -1,0 +1,59 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const int N = 100000;
+const int inf = (int)1e9;
+const int MOD = (int)1e9 + 7;
+const ld eps = 1e-6;
+const int ABC = 26;
+const int P = 239;
+
+int main()
+{
+    //freopen("point.in", "r", stdin);
+    //freopen("point.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.precision(20);
+    int n, m;
+    cin >> n >> m;
+    vector<vector<int> > a(n);
+    for (int i = 0; i < n; i++)
+    {
+        int k;
+        cin >> k;
+        a[i].resize(k + 1, 0);
+        vector<int> b(k);
+        for (int j = 0; j < k; j++)
+            cin >> b[j];
+        for (int j = 1; j <= k; j++)
+        {
+            int s = 0;
+            for (int l = 0; l < j; l++)
+                s += b[l];
+            a[i][j] = max(a[i][j], s);
+            for (int l = j - 1; l >= 0; l--)
+            {
+                s -= b[l];
+                s += b[k - 1 - (j - 1 - l)];
+                a[i][j] = max(a[i][j], s);
+            }
+        }
+    }
+    int dp[n + 1][m + 1];
+    for (int i = 0; i <= n; i++)
+        for (int j = 0; j <= m; j++)
+            dp[i][j] = -inf;
+    dp[0][0] = 0;
+    for (int i = 1; i <= n; i++)
+        for (int j = 0; j <= m; j++)
+            for (int k = 0; k < a[i - 1].size(); k++)
+                if (j - k >= 0 && a[i - 1][j - k] != -inf)
+                    dp[i][j] = max(dp[i][j], dp[i - 1][j - k] + a[i - 1][k]);
+    cout << dp[n][m] << endl;
+    return 0;
+}

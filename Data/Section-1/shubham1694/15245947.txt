@@ -1,0 +1,112 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 3010;
+const ll a = 141;
+
+char s[maxn], t[maxn];
+ll thash[maxn][maxn], pa[maxn];
+map<pair<int, ll>,  int> f, b;
+int n, m, cut[maxn], len[maxn], dp[maxn];
+
+int solve(int cur)
+{
+    if(cur==m+1)
+        return 0;
+    if(dp[cur]!=-1)
+        return dp[cur];
+    int i, ret=inf, x;
+    for(i=cur; i<=m; i++){
+        if(f.find(mp(i-cur+1, thash[cur][i]))!=f.end()){
+            x = 1 + solve(i+1);
+            if(x < ret){
+                ret = x;
+                cut[cur] = f[mp(i-cur+1, thash[cur][i])];
+                len[cur] = i-cur+1;
+            }
+        }
+        if(b.find(mp(i-cur+1, thash[cur][i]))!=b.end()){
+            x = 1 + solve(i+1);
+            if(x < ret){
+                ret = x;
+                cut[cur] = -b[mp(i-cur+1, thash[cur][i])];
+                len[cur] = i-cur+1;
+            }
+        }
+    }
+    return dp[cur] = ret;
+}
+
+void prn(int cur)
+{
+    if(cur==m+1)
+        return;
+    int s, e;
+    if(cut[cur]<0){
+        s = -cut[cur];
+        e = s-len[cur]+1;
+    }
+    else{
+        s = cut[cur];
+        e = cut[cur]+len[cur]-1;
+    }
+    printf("%d %d\n", s, e);
+    prn(cur+len[cur]);
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int i, j;
+    ll hash;
+    pa[0] = 1;
+    for(i=1; i<maxn; i++)
+        pa[i] = (pa[i-1]*a)%mod;
+    scanf("%s%s", s+1, t+1);
+    n = strlen(s+1);
+    m = strlen(t+1);
+    memset(dp, -1, sizeof(dp));
+    for(i=1; i<=m; i++){
+        thash[i][i] = (pa[1]*1ll*(t[i]-'a'+1))%mod;
+        for(j=i+1; j<=m; j++){
+            thash[i][j] = (thash[i][j-1] + pa[j-i+1]*1ll*(t[j]-'a'+1))%mod;
+        }
+    }
+    for(i=1; i<=n; i++){
+        hash = 0;
+        for(j=i; j<=n; j++){
+            hash = (hash + pa[j-i+1]*1ll*(s[j]-'a'+1))%mod;
+            f[mp(j-i+1, hash)] = i;
+        }
+    }
+    for(i=n; i>=1; i--){
+        hash = 0;
+        for(j=i; j>=1; j--){
+            hash = (hash + pa[i-j+1]*1ll*(s[j]-'a'+1))%mod;
+            b[mp(i-j+1, hash)] = i;
+        }
+    }
+    int ans = solve(1);
+    if(ans>=inf){
+        printf("-1\n");
+        return 0;
+    }
+    printf("%d\n", ans);
+    prn(1);
+    return 0;
+}

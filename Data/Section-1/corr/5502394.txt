@@ -1,0 +1,116 @@
+#include<cstdio>
+#include<cstring>
+#include<cstdlib>
+#include<cctype>
+
+#include<cmath>
+#include<iostream>
+#include<iomanip>
+#include<fstream>
+
+#include<string>
+#include<utility>
+#include<vector>
+#include<list>
+#include<queue>
+#include<map>
+#include<algorithm>
+#include<set>
+#include<sstream>
+#include<stack>
+
+#define ii long long int
+#define pi 2*acos(0.0)
+#define eps 1e-9
+#define mem(x,y) memset(x,y,sizeof(x))
+#define all(x) x.begin(), x.end()
+#define pb push_back
+#define sz(a) (int)a.size()
+#define inf 2147483640
+
+#define mx 1000010
+#define off 0
+#define on 1
+
+using namespace std;
+
+const int debug= 0;
+int a[mx],cnt[2097200];
+bool state[mx],s[mx];
+
+void insert(int i,int j,int pos,int place,int val);
+bool del(int i,int j,int pos,int place);
+
+int main()
+{
+	//freopen("in.txt","r",stdin);
+	//freopen("out.txt","w",stdout);
+	int n,m;
+	while (scanf("%d%d",&n,&m)==2)
+	{
+		int i,q,j,last=0;
+		mem(state,off);
+		mem(cnt,0);
+		for (i=1;i<=m;++i) scanf("%d",&a[i]);
+		for (i=1;i<=n;++i)
+		{
+			scanf("%d",&q);
+			if (q==-1)
+			{
+				for (j=1;j<=m;++j)
+				{
+					if (!del(1,n,1,a[j]-j+1)) break;
+				}
+				if (debug) puts("--");
+			}
+			else
+			{
+				insert(1,n,1,++last,q);
+			}
+		}
+		
+		if (!cnt[1]) puts("Poor stack!");
+		else
+		{
+			for (i=1;i<=n;++i) if (state[i]==on) cout<<s[i];
+			puts("");
+		}
+		
+		if (debug) puts("--------------");
+	}
+	
+	return 0;	
+}
+
+bool del(int i,int j,int pos,int place)
+{
+	if (cnt[pos]<place) return 0;
+	if (i==j)
+	{
+		if (debug) cout<<"del from "<<i<<endl;
+		state[i]=off;
+		cnt[pos]=0;
+		return 1;
+	}
+	int mid=(i+j)>>1,l=pos<<1,r=l+1;
+	if (cnt[l]>=place) del(i,mid,l,place);
+	else del(mid+1,j,r,place-cnt[l]);
+	cnt[pos]=cnt[l]+cnt[r];
+	return 1;
+}
+
+void insert(int i,int j,int pos,int place,int val)
+{
+	if (i==j)
+	{
+		state[i]=on;
+		s[i]=val;
+		cnt[pos]=1;
+		return;
+	}
+	int mid=(i+j)>>1,l=pos<<1,r=l+1;
+	if (place<=mid) insert(i,mid,l,place,val);
+	else insert(mid+1,j,r,place,val);
+	
+	cnt[pos]=cnt[l]+cnt[r];
+}

@@ -1,0 +1,104 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-12
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+pair<pair<int, int>, int> arr[200005];
+int cnt[200005], sq;
+map<int, int> m;
+int res[200005];
+vector<int> g[400005];
+
+bool sorter(pair<pair<int, int>, int> a, pair<pair<int, int>, int> b)
+{
+  if(a.f.f / sq == b.f.f / sq) return a.f.s < b.f.s;
+  return a.f.f / sq < b.f.f / sq;
+}
+
+inline int add(int x)
+{
+  int res = 0;
+  for(int y : g[x])
+  {
+    cnt[y]++;
+    if(cnt[y] == 2)
+      res++;
+  }
+  return res;
+}
+
+inline int rem(int x)
+{
+  int res = 0;
+  for(int y : g[x])
+  {
+    if(cnt[y] == 2)
+      res--;
+    cnt[y]--;
+  }
+  return res;
+}
+
+int main()
+{
+  int n, x, y;
+  cin >> n;
+  vector<int> v, tmp;
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d %d", &arr[i].f.f, &arr[i].f.s);
+    arr[i].s = i;
+    v.pb(arr[i].f.f);
+    v.pb(arr[i].f.s);
+  }
+  sort(v.begin(), v.end());
+  for(int i=0;i<v.size();i++)
+  {
+    if(i && v[i] == v[i - 1]) continue;
+    tmp.pb(v[i]);
+  }
+  v = tmp;
+  for(int i=0;i<v.size();i++)
+    m[v[i]] = i;
+  for(int i=0;i<n;i++)
+  {
+    arr[i].f.f = m[arr[i].f.f];
+    arr[i].f.s = m[arr[i].f.s];
+    g[arr[i].f.f].pb(i);
+    g[arr[i].f.s].pb(i);
+  }
+  sq = sqrt(v.size()) + EPS;
+  sort(arr, arr + n, sorter);
+  int L = 0, R = 0, ans = 0;
+  ans = add(0);
+  for(int i=0;i<n;i++)
+  {
+    while(L < arr[i].f.f)
+      ans += rem(L++);
+    while(L > arr[i].f.f)
+      ans += add(--L);
+    while(R < arr[i].f.s)
+      ans += add(++R);
+    while(R > arr[i].f.s)
+      ans += rem(R--);
+    res[arr[i].s] = ans;
+  }
+  for(int i=0;i<n;i++)
+    printf("%d\n", res[i] - 1);
+  return 0;
+}

@@ -1,0 +1,111 @@
+program array_and_operation;
+
+const
+  tfi = '';//'489c.inp';
+  tfo = '';//'489c.out';
+
+var
+  n,m,res : longint;
+  head,c : array [1..100] of longint;
+  adj,next : array [-100..100] of longint;
+  m1,m2,p : array [1..100,1..30] of longint;
+  dd : array [1..100,1..30] of boolean;
+  fi,fo : text;
+
+procedure extract(i,x : longint);
+  var j : longint;
+  begin
+    j := 1;
+    while j <= trunc(sqrt(x)) do
+      begin
+        inc(j);
+        while x mod j = 0 do
+          begin
+            inc(c[i]);
+            p[i,c[i]] := j;
+            x := x div j;
+          end;
+      end;
+    if x > 1 then
+      begin
+        inc(c[i]);
+        p[i,c[i]] := x;
+      end;
+  end;
+
+procedure add(i,x,y : longint);
+  begin
+    adj[i] := y;
+    next[i] := head[x];
+    head[x] := i;
+  end;
+
+procedure input;
+  var i,x,y : longint;
+  begin
+    assign(fi,tfi);
+    reset(fi);
+    read(fi,n,m);
+    for i := 1 to n do
+      begin
+        read(fi,x);
+        extract(i,x);
+      end;
+    for i := 1 to m do
+      begin
+        read(fi,x,y);
+        add( i,x,y);
+        add(-i,y,x);
+      end;
+    close(fi);
+  end;
+
+function match(u,x : longint) : boolean;
+  var v,y,j : longint;
+  begin
+    if dd[u,x] then exit(false);
+    dd[u,x] := true;
+    j := head[u];
+    while j <> 0 do
+      begin
+        v := adj[j];
+        for y := 1 to c[v] do
+          begin
+            if p[v,y] > p[u,x] then break;
+            if (p[u,x] = p[v,y]) and (m1[v,y] = 0) or match(m1[v,y],m2[v,y]) then
+              begin
+                m1[v,y] := u;
+                m2[v,y] := x;
+                exit(true);
+              end;
+          end;
+        j := next[j];
+      end;
+    exit(false);
+  end;
+
+procedure process;
+  var i,j : longint;
+  begin
+    for i := 1 to n do
+      if odd(i) then
+        for j := 1 to c[i] do
+          begin
+            fillchar(dd,sizeof(dd),0);
+            if match(i,j) then inc(res);
+          end;
+  end;
+
+procedure output;
+  begin
+    assign(fo,tfo);
+    rewrite(fo);
+    write(fo,res);
+    close(fo);
+  end;
+
+begin
+  input;
+  process;
+  output;
+end.

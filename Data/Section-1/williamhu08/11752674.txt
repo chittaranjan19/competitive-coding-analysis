@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 100010;
+
+int N, M, K;
+int deg[MAXN], want[MAXN];
+bool A[MAXN], vis[MAXN];
+vector<int> adj[MAXN];
+vector<int> ans;
+
+void dfs (int x) {
+	vis[x] = true;
+	for (int t : adj[x]) {
+		if (!A[t]) {
+			if ((--deg[t]) < want[t] && !vis[t]) {
+				dfs(t);
+			}
+		}
+	}
+}
+
+bool moo (double g, bool isans) {
+	fillchar(vis, false);
+	for (int i = 1; i <= N; i++) {
+		want[i] = ceil(g * adj[i].size());
+		deg[i] = 0;
+		for (int x : adj[i]) {
+			deg[i] += !A[x];
+		}
+	}
+	for (int i = 1; i <= N; i++) {
+		if (A[i]) {
+			continue;
+		}
+		if (deg[i] < want[i] && !vis[i]) {
+			//remove it, and neighbors...
+			dfs(i);
+		}
+	}
+	//choose the subset now
+	for (int i = 1; i <= N; i++) {
+		if (!vis[i] && !A[i]) {
+			//then its ok
+			if (isans) {
+				ans.push_back(i);
+			} else {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d %d", &N, &M, &K);
+	//can we make it such that all strengths >= this number
+	for (int i = 0, x; i < K; i++) {
+		scanf("%d", &x);
+		A[x] = true;
+	}
+	for (int i = 0, x, y; i < M; i++) {
+		scanf("%d %d", &x, &y);
+		adj[x].push_back(y);
+		adj[y].push_back(x);
+	}
+	double lo = 0, hi = 1;
+	while (hi - lo > 1e-15) {
+		double mid = (lo + hi) / 2;
+		if (moo(mid, false)) {
+			lo = mid;
+		} else {
+			hi = mid;
+		}
+	}
+	moo(lo, true);
+	printf("%d\n", int(ans.size()));
+	for (int x : ans) {
+		printf("%d ", x);
+	}
+}

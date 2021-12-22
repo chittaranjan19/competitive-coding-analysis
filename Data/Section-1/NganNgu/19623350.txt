@@ -1,0 +1,95 @@
+#include <iostream> 
+#include <cstdio>
+#include <map>
+#include <algorithm>
+
+using namespace std;
+
+#define For(i , a , b) for (int i = a , _b = b ; i <= _b ; ++i)
+#define Ford(i , a  ,b) for (int i = a , _b = b : i >= _b ; --i)
+#define Rep(i , n) for (int i = 0 , _n = n ; i < _n ; ++i)
+#define sz(A) ((int)A.size())
+#define LL(x) (x << 1)
+#define RR(x) ((x << 1) | 1)
+
+typedef pair<int , int> pt;
+
+const int maxn = 1000000 + 123;
+int n , a[maxn];
+
+struct query{
+	int l , r , id;
+
+	bool operator < (const query &b) const {
+		if (r == b.r) return l < b.l;
+		return r < b.r;
+	}
+} q[maxn];
+int Q;
+map<int , int> last;
+int sum[maxn];
+
+void ReadData() {
+	cin >> n; For(i , 1 , n) cin >> a[i]; 
+	cin >> Q; 
+	For(i , 1 , Q) {
+		cin >> q[i].l >> q[i].r; q[i].id = i;
+	}
+	sort(q + 1 , q + 1 + Q);
+	For(i , 1 , n) sum[i] = sum[i - 1] ^ a[i];
+}
+
+struct SegmentTree{
+	int l[maxn * 4] , h[maxn * 4], it[maxn * 4] , leaf[maxn];
+
+	void init(int x , int L , int R) {
+		l[x] = L; h[x] = R;
+		if (L == R) leaf[L] = x; else {
+			int mid = (L + R) >> 1; init(LL(x) , L , mid); init(RR(x) , mid + 1 , R);
+		}
+	}
+	void update(int x , int val) {
+		x = leaf[x]; 
+		it[x] = val; 
+		while (true) {
+			x >>= 1; if (!x) break; it[x] = it[LL(x)] ^ it[RR(x)];
+		}
+	}
+	int get(int x , int u , int v ) {
+		if (l[x] > v || h[x] < u) return 0;
+		if (u <= l[x] && h[x] <= v) return it[x]; 
+		return get(LL(x) , u , v) ^ get(RR(x) , u , v);
+	}
+} tree; 
+
+int res[maxn];
+
+void Process() {
+	int j = 1;
+	tree.init(1 , 1 , n);
+	For(i , 1 , n) {
+		int k = last[a[i]]; 
+		if (k) {
+			tree.update(k , 0);
+		}
+		last[a[i]] = i; tree.update(i , a[i]);
+		while (j <= Q && q[j].r == i) {
+			res[q[j].id] = (sum[q[j].r] ^ sum[q[j].l - 1]) ^ tree.get(1 , q[j].l , q[j].r );
+			j++;
+		}
+	}
+
+	For(i , 1 , Q) cout << res[i] << "\n";
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	
+	//freopen("input.inp" , "r" , stdin);
+	ReadData();
+	Process();
+
+	return 0;
+
+}			

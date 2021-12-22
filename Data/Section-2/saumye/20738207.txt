@@ -1,0 +1,117 @@
+#include <bits/stdc++.h>
+#define maxn 50005
+
+using namespace std;
+
+char str[maxn];
+int cnt[28][maxn];
+int marks[maxn];
+
+int cont(int j, int l, int r)
+{
+	if ( l > 0 )
+	{
+		return cnt[j][r] - cnt[j][l - 1];
+	}
+	else
+	{
+		return cnt[j][r];
+	}
+}
+int main()
+{
+	int n, i;
+	scanf("%s", str);
+	n = strlen(str);
+	if ( n < 26 )
+	{
+		printf("-1\n");
+	}
+	else
+	{
+		if ( str[0] != '?' )
+			cnt[str[0] - 'A'][0] = 1;
+		else
+			marks[0] = 1;
+		for ( i = 1 ; i < n ; i ++ )
+		{
+			for ( int  j = 0 ; j < 26 ; j++ )
+			{
+				if ( str[i] != '?' && j == (int)(str[i] - 'A') )
+				{
+					cnt[j][i] = cnt[j][i - 1] + 1;
+				}
+				else
+				{
+					cnt[j][i] = cnt[j][i - 1];
+				}
+			}
+		}
+		for ( i = 1 ; i < n ; i++ )
+		{
+			if ( str[i] == '?' )
+			{
+				marks[i] = marks[i - 1] + 1;
+			}
+			else
+			{
+				marks[i] = marks[i - 1];
+			}
+		}
+		bool exists = true;
+		for ( i = 0 ; i <= n - 26 ; i++ )
+		{
+			exists = true;
+			for ( int j = 0 ; j < 26 ; j++ )
+			{
+				if ( cont(j, i, i + 25) > 1 )
+				{
+					exists = false;
+				}
+			}
+			if ( exists )
+			{
+				//print and break
+				char ans[28];
+				int k = 0;
+				bool pres[28];
+				queue<char> absent;
+				memset(pres, 0, sizeof pres);
+				for ( int j = i ; j <= i + 25 ; j++ )
+				{
+					if ( str[j] != '?' )
+					{
+						pres[str[j] - 'A'] = 1;
+					}
+				}
+				for ( int j = 0 ; j < 26 ; j++ )
+				{
+					if ( !pres[j] )
+					{
+						absent.push((char)(j + 'A'));
+					}
+				}
+				for ( int j = i ; j <= i + 25 ; j ++ )
+				{
+					if ( str[j] != '?' )
+					{
+						ans[k++] = str[j];
+					}
+					else
+					{
+						ans[k++] = absent.front();
+						absent.pop();
+					}
+				}
+				ans[k] = '\0';
+				printf("%s\n", ans);
+				break;
+			}
+		}
+		if ( !exists )
+		{
+			printf("-1\n");
+		}
+	}
+	return 0;
+}

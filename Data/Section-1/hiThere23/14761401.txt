@@ -1,0 +1,88 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 200100
+#define maxC 1000000007
+#define mp make_pair
+#define F first
+#define S second
+#define p2 pair<int, int>
+#define pb push_back
+
+using namespace std;
+int h, w, n, r1 = 2, r2 = 2, nodeH[mn], nodeV[mn], bestH = 0, bestV = 0;
+int query[mn], nexH[mn], nexV[mn], preH[mn], preV[mn];
+long long ans[mn];
+
+void setup ()
+{
+    char c;
+    cin >> w >> h >> n;
+    nodeH[1] = nodeV[1] = 0;
+    nodeH[2] = w, nodeV[2] = h;
+    FOR(i, 1, n)
+    {
+        cin >> c >> query[i];
+        if (c == 'H')
+            nodeV[++ r1] = query[i];
+        else
+        {
+            nodeH[++ r2] = query[i];
+            query[i] *= -1;
+        }
+    }
+}
+
+void chuanbi()
+{
+    sort(nodeV + 1, nodeV + r1 + 1);
+    sort(nodeH + 1, nodeH + r2 + 1);
+    FOR(i, 1, r1)
+    {
+        nexV[nodeV[i]] = nodeV[i + 1], preV[nodeV[i]] = nodeV[i - 1];
+        bestV = max(bestV, nodeV[i + 1] - nodeV[i]);
+    }
+    FOR(i, 1, r2)
+    {
+        nexH[nodeH[i]] = nodeH[i + 1], preH[nodeH[i]] = nodeH[i - 1];
+        bestH = max(bestH, nodeH[i + 1] - nodeH[i]);
+    }
+}
+
+void query1(int x)
+{
+    ans[x] = 1ll * bestH * bestV;
+    preV[nexV[query[x]]] = preV[query[x]];
+    nexV[preV[query[x]]] = nexV[query[x]];
+    bestV = max(bestV, nexV[query[x]] - preV[query[x]]);
+}
+
+void query2(int x)
+{
+    ans[x] = 1ll * bestH * bestV;
+    preH[nexH[- query[x]]] = preH[- query[x]];
+    nexH[preH[- query[x]]] = nexH[- query[x]];
+    bestH = max(bestH, nexH[- query[x]] - preH[- query[x]]);
+}
+
+void xuly ()
+{
+    FORD(i, n, 1)
+    if (query[i] > 0)
+        query1(i);
+    else
+        query2(i);
+    FOR(i, 1, n)
+        cout << ans[i] << '\n';
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    chuanbi();
+    xuly ();
+    return 0;
+}

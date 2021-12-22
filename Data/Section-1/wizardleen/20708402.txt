@@ -1,0 +1,137 @@
+import java.io.BufferedInputStream;
+import java.util.*;
+
+/**
+ * Created by leen on 9/17/16.
+ */
+public class _716D {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024* 64));
+
+        int n = scan.nextInt(), m = scan.nextInt(), L = scan.nextInt(), s = scan.nextInt(), t = scan.nextInt();
+
+        List<Edge>[] edges = new List[n];
+        long[][] edgeMat = new long[n][n];
+
+        for(int i = 0; i < n; i++)
+            edges[i] = new ArrayList<Edge>();
+
+        for(int i = 0; i < n; i++)
+            for(int j = 0; j < n; j++)
+                edgeMat[i][j] = -1;
+
+        for(int i = 0; i < m; i++) {
+            int u = scan.nextInt(), v = scan.nextInt(), w = scan.nextInt();
+            edges[u].add(new Edge(v, w));
+            edges[v].add(new Edge(u, w));
+            edgeMat[Math.max(u,v)][Math.min(u,v)] = w;
+        }
+
+        PriorityQueue<Node> queue = new PriorityQueue<Node>();
+
+        Map<Integer, Node> vertice2node = new HashMap<Integer, Node>();
+        Node firstNode = new Node(s, 0);
+        queue.add(firstNode);
+        vertice2node.put(s, firstNode);
+
+        while(!queue.isEmpty()) {
+            Node node = queue.poll();
+
+            if(node.removed)
+                continue;
+
+            if(node.vertice == t)
+                break;
+
+            for(Edge edge : edges[node.vertice]) {
+                Node targetNode = vertice2node.get(edge.target);
+                if(targetNode == null || targetNode.distance > node.distance + edge.minWeight()) {
+                    if(targetNode != null)
+                        targetNode.removed = true;
+                    Node newNode = new Node(edge.target, node.distance + edge.minWeight());
+                    queue.add(newNode);
+                    newNode.last = node;
+                    vertice2node.put(edge.target, newNode);
+                }
+            }
+        }
+
+        Node destNode = vertice2node.get(t);
+
+        if(destNode == null) {
+            System.out.println("NO");
+            return;
+        }
+
+        if(destNode.distance > L) {
+            System.out.println("NO");
+            return;
+        }
+
+        long diff = L - destNode.distance;
+
+        boolean firstErased = true;
+        Node tmp = destNode;
+        while(tmp.vertice != s) {
+            int v1 = Math.max(tmp.vertice, tmp.last.vertice);
+            int v2 = Math.min(tmp.vertice, tmp.last.vertice);
+            if(edgeMat[v1][v2] == 0) {
+                if(firstErased) {
+                    edgeMat[v1][v2] = 1 + diff;
+                    firstErased = false;
+                }
+                else
+                    edgeMat[v1][v2] = 1;
+            }
+            tmp = tmp.last;
+        }
+
+        System.out.println("YES");
+
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j <= i; j++) {
+                if(edgeMat[i][j] != -1)
+                    System.out.println(j + " " + i + " " + (Math.max(1, edgeMat[i][j])));
+            }
+        }
+
+    }
+
+    static class Edge {
+        int weight;
+        int target;
+
+        Edge(int target, int weight) {
+            this.weight = weight;
+            this.target = target;
+        }
+
+        int minWeight() {
+            return Math.max(weight, 1);
+        }
+
+    }
+
+    static class Node implements Comparable<Node> {
+        long distance;
+        int vertice;
+        boolean removed;
+        Node last;
+
+        Node(int vertice, long distance) {
+            this.vertice = vertice;
+            this.distance = distance;
+        }
+
+        @Override
+        public int compareTo(Node o) {
+            long diff = distance - o.distance;
+            if(diff < 0)
+                return -1;
+            if(diff > 0)
+                return 1;
+            return 0;
+        }
+    }
+
+}

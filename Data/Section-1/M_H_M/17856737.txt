@@ -1,0 +1,81 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 5e5 + 1000;
+
+ll n, k;
+int a[N];
+
+ll dis(int mn, int mx){
+	ll x = 0, y = 0;
+	for(int i = 0; i < n; ++i){
+		if(a[i] < mn) x += (mn - a[i]);
+		else break;
+	}
+	for(int i = n; i --; ){
+		if(a[i] > mx) y += (a[i] - mx);
+		else break;
+	}
+	return max(x, y);
+}
+
+ll doJob(int x){
+	int down = a[0], up = a[n - 1];
+	while(up - down > 1){
+		int mid = (down + up) / 2;
+		if(dis(mid, mid + x) - dis(mid + 1, mid + 1 + x) > 0)
+			down = mid;
+		else
+			up = mid;
+	}
+//	cerr << "bug : " << x << " " << down << " " << dis(down, down + x) << "\n";
+	return min(dis(down, down + x), dis(up, up + x));
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> k;
+	ll sum = 0;
+	for(int i = 0; i < n; ++i)
+		cin >> a[i], sum += a[i];
+	sort(a, a + n);
+//	cout << doJob() << "\n";
+//	return 0;
+	int down = -1, up = 1e9;
+	while(up - down > 1){
+		int mid = (down + up) / 2;
+		if(doJob(mid) <= k)
+			up = mid;
+		else
+			down = mid;
+	}
+	if(up == 0 && sum % n != 0)
+		cout << "1\n";
+	else
+		cout << up << "\n";
+	return 0;
+}

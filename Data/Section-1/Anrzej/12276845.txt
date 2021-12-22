@@ -1,0 +1,72 @@
+#include <iostream>
+#include <vector>
+#include <cstdio>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+#define f first
+#define s second
+#define ll long long
+#define ld long double
+#define mp make_pair
+
+ll fc[300000], nf[300000], nm[300000], m = 1000000000 + 7;
+
+ll gcd(ll a, ll b, ll & x, ll & y) {
+    if (a == 0) {
+        x = 0; y = 1;
+        return b;
+    }
+    ll x1, y1;
+    ll d = gcd(b%a, a, x1, y1);
+    x = y1 - (b / a) * x1;
+    y = x1;
+    return d;
+}
+
+ll cs(ll n, ll k)
+{
+    if (n < k)
+        swap(n, k);
+    ll ans = (((fc[n]*nf[n-k])%m)*nf[k])%m;
+    return ans;
+}
+
+int main()
+{
+    ll h, w, n;
+    fc[0] = nf[0] = 1;
+    for (int i = 1; i < 300000; i++){
+        fc[i] = (fc[i - 1] * i) % m;
+        ll t1, t2;
+        gcd(i, m, t1, t2);
+        nm[i] = t1;
+        nf[i] = (nf[i - 1] * nm[i]) % m;
+    }
+    pair<int, int> d[2001];
+    cin >> h >> w >> n;
+    for (int i = 0; i < n; i++)
+        cin >> d[i].first >> d[i].second;
+    sort(d, d + n);
+    d[n] = mp(h, w);
+    ll l[2001];
+    for (int i = 0; i <= n; i++)
+    {
+        ll ans = cs(d[i].first + d[i].second - 2, d[i].second - 1);
+        for (int j = 0; j < i; j++)
+        {
+            if (d[i].first >= d[j].first && d[i].second >= d[j].second)
+            {
+                ll x, y;
+                x = d[i].first - d[j].first;
+                y = d[i].second - d[j].second;
+                ans = (ans - ((l[j] * cs(x + y, y))%m) + m)%m;
+            }
+        }
+        l[i] = ans;
+    }
+    cout << l[n];
+    return 0;
+}

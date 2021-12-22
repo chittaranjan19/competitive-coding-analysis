@@ -1,0 +1,99 @@
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <iomanip>
+#include <map>
+#include <windows.h>
+#pragma comment(linker, "/STACK:128000000")
+using namespace std;
+
+typedef long long ll;
+
+#if _DEBUG
+#include <fstream>
+ifstream cin("input.txt");
+ofstream cout("output.txt");
+#else
+#include <iostream>
+#endif
+
+vector < vector <int> > v;
+
+vector <int> gen_min(int sum, int size) {
+	vector <int> now(size);
+	fill_n(now.begin(), size, 0);
+	now[0] = 1;
+	sum--;
+	for(int i = size - 1; i >= 0; i--) {
+		if(sum >= 9) {
+			now[i] += 9;
+			sum -= 9;
+		} else {
+			now[i] += sum;
+			break;
+		}
+	}
+	return now;
+}
+
+
+int main() {
+	int n;
+	cin >> n;
+	int sum, was;
+	cin >> sum;
+	was = sum;
+	v.push_back(gen_min(sum, (sum + 8) / 9));
+	for(int i = 1; i < n; i++) {
+		cin >> sum;
+		if(was >= sum) {
+			if((sum + 8) / 9 > v[i - 1].size()) {
+				v.push_back(gen_min(sum, (sum + 8) / 9));
+				continue;
+			}
+			int sum_now = was - sum;
+			was = sum;
+			sum = sum_now;
+			vector <int> now = v[i - 1];
+			for(int j = (int)now.size() - 1; j >= 0; j--) {
+				if(sum > now[j]) {
+					sum -= now[j];
+					now[j] = 0;
+				}else {
+					sum++;
+					now[j] -= sum;
+					now[j - 1]++;
+					break;
+				}
+			}
+			v.push_back(now);
+		} else {
+			was = sum;
+			if((sum + 8) / 9 > v[i - 1].size()) {
+				v.push_back(gen_min(sum, (sum + 8) / 9));
+				continue;
+			}
+			for(int j = 0; j < v[i - 1].size(); j++) {
+				sum -= v[i - 1][j];
+			}
+			vector <int> now = v[i - 1];
+			for(int j = (int)now.size() - 1; j >= 0; j--) {
+				if(sum >= 9 - now[j]) {
+					sum -= 9 - now[j];
+					now[j] = 9;
+				}else {
+					now[j] += sum;
+					break;
+				}
+			}
+			v.push_back(now);
+		}
+	}
+	for(int i = 0; i < n; i++) {
+		for(int j = 0; j < v[i].size(); j++) {
+			cout << v[i][j];
+		}
+		cout << '\n';
+	}
+	return 0;
+}

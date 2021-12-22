@@ -1,0 +1,235 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+#include <valarray>
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+
+#define forn(i,n) for(tint i=0;i<(tint)(n); i++)
+#define forsn(i,s,n) for(tint i=(s);i<(tint)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		tint p = tint(v.size());
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) )
+		Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+// CRIBA
+
+//const tint maxN = 1000500;
+//int p[maxN + 1] = {1, 1};
+//
+//map<tint,tint> factorizar (tint n)
+//{
+//	map<tint,tint> f;
+//	while (n > 1) 
+//	{ 
+//		f[p[n]]++;
+//		n /= p[n]; 
+//	}
+//	return f;
+//}
+// ESTO VA EN EL MAIN
+//	for (int i = 1; i <= maxN; ++i)
+//		if (p[i] == 1)
+//			for (int j = i; j <= maxN; j += i)
+//				p[j] = i;
+
+
+
+int main()
+{
+	#ifdef ACMTUYO
+		assert(freopen("entrada.in", "r", stdin));
+	#endif
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	tint n;
+	while (cin >> n)
+	{
+		vector<tint> a (n);
+		
+		tint sumaA = 0;
+		forn(i,n)
+		{
+			cin >> a[i];
+			sumaA += a[i];
+		}
+		tint k;
+		cin >> k;
+		tint sumaB = 0;
+		vector<tint> b (k);
+		forn(i,k)
+		{
+			cin >> b[i];
+			sumaB += b[i];
+		}
+		bool checkSum = sumaA == sumaB;
+		
+		if (checkSum)
+		{
+			bool sePuede = true;
+			tint izquierda = 0;
+			tint derecha = 0;
+			
+			vector<pair<tint,char> > ans; // indice, direccion
+			forn(j,k)
+			{
+				
+				tint suma = 0;
+				tint maxi = 0;
+				tint mini = 999999999999999999;
+				forsn(i,izquierda,n)
+				{
+				
+					suma += a[i];
+					maxi = max(maxi,a[i]);
+					mini = min(mini,a[i]);
+					if (suma > b[j])
+					{
+						sePuede = false;
+						break;
+					}
+					else if (suma == b[j])
+					{
+						derecha = i+1;
+						break;
+					}
+				}
+				//cout << " ------- " << endl;
+				//debug(mini);
+				//debug(maxi);
+				//debug(izquierda);
+				//debug(derecha);
+				
+				if (!sePuede or (mini == maxi && derecha - izquierda > 1) )
+				{
+					sePuede = false;
+					break;
+				}
+				
+				tint indice = -1;
+				tint direccion = 0;
+				forsn(i,izquierda,derecha)
+				{
+					if (a[i] == maxi)
+					{
+						if (i > 0 && a[i] > a[i-1])
+						{
+							indice = i;
+							direccion = -1;
+							break;
+						}
+						else if (i < derecha - 1 && a[i] > a[i+1])
+						{
+							indice = i;
+							direccion = 1;
+							break;
+						}
+					}
+				}
+				//debug(izquierda);
+				//debug(derecha);
+				//debug(indice);
+				//debug(direccion);
+				//cout << " --------- " << endl;
+				tint derechaOrig = derecha;
+				if (direccion == 1)
+				{
+					while (indice < derecha-1)
+					{
+						ans.push_back(make_pair(j+indice-izquierda+1,'R'));
+						derecha--;
+					}
+					while (indice > izquierda)
+					{
+						ans.push_back(make_pair(j+indice-izquierda+1,'L'));
+						derecha--;
+						indice--;
+					}
+				}
+				else if (direccion == -1)
+				{
+					while (indice > izquierda)
+					{
+						ans.push_back(make_pair(j+indice-izquierda+1,'L'));
+						indice--;
+						derecha--;
+					}
+					while (indice < derecha-1)
+					{
+						ans.push_back(make_pair(j+indice-izquierda+1,'R'));
+						derecha--;
+					}
+				}
+				izquierda = derechaOrig;
+			}
+			if (!sePuede)
+				cout << "NO\n";
+			else
+			{
+				cout << "YES\n";
+				for(auto x : ans)
+					cout << x.first << " " << x.second << "\n";
+				
+			}
+			
+			
+		}
+		else
+			cout << "NO\n";
+	}
+	return 0;
+}
+
+
+

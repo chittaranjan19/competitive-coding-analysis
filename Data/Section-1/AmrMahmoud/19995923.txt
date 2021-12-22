@@ -1,0 +1,117 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+pair<int, pair<int, int> > queries[100005];
+bool books[1005][1005];
+vector<int> g[100005];
+int ans[100005], m;
+
+void dfs(int node, int sol)
+{
+  ans[node] = sol;
+  for(int i : g[node])
+  {
+    if(queries[i].f == 1)
+    {
+      if(!books[queries[i].s.f][queries[i].s.s])
+      {
+        books[queries[i].s.f][queries[i].s.s] = true;
+        dfs(i, sol + 1);
+        books[queries[i].s.f][queries[i].s.s] = false;
+      }
+      else dfs(i, sol);
+    }
+    else if(queries[i].f == 2)
+    {
+      if(books[queries[i].s.f][queries[i].s.s])
+      {
+        books[queries[i].s.f][queries[i].s.s] = false;
+        dfs(i, sol - 1);
+        books[queries[i].s.f][queries[i].s.s] = true;
+      }
+      else dfs(i, sol);
+    }
+    else if(queries[i].f == 3)
+    {
+      for(int j=1;j<=m;j++)
+      {
+        if(books[queries[i].s.f][j])
+        {
+          sol--;
+          books[queries[i].s.f][j] = false;
+        }
+        else
+        {
+          sol++;
+          books[queries[i].s.f][j] = true;
+        }
+      }
+      dfs(i, sol);
+      for(int j=1;j<=m;j++)
+      {
+        if(books[queries[i].s.f][j])
+        {
+          sol--;
+          books[queries[i].s.f][j] = false;
+        }
+        else
+        {
+          sol++;
+          books[queries[i].s.f][j] = true;
+        }
+      }
+    }
+    else assert(false);
+  }
+}
+
+int main()
+{
+  int n, q;
+  cin >> n >> m >> q;
+  vector<int> v;
+  for(int i=1;i<=q;i++)
+  {
+    scanf("%d", &queries[i].f);
+    if(queries[i].f < 3)
+      scanf("%d %d", &queries[i].s.f, &queries[i].s.s);
+    else scanf("%d", &queries[i].s.f);
+  }
+  if(queries[1].f != 4) g[0].pb(1);
+  for(int i=1;i<=q;i++)
+    if(queries[i].f == 4 && queries[i].s.f != 0 && queries[queries[i].s.f].f == 4)
+      queries[i].s.f = queries[queries[i].s.f].s.f;
+  for(int i=1;i<=q;i++)
+  {
+    if(queries[i].f == 4)
+    {
+      if(i != q && queries[i + 1].f != 4)
+        g[queries[i].s.f].pb(i + 1);
+    }
+    else if(i != q && queries[i + 1].f != 4)
+      g[i].pb(i + 1);
+  }
+  dfs(0, 0);
+  for(int i=1;i<=q;i++)
+  {
+    if(queries[i].f == 4) ans[i] = ans[queries[i].s.f];
+    printf("%d\n", ans[i]);
+  }
+  return 0;
+}

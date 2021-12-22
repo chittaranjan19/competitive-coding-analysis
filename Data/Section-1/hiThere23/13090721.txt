@@ -1,0 +1,90 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 1000005
+#define maxC 20000000000000ll
+#define bit(x, i) ((x >> (i - 1)) & 1)
+#define addBit(i) (1 << (i - 1))
+#define modi(x) (x & (-x))
+
+using namespace std;
+int n, m, s[mn][35], a[mn], l[mn], r[mn], q[mn];
+struct inteval{
+    int tree[mn * 4];
+
+    void build(int l, int r, int id)
+    {
+        if (l == r)
+        {
+            tree[id] = a[l];
+            return;
+        }
+        int g = ((l + r) >> 1);
+        build(l, g, (id << 1));
+        build(g + 1, r, (id << 1) + 1);
+        tree[id] = tree[id << 1] & tree[(id << 1) + 1];
+    }
+
+    int andQuerry(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return -1;
+        if (x <= l && r <= y)
+            return tree[id];
+        int g = ((l + r) >> 1);
+        int a = andQuerry(l, g, (id << 1), x, y);
+        int b = andQuerry(g + 1, r, (id << 1) + 1, x, y);
+        return a & b;
+    }
+} t;
+
+void setup()
+{
+    cin >> n >> m;
+    FOR(i, 1, m)
+    {
+        cin >> l[i] >> r[i] >> q[i];
+        FOR(j, 1, 32)
+        if (bit(q[i], j))
+        {
+            s[l[i]][j] ++;
+            s[r[i] + 1][j] --;
+        }
+    }
+    FOR(i, 2, n)
+    FOR(j, 1, 32)
+    s[i][j] += s[i - 1][j];
+}
+
+void xuly ()
+{
+    memset(a, 0, sizeof(a));
+    FOR(i, 1, n)
+    FOR(j, 1, 32)
+    {
+        if (s[i][j])
+            a[i] += addBit(j);
+    }
+    t.build(1, n, 1);
+    FOR(i, 1, m)
+    {
+        if (t.andQuerry(1, n, 1, l[i], r[i]) != q[i])
+        {
+            cout << "NO";
+            return;
+        }
+    }
+    cout << "YES\n";
+    FOR(i, 1, n)
+    cout << a[i] << " ";
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

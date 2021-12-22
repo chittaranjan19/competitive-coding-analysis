@@ -1,0 +1,257 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemB {
+    BufferedReader rd;
+    int n,m;
+    Queue<int[]> q;
+    char[][] c;
+    int[][] df = new int[][] { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 }};
+    int[][] dfv = new int[][] {{-1,0}, {2,0},{0,-1},{1,-1},{0,1},{1,1}};
+
+
+    private ProblemB() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        n = a[0];
+        m = a[1];
+        c = new char[n][m];
+        for(int i=0;i<n;i++) {
+            c[i] = rd.readLine().toCharArray();
+        }
+
+        Deque<int[]> ncount = new LinkedList<>();
+        boolean poss = true;
+        for(int i=0;i<n;i++) {
+            for(int j=0;j<m;j++) {
+                if(c[i][j] == '.') {
+                    int nb = cntnb(i,j);
+                    if(nb == 0) {
+                        poss = false;
+                        break;
+                    }
+                    if(nb == 1) {
+                        ncount.add(new int[] { i, j });
+                    }
+                }
+            }
+            if(!poss) {
+                break;
+            }
+        }
+
+        if(poss) {
+            while(!ncount.isEmpty()) {
+                int[] e = ncount.removeFirst();
+                int[] z = null;
+                boolean vert = false;
+                for(int[] d: df) {
+                    int y = e[0] + d[0];
+                    int x = e[1] + d[1];
+                    if(y >= 0 && y < n && x >= 0 && x < m && c[y][x]=='.') {
+                        if(z == null) {
+                            z = d;
+                            vert = d[0] != 0;
+                        } else {
+                            z = null;
+                            break;
+                        }
+                    }
+                }
+                if(z != null) {
+                    q = new LinkedList<>();
+                    draw(e,vert);
+                    for(int[] b: q) {
+                        if(cntnb(b[0], b[1]) == 1) {
+                            ncount.addLast(b);
+                        }
+                    }
+                }
+            }
+        }
+
+        if(poss) {
+            boolean[][] k = new boolean[n][m];
+
+            for(int i=0;i<n;i++) {
+                for(int j=0;j<m;j++) {
+                    if(!k[i][j] && c[i][j] == '.') {
+                        int[] start = null;
+                        boolean vert = true;
+                        q = new LinkedList<>();
+                        q.add(new int[] {i,j});
+                        k[i][j] = true;
+                        int cnt = 0;
+                        while(!q.isEmpty()) {
+                            int[] e = q.poll();
+                            cnt++;
+                            int nb = 0;
+                            boolean localVert = true;
+                            for(int[] d: df) {
+                                int y = e[0] + d[0];
+                                int x = e[1] + d[1];
+                                if(y >= 0 && y < n && x >= 0 && x < m) {
+                                    if(c[y][x] == '.') {
+                                        if(!k[y][x]) {
+                                            k[y][x] = true;
+                                            q.add(new int[] { y, x });
+                                            localVert = d[0] != 0;
+                                        }
+                                    } else {
+                                        nb++;
+                                    }
+                                } else {
+                                    nb++;
+                                }
+                            }
+                            if(nb == 4) {
+                                poss = false;
+                                break;
+                            } else if(nb == 3 && start == null) {
+                                start = e;
+                                vert = localVert;
+                            }
+                        }
+                        if(cnt%2==1) {
+                            poss = false;
+                        } else {
+                            q = new LinkedList<>();
+                            q.add(start);
+                            while(!q.isEmpty()) {
+                                int[] e = q.poll();
+                                if(c[e[0]][e[1]] == '.') {
+                                    draw(e,vert);
+                                }
+                            }
+                        }
+                    }
+                    if(!poss) {
+                        break;
+                    }
+                }
+                if(!poss) {
+                    break;
+                }
+            }
+        }
+        if(poss) {
+            StringBuilder buf = new StringBuilder();
+            for(int i=0;i<n;i++) {
+                buf.append(new String(c[i]));
+                buf.append('\n');
+            }
+            out(buf);
+        } else {
+            out("Not unique");
+        }
+    }
+
+    private int cntnb(int i, int j) {
+        int nb = 0;
+        for(int[] d: df) {
+            int y = i + d[0];
+            int x = j + d[1];
+            if(y >= 0 && y < n && x >= 0 && x < m && c[y][x]=='.') {
+                nb++;
+            }
+        }
+        return nb;
+    }
+
+    private void draw(int[] e, boolean v) {
+        if(v) {
+            int y0 = 0;
+            int y1 = 0;
+            if(e[0] > 0 && c[e[0]-1][e[1]] == '.') {
+                y0 = e[0]-1;
+                y1 = e[0];
+            } else if(e[0] < n-1 && c[e[0]+1][e[1]] == '.') {
+                y0 = e[0];
+                y1 = e[0]+1;
+            }
+            if(y0 != y1) {
+                c[y0][e[1]] = '^';
+                c[y1][e[1]] = 'v';
+                for(int[] d: dfv) {
+                    int y = y0 +d[0];
+                    int x = e[1] + d[1];
+                    if(y >= 0 && y < n && x >= 0 && x < m && c[y][x]=='.') {
+                        q.add(new int[] { y, x });
+                    }
+                }
+            }
+        } else {
+            int x0 = 0;
+            int x1 = 0;
+            if(e[1] > 0 && c[e[0]][e[1]-1] == '.') {
+                x0 = e[1]-1;
+                x1 = e[1];
+            } else if(e[1] < m-1 && c[e[0]][e[1]+1] == '.') {
+                x0 = e[1];
+                x1 = e[1]+1;
+            }
+            if(x0 != x1) {
+                c[e[0]][x0] = '<';
+                c[e[0]][x1] = '>';
+                for(int[] d: dfv) {
+                    int y = e[0] + d[1];
+                    int x = x0 + d[0];
+                    if(y >= 0 && y < n && x >= 0 && x < m && c[y][x]=='.') {
+                        q.add(new int[] { y, x });
+                    }
+                }
+            }
+
+        }
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private String[] split(String s) {
+        int n = s.length();
+        int sp = 0;
+        for(int i=0;i<n;i++) {
+            if(s.charAt(i)==' ') {
+                sp++;
+            }
+        }
+        String[] res = new String[sp+1];
+        int last = 0;
+        int x = 0;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(c == ' ') {
+                res[x++] = s.substring(last,i);
+                last = i+1;
+            }
+        }
+        res[x] = s.substring(last,n);
+        return res;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB();
+    }
+}

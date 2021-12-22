@@ -1,0 +1,69 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100;
+const int M = 1000;
+
+ld dp[2][N * M];
+ld ps[2][N * M];
+
+int n, m;
+int a[N];
+int sum;
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	for(int i = 0; i < n; ++i) cin >> a[i], a[i] --, sum += a[i];
+	for(int i = 0; i < m; ++i){
+		if(i != a[0])
+			dp[0][i] = 1. / (m - 1);
+		ps[0][i + 1] = ps[0][i] + dp[0][i]; 
+	}
+	for(int i = m; i < sum; ++i)
+		ps[0][i + 1] = ps[0][i];
+	for(int i = 1; i < n; ++i){
+		int x = i % 2;
+		for(int j = 0; j < sum; ++j){
+			dp[x][j] = ps[1 - x][j + 1] - ps[1 - x][max(j - m + 1, 0)];
+			if(j - a[i] >= 0)
+				dp[x][j] -= dp[1 - x][j - a[i]];
+			dp[x][j] /= (m - 1);
+			ps[x][j + 1] = ps[x][j] + dp[x][j];
+		}
+	}
+	ld p = 0.;
+	for(int i = 0; i < sum; ++i){
+//		cerr << i << " " << dp[1 - n % 2][i]  << "\n";
+		p += dp[(n - 1) % 2][i];
+	}
+//	cerr << p << "\n";
+	ld ans = 1. + p * (m - 1);
+	cout << fixed << setprecision(9) << ans << "\n";
+	return 0;
+}

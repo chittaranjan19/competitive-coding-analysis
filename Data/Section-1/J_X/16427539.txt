@@ -1,0 +1,125 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#define ls rt << 1
+#define rs rt << 1 | 1
+#define lson ls, l, mid
+#define rson rs, mid + 1, r
+
+using namespace std;
+
+const int maxn = 3e4 + 5;
+
+int mod, n, m, a[maxn], b[maxn], c[maxn], used[maxn], block, ans[maxn];
+struct query
+{
+    int l, r, id;
+
+    query(int l, int r, int id) : l(l), r(r), id(id) {}
+
+    bool operator < (const query &a) const
+    {
+        return r != a.r ? r < a.r : l < a.l;
+    }
+};
+vector<query> Q[maxn];
+
+struct segtree
+{
+    int node[maxn << 2][2][3];
+
+    void build(int rt, int l, int r)
+    {
+        memset(node[rt], 0, sizeof(node[rt]));
+        node[rt][0][0] = node[rt][1][1] = 1;
+        if(l == r) return;
+        int mid = (l + r) >> 1;
+        build(lson);
+        build(rson);
+    }
+
+    void update(int rt, int l, int r, int x, int k)
+    {
+        if(l == r)
+        {
+            if(k)
+            {
+                node[rt][0][0] = node[rt][0][1] = node[rt][1][0] = 1;
+                node[rt][1][1] = 0;
+                node[rt][0][2] = node[rt][1][2] = c[x];
+            }
+            else
+            {
+                memset(node[rt], 0, sizeof(node[rt]));
+                node[rt][0][0] = node[rt][1][1] = 1;
+            }
+            return;
+        }
+        int mid = (l + r) >> 1;
+        x <= mid ? update(lson, x, k) : update(rson, x, k);
+        node[rt][0][0] = (node[ls][0][0] * node[rs][0][0] + node[ls][0][1] * node[rs][1][0]) % mod;
+        node[rt][0][1] = (node[ls][0][0] * node[rs][0][1] + node[ls][0][1] * node[rs][1][1]) % mod;
+        node[rt][0][2] = (node[ls][0][0] * node[rs][0][2] + node[ls][0][1] * node[rs][1][2] + node[ls][0][2]) % mod;
+        node[rt][1][0] = (node[ls][1][0] * node[rs][0][0] + node[ls][1][1] * node[rs][1][0]) % mod;
+        node[rt][1][1] = (node[ls][1][0] * node[rs][0][1] + node[ls][1][1] * node[rs][1][1]) % mod;
+        node[rt][1][2] = (node[ls][1][0] * node[rs][0][2] + node[ls][1][1] * node[rs][1][2] + node[ls][1][2]) % mod;
+    }
+} tree;
+
+void add(int x)
+{
+    if(++used[x] == 1) tree.update(1, 1, m, x, 1);
+}
+
+void del(int x)
+{
+    if(--used[x] == 0) tree.update(1, 1, m, x, 0);
+}
+
+int main()
+{
+    while(~scanf("%d%d", &n, &mod))
+    {
+        block = sqrt(n + 0.5);
+        for(int i = 0; i <= n / block; ++i) Q[i].clear();
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", a + i);
+            b[i] = a[i];
+        }
+        sort(b + 1, b + n + 1);
+        m = unique(b + 1, b + n + 1) - b - 1;
+        for(int i = 1; i <= m; ++i) c[i] = b[i] % mod;
+        for(int i = 1; i <= n; ++i) a[i] = lower_bound(b + 1, b + m + 1, a[i]) - b;
+        int q;
+        scanf("%d", &q);
+        for(int i = 0; i < q; ++i)
+        {
+            int l, r;
+            scanf("%d%d", &l, &r);
+            Q[l / block].push_back(query(l, r, i));
+        }
+        for(int i = 0; i <= n / block; ++i)
+        {
+            if(Q[i].empty()) continue;
+            memset(used, 0, sizeof(used));
+            sort(Q[i].begin(), Q[i].end());
+            tree.build(1, 1, m);
+            int l = Q[i][0].l, r = Q[i][0].r;
+            for(int j = l; j <= r; ++j) add(a[j]);
+            ans[Q[i][0].id] = tree.node[1][1][2];
+            for(int j = 1; j < Q[i].size(); ++j)
+            {
+                while(r < Q[i][j].r) add(a[++r]);
+                while(l < Q[i][j].l) del(a[l++]);
+                while(l > Q[i][j].l) add(a[--l]);
+                ans[Q[i][j].id] = tree.node[1][1][2];
+            }
+        }
+        for(int i = 0; i < q; ++i) printf("%d\n", ans[i]);
+    }
+    return 0;
+}

@@ -1,0 +1,211 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 175781251
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+char s[300006];
+int treef[4*300006], treeb[4*300006];
+int lazyf[4*300006], lazyb[4*300006];
+
+void updatef(int i,int L,int R,int x,int y,int val)
+{
+  if(lazyf[i] != 0)
+  {
+    treef[i]+=lazyf[i]* (R - L + 1);
+    if(L != R)
+    {
+      lazyf[i*2+1]+=lazyf[i];
+      lazyf[i*2+2]+=lazyf[i];
+    }
+    lazyf[i] = 0;
+  }
+  if(L >= x && R <= y)
+  {
+    lazyf[i]+=val;
+    treef[i]+=lazyf[i] * (R - L + 1);
+    if(L != R)
+    {
+      lazyf[i*2+1]+=lazyf[i];
+      lazyf[i*2+2]+=lazyf[i];
+    }
+    lazyf[i] = 0;
+    return;
+  }
+  if(L > y || R < x)
+    return;
+  updatef(i*2 + 1, L, (L + R) / 2, x, y, val);
+  updatef(i*2 + 2, (L + R) / 2 + 1, R, x, y, val);
+  treef[i] = treef[i*2 + 1] + treef[i*2 + 2];
+}
+
+int queryf(int i,int L,int R,int x,int y)
+{
+  if(lazyf[i] != 0)
+  {
+    treef[i]+=lazyf[i] * (R - L + 1);
+    if(L != R)
+    {
+      lazyf[i*2+1]+=lazyf[i];
+      lazyf[i*2+2]+=lazyf[i];
+    }
+    lazyf[i] = 0;
+  }
+  if(L >= x && R <= y)
+    return treef[i];
+  if(L > y || R < x)
+    return 0;
+  return queryf(i*2 + 1, L, (L + R) / 2, x, y) + queryf(i*2 + 2, (L + R) / 2 + 1, R, x, y);
+}
+
+void updateb(int i,int L,int R,int x,int y,int val)
+{
+  if(lazyb[i] != 0)
+  {
+    treeb[i]+=lazyb[i] * (R - L + 1);
+    if(L != R)
+    {
+      lazyb[i*2+1]+=lazyb[i];
+      lazyb[i*2+2]+=lazyb[i];
+    }
+    lazyb[i] = 0;
+  }
+  if(L >= x && R <= y)
+  {
+    lazyb[i]+=val;
+    treeb[i]+=lazyb[i] * (R - L + 1);
+    if(L != R)
+    {
+      lazyb[i*2+1]+=lazyb[i];
+      lazyb[i*2+2]+=lazyb[i];
+    }
+    lazyb[i] = 0;
+    return;
+  }
+  if(L > y || R < x)
+    return;
+  updateb(i*2 + 1, L, (L + R) / 2, x, y, val);
+  updateb(i*2 + 2, (L + R) / 2 + 1, R, x, y, val);
+  treeb[i] = treeb[i*2 + 1] + treeb[i*2 + 2];
+}
+
+int queryb(int i,int L,int R,int x,int y)
+{
+  if(lazyb[i] != 0)
+  {
+    treeb[i]+=lazyb[i] * (R - L + 1);
+    if(L != R)
+    {
+      lazyb[i*2+1]+=lazyb[i];
+      lazyb[i*2+2]+=lazyb[i];
+    }
+    lazyb[i] = 0;
+  }
+  if(L >= x && R <= y)
+    return treeb[i];
+  if(L > y || R < x)
+    return 0;
+  return queryb(i*2 + 1, L, (L + R) / 2, x, y) + queryb(i*2 + 2, (L + R) / 2 + 1, R, x, y);
+}
+
+int main()
+{
+  int n, q, x;
+  scanf("%d %d", &n, &q);
+  scanf("%s", s);
+  int curr = 0;
+  for(int i=0;i<n;i++)
+  {
+    if(curr)
+      updateb(0, 0, n - 1, i, i, curr);
+    if(s[i] == '.')
+      curr++;
+    else curr = 0;
+  }
+  curr = 0;
+  int res = 0;
+  for(int i=n - 1;i>=0;i--)
+  {
+    if(curr)
+      updatef(0, 0, n - 1, i, i, curr);
+    if(s[i] == '.')
+      curr++;
+    else
+    {
+      res += max(curr - 1, 0);
+      curr = 0;
+    }
+  }
+  char c;
+  while(q--)
+  {
+    scanf("%d %c", &x, &c);
+    x--;
+    if(c == '.')
+    {
+      int diff = 0;
+      if(s[x] != '.')
+      {
+        int y = queryb(0, 0, n - 1, x, x);
+        int z = queryf(0, 0, n - 1, x, x);
+        diff += y + z;
+        diff -= max(y - 1, 0);
+        diff -= max(z - 1, 0);
+        updateb(0, 0, n - 1, x + 1, min(x + z + 1, n - 1), y + 1);
+        updatef(0, 0, n - 1, max(0, x - y - 1), x - 1, z + 1);
+      }
+      res+=diff;
+      printf("%d\n", res);
+    }
+    else
+    {
+      int diff = 0;
+      if(s[x] == '.')
+      {
+        int y = queryb(0, 0, n - 1, x, x);
+        int z = queryf(0, 0, n - 1, x, x);
+        diff -= y + z;
+        diff += max(y - 1, 0);
+        diff += max(z - 1, 0);
+       updateb(0, 0, n - 1, x + 1, min(x + z + 1, n - 1), -y - 1);
+        updatef(0, 0, n - 1, max(0, x - y - 1), x - 1, -z - 1);
+      }
+      res+=diff;
+      printf("%d\n", res);
+    }
+    s[x] = c;
+  }
+  return 0;
+}

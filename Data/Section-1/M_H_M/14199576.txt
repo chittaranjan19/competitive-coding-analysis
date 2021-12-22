@@ -1,0 +1,111 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <algorithm>
+#include <vector>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<ll, ll> pii;
+typedef pair<pii, ll> piii;
+
+const int N = 100 * 1000 + 100;
+const ll oo = 1e18; 
+const ll TOF = 2e9;
+
+int n, q;
+pii line[N];
+vector <piii> seg[4 * N];
+vector <piii> tmp;
+vector <piii> tmp2;
+
+void mrg(int v){
+	int L = 2 * v + 0;
+	int R = 2 * v + 1;
+	tmp.clear();
+	tmp2.clear();
+	for(int i = 0; i < SZ(seg[L]); ++i)
+		tmp.PB(seg[L][i]);
+	for(int i = 0; i < SZ(seg[R]); ++i)
+		tmp.PB(seg[R][i]);
+	sort(tmp.begin(), tmp.end());
+	reverse(tmp.begin(), tmp.end());
+	int t = -1;
+	for(int i = 0; i < SZ(tmp); ++i){
+		if(!i || (tmp[t].X.X > tmp[i].X.X && tmp[i].X.Y > tmp[t].X.Y))
+			tmp2.PB(tmp[i]), t = i;
+	}
+	for(int i = 0; i < SZ(tmp2); ++i){
+		while(SZ(seg[v]) > 1){
+			pii a = seg[v].back().X;
+			pii b = seg[v][SZ(seg[v]) - 2].X;
+			pii c = tmp2[i].X;
+			if((a.X - c.X) * (c.Y - b.Y) >= (b.X - c.X) * (c.Y - a.Y))
+				seg[v].pop_back();
+			else
+				break;
+		}
+		seg[v].PB(tmp2[i]);
+	}
+}
+
+void build(int v, int s, int e){
+	if(e - s == 1){
+		seg[v].PB(MP(line[s], s));
+		return;
+	}
+	int mid = (s + e) / 2;
+	build(2 * v + 0, s, mid);
+	build(2 * v + 1, mid, e);
+	mrg(v);
+}
+
+ll bsearch(int v, ll t){
+	int down = 0, up = SZ(seg[v]);
+	while(up - down > 1){
+		int mid = (down + up) / 2;
+		ll a = seg[v][mid - 1].X.X + t * seg[v][mid - 1].X.Y;
+		ll b = seg[v][mid].X.X + t * seg[v][mid].X.Y;
+		if(b - a >= 0)
+			down = mid;
+		else
+			up = mid;
+	}
+	return (seg[v][down].X.X + t * seg[v][down].X.Y);
+}
+
+ll get(int v, int s, int e, int l, int r, ll t){
+	if(r <= s || e <= l) return -oo;
+	if(l <= s && e <= r) return bsearch(v, t);
+	int mid = (s + e) / 2;
+	return max(get(2 * v + 0, s, mid, l, r, t), get(2 * v + 1, mid, e, l, r, t));
+}
+
+ll a[N];
+ll ps[N];
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for(int i = 0; i < n; ++i){
+		cin >> a[i];
+		ps[i + 1] = ps[i] + a[i];
+		line[i].X = TOF + ps[i] - i * a[i];
+		line[i].Y = -a[i];
+	}
+	build(1, 0, n);
+	cin >> q;
+	for(int i = 0; i < q; ++i){
+		int l, r;
+		cin >> l >> r;
+		l = r - l;
+		cout << ps[r] - get(1, 0, n, l, r, -l) + TOF  << "\n";
+	}
+	return 0;
+}

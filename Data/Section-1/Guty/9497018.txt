@@ -1,0 +1,91 @@
+#include <iostream>
+#include <vector>
+#include <set>
+#include <map>
+#include <cstdio>
+#include <string>
+#include <algorithm>
+#include <cmath>
+#include <cassert>
+
+#define forn(i,n) for(int i = 0; i < (int)(n); i++)
+#define esta(x,c) ((c).find(x) != (c).end())
+
+using namespace std;
+
+int p;
+const int qIslands = 30001;
+int minL;
+int maxL;
+const int inf = 100000;
+vector<int>gems(qIslands);
+vector<vector<int> > dp;
+
+bool isIn(int x, vector<int> v)
+{
+	int largo = v.size();
+	bool estado = false;
+	forn(i,largo)
+	{
+		if (x == v[i])
+			estado = true;
+	}
+	return estado;
+}
+
+
+int m(int j, int l)
+{
+	if (j <= p)
+	{
+		if (dp[j][l-minL] == -inf)
+		{
+			if (l <= 2)
+				dp[j][l-minL] = m(j+1,1) + gems[j];
+			else
+			{
+				dp[j][l-minL] = -1;
+				forn(i,3)
+					dp[j][l-minL] = max(dp[j][l-minL], m(j+l+i-1,l+i-1));
+				dp[j][l-minL] += gems[j];
+			}
+		}
+		return dp[j][l-minL];
+	}
+	else
+		return 0;
+}
+
+int main()
+{
+	#ifdef ACMTUYO
+		freopen("entrada.in","r",stdin);
+	#endif
+	int n,d;
+	cin >> n >> d;
+	forn(i,n)
+	{
+		cin >> p;
+		gems[p] += 1 ;
+	}
+	maxL = d;
+	minL = d;
+	for (int r = 2*d+1; r <= p; r += maxL+1)
+		maxL += 1;
+	for (int r = 2*d-1; r <= p; r += minL-1)
+	{
+		if (minL <= 0)
+		{ 
+			minL = 1;
+			break;
+		}
+		else
+			minL -= 1;
+	}
+	
+	int dif = maxL - minL + 1;
+	dp = vector<vector<int> > (p+1,vector<int>(dif,-inf));
+	//cout << "maxL = " << maxL << endl << "minL = " << minL << endl << "Diferencia = " << dif << endl;
+	cout << m(d,d) << endl;
+	return 0;
+}

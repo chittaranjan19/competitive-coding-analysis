@@ -1,0 +1,164 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int sub[MAXN],lvl[MAXN],arr[MAXN],isleg[MAXN];
+vector<int>adj[MAXN],dj[MAXN];
+void dfs(int nd,int pr){
+	lvl[nd]=(pr==-1?1:lvl[pr]+1);sub[nd]=1;
+	tr(it,adj[nd])
+		if(*it!=pr){
+			dfs(*it,nd);
+			sub[nd]+=sub[*it];
+		}
+}
+int no,ata[MAXN],pos[MAXN],chain[MAXN],TIM,par[MAXN];
+PII s[MAXN<<2];int lazy[MAXN<<2],ID[MAXN];
+void HLD(int nd,int pr){
+	if(ata[no]==-1)
+		ata[no]=nd;
+	pos[nd]=++TIM;	
+	ID[TIM]=nd;
+	chain[nd]=no;
+	int mx=-1,y=-1;
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to!=pr and mx<sub[to])
+			mx=sub[to],y=i;
+	}
+	if(~y)
+		HLD(adj[nd][y],nd);
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to!=pr and i!=y)
+			no++,HLD(to,nd);
+	}
+}
+void merge(int nd){
+	s[nd].ff=max(s[nd<<1].ff,s[nd<<1|1].ff);
+	if(s[nd<<1].ff==s[nd].ff)
+		s[nd].ss=s[nd<<1].ss;
+	else
+		s[nd].ss=s[nd<<1|1].ss;
+}
+void shift(int nd){
+	if(!lazy[nd])
+		return;
+	int &r=lazy[nd];
+	lazy[nd<<1]+=r;
+	s[nd<<1].ff+=r;
+	lazy[nd<<1]+=r;
+	s[nd<<1|1].ff+=r;
+	r=0;	
+}
+void build(int nd,int x,int y){
+	if(x==y){
+		int node=ID[x];
+		s[nd].ss=node;
+		s[nd].ff=(-sub[node])+isleg[node];
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+	merge(nd);
+}
+int n,m;
+void upd(int p,int nd,int x,int y){
+	if(x==y){
+		s[nd].ff=-INF;
+		return;
+	}int mid=(x+y)>>1;
+	shift(nd);
+	if(p<=mid)
+		upd(p,nd<<1,x,mid);
+	else
+		upd(p,nd<<1|1,mid+1,y);
+	merge(nd);		
+}
+void inc(int l,int r,int v,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		lazy[nd]+=v;
+		s[nd].ff+=v;
+		return;
+	}int mid=(x+y)>>1;
+	shift(nd);
+	inc(l,r,v,nd<<1,x,mid);
+	inc(l,r,v,nd<<1|1,mid+1,y);
+	merge(nd);
+}
+void atla(int nd){
+	while(1){
+		int pr=ata[chain[nd]];
+		if((par[pr]==-1) and chain[pr]==chain[nd]){
+			inc(pos[pr],pos[nd],+1,1,1,n);
+			break;
+		}
+		inc(pos[pr],pos[nd],+1,1,1,n);
+		nd=ata[chain[nd]];
+		nd=par[nd];
+	}
+}
+int main(){
+	memset(par,-1,sizeof(par));
+	memset(ata,-1,sizeof(ata));
+	vector<int>root;
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=m;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		par[v]=u;
+	}
+	for(int i=1;i<=n;i++){
+		scanf("%d",&arr[i]);
+		isleg[arr[i]]++;
+		dj[arr[i]].pb(i);
+	}
+	for(int i=1;i<=n;i++)
+		if(par[i]==-1)
+			root.pb(i);
+	tr(it,root)
+		dfs(*it,-1);
+	tr(it,root){
+		no++;
+		HLD(*it,-1);
+	}
+	build(1,1,n);
+	vector<int>ans;		
+	for(int i=1;i<=n;i++){
+		PII k=s[1];
+	//	cout<<k.ff<<" "<<k.ss<<endl;
+		if(k.ff<-10000000)
+			break;
+		if(k.ff<0){
+			printf("-1\n");
+			return 0;
+		}int val=k.ss;
+		ans.pb(val);
+		tr(it,dj[val])
+			atla(*it);	
+		upd(pos[val],1,1,n);	
+	}
+	printf("%d\n",int(ans.size()));
+	tr(it,ans)
+		printf("%d\n",*it);
+	return 0;
+}

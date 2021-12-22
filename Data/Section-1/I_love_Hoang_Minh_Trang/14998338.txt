@@ -1,0 +1,83 @@
+#include <bits/stdc++.h>
+#define FORE(i, a, b) for(int i = a; i <= b; i++)
+#define FORD(i, a, b) for(int i = a; i >= b; i--)
+#define FOR(i, a, b) for(int i = a; i < b; i++)
+const int MAXN = 1e4 * 2;
+const int INF = 1e9 + 7;
+
+using namespace std;
+typedef pair<int, int> ii;
+int n;
+int a[MAXN];
+ii b[MAXN];
+int x;
+long long f[2][MAXN];
+int pos[MAXN];
+int dist(int x, int l, int r)
+{
+    if (l <= x && x <= r) return 0;
+    return min(abs(x - l), abs(x - r));
+}
+
+int cur, next;
+int N[MAXN], P[MAXN];
+void mmin(long long &a, long long b)
+{
+    if (a > b) a = b;
+}
+
+int main()
+{
+    ios::sync_with_stdio(0); cin.tie(0);
+    #ifndef ONLINE_JUDGE
+    freopen("575F.inp", "r", stdin);
+    freopen("575F.out", "w", stdout);
+    #endif //MIKELHPDATKE
+    cin >> n >> x;
+    int u, v;
+    FORE(i, 1, n){
+        cin >> u >> v;
+        a[i * 2 - 1] = u;
+        a[i * 2] = v;
+    }
+    a[0] = x;
+
+    FORE(i, 0, 2 * n) b[i].first = a[i], b[i].second = i;
+    sort(b, b + n + n + 1);
+    FORE(i, 0, n + n) pos[b[i].second] = i;
+    memset(N, -1, sizeof(N));
+    memset(P, -1, sizeof(P));
+    FORD(i, n + n - 1, 0) N[b[i].second] = b[i + 1].second;
+    FORE(i, 1, n + n) P[b[i].second] = b[i - 1].second;
+    cur = 1, next = 0;
+    FORE(i, 0, 1) FORE(j, 0, 2 * n) f[i][j] = INF;
+    f[0][0] = 0;
+    //cout<<"wtf"<<endl;
+    FOR(i, 0, n){
+        cur ^= 1; next ^= 1;
+        int st = b[0].second, fi = b[n + n].second;
+        for(int j = st; j != fi; j = N[j]){
+            mmin(f[cur][N[j]], f[cur][j] + (b[pos[N[j]]].first - b[pos[j]].first));
+        }
+        for(int j = fi; j != st; j = P[j]){
+            mmin(f[cur][P[j]], f[cur][j] + (b[pos[j]].first - b[pos[P[j]]].first));
+        }
+        FORE(j, 0, 2 * n) f[next][j] = INF;
+        FORE(pos, 0, n * 2) if (f[cur][pos] != INF){
+            mmin(f[next][pos], f[cur][pos] + dist(a[pos], a[2 * (i + 1) - 1], a[2 * (i + 1)]));
+            if (N[pos] != -1){
+                int j = N[pos];
+                mmin(f[next][j], f[cur][pos] + abs(a[j] - a[pos]) + dist(a[j], a[2 * (i + 1) - 1], a[2 * (i + 1)]));
+            }
+            if (P[pos] != -1){
+                int j = P[pos];
+                mmin(f[next][j], f[cur][pos] + abs(a[j] - a[pos]) + dist(a[j], a[2 * (i + 1) - 1], a[2 * (i + 1)]));
+            }
+        }
+    }
+    long long ans = INF;
+    FORE(j, 0, 2 * n) ans = min(ans, f[next][j]);
+     cout << ans;
+    return 0;
+}
+

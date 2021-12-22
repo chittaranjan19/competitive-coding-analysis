@@ -1,0 +1,89 @@
+#include<iostream>
+#include<algorithm>
+#include<cstdio>
+#include<map>
+using namespace std;
+struct SocketPC
+{
+    int val,x;
+    bool operator < (const SocketPC b) const
+    {
+        if(val!=b.val) return val<b.val;
+        else return x<b.x;
+    }
+}p[200005],s[200005];
+long long cc=0,uu=0;
+int ans1[200005]={0},ans2[200005]={0};
+bool vis[200005]={0};
+map <int,int> mp;
+int bfnd(int x,int n)
+{
+    int l=1,r=n,mid=((l+r)>>1);
+    while(l<r)
+    {
+        if(p[mid].val>=x) r=mid;
+        else l=mid+1;
+        mid=((l+r)>>1);
+    }
+    if(p[mid-1].val==x) mid--;
+    for(;p[mid].val==x;mid++)
+    {
+        if(!vis[mid]) break;
+    }
+    return mid;
+}
+int main()
+{
+    int n,m,i,adb,cpn;
+    cin>>n>>m;
+    for(i=1;i<=n;i++)
+    {
+        scanf("%d",&p[i].val);
+        p[i].x=i;
+        mp[p[i].val]++;
+    }
+    for(i=1;i<=m;i++)
+    {
+        scanf("%d",&s[i].val);
+        s[i].x=i;
+    }
+    sort(p+1,p+n+1);
+    sort(s+1,s+m+1);
+    for(i=1;i<=n;i++)
+    {
+        adb=0;
+        while(s[i].val)
+        {
+            if(mp.find(s[i].val)!=mp.end())
+            {
+                mp[s[i].val]=mp[s[i].val]-1;
+                if(mp[s[i].val]==0) mp.erase(s[i].val);
+                cpn=bfnd(s[i].val,n);
+                vis[cpn]=1;
+                ans1[i]=adb;
+                ans2[cpn]=i;
+                uu+=adb;
+                cc++;
+                break;
+            }else{
+                s[i].val=(s[i].val+1)>>1;
+                adb++;
+            }
+        }
+    }
+    printf("%I64d %I64d\n",cc,uu);
+    for(i=1;i<=m;i++)
+    {
+        if(i-1) putchar(' ');
+        printf("%d",ans1[i]);
+    }
+    putchar('\n');
+    for(i=1;i<=n;i++)
+    {
+        if(i-1) putchar(' ');
+        printf("%d",ans2[i]);
+    }
+    putchar('\n');
+    return 0;
+}
+    

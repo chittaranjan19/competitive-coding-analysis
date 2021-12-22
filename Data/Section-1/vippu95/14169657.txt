@@ -1,0 +1,155 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+const int lmt = 105;
+int grid[lmt][lmt];
+int rgrid[lmt][lmt];
+vector<int> adj[lmt];
+vector<int> radj[lmt];
+stack<int> st;
+vector<int> topores;
+bool vis[lmt];
+vector<vector<int>> chain(lmt);
+
+void reset(){
+    memset(vis,false,sizeof(vis));
+    for(int i=0;i<lmt;i++){
+        adj[i].clear();
+        radj[i].clear();
+        chain[i].clear();
+    }
+    topores.clear();
+    memset(grid,0,sizeof(grid));
+    memset(rgrid,false,sizeof(rgrid));
+}
+
+void topo(int x){
+    if(vis[x]) return;
+    vis[x] = true;
+    for(int i=0;i<adj[x].size();i++)
+        topo(adj[x][i]);
+    st.push(x);
+}
+
+void rtopo(int x){
+    if(vis[x]) return;
+    vis[x] = true;
+    for(int i=0;i<radj[x].size();i++)
+        rtopo(radj[x][i]);
+    st.push(x);
+}
+
+int solvef(int n) {
+    memset(vis,false,sizeof(vis));
+    for(int i=1; i<=n; i++) {
+        if(!vis[i])
+            topo(i);
+    }
+    while(!st.empty()) {
+        topores.pb(st.top());
+        st.pop();
+    }
+//    for(int i=0; i<topores.size(); i++) cout<<topores[i]<<" ";
+//    cout<<endl;
+    int total = 1;
+    chain[0].pb(topores[0]);
+    for(int i=1; i<topores.size(); i++) {
+        int x = topores[i];
+        bool accm = false;
+        for(int j=0; j<total; j++) {
+            int sz = chain[j].size();
+            int last = chain[j][sz-1];
+            if(grid[last][x]) {
+                chain[j].pb(x);
+                accm = true;
+                break;
+            }
+        }
+        if(!accm) {
+            chain[total].pb(x);
+            total++;
+        }
+//        cout<<"Chains are \n";
+//        for(int i=0; i<total; i++) {
+//            for(int j=0; j<chain[i].size(); j++)
+//                cout<<chain[i][j]<<" ";
+//            cout<<endl;
+//        }
+    }
+    return total;
+}
+
+int solveb(int n) {
+    memset(vis,false,sizeof(vis));
+    topores.clear();
+    for(int i=0;i<lmt;i++)
+        chain[i].clear();
+    for(int i=1; i<=n; i++) {
+        if(!vis[i])
+            rtopo(i);
+    }
+    while(!st.empty()) {
+        topores.pb(st.top());
+        st.pop();
+    }
+    int total = 1;
+    chain[0].pb(topores[0]);
+    for(int i=1; i<topores.size(); i++) {
+        int x = topores[i];
+        bool accm = false;
+        for(int j=0; j<total; j++) {
+            int sz = chain[j].size();
+            int last = chain[j][sz-1];
+            if(rgrid[last][x]) {
+                chain[j].pb(x);
+                accm = true;
+                break;
+            }
+        }
+        if(!accm) {
+            chain[total].pb(x);
+            total++;
+        }
+    }
+    return total;
+}
+
+int main(){
+    int t,n,m,a,b;
+    scanf("%d",&t);
+    while(t--){
+        reset();
+        scanf("%d %d",&n,&m);
+        while(m--){
+            scanf("%d %d",&a,&b);
+            if(a==b) continue;
+            adj[a].pb(b);
+            radj[b].pb(a);
+            grid[a][b] = true;
+            rgrid[b][a] = true;
+        }
+        int ans = solvef(n);
+        ans = min(ans,solveb(n));
+        printf("%d\n",ans);
+    }
+    return 0;
+}
+/*
+
+6
+6 5
+4 1
+4 3
+3 5
+5 6
+2 3
+
+*/

@@ -1,0 +1,113 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long               LL;
+typedef pair<int,int>           II;
+typedef vector<int>             VI;
+typedef vector<II>              VII;
+#define TRACE
+
+#ifdef TRACE
+#define trace1(x)                cerr << #x << ": " << x << endl;
+#define trace2(x, y)             cerr << #x << ": " << x << " | " << #y << ": " << y << endl;
+#define trace3(x, y, z)          cerr << #x << ": " << x << " | " << #y << ": " << y << " | " << #z << ": " << z << endl;
+#define trace4(a, b, c, d)       cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << endl;
+#define trace5(a, b, c, d, e)    cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << endl;
+#define trace6(a, b, c, d, e, f) cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << " | " << #f << ": " << f << endl;
+
+#else
+
+#define trace1(x)
+#define trace2(x, y)
+#define trace3(x, y, z)
+#define trace4(a, b, c, d)
+#define trace5(a, b, c, d, e)
+#define trace6(a, b, c, d, e, f)
+
+#endif
+
+// Graph class represents a directed graph using adjacency list representation
+class Graph
+{
+    int V;    // No. of vertices
+    // Pointer to an array containing adjacency lists
+    void DFSUtil(int v, bool visited[]);  // A function used by DFS
+public:
+    list<int> *adj;
+    Graph(int V);   // Constructor
+    void addEdge(int v, int w);   // function to add an edge to graph
+    void DFS(int v);    // DFS traversal of the vertices reachable from v
+};
+ 
+Graph::Graph(int V)
+{
+    this->V = V;
+    adj = new list<int>[V];
+}
+ 
+void Graph::addEdge(int v, int w)
+{
+    adj[v].push_back(w); // Add w to v’s list.
+    adj[w].push_back(v);
+}
+ 
+void Graph::DFSUtil(int v, bool visited[])
+{
+    // Mark the current node as visited and print it
+    visited[v] = true;
+    cout << v << " ";
+ 
+    // Recur for all the vertices adjacent to this vertex
+    list<int>::iterator i;
+    for (i = adj[v].begin(); i != adj[v].end(); ++i)
+        if (!visited[*i])
+            DFSUtil(*i, visited);
+}
+ 
+// DFS traversal of the vertices reachable from v. It uses recursive DFSUtil()
+void Graph::DFS(int v)
+{
+    // Mark all the vertices as not visited
+    bool *visited = new bool[V];
+    for (int i = 0; i < V; i++)
+        visited[i] = false;
+ 
+    // Call the recursive helper function to print DFS traversal
+    DFSUtil(v, visited);
+}
+bool compare(const pair<int,int>&i, const pair<int,int>&j){
+    return i.second < j.second;
+}
+int main()
+{
+    int n,m,temp,v1,v2;
+    cin >> n >> m;
+    std::vector<int> wa(n),total(n);
+//    std::vector<pair<int ,int> > total(n);
+    Graph g(n); 
+    LL cost=0;
+    for(int i=0;i<n;i++)
+    {
+        cin >> wa[i];
+    }
+    for(int i=0;i<m;i++)
+    {
+        cin >> v1 >> v2;
+        g.addEdge(v1-1, v2-1);
+        total[v1-1]+=wa[v2-1];
+        total[v2-1]+=wa[v1-1];
+    }
+    for(int i=n-1;i>=0;i--)
+    {
+        cost+=total[i];
+     //   trace3(i,total[i],cost);
+        list<int>::iterator j;
+        for (j = g.adj[i].begin(); j != g.adj[i].end(); ++j)
+        {
+        //    cout << " ssd " << endl;
+            total[*j]-=wa[i];
+        }
+    }
+   // sort(total.begin(),total.begin()+n,compare);
+    cout << cost << endl;
+    return 0;
+}

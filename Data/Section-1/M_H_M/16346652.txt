@@ -1,0 +1,94 @@
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+#define rank def1
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 5050;
+const int LG = 16;
+
+piii t[N];
+int rank[LG][N];
+string s;
+string tt;
+string str;
+int n;
+int l[N];
+
+int lcp(int x, int y){
+	if(x == y) return n - x;
+	int ans = 0;
+	for(int i = LG; i --;){
+		if(rank[i][x] == rank[i][y]){
+			x += 1 << i;
+			y += 1 << i;
+			ans |= 1 << i;
+		}
+	}
+	return ans;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> s >> tt;
+	str = s + "#" + tt;
+	n = SZ(str);
+	for(int j = 0; j < n; ++j) rank[0][j] = str[j];
+	for(int i = 1; i < LG; ++i){
+		for(int j = 0; j < n; ++j)
+			if(j + (1 << (i - 1)) < n)
+				t[j] = {{rank[i - 1][j], rank[i - 1][j + (1 << (i - 1))]}, j};
+			else
+				t[j] = {{rank[i - 1][j], -1}, j};
+		sort(t, t + n);
+		rank[i][t[0].Y] =  1;
+		for(int j = 1; j < n; ++j){
+			if(t[j - 1].X == t[j].X)
+				rank[i][t[j].Y] = rank[i][t[j - 1].Y];
+			else
+				rank[i][t[j].Y] = j + 1;
+		}
+	}
+	for(int i = 0; i < n - 1; ++i){
+		l[i] = lcp(t[i].Y, t[i + 1].Y);
+	}
+	int ans = 1e9;
+	for(int i = 1; i < n - 1; ++i){
+		if((t[i].Y < SZ(s) && t[i + 1].Y < SZ(s)) || (t[i].Y > SZ(s) && t[i + 1].Y > SZ(s))) continue;
+		int x = 0, y = 0;
+		if (i && l[i - 1] >= l[i])
+			continue;
+		if (i && l[i - 1] < l[i])
+			x = l[i - 1];
+		if (i < n && l[i + 1] >= l[i])
+			continue;
+		if (i + 1 < n - 1 && l[i + 1] < l[i])
+			y = l[i + 1];
+
+		ans = min(ans, max(x, y) + 1);
+	}
+	if(ans == 1e9) ans = -1;
+	cout << ans << "\n";
+	return 0;
+}

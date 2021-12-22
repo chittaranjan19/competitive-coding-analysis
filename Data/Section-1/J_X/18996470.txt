@@ -1,0 +1,82 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+#include <bitset>
+
+using namespace std;
+
+const int maxn = 1000 + 5;
+const int maxm = 200000 + 5;
+
+struct edge
+{
+    int to, next;
+
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxm << 2], G1[maxm];
+int head1[maxm], head2[maxm], tot;
+vector<int> vec[maxn];
+bitset<maxn> dp1[maxm], dp2[maxm];
+
+void init()
+{
+    memset(head1, -1, sizeof(head1));
+    memset(head2, -1, sizeof(head2));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head1[u]);
+    head1[u] = tot++;
+    G[tot] = edge(u, head2[v]);
+    head2[v] = tot++;
+}
+
+int main()
+{
+    int n, m, q;
+    scanf("%d%d%d", &n, &m, &q);
+    init();
+    for(int i = 1; i <= m; ++i)
+    {
+        int u, v;
+        scanf("%d%d", &u, &v);
+        G1[i].to = u, G1[i].next = v;
+        if(!vec[u].empty())
+        {
+            addedge(vec[u].back(), i);
+            dp2[i][u] = 1;
+        }
+        if(!vec[v].empty())
+        {
+            addedge(vec[v].back(), i);
+            dp2[i][v] = 1;
+        }
+        vec[u].push_back(i);
+        vec[v].push_back(i);
+    }
+    for(int i = m; i; --i)
+    {
+        int u = G1[i].to, v = G1[i].next;
+        dp1[i][u] = dp1[i][v] = 1;
+        for(int j = head1[i]; ~j; j = G[j].next) dp1[i] |= dp1[G[j].to];
+    }
+    for(int i = 1; i <= m; ++i)
+    {
+        int u = G1[i].to, v = G1[i].next;
+        for(int j = head2[i]; ~j; j = G[j].next) dp2[i] |= dp2[G[j].to];
+    }
+    for(int i = 1; i <= q; ++i)
+    {
+        int l, r, u, v;
+        scanf("%d%d%d%d", &l, &r, &u, &v);
+        int lb = lower_bound(vec[u].begin(), vec[u].end(), l) - vec[u].begin();
+        int ub = upper_bound(vec[v].begin(), vec[v].end(), r) - vec[v].begin();
+        if(lb < vec[u].size() && ub && (dp1[vec[u][lb]] & dp2[vec[v][ub - 1]]).any()) puts("Yes");
+        else puts("No");
+    }
+    return 0;
+}

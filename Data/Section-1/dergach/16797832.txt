@@ -1,0 +1,81 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+#include <stack>
+using namespace std;
+
+typedef long long ll;
+#define mod 1000000007
+#define INF mod
+#define pi acos(-1.0)
+#define LINF 1000000000000000000LL
+#define eps 1e-10
+
+int n, k;
+char a[2000005];
+pair <int, int> letters[26];
+int dp[2000005][26];
+vector <int> prv[200];
+int fastprev[2000005];
+int no[2000005];
+
+int main()
+{
+	cin >> n >> k;
+	scanf("%s", a);
+	int m = strlen(a);
+	for(int i = 0; i < k; i++)
+		letters[i] = make_pair(-1, i + 'a');
+	for(int i = 0; i < m; i++)
+		letters[a[i]-'a'].first = i;
+	sort(letters, letters + k);
+	for(int i = 0; i < n; i++)
+		a[m+i] = letters[i%k].second;
+
+	n += m;
+	for(int i = 0; i < n; i++)
+	{
+		prv[a[i]].push_back(i);
+		no[i] = prv[a[i]].size();
+	}
+	for(int i = 'a'; i <= 'z'; i++)
+	{
+		if(prv[i].size())
+			fastprev[prv[i][0]] = -1;
+		for(int j = 1; j < prv[i].size(); j++)
+			fastprev[prv[i][j]] = prv[i][j-1];
+	}
+
+	for(int i = a[0] - 'a'; i < k; i++)
+		dp[0][i] = 1;
+	for(int i = 1; i < n; i++)
+		for(int j = 0; j < k; j++)
+		{
+			if(j == a[i] - 'a')
+			{
+				dp[i][j] = (dp[i-1][k-1] + 1) % mod;
+			}
+			else
+			{
+				dp[i][j] = dp[i-1][j];
+				if(j)
+					dp[i][j] = ((dp[i][j] - dp[i-1][j-1]) % mod + mod) % mod;
+			}
+			if(j)
+				dp[i][j] = (dp[i][j] + dp[i][j-1]) % mod;
+		}
+	
+	cout << (dp[n-1][k-1] + 1) % mod << endl;
+	return 0;
+}

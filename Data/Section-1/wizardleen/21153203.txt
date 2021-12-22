@@ -1,0 +1,123 @@
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.PrintWriter;
+import java.util.*;
+
+/**
+ * Created by leen on 10/3/16.
+ */
+public class _723D {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024 * 64));
+        int n = scan.nextInt(), m = scan.nextInt(), k = scan.nextInt();
+        scan.nextLine();
+
+        DSNode[][] ds = new DSNode[n][m];
+        char[][] mat = new char[n][m];
+
+        for(int i = 0; i < n; i++) {
+            String line = scan.nextLine();
+            for(int j = 0; j < m; j++) {
+                char c = line.charAt(j);
+                mat[i][j] = c;
+                if(c == '.') {
+                    DSNode node = new DSNode(i, j, n, m);
+
+                    if(i > 0) {
+                        DSNode up = ds[i-1][j];
+                        if(up != null)
+                            merge(node, up);
+                    }
+
+                    if(j > 0) {
+                        DSNode left = ds[i][j-1];
+                        if(left != null)
+                            merge(node, left);
+                    }
+
+                    ds[i][j] = node;
+                }
+
+            }
+        }
+
+        Set<DSNode> nodeSet = new HashSet<DSNode>();
+
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) {
+                if(ds[i][j] != null && !ds[i][j].leader.onBoundary)
+                    nodeSet.add(ds[i][j].leader);
+            }
+        }
+
+        List<DSNode> nodeList = new ArrayList<DSNode>(nodeSet);
+        Collections.sort(nodeList, new Comparator<DSNode>() {
+            @Override
+            public int compare(DSNode o1, DSNode o2) {
+                return o1.elements.size() - o2.elements.size();
+            }
+        });
+
+        int numToDestroy = nodeSet.size() - k;
+        int numChanges = 0;
+        int index = 0;
+
+        for(int i = 0; i < numToDestroy; i++) {
+            DSNode node = nodeList.get(index++);
+            for(DSNode ele : node.elements) {
+                mat[ele.x][ele.y] = '*';
+                numChanges++;
+            }
+        }
+
+        System.out.println(numChanges);
+
+        PrintWriter pw = new PrintWriter(new BufferedOutputStream(System.out, 1024 * 64));
+
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++)
+                pw.print(mat[i][j]);
+            pw.println();
+        }
+
+        pw.flush();
+    }
+
+    static void merge(DSNode node1, DSNode node2) {
+        node1 = node1.leader;
+        node2 = node2.leader;
+
+        if(node1 == node2)
+            return;
+
+        if(node1.elements.size() > node2.elements.size()) {
+            DSNode tmp = node1;
+            node1 = node2;
+            node2 = tmp;
+        }
+
+        for(DSNode ele : node1.elements) {
+            ele.leader = node2;
+            node2.onBoundary = node2.onBoundary || ele.onBoundary;
+        }
+
+        node2.elements.addAll(node1.elements);
+        node1.elements = new ArrayList<DSNode>();
+    }
+
+    static class DSNode {
+        DSNode leader = this;
+        boolean onBoundary;
+        List<DSNode> elements = new ArrayList<DSNode>();
+        int x;
+        int y;
+
+        DSNode(int x, int y, int n, int m) {
+            this.x = x;
+            this.y = y;
+            this.onBoundary = x == 0 || x == n-1 || y == 0 || y == m-1;
+            elements.add(this);
+        }
+    }
+
+}

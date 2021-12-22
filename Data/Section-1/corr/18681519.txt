@@ -1,0 +1,85 @@
+#include <bits/stdc++.h>
+using namespace std;
+int lim,hrlim;
+int small=0,eq=1;
+string ttime;
+
+int on(int n,int k) {
+	return n|(1<<k);
+}
+
+bool check(int n,int k) {
+	return n&(1<<k);
+}
+
+string dig(int n) {
+	if (!n) return "0";
+	string s="";
+	while (n) {
+		s+=n%7+'0';
+		n/=7;
+	}
+	return s;
+}
+
+bool val(int pos, char want, int state) {
+	if (state==small) return 1;
+	if (want<=ttime[pos]) return 1;
+	return 0;
+}
+
+string tobin(int n) {
+	string ans="";
+	while (n) {
+		ans+=n%2+'0';
+		n/=2;
+	}
+	reverse(ans.begin(),ans.end());
+	return ans;
+}
+
+int newstate(int pos, char want, int state) {
+	if (pos==hrlim-1) return eq;
+	if (state==small) return small;
+	if (want<ttime[pos]) return small;
+	return eq;
+}
+
+long long int dp[30][2][300];
+
+long long int call(int pos, int state, int mask) {
+	//cout<<"in "<<pos<<" "<<state<<" "<<tobin(mask)<<endl;
+	if (pos==lim) {
+		//puts("here");
+		return 1;
+	}
+	if (dp[pos][state][mask]!=-1) return dp[pos][state][mask];
+	int i;
+	long long int ans= 0;
+	for (i=0;i<=6;++i) {
+		if (!check(mask,i) && val(pos,i+'0',state)) {
+			ans+= call(pos+1,newstate(pos,i+'0',state),on(mask,i));
+		}
+	}
+	//cout<<"back from "<<pos<<" "<<state<<" "<<tobin(mask)<<endl;
+	return dp[pos][state][mask]= ans;
+}
+
+int main() {
+	long long int n,m;
+	while (cin>>n>>m) {
+		memset(dp,-1,sizeof(dp));
+		string hr=dig(n-1),min=dig(m-1);
+		reverse(hr.begin(),hr.end());
+		reverse(min.begin(),min.end());
+		//cout<<hr<<" "<<min<<endl;
+		hrlim=hr.length();
+		ttime= hr+min;
+		lim=ttime.length();
+		long long int ans= call(0,eq,0);
+		cout<<ans<<endl;
+		//puts("============");
+	}
+	
+	return 0;
+}

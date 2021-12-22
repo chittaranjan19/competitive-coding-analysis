@@ -1,0 +1,255 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD3 {
+    BufferedReader rd;
+
+    ProblemD3() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int q = intarr()[1];
+        int[] p = intarr();
+        int n = p.length + 1;
+        int[] ch = new int[n];
+        int[] pa = new int[n];
+        IntListsContainer childrenOf = new IntListsContainer(n,n);
+        for(int i=0;i<n-1;i++) {
+            p[i]--;
+            int u = p[i];
+            pa[i+1] = u;
+            ch[u]++;
+            childrenOf.add(u, i+1);
+        }
+
+        boolean[] vis = new boolean[n];
+        Queue<Integer> singles = new ArrayDeque<>();
+        Queue<Integer> qu = new ArrayDeque<>();
+        qu.add(0);
+        vis[0] = true;
+        while(!qu.isEmpty()) {
+            int v = qu.poll();
+            if(!childrenOf.isEmpty(v)) {
+                for(Integer u: childrenOf.iterable(v)) {
+                    if (!vis[u]) {
+                        vis[u] = true;
+                        qu.add(u);
+                    }
+                }
+            } else {
+                singles.add(v);
+            }
+        }
+
+        int[] c = new int[n];
+        int[] ma = new int[n];
+        int[] ce = new int[n];
+        if(n > 1) {
+            while (!singles.isEmpty()) {
+                int v = singles.poll();
+                c[v] = 1;
+                ce[v] = v;
+                int u = pa[v];
+                ch[u]--;
+                if(ch[u] == 0) {
+                    qu.add(u);
+                }
+            }
+            while(!qu.isEmpty()) {
+                int v = qu.poll();
+                int sum = 1;
+                int mm = 0;
+                for(Integer u: childrenOf.iterable(v)) {
+                    sum += c[u];
+                    mm = Math.max(mm, c[u]);
+                }
+                c[v] = sum;
+                ma[v] = mm;
+                int d = sum / 2;
+                int best = -1;
+                outer: {
+                    for(Integer x: childrenOf.iterable(v)) {
+                        int u = ce[x];
+                        while (true) {
+                            int be = Math.max(sum - c[u], ma[u]);
+                            if (be <= d) {
+                                best = u;
+                                break outer;
+                            }
+                            if (u == v) {
+                                break;
+                            }
+                            u = pa[u];
+                        }
+                    }
+                }
+                if(best == -1) {
+                    best = v;
+                }
+                ce[v] = best;
+                int pr = pa[v];
+                ch[pr]--;
+                if(ch[pr] == 0) {
+                    qu.add(pr);
+                }
+            }
+        }
+
+        StringBuilder buf = new StringBuilder();
+        for(int i=0;i<q;i++) {
+            int v = pint()-1;
+            if(i > 0) {
+                buf.append('\n');
+            }
+            buf.append(ce[v]+1);
+        }
+        out(buf);
+    }
+
+
+    private class IntListsContainer {
+        private int[] c;
+        private int[] a;
+        private int from = 2;
+
+        public IntListsContainer(int maxElements, int maxLists) {
+            a = new int[maxElements * 2 + 2];
+            c = new int[maxLists];
+        }
+
+        private void add(int listId, int x) {
+            a[from] = x;
+            if (c[listId] == 0) {
+                a[from + 1] = -1;
+            } else {
+                a[from + 1] = c[listId];
+            }
+            c[listId] = from;
+            from += 2;
+        }
+
+        private boolean isEmpty(int listId) {
+            return c[listId] == 0;
+        }
+
+        private Iterator<Integer> iterator(int listId) {
+            return new Iterator<Integer>() {
+                boolean hasNext;
+                int next;
+                int adr;
+
+                {
+                    prepareNext(c[listId]);
+                }
+
+                private void prepareNext(int nextAdr) {
+                    adr = nextAdr;
+                    hasNext = adr > 0;
+                    if(hasNext) {
+                        next = a[adr];
+                    }
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return hasNext;
+                }
+
+                @Override
+                public Integer next() {
+                    int cur = next;
+                    prepareNext(a[adr + 1]);
+                    return cur;
+                }
+            };
+        }
+
+        private Iterable<Integer> iterable(int listId) {
+            return () -> iterator(listId);
+        }
+
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD3();
+    }
+}

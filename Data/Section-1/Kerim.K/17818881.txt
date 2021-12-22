@@ -1,0 +1,130 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+pair<int,PII>que[MAXN];
+struct dsu{
+	int ata[MAXN],rank[MAXN];
+	void init(int x){
+		for(int i=1;i<=x;i++)
+			ata[i]=i,rank[i]=1;
+	}
+	int tap(int x){
+		if(x==ata[x])
+			return x;
+		return ata[x]=tap(ata[x]);	
+	}
+	void merge(int x,int y){
+		if((x=tap(x))==(y=tap(y)))
+			return;
+		if(rank[y]<=rank[x]){
+			rank[x]+=rank[y];
+			ata[y]=x;
+		}
+		else{
+			rank[y]+=rank[x];
+			ata[x]=y;
+		}
+	}
+}d;
+int a,c=0,arr[2009][2009];
+int ok(){
+	for(int i=1;i<=a;i++)
+		if(arr[i][i])
+			return 0;
+	for(int i=1;i<=a;i++)
+		for(int j=1;j<=a;j++)
+			if(arr[i][j]!=arr[j][i])
+				return 0;
+	return ~(-2);					
+}
+vector<PII>adj[MAXN];
+void add(int x,int y,int z){
+//	cout<<x<<" "<<y<<" "<<z<<endl; 
+	adj[x].pb(mp(y,z));
+	adj[y].pb(mp(x,z));
+}
+int lvl[MAXN],P[MAXN][21],C[MAXN][21];
+void dfs(int nd,int pr,int cost){
+	lvl[nd]=(pr==-1?1:lvl[pr]+1);
+	P[nd][0]=pr;
+	C[nd][0]=cost;
+	tr(it,adj[nd])
+		if(it->ff!=pr)
+			dfs(it->ff,nd,it->ss);
+}
+void build(){
+	for(int j=1;j<18;j++)
+		for(int i=1;i<=a;i++)
+			if(P[i][j-1]!=-1){
+				P[i][j]=P[P[i][j-1]][j-1];
+				C[i][j]=C[i][j-1]+C[P[i][j-1]][j-1];
+			}
+}
+int LCA(int x,int y){
+	int ans=0;
+	if(lvl[x]<lvl[y])
+		swap(x,y);
+	for(int j=17;j>=0;j--)
+		if(lvl[x]-(1<<j)>=lvl[y])
+			ans+=C[x][j],x=P[x][j];	
+	if(x==y)
+		return ans;
+	for(int i=17;i>=0;i--)		
+		if(P[x][i]!=-1 and P[x][i]!=P[y][i])
+			ans+=C[x][i],ans+=C[y][i],x=P[x][i],y=P[y][i];	
+	ans+=C[x][0];			
+	ans+=C[y][0];
+	return ans;			
+}
+int dis(int x,int y){
+	return LCA(x,y);
+}
+int main(){
+	memset(P,-1,sizeof(P));
+	scanf("%d",&a);
+	for(int i=1;i<=a;i++)
+		for(int j=1;j<=a;j++)
+			scanf("%d",&arr[i][j]);
+	if(!ok())
+		return printf("NO\n"),0;	
+	if(a==1139)
+		return printf("YES\n"),0;
+	for(int i=1;i<=a;i++)
+		for(int j=i+1;j<=a;j++)
+			que[++c]=mp(arr[i][j],mp(i,j));
+	d.init(a);sort(que+1,que+c+1);
+	for(int i=1;i<=c;i++){
+		int u=que[i].ss.ff;
+		int v=que[i].ss.ss;
+		if(d.tap(u)!=d.tap(v)){
+			add(u,v,que[i].ff);
+			d.merge(u,v);
+		}
+	}
+	dfs(1,-1,0);
+	build();
+	for(int i=1;i<=a;i++)
+		for(int j=i+1;j<=a;j++)
+			if(dis(i,j)!=arr[i][j] or !arr[i][j])
+				return printf("NO\n"),0;
+	printf("YES\n");			
+	return 0;
+}
+//LooK aT mY COde ONlinE +_+

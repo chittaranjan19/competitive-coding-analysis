@@ -1,0 +1,85 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 1003
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, m, lg[mn];
+short f[mn][mn][11][11];
+
+short getMax(int x1, int y1, int x2, int y2)
+{
+    if (x1 > x2 || y1 > y2)
+        return 0;
+    int xx = lg[x2 - x1 + 1];
+    int yy = lg[y2 - y1 + 1];
+    int a = max(f[x1][y1][xx][yy], f[x2 - (1 << xx) + 1][y2 - (1 << yy) + 1][xx][yy]);
+    int b = max(f[x2 - (1 << xx) + 1][y1][xx][yy], f[x1][y2 - (1 << yy) + 1][xx][yy]);
+    return max(a, b);
+}
+
+void solve()
+{
+    int x1, y1, x2, y2;
+    scanf("%d %d %d %d", &x1, &y1, &x2, &y2);
+    int r = min(x2 - x1 + 1, y2 - y1 + 1) + 1;
+    int l = 0;
+    while(r - l > 1)
+    {
+        int g = ((l + r) >> 1);
+        if (getMax(x1 + g - 1, y1 + g - 1, x2, y2) >= g)
+            l = g;
+        else
+            r = g;
+    }
+    cout << l << '\n';
+}
+
+void setup()
+{
+    scanf("%d %d", &n, &m);
+    FOR(i, 1, mn - 1)
+        lg[i] = log2(i);
+    FOR(i, 1, n)
+    FOR(j, 1, m)
+    {
+        scanf("%d", &f[i][j][0][0]);
+        if (f[i][j][0][0])
+            f[i][j][0][0] += min(min(f[i - 1][j][0][0], f[i][j - 1][0][0]), f[i - 1][j - 1][0][0]);
+    }
+    for(int i = 0, u = 1; u <= n; i ++, u <<= 1)
+    for(int j = 0, v = 1; v <= m; j ++, v <<= 1)
+    if (i + j)
+        FOR(x, 1, n + 1 - u)
+        FOR(y, 1, m + 1 - v)
+        {
+            if (i == 0)
+                f[x][y][i][j] = max(f[x][y][i][j - 1], f[x][y + (v >> 1)][i][j - 1]);
+            if (j == 0)
+                f[x][y][i][j] = max(f[x][y][i - 1][j], f[x + (u >> 1)][y][i - 1][j]);
+            if (i && j)
+                f[x][y][i][j] = max(max(f[x][y][i - 1][j - 1], f[x + (u >> 1)][y][i - 1][j]),
+                                    max(f[x][y + (v >> 1)][i][j - 1], f[x + (u >> 1)][y + (v >> 1)][i - 1][j - 1]));
+        }
+    int t;
+    scanf("%d", &t);
+    FOR(i, 1, t)
+        solve();
+}
+
+void xuly()
+{
+
+}
+
+int main()
+{
+    setup ();
+    xuly ();
+    return 0;
+}

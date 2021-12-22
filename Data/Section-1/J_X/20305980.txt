@@ -1,0 +1,80 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 2e3 + 5;
+
+ll val[maxn][maxn];
+int n, m, k, q, dir[maxn][maxn], belong[maxn][maxn], lastx[maxn], lasty[maxn];
+char s[10];
+bool on[maxn];
+
+int main()
+{
+    scanf("%d%d%d", &n, &m, &k);
+    for(int i = 1; i <= k; ++i)
+    {
+        int l;
+        ll sum = 0;
+        on[i] = true;
+        lastx[i] = lasty[i] = -1;
+        scanf("%d", &l);
+        for(int j = 0; j < l; ++j)
+        {
+            int x, y, w;
+            scanf("%d%d%d", &x, &y, &w);
+            belong[x][y] = i;
+            sum += w;
+            val[x][y] = sum;
+            if(~lastx[x])
+            {
+                if(lasty[i] == y) dir[lastx[i]][lasty[i]] = x > lastx[i] ? 3 : 1;
+                else dir[lastx[i]][lasty[i]] = y > lasty[i] ? 4 : 2;
+            }
+            lastx[i] = x;
+            lasty[i] = y;
+        }
+    }
+    scanf("%d", &q);
+    for(int i = 0; i < q; ++i)
+    {
+        scanf("%s", s);
+        if(*s == 'S')
+        {
+            int o;
+            scanf("%d", &o);
+            on[o] ^= 1;
+        }
+        else
+        {
+            int x1, y1, x2, y2;
+            scanf("%d%d%d%d", &x1, &y1, &x2, &y2);
+            ll ans = 0;
+            for(int j = y1; j <= y2; ++j)
+            {
+                if(on[belong[x1 - 1][j]] && dir[x1 - 1][j] == 3) ans -= val[x1 - 1][j];
+                if(on[belong[x1][j]] && dir[x1][j] == 1) ans += val[x1][j];
+                if(on[belong[x2 + 1][j]] && dir[x2 + 1][j] == 1) ans -= val[x2 + 1][j];
+                if(on[belong[x2][j]] && dir[x2][j] == 3) ans += val[x2][j];
+            }
+            for(int j = x1; j <= x2; ++j)
+            {
+                if(on[belong[j][y1 - 1]] && dir[j][y1 - 1] == 4) ans -= val[j][y1 - 1];
+                if(on[belong[j][y1]] && dir[j][y1] == 2) ans += val[j][y1];
+                if(on[belong[j][y2 + 1]] && dir[j][y2 + 1] == 2) ans -= val[j][y2 + 1];
+                if(on[belong[j][y2]] && dir[j][y2] == 4) ans += val[j][y2];
+            }
+            for(int j = 1; j <= k; ++j)
+            {
+                if(on[j] && lastx[j] >= x1 && lastx[j] <= x2 && lasty[j] >= y1 && lasty[j] <= y2) ans += val[lastx[j]][lasty[j]];
+            }
+            printf("%I64d\n", ans);
+        }
+    }
+    return 0;
+}

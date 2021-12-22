@@ -1,0 +1,141 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int primes[4] = {2, 3, 5, 7};
+
+int N;
+int fact[10][4];
+pii dp[110][62][16][16];	//pair(length, first char)
+int state[110][62][16][16][4];
+
+int *getstate (int *a) {
+	return state[a[0]][a[1]][a[2]][a[3]];
+}
+
+pii &getref (int *a) {
+	return dp[a[0]][a[1]][a[2]][a[3]];
+}
+
+pii getdp (int *arr) {
+	pii &ref = getref(arr);
+	if (ref.second) {
+		return ref;
+	}
+	ref.second = -1;
+	int narr[4], prv = -1;
+	for (int i = 2; i < 10; i++) {
+		bool ok = true;
+		for (int j = 0; j < 4; j++) {
+			narr[j] = arr[j] - fact[i][j];
+			if (narr[j] < 0) {
+				ok = false;
+				break;
+			}
+		}
+		if (!ok) {
+			break;
+		}
+		//otherwise it is ok, proceed on
+		pii p = getdp(narr);
+		//make sure it is valid!!!
+		if (p.second == -1) {
+			bool cont = false;
+			for (int j = 0; j < 4; j++) {
+				if (narr[j]) {
+					cont = true;
+					break;
+				}
+			}
+			if (cont) {
+				//invalid state from there
+				continue;
+			}
+		}
+		// for (int k = 0; k < 4; k++) {
+		// 	cerr << arr[k] << ", ";
+		// }
+		// cerr << " --valid as i = " << i << " --> ";
+		// for (int k = 0; k < 4; k++) {
+		// 	cerr << narr[k] << ", ";
+		// }
+		// cerr << endl;
+		//we need to transform it
+		bool upd = (prv == -1);
+		if (ref.first < p.first) {
+			upd = true;
+		} else if (ref.first == p.first && i > prv) {
+			upd = true;
+		}
+		if (upd) {
+			ref = p;
+			prv = i;
+		}
+	}
+	if (prv == -1) {
+		return ref;
+	}
+	//update state
+	// cerr << "dp";
+	// for (int i = 0; i < 4; i++) {
+	// 	cerr << '[' << arr[i] << ']';
+	// }
+	// cerr << " = " << prv << endl;
+	int *s = getstate(arr);
+	for (int i = 0; i < 4; i++) {
+		s[i] = arr[i] - fact[prv][i];
+		// cerr << s[i] << ", ";
+	}
+	// cerr << endl;
+	//update ref itself
+	ref.first++;
+	ref.second = prv;
+	return ref;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	for (int i = 2; i < 10; i++) {
+		copy_n(fact[i - 1], 4, fact[i]);
+		int x = i;
+		for (int j = 0; j < 4; j++) {
+			while (x % primes[j] == 0) {
+				fact[i][j]++;
+				x /= primes[j];
+			}
+		}
+	}
+	int arr[4] = {0, 0, 0, 0};
+	cin >> N;
+	for (char c; N--; ) {
+		cin >> c;
+		c -= '0';
+		for (int i = 0; i < 4; i++) {
+			arr[i] += fact[c][i];
+		}
+	}
+	// for (int i : arr) {
+		// cout << i << ' ';
+	// }
+	// cout << endl;
+	dp[0][0][0][0] = pii(0, -1);	//the dot character
+	getdp(arr);
+	while (arr[0] || arr[1] || arr[2] || arr[3]) {
+		cout << getref(arr).second;
+		int *s = getstate(arr);
+		copy_n(s, 4, arr);
+	}
+}

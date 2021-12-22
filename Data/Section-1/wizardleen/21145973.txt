@@ -1,0 +1,82 @@
+import java.io.BufferedInputStream;
+import java.util.PriorityQueue;
+import java.util.Scanner;
+
+/**
+ * Created by leen on 10/3/16.
+ */
+public class _723C {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024 * 64));
+        int n = scan.nextInt(), m = scan.nextInt();
+        int[] a = new int[n];
+
+        int[] b = new int[m];
+
+        for(int i = 0; i < n; i++) {
+            a[i] = scan.nextInt() - 1;
+            if(a[i] < m)
+                b[a[i]]++;
+        }
+
+        int threshold = n / m;
+
+        PriorityQueue<HeapNode> heap = new PriorityQueue<HeapNode>();
+
+        for(int i = 0; i < m; i++) {
+            int numSongs = b[i];
+            if(numSongs < threshold)
+                heap.add(new HeapNode(i, numSongs));
+        }
+
+        int numChanges = 0;
+
+        int index = 0;
+        HeapNode current = null;
+        while(current != null || !heap.isEmpty()) {
+            if(current == null)
+                current = heap.poll();
+
+            if(a[index] >= m || b[a[index]] > threshold) {
+                if(a[index] < m)
+                    b[a[index]]--;
+                current.numSongs++;
+                a[index] = current.bandId;
+                numChanges++;
+            }
+
+            index++;
+
+            if(current.numSongs == threshold)
+                current = null;
+        }
+
+        System.out.println(threshold + " " + numChanges);
+
+        StringBuilder buf = new StringBuilder();
+        for(int i = 0; i < n; i++) {
+            if(i > 0)
+                buf.append(' ');
+            buf.append(a[i] + 1);
+        }
+
+        System.out.println(buf.toString());
+    }
+
+    static class HeapNode  implements  Comparable<HeapNode> {
+        int bandId;
+        int numSongs;
+
+
+        HeapNode(int bandId, int numSongs) {
+            this.bandId = bandId;
+            this.numSongs = numSongs;
+        }
+
+        @Override
+        public int compareTo(HeapNode o) {
+            return numSongs - o.numSongs;
+        }
+    }
+
+}

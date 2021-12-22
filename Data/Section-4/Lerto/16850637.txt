@@ -1,0 +1,77 @@
+#include <cstdlib>
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+int n,k,pos,x,y,a[200100],b[200100],bridge[200100],mas[200100],fl[200100];
+bool flag[200100],q[200100];
+
+int DFS(int v)
+{
+    q[v] = true;
+    if (fl[v] != pos)
+    {
+        if (x == -1) x = v; else
+        if (y == -1) y = v;    
+    }
+    for (int i = 1; i <= n; ++i) 
+    {
+        if (!q[a[i]] && q[b[i]] && flag[i]) DFS(a[i]);
+        if (q[a[i]] && !q[b[i]] && flag[i]) DFS(b[i]); 
+    }
+    return 1;
+}
+
+int main()
+{
+    cin >> n;
+    
+    for (int i = 1; i < n; ++i) cin >> a[i] >> b[i];
+    
+    while (k < n-1)
+    {
+        ++pos;
+        for (int i = 1; i < n; ++i)
+        if (!flag[i])
+        {
+            if (fl[a[i]] != pos && fl[b[i]] != pos && !flag[i]) 
+            {
+                ++k; 
+                bridge[k] = i;
+                fl[a[i]] = pos;
+                fl[b[i]] = pos; 
+            
+                flag[i] = true;
+            } else
+            {
+                for (int i = 1; i <= n; ++i) q[i] = false;
+                x = -1;
+                y = -1;
+                DFS(a[i]);
+                if (x != -1 && y != -1)
+                {
+                    ++k; 
+                    bridge[k] = i;
+                    fl[x] = pos;
+                    fl[y] = pos; 
+    
+                    flag[i] = true; 
+                }    
+            }
+        }
+        mas[pos] = k;
+    }
+    
+    cout << pos << endl;
+    cout << mas[1] << ' ';
+    for (int i = 1; i <= mas[1]; ++i) cout << bridge[i] << ' ';
+    cout << endl;
+    
+    for (int i = 2; i <= pos; ++i)
+    {
+        cout << mas[i] - mas[i-1] << ' ';
+        for (int j = mas[i-1]+1; j <= mas[i]; ++j) cout << bridge[j] << ' ';
+        cout << endl;
+    }
+}

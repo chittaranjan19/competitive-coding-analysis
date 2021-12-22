@@ -1,0 +1,83 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define pb push_back
+
+using namespace std;
+int n, m, w[mn], pos[mn], num[mn], en[mn], cnt = 0;
+vector<int> g[mn], ans;
+bool mark[mn], top[mn];
+
+void setup()
+{
+    cin >> n >> m;
+    FOR(i, 1, n)
+        pos[i] = maxC;
+    int u, v;
+    FOR(i, 1, m)
+    {
+        cin >> u >> v;
+        g[u].pb(v);
+        top[v] = true;
+    }
+    FOR(i, 1, n)
+    {
+        cin >> w[i];
+        if (!mark[w[i]])
+            mark[w[i]] = true, ans.pb(w[i]);
+    }
+}
+
+void dfs(int u)
+{
+    num[u] = ++ cnt;
+    FOR(i, 0, int(g[u].size()) - 1)
+        dfs(g[u][i]);
+    en[u] = cnt;
+}
+
+bool com(int a, int b)
+{
+    return num[b] < num[a] && num[a] <= en[b];
+}
+
+void dfs2(int u, int low)
+{
+    low = min(low, pos[u]);
+    int v = ans[low];
+    if (v != w[u])
+    {
+        cout << -1;
+        exit(0);
+    }
+    FOR(i, 0, int(g[u].size()) - 1)
+        dfs2(g[u][i], low);
+}
+
+void xuly ()
+{
+    FOR(i, 1, n)
+    if (!top[i])
+        dfs(i);
+    sort(ans.begin(), ans.end(), com);
+    FOR(i, 0, int(ans.size()) - 1)
+        pos[ans[i]] = i;
+    FOR(i, 1, n)
+    if (!top[i])
+        dfs2(i, maxC);
+    cout << ans.size() << '\n';
+    FOR(i, 0, int(ans.size()) - 1)
+        cout << ans[i] << '\n';
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

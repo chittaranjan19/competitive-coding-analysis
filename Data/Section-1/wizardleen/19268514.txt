@@ -1,0 +1,113 @@
+import java.io.BufferedInputStream;
+import java.util.*;
+
+/**
+ * Created by leen on 7/19/16.
+ */
+public class _699D {
+
+    static int numChanges = 0;
+
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 64 * 1024));
+        int n = scan.nextInt();
+
+        Node[] nodes = new Node[n + 1];
+
+        Set<Node> unvisited = new HashSet<Node>();
+
+        for(int i = 1; i <=n;i++) {
+            nodes[i] = new Node(i);
+            unvisited.add(nodes[i]);
+        }
+
+        for(int i = 1; i <= n; i++)
+            nodes[scan.nextInt()].addChild(nodes[i]);
+
+
+        Node root = null;
+        Node lastRoot = null;
+
+        while(!unvisited.isEmpty()) {
+            root = unvisited.iterator().next();
+
+            while(root.parent != null && !root.visited) {
+                root.visited = true;
+                root = root.parent;
+            }
+
+            dfs(root, unvisited, root, lastRoot);
+
+            lastRoot = root;
+        }
+
+        assert root != null;
+
+        if(root.parent != root) {
+            root.parent = root;
+            numChanges++;
+        }
+
+        int[] result = new int[n + 1];
+
+        solve(root, result);
+
+        StringBuilder buf = new StringBuilder();
+        boolean first = true;
+        for(int i = 1; i <= n; i++) {
+            if(first)
+                first = false;
+            else
+                buf.append(' ');
+            buf.append(result[i]);
+        }
+
+        System.out.println(numChanges);
+        System.out.println(buf.toString());
+        System.out.flush();
+    }
+
+    static void solve(Node node, int[] result) {
+        result[node.index] = node.parent.index;
+        for(Node child : node.children)
+            solve(child, result);
+    }
+
+
+    static void dfs(Node node, Set<Node> unvisited, Node root, Node lastRoot) {
+        unvisited.remove(node);
+        ListIterator<Node> it = node.children.listIterator();
+
+        while(it.hasNext()) {
+            Node child = it.next();
+            if(child == root)
+                it.remove();
+            else {
+                dfs(child, unvisited, root, lastRoot);
+                lastRoot = null;
+            }
+        }
+
+        if(lastRoot != null && node.children.isEmpty()) {
+            node.addChild(lastRoot);
+            numChanges++;
+        }
+
+    }
+
+    static class Node {
+        final int index;
+        boolean visited;
+        Node parent;
+        List<Node> children = new LinkedList<Node>();
+
+        Node(int index) {
+            this.index = index;
+        }
+
+        void addChild(Node node) {
+            children.add(node);
+            node.parent = this;
+        }
+    }
+}

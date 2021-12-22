@@ -1,0 +1,117 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+#define square(x) (1ll * (x) * (x))
+
+using namespace std;
+int n, minYF[mn], maxYF[mn], minYL[mn], maxYL[mn];
+pair<int, int> point[mn];
+long long ans;
+
+void setup()
+{
+    cin >> n;
+    int minX = maxC, maxX = - maxC, minY = maxC, maxY = - maxC;
+    FOR(i, 1, n)
+    {
+        cin >> point[i].F >> point[i].S;
+        minX = min(minX, point[i].F);
+        maxX = max(maxX, point[i].F);
+        minY = min(minY, point[i].S);
+        maxY = max(maxY, point[i].S);
+    }
+    ans = square(min(maxX - minX, maxY - minY));
+    sort(point + 1, point + n + 1);
+}
+
+long long getCost1(int id, long long lim)
+{
+    long long high = min(-1ll * point[id].F, lim + point[id].F);
+    int l = 1, r = n + 1;
+    while(r - l > 1)
+    {
+        int g = ((l + r) >> 1);
+        if (point[g].F > high)
+            r = g;
+        else
+            l = g;
+    }
+    int MinY = min(minYF[id - 1], minYL[l + 1]);
+    int MaxY = max(maxYF[id - 1], maxYL[l + 1]);
+    long long cross = square(point[id].F) + max(square(MinY), square(MaxY));
+    return max(square(MaxY - MinY), cross);
+}
+
+long long getCost2(int id, long long lim)
+{
+    long long low = max(-1ll * point[id].F, - lim + point[id].F);
+    int l = 0, r = n;
+    while(r - l > 1)
+    {
+        int g = ((l + r) >> 1);
+        if (point[g].F < low)
+            l = g;
+        else
+            r = g;
+    }
+    int MinY = min(minYL[id + 1], minYF[r - 1]);
+    int MaxY = max(maxYL[id + 1], maxYF[r - 1]);
+    long long cross = square(point[id].F) + max(square(MinY), square(MaxY));
+    return max(square(MaxY - MinY), cross);
+}
+
+bool ok(long long x)
+{
+    long long lim = sqrt(x);
+    FOR(i, 1, n)
+    {
+        long long cost = (point[i].F < 0? getCost1(i, lim) : getCost2(i, lim));
+        if (cost <= x)
+            return true;
+    }
+    return false;
+}
+
+void xuly()
+{
+    minYF[0] = minYL[n + 1] = maxC;
+    maxYF[0] = maxYL[n + 1] = - maxC;
+    FOR(i, 1, n)
+    {
+        minYF[i] = min(minYF[i - 1], point[i].S);
+        maxYF[i] = max(maxYF[i - 1], point[i].S);
+    }
+    FORD(i, n, 1)
+    {
+        minYL[i] = min(minYL[i + 1], point[i].S);
+        maxYL[i] = max(maxYL[i + 1], point[i].S);
+    }
+    long long l = -1, r = ans;
+    while(r - l > 1)
+    {
+        long long g = ((l + r) >> 1);
+        if (ok(g))
+            r = g;
+        else
+            l = g;
+    }
+    cout << r;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    //freopen("FILE.INP", "r", stdin);
+    //freopen("FILE.OUT", "w", stdout);
+    setup ();
+    xuly ();
+    return 0;
+}

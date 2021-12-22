@@ -1,0 +1,174 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef unsigned long long ull;
+typedef pair<int, int> pii;
+
+class Edge;
+const int MAX = 100010;
+
+const ll inf = 1ll<<62ll;
+ll dist[2][MAX];
+vector<Edge> graph[2][MAX];
+short edge_type[MAX];//1 = good, 2 = bad, 3 = can be improved
+vector<bool> visited(MAX, false);
+int N, M, start, target;
+
+
+class Edge {
+public:
+    int to, from, id;
+    ll imp, w;
+    Edge(int n, ll w, int id) : to(n), w(w), id(id){}
+    Edge(int n, int o, ll w, int id) : from(n), to(o), w(w), id(id){}
+    Edge(){}
+};
+Edge edges[MAX];
+
+
+class Compare {
+public:
+    bool operator()(pair<int,ll> a, pair<int, ll> b) {
+        return a.second > b.second;
+    }
+};
+
+class Compare2 {
+public:
+    bool operator()(pair<int,ll> a, pair<int, ll> b) {
+        return a.second < b.second;
+    }
+};
+
+void dijkstra(int start, int type) {
+    visited = vector<bool>(MAX, false);
+    priority_queue<pair<int, ll> , vector<pair<int, ll> >, Compare> pq;
+    dist[type][start] = 0;
+    pq.push(make_pair(start, 0));
+    while(!pq.empty()) {
+        pair<int, ll> pout = pq.top();
+        pq.pop();
+        int p = pout.first;
+        ll cdist = pout.second;
+        //printf("in %d size %d w %d\n", p, pq.size(), cdist);
+        if(visited[p])
+            continue;
+        visited[p] = true;
+        for (int i = 0; i < graph[type][p].size(); ++i) {
+            int t = graph[type][p][i].to;
+            ll weight = graph[type][p][i].w;
+            //printf("current %d\n", t);
+            if(!visited[t]) {
+                if(cdist + weight < dist[type][t]) {
+                    dist[type][t] = cdist + weight;
+                    //printf("pused t %d w %d\n", t, cdist+weight);
+                    pq.push(make_pair(t, dist[type][t]));
+                }
+            }
+        }
+    }
+}
+
+void find_not_best() {
+    for (int i = 0; i < M; ++i) {
+        Edge e = edges[i];
+        ll d1  = dist[0][e.from], d2  = dist[1][e.to];
+        if(d1 + d2 + e.w != dist[0][target]) {
+            edge_type[e.id] = 2;
+        }
+        else {
+            edge_type[e.id] = 3;
+        }
+    }
+}
+
+void calc_imp() {
+    for (int i = 0; i < M; ++i) {
+        Edge e = edges[i];
+        if(edge_type[e.id] == 1)
+            continue;
+        ll d1  = dist[0][e.from], d2  = dist[1][e.to];
+        ll x = d1 + d2 + e.w + 1 - dist[0][target];
+        if(e.w - x >= 1) {
+            edge_type[e.id] = 3;
+            edges[e.id].imp = x;
+        }
+    }
+}
+
+void find_bridges() {
+    visited = vector<bool> (MAX, false);
+    priority_queue< pair<int, ll> , vector<pair<int, ll > >, Compare2 > pq;
+    pq.push (make_pair(start, dist[1][start]));
+    visited[start] = true;
+    while ( !pq.empty() ) {
+        pii p = pq.top();
+        pq.pop();
+        int node = p.first;
+        //cout<<"in "<<p.first<<endl;
+        if (p.first == target)
+            return;
+        int id = -1, sons = 0;
+        for (int i = 0; i < graph[0][node].size(); ++i) {
+            Edge e = graph[0][node][i];
+            //cout<<"here node "<<node<<" to "<<e.to<<endl;
+            if (edge_type[e.id] == 2)
+                continue;
+            sons++;
+            if ( !visited[e.to] ) {
+                id = e.id;
+                pq.push (make_pair(e.to, dist[1][e.to]));
+                visited[e.to] = true;
+            }
+        }
+        //cout<<"in "<<node<<" size "<<pq.size()<<" sons "<<sons<<endl;
+        if (pq.size() == 1 && id >= 0 && sons == 1) {
+            //cout<<"edge "<<id<<" marked"<<endl;
+            edge_type[id] = 1;
+        }
+    }
+}
+
+int main() {
+    //freopen("president.in", "r", stdin);
+    //freopen("president.out", "w", stdout);
+    ios_base::sync_with_stdio(false);
+    //scanf("%d %d %d %d", &N, &M, &start, &target);
+    cin>>N>>M>>start>>target;
+    for (int i = 1; i <= N; ++i) {
+        dist[0][i] = inf;
+        dist[1][i] = inf;
+    }
+    for (int i = 0; i < M; ++i) {
+        int a, b, l, mx, mn;
+        //scanf("%d %d %d", &a, &b, &l);
+        cin>>a>>b>>l;
+        graph[0][a].push_back(Edge(b, l, i));
+        graph[1][b].push_back(Edge(a, l, i));
+        edges[i] = Edge(a, b, l, i);
+    }
+    dijkstra(start, 0);
+    dijkstra(target, 1);
+    find_not_best();
+    /*for (int i = 0; i < M; ++i) {
+        //printf("id %d type %d\n", i, edge_type[i]);
+        cout<<"id "<<i<<" type "<<edge_type[i]<<endl;
+    }*/
+    find_bridges();
+    calc_imp();
+    for (int i = 0; i < M; ++i) {
+        //printf("edge i %d %d\n", i, edge_type[i]);
+        Edge t = edges[i];
+        if(edge_type[i] == 1)
+            cout<<"YES\n";
+        else if(edge_type[i] == 2)
+            cout<<"NO\n";
+        else{
+            //printf("CAN %I64d\n", edges[i].imp);
+            cout << "CAN " << edges[i].imp << "\n";
+        }
+    }
+    return 0;
+}

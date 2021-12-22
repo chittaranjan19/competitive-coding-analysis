@@ -1,0 +1,146 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 100010, BLOCK = 350;
+
+int N, M, Q;
+vector<pii> adj[MAXN], edges[MAXN];
+vector<int> colors[MAXN], qadj[MAXN];
+int hind[MAXN], curh;
+int cache[BLOCK][BLOCK];	//cache of it
+int ptr[MAXN];
+bool vis[MAXN];
+vector<int> nodes;
+int par[MAXN], rnk[MAXN];
+int qu[MAXN], qv[MAXN], ans[MAXN];	//qqqq
+
+int find (int x) {
+	return x == par[x] ? x : par[x] = find(par[x]);
+}
+
+void merge (int x, int y) {
+	x = find(x);
+	y = find(y);
+	if (x == y) {
+		return;
+	}
+	if (rnk[x] > rnk[y]) {
+		swap(x, y);
+	}
+	par[x] = y;
+	if (rnk[x] == rnk[y]) {
+		rnk[y]++;
+	}
+}
+
+void dfs (int x, int root, int c) {
+	if (vis[x]) {
+		return;
+	}
+	vis[x] = true;
+	nodes.push_back(x);
+	if (x != root && hind[x] != -1) {
+		cache[hind[x]][hind[root]]++;
+	}
+	int sz = adj[x].size(), &pt = ptr[x];
+	for (; pt < sz && adj[x][pt].first <= c; pt++) {
+		if (adj[x][pt].first == c) {
+			dfs(adj[x][pt].second, root, c);
+		}
+	}
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+		freopen("output.txt", "w", stdout);
+	}
+	scanf("%d %d", &N, &M);
+	for (int i = 1, a, b, c; i <= M; i++) {
+		scanf("%d %d %d", &a, &b, &c);
+		adj[a].push_back(pii(c, b));
+		adj[b].push_back(pii(c, a));
+		edges[c].push_back(pii(a, b));
+	}
+	for (int i = 1; i <= N; i++) {
+		vector<pii> &v = adj[i];
+		if (!v.empty()) {
+			sort(all(adj[i]));
+			colors[i].push_back(v[0].first);
+			for (int j = 1, sz = v.size(); j < sz; j++) {
+				if (v[j].first != v[j - 1].first) {
+					colors[i].push_back(v[j].first);
+				}
+			}
+		}
+		if (colors[i].size() > BLOCK) {
+			//heavy
+			hind[i] = curh++;
+		} else {
+			hind[i] = -1;
+		}
+		par[i] = i;
+	}
+	scanf("%d", &Q);
+	for (int i = 1; i <= Q; i++) {
+		scanf("%d %d", &qu[i], &qv[i]);
+		if (hind[qv[i]] == -1) {
+			swap(qu[i], qv[i]);
+		}
+		if (hind[qu[i]] == -1) {
+			qadj[qu[i]].push_back(i);
+		}
+	}
+	//union find
+	for (int i = 1; i <= M; i++) {
+		if (edges[i].empty()) {
+			continue;
+		}
+		for (pii p : edges[i]) {
+			merge(p.first, p.second);
+			nodes.push_back(p.first);
+			nodes.push_back(p.second);
+		}
+		sort(all(nodes));
+		nodes.resize(unique(all(nodes)) - nodes.begin());
+		for (int u : nodes) {
+			for (int iv : qadj[u]) {
+				if (find(u) == find(qv[iv])) {
+					ans[iv]++;
+				}
+			}
+		}
+		//reset
+		for (int x : nodes) {
+			par[x] = x;
+			rnk[x] = 0;
+		}
+		nodes.clear();
+	}
+	for (int i = 1; i <= N; i++) {
+		if (hind[i] != -1) {
+			fillchar(ptr, 0);
+			for (int c : colors[i]) {
+				dfs(i, i, c);
+				for (int v : nodes) {
+					vis[v] = false;
+				}
+				nodes.clear();
+			}
+		}
+	}
+	for (int i = 1; i <= Q; i++) {
+		int u = qu[i], v = qv[i];
+		printf("%d\n", hind[u] == -1 ? ans[i] : cache[hind[u]][hind[v]]);
+	}
+}

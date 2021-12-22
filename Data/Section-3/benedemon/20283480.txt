@@ -1,0 +1,142 @@
+#include <iostream>
+#include <vector>
+#include <string.h>
+#include <stack>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <queue>
+#include <math.h>
+
+#define ll long long
+#define pb push_back
+#define mp make_pair
+#define traverse(container, it) \
+for(typeof(container.begin()) it = container.begin(); it!= container.end(); it++)
+using namespace std;
+
+//FILE *fin = freopen("in","r",stdin);
+//FILE *fout = freopen("out","w",stdout);
+
+int gcd(int a, int b){ if(b==0) return a; return gcd(b,a%b); }
+int lcm(int a, int b) {return a*(b/gcd(a,b));}
+void setbool(bool a[], int n, bool x){for(int i=0;i<n;i++){a[i] = x;}}
+void setint(int a[], int n, int x){for(int i=0;i<n;i++){a[i] = x;}}
+
+int n;
+vector<int> graph[27];
+int t, vis[27] = {0};
+int fin[27];
+bool dfs(int source)
+{
+    t++;
+    
+    vis[source] = 1;
+    
+    traverse(graph[source], it)
+    {
+        if(vis[*it] == 1)
+        {
+            return true;
+        }
+        else if(vis[*it] == 0)
+        {
+            if(dfs(*it))
+            {
+                return true;
+            }
+        }
+    }
+    t++;
+    vis[source] = 2;
+    fin[source] = t;
+    
+    return false;
+}
+
+bool compare(pair<int, int> p1, pair<int, int> p2)
+{
+    if(p1.first < p2.first)
+        return true;
+    
+    return false;
+}
+
+int main(int argc, const char * argv[]) 
+{
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    t=0;
+    string previous, now;
+    
+    cin>>n;
+    
+    cin>>previous;
+    n--;
+    int flag = 0;
+    while(n--)
+    {
+        cin>>now;
+        
+        for(int i=0;i<previous.size() && i<now.size();i++)
+        {
+            if(previous[i] != now[i])
+            {
+                graph[previous[i]-'a'].pb(now[i]-'a');
+                break;
+            }
+        }
+        
+        if(previous.size() > now.size())
+        {
+            flag=1;
+            break;
+        }
+        
+        previous = now;
+    }
+    
+    if(flag==1)
+    {
+        cout<<"Impossible";
+        return 0;
+    }
+    
+    for(int i=0;i<26;i++)
+    {
+        if(vis[i] != 0 || graph[i].size() == 0)
+            continue;
+        
+        if(dfs(i))
+        {
+            cout<<"Impossible";
+            return 0;
+        }
+    }
+    
+    int max, pos;
+    char temp;
+    int vis1[27] = {0};
+    for(int i=0;i<26;i++)
+    {
+        max = -1;
+        pos = -1;
+        for(int j=0;j<26;j++)
+        {
+            if(vis1[j] == 1)
+                continue;
+            
+            if(fin[j] > max)
+            {
+                pos = j;
+                max = fin[j];
+            }
+        }
+        vis1[pos] = 1;
+        temp = pos + 'a';
+        cout<<temp;
+    }
+    
+    return 0;
+}

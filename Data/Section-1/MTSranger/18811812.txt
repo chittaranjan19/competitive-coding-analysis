@@ -1,0 +1,75 @@
+#include <iostream>
+#include <bitset>
+#include <cstring>
+#include <queue>
+#include <vector>
+
+using namespace std;
+
+int n, k;
+
+int coins[501];
+bitset<501> dp[501]; // dp[i][j] = make j using up to and including ith coin 
+
+bitset<501> dfs(int i, int j) {
+	//for (int z = 0; z < depth; z++) cerr << " ";
+	//cerr << "visit: " << i << "=" << coins[i] << " " << j << endl;
+
+	bitset<501> res;
+
+	res[0] = 1;
+	if (i < n) res[coins[i]] = 1;
+
+	for (int z = 1; z < i; z++) {
+		int zz = j - coins[z];
+		if (zz >= 0 && dp[z-1][zz]) {
+			bitset<501> next = dfs(z, j - coins[z]);
+			res |= next;
+			if (i < n) res |= (next << coins[i]);
+		}
+	}
+	if (j - coins[0] == 0) {
+		res[coins[0]] = 1;
+		res[coins[0] + coins[i]] = 1;
+	}
+
+	//for (int z = 0; z < depth; z++) cerr << " ";
+	//for (int z = 0; z <= k; z++) cerr << res[z]; cerr << endl;
+
+	return res;
+}
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	cin >> n >> k;
+	for (int i = 0; i < n; i++) {
+		cin >> coins[i];
+	}
+
+	dp[0][0] = 1;
+	dp[0][coins[0]] = 1;
+
+	for (int i = 1; i < n; i++) {
+		dp[i] = (dp[i-1] | (dp[i-1] << coins[i]));
+	}
+
+	// do the knapsack dp over tree
+	bitset<501> possible = dfs(n, k);
+
+	vector<int> sol;
+	for (int i = 0; i <= k; i++) {
+		if (possible[i]) sol.push_back(i);
+	}
+
+	cout << sol.size() << endl;
+	for (int i = 0; i < sol.size(); i++) {
+		if (i > 0) cout << " ";
+		cout << sol[i];
+	}
+	cout << endl;
+
+	return 0;
+
+}

@@ -1,0 +1,120 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 100010, MAXLG = 17, BLOCK = 350;
+
+void setmin (int &a, int b) {
+	if (a > b) {
+		a = b;
+	}
+}
+
+int N, M;
+vector<int> adj[MAXN];
+int par[MAXN][MAXLG], dist[MAXN], depth[MAXN];	//min dist. will be updated every block
+queue<int> que;
+bool vis[MAXN];
+vector<int> reds;
+
+void dfs (int x, int p, int d) {
+	dist[x] = depth[x] = d++;
+	par[x][0] = p;
+	for (int t : adj[x]) {
+		if (t != p) {
+			dfs(t, x, d);
+		}
+	}
+}
+
+int lca (int x, int y) {
+	if (depth[x] < depth[y]) {
+		swap(x, y);
+	}
+	for (int d = depth[x] - depth[y], i = 0; d; i++, d >>= 1) {
+		if (d & 1) {
+			//then advance by i
+			x = par[x][i];
+		}
+	}
+	if (x == y) {
+		return x;
+	}
+	//otherwise advance it more
+	for (int i = MAXLG - 1; i; i--) {
+		if (par[x][i] != par[y][i]) {
+			x = par[x][i];
+			y = par[y][i];
+		}
+	}
+	return par[x][0];
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 1, a, b; i < N; i++) {
+		cin >> a >> b;
+		adj[a].push_back(b);
+		adj[b].push_back(a);
+	}
+	dfs(1, 0, 0);
+	for (int j = 1; j < MAXLG; j++) {
+		for (int i = 1; i <= N; i++) {
+			par[i][j] = par[par[i][j - 1]][j - 1];
+		}
+	}
+	for (int i = 1, qt, x; i <= M; i++) {
+		cin >> qt >> x;
+		if (qt == 1) {
+			//paint
+			reds.push_back(x);
+		} else {
+			//otherwise query the entire thing
+			int ans = dist[x];
+			for (int u : reds) {
+				//get dist
+				setmin(ans, depth[u] + depth[x] - 2 * depth[lca(u, x)]);
+			}
+			cout << ans << '\n';
+		}
+		if (i % BLOCK == 0) {
+			fillchar(vis, 0);
+			//then update it
+			for (int u : reds) {
+				//then bfs this
+				que.push(u);
+				dist[u] = 0;
+				vis[u] = true;
+			}
+			reds.clear();
+			for (int d = 1; !que.empty(); d++) {
+				//d = new dist
+				for (int sz = que.size(); sz--; ) {
+					int u = que.front();
+					que.pop();
+					for (int v : adj[u]) {
+						if (!vis[v]) {
+							que.push(v);
+							setmin(dist[v], d);
+							vis[v] = true;
+						}
+					}
+				}
+			}
+		}
+	}
+}

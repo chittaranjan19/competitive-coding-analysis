@@ -1,0 +1,86 @@
+#include<bits/stdc++.h>
+#define MAXN 109
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+string arr[MAXN],ans;
+multiset<string>s,t;
+int sz=imx,vis[MAXN],harf[29],n;
+set<pair<string,int> >h,g;
+void add(string x,int ind){
+	for(int i=1;i<=x.size();i++){
+		s.insert(x.substr(0,i));
+		h.insert(mp(x.substr(0,i),ind));
+	}
+}
+void remove(int ind){
+	string x=arr[ind];
+	for(int i=1;i<=x.size();i++){
+		s.erase(s.find(x.substr(0,i)));
+		h.erase(mp(x.substr(0,i),ind));
+	}
+}
+int ok(string z){
+	memset(harf,0,sizeof(harf));
+	for(int i=0;i<z.size();i++){
+		if(harf[z[i]-'a']==1)
+			return 0;
+		harf[z[i]-'a']=1;	
+	}
+	for(int i=1;i<=n;i++){
+		int her=z.find(arr[i]);
+		if(her>=z.size() or her<0)
+			return 0;
+	}
+	return 1;
+}
+int main(){
+	scanf("%d",&n);
+	for(int i=1;i<=n;i++)
+		cin>>arr[i],add(arr[i],i);	
+	t=s;
+	g=h;	
+	for(int i=1;i<=n;i++){
+		string res=arr[i];
+		vis[i]=1;
+		remove(i);
+		for(int j=2;j<=n;j++){
+			string gen;
+			for(int j=res.size()-1;j>=0;j--)
+				if(s.count(res.substr(j,res.size()))){
+					pair<string,int> fup=*h.lower_bound(mp(res.substr(j,res.size()),-1));
+					remove(fup.ss);
+					vis[fup.ss]=1;
+					int pos=res.size()-j;
+					gen=arr[fup.ss].substr(pos,arr[fup.ss].size());
+					break;
+				}
+			if(gen.size()>0)	
+				res+=gen;
+		}
+		for(int j=1;j<=n;j++)
+			if(!vis[j])
+				res+=arr[j];
+		if(res.size()<sz and ok(res))
+				ans=res,sz=res.size();
+		s=t;h=g;
+		memset(vis,0,sizeof(vis));
+	}
+	cout<<ans<<endl;
+	return 0;
+}

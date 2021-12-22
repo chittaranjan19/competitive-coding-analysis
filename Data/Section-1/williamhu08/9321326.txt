@@ -1,0 +1,109 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+#include <iomanip>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 100010;
+
+int N, Q;
+pair<pii, ll> roads[MAXN];
+vector<int> adj[MAXN];
+map<int, int> mp[MAXN];
+int sub[MAXN], depth[MAXN];
+ll use[MAXN];//# of times this road is used
+
+int dfs (int x, int p, int d) {
+	// cout << "ax " << x << endl;
+	int &ref = sub[x];
+	ref = 1;
+	depth[x] = d++;
+	for (int t : adj[x]) {
+		if (t != p) {
+			ref += dfs(t, x, d);
+		}
+	}
+	// cout << "Dfs " << x << " = " << ref << endl;
+	return ref;
+}
+
+ll C2 (int x) {
+	return x * ll(x - 1) / 2;
+}
+
+ll C3 (int x) {
+	return C2(x) * (x - 2) / 3;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 1; i < N; i++) {
+		int a, b;
+		ll d;
+		cin >> a >> b >> d;
+		roads[i] = make_pair(pii(a, b), d);
+		adj[a].push_back(b);
+		adj[b].push_back(a);
+	}
+	dfs(1, -1, 0);
+	double cur = 0;
+	for (int i = 1; i < N; i++) {
+		pii &p = roads[i].first;
+		if (depth[p.first] > depth[p.second]) {
+			swap(p.first, p.second);
+		}
+		//calculate how many times it is used
+		int y = p.second;
+		use[i] = C2(sub[y]) * (N - sub[y]) + sub[y] * C2(N - sub[y]);
+		use[i] *= 2;
+		//use[i] * d / C3(N)
+		// cerr << "use[" << i << "] = " << use[i] << endl;
+		cur += roads[i].second * (double) use[i] / C3(N);
+	}
+	// cout << "cur = " << cur << endl;
+	for (cin >> Q; Q--; ) {
+		int x; ll d;
+		cin >> x >> d;
+		// cerr << d << ' ' << roads[x].second << endl;
+		cur += (d - roads[x].second) * double(use[x]) / C3(N);
+		roads[x].second = d;
+		printf("%.10lf\n", cur);
+	}
+}

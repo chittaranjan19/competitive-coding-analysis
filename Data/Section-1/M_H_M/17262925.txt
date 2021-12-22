@@ -1,0 +1,111 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+#include <cassert>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 3e5 + 100;
+const int LG = 24;
+
+int n, k, a[N];
+int mx[N][LG];
+int lg[N];
+int seg[LG][N];
+int ps[N];
+
+void build(int d, int s, int e){
+	if(e - s == 1){
+		seg[d][s] = ps[s];
+		return;
+	}
+	int mid = (s + e) / 2;
+	build(d + 1, s, mid);
+	build(d + 1, mid, e);
+	merge(seg[d + 1] + s, seg[d + 1] + mid, seg[d + 1] + mid, seg[d + 1] + e, seg[d] + s);
+}
+
+int xnum(int d, int s, int e, int l, int r, int q){
+	if(l >= e || s >= r) return 0;
+	if(l <= s && e <= r) return upper_bound(seg[d] + s, seg[d] + e, q) - lower_bound(seg[d] + s, seg[d] + e, q);
+	int mid = (s + e) / 2;
+	return xnum(d + 1, s, mid, l, r, q) + xnum(d + 1, mid, e, l, r, q);
+}
+
+inline bool isbig(int x, int l, int r){
+	int k = lg[r - l];
+	return a[x] == max(mx[l][k], mx[r - (1 << k)][k]);
+}
+
+inline ll doJob(int x, int l, int r){
+	ll ret = 0;
+	if(x - l <= r - x){
+		for(int i = l; i <= x; ++i)
+			ret += xnum(0, 0, n + 1, x + 1, r + 1, (ps[i] + a[x]) % k);
+	}
+	else{
+		for(int i = r; i > x; --i)
+			ret += xnum(0, 0, n + 1, l, x + 1, ((ps[i] - a[x]) % k + k) % k);
+	}
+	ret --;
+	return ret;
+}
+
+ll dv(int s, int e){
+	if(e - s < 2)
+		return 0;
+	int l = s, r = e - 1;
+	bool f = 0;
+	while(l <= r){
+		if(f){
+			if(isbig(l, s, e)) return dv(s, l) + dv(l + 1, e) + doJob(l, s, e);
+			l ++;
+		}
+		else{
+			if(isbig(r, s, e)) return dv(s, r) + dv(r + 1, e) + doJob(r, s, e);
+			r --;
+		}
+		f ^= 1;
+	}
+	assert(0);
+}
+
+int main(){
+	for(int i = 2; i < N; ++i)
+		lg[i] = lg[i / 2] + 1;
+
+	scanf("%d%d", &n, &k);
+	for(int i = 0; i < n; ++i){
+		scanf("%d", a + i);
+		mx[i][0] = a[i];
+		ps[i + 1] = (ps[i] + a[i]) % k;
+	}
+
+	build(0, 0, n + 1);
+	for(int j = 1; j < LG; ++j)
+		for(int i = 0; i + (1 << j) <= n; ++i)
+			mx[i][j] = max(mx[i][j - 1], mx[i + (1 << (j - 1))][j - 1]);
+		
+	cout << dv(0, n) << "\n";
+	return 0;
+}

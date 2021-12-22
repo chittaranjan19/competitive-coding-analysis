@@ -1,0 +1,86 @@
+#include <iostream>
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef vector<ll> vec;
+typedef vector<vec> mat;
+
+mat mul(const mat &a, const mat &b, int mod)
+{
+    mat c(a.size(), vec(b[0].size()));
+    for(int i = 0; i < a.size(); ++i)
+    {
+        for(int j = 0; j < b[0].size(); ++j)
+        {
+            for(int k = 0; k < b.size(); ++k)
+            {
+                c[i][j] = (c[i][j] + a[i][k] * b[k][j]) % mod;
+            }
+        }
+    }
+    return c;
+}
+
+mat fast_pow(mat a, ll n, int mod)
+{
+    mat res(a.size(), vec(a.size()));
+    for(int i = 0; i < a.size(); ++i)
+    {
+        res[i][i] = 1;
+    }
+    while(n)
+    {
+        if(n & 1)
+        {
+            res = mul(res, a, mod);
+        }
+        a = mul(a, a, mod);
+        n >>= 1;
+    }
+    return res;
+}
+
+int main()
+{
+    ll n, k;
+    int l, m;
+    while(cin >> n >> k >> l >> m)
+    {
+        int e = 0;
+        for(int i = 0; i < 64; ++i)
+        {
+            if((k >> i) & 1)
+            {
+                e = i;
+            }
+        }
+        if(e < l)
+        {
+            mat a(3, vec(3)), b(3, vec(1));
+            a[0][0] = 2, a[0][1] = a[1][2] = a[2][1] = a[2][2] = 1;
+            b[0][0] = 0, b[1][0] = b[2][0] = 1;
+            a = mul(fast_pow(a, n - 1, m), b, m);
+            int s = a[0][0], t = (a[1][0] + a[2][0]) % m;
+            ll ans = 1;
+            for(int i = 0; i < l; ++i)
+            {
+                if((k >> i) & 1)
+                {
+                    ans = (ans * s) % m;
+                }
+                else
+                {
+                    ans = (ans * t) % m;
+                }
+            }
+            cout << ans << endl;
+        }
+        else
+        {
+            cout << 0 << endl;
+        }
+    }
+    return 0;
+}

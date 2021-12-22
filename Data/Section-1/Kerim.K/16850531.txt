@@ -1,0 +1,159 @@
+#include<bits/stdc++.h>
+#define MAXN 500009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+char s[MAXN];
+int S[MAXN][28],c[MAXN],sorted[MAXN],arr[MAXN];
+int task[MAXN],T[MAXN<<2],n,lcp[MAXN],BLOK,cnt[MAXN<<2];
+pair<PII,int> query[MAXN];
+PII C[MAXN];
+set<PII>brac;
+vector<int>adj[MAXN<<1];
+bool cmp(int x,int y){
+	return (C[x]<C[y]);
+}
+bool cmp1(pair<PII,int> x, pair<PII,int> y){
+	if(x.ff.ff/BLOK!=y.ff.ff/BLOK)
+		return (x.ff.ff<y.ff.ff);
+	return (x.ff.ss<y.ff.ss);
+}
+int val(char k){
+	if(k==')')
+		return (~0);
+	return 1;	
+}
+void build(int nd,int x,int y){
+	if(x==y){
+		T[nd]=arr[x];
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+	T[nd]=min(T[nd<<1],T[nd<<1|1]);
+}
+int tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return imx;
+	if(l<=x and y<=r)	
+		return T[nd];
+	int mid=(x+y)>>1;	
+	int i1=tap(l,r,nd<<1,x,mid);
+	int i2=tap(l,r,nd<<1|1,mid+1,y);
+	return min(i1,i2);		
+}
+int ok(int y,int ind,int x){
+	return (tap(ind,ind+x,1,1,n)<y);
+}
+void add(int x){
+	cnt[arr[x]]++;
+}
+void remove(int x){
+	cnt[arr[x]]--;
+}
+int main(){
+	scanf("%d",&n);
+	scanf("%s",s+1);
+	for(int i=1;i<=n;i++)
+		S[i][0]=s[i]-'('+1;
+	for(int j=1;j<20;j++){
+		for(int i=1;i<=n;i++)
+			C[i]=mp(S[i][j-1],(i+(1<<j-1)<=n ? S[i+(1<<j-1)][j-1] : -1)),c[i]=i;
+		sort(c+1,c+n+1,cmp);
+		for(int i=1;i<=n;i++)
+			S[c[i]][j]=S[c[i-1]][j]+(C[c[i]]!=C[c[i-1]]);	
+	}
+	
+	for(int i=1;i<=n;i++)
+		sorted[S[i][19]]=i;	
+	for(int i=2;i<=n;i++){
+		int x=sorted[i-1];
+		int y=sorted[i],res=0;
+		for(int j=19;j>=0;j--)
+			if(x<=n and y<=n and S[x][j]==S[y][j]){
+				x+=(1<<j);y+=(1<<j);
+				res+=(1<<j);
+			}	
+		lcp[i]=res;	
+	}
+	for(int i=1;i<=n;i++){
+		arr[i]=arr[i-1]+val(s[i]);
+		adj[arr[i]+n].pb(i);
+	}
+	build(1,1,n);
+	task[n]=n;
+	for(int i=n-1;i>=1;i--){
+		if(s[i]==')'){
+			task[i]=i;
+			continue;
+		}
+		int st=1,en=n-i;
+		while(st+1<en){
+			int mid=(st+en)>>1;
+			if(ok(arr[i-1],i,mid))
+				en=mid;
+			else
+				st=mid;			
+		}
+		if(ok(arr[i-1],i,st+1))
+			en=st+1;	
+		if(ok(arr[i-1],i,st))
+			en=st;
+		task[i]=i+en;	
+	}
+	int l=1,r=1,c=0;
+	for(int i=1;i<=n;i++)
+		if(sorted[i]+lcp[i]<=task[sorted[i]])
+			query[++c]=mp(mp(sorted[i]+lcp[i],task[sorted[i]]),arr[sorted[i]-1]);
+	ll ans=0;
+	/*		
+	BLOK=sqrt(n);
+	sort(query+1,query+c+1,cmp1);
+	for(int i=1;i<=c;i++){
+		int L=query[i].ff.ff;
+		int R=query[i].ff.ss;
+		int k=query[i].ss;
+		while(l<L)remove(l++);
+		while(l>L)add(--l);
+		while(r<=R)add(r++);
+		while(r>R+1)remove(--r);
+		if(cnt[k]>=0)
+			ans+=cnt[k];
+	}
+	*/
+	for(int i=1;i<=c;i++){
+		int L=query[i].ff.ff;
+		int R=query[i].ff.ss;
+		int k=query[i].ss+n;
+		int upp=upper_bound(all(adj[k]),R)-adj[k].begin();
+		int low=lower_bound(all(adj[k]),L)-adj[k].begin();
+		ans+=upp-low;
+	}
+	printf("%lld\n",ans);
+	return 0;
+}
+/*
+Used Tags:
+Suffix array
+LCP
+Binary search
+Segment tree
+It gives TL on test 8->(MO's algorithm)
+Use another vector binary searh
+*/

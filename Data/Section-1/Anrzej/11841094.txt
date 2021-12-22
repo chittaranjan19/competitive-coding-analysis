@@ -1,0 +1,127 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+#include <cstring>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+
+using namespace std;
+int n, k;
+
+string ss[100010], t;
+
+struct ch
+{
+    int next[30];
+    bool win;
+    int lvl;
+};
+
+ch m[200010];
+int cnt = 1;
+
+ch add_vrtx(int lvl)
+{
+    ch temp;
+    memset(temp.next, -1, sizeof(temp.next));
+    temp.lvl = lvl;
+    return temp;
+}
+
+void add_str(string str)
+{
+    int num = 0;
+    for (int i = 0; i < str.length(); i++)
+    {
+        if (m[num].next[str[i] - 'a'] != -1)
+        {
+            num = m[num].next[str[i] - 'a'];
+        }
+        else
+        {
+            m[num].next[str[i] - 'a'] = cnt;
+            m[cnt] = add_vrtx(m[num].lvl + 1);
+            num = cnt;
+            cnt += 1;
+        }
+    }
+}
+
+bool list(int num)
+{
+    bool is = true;
+    for (int i = 0; i < 30; i++)
+    if (m[num].next[i] != -1)
+        is = false;
+    return is;
+}
+
+bool win(int num)
+{
+    if (list(num))
+    {
+        if (m[num].lvl % 2 == 1)
+            return true;
+        else return false;
+    }
+    else
+    {
+        vector<bool> t;
+        for (int i = 0; i < 30; i++)
+        {
+            if (m[num].next[i] != -1)
+                t.push_back(win(m[num].next[i]));
+        }
+        bool ans = t[0];
+        for (int i = 1; i < t.size(); i++)
+        {
+            if (m[num].lvl % 2 == 0)
+            {
+                ans = ans | t[i];
+            }
+            else ans = ans && t[i];
+        }
+        return ans;
+    }
+}
+
+int main()
+{
+    cin >> n >> k;
+    int max_l = 0;
+    for (int i = 0; i < n; i++)
+    {
+        cin >> ss[i];
+        int l = ss[i].length();
+        max_l = max(max_l, l);
+    }
+    if (k < max_l)
+    {
+        for (int i = 0; i < n; i++)
+        {
+            ss[i].resize(k);
+        }
+    }
+    ch first;
+    first.lvl = 0;
+    memset(first.next, -1, sizeof(first.next));
+    m[0] = first;
+    for (int i = 0; i < n; i++)
+    {
+        add_str(ss[i]);
+    }
+    if(win(0))
+        cout << "First";
+    else cout << "Second";
+    return 0;
+
+}

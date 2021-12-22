@@ -1,0 +1,105 @@
+#include <bits/stdc++.h>
+
+#define f       first
+#define s       second
+#define mp      make_pair
+#define rank    something_which_is_supposed_to_be_rank
+#define left    something_which_is_supposed_to_be_left
+#define right   something_which_is_supposed_to_be_right
+
+using namespace std;
+
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+
+struct edge {
+    ll to, t;
+};
+
+const ll N = 5001;
+
+ll n, m, t;
+vector<edge> e[N];
+vector<ll> parent, next_on_path, next_on_path_length;
+vector<pair<ll,ll>> order;
+map<ll,vector<ll>> additional; 
+
+ll get_dist(ll u, ll prev = -1, ll cur_dist = 0) {
+    parent[u] = prev;
+    if (u == n) {
+        return cur_dist;
+    }
+    for (auto tmp: e[u]) {
+        if (tmp.to == prev) {
+            continue;
+        }
+        ll dist = get_dist(tmp.to, u, cur_dist + tmp.t);
+        if (dist) {
+            next_on_path[u] = tmp.to;
+            next_on_path_length[u] = tmp.t;
+            for (auto tmp2: e[u]) {
+                if (tmp2.to != prev && tmp2.to != tmp.to) {
+                    parent[tmp2.to] = tmp.to;
+                    additional[tmp2.t].push_back(tmp2.to);
+                }
+            }
+            return dist;
+        }
+    }
+    return 0;
+}
+
+ll dfs(ll u, ll prev = -1, ll time = 0) {
+    order.push_back({time, u});
+    for (auto tmp: e[u]) {
+        if (tmp.to != prev && tmp.to != next_on_path[u] && parent[tmp.to] == u) {
+            time = dfs(tmp.to, u, time + tmp.t) + tmp.t;
+        }
+    }
+    if (next_on_path[u] != -1) {
+        return dfs(next_on_path[u], u, time + next_on_path_length[u]);
+    } else {
+        return time;
+    }
+}
+
+int main() {
+    cin.sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n >> m >> t;
+    for (ll i = 0, a, b, w; i < m; ++i) {
+        cin >> a >> b >> w;
+        e[a].push_back({b, w});
+        e[b].push_back({a, w});
+    }
+    parent.assign(n + 1, -1);
+    next_on_path.assign(n + 1, -1);
+    next_on_path_length.assign(n + 1, -1);
+    t -= get_dist(1);
+    for (; !additional.empty() && additional.begin()->f * 2 <= t; ) {
+        t -= 2 * additional.begin()->f;
+        vector<ll> &minedge = additional.begin()->s;
+        ll u = minedge.back();
+        minedge.pop_back();
+        for (auto edges_from_u: e[u]) {
+            if (edges_from_u.to != parent[u]) {
+                parent[edges_from_u.to] = u;
+                additional[edges_from_u.t].push_back(edges_from_u.to);
+            }
+        }
+        if (minedge.empty()) {
+            additional.erase(additional.begin());
+        }
+    }
+    dfs(1);
+    sort(order.begin(), order.end());
+    cout << order.size() << "\n";
+    for (auto tmp: order) {
+        cout << tmp.s << " ";
+    }
+    cout << "\n";
+    cerr << "Time elapsed: " << (ld) clock() / CLOCKS_PER_SEC << "\n";
+    return 0;
+}

@@ -1,0 +1,96 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXA = 3e5 + 10, MAXN = 2010, MOD = 1e9 + 7;
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+int subtr (int x, int y) {
+	x -= y;
+	return x < 0 ? x + MOD : x;
+}
+
+void addeq (int &x, int y) {
+	x = add(x, y);
+}
+
+void multeq (int &x, int y) {
+	x = mult(x, y);
+}
+
+void subtreq (int &x, int y) {
+	x = subtr(x, y);
+}
+
+int inv (int x) {
+	int res = 1;
+	for (int i = MOD - 2; i; i >>= 1) {
+		if (i & 1) {
+			multeq(res, x);
+		}
+		multeq(x, x);
+	}
+	return res;
+}
+
+int quot (int x, int y) {
+	return mult(x, inv(y));
+}
+
+int sx, sy, N;
+int fact[MAXA];
+int dp[MAXN];	//dp[x]: first one is x, avoid the rest
+pii arr[MAXN];
+
+int C (int x, int y) {
+	return quot(fact[x], mult(fact[y], fact[x - y]));
+}
+
+int dist (int a, int b) {
+	int dx = arr[b].first - arr[a].first, dy = arr[b].second - arr[a].second;
+	return C(dx + dy, dx);
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> sx >> sy >> N;
+	arr[0] = pii(1, 1);
+	for (int i = 1; i <= N; i++) {
+		cin >> arr[i].first >> arr[i].second;
+	}
+	arr[N + 1] = pii(sx, sy);
+	N += 2;
+	sort(arr, arr + N);
+	fact[0] = 1;
+	for (int i = 1; i < MAXA; i++) {
+		fact[i] = mult(fact[i - 1], i);
+	}
+	dp[0] = 1;
+	for (int i = 1; i < N; i++) {
+		dp[i] = dist(0, i);
+		for (int j = 1; j < i; j++) {
+			if (arr[j].first <= arr[i].first && arr[j].second <= arr[i].second) {
+				//j can be the first indeed
+				subtreq(dp[i], mult(dp[j], dist(j, i)));
+			}
+		}
+	}
+	cout << dp[N - 1] << endl;
+}

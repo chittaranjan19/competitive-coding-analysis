@@ -1,0 +1,112 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 200009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int chl[MAXN],sub[MAXN];
+ll no;
+vector<int>adj[MAXN];
+PII far[MAXN][3];
+void dfs(int nd,int pr){
+	far[nd][0].ss=nd;
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to==pr)
+			continue;
+		chl[nd]++;	
+		dfs(to,nd);
+		if(far[to][0].ff+1>far[nd][0].ff){
+			far[nd][1]=far[nd][0];
+			far[nd][0]=mp(far[to][0].ff+1,far[to][0].ss);
+		}
+		else if(far[to][0].ff+1>far[nd][1].ff)
+			far[nd][1]=mp(far[to][0].ff+1,far[to][0].ss);
+	}
+}
+void dfs3(int nd,int pr){
+	if(pr!=-1){
+		PII tmp=far[pr][0];
+		if(tmp.ss==far[nd][0].ss)
+			tmp=far[pr][1];
+		tmp.ff++;
+		if(tmp.ff>far[nd][0].ff){
+			far[nd][1]=far[nd][0];
+			far[nd][0]=tmp;
+		}
+		else if(tmp.ff>far[nd][1].ff)
+			far[nd][1]=tmp;
+	}
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to!=pr)
+			dfs3(to,nd);
+	}
+}
+void dfs2(int nd,int pr){
+	sub[nd]=1;
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to==pr)
+			continue;
+		dfs(to,nd);
+		sub[nd]+=sub[to];		
+	}
+}
+void HLD(int nd,int pr){
+	PII mx=mp(-1,-1);
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to==pr)
+			continue;
+		if(mx.ff<sub[nd])
+			mx=mp(sub[nd],i);
+	}
+	if(mx.ff!=-1)	
+		HLD(adj[nd][mx.ss],nd);
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to==pr)
+			continue;
+		if(i!=mx.ss)	
+			no++,HLD(to,nd);	
+	}
+}
+int main(){
+	ll mn,x,y,n;
+	scanf("%lld%lld%lld",&n,&x,&y);
+	for(int i=0;i<n-1;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	mn=(n-1)*y;	
+	dfs(1,-1);
+	for(int i=1;i<=n;i++)
+		if(chl[i]==n-1)
+			mn=(mn-y)+x;
+	int root=far[1][0].ss;
+	dfs2(root,-1);
+	HLD(root,-1);
+	umin(mn,(no*y)+(n-no-1)*x);
+	printf("%lld\n",mn);	
+	return 0;
+}
+/*
+
+*/

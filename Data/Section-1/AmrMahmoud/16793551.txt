@@ -1,0 +1,60 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+char s[1000005];
+int last[30];
+int DP[2000005];
+
+int main()
+{
+  int n, k;
+  cin >> n >> k;
+  scanf("%s", s);
+  int l = strlen(s);
+  DP[0] = 1;
+  for(int i=1;i<=l;i++)
+  {
+    int tmp = DP[i - 1];
+    if(last[s[i - 1] - 'a'])
+      tmp -= DP[last[s[i - 1] - 'a'] - 1];
+    if(tmp < 0) tmp += mod;
+    DP[i] = DP[i - 1] + tmp;
+    if(DP[i] >= mod)
+      DP[i] -= mod;
+    last[s[i - 1] - 'a'] = i;
+  }
+  for(int i=l+1;i<=l+n;i++)
+  {
+    int tmp = DP[i - 1];
+    int ch = 0;
+    for(int j=1;j<k;j++)
+      if(last[j] < last[ch])
+        ch = j;
+    if(last[ch])
+      tmp -= DP[last[ch] - 1];
+    if(tmp < 0) tmp += mod;
+    DP[i] = DP[i - 1] + tmp;
+    if(DP[i] >= mod)
+      DP[i] -= mod;
+    last[ch] = i;
+  }
+  cout << DP[l + n];
+  return 0;
+}

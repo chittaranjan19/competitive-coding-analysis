@@ -1,0 +1,90 @@
+#include<bits/stdc++.h>
+#define MAXN 3000009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define f(x,y,z) mp(x,mp(y,z))
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int R[MAXN],C[MAXN],ans[MAXN];
+set<PII>RR,CC;
+int n,m;
+int getHash(int x,int y){
+	return (x-1)*m+y;
+}
+void oper(){	
+	while(RR.size()>0 and CC.size()>0){
+		queue<PII>q;int mx=0;
+		vector<PII>table;
+		q.push(*RR.begin());
+		while(!q.empty()){
+			PII k=q.front();q.pop();
+			table.pb(k);
+			umax(mx,max(R[k.ff],C[k.ss]));
+			if(RR.size()>0){
+				typeof((RR).begin()) it=RR.lower_bound(mp(k.ff,-1)),it2;
+				while(it!=RR.end() and it->ff==k.ff){
+					it2=it;it++;
+					q.push(*it2);RR.erase(*it2);
+					CC.erase(mp(it2->ss,it2->ff));
+				}
+			}
+			if(CC.size()>0){
+				typeof((CC).begin()) it3=CC.lower_bound(mp(k.ss,-1)),it4;	
+				while(it3!=CC.end() and it3->ff==k.ss){
+					it4=it3;it3++;
+					q.push(mp(it4->ss,it4->ff));
+					RR.erase(mp(it4->ss,it4->ff));
+					CC.erase(it4);
+				}
+			}
+		}
+		tr(it,table){
+			ans[getHash(it->ff,it->ss)]=mx+1;
+			umax(R[it->ff],mx+1);
+			umax(C[it->ss],mx+1);
+			//umax(val,mx+1);
+		}
+	}
+}
+int main(){
+	scanf("%d%d",&n,&m);
+	vector<pair<int,PII> >v;
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++){
+			int x;
+			scanf("%d",&x);
+			v.pb(f(x,i,j));
+		}
+	sort(all(v));
+	for(int i=0;i<v.size();i++){
+		RR.insert(mp(v[i].ss.ff,v[i].ss.ss));
+		CC.insert(mp(v[i].ss.ss,v[i].ss.ff));
+		if(i<v.size()-1 and v[i].ff!=v[i+1].ff){
+			oper();
+			RR.clear();CC.clear();
+		}
+	}
+	if(RR.size()>0)
+		oper();
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=m;j++)
+			printf("%d ",ans[getHash(i,j)]);
+		printf("\n");	
+	}
+//	printf("Max value %d\n",val);
+	return 0;
+}

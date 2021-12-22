@@ -1,0 +1,90 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = (1 << 20) + 5;
+
+ll a[maxn], b[maxn];
+int d[maxn];
+
+ll mul_mod(ll a, ll b, ll mod)
+{
+    return (a * b - (ll)(a / (long double)mod * b + 1e-3) * mod + mod) % mod;
+}
+
+ll pow_mod(ll a, ll n, ll mod)
+{
+    ll ret = 1;
+    while(n)
+    {
+        if(n & 1) ret = mul_mod(ret, a, mod);
+        a = mul_mod(a, a, mod);
+        n >>= 1;
+    }
+    return ret;
+}
+
+void fwt(ll *a, int len, int on, ll mod)
+{
+    for(int d = 1; d < len; d <<= 1)
+    {
+        for(int k = d << 1, i = 0; i < len; i += k)
+        {
+            for(int j = 0; j < d; ++j)
+            {
+                ll x = a[i + j], y = a[i + j + d];
+                a[i + j] = (x + y) % mod / on;
+                a[i + j + d] = (x - y + mod) % mod / on;
+            }
+        }
+    }
+}
+
+int cal(int x)
+{
+    int ret = 0;
+    while(x)
+    {
+        ++ret;
+        x -= x & -x;
+    }
+    return ret;
+}
+
+int main()
+{
+    srand(time(0));
+    int m;
+    ll t, p;
+    scanf("%d%I64d%I64d", &m, &t, &p);
+    int len = 1 << m;
+    p <<= m;
+    for(int i = 0; i < len; ++i)
+    {
+        scanf("%I64d", a + i);
+        a[i] %= p;
+    }
+    for(int i = 0; i <= m; ++i)
+    {
+        scanf("%d", d + i);
+        d[i] %= p;
+    }
+    for(int i = 0; i < len; ++i) b[i] = d[cal(i)];
+    fwt(a, len, 1, p);
+    fwt(b, len, 1, p);
+    for(int i = 0; i < len; ++i) a[i] = mul_mod(a[i], pow_mod(b[i], t, p), p);
+    fwt(a, len, 2, p);
+    p >>= m;
+    for(int i = 0; i < len; ++i)
+    {
+        printf("%I64d\n", a[i] % p);
+    }
+    return 0;
+}

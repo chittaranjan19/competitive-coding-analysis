@@ -1,0 +1,70 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <functional>
+using namespace std;
+
+struct prepare {
+    int exam;
+    int days;
+
+    prepare(int exam_, int days_)
+    {
+        exam = exam_;
+        days = days_;
+    }
+
+    friend bool operator> (prepare const lhs, prepare const rhs)
+    {
+        return lhs.days > rhs.days || (lhs.days == rhs.exam && lhs.exam > rhs.exam);
+    }
+};
+
+vector<int> *days_to_take_exam;
+vector<prepare> days_to_prepare_for_exam;
+
+int main()
+{
+    int n, m, x;
+    cin >> n >> m;
+    days_to_take_exam = new vector<int>[m]();
+    for (int day = 1; day <= n; day++)
+    {
+        cin >> x;
+        if (x != 0)
+        {
+            days_to_take_exam[x - 1].push_back(day);
+        }
+    }
+    for (int exam = 0; exam < m; exam++)
+    {
+        cin >> x;
+        prepare p(exam, x);
+        days_to_prepare_for_exam.push_back(p);
+    }
+    sort(days_to_prepare_for_exam.begin(), days_to_prepare_for_exam.end(), greater<prepare>());
+
+    int days = 0;
+    int exam = 0;
+    int total_days = 0;
+    for (int i = 0; i < m; i++)
+    {
+        days += days_to_prepare_for_exam[i].days;
+        exam = days_to_prepare_for_exam[i].exam;
+
+        vector<int>::iterator it = upper_bound(days_to_take_exam[exam].begin(), days_to_take_exam[exam].end(), days);
+        if (it == days_to_take_exam[exam].end())
+        {
+            cout << "-1";
+            return 0;
+        }
+        if (total_days < *it)
+        {
+            total_days = *it;
+        }
+    }
+    cout << total_days;
+
+    delete[] days_to_take_exam;
+    return 0;
+}

@@ -1,0 +1,76 @@
+import java.io.BufferedInputStream;
+import java.util.*;
+
+/**
+ * Created by leen on 9/17/16.
+ */
+public class _716B {
+
+    static int[] tmp = new int[26];
+
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024* 64));
+        String s = scan.nextLine();
+
+        if(s.length() < 26) {
+            System.out.println(-1);
+            return;
+        }
+
+        int low = 0;
+        int high = 25;
+
+        while(high < s.length()) {
+            if(checkNice(s, low, high)) {
+                System.out.println(generateOut(s, low, high));
+                return;
+            }
+            low++;
+            high++;
+        }
+
+        System.out.println(-1);
+
+    }
+
+    static boolean checkNice(String s, int low, int high) {
+
+        for(int i = 0; i < 26; i++)
+            tmp[i] = 0;
+
+        for(int i = low; i <= high; i++) {
+            char c = s.charAt(i);
+            if(c != '?' && tmp[c - 'A']++ > 0)
+                return false;
+        }
+
+        return true;
+    }
+
+    static String generateOut(String s, int low, int high) {
+        Set<Character> set = new HashSet<Character>();
+        for(int i = low; i <= high; i++)
+            set.add(s.charAt(i));
+
+        LinkedList<Character> list = new LinkedList<Character>();
+        for(int i = 0; i < 26; i++) {
+            char c = (char)('A' + i);
+            if(!set.contains(c))
+                list.offer(c);
+        }
+
+        StringBuilder buf = new StringBuilder();
+
+        for(int i = 0; i < s.length(); i++) {
+            if(s.charAt(i) != '?')
+                buf.append(s.charAt(i));
+            else if(i < low || i> high)
+                buf.append('A');
+            else
+                buf.append(list.poll());
+        }
+
+        return buf.toString();
+    }
+
+}

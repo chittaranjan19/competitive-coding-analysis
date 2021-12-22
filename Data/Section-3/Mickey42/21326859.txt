@@ -1,0 +1,182 @@
+#include<fstream>
+#include<string.h>
+#include<ctype.h>
+#include<iostream>
+#include<algorithm>
+#include<map>
+#include<unordered_map>
+#include<array>
+#include<deque>
+#include<math.h>
+#include<unordered_set>
+#include<set>
+#include<iomanip>
+#include<bitset>
+using namespace std;
+multimap < long long, pair<long long, long long >> st;
+multimap<long long, pair<long long, long long>>::iterator it;
+multimap<long long, pair<long long, long long>>dr;
+unordered_map<long long, long long>sensor;
+struct pairhash 
+{
+public:
+	template <typename T, typename U>
+	std::size_t operator()(const std::pair<T, U> &x) const
+	{
+		return std::hash<T>()(x.first) ^ std::hash<U>()(x.second);
+	}
+};
+
+vector<pair<long long, long long>> sensor_order;
+unordered_map<pair<long long, long long>, long long, pairhash> sensors;
+long long n, m, k;
+
+bool is_sensor(long long x, long long y)
+{
+	unordered_map<pair<long long, long long>, long long, pairhash>::iterator element = sensors.find(make_pair(x, y));
+	return element != sensors.end();
+}
+
+long long get_sensor_time(long long x, long long y)
+{
+	unordered_map<pair<long long, long long>, long long, pairhash>::iterator element = sensors.find(make_pair(x, y));
+	return element->second;
+}
+
+void update_sensor_time(long long x, long long y, long long time)
+{
+	unordered_map<pair<long long, long long>, long long, pairhash>::iterator element = sensors.find(make_pair(x, y));
+	if (element != sensors.end())
+	{
+		element->second = time;
+	}
+}
+
+int main()
+{
+	long long x, y, angle, nr;
+	cin >> n >> m >> k;
+	for (int i = 0; i < k; i++)
+	{
+		cin >> x >> y;
+		pair<long long, long long> p = make_pair(y, x);
+		st.insert(make_pair(x-y, p));
+		dr.insert(make_pair(x+y, p));
+		sensor_order.push_back(p);
+		sensors.emplace(p, -1);
+	}
+	x = 0;
+	y = 0;
+	nr = 0;
+	angle = 1;
+	while (1)
+	{
+		if (angle == 1)
+		{
+			it = st.find(x - y);
+			while (it != st.end() && it->first == x - y)
+			{
+				if (get_sensor_time(it->second.first, it->second.second) == -1)
+					update_sensor_time(it->second.first, it->second.second, nr+abs(it->second.second - x));
+				it++;
+			}
+			if (n - x < m - y)
+			{
+				nr += n - x;
+				y = y + n - x;
+				x = n;
+				angle = 2;
+			}
+			else
+			{
+				nr += m - y;
+				x = x + m - y;
+				y = m;
+				angle = 4;
+			}
+		}
+		else
+			if(angle==2)
+			{
+				it = dr.find(x + y);
+				while (it != dr.end() && it->first == x + y)
+				{
+					if (get_sensor_time(it->second.first, it->second.second) == -1)
+						update_sensor_time(it->second.first, it->second.second, nr + abs(it->second.second - x));
+					it++;
+				}
+				if (x < m-y)
+				{
+					nr += x;
+					y = y +x;
+					x = 0;
+					angle = 1;
+				}
+				else
+				{
+					nr += m-y;
+					x = x - (m-y);
+					y = m;
+					angle = 3;
+				}
+			}
+			else
+				if (angle == 3)
+				{
+					it = st.find(x - y);
+					while (it != st.end() && it->first == x - y)
+					{
+						if (get_sensor_time(it->second.first, it->second.second) == -1)
+							update_sensor_time(it->second.first, it->second.second, nr + abs(it->second.second - x));
+						it++;
+					}
+					if (x < y)
+					{
+						nr += x;
+						y = y - x;
+						x = 0;
+						angle = 4;
+					}
+					else
+					{
+						nr += y;
+						x = x - y;
+						y = 0;
+						angle = 2;
+					}
+				}
+				else
+					if (angle == 4)
+					{
+						it = dr.find(x + y);
+						while (it != dr.end() && it->first == x + y)
+						{
+							if (get_sensor_time(it->second.first, it->second.second) == -1)
+								update_sensor_time(it->second.first, it->second.second, nr + abs(it->second.second - x));
+							it++;
+						}
+						if (n-x < y)
+						{
+							nr += n-x;
+							y = y - (n-x);
+							x = n;
+							angle = 3;
+						}
+						else
+						{
+							nr += y;
+							x = x + y;
+							y = 0;
+							angle = 1;
+						}
+					}
+		if (x == 0 && y == m || x == n&&y == m || x == n&&y == 0 || x == 0 && y == 0)
+			break;
+	}
+	for (auto it = sensor_order.begin(); it != sensor_order.end(); it++)
+	{
+		cout << get_sensor_time(it->first, it->second) << "\n";
+	}
+
+	return 0;
+}

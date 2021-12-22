@@ -1,0 +1,69 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdio>
+#include <stdlib.h>
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
+const long long MAX_V = -1e18;
+
+int main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    long long n, k;
+    cin >> n >> k;
+    long long a[n];
+    for (long long i = 0; i < n; i++)
+        cin >> a[i];
+    long long pref[n];
+    for (long long i = 0; i < n; i++)
+        if (i == 0)
+            pref[i] = a[i];
+        else
+            pref[i] = a[i] + pref[i - 1];
+    long long dp[n][2];
+    pair<int, int> ans[n];
+    int ans1[n];
+    for (long long i = 0; i < n; i++)
+        for (long long j = 0; j < 2; j++)
+            dp[i][j] = MAX_V;
+    for (long long i = 0; i < n; i++)
+    {
+        if (i - k + 1 == 0)
+        {
+            dp[i][0] = pref[i];
+            ans1[i] = 0;
+        }
+        else if (i - k >= 0)
+        {
+            if (pref[i] - pref[i - k] > dp[i - 1][0])
+            {
+                dp[i][0] = pref[i] - pref[i - k];
+                ans1[i] = i - k + 1;
+            }
+            else
+            {
+                dp[i][0] = dp[i - 1][0];
+                ans1[i] = ans1[i - 1];
+            }
+        }
+        if (i - k >= 0)
+        {
+            if (dp[i - k][0] + pref[i] - pref[i - k] > dp[i - 1][1])
+            {
+                dp[i][1] = dp[i - k][0] + pref[i] - pref[i - k];
+                ans[i].first = ans1[i - k];
+                ans[i].second = i - k + 1;
+            }
+            else
+            {
+                dp[i][1] = dp[i - 1][1];
+                ans[i] = ans[i - 1];
+            }
+        }
+    }
+    cout << ans[n - 1].first + 1 << " " << ans[n - 1].second + 1;
+    return 0;
+}

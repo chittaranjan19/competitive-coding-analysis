@@ -1,0 +1,92 @@
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <cstdio>
+#include <memory>
+#include <algorithm>
+#include <iomanip>
+#include <vector>
+#include <list>
+#include <set>
+#include <map>
+#include <string>
+#include <memory.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef long double ld;
+typedef unsigned uint;
+
+const ll posinf = 1000000000000000001;
+const ll neginf = -1000000000000000001;
+
+ll n, m, i, j;
+vector<map<ll, ll> > vertices;
+vector<ll> lens;
+
+int main ()
+{
+#ifdef CONTEST_ONME
+	freopen ("input.txt", "r", stdin);
+	freopen ("output.txt", "w", stdout);
+#endif
+
+	cin >> n >> m;
+	vertices.resize (n + 1);
+	lens.resize (n + 1);
+	for (i = 0; i < m; i++)
+	{
+		ll a, b, w;
+		cin >> a >> b >> w;
+		if (a == b) continue;
+		if (vertices[a].find (b) != vertices[a].end ())
+		{
+			vertices[a][b] = min (vertices[a][b], w);
+			vertices[b][a] = min (vertices[b][a], w);
+		}
+		else
+		{
+			vertices[a][b] = w;
+			vertices[b][a] = w;
+		}
+	}
+	vector<ll> dp (n + 1, posinf); dp[1] = 0;
+	vector<ll> p (n + 1); p[1] = -1;
+	set<pair<ll, ll> > q; q.insert (make_pair (dp[1], 1));
+	while (!q.empty ())
+	{
+		ll v = q.begin ()->second;
+		q.erase (q.begin ());
+		for (const auto &kvp : vertices[v])
+		{
+			ll to = kvp.first, len = kvp.second;
+			if (dp[v] + len < dp[to])
+			{
+				q.erase (make_pair (dp[to], to));
+				dp[to] = dp[v] + len;
+				p[to] = v;
+				q.insert (make_pair (dp[to], to));
+			}
+		}
+	}
+	if (dp[n] == posinf)
+	{
+		cout << -1;
+		return 0;
+	}
+	list<ll> pth; pth.push_front (n);
+	i = n;
+	while (p[i] != -1 && i != -1)
+	{
+		pth.push_front (p[i]);
+		i = p[i];
+	}
+	for (const auto &kvp : pth)
+		cout << kvp << ' ';
+
+#ifdef CONTEST_ONME
+	//system ("pause");
+#endif
+	return 0;
+}

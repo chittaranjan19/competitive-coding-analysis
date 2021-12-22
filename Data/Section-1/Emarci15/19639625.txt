@@ -1,0 +1,130 @@
+#include <iostream>
+
+using namespace std;
+
+int n;
+long long k,a[1001];
+
+long long fact[11];
+int fc[11];
+int fv;
+
+void factorize(long long k) {
+    for(long long i=2; i*i<=k; i++) {
+        if(k%i) continue;
+        fact[fv] = i;
+        while(!(k%i)) {
+            fc[fv]++;
+            k /= i;
+        }
+        fv++;
+    }
+    if(k>1) {
+        fact[fv] = k;
+        fc[fv++] = 1;
+    }
+}
+
+int af[1001][11];
+
+void afact(int ai, long long x) {
+    for(int i=0; i<fv; i++) {
+        while(!(x%fact[i])) {
+            af[ai][i]++;
+            x /= fact[i];
+        }
+    }
+}
+
+long long ns[12];
+long long dp[15000][1001];
+long long b[15000][1001];
+
+int cc[11];
+int ccc[11];
+void convtocc(long long x) {
+    for(int i=fv-1; i>=0; i--) {
+        cc[i] = x/ns[i];
+        x %= ns[i];
+    }
+}
+
+long long convfromcc() {
+    long long ret(0ll);
+    for(int i=0; i<fv; i++) ret += ns[i]*cc[i];
+
+    return ret;
+}
+
+int main()
+{
+    ios::sync_with_stdio(0);
+    cin.tie(NULL);
+    cin >> n >> k;
+    factorize(k);
+
+    if(k==1) {
+        long long sol(1000000000000ll);
+        for(int i=0; i<n; i++) {
+            long long x; cin >> x; sol = min(sol,x);
+        }
+        cout << sol << endl;
+        return 0;
+    }
+
+    ns[0] = 1;
+    for(int i=1; i<=fv; i++) ns[i] = ns[i-1]*(fc[i-1]+1);
+
+    if(fv > 11) return 101;
+    if(ns[fv] > 15000) return 102;
+
+    for(long long j=1; j<ns[fv]; j++) dp[j][0] = 2000000000000000000ll;
+    dp[0][0] = 0ll;
+
+    for(int i=1; i<=n; i++) {
+        cin >> a[i];
+        afact(i,a[i]);
+
+        for(long long j=0; j<ns[fv]; j++) {
+            dp[j][i] = dp[j][i-1];
+            b[j][i] = 0;
+        }
+
+        for(long long j=0; j<ns[fv]; j++) {
+            convtocc(j);
+            for(int k=0; k<fv; k++) {
+                ccc[k] = min(fc[k],cc[k]+af[i][k])-cc[k];
+                cc[k] = min(fc[k],cc[k]+af[i][k]);
+            }
+            long long jj = convfromcc();
+            if((dp[j][i-1]+a[i]+(1000000000000001ll))<dp[jj][i]) {
+                dp[jj][i] = (dp[j][i-1]+a[i]+(1000000000000001ll));
+                for(int k=0; k<fv; k++) cc[k] = ccc[k];
+                b[jj][i] = convfromcc();
+            }
+        }
+    }
+
+    if(dp[ns[fv]-1][n] >= 2000000000000000000ll) {
+        cout << -1 << endl;
+        return 0;
+    }
+
+    cout << (dp[ns[fv]-1][n]/1000000000000001ll) << endl;
+
+    long long j=ns[fv]-1;
+    for(int i=n; i>0; i--) {
+        if(b[j][i]) {
+            cout << i << " ";
+            convtocc(b[j][i]);
+            for(int k=0; k<fv; k++) ccc[k] = cc[k];
+            convtocc(j);
+            for(int k=0; k<fv; k++) cc[k] -= ccc[k];
+            j = convfromcc();
+        }
+    }
+
+    cout << endl;
+
+    return 0;
+}

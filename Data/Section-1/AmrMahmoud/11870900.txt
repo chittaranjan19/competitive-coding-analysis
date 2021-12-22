@@ -1,0 +1,134 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+string s;
+bool v[5005][5005];
+bool DP[5005][5005];
+
+bool check(int L, int R)
+{
+  if(L >= R) return true;
+  if(v[L][R]) return DP[L][R];
+  v[L][R] = true;
+  if(s[L] != s[R])
+  {
+    DP[L][R] = false;
+    return false;
+  }
+  DP[L][R] = check(L + 2, R - 2);
+  return DP[L][R];
+}
+
+class trie
+{
+  public:
+  trie* L;
+  trie* R;
+  int cnt;
+
+  public :trie()
+  {
+    L = 0;
+    R = 0;
+    cnt = 0;
+  };
+};
+
+int k;
+string res;
+
+bool dfs(trie *t)
+{
+  k-=t->cnt;
+  if(k <= 0)
+    return true;
+  if(t->L != 0)
+  {
+    if(dfs(t->L))
+    {
+      res+='a';
+      return true;
+    }
+  }
+  if(t->R != 0)
+  {
+    if(dfs(t->R))
+    {
+      res+='b';
+      return true;
+    }
+  }
+  return false;
+}
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  //freopen("funny.in", "r", stdin);
+  //freopen("funny.out", "w", stdout);
+  cin >> s;
+  trie *t = new trie();
+  for(int i=0;i<s.size();i++)
+  {
+    trie *tmp = t;
+    for(int j=i;j<s.size();j++)
+    {
+      if(s[j] == 'a')
+      {
+        if(tmp->L == 0)
+          tmp->L = new trie();
+        tmp = tmp->L;
+        if(check(i, j))
+          tmp->cnt++;
+      }
+      else
+      {
+        if(tmp->R == 0)
+          tmp->R = new trie();
+        tmp = tmp->R;
+        if(check(i, j))
+          tmp->cnt++;
+      }
+    }
+  }
+  cin >> k;
+  dfs(t);
+  reverse(res.begin(), res.end());
+  cout << res;
+  return 0;
+}

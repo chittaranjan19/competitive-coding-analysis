@@ -1,0 +1,192 @@
+
+#include <cstdio>
+#include <cstring>
+#include <set>
+#include <map>
+#include <vector>
+//#include <bits/stdc++.h>
+
+using namespace std;
+
+#define mp make_pair
+#define fs first
+#define sc second
+
+struct Task
+{
+	int limit; // Time limit
+	int tests; // Number of tests
+};
+
+struct Solution
+{
+	int task; // Number of task
+	int test; // Number of last test
+	int free; // Free threads
+	int time;
+	int weight;
+	vector<int> tests;
+};
+
+// Information about invokers
+int invokers_count;
+int invokers_free;
+
+// Information about tasks
+Task *tasks;
+int tasks_count;
+
+// Information about solutions
+// Structure: < solution_id, solution_info >
+// Very convenient for removing random elements
+map< int, Solution > solutions;
+int solutions_count;
+
+int cur_t = 0;
+
+// Solutions queue
+set<pair<int, int> > solutions_queue;
+
+int main(int argc, char *argv[])
+{
+	scanf("%d", &invokers_count);
+	scanf("%d", &tasks_count);
+
+	tasks = new Task[tasks_count];
+
+	long long av_time = 0;
+
+	for (int i = 0; i < tasks_count; i++)
+	{
+		Task &task = tasks[i];
+
+		scanf("%d", &task.limit);
+		scanf("%d", &task.tests);
+		av_time += task.limit*task.tests;
+	}
+
+	av_time /= tasks_count;
+
+	invokers_free = invokers_count;
+
+	while (!feof(stdin))
+	{
+		// Read new solutions
+		for (;;)
+		{
+			int task;
+
+			scanf("%d", &task);
+
+			// On end
+			if (task == -1)
+				break;
+			
+			Solution solution;
+
+			solution.task = task;
+			solution.test = -1;
+			solution.free = 2;
+			solution.time = cur_t;
+			solution.weight = tasks[task].tests*tasks[task].limit / invokers_count;
+			solutions[solutions_count] = solution;
+			solutions_queue.insert(make_pair(solution.weight, solutions_count));
+
+			++solutions_count;
+		}
+
+		// Read new verdicts
+		for (;;)
+		{
+			int id, test;
+			char status[3];
+
+			scanf("%d%d", &id, &test);
+
+			// On end
+			if (id == -1 && test == -1)
+				break;
+
+			scanf("%*c%s", status);
+
+			if (strcmp(status, "OK") == 0)
+			{
+				Solution &solution = solutions[id];
+				Task &task = tasks[solution.task];
+
+				++solution.free;
+			}
+			else
+			{
+				// We don't need this task
+				int task = solutions[id].task;
+				solutions_queue.erase(mp(solutions[id].weight, id));
+			}
+
+			++invokers_free;
+		}
+
+		// Solutions schedule
+
+		// Very slow: O(invokers_free * solutions_count)
+		while (invokers_free > 0)
+		{
+			bool has_action = false;
+			std::set<std::pair<int, int> >::iterator it;
+
+			for (it = solutions_queue.begin(); it != solutions_queue.end(); ++it)
+			{
+				int id = (*it).second;
+				Solution &solution = solutions[id];
+				Task &task = tasks[solution.task];
+
+				if (solution.free == 0)
+					continue;
+
+				++solution.test;
+
+				if (solution.test >= task.tests)
+				{
+					solutions_queue.erase(it);
+					has_action = true;
+					break;
+				}
+
+				--solution.free;
+				--invokers_free;
+				has_action = true;
+
+				printf("%d %d\n", id, solution.test);
+
+				break;
+			}
+
+			if (!has_action)
+				break;
+		}
+
+		// End of schedule
+		printf("%d %d\n", -1, -1);
+		fflush(stdout);
+		cur_t += 1;
+		if (cur_t % (av_time) == 0)
+		{
+			set<std::pair<int, int> > temp;
+			std::set<std::pair<int, int> >::iterator it;
+			for (it = solutions_queue.begin(); it != solutions_queue.end(); ++it)
+			{
+				int id = (it)->second;
+				int task = solutions[id].task;
+				solutions[id].weight = tasks[task].tests*tasks[task].limit + solutions[id].time;// -2 * tasks[task].tests*tasks[task].limit / invokers_count);
+				temp.insert(mp(solutions[id].weight, id));
+			}
+			solutions_queue.clear();
+			solutions_queue = temp;
+		}
+	}
+
+	// Free memory
+	delete tasks;
+
+	return 0;
+}

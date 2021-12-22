@@ -1,0 +1,114 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 5003
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, subT[mn][3], score[3], numHack[3];
+int cur = 0, pre = 1, dp[2][91][91][91];
+int maxHack[3], numDone[3], ans = maxC;
+
+int getScore(int u, int hackState)
+{
+    int re = 0;
+    FOR(i, 0, 2)
+    if (!((hackState >> i) & 1) && subT[u][i])
+        re += score[i] * (250 - abs(subT[u][i])) / 250;
+    return re;
+}
+
+bool canHack(int u)
+{
+    return (subT[u][0] < 0) || (subT[u][1] < 0) || (subT[u][2] < 0);
+}
+
+int solve()
+{
+    memset(dp, 0, sizeof(dp));
+    int myScore = getScore(1, 0);
+    FOR(i, 0, 2)
+        myScore += numHack[i] * 100;
+    FOR(u, 2, n)
+    if (canHack(u) && getScore(u, 0) > myScore)
+    {
+        swap(cur, pre);
+        FOR(i, 0, numHack[0])
+        FOR(j, 0, numHack[1])
+        FOR(k, 0, numHack[2])
+            dp[cur][i][j][k] = dp[pre][i][j][k];
+        FOR(state, 1, 8)
+        if (getScore(u, state) <= myScore)
+        {
+            bool ok = true;
+            FOR(i, 0, 2)
+            if(((state >> i) & 1) && subT[u][i] >= 0)
+            {
+                ok = false;
+                break;
+            }
+            if (!ok)
+                continue;
+            FOR(i, ((state >> 0) & 1), numHack[0])
+            FOR(j, ((state >> 1) & 1), numHack[1])
+            FOR(k, ((state >> 2) & 1), numHack[2])
+                dp[cur][i][j][k] = max(dp[cur][i][j][k], dp[pre][i - ((state >> 0) & 1)][j - ((state >> 1) & 1)][k - ((state >> 2) & 1)] + 1);
+        }
+    }
+    int re = 1 - dp[cur][numHack[0]][numHack[1]][numHack[2]];
+    FOR(u, 2, n)
+    if (getScore(u, 0) > myScore)
+        re ++;
+    return re;
+}
+
+void brute(int pos)
+{
+    if (pos == 3)
+    {
+        ans = min(ans, solve());
+        return;
+    }
+    FOR(i, 1, 6)
+    {
+        int low = (n >> i) + 1;
+        int hig = n >> (i - 1);
+        if (numDone[pos] < low || numDone[pos] - maxHack[pos] > hig)
+            continue;
+        numHack[pos] = min(maxHack[pos], numDone[pos] - low);
+        score[pos] = 500 * i;
+        brute(pos + 1);
+    }
+}
+
+void setup()
+{
+    cin >> n;
+    FOR(i, 1, n)
+    FOR(j, 0, 2)
+    {
+        cin >> subT[i][j];
+        numDone[j] += (subT[i][j] != 0);
+        maxHack[j] += (subT[i][j] < 0);
+    }
+}
+
+void xuly()
+{
+    brute(0);
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

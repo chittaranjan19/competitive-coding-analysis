@@ -1,0 +1,125 @@
+#include <iostream>
+#include <cstdio>
+#include <set>
+#include <stack>
+#include <queue>
+#include <utility>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+#include <string>
+#include <cstring>
+#include <map>
+#include <iomanip>
+
+using namespace std;
+
+#define ll long long int
+#define MOD 1000000007
+
+int n, arr[200001], color[200001], pink;
+int cnt[200001], mark2[200001];
+vector <int> v[200001];
+
+void dfs(int );
+void dfs2(int, int);
+
+int main()
+{
+	int i, j, k, a, b, c, x, y, z;
+	cin >> n;
+
+	for (i = 1; i <= n; ++i) {
+		scanf("%d", &color[i]);
+		if (color[i] < 0) pink++;
+	}
+
+	for (i = 1; i < n; ++i) {
+		scanf("%d %d",&x, &y);
+		v[x].push_back(y);
+		v[y].push_back(x);
+	}
+
+	//cout << "+" << endl;
+	dfs(1);
+	//cout << "_" << endl;
+	if (pink == 0) printf("1");
+	dfs2(1, 1);
+
+	//for (i = 1; i <= n; ++i) cout << cnt[i] << " "; cout << endl;
+
+	return 0;
+}
+
+void dfs(int x)
+{
+	mark2[x] = 1;
+	if (color[x] == -1) cnt[x] = 1;
+	for (int i = 0; i < v[x].size(); ++i) {
+		if (mark2[v[x][i]] == 0) {
+			dfs(v[x][i]);
+			cnt[x] += cnt[v[x][i]];
+		}
+	}
+}
+
+void dfs2(int x, int par)
+{
+	//printf("%d ", x);
+	if (pink == 0) {
+		cout << endl;
+		exit(0);
+	}
+	printf("%d ", x);
+/*
+	if (pink == 0) {
+		return;
+	}
+*/
+	int y;
+	for (int i = 0; i < v[x].size(); ++i) {
+		if (v[x][i] != par && cnt[v[x][i]]) {
+			y = v[x][i];
+			cnt[x] -= cnt[y];
+			if (color[y] == 1) {
+				color[y] = -1;
+				pink++;
+			} else {
+				color[y] = 1;
+				pink--;
+			}
+			dfs2(y, x);
+			if (pink != 0) printf("%d ", x);
+			cnt[x] += cnt[y];
+			if (color[x] == 1) {
+				color[x] = -1;
+				pink++;
+				cnt[x]++;
+			} else {
+				color[x] = 1;
+				pink--;
+				cnt[x]--;
+			}	
+			if (color[y] == -1) {
+				printf("%d ", y);
+				color[y] = 1;
+				cnt[y] -= 1;
+				pink--;
+				printf("%d ", x);
+				if (color[x] == 1) {
+					color[x] = -1;
+					pink++;
+					cnt[x]++;
+				} else {
+					color[x] = 1;
+					pink--;
+					cnt[x]--;
+				}
+			}
+			if (pink == 0) { 
+				cout << endl;
+				exit(0);
+			}
+		}
+	}
+}

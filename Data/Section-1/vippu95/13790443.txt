@@ -1,0 +1,45 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+const int lmt = 400005;
+int tree[lmt];
+
+int query(int nn,int a,int b,int l,int r){
+    if(a>b || b<l || a>r) return 0;
+    if(a==b) return tree[nn];
+    if(l<=a && b<=r) return tree[nn];
+    int lt=nn<<1;
+    int rt = lt+1;
+    int md = (a+b)>>1;
+    int q1 = query(lt,a,md,l,r);
+    int q2 = query(rt,md+1,b,l,r);
+    return max(q1,q2);
+}
+
+void update(int nn,int a,int b,int idx,int v){
+    if(idx<a || idx>b || a>b) return ;
+    if(a==b){
+        tree[nn] = v;
+        return ;
+    }
+    int lt=nn<<1;
+    int rt = lt+1;
+    int md = (a+b)>>1;
+    update(lt,a,md,idx,v);
+    update(rt,md+1,b,idx,v);
+    tree[nn] = max(tree[lt],tree[rt]);
+}
+
+int main(){
+    int n,x;
+    scanf("%d",&n);
+    for(int i=0;i<n;i++){
+        scanf("%d",&x);
+        int tmp = query(1,1,n,1,x);
+        //cout<<tmp<<" ";
+        update(1,1,n,x,tmp+1);
+    }
+    //cout<<endl;
+    printf("%d\n",tree[1]);
+	return 0;
+}

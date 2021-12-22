@@ -1,0 +1,102 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define llu unsigned long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+const int limit = 2000055;
+
+struct Trie{
+    int nxt[26];
+    int idx;
+}trie[limit];
+
+int tn = 0;
+
+char scstr[limit];
+
+void add(string str,int _idx){
+    int i=0;
+    for(int j=0;j<str.size();j++){
+        if(!trie[i].nxt[str[j]-'a'])
+            trie[i].nxt[str[j]-'a'] = ++tn;
+        i = trie[i].nxt[str[j]-'a'];
+    }
+    trie[i].idx=_idx;
+    return ;
+}
+
+int find(string str){
+    int i=0;
+    for(int j=0;j<str.size();j++){
+        if(!trie[i].nxt[str[j]-'a'])
+            return -1;
+        i = trie[i].nxt[str[j]-'a'];
+    }
+    return (trie[i].idx);
+}
+
+vector<int> ans;
+string str2;
+
+bool good(int idx,int n,int k){
+    set<int> st;
+    int cnt=0;
+    for(int i=idx;i<str2.size() && cnt<n && i<ans.size();i+=k){
+        if(ans[i]!=-1){
+            if(st.find(ans[i])!=st.end()) return false;
+            st.insert(ans[i]);
+        }
+        cnt++;
+    }
+    if(st.size()==n) return true;
+    return false;
+}
+
+int main(){
+    for(int i=0;i<limit;i++){
+        for(int j=0;j<26;j++)
+            trie[i].nxt[j]=0;
+        trie[i].idx=0;
+    }
+    int n,k;
+    scanf("%d %d",&n,&k);
+    scanf("%s",scstr);
+    string str = (string)(scstr);
+    int q;
+    cin>>q;
+    str2=str;
+    str2 += str;
+    for(int i=1;i<=q;i++){
+        string tmp;
+        scanf("%s",scstr);
+        tmp = (string)(scstr);
+        add(tmp,i);
+    }
+    for(int i=0;(i<str2.size()) && (i<(str.size()+k));i++){
+        if((i+k)>str2.size) break;
+        string tmp = str2.substr(i,k);
+        int x=find(tmp);
+        ans.pb(x);
+    }
+/*    for(int i=0;i<ans.size();i++)
+        cout<<ans[i]<<" ";*/
+    for(int i=0;i<k;i++){
+        if(good(i,n,k)){
+            //DEBUG(i);
+            printf("YES\n");
+            int cnt = 0;
+            for(int j=i;j<str2.size() && cnt<n;j+=k,cnt++)
+                printf("%d ",ans[j]);
+            return 0;
+        }
+    }
+    printf("NO\n");
+    return 0;
+}

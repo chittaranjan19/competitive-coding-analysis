@@ -1,0 +1,112 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<int> primes;
+bool visited[31650];
+int arr[1000005], n, a, b;
+LL pref[1000005], suff[1000005];
+set<int> s;
+
+void get_primes(int MAX)
+{
+  for(int x = 2; x <= MAX; x++)
+    if(!visited[x])
+    {
+      primes.push_back(x);
+      for(LL j = x * 1LL * x; j <= MAX; j += x)
+        visited[j] = true;
+    }
+}
+
+void factorize(int x)
+{
+  for(int i=0;i<primes.size() && primes[i] * primes[i] <= x;i++)
+  {
+    if(x % primes[i] == 0)
+      s.insert(primes[i]);
+    while(x % primes[i] == 0)
+      x /= primes[i];
+  }
+  if(x > 1) s.insert(x);
+}
+
+LL solve(int p)
+{
+  int en1 = n - 1, en2 = 0;
+  for(int i=0;i<n;i++)
+  {
+    if(arr[i] % p == 0)
+      pref[i] = 0;
+    else if((arr[i] + 1) % p == 0 || (arr[i] - 1) % p == 0)
+      pref[i] = b;
+    else
+    {
+      en1 = i - 1;
+      break;
+    }
+    if(i) pref[i] += pref[i - 1];
+  }
+  for(int i=n - 1;i>=0;i--)
+  {
+    if(arr[i] % p == 0)
+      suff[i] = 0;
+    else if((arr[i] + 1) % p == 0 || (arr[i] - 1) % p == 0)
+      suff[i] = b;
+    else
+    {
+      en2 = i + 1;
+      break;
+    }
+    if(i != n - 1) suff[i] += suff[i + 1];
+  }
+  suff[n] = a * 1LL * n;
+  LL ans = INF_LL;
+  for(int i=n - 1;i>=0;i--)
+  {
+    if(i < en2) suff[i] = suff[i + 1];
+    else
+    {
+      ans = min(ans, suff[i] + a * 1LL * i);
+      suff[i] = min(suff[i + 1], suff[i] + a * 1LL * i);
+    }
+  }
+  for(int i=0;i<=en1;i++)
+    ans = min(ans, suff[i + 1] + pref[i] - (i + 1) * 1LL * a);
+  return ans;
+}
+
+int main()
+{
+  get_primes(31625);
+  scanf("%d %d %d", &n, &a, &b);
+  for(int i=0;i<n;i++)
+    scanf("%d", &arr[i]);
+  factorize(arr[0]);
+  factorize(arr[0] + 1);
+  factorize(arr[0] - 1);
+  factorize(arr[n - 1]);
+  factorize(arr[n - 1] + 1);
+  factorize(arr[n - 1] - 1);
+  LL res = INF_LL;
+  for(auto x : s)
+    res = min(res, solve(x));
+  cout << res;
+  return 0;
+}

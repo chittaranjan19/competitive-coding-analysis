@@ -1,0 +1,79 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 20;
+
+template<class T>
+void setmin (T &a, T b) {
+	if (a > b) {
+		a = b;
+	}
+}
+
+template<class T>
+void setmax (T &a, T b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+int N, M;
+char S[MAXN][MAXN];
+int A[MAXN][MAXN], C[MAXN][MAXN], same[MAXN][MAXN];
+int dp[1 << MAXN];
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 0; i < N; i++) {
+		cin >> S[i];
+	}
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < M; j++) {
+			cin >> A[i][j];
+		}
+	}
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < M; j++) {
+			same[i][j] = C[i][j] = 0;
+			int cmax = 0;
+			for (int k = 0; k < N; k++) {
+				if (S[i][j] == S[k][j]) {
+					same[i][j] |= (1 << k);
+					C[i][j] += A[k][j];
+					setmax(cmax, A[k][j]);
+				}
+			}
+			C[i][j] -= cmax;
+		}
+	}
+	for (int i = 1; i < (1 << N); i++) {
+		dp[i] = 1e9;
+		int lo;
+		for (int j = 0; j < N; j++) {
+			if (i & (1 << j)) {
+				lo = j;
+				break;
+			}
+		}
+		for (int j = 0; j < M; j++) {
+			setmin(dp[i], dp[i ^ (1 << lo)] + A[lo][j]);
+			setmin(dp[i], dp[i & (i ^ same[lo][j])] + C[lo][j]);
+		}
+	}
+	cout << dp[(1 << N) - 1] << endl;
+}

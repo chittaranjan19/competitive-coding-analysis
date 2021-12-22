@@ -1,0 +1,94 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <stdio.h>
+
+using namespace std;
+
+#define ll long long
+#define ull unsigned long long 
+#define sc second
+#define fs first
+#define mp make_pair
+
+int n;
+vector<int> g[10000];
+int a = 0, ans = 1e9;
+int k = 0;
+
+void dfs0(int v, int p = -1)
+{
+	if (g[v].size() == 1)
+		k++;
+	for (int i = 0; i < g[v].size(); i++)
+	{
+		if (g[v][i] != p)
+			dfs0(g[v][i], v);
+	}
+}
+
+int cur = 0;
+int clr[10000];
+void dfs(int v, int p = -1)
+{
+	if (g[v].size() == 1)
+	{
+		if (cur < k / 2){
+			clr[v] = 1;
+			cur++;
+		}
+		else clr[v] = 2;
+	}
+	for (int i = 0; i < g[v].size(); i++)
+	{
+		int to = g[v][i];
+		if (to == p) continue;
+		dfs(to, v);
+	}
+	int cnt[3];
+	cnt[2] = cnt[1] = 0;
+	if (g[v].size() != 1)
+	{
+		bool rev = 1;
+		for (int i = 0; i < g[v].size(); i++){
+			if (clr[g[v][i]] == 0)
+				rev ^= 1;
+			else
+				cnt[clr[g[v][i]]]++;
+		}
+		int cl = 1;
+		if (cnt[2] > cnt[1])
+			cl = 2;
+		a += min(cnt[2], cnt[1]);
+		clr[v] = cl;
+	}
+}
+
+int main()
+{
+	//freopen("grant.in", "r", stdin);
+	//freopen("grant.out", "w", stdout);
+	cin >> n;
+	for (int i = 0; i < n - 1; i++)
+	{
+		int u, v;
+		cin >> u >> v;
+		g[u].push_back(v);
+		g[v].push_back(u);
+	}
+	dfs0(1);
+	for (int i = 1; i <= n; i++){
+		a = 0, cur = 0;
+		memset(clr, 0, sizeof(clr));
+		dfs(i);
+		ans = min(ans, a);
+	}
+	cout << ans;
+	return 0;
+}

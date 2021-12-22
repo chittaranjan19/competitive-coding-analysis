@@ -1,0 +1,70 @@
+#include<bits/stdc++.h>
+#define ll long long
+#define maxn 100005
+
+using namespace std;
+
+bool vis[maxn], bad[maxn];
+int sz[maxn];
+ll a[maxn];
+vector<pair<int, int> > g[maxn];
+ll ans = 0;
+
+void dfs(int v, ll path, ll min_dis )
+{
+	vis[v] = true;
+	if( path - a[v] > min_dis )
+	{
+		bad[v] = true;
+	}
+	min_dis = min(min_dis, path);
+	sz[v] = 1;
+	for( int i = 0 ; i < g[v].size() ; i++ )
+	{
+		if( !vis[g[v][i].first] )
+		{
+			dfs( g[v][i].first, path + g[v][i].second, min_dis);
+			sz[v] += sz[g[v][i].first];
+		}
+	}
+}
+
+void dfs1( int v )
+{
+	vis[v] = true;
+	if( bad[v] )
+	{
+		ans += sz[v];
+		return;
+	}
+	for ( int i = 0 ; i < g[v].size() ; i++ )
+	{
+		if( !vis[g[v][i].first] )
+		{
+			dfs1( g[v][i].first );
+		}
+	}
+}
+int main()
+{
+	int n, i;
+	scanf("%d", &n);
+	for ( i = 1 ; i <= n ; i++ )
+	{
+		cin >> a[i];
+	}
+	for ( i = 2 ; i <= n ; i++ )
+	{
+		int c, p;
+		scanf("%d%d", &p, &c);
+		g[i].push_back(make_pair(p, c));
+		g[p].push_back(make_pair(i, c));
+	}
+	memset(bad, 0, sizeof bad);
+	memset(vis, 0, sizeof vis);
+	dfs(1, 0, 1000000000000000000 );
+	memset(vis, 0, sizeof vis);
+	dfs1(1);
+	cout << ans << "\n";
+	return 0;
+}

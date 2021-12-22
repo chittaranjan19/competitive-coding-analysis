@@ -1,0 +1,122 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 210, MAXA = 20010;
+
+void kill() {
+	cout << "Impossible";
+	exit(0);
+}
+
+int N, A[MAXN];
+bool isprime[MAXA];
+int cap[MAXN][MAXN], flow[MAXN][MAXN];
+bool vis[MAXN];
+vector<vector<int> > ans;
+
+bool dfs (int x) {
+	if (x == N + 1) {
+		return true;
+	}
+	vis[x] = true;
+	//ok try to augment
+	for (int i = 0; i <= N + 1; i++) {
+		if (!vis[i] && flow[x][i] < cap[x][i]) {
+			if (dfs(i)) {
+				flow[x][i]++;
+				flow[i][x]--;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	int nodd = 0, neven = 0;
+	for (int i = 1; i <= N; i++) {
+		cin >> A[i];
+		(A[i] % 2 ? nodd : neven)++;
+	}
+	if (nodd != neven) {
+		kill();
+	}
+	fillchar(isprime, true);
+	for (int i = 2; i < MAXA; i++) {
+		for (int j = 2 * i; j < MAXA; j += i) {
+			isprime[j] = false;
+		}
+	}
+	//match it
+	for (int i = 1; i <= N; i++) {
+		if (!(A[i] % 2)) {
+			cap[i][N + 1] = 2;
+			continue;
+		}
+		cap[0][i] = 2;
+		for (int j = 1; j <= N; j++) {
+			if (isprime[A[i] + A[j]]) {
+				// cerr << i << " adj " << j << endl;
+				cap[i][j] = 1;
+			}
+		}
+	}
+	//ok let's match everything with TWO things.
+	//odd ones go from source = 0, even ones go to sink = N + 1
+	int maxflow = 0;
+	while (dfs(0)) {
+		maxflow++;
+		fillchar(vis, false);
+	}
+	if (maxflow != N) {
+		kill();
+	}
+	fillchar(vis, false);
+	for (int i = 1; i <= N; i++) {
+		if (vis[i]) {
+			continue;
+		}
+		ans.push_back(vector<int> ());
+		vector<int> &ref = ans.back();
+		int cur = i;
+		while (true) {
+			vis[cur] = true;
+			ref.push_back(cur);
+			bool found = false;
+			for (int j = 1; j <= N; j++) {
+				if (!vis[j] && flow[cur][j]) {
+					cur = j;
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				break;
+			}
+		}
+	}
+	cout << ans.size() << '\n';
+	for (vector<int> &v : ans) {
+		cout << v.size();
+		for (int i : v) {
+			cout << ' ' << i;
+		}
+		cout << '\n';
+	}
+}

@@ -1,0 +1,59 @@
+#include<bits/stdc++.h>
+using namespace std;
+ 
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+
+const int limit = 100005;
+const int oo = numeric_limits<int>::max();
+int x[limit];
+int h[limit];
+int dp[limit][3];
+
+int solve(int idx,int last,int n){
+	if(idx==n) return 0;
+	if(dp[idx][last] != -1) return dp[idx][last];
+	int a=0,b=0,c=0;
+	int lc;
+	if(last==0){
+		lc = x[idx-1];	
+	}
+	else if(last==1)
+		lc = x[idx-1]+h[idx-1];
+	else if(last==2)
+		lc = x[idx-1];
+		
+	//try left
+	if(x[idx]-lc > h[idx])
+		a = 1+solve(idx+1,0,n);
+	//try right
+	if(x[idx+1]-x[idx] > h[idx])
+		b=1+solve(idx+1,1,n);
+	//not cur
+	c=0+solve(idx+1,2,n);
+	dp[idx][last] = max({a,b,c});
+	return dp[idx][last];
+}
+
+int main(){
+	int n;
+	scanf("%d",&n);
+	for(int i=0;i<n;i++)
+		scanf("%d %d",&x[i],&h[i]);
+	x[n]=oo;
+	memset(dp,-1,sizeof(dp));
+	dp[0][0]=1;
+	dp[0][2] = 1;
+	if(x[1]-x[2] >= h[0]) dp[0][1]=1;
+	else dp[0][1] = 1;
+	
+	int ans = max({solve(1,0,n),solve(1,1,n),solve(1,2,n)});
+	/*for(int i=0;i<n;i++)
+		cout<<dp[i][0]<<" "<<dp[i][1]<<" "<<dp[i][2]<<endl;*/
+	cout<<1+ans<<endl;
+}
+

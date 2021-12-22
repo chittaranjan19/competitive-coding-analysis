@@ -1,0 +1,95 @@
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.PrintWriter;
+import java.util.*;
+
+/**
+ * Created by leen on 8/7/16.
+ */
+public class _705C {
+
+    public static void main(String[] args) {
+        Scanner scan  = new Scanner(new BufferedInputStream(System.in, 1024 * 128));
+
+        int n = scan.nextInt(), q = scan.nextInt();
+
+        Node head = new Node(0);
+        Node tail = head;
+        Map<Integer, List<Node>> appNum2Nodes = new HashMap<Integer, List<Node>>();
+        for(int appNum = 1; appNum <= n; appNum++)
+            appNum2Nodes.put(appNum, new LinkedList<Node>());
+
+        int eventNum = 1;
+        int appNum;
+        int numNots = 0;
+        Node node;
+        PrintWriter pw = new PrintWriter(new BufferedOutputStream(System.out, 1024 * 64));
+        for(int i = 1; i <= q; i++) {
+            switch (scan.nextInt()) {
+                case 1:
+                    appNum = scan.nextInt();
+                    node = new Node(eventNum++);
+                    appNum2Nodes.get(appNum).add(node);
+                    tail.append(node);
+                    numNots++;
+                    break;
+                case 2:
+                    appNum = scan.nextInt();
+                    List<Node> nodes = appNum2Nodes.get(appNum);
+                    ListIterator<Node> it = nodes.listIterator();
+                    while(it.hasNext()) {
+                        node = it.next();
+                        it.remove();
+                        if(!node.removed) {
+                            node.removeSelf();
+                            numNots--;
+                        }
+                    }
+                    break;
+                case 3:
+                    int t = scan.nextInt();
+                    node = head.next;
+                    while(node != head && node.eventNum <= t) {
+                        Node next = node.next;
+                        node.removeSelf();
+                        node = next;
+                        numNots--;
+                    }
+            }
+            pw.println(numNots);
+        }
+        pw.flush();
+    }
+
+    static class Node {
+        Node prev;
+        Node next;
+        boolean removed;
+
+        final int eventNum;
+
+        Node(int eventNum) {
+            this.eventNum = eventNum;
+            prev = this;
+            next = this;
+        }
+
+        void append(Node node) {
+            node.next = next;
+            next.prev = node;
+            next = node;
+            node.prev = this;
+        }
+
+        void removeSelf() {
+            removed = true;
+            Node _prev = prev;
+            Node _next = next;
+            _prev.next = _next;
+            _next.prev = _prev;
+            prev = this;
+            next = this;
+        }
+
+    }
+}

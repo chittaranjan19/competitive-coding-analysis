@@ -1,0 +1,103 @@
+const
+  tfi = '';//'543d.inp';
+  tfo = '';//'543d.out';
+  base = 1000000007;
+
+var
+  n,top : longint;
+  head,f,g,h,adj,next,stack,c : array [1..200000] of longint;
+
+procedure addedge(j,u,v : longint);
+  begin
+    adj[j] := v;
+    next[j] := head[u];
+    head[u] := j;
+  end;
+
+procedure enter;
+  var i,x : longint;
+  begin
+    assign(input,tfi);
+    reset(input);
+    read(n);
+    for i := 2 to n do
+      begin
+        read(x);
+        addedge(i-1,x,i);
+      end;
+    close(input);
+  end;
+
+procedure push(u : longint);
+  begin
+    inc(top);
+    stack[top] := u;
+  end;
+
+procedure visit1(u : longint);
+  var v,j,t : longint;
+  begin
+    f[u] := 1;
+    j := head[u];
+    while j <> 0 do
+      begin
+        v := adj[j];
+        push(v);
+        visit1(v);
+        inc(c[u]);
+        f[u] := int64(f[u])*(f[v] + 1) mod base;
+        j := next[j];
+      end;
+    t := 1;
+    for j := top-c[u]+1 to top do
+      begin
+        v := stack[j];
+        g[v] := t;
+        t := int64(t)*(f[v] + 1) mod base;
+      end;
+    t := 1;
+    for j := top downto top-c[u]+1 do
+      begin
+        v := stack[j];
+        g[v] := int64(g[v])*t mod base;
+        t := int64(t)*(f[v] + 1) mod base;
+      end;
+    dec(top,c[u]);
+  end;
+
+procedure visit2(u : longint);
+  var v,j : longint;
+  begin
+    j := head[u];
+    while j <> 0 do
+      begin
+        v := adj[j];
+        h[v] := (int64(g[v])*h[u] mod base + 1) mod base;
+        f[v] := int64(f[v])*(int64(g[v])*h[u] mod base + 1) mod base;
+        visit2(v);
+        j := next[j];
+      end;
+  end;
+
+procedure process;
+  begin
+    visit1(1);
+    h[1] := 1;
+    visit2(1);
+  end;
+
+procedure print;
+  var i : longint;
+  begin
+    assign(output,tfo);
+    rewrite(output);
+    for i := 1 to n do write(f[i],' ');
+    close(output);
+  end;
+
+begin
+  enter;
+  process;
+  print;
+end.
+

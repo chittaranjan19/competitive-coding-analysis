@@ -1,0 +1,73 @@
+#include <iostream>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 1e5 + 5;
+
+vector<int> v;
+bool vis[maxn];
+
+void sieve()
+{
+    for(int i = 2; i < maxn; ++i)
+    {
+        if(!vis[i])
+        {
+            v.push_back(i);
+            for(int j = 2 * i; j < maxn; j += i)
+            {
+                vis[j] = true;
+            }
+        }
+    }
+}
+
+bool check(int m)
+{
+    if(m == 2) return true;
+    if(m < 2 || !(m & 1)) return false;
+    for(int i = 3; (ll)i * i <= m; i += 2)
+    {
+        if(m % i == 0) return false;
+    }
+    return true;
+}
+
+int main()
+{
+    sieve();
+    int n;
+    while(cin >> n)
+    {
+        if(binary_search(v.begin(), v.end(), n))
+        {
+            cout << 1 << endl << n << endl;
+            continue;
+        }
+        for(int k = n - 3; k > 1; --k)
+        {
+            if(!check(k)) continue;
+            int m = n - k;
+            for(int i = 0; i < v.size() && v[i] <= m; ++i)
+            {
+                int j = m - v[i];
+                if(binary_search(v.begin(), v.end(), j))
+                {
+                    cout << 3 << endl << k << ' ' << v[i] << ' ' << j << endl;
+                    goto ok;
+                }
+                if(!j)
+                {
+                    cout << 2 << endl << k << ' ' << k << endl;
+                    goto ok;
+                }
+            }
+        }
+        ok:;
+    }
+    return 0;
+}

@@ -1,0 +1,66 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+const int MAXN=1000*100+100;
+const int MAXM=6;
+int tail;
+int head;
+int arry[MAXN][MAXM];
+int h[MAXN];
+int mx[MAXN][MAXM];
+
+int n,k,a;
+
+void calc(int m){
+    for(int T=0;T<a;T++){
+        head=tail=0;
+        for(int i=0;i<n;i++){
+            while(tail-head>0 && arry[i][T]>arry[h[tail-1]][T])
+                tail--;
+            h[tail++]=i;
+            while(tail-head>0 && h[head]+m==i )
+                head++;
+            mx[i][T]=arry[h[head]][T];
+        }
+    }
+}
+
+bool check(int m){
+    calc(m);
+    for(int i=m-1;i<n;i++){
+        long long sum=0;
+        for(int j=0;j<a;j++)sum+=mx[i][j];
+        if(sum<=k)return true;
+    }
+    return false;
+}
+
+void print (int m){
+    calc(m);
+    for(int i=a-1;i<n;i++){
+        long long sum=0;
+        for(int j=0;j<a;j++)sum+=mx[i][j];
+        if(sum<=k){
+            for(int l=0;l<a;l++)cout<<mx[i][l]<<" ";
+            return;
+        }
+    }
+
+}
+
+int main(){
+        cin>>n>>a>>k;
+        for(int i=0;i<n;i++)
+                for(int j=0;j<a;j++)cin>>arry[i][j];
+        long long MIN=0,MAX=n+1;
+        while(MAX-MIN>1){
+            long long MID=(MAX+MIN)/2;
+            if(!check(MID))MAX=MID; else MIN=MID;
+        }
+        if(MIN == 0) {
+            for(int i = 0; i < a; i ++)
+            cout << 0 << endl;
+            return 0;
+        }
+        print(MIN);
+}

@@ -1,0 +1,77 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset(a, s, sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 600010;
+const ll P = 1000000007, Q = 1362331163, M2 = 1590876361;
+
+int N, M;
+ll pwr[MAXN], pwr2[MAXN];
+char str[MAXN], buf[MAXN];
+set<pll> hashes;
+
+ll add (ll x, ll y) {
+	return (x + y) % M2;
+}
+
+ll subtr (ll x, ll y) {
+	return ((x -= y) < 0 ? x + M2 : x);
+}
+
+ll mult (ll x, ll y) {
+	return (x * y) % M2;
+}
+
+pll gethsh() {
+	gets(str);
+	pll h(0, 0);
+	for (int i = 0; str[i]; i++) {
+		h.first += pwr[i] * str[i];
+		h.second = add(h.second, mult(pwr2[i], str[i]));
+	}
+	return h;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d\n", &N, &M);
+	pwr[0] = pwr2[0] = 1;
+	for (int i = 1; i < MAXN; i++) {
+		pwr[i] = pwr[i - 1] * P;
+		pwr2[i] = mult(pwr2[i - 1], Q);
+	}
+	for (int tt = 0; tt < N; tt++) {
+		hashes.insert(gethsh());
+	}
+	for (int tt = 0; tt < M; tt++) {
+		pll h = gethsh();
+		N = strlen(str);
+		bool ans = false;
+		for (int i = 0; i < N; i++) {
+			//not including that char
+			pll nh(h.first - str[i] * pwr[i], subtr(h.second, mult(str[i], pwr2[i])));
+			for (char j = 'a'; j <= 'z'; j++) {
+				if (j == str[i]) {
+					continue;
+				}
+				if (hashes.count(pll(nh.first + j * pwr[i], add(nh.second, mult(j, pwr2[i]))))) {
+					ans = true;
+					goto putans;
+				}
+			}
+		}
+		putans:
+		puts(ans ? "YES" : "NO");
+	}
+}

@@ -1,0 +1,167 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class ProblemE {
+    BufferedReader rd;
+    int[] p,s,z;
+    int n;
+    int[] res = new int[4000100];
+    int rc;
+    long cost;
+
+    ProblemE() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        rd.readLine();
+        p = intarr();
+        s = intarr();
+        n = p.length;
+        z = new int[n+1];
+        for(int i=0;i<n;i++) {
+            z[s[i]] = i;
+        }
+        solve(0,n);
+        out(cost);
+        out(rc/2);
+        for(int i=0;i<rc;i+=2) {
+            out(res[i]+" "+res[i+1]);
+        }
+    }
+
+    private void solve(int from, int to) {
+        if(to - from < 2) {
+            return;
+        }
+        if(to - from == 2) {
+            if(p[from] != s[from]) {
+                add(from, from+1);
+            }
+            return;
+        }
+        int mid = (from+to)/2;
+        boolean changed = true;
+        while(changed) {
+            int a = 0;
+            int b = 0;
+            int c = 0;
+            changed = false;
+            for(int i=from;i<mid;i++) {
+                if(z[p[i]] >= mid) {
+                    for(int j=i+1;j<=z[p[i]];j++) {
+                        if(z[p[j]] <= i) {
+                            if(Math.abs(i - j) > c) {
+                                c = Math.abs(i - j);
+                                a = i;
+                                b = j;
+                            }
+                            changed = true;
+                        }
+                    }
+                }
+            }
+            for(int j=mid;j<to;j++) {
+                if(z[p[j]] < mid) {
+                    for(int i=z[p[j]];i<j;i++) {
+                        if(z[p[i]] >= j) {
+                            if(Math.abs(i - j) > c) {
+                                c = Math.abs(i - j);
+                                a = i;
+                                b = j;
+                            }
+                            changed = true;
+                        }
+                    }
+                }
+            }
+            if(changed) {
+                add(a,b);
+            }
+        }
+        solve(from,mid);
+        solve(mid,to);
+    }
+
+    private void add(int x, int y) {
+        int tmp = p[x];
+        p[x] = p[y];
+        p[y] = tmp;
+        res[rc++] = x+1;
+        res[rc++] = y+1;
+        cost += Math.abs(x-y);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemE();
+    }
+}

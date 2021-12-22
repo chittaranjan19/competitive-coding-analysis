@@ -1,0 +1,204 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+#define ex 0.000001
+
+using namespace std;
+int n, q, fin[mn], ans[mn], sz[mn];
+string s, sum = "";
+
+struct aho
+{
+    aho* child[26];
+    aho* f;
+    aho* t;
+    vector<int> id;
+
+    aho()
+    {
+        FOR(i, 0, 25)
+            child[i] = NULL;
+        f = t = NULL;
+        id.clear();
+    }
+} t;
+
+struct wait
+{
+    aho* u;
+    aho* p;
+    int e;
+
+    wait()
+    {
+        u = p = NULL;
+        e = 0;
+    }
+
+    wait(aho* _u, aho* _p, int _e)
+    {
+        u = _u;
+        p = _p;
+        e = _e;
+    }
+};
+
+queue<wait> queu;
+vector< pair<int, int> > app;
+pair< pair<int, int> , pair<int, int> > que[mn];
+
+struct bitTree
+{
+    int tree[mn];
+
+    void update(int x, int v)
+    {
+        for(; x <= n; x += (x & (-x)))
+            tree[x] += v;
+    }
+
+    int get(int x)
+    {
+        int re = 0;
+        for(; x; x -= (x & (-x)))
+            re += tree[x];
+        return re;
+    }
+} tr;
+
+void setup()
+{
+    cin >> n >> q;
+    aho* p;
+    int z;
+    FOR(i, 1, n)
+    {
+        cin >> s;
+        sum += s;
+        fin[i] = sum.size();
+        p = &t;
+        sz[i] = s.size();
+        FOR(j, 0, int(s.size()) - 1)
+        {
+            z = s[j] - 'a';
+            if (p -> child[z] == NULL)
+                p -> child[z] = new aho;
+            p = p -> child[z];
+        }
+        p -> id.pb(i);
+    }
+    FOR(i, 1, q)
+        cin >> que[i].S.F >> que[i].S.S >> que[i].F.F, que[i].F.S = i;
+    sort(que + 1, que + q + 1);
+}
+
+void buildAho()
+{
+    FOR(i, 0, 25)
+    if (t.child[i] != NULL)
+    {
+        t.child[i] -> f = &t;
+        FOR(j, 0, 25)
+        if (t.child[i] -> child[j] != NULL)
+            queu.push(wait(t.child[i] -> child[j], t.child[i], j));
+    }
+    aho* tem = NULL;
+    while(!queu.empty())
+    {
+        aho* u = queu.front().u;
+        aho* p = queu.front().p;
+        int e = queu.front().e;
+        queu.pop();
+        tem = p -> f;
+        while(tem != NULL)
+        {
+            if (tem -> child[e] != NULL)
+            {
+                u -> f = tem -> child[e];
+                if (u -> f -> id.size())
+                    u -> t = u -> f;
+                else
+                    u -> t = u -> f -> t;
+                break;
+            }
+            tem = tem -> f;
+        }
+        FOR(i, 0, 25)
+        if (u -> child[i] != NULL)
+            queu.push(wait(u -> child[i], u, i));
+    }
+}
+
+void findOccur()
+{
+    aho* p = &t;
+    int x = 0;
+    FOR(i, 0, fin[n] - 1)
+    {
+        x += (i + 1 > fin[x]);
+        int z = sum[i] - 'a';
+        while(p -> child[z] == NULL)
+        {
+            p = p -> f;
+            if (p == NULL)
+                break;
+        }
+        if (p == NULL)
+            p = &t;
+        else
+        {
+            p = p -> child[z];
+            aho* tem = p -> t;
+            while(tem != NULL)
+            {
+                FOR(j, 0, int(tem -> id.size()) - 1)
+                {
+                    int y = tem -> id[j];
+                    if (i + 2 - sz[y] > fin[x - 1])
+                        app.pb(mp(x, y));
+                }
+                tem = tem -> t;
+            }
+            FOR(j, 0, int(p -> id.size()) - 1)
+            {
+                int y = p -> id[j];
+                if (i + 2 - sz[y] > fin[x - 1])
+                    app.pb(mp(x, y));
+            }
+        }
+    }
+}
+
+void xuly()
+{
+    buildAho();
+    findOccur();
+    app.pb(mp(maxC, maxC));
+    int r1 = -1, r2 = -1;
+    FOR(i, 1, q)
+    {
+        while(app[r2 + 1].F <= que[i].F.F)
+            tr.update(app[++ r2].S, 1);
+        while(app[r1 + 1].F <= que[i].F.F - 1)
+            tr.update(app[++ r1].S, -1);
+        ans[que[i].F.S] = tr.get(que[i].S.S) - tr.get(que[i].S.F - 1);
+    }
+    FOR(i, 1, q)
+        cout << ans[i] << '\n';
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

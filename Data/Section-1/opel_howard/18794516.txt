@@ -1,0 +1,153 @@
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <climits>
+#include <ctime>
+#include <cassert>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector<int>
+#define vl vector<long long>
+#define vb vector<bool>
+#define vs vector<string>
+#define ii pair<int, int>
+#define a first
+#define b second
+#define vii vector<ii>
+#define mii map<ii>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define loop(i, n) for(int i = 0; i < n; ++i)
+#define loop1(i, n) for(int i = 1; i <= n; ++i)
+#define reverse_iterate(a, b) for(__typeof((b).rend()) a = (b).rbegin(); a != (b).rend(); ++a)
+#define iterate(a, b) for(__typeof((b).begin()) a = (b).begin(); a != (b).end(); ++a)
+#define all(i) (i).begin(), (i).end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const double PI = acos(-1);
+
+#ifdef DEBUG
+	#define debug(fmt, args...) printf("Line %d, in %s\t: " fmt, __LINE__, __FUNCTION__, args)
+	#define GetTime() fprintf(stderr,"Running time: %.3lf second\n",((double)clock())/CLOCKS_PER_SEC)
+#else
+	#define debug(...) 
+	#define GetTime() 
+#endif
+
+// end of template
+
+vector<vi> edges;
+vector<bool> marked;
+vector<bool> visited;
+vi arya, pari;
+bool has_ans;
+
+void traverse(int idx, bool is_arya) {
+	debug("%d\n", idx);
+	fflush(stdout);
+	visited[idx] = true;
+	marked[idx] = is_arya;
+	if (is_arya)
+		arya.pub(idx);
+	else
+		pari.pub(idx);
+	iterate(neighbor_p, edges[idx]) {
+		int neighbor = *neighbor_p;
+		if (visited[neighbor]) {
+			if (marked[neighbor] == is_arya)
+				has_ans = false;
+			continue;
+		}
+		traverse(neighbor, not is_arya);
+	}
+}
+
+#ifdef __WIN32 
+	#define gc getchar
+#else
+	#define gc getchar_unlocked
+#endif
+#define fsdecimal(type) \
+	void fs ##type  (type& inp) { \
+		register char c = gc(), prev = '+'; \
+		for (; !isdigit(c); c = gc()) prev = c; \
+		inp = 0; \
+		for (; isdigit(c); c = gc()) { \
+			inp = (inp << 3)+(inp << 1)+(c-'0'); \
+		} \
+		if (prev == '-') \
+			inp = -inp; \
+	}
+fsdecimal(int)
+fsdecimal(ll)
+
+int main() {
+#ifdef DEBUG
+	freopen("688C.in", "r", stdin);
+#endif
+    
+    int n, m;
+    fsint(n), fsint(m);
+    edges.resize(n);
+    while (m--) {
+    	int u, v;
+    	fsint(u), fsint(v);
+    	--u, --v;
+    	edges[u].pub(v);
+    	edges[v].pub(u);
+    }
+
+    has_ans = true;
+    marked.resize(n, false);
+    visited.resize(n, false);
+    loop(idx, n)
+    	if (!visited[idx])
+    		traverse(idx, true);
+
+    if (!has_ans) {
+    	puts("-1");
+    	return 0;
+    }
+
+    printf("%d\n", (int) arya.size());
+    loop(it, (int) arya.size()) {
+    	if (it)
+    		printf(" ");
+    	printf("%d", arya[it]+1);
+    }
+    printf("\n");
+    printf("%d\n", (int) pari.size());
+    loop(it, (int) pari.size()) {
+    	if (it)
+    		printf(" ");
+    	printf("%d", pari[it]+1);
+    }
+    printf("\n");
+
+    return 0;
+}

@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+#define MIN(x,y) (x < y ? x : y)
+#define MAX(x,y) (x > y ? x : y)
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1010;
+const double eps = 0.1;
+
+typedef struct {
+   double x,y;
+}Point;
+
+Point polygon[maxn];
+int n;
+
+int check(double xi, double yi)
+{
+  int counter = 0;
+  int i;
+  double xinters;
+  Point p1, p2;
+  Point p;
+  p.x = xi, p.y = yi;
+  p1 = polygon[0];
+  for(i=1; i<=n; i++){
+    p2 = polygon[i % n];
+    if (p.y > min(p1.y,p2.y)) {
+      if (p.y <= max(p1.y,p2.y)) {
+        if (p.x <= max(p1.x,p2.x)) {
+          if (p1.y != p2.y) {
+            xinters = (p.y-p1.y)*(p2.x-p1.x)/(p2.y-p1.y)+p1.x;
+            if (p1.x == p2.x || p.x <= xinters)
+              counter++;
+          }
+        }
+      }
+    }
+    p1 = p2;
+  }
+  return (counter&1);
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, ans = 0;
+	double d1, d2;
+	sd(n);
+	for(i=0; i<=n; i++)
+		scanf("%lf%lf", &polygon[i].x, &polygon[i].y);
+	for(i=0; i<n; i++){
+		d1 = polygon[i+1].x-polygon[i].x;
+		d2 = polygon[i+1].y-polygon[i].y;
+		if(d1==0){
+			if(d2>0){
+				if(check(polygon[i+1].x, polygon[i+1].y+eps))
+					ans++;
+			}	
+			else{
+				if(check(polygon[i+1].x, polygon[i+1].y-eps))
+					ans++;
+			}
+		}
+		else{
+			if(d1>0){
+				if(check(polygon[i+1].x + eps, polygon[i+1].y))
+					ans++;
+			}
+			else{
+				if(check(polygon[i+1].x - eps, polygon[i+1].y))
+					ans++;
+			}
+		}
+	}
+	printf("%d\n", ans);
+	return 0;
+}

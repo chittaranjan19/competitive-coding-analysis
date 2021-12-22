@@ -1,0 +1,82 @@
+#include<bits/stdc++.h>
+using namespace std;
+#define FOR(i,a,b) for(int i = (a); i <= (b); ++i)
+#define REP(i,n) FOR(i,0,(n)-1)
+const int nax = 1005;
+typedef double T;
+
+struct P {
+    T x, y;
+    void read() {
+        scanf("%lf%lf", &x, &y);
+    }
+    void write() {
+        printf("%.10lf %.10lf\n", x, y);
+    }
+    #define my_round(a) int(floor(a+0.1))
+    int operator * (P other) { // the only thing on integers
+        return my_round(x) * my_round(other.y) - my_round(y) * my_round(other.x);
+    }
+    T norm() {
+        return sqrt(x * x + y * y);
+    }
+};
+P mean(P a, P b) {
+    return P{(a.x + b.x) / 2, (a.y + b.y) / 2};
+}
+
+int n;
+P t[nax];
+P vec[nax]; // vec[i] = t[i+1] - t[i] (it's a vector)
+
+T distLine(int i, P A) {
+    T tmp = vec[i].x * (A.y - t[i].y) - vec[i].y * (A.x - t[i].x);
+    return abs(tmp / vec[i].norm());
+}
+
+bool possible[nax][nax];
+P best_point[nax][nax];
+T best_r[nax][nax];
+
+int main() {
+    scanf("%d", &n);
+    REP(i, n) t[i].read();
+    REP(i, 2 * n) t[n+i] = t[i];
+    REP(i, 3 * n) vec[i] = P{t[i+1].x-t[i].x, t[i+1].y-t[i].y};
+    REP(start, n) {
+        int whereMid = start;
+        for(int end = start; vec[start] * vec[end] > 0; ++end) {
+            assert(end < start + n);
+            while(whereMid < end && distLine(start, t[whereMid+1]) < distLine(end, t[whereMid+1]))
+                ++whereMid;
+            // binary search an optimal point
+            P low = t[whereMid], high = t[whereMid+1];
+            REP(_, 42) {
+                P mid = mean(low, high);
+                if(distLine(start, mid) < distLine(end, mid))
+                    low = mid;
+                else
+                    high = mid;
+            }
+            P mid = mean(low, high);
+            best_point[start][end] = best_point[start+n][end+n] = mid;
+            best_r[start][end] = best_r[start+n][end+n] = max(distLine(start,mid), distLine(end,mid));
+            possible[start][end] = possible[start+n][end+n] = true;
+        }
+    }
+    T r = 1e7; // infinity
+    P a, b;
+    REP(start, n) FOR(end, start, start + n)
+        if(possible[start][end] && possible[end+1][start+n-1]) {
+            T maybe = max(best_r[start][end], best_r[end+1][start+n-1]);
+            if(maybe < r) {
+                r = maybe;
+                a = best_point[start][end];
+                b = best_point[end+1][start+n-1];
+            }
+        }
+    printf("%.10lf\n", r);
+    a.write();
+    b.write();
+    return 0;
+}

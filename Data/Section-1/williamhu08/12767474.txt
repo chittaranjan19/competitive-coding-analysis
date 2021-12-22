@@ -1,0 +1,89 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1e5 + 10;
+
+int N;
+vector<int> adj[MAXN];
+int nexc[MAXN];	//# of excluded
+int par[MAXN], R, S;
+
+pii dfsfar (int x, int p) {
+	pii res(0, x);
+	par[x] = p;
+	for (int t : adj[x]) {
+		if (t != p) {
+			pii pt = dfsfar(t, x);
+			pt.first++;
+			res = max(res, pt);
+		}
+	}
+	return res;
+}
+
+pair<bool, int> pbcheck (int x) {
+	//T shape/straight path
+	pair<bool, int> res(true, (adj[x].size() == 2));
+	int nadj = 0;
+	for (int t : adj[x]) {
+		if (t == par[x]) {
+			continue;
+		}
+		nadj++;
+		pair<bool, int> ct = pbcheck(t);
+		res.second += ct.second;
+		if (!ct.first || res.second > 1) {
+			return make_pair(false, 0);
+		}
+	}
+	if (nadj > 2) {
+		res = make_pair(false, 0);
+	}
+	return res;
+}
+
+bool check (int x) {
+	return pbcheck(x).first;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 1, x, y; i < N; i++) {
+		cin >> x >> y;
+		adj[x].push_back(y);
+		adj[y].push_back(x);
+	}
+	R = dfsfar(1, 0).second;
+	fillchar(par, 0);
+	S = dfsfar(R, 0).second;
+	// cerr << R << ' ' << S << endl;
+	int prv = 0;
+	do {
+		for (int t : adj[S]) {
+			if (t != par[S] && t != prv) {
+				//then check
+				if (!check(t)) {
+					puts("No");
+					return 0;
+				}
+			}
+		}
+		prv = S;
+		S = par[S];
+	} while (S != R);
+	puts("Yes");
+}

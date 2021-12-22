@@ -1,0 +1,158 @@
+#define DEBUG
+
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <climits>
+#include <ctime>
+#include <cassert>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define vl vector <long long>
+#define vb vector <bool>
+#define vs vector <string>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define lsone(value) (value)&(-value)
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define loop(i, n) for(int i = 0; i < n; ++i)
+#define loop1(i, n) for(int i = 1; i <= n; ++i)
+#define reverse_iterate(a, b) for(__typeof(b.rend()) a = b.rbegin(); a != b.rend(); ++a)
+#define iterate(a, b) for(__typeof(b.begin()) a = b.begin(); a != b.end(); ++a)
+#define all(i) i.begin(), i.end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const double PI = acos(-1);
+
+#ifdef DEBUG
+	#define debug(...) printf(__VA_ARGS__)
+	#define GetTime() fprintf(stderr,"Running time: %.3lf second\n",((double)clock())/CLOCKS_PER_SEC)
+#else
+	#define debug(...) 
+	#define GetTime() 
+#endif
+
+// end of template
+
+ll abs_ll(ll val) {
+	return (val < 0 ? -1 : 1)*val;
+}
+
+int main() {
+    // freopen("620D.in", "r", stdin);
+    
+    int n;
+    scanf("%d", &n);
+    vl arr_a(n);
+    iterate(val_a, arr_a)
+    	scanf("%I64d", val_a);
+    int m;
+    scanf("%d", &m);
+    vl arr_b(m);
+    iterate(val_b, arr_b)
+    	scanf("%I64d", val_b);
+
+    // get total sum of arr_a and arr_b
+    ll total_a = 0, total_b = 0;
+    iterate(val_a, arr_a)
+    	total_a += *val_a;
+    iterate(val_b, arr_b)
+    	total_b += *val_b;
+
+    ll ans = 1LL << 62;
+    vector<ii> swaps;
+
+    // no swap at all
+    if (ans > abs_ll(total_a-total_b)) {
+    	ans = abs_ll(total_a-total_b);
+    }
+    {
+	    map<ll, int> arr_a_1swap;
+	    loop(idx_b, arr_b.size()) {
+	    	arr_a_1swap[total_a+2*arr_b[idx_b]] = idx_b;
+	    }
+	    loop(idx_a, arr_a.size()) {
+	    	ll new_total_b = total_b+2*arr_a[idx_a];
+
+	    	map<ll, int>::iterator val_p;
+	    	val_p = arr_a_1swap.lower_bound(new_total_b);
+	    	if ((val_p != arr_a_1swap.end()) and (ans > abs_ll(val_p->a-new_total_b))) {
+	    		ans = abs_ll(val_p->a-new_total_b);
+	    		swaps.clear();
+	    		swaps.push_back(mp(idx_a+1, val_p->b+1));
+	    	}
+	    	if ((val_p-- != arr_a_1swap.begin()) and (ans > abs_ll(val_p->a-new_total_b))) {
+	    		ans = abs_ll(val_p->a-new_total_b);
+	    		swaps.clear();
+	    		swaps.push_back(mp(idx_a+1, val_p->b+1));
+	    	}
+	    }
+	}
+
+    map<ll, ii> arr_a_2swap;
+    for (int i = 0; i < arr_b.size(); ++i) {
+    	for (int j = i+1; j < arr_b.size(); ++j) {
+    		arr_a_2swap[total_a+2*arr_b[i]+2*arr_b[j]] = mp(i, j);
+    	}
+    }
+
+    for (int i = 0; i < arr_a.size(); ++i) {
+    	for (int j = i+1; j < arr_a.size(); ++j) {
+	    	ll new_total_b = total_b+2*arr_a[i]+2*arr_a[j];
+
+	    	map<ll, ii>::iterator val_p;
+	    	val_p = arr_a_2swap.lower_bound(new_total_b);
+	    	if ((val_p != arr_a_2swap.end()) and (ans > abs_ll(val_p->a-new_total_b))) {
+	    		ans = abs_ll(val_p->a-new_total_b);
+	    		swaps.clear();
+	    		swaps.push_back(mp(i+1, val_p->b.a+1));
+	    		swaps.push_back(mp(j+1, val_p->b.b+1));
+	    	}
+	    	if ((val_p-- != arr_a_2swap.begin()) and (ans > abs_ll(val_p->a-new_total_b))) {
+	    		ans = abs_ll(val_p->a-new_total_b);
+	    		swaps.clear();
+	    		swaps.push_back(mp(i+1, val_p->b.a+1));
+	    		swaps.push_back(mp(j+1, val_p->b.b+1));
+	    	}
+    	}
+    }
+
+    printf("%I64d\n", ans);
+    printf("%d\n", swaps.size());
+    loop(swap_idx, swaps.size()) {
+    	printf("%d %d\n", swaps[swap_idx].a, swaps[swap_idx].b);
+    }
+
+
+    return 0;
+}

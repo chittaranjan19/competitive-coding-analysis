@@ -1,0 +1,108 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN],ans[MAXN];
+map<int,int>pm;
+vector<int>adj[MAXN];
+PII A[MAXN],B[MAXN];
+int vis[MAXN],ata[MAXN];
+int tap(int x){
+	if(x==ata[x])
+		return x;
+	return ata[x]=tap(ata[x]);	
+}
+int ok(int sz){
+	for(int i=1;i<=sz;i++)
+		if(!vis[i])
+			return 0;
+	return 1;			
+}
+void merge(int x,int y){
+	x=tap(x);y=tap(y);
+	if(x==y)
+		return;
+	ata[y]=x;	
+}
+int main(){
+	int n,a,b,c1=0,c2=0;
+	scanf("%d%d%d",&n,&a,&b);
+	for(int i=1;i<=n;i++){
+		scanf("%d",arr+i);
+		pm[arr[i]]=i;
+	}
+	for(int i=1;i<=n;i++){		
+		if(pm[a-arr[i]])
+			A[++c1]=mp(i,pm[a-arr[i]]);
+		if(pm[b-arr[i]])	
+			B[++c2]=mp(i,pm[b-arr[i]]);
+	}
+	memset(vis,0,sizeof(vis));
+	for(int i=1;i<=c1;i++){
+		int u=A[i].ff,v=A[i].ss;
+		vis[u]=vis[v]=1;
+	}
+	for(int i=1;i<=c2;i++){
+		int u=B[i].ff,v=B[i].ss;
+		if((vis[u]==0 or vis[u]==2) and (vis[v]==0 or vis[v]==2))
+			vis[u]=vis[v]=2;
+	}
+	if(ok(n)){
+		printf("YES\n");
+		for(int i=1;i<=n;i++)
+			printf("%d ",vis[i]-1);
+		return 0;	
+	}
+	memset(vis,0,sizeof(vis));
+	for(int i=1;i<=c2;i++){
+		int u=B[i].ff,v=B[i].ss;
+		vis[u]=vis[v]=2;
+	}
+	for(int i=1;i<=c1;i++){
+		int u=A[i].ff,v=A[i].ss;
+		if((vis[u]==0 or vis[u]==1) and (vis[v]==0 or vis[v]==1))
+			vis[u]=vis[v]=1;
+	}
+	if(ok(n)){
+		printf("YES\n");
+		for(int i=1;i<=n;i++)
+			printf("%d ",vis[i]-1);
+		return 0;	
+	}
+	for(int i=1;i<=n+2;i++)
+		ata[i]=i;
+	for(int i=1;i<=n;i++){
+		if(pm[a-arr[i]])
+			merge(i,pm[a-arr[i]]);
+		else
+			merge(i,n+2);
+		if(pm[b-arr[i]])
+			merge(i,pm[b-arr[i]]);
+		else
+			merge(i,n+1);			
+	}
+	if(tap(n+1)!=tap(n+2)){
+		printf("YES\n");
+		for(int i=1;i<=n;i++)
+			printf("%d ",(tap(i)==tap(n+2)));
+		printf("\n");
+		return 0;	
+	}
+	printf("NO\n");
+	return 0;
+}

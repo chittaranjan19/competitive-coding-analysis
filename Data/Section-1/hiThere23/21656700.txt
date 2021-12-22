@@ -1,0 +1,138 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 1000006
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, m;
+vector< pair<int, int> > row[mn], col[mn];
+vector<int> out, d, g[mn], ans;
+queue<int> q;
+
+int con(int x, int y)
+{
+    return x * m + y;
+}
+
+pair<int, int> con(int id)
+{
+    return mp(id / m, id % m);
+}
+
+int root(int x)
+{
+    if (d[x] == -1)
+        return x;
+    return (d[x] = root(d[x]));
+}
+
+void dealRow(int x)
+{
+    sort(row[x].begin(), row[x].end());
+    FOR(i, 1, m - 1)
+    if (row[x][i].F == row[x][i - 1].F)
+        d[con(x, row[x][i].S)] = root(con(x, row[x][i - 1].S));
+}
+
+void dealCol(int y)
+{
+    sort(col[y].begin(), col[y].end());
+    FOR(i, 1, n - 1)
+    if (col[y][i].F == col[y][i - 1].F)
+    {
+        int r1 = root(con(col[y][i - 1].S, y));
+        int r2 = root(con(col[y][i].S, y));
+        if (r1 == r2)
+            continue;
+        d[r1] = r2;
+    }
+}
+
+void addEdge()
+{
+    FOR(i, 0, n - 1)
+    FOR(j, 1, m - 1)
+    if (row[i][j].F ^ row[i][j - 1].F)
+    {
+        int r1 = root(con(i, row[i][j - 1].S));
+        int r2 = root(con(i, row[i][j].S));
+        if (r1 == r2)
+            continue;
+        out[r2] ++;
+        g[r1].pb(r2);
+    }
+    FOR(j, 0, m - 1)
+    FOR(i, 1, n - 1)
+    if (col[j][i].F ^ col[j][i - 1].F)
+    {
+        int r1 = root(con(col[j][i - 1].S, j));
+        int r2 = root(con(col[j][i].S, j));
+        if (r1 == r2)
+            continue;
+        out[r2] ++;
+        g[r1].pb(r2);
+    }
+}
+
+void setup()
+{
+    cin >> n >> m;
+    int x;
+    FOR(i, 0, n - 1)
+    FOR(j, 0, m - 1)
+    {
+        cin >> x;
+        row[i].pb(mp(x, j));
+        col[j].pb(mp(x, i));
+        d.pb(-1);
+        out.pb(0);
+        ans.pb(1);
+    }
+}
+
+void xuly()
+{
+    FOR(i, 0, n - 1)
+        dealRow(i);
+    FOR(i, 0, m - 1)
+        dealCol(i);
+    addEdge();
+    FOR(i, 0, m * n - 1)
+    if (!out[i])
+        q.push(i);
+    while(!q.empty())
+    {
+        int u = q.front();
+        q.pop();
+        FOR(i, 0, int(g[u].size()) - 1)
+        {
+            int v = g[u][i];
+            ans[v] = max(ans[v], ans[u] + 1);
+            if (-- out[v] == 0)
+                q.push(v);
+        }
+    }
+    FOR(i, 0, n - 1)
+    {
+        FOR(j, 0, m - 1)
+            cout << ans[root(con(i, j))] << ' ';
+        cout << '\n';
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+//    freopen("FILE.INP", "r", stdin);
+//    freopen("FILE.OUT", "w", stdout);
+    setup ();
+    xuly ();
+    return 0;
+}

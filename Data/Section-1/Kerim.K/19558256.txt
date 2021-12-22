@@ -1,0 +1,74 @@
+#include "bits/stdc++.h"
+#define MAXN 5009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl45678 m 7
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+const ll B=1e18;
+class node{
+	public:
+	ll sum,mx,pre,suf;
+	void upd(ll x,int type){
+		if(type)
+			{sum=x;mx=x;pre=x;suf=x;}
+		else
+			{sum=x;mx=-B;pre=x;suf=x;}	
+	}
+}s[MAXN<<2];
+ll arr[MAXN];
+node merge(node x,node y){
+	node z;
+	z.upd(0,0);
+	z.sum=x.sum+y.sum;
+	z.pre=max(x.pre,x.sum+y.pre);
+	z.suf=max(y.suf,y.sum+x.suf);
+	z.mx=max(max(x.mx,y.mx),x.suf+y.pre);
+	return z;
+}
+node build(ll nd,ll x,ll y){
+	s[nd].upd(0,0);
+	if(x==y){
+		s[nd].upd(arr[x],1);
+		return s[nd];
+	}
+	ll mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+	return s[nd]=merge(s[nd<<1],s[nd<<1|1]);
+}
+node nodes[MAXN];
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	ll n,m;
+	scanf("%lld%lld",&n,&m);
+	node ans;
+	ans.upd(0,0);
+	for(ll i=1;i<=n;i++){
+		ll l;
+		scanf("%lld",&l);
+		for(ll j=1;j<=l;j++)
+			scanf("%lld",&arr[j]);	
+		nodes[i]=build(1,1,l);	
+	}
+	for(ll i=1;i<=m;i++){
+		ll x;
+		scanf("%lld",&x);
+		ans=merge(ans,nodes[x]);
+	}
+	printf("%lld\n",ans.mx);
+	return 0;
+}

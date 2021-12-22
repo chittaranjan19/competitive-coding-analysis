@@ -1,0 +1,65 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+typedef long long int64;
+const int MOD = 1e9+7;
+const int MAX_n = 1e6,MAX_k = 1e6;
+int a[MAX_n];
+int num[MAX_n];
+int dp[MAX_n+1];
+int discrete(int64 n)
+{
+    memcpy(num,a,n<<2);
+    sort(num,num+n);
+    int t = unique(num,num+n) - num;
+    for(int i = 0; i < n; ++i)
+        a[i] = lower_bound(num,num+t,a[i]) - num;
+    return t;
+}
+int mul(int a,int64 b)
+{
+    int res = 0;
+    while(b)
+    {
+        if(b&1) res = (res + a)%MOD;
+        a = a*2%MOD, b>>=1;
+    }
+    return res;
+}
+int main()
+{
+    int64 n,l,k;
+    scanf("%I64d%I64d%I64d",&n,&l,&k);
+    
+    for(int i = 0; i < n; ++i)
+        scanf("%d", a+i);
+    
+    int t = discrete(n);
+    
+    int ans = 0;
+    dp[0] = 1;
+    for(int i = 1; i <= min(l/n,k); ++i)
+    {
+        int res = 0;
+        for(int j = 0; j < t; ++j)
+        {
+            if(j>0) dp[j] = (dp[j] + dp[j-1])%MOD;
+            res = (res + dp[j])%MOD;
+        }
+        ans = (ans + mul(res,l/n-i+1))%MOD;
+        
+        for(int j = 0; j < l%n; ++j)
+            ans = (ans + dp[a[j]])%MOD;
+    }
+    
+    if(k > l/n)
+    {
+        for(int i = 1; i < t; ++i)
+            dp[i] = (dp[i] + dp[i-1])%MOD;
+        for(int i = 0; i < l%n; ++i)
+            ans = (ans + dp[a[i]])%MOD;
+    }
+    
+    printf("%d\n",ans);
+}

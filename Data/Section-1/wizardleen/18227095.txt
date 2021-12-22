@@ -1,0 +1,73 @@
+package leen.test.acm;
+
+import java.math.BigDecimal;
+import java.util.Scanner;
+
+/**
+ * Created by leen on 6/3/16.
+ *
+ * Codeforces
+ */
+public class PromblemC {
+
+    static final long MOD;
+
+    static {
+        long mod = 1;
+        for(int i = 0; i < 9; i++)
+            mod *= 10;
+        mod += 7;
+        MOD = mod;
+    }
+
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+        while(scan.hasNext()) {
+            int numZeros = calcNumZeros(scan.next());
+            long numPairs = 0;
+            for(int m = 0; m <= numZeros; m++)
+                numPairs = C(numZeros, m).multiply(new BigDecimal(2).pow(numZeros - m))
+                        .add(new BigDecimal(numPairs)).remainder(new BigDecimal(MOD)).longValue();
+
+            System.out.println(numPairs);
+        }
+    }
+
+    static BigDecimal C(int n, int m) {
+        if(m == 0)
+            return new BigDecimal(1);
+        BigDecimal result = new BigDecimal(1);
+        for(int i = 0; i < m; i++)
+            result = result.multiply(new BigDecimal(n - i));
+        for(int j = 2; j <= m; j++)
+            result = result.divide(new BigDecimal(j));
+        return result;
+    }
+
+    static int calcNumZeros(String base64) {
+        int numZeros = 0;
+        for(int i = 0; i < base64.length(); i++) {
+            char c = base64.charAt(i);
+
+            int value;
+
+            if(c == '-')
+                value = 62;
+            else if(c == '_')
+                value = 63;
+            else if(c >= 'a')
+                value = (c - 'a') + 36;
+            else if(c >= 'A')
+                value = (c - 'A') + 10;
+            else
+                value = c - '0';
+
+            for(int j = 0; j < 6; j++) {
+                if((value & 0x1) == 0)
+                    numZeros++;
+                value >>= 1;
+            }
+        }
+        return numZeros;
+    }
+}

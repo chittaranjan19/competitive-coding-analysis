@@ -1,0 +1,57 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) (( (int)x.size() ) )
+
+using namespace std;
+typedef long long ll;
+const int N = 100 * 1000 + 10;
+
+int n,m , t[N][N] , dp[N][N] , l[N] , r[N];
+int mi= N * 1000;
+
+int main(){
+    memset( l, -1, sizeof(l));
+    cin >> n >> m;
+    for(int i = 0; i < n; ++i){
+        for(int j = 0; j < m; ++j){
+            char ch;
+            cin >> ch;
+            t[i][j] = ch - '0';
+            if(t[i][j] == 1 && l[i] == -1)
+                l[i] = j;
+            if(t[i][j] == 1)
+                r[i] = 1;
+        }
+    }
+    for(int i = 0; i < n; ++i){
+        int x = 0;
+        for(int j = l[i]; j <= r[i]; ++j){
+            if(t[i][j] == 1)
+                x = 0;
+            dp[i][j] = x;
+            x ++;
+        }
+        x = 0;
+        for(int j = r[i]; j >= l[i]; --j){
+            if(t[i][j] == 1)
+                x = 0;
+            dp[i][j] = min(dp[i][j] , x);
+            x ++;
+        }
+        for(int j = 0; j < l[i]; ++j){
+            dp[i][j] = min(l[i] - j , m - r[i] + j);
+        }
+        for(int j = r[i] + 1; j < m; ++j){
+            dp[i][j] = min(j - r[i] , m - j + l[i]);
+        }
+    }
+    for(int i = 0; i < m; ++i){
+        int k = 0;
+        for(int j = 0; j < n; ++j){
+            k += dp[j][i];
+        }
+        mi = min(mi , k);
+    }
+    cout << mi << "\n";
+    return 0;
+}

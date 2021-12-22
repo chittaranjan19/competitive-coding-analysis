@@ -1,0 +1,114 @@
+#include<bits/stdc++.h>
+#define MOD 1000000007
+#define X first
+#define Y second
+using namespace std;
+long long lazy[400005];
+int arr[100005];
+long long res[3][3],mul[3][3],kb[3][3];
+pair<long long,long long> seg[400005];
+long long x,y,val,ans;
+void mpow(int x,long long &ta,long long &tb)
+{
+    long long a,b;
+    res[0][0]=res[1][1]=1;
+    res[0][1]=res[1][0]=0;
+    mul[0][0]=mul[0][1]=mul[1][0]=1;
+    mul[1][1]=0;
+    while(x)
+    {
+        if(x&1)
+        {
+            memset(kb,0,sizeof kb);
+            for(int i=0;i<2;i++)
+                for(int j=0;j<2;j++)
+                    kb[i][j]=(1ll*mul[i][0]*res[0][j]%MOD+1ll*mul[i][1]*res[1][j]%MOD)%MOD;
+            swap(res,kb);
+        }
+        memset(kb,0,sizeof kb);
+        for(int i=0;i<2;i++)
+            for(int j=0;j<2;j++)
+                kb[i][j]=(1ll*mul[i][0]*mul[0][j]%MOD+1ll*mul[i][1]*mul[1][j]%MOD)%MOD;
+        swap(mul,kb);
+        x/=2;
+    }
+    b=(1ll*tb*res[0][0]%MOD+1ll*ta*res[0][1]%MOD)%MOD;
+    a=(1ll*tb*res[1][0]%MOD+1ll*ta*res[1][1]%MOD)%MOD;
+    ta=a;
+    tb=b;
+}
+void chklazy(int l,int r,int idx)
+{
+    if(lazy[idx]!=0)
+    {
+        mpow(val,seg[idx].X,seg[idx].Y);
+        if(l!=r) lazy[idx*2]=(lazy[idx*2]+lazy[idx])%MOD,lazy[idx*2+1]=(lazy[idx*2+1]+lazy[idx])%MOD;
+        lazy[idx]=0;
+    }
+}
+void build(int l,int r,int idx)
+{
+    if(l==r)
+    {
+        seg[idx]={0,1};
+        mpow(arr[l]-1,seg[idx].X,seg[idx].Y);
+        return;
+    }
+    int mid=(l+r)/2;
+    build(l,mid,idx*2);
+    build(mid+1,r,idx*2+1);
+    seg[idx]={(seg[idx*2].X+seg[idx*2+1].X)%MOD,(seg[idx*2].Y+seg[idx*2+1].Y)%MOD};
+}
+void add(int l,int r,int idx)
+{
+    chklazy(l,r,idx);
+    if(x<=l&&r<=y)
+    {
+        lazy[idx]=val;
+        chklazy(l,r,idx);
+        return;
+    }
+    if(x>r||y<l) return;
+    int mid=(l+r)/2;
+    add(l,mid,idx*2);
+    add(mid+1,r,idx*2+1);
+    seg[idx]={(seg[idx*2].X+seg[idx*2+1].X)%MOD,(seg[idx*2].Y+seg[idx*2+1].Y)%MOD};
+}
+void sum(int l,int r,int idx)
+{
+    chklazy(l,r,idx);
+    if(x<=l&&r<=y)
+    {
+        ans=(ans+seg[idx].Y)%MOD;
+        return;
+    }
+    if(x>r||y<l) return;
+    int mid=(l+r)/2;
+    sum(l,mid,idx*2);
+    sum(mid+1,r,idx*2+1);
+}
+int main()
+{
+    int n,m,i,op;
+    scanf("%d%d",&n,&m);
+    for(i=0;i<n;i++) scanf("%d",&arr[i]);
+    build(0,n-1,1);
+    while(m--)
+    {
+        scanf("%d",&op);
+        if(op==1)
+        {
+            scanf("%d%d%d",&x,&y,&val);
+            x--;y--;
+            add(0,n-1,1);
+        }
+        else
+        {
+            scanf("%d%d",&x,&y);
+            x--;y--;
+            ans=0;
+            sum(0,n-1,1);
+            printf("%I64d\n",ans);
+        }
+    }
+}

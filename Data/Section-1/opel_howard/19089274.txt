@@ -1,0 +1,142 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <climits>
+#ifdef DEBUG
+	#include <ctime>
+#endif
+using namespace std;
+
+// template
+
+// abbreviations
+#define vi vector<int>
+#define vl vector<long long>
+#define vb vector<bool>
+#define vs vector<string>
+#define ii pair<int, int>
+#define a first
+#define b second
+#define vii vector<ii>
+#define mii map<ii>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define rep(it, n) for(int it = 0; it < n; ++it)
+#define rep1(it, n) for(int it = 1; it <= n; ++it)
+#define loop(it, from, to) for(int it = (from); it <= (to); ++it)
+#define reverse_iterate(it, cont) for(__typeof((cont).rend()) it = (cont).rbegin(); it != (cont).rend(); ++it)
+#define iterate(it, cont) for(__typeof((cont).begin()) it = (cont).begin(); it != (cont).end(); ++it)
+#define all(cont) (cont).begin(), (cont).end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const int INF = INT_MAX;
+const int NINF = INT_MIN;
+const ll INF_LL = LLONG_MAX;
+const ll NINF_LL = LLONG_MIN;
+const double PI = acos(-1);
+
+#ifdef DEBUG
+	#define debug(fmt, args...) printf("Line %d, in %s\t: " fmt, __LINE__, __FUNCTION__, ##args)
+	#define rep_rt() printf("[Run time: %.3fs]\n",((double)clock())/CLOCKS_PER_SEC)
+#else
+	#define debug(...)
+#endif
+
+// end of template
+
+class DisjointSet {
+public:
+	vector<int> id;
+
+	int find(int i) {
+		if (i != id[i]) {
+			return id[i] = find(id[i]);
+		}
+		return i;
+	}
+	explicit DisjointSet(int n) {
+		id.resize(n+1);
+		for (int it = 0; it < n+1; ++it) {
+			id[it] = it;
+		}
+	}
+
+	void join(int i, int j) {
+		int par_i = find(i), par_j = find(j);
+		if (par_i != par_j) {
+			if (par_i < par_j) {
+				id[par_j] = par_i;
+			} else {
+				id[par_i] = par_j;
+			}
+		}
+	}
+
+	bool is_same(int i, int j) {
+		return find(i) == find(j);
+	}
+};
+
+int main() {
+#ifdef DEBUG
+	freopen("691D.in", "r", stdin);
+#endif
+    
+    int n, m;
+    scanf("%d %d", &n, &m);
+    vi arr(n);
+    iterate(e, arr) {
+    	scanf("%d", &*e);
+    }
+    DisjointSet ds(n);
+    while (m--) {
+    	int a, b;
+    	scanf("%d %d", &a, &b);
+    	--a, --b;
+    	ds.join(a, b);
+    }
+    vector<vi> s_arr(n);
+    for (int it = 0; it < n; ++it) {
+    	s_arr[ds.find(it)].pub(arr[it]);
+    }
+   	for (int it = 0; it < n; ++it) {
+   		sort(all(s_arr[it]));
+   	}
+   	vi s_idx(n, 0);
+   	rep(idx, n) {
+   		int i = ds.find(idx);
+   		arr[idx] = s_arr[i][s_arr[i].size()-1-s_idx[i]++];
+   	}
+   	rep(idx, n) {
+   		if (idx)
+   			printf(" ");
+   		printf("%d", arr[idx]);
+   	}
+   	printf("\n");
+
+#ifdef DEBUG
+    rep_rt();
+#endif
+    return 0;
+}

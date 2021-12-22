@@ -1,0 +1,41 @@
+#include <iostream>
+
+using namespace std;
+
+int n,dp[1001][20002],a[1001],mark[1001][20002],l=1000*1000*1000+7;
+long long sum=0;
+
+void solve(int x,int y){
+    if(!mark[x-1][y-a[x-1]]){
+        mark[x-1][y-a[x-1]] = 1;
+        solve(x-1, y-a[x-1]);
+    }
+    if(!mark[x-1][y+a[x-1]]){
+        mark[x-1][y+a[x-1]] = 1;
+        solve(x-1, y+a[x-1]);
+    }
+    dp[x][y] = dp[x-1][y-a[x-1]] + dp[x-1][y+a[x-1]];
+    if(a[x-1] == y-10000 && x!=1)
+        dp[x][y]++;
+    if(-1*a[x-1] == y-10000 && x!=1)
+            dp[x][y]++;
+
+    //cerr << "debug : " << x << " " << y-10000 << " " << dp[x][y]<< endl;
+    mark[x][y]  = 1;
+}
+
+int main(){
+    cin >> n;
+    for(int i=0;i<n;i++){
+        cin >> a[i];
+    }
+    for(int i=0;i<20001;i++)
+        mark[0][i] = 1;
+    dp[0][10000] = 1;
+    for(int i=1;i<=n;i++){
+        solve(i,10000);
+        sum = (sum + dp[i][10000])%l;
+    }
+    cout << sum << endl;
+    return 0;
+}

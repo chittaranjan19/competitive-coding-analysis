@@ -1,0 +1,133 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 10010;
+
+struct node{
+	int we;
+	node* arr[26];
+};	
+
+node* root;
+int n, m;
+string str, ins;
+vector<string> words;
+vector<pii> con[maxn];
+vector<int> ans;
+int dp[maxn], cut[maxn];
+
+node* new_node()
+{
+	node* ret = (node*)(malloc(sizeof(node)));
+	for(int i=0; i<26; i++){
+		ret->arr[i] = NULL;
+	}
+	ret->we = -1;
+	return ret;
+}
+
+void insert(int ind)
+{
+	int i, nxt;
+	//node* temp = (node*)(malloc(sizeof(node)));
+	node* temp = root;
+	for(i=0; i<ins.size(); i++){
+		nxt = ins[i]-'a';
+		if(temp->arr[nxt])
+			temp = temp->arr[nxt];
+		else{
+			temp->arr[nxt] = new_node();
+			temp = temp->arr[nxt];
+		}
+	}
+	temp->we = ind;
+}
+
+void search(int st)
+{
+	int i, j, nxt;
+	node* temp = root;
+	for(i=st; i>=0; i--){
+		nxt = str[i]-'a';
+		if(temp->arr[nxt])
+			temp = temp->arr[nxt];
+		else
+			break;
+		if((temp->we)!=-1)
+			con[st].pb(mp(i, temp->we));
+	}
+}
+
+int solve(int cur)
+{
+	if(cur<0)
+		return 1;
+	if(dp[cur]!=-1)
+		return dp[cur];
+	int i, ret = 0;
+	for(i=0; i<con[cur].size(); i++){
+		if(solve(con[cur][i].f-1)){
+			ret = 1;
+			cut[cur] = con[cur][i].s;
+			break;
+		}
+	}
+	return dp[cur] = ret;
+}
+
+void print(int cur)
+{
+	if(cur<0)
+		return;
+	ans.pb(cut[cur]);
+	print(cur-(int)words[cut[cur]].size());
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, n, m, k;
+	boost
+	cin.tie(0);
+	cout.tie(0);
+	root = new_node();
+	memset(dp, -1, sizeof(dp));
+	cin >> n >> str >> m;
+	words.resize(m);
+	for(i=0; i<m; i++){
+		cin >> words[i];
+		ins = "";
+		for(j=0; j<words[i].size(); j++){
+			ins+=tolower(words[i][j]);
+		}
+		insert(i);
+		//cout << ins << "\n";
+	}
+	for(i=str.size()-1; i>=0; i--){
+		search(i);
+		//for(j=0; j<con[i].size(); j++)
+		//	cout << con[i][j].f << " ";
+		//cout << "\n";
+	}
+	solve(n-1);
+	print(n-1);
+	for(i=ans.size()-1; i>=0; i--)
+		cout << words[ans[i]] << " ";
+	cout << "\n";
+	return 0;
+}

@@ -1,0 +1,100 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+int n, m, k;
+char str[101][101];
+int dp[101][101][11], trace[101][101][11];
+string dir;
+
+int solve(int cn, int cm, int rem)
+{
+	if(cn==1){
+		if(rem==0)
+			return 0;
+		return -inf;
+	}
+	if(dp[cn][cm][rem]!=-1)
+		return dp[cn][cm][rem];
+	int ret = -inf, val, temp;
+	if(cm<m){
+		val = str[cn-1][cm+1]-'0';
+		temp = val + solve(cn-1, cm+1, (rem+val)%(k+1));
+		if(temp>ret){
+			ret = temp;
+			trace[cn][cm][rem] = 2;
+		}
+	}
+	if(cm>1){
+		val = str[cn-1][cm-1]-'0';
+		temp = val + solve(cn-1, cm-1, (rem+val)%(k+1));
+		if(temp>ret){
+			ret = temp;
+			trace[cn][cm][rem] = 1;
+		}
+	}
+	return dp[cn][cm][rem] = ret;
+}
+
+void print(int cn, int cm, int rem)
+{
+	if(cn==1)
+		return;
+	int val;
+	if(trace[cn][cm][rem]==2){
+		val = str[cn-1][cm+1]-'0';
+		dir+='R';
+		print(cn-1, cm+1, (rem+val)%(k+1));
+	}
+	else{
+		val = str[cn-1][cm-1]-'0';
+		dir+='L';
+		print(cn-1, cm-1, (rem+val)%(k+1));
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, sm, val, temp, ans;
+	memset(dp, -1, sizeof(dp));
+	scanf("%d%d%d", &n, &m, &k);
+	for(i=1; i<=n; i++)
+		scanf("%s", str[i]+1);
+	ans = -1;
+	for(i=1; i<=m; i++){
+		val = str[n][i]-'0';
+		temp = val + solve(n, i, (val)%(k+1));
+		if(temp>ans){
+			ans = temp;
+			sm = i;
+		}
+	}
+	if(ans<0){
+		printf("-1\n");
+		return 0;
+	}
+	printf("%d\n%d\n", ans, sm);
+	val = str[n][sm]-'0';
+	dir = "";
+	print(n, sm, (val)%(k+1));
+	cout << dir << "\n";
+
+	return 0;
+}

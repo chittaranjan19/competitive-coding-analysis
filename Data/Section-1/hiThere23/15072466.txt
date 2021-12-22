@@ -1,0 +1,148 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 200100
+#define maxC 1000000007
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+struct bitTree
+{
+    int tree[mn << 1];
+
+    void update(int x, int val)
+    {
+        for(; x < (mn << 1); x += (x & (-x)))
+            tree[x] += val;
+    }
+
+    int get(int x)
+    {
+        int re = 0;
+        for(; x; x -= (x & (-x)))
+            re += tree[x];
+        return re;
+    }
+} t;
+int n, numV = 0, numH = 0, allX[mn], allY[mn], r1 = 0, r2 = 0, topX = 0, topY = 0;
+pair< int, pair<int, int> > hor[mn], ver[mn];
+pair<int, int> eve[mn << 1];
+map<int, int> mapX, mapY;
+long long ans = 0;
+
+void setup()
+{
+    int X1, X2, Y1, Y2;
+    cin >> n;
+    FOR(i, 1, n)
+    {
+        cin >> X1 >> Y1 >> X2 >> Y2;
+        if (X1 == X2)
+        {
+            if (Y1 > Y2)
+                swap(Y1, Y2);
+            ver[++ r2] = mp(X1, mp(Y1, Y2));
+        }
+        else
+        {
+            if (X1 > X2)
+                swap(X1, X2);
+            hor[++ r1] = mp(Y1, mp(X1, X2));
+        }
+    }
+}
+
+void compressLine()
+{
+    sort(hor + 1, hor + r1 + 1);
+    sort(ver + 1, ver + r2 + 1);
+    hor[0].F = ver[0].F = -maxC;
+    FOR(i, 1, r1)
+    {
+        if (hor[i].F == hor[numH].F && hor[numH].S.S + 1 >= hor[i].S.F)
+            hor[numH].S.S = max(hor[numH].S.S, hor[i].S.S);
+        else
+            hor[++ numH] = hor[i];
+    }
+    FOR(i, 1, r2)
+    {
+        if (ver[i].F == ver[numV].F && ver[numV].S.S + 1 >= ver[i].S.F)
+            ver[numV].S.S = max(ver[numV].S.S, ver[i].S.S);
+        else
+            ver[++ numV] = ver[i];
+    }
+    r1 = r2 = 0;
+    FOR(i, 1, numH)
+    {
+        ans += hor[i].S.S - hor[i].S.F + 1;
+        allX[++ r1] = hor[i].S.F;
+        allX[++ r1] = hor[i].S.S;
+        allY[++ r2] = hor[i].F;
+    }
+    FOR(i, 1, numV)
+    {
+        ans += ver[i].S.S - ver[i].S.F + 1;
+        allX[++ r1] = ver[i].F;
+        allY[++ r2] = ver[i].S.F;
+        allY[++ r2] = ver[i].S.S;
+    }
+}
+
+void compressCord()
+{
+    allX[++ r1] = allY[++ r2] = -maxC;
+    allX[++ r1] = allY[++ r2] = maxC;
+    sort(allX + 1, allX + r1 + 1);
+    sort(allY + 1, allY + r2 + 1);
+    FOR(i, 1, r1)
+    if (allX[i] != allX[i - 1])
+        mapX[allX[i]] = ++ topX;
+    FOR(i, 1, r2)
+    if (allY[i] != allY[i - 1])
+        mapY[allY[i]] = ++ topY;
+}
+
+void deleteCut()
+{
+    r1 = 0;
+    FOR(i, 1, numH)
+    {
+        eve[++ r1] = mp(hor[i].S.F, - mapY[hor[i].F]);
+        eve[++ r1] = mp(hor[i].S.S, maxC + mapY[hor[i].F]);
+    }
+    FOR(i, 1, numV)
+        eve[++ r1] = mp(ver[i].F, i);
+    sort(eve + 1, eve + r1 + 1);
+    FOR(i, 1, r1)
+    {
+        if (eve[i].S < 0)
+            t.update(- eve[i].S, 1);
+        if (eve[i].S > maxC)
+            t.update(eve[i].S - maxC, -1);
+        if (eve[i].S > 0 && eve[i].S < maxC)
+        {
+            int u = eve[i].S;
+            ans -= t.get(mapY[ver[u].S.S]) - t.get(mapY[ver[u].S.F] - 1);
+        }
+    }
+    cout << ans;
+}
+
+void xuly()
+{
+    compressLine();
+    compressCord();
+    deleteCut();
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

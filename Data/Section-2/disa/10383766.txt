@@ -1,0 +1,81 @@
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <iomanip>
+#include <map>
+#include <set>
+using namespace std;
+
+typedef long long ll;
+
+
+#if _DEBUG
+#include <fstream>
+ifstream cin("input.txt");
+ofstream cout("output.txt");
+#else
+#include <iostream>
+#endif
+
+struct times {
+	int t;
+	bool open;
+	int id;
+	times() {}
+	times(int t, bool open, int id) : t(t), open(open), id(id) {}
+	bool operator < (const times q) const {
+		if (t < q.t)
+			return true;
+		if (t == q.t && open && !q.open)
+			return true;
+		return false;
+	}
+};
+
+vector <times> v;
+
+int used[20002];
+
+int main() {
+	int n, m, t;
+	cin >> n >> m >> t;
+	for (int i = 0; i < n; i++) {
+		int h, m, c;
+		char cc;
+		cin >> h >> cc >> m >> cc >> c;
+		int tt = (h * 60 + m) * 60 + c;
+		v.push_back(times(tt, true, i));
+		tt += t - 1;
+		v.push_back(times(tt, false, i));
+	}
+	sort(v.begin(), v.end());
+	int id = 0;
+	vector <int> ans;
+	int maxx = 0;
+	int online = 0; 
+	for (int i = 0; i < v.size(); i++) {
+		if (!v[i].open && used[v[i].id])
+			online--;
+		if (v[i].open) {
+			if (online + 1 <= m) {
+				online++;
+				used[v[i].id] = true;
+				id++;
+				ans.push_back(id);
+			}
+			else {
+				ans.push_back(id);
+			}
+		}
+		maxx = max(maxx, online);
+	}
+	if (maxx < m) {
+		cout << "No solution";
+		return 0;
+	}
+	cout << id << '\n';
+	for (int i = 0; i < ans.size(); i++) {
+		cout << ans[i] << '\n';
+	}
+	return 0;
+}

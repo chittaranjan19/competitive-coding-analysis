@@ -1,0 +1,123 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+
+int n, m;
+multiset <int> g[N];
+multiset <int> r[N];
+bool mark[N];
+vector <int> com;
+int num[N];
+vector <pii> ans;
+vector <pii> odd;
+
+void make(int v){
+	com.PB(v);
+	mark[v] = true;
+	for(int u : g[v]) if(!mark[u]) mark[u] = true, make(u);
+	for(int u : r[v]) if(!mark[u]) mark[u] = true, make(u);
+}
+
+void dfs(int v){
+//	cerr << v << " " << SZ(g[v]) << " " << SZ(r[v]) << "\n";
+	if(SZ(g[v])){
+		int u = *g[v].begin();
+		if(num[v])
+			num[v] = 0, num[u] = 1 - num[u], ans.PB({u, v});
+		else
+			ans.PB({v, u});
+		g[v].erase(g[v].find(u)), r[u].erase(r[u].find(v));
+//		cerr << v << " " << u << "\n";
+		dfs(u);
+	}
+	if(SZ(r[v])){
+		int u = *r[v].begin();
+		if(num[v])
+			num[v] = 0, num[u] = 1 - num[u], ans.PB({v, u});
+		else
+			ans.PB({u, v});
+		r[v].erase(r[v].find(u)), g[u].erase(g[u].find(v));
+//		cerr << v << " " << u << "\n";
+		dfs(u);
+	}
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	for(int i = 0; i < m; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; v --;
+		g[u].insert(v);
+		r[v].insert(u);
+	}
+	int k = 0;
+	for(int v = 0; v < n; ++v){
+		if(!mark[v]){
+			com.clear();	
+			make(v);
+			for(int x : com){
+				if((SZ(g[x]) + SZ(r[x])) % 2 == 1){
+					odd.PB({x, k});
+				}
+			}
+			k ++;
+		}
+	}
+	for(int i = 1; i < SZ(odd); ++i){
+		if(odd[i].Y != odd[i - 1].Y){
+			g[odd[i].X].insert(odd[i - 1].X);
+			r[odd[i - 1].X].insert(odd[i].X);
+		}
+		else if(i + 1 < SZ(odd) && odd[i].Y == odd[i + 1].Y){
+			g[odd[i].X].insert(odd[i + 1].X);
+			r[odd[i + 1].X].insert(odd[i].X);
+		}
+		else if(i + 1 == SZ(odd)){
+			g[odd[i].X].insert(odd[0].X);
+			r[odd[0].X].insert(odd[i].X);	
+		}
+	}
+	memset(mark, 0, sizeof mark);
+	for(int v = 0; v < n; ++v){
+		if(!mark[v]){
+			com.clear();	
+			make(v);
+			for(int x : com)
+				num[x] = SZ(g[x]) % 2;
+			dfs(v);
+			for(int x : com) if(num[x]) ans.PB({x, x});
+			k ++;
+		}
+	}
+	cout << SZ(ans) << "\n";
+	for(int i = 0; i < SZ(ans); ++i)
+		cout << ans[i].X + 1 << " " << ans[i].Y + 1 << "\n";
+	return 0;
+}

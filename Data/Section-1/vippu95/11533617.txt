@@ -1,0 +1,56 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+const int limit = 2005;
+
+lli po[limit];
+lli mhash[limit];
+const lli magic = 37;
+#define mod 1000000003
+
+ lli getHash(int i,int j){
+    lli ans = (((mhash[j] - mhash[i-1]*po[j-i+1])%mod) + mod)%mod;
+    return ans;
+}
+set <lli> ans;
+int main(){
+    char str[limit];
+    char st[limit];
+    char en[limit];
+
+    scanf("%s",str);
+    scanf("%s",st);
+    scanf("%s",en);
+
+    int n = strlen(str);
+    int nst = strlen(st);
+    int nen = strlen(en);
+
+    po[0]=1LL;
+    mhash[0]=0LL;
+
+    for(int i=1;i<=n;i++){
+        po[i] = (po[i-1]*magic)%mod;
+        mhash[i] = (mhash[i-1]*magic + str[i-1])%mod;
+    }
+
+    lli hst=0,hen=0;
+    for(int i=0;i<nst;i++){
+        hst = (hst*magic+st[i])%mod;
+    }
+    for(int i=0;i<nen;i++){
+        hen = (hen*magic+en[i])%mod;
+    }
+
+    for(int i=1;i<=n;i++){
+        for(int j=i;j<=n;j++){
+            int sz = j-i+1;
+            if(sz<nst || sz<nen) continue;
+            if(getHash(i,i+nst-1)==hst && getHash(j-nen+1,j)==hen)
+                ans.insert(getHash(i,j));
+        }
+    }
+    printf("%d\n",ans.size());
+}

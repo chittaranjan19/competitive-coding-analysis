@@ -1,0 +1,66 @@
+#include <iostream>
+#include <iomanip>
+#include <cmath>
+
+using namespace std;
+
+struct point
+{
+    double x, y;
+};
+
+const int max_N = 1e5 + 1230;
+point But[max_N];
+double B_U[max_N];
+
+double ras(point p1, point p2)
+{
+    return sqrt((p1.x - p2.x)*(p1.x - p2.x) + (p1.y - p2.y)*(p1.y - p2.y));
+}
+
+double ans(point first, point second, point u, int n)
+{
+    double f_ras = ras(first, u);
+    double Sum = 0;
+    for (int i = 0; i < n; i++) Sum += B_U[i] + B_U[i];
+    Sum += f_ras;
+    double Sum_min = Sum - f_ras - B_U[0] + ras(first, But[0]);
+    int ind = 0;
+    for (int i = 1; i < n; i++)
+    {
+        double SS = Sum - f_ras - B_U[i] + ras(first, But[i]);
+        if (Sum_min > SS)
+            ind = i, Sum_min = SS;
+    }
+    double Sum_min2 = Sum_min;
+    for (int i = 0; i < n; i++)
+    {
+        if (i != ind)
+        {
+            double SS = Sum_min - B_U[i] + ras(second, But[i]);
+            if (Sum_min2 > SS)
+                Sum_min2 = SS;
+        }
+    }
+    return Sum_min2;
+}
+
+int main()
+{
+    point U, A, B;
+    cin >> A.x >> A.y;
+    cin >> B.x >> B.y;
+    cin >> U.x >> U.y;
+    int n;
+    cin >> n;
+    for (int i = 0; i < n; i++)
+    {
+        cin >> But[i].x >> But[i].y;
+        B_U[i] = ras(U, But[i]);
+    }
+    double S1 = ans(A, B, U, n);
+    double S2 = ans(B, A, U, n);
+    cout << fixed;
+    cout << setprecision(12) << min(S1, S2) << endl;
+    return 0;
+}

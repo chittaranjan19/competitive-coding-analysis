@@ -1,0 +1,122 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+typedef long long ll;
+
+const int MAXN = 5000 + 5;
+const int mod = 1e9 + 7;
+
+const int b = 100000007;
+
+ll dp[MAXN][MAXN], h[MAXN], p[MAXN];
+char s[MAXN];
+
+//bool check(int s1, int s2, int len)
+//{
+//    for(int i = 0; i < len; ++i)
+//    {
+//        if(s[s1 + i] != s[s2 + i]) return s[s1 + i] < s[s2 + i];
+//    }
+//    return false;
+//}
+
+void myhash(int len)
+{
+    h[0] = s[0] % mod;
+    for(int i = 1; i < len; ++i)
+    {
+        h[i] = (h[i - 1] * b + s[i]) % mod;
+    }
+}
+
+ll gethash(int st, int en)
+{
+    if(!st) return h[en];
+    return (h[en] - h[st - 1] * p[en - st + 1] % mod + mod) % mod;
+}
+
+bool C(int s1, int s2, int len)
+{
+    ll tmp1 = gethash(s1, s1 + len - 1), tmp2 = gethash(s2, s2 + len - 1);
+    return tmp1 == tmp2;
+}
+
+int main()
+{
+    p[0] = 1;
+    for(int i = 1; i < MAXN; ++i)
+    {
+        p[i] = (p[i - 1] * b) % mod;
+    }
+//    int l, r;
+    int n;
+    while(~scanf("%d", &n))
+    {
+        scanf("%s", s);
+        myhash(n);
+//        while(cin >> l >> r)
+//        {
+//            cout << gethash(l, r) << endl;
+//        }
+        for(int i = 1; i <= n; ++i)
+        {
+            dp[0][i] = 1;
+        }
+        for(int i = 1; i < n; ++i)
+        {
+//            memset(dp[i], 0, sizeof(dp[i]));
+            int tmp = i >> 1;
+            for(int j = 0; j <= tmp; ++j)
+            {
+                if(s[j] == '0') continue;
+                if(j)
+                {
+                    dp[i][i - j + 1] = (dp[i][i - j + 1] + dp[j - 1][j]) % mod;
+                }
+                else
+                {
+                    dp[i][i - j + 1] = (dp[i][i - j + 1] + 1) % mod;
+                }
+            }
+            for(int j = tmp + 1; j <= i; ++j)
+            {
+                if(s[j] == '0') continue;
+                int len = i - j + 1;
+                int l = 1, r = len + 1;
+                if(s[j - len] < s[j])
+                {
+                    dp[i][len] = (dp[i][len] + dp[j - 1][len]) % mod;
+                }
+                else if(s[j - len] > s[j])
+                {
+                    dp[i][len] = (dp[i][len] + dp[j - 1][len - 1]) % mod;
+                }
+                else
+                {
+                    while(l < r)
+                    {
+                        int m = (l + r) >> 1;
+                        C(j - len, j, m) ? l = m + 1 : r = m;
+                    }
+                    if(l <= len && s[j - len + l - 1] < s[j + l - 1])
+                    {
+                        dp[i][len] = (dp[i][len] + dp[j - 1][len]) % mod;
+                    }
+                    else
+                    {
+                        dp[i][len] = (dp[i][len] + dp[j - 1][len - 1]) % mod;
+                    }
+                }
+            }
+            for(int j = 1; j <= i + 1; ++j)
+            {
+                dp[i][j] = (dp[i][j] + dp[i][j - 1]) % mod;
+            }
+        }
+        printf("%I64d\n", dp[n - 1][n]);
+    }
+    return 0;
+}

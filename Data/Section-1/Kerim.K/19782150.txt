@@ -1,0 +1,93 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+const ll B=1e18;
+vector<ll>v;
+set<PII>s;
+int vis[MAXN],banned[MAXN];
+int arr[MAXN],cost[MAXN];
+ll dis[MAXN];
+ll h;
+int n,m,k;
+void SP(){
+	s.clear();
+	fill(dis,dis+MAXN,B);
+	memset(vis,0,sizeof(vis));
+	priority_queue<ll,vector<int>,greater<int> >q;
+	q.push(1LL);dis[1%k]=1LL;
+	while(!q.empty()){
+		ll node=q.top();
+		q.pop();
+		if(vis[node])
+			continue;
+		vis[node]=1;
+		tr(it,v){
+			ll to=*it+node;
+			if(to>h)
+				continue;
+			if(dis[to%k]>to){
+				dis[to%k]=to;
+				q.push(to);
+			}
+		}
+	}
+	for(int i=1;i<=n;i++)
+		if(!banned[i] and dis[arr[i]%k]<=arr[i])
+			s.insert(mp(cost[i],i));
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif
+	scanf("%lld%d%d%d",&h,&n,&m,&k);
+	for(int i=1;i<=n;i++)
+		scanf("%d%d",arr+i,cost+i);
+	SP();
+	while(m--){
+		int type;
+		scanf("%d",&type);
+		if(type==1){
+			ll x;
+			scanf("%lld",&x);
+			v.pb(x);SP();
+		}
+		else if(type==2){
+			int x,y;
+			scanf("%d%d",&x,&y);
+			if(banned[x] or s.find(mp(cost[x],x))==s.end())
+				cost[x]-=y;
+			else{
+				s.erase(mp(cost[x],x));
+				cost[x]-=y;
+				s.insert(mp(cost[x],x));
+			}
+		}
+		else{
+			if(s.size()==0){
+				printf("0\n");
+				continue;
+			}
+			int val=(*s.rbegin()).ff;
+			typeof((s).begin()) it=s.lower_bound(mp(val,-1));
+			banned[it->ss]=1;
+			s.erase(it);printf("%d\n",val);
+		}
+	}	
+	return 0;
+}
+	

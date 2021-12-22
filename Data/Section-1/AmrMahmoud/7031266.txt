@@ -1,0 +1,92 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+
+int arr[505];
+vector<vector<pair<int,int> > > graph(505);
+bool visited[505];
+int n;
+
+double solve(int node)
+{
+    LL temp1=0,temp2=0;
+    LL res1 = 0,res2 = 0;
+    bool connected = false;
+    stack<int> dfs;
+    dfs.push(node);
+    while(!dfs.empty())
+    {
+        int i = dfs.top();
+        dfs.pop();
+        connected = false;
+        temp1 = arr[i];
+        temp2 = 0;
+        for(int j=0;j<graph[i].size();j++)
+        {
+            if(visited[graph[i][j].first])
+                temp2+=graph[i][j].second,connected=true;
+        }
+        if(i == node || (connected && (temp1 >= temp2 || (double)((double)(res1+temp1)/(double)(res2+temp2)) >= (double)((double)res1 / (double)res2))))
+        {
+            visited[i] = true,res1+=temp1,res2+=temp2;
+            for(int j=0;j<graph[i].size();j++)
+            {
+                if(!visited[graph[i][j].first])
+                    dfs.push(graph[i][j].first);
+            }
+        }
+    }
+    if(res2 == 0)
+        return 0;
+    return (double)((double)res1 / (double)res2);
+}
+
+int main()
+{
+    int m,x,y,z;
+    cin >> n >> m;
+    for(int i=1;i<=n;i++)
+        scanf("%d",&arr[i]);
+    for(int i=0;i<m;i++)
+    {
+        cin >> x >> y >> z;
+        graph[x].pb(mp(y,z));
+        graph[y].pb(mp(x,z));
+    }
+    double res = 0;
+    for(int i=1;i<=n;i++)
+    {
+        memset(visited,false,sizeof(visited));
+        res = max(res,solve(i));
+    }
+    printf("%.10lf",res);
+    return 0;
+}

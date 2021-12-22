@@ -1,0 +1,100 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <set>
+
+using namespace std;
+
+typedef pair<int, int> P;
+typedef set<P>::iterator ite;
+
+const int MAXN = 200000 + 5;
+const int MAXM = 500000 + 5;
+
+struct edge
+{
+    int to, next;
+    bool vis;
+    edge(int to = 0, int next = 0, bool vis = false) :
+        to(to), next(next), vis(vis) {}
+} G[MAXM << 1];
+int head[MAXN], tot, a[MAXN], deg[MAXN];
+int c;
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    memset(deg, 0, sizeof(deg));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u], false);
+    head[u] = tot++;
+    G[tot] = edge(u, head[v], false);
+    head[v] = tot++;
+    ++deg[u], ++deg[v];
+}
+
+void euler(int u)
+{
+    for(int i = head[u]; ~i; i = head[u])
+    {
+        edge &e = G[i];
+        head[u] = e.next;
+        if(e.vis) continue;
+        e.vis = G[i ^ 1].vis = true;
+        euler(e.to);
+        if(c)
+        {
+            printf("%d %d\n", u, e.to);
+        }
+        else
+        {
+            printf("%d %d\n", e.to, u);
+        }
+        c ^= 1;
+    }
+}
+
+int main()
+{
+    int n, m;
+    while(~scanf("%d%d", &n, &m))
+    {
+        init();
+        for(int i = 0; i < m; ++i)
+        {
+            int u, v;
+            scanf("%d%d", &u, &v);
+            addedge(u, v);
+        }
+        int now = 0;
+        for(int i = 1; i <= n; ++i)
+        {
+            if(deg[i] & 1)
+            {
+                if(now)
+                {
+                    addedge(now, i);
+                    now = 0;
+                    ++m;
+                }
+                else
+                {
+                    now = i;
+                }
+            }
+        }
+        if(m & 1)
+        {
+            addedge(1, 1);
+            ++m;
+        }
+        printf("%d\n", m);
+        c = 1;
+        euler(1);
+    }
+    return 0;
+}

@@ -1,0 +1,141 @@
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+
+using namespace std;
+
+typedef long long ll;
+
+struct P {
+	ll x; ll y; ll z;
+	P(){}
+	P(ll lx, ll ly, ll lz) {
+		x = lx; y = ly; z = lz;
+	}
+};
+
+const int N = 100005;
+ll x[N];
+ll y[N];
+ll z[N];
+
+void solve() {
+	int n; cin >> n;
+	for (int i = 0; i < n; i++) {
+		cin >> x[i] >> y[i] >> z[i];
+		x[i] *= 2; y[i] *= 2; z[i] *= 2;
+	}
+
+	// the eqs are:
+	// + x + y + c1 = z
+	// + x - y + c2 = z
+	// - x - y + c3 = z
+	// - x + y + c4 = z
+	ll c1 = z[0] - x[0] - y[0];
+	ll c2 = z[0] - x[0] + y[0];
+	ll c3 = z[0] + x[0] + y[0];
+	ll c4 = z[0] + x[0] - y[0];
+
+	ll c5 = c1;
+	ll c6 = c2;
+	ll c7 = c3;
+	ll c8 = c4;
+
+	for (int i = 1; i < n; i++) {
+		ll d1 = z[i] - x[i] - y[i];
+		ll d2 = z[i] - x[i] + y[i];
+		ll d3 = z[i] + x[i] + y[i];
+		ll d4 = z[i] + x[i] - y[i];
+
+		c1 = max(c1, d1);
+		c2 = max(c2, d2);
+		c3 = max(c3, d3);
+		c4 = max(c4, d4);
+
+		c5 = min(c5, d1);
+		c6 = min(c6, d2);
+		c7 = min(c7, d3);
+		c8 = min(c8, d4);
+	}
+
+	ll xx, yy, zz;
+	vector<P> cands;
+	// evaluate the top vertex
+	// 1/2: y = (c2 - c1)/2
+	// 2/3: x = (c3 - c2)/2
+	// 3/4: y = (c3 - c4)/2
+	// 4/1: x = (c4 - c1)/2
+
+	// 1/2
+	yy = (c2 - c1)/2;
+	xx = max(c3 - c2, c4 - c1)/2;
+	zz = xx + yy + c1;
+	cands.push_back(P(xx, yy, zz));
+
+	// 2/3
+	xx = (c3 - c2)/2;
+	yy = min(c3 - c4, c2 - c1)/2;
+	zz = xx - yy + c2;
+	cands.push_back(P(xx, yy, zz));
+
+	// 3/4
+	yy = (c3 - c4)/2;
+	xx = min(c4 - c1, c3 - c2)/2;
+	zz = -xx - yy + c3;
+	cands.push_back(P(xx, yy, zz));
+
+	// 4/1
+	xx = (c4 - c1)/2;
+	yy = max(c2 - c1, c3 - c4)/2;
+	zz = -xx + yy + c4;
+
+	// get center point candidates;
+	vector<P> cands2;
+	for (int k = 0; k < 4; k++) {
+		xx = cands[k].x;
+		yy = cands[k].y;
+		zz = cands[k].z;
+		ll zz2 = min(min(xx + yy + c5, xx - yy + c6), min(-xx - yy + c7, -xx + yy + c8));
+		cands2.push_back(P(xx, yy, (zz+zz2)/2));
+	}
+
+	// check center points
+	ll bestsol = 0x3FFFFFFFFFFFFFFFLL, bestx, besty, bestz;
+	for (int k = 0; k < 4; k++) {
+		xx = cands2[k].x;
+		yy = cands2[k].y;
+		zz = cands2[k].z;
+		ll xx1 = xx, xx2 = xx; if (xx % 2 != 0) { xx1--; xx2++; }
+		ll yy1 = yy, yy2 = yy; if (yy % 2 != 0) { yy1--; yy2++; }
+		ll zz1 = zz, zz2 = zz; if (zz % 2 != 0) { zz1--; zz2++; }
+
+		for (ll x2 = xx1; x2 <= xx2; x2 += 2) {
+		for (ll y2 = yy1; y2 <= yy2; y2 += 2) {
+		for (ll z2 = zz1; z2 <= zz2; z2 += 2) {
+			ll maxdist = 0;
+			for (int i = 0; i < n; i++) {
+				maxdist = max(maxdist, abs(x[i] - x2) + abs(y[i] - y2) + abs(z[i] - z2));
+			}
+			if (maxdist < bestsol) {
+				bestsol = maxdist;
+				bestx = x2;
+				besty = y2;
+				bestz = z2;
+			}
+		}
+		}
+		}
+	}
+	cout << bestx/2 << " " << besty/2 << " " << bestz/2 << endl;
+}
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	int ncase; cin >> ncase;
+	for (int csnum = 0; csnum < ncase; csnum++) {
+		solve();
+	}
+}

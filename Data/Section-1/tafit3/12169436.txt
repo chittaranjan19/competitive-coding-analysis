@@ -1,0 +1,143 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class ProblemA {
+    BufferedReader rd;
+
+    ProblemA() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int[][] p = new int[6500][6500];
+        int x = 3250;
+        int y = 3250;
+        int[] cx = new int[] { 2, 1, -1, -2, -1, 1 };
+        int[] cy = new int[] { 0, 1, 1, 0, -1, -1 };
+        for(int i=0;i<a.length;i++) {
+            for(int j=0;j<a[i];j++) {
+                p[x][y] = 1;
+                x += cx[i];
+                y += cy[i];
+                if(cx[i]==2) {
+                    p[x-1][y] = 1;
+                } else if(cx[i]==-2) {
+                    p[x+1][y] = 1;
+                }
+            }
+        }
+        for(int i=0;i<p.length;i++) {
+            boolean ok = false;
+            int c = 0;
+            for(int j=0;j<p[0].length;j++) {
+                if(p[i][j]==1) {
+                    c++;
+                }
+            }
+            if(c > 1) {
+                for(int j=0;j<p[0].length;j++) {
+                    if(!ok) {
+                        if(p[i][j] == 1) {
+                            ok = true;
+                        }
+                    } else {
+                        if(p[i][j] == 1) {
+                            ok = false;
+                        }
+                        p[i][j] = 1;
+                    }
+                }
+            }
+        }
+        int all = 0;
+        for(int i=0;i<p.length-1;i++) {
+            for(int j=0;j<p[0].length-1;j++) {
+                int u1 = p[i][j];
+                int u2 = p[i][j+1];
+                int u3 = p[i+1][j];
+                int u4 = p[i+1][j+1];
+                int s = u1+u2+u3+u4;
+                if(s == 4) {
+                    all += 2;
+                } else if(s==3) {
+                    all++;
+                }
+            }
+        }
+        out(all/2);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemA();
+    }
+}

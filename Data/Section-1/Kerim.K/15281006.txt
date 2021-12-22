@@ -1,0 +1,129 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 200009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN],mn[MAXN<<2],lazy[MAXN<<2];
+string s;
+pair<PII,PII> ty(){
+	pair<PII,PII> ans;
+	int cur=0,ind=0,minus=0;
+	for(int i=0;i<s.size();i++){
+		if(s[i]==' '){
+			if(ind==0)
+				ans.ff.ff=cur;
+			if(ind==1)
+				ans.ff.ss=cur;		
+			cur=0;
+			ind++;
+		}
+		else{
+			if(s[i]=='-')
+				minus=1;
+			else	
+				cur=cur*10+(int(s[i])-48);
+		}
+	}	
+	if(ind==2){
+		if(minus)
+			cur*=-1;
+		ans.ss.ff=cur;	
+		ans.ss.ss=1;
+	}
+	else{
+		ans.ff.ss=cur;
+		ans.ss.ss=2;
+	}
+	return ans;		
+}
+void upd(int nd,int v){
+	lazy[nd]+=v;
+	mn[nd]+=v;
+}
+void shift(int nd){
+	if(!lazy[nd])
+		return;
+	upd(nd<<1,lazy[nd]);	
+	upd(nd<<1|1,lazy[nd]);
+	lazy[nd]=0;
+}
+void inc(int l,int r,int v,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		upd(nd,v);
+		return;
+	}
+	shift(nd);
+	int mid=(x+y)>>1;
+	inc(l,r,v,nd<<1,x,mid);
+	inc(l,r,v,nd<<1|1,mid+1,y);
+	mn[nd]=min(mn[nd<<1],mn[nd<<1|1]);
+}
+int tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return INF;
+	if(l<=x and y<=r)
+		return mn[nd];
+	shift(nd);		
+	int mid=(x+y)>>1;
+	int i1=tap(l,r,nd*2,x,mid);
+	int i2=tap(l,r,nd*2+1,mid+1,y);
+	return min(i1,i2);
+}
+void build(int nd,int x,int y){
+	if(x==y){
+		mn[nd]=arr[x];
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+	mn[nd]=min(mn[nd<<1],mn[nd<<1|1]);
+}
+int main(){
+	int a;
+	cin>>a;
+	for(int i=1;i<=a;i++)
+		scanf("%d",arr+i);
+	build(1,1,a);	
+	int q;
+	cin>>q;
+	q++;
+	while(q--){
+		getline(cin,s);
+		if(s.size()==0)
+			continue;
+		pair<PII,PII> k=ty();
+		int l=k.ff.ff,r=k.ff.ss,v=k.ss.ff,type=k.ss.ss;
+		l++,r++;
+		if(type==1){ 
+			if(l>r)
+				inc(l,a,v,1,1,a),inc(1,r,v,1,1,a);
+			else
+				inc(l,r,v,1,1,a);	
+		}
+		else{
+			if(l>r)
+				printf("%d\n",min(tap(1,r,1,1,a),tap(l,a,1,1,a)));
+			else
+				printf("%d\n",tap(l,r,1,1,a));	
+		}
+	}
+	return 0;
+}

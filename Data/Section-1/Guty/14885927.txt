@@ -1,0 +1,251 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+int toNumber (string s)
+{
+	int Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (int number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+
+
+struct Cambio
+{
+	tint precio, dia;
+	Cambio (tint pp, tint dd)
+	{
+		precio = pp;
+		dia = dd;
+	}
+};
+
+bool operator < (Cambio c1, Cambio c2)
+{
+	return make_tuple(c1.precio, c1.dia) < make_tuple(c2.precio, c2.dia);
+}
+
+struct Gadget
+{
+	tint costo,indice;
+	Gadget(tint cc, tint ii)
+	{
+		costo = cc;
+		indice = ii;
+	}
+};
+
+bool operator < (Gadget g1, Gadget g2)
+{
+	return make_tuple (g1.costo, g1.indice) < make_tuple(g2.costo, g2.indice);
+}
+
+struct Respuesta
+{
+	tint indice,dia;
+	Respuesta(tint ii, tint dd)
+	{
+		indice = ii;
+		dia = dd;
+	}
+};
+
+
+bool chequeo (deque<Gadget> g1, deque<Gadget> g2, tint d, vector<Cambio> &dollar, vector<Cambio> &pounds, tint s,tint k)
+{
+	tint amin = dollar[d].precio;
+	tint bmin = pounds[d].precio;
+	forn(i,g1.size())
+		g1[i].costo *= amin;
+	forn(i,g2.size())
+		g2[i].costo *= bmin;
+	tint suma = 0;
+	tint adentro = 0;
+	while (adentro < k)
+	{
+		tint p1,p2;
+		p1 = g1.front().costo;
+		p2 = g2.front().costo;
+		if (p1 <= p2)
+		{
+			g1.pop_front();
+			suma += p1;
+		}
+		else
+		{
+			g2.pop_front();
+			suma += p2;
+		}
+		adentro++;
+	}
+	return suma <= s;
+
+}
+
+vector<Respuesta> answer (deque<Gadget> g1, deque<Gadget> g2, tint d, vector<Cambio> &dollar, vector<Cambio> &pounds,tint k)
+{
+	tint amin = dollar[d].precio;
+	tint bmin = pounds[d].precio;
+	forn(i,g1.size())
+		g1[i].costo *= amin;
+	forn(i,g2.size())
+		g2[i].costo *= bmin;
+	vector<Respuesta> r;
+	tint adentro = 0;
+	while (adentro < k)
+	{
+		tint p1,p2;
+		p1 = g1.front().costo;
+		p2 = g2.front().costo;
+		if (p1 <= p2)
+		{
+			r.push_back(Respuesta(g1.front().indice,dollar[d].dia+1));
+			g1.pop_front();
+		}
+		else
+		{
+			r.push_back(Respuesta(g2.front().indice,pounds[d].dia+1));
+			g2.pop_front();
+		}
+		adentro++;
+	}
+	return r;
+}
+
+int main()
+{
+	ios_base::sync_with_stdio(0);
+	tint n,m,k,s;
+	cin >> n >> m >> k >> s;
+	vector<Cambio> dollar (n,Cambio(0,0));
+	vector<Cambio> pounds (n,Cambio(0,0));
+	//
+	forn(i,n)
+	{
+		tint a;
+		cin >> a;
+		if (i > 0)
+			dollar[i] = min(dollar[i-1],Cambio(a,i));
+		else
+			dollar[i] = Cambio(a,i);
+	}
+	
+	forn(i,n)
+	{
+		tint b;
+		cin >> b;
+		if (i > 0)
+			pounds[i] = min(pounds[i-1],Cambio(b,i));
+		else
+			pounds[i] = Cambio(b,i);
+	}
+	//
+	deque<Gadget> g1;
+	deque<Gadget> g2;
+	forn(i,m)
+	{
+		tint t,c;
+		cin >> t >> c;
+		if (t == 1)
+			g1.push_back(Gadget(c,i+1));
+		else
+			g2.push_back(Gadget(c,i+1));
+	}
+	
+	sort(g1.begin(),g1.end());
+	sort(g2.begin(),g2.end());
+	//
+	
+	if (chequeo(g1,g2,n-1,dollar,pounds,s,k))
+	{
+		// CHEQUEAR CASO EN QUE SE PUEDE EN EL PRIMER DIA
+		tint csup = n-1;
+		tint cinf = 0;
+		while (csup - cinf > 1)
+		{
+			tint d = (csup + cinf) / 2;
+			if (chequeo(g1,g2,d,dollar,pounds,s,k))
+				csup = d;
+			else
+				cinf = d;
+		}
+		tint ans = 0;
+		if (!chequeo(g1,g2,0,dollar,pounds,s,k))
+			ans = csup;
+		vector<Respuesta> risposta = answer (g1,g2,ans,dollar,pounds,k);
+		cout << ans+1 << endl;
+		forn(i,k)
+			cout << risposta[i].indice << " " << risposta[i].dia << endl;
+		
+	}
+	else
+		cout << -1 << endl;
+	
+	
+	
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+

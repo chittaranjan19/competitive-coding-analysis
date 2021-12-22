@@ -1,0 +1,99 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int MAX_N = 1000000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+typedef struct
+{
+	int cnt;
+	int l;
+	int r;
+} skobka;
+
+string s;
+int cnt_ver = 1, curr = 0;
+skobka tree[MAX_N * 4];
+
+skobka unionskobka(skobka s1, skobka s2)
+{
+	skobka ans;
+	ans.cnt = s1.cnt + s2.cnt + min(s1.r, s2.l);
+	ans.l = s1.l + (s2.l - min(s1.r, s2.l));
+	ans.r = s2.r + (s1.r - min(s1.r, s2.l));
+	return ans;
+}
+
+void make_tree(int n)
+{
+	while (cnt_ver < n)
+	{
+		cnt_ver <<= 1;
+		curr++;
+	}
+	for (int i = 0; i < cnt_ver * 2 - 1; i++)
+	{
+		tree[i].cnt = 0;
+		tree[i].l = 0;
+		tree[i].r = 0;
+	}
+	for (int i = 0; i < n; i++)
+		if (s[i] == ')')
+			tree[cnt_ver - 1 + i].l = 1;
+		else
+			tree[cnt_ver - 1 + i].r = 1;
+	for (int i = cnt_ver - 2; i >= 0; i--)
+		tree[i] = unionskobka(tree[i * 2 + 1], tree[i * 2 + 2]);
+}
+
+skobka sum(int x, int lx, int rx, int l, int r)
+{
+	if (lx > r || rx < l)
+	{
+		skobka zero;
+		zero.cnt = 0;
+		zero.l = 0;
+		zero.r = 0;
+		return zero;
+	}
+	else if (lx >= l && rx <= r)
+		return tree[x];
+	else
+		return unionskobka(sum(x * 2 + 1, lx, (lx + rx) / 2, l, r), sum(x * 2 + 2, (lx + rx) / 2 + 1, rx, l, r));
+}
+
+int main()
+{
+	//ifstream ifs("input.in");
+	//ofstream ofs("output.out");
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> s;
+	int len = s.size(), l, r;
+	make_tree(len);
+	int q;
+	scanf_s("%d", &q);
+	for (int i = 0; i < q; i++)
+	{
+		scanf_s("%d %d", &l, &r);
+		printf("%d\n", sum(0, cnt_ver - 1, cnt_ver * 2 - 2, cnt_ver - 1 + l - 1, cnt_ver - 1 + r - 1).cnt * 2);
+	}
+	return 0;
+}

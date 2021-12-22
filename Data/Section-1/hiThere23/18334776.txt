@@ -1,0 +1,254 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define maxC 100000007ll
+#define mn 100005
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+#define top mp(maxC * maxC, maxC * maxC)
+
+using namespace std;
+int n, q, a[mn], near42[mn];
+long long pow42[] = {1, 42, 1764, 74088, 3111696, 130691232, 5489031744, 230539333248, 9682651996416, 406671383849472, 17080198121677824};
+
+struct interval
+{
+    long long val[mn << 2];
+    pair<long long, int> dif[mn << 2];
+    int aft[mn << 2];
+
+    void build(int l, int r, int id)
+    {
+        if (l == r)
+        {
+            val[id] = a[l];
+            aft[id] = l;
+            FOR(i, 0, 10)
+            if (pow42[i] > a[l])
+            {
+                near42[l] = i;
+                dif[id] = mp(pow42[i] - a[l], l);
+                return;
+            }
+        }
+        int g = ((l + r) >> 1);
+        build(l, g, id << 1);
+        build(g + 1, r, (id << 1) + 1);
+        dif[id] = min(dif[id << 1], dif[(id << 1) + 1]);
+    }
+
+    void push(int id)
+    {
+        if (val[id])
+        {
+            val[id << 1] += val[id];
+            if (val[id << 1] >= maxC * maxC)
+                dif[id << 1] = top;
+            else
+                dif[id << 1].F -= val[id];
+            val[(id << 1) + 1] += val[id];
+            if (val[(id << 1) + 1] >= maxC * maxC)
+                dif[(id << 1) + 1] = top;
+            else
+                dif[(id << 1) + 1].F -= val[id];
+            val[id] = 0;
+        }
+        if (aft[id])
+        {
+            aft[id << 1] = aft[id];
+            aft[(id << 1) + 1] = aft[id];
+            aft[id] = 0;
+        }
+    }
+
+    void add(int l, int r, int id, int x, int y, long long v)
+    {
+        if (l > y || r < x)
+            return;
+        if (x <= l && r <= y)
+        {
+            val[id] += v;
+            if (val[id] >= maxC * maxC)
+                dif[id] = top;
+            else
+                dif[id].F -= v;
+            return;
+        }
+        push(id);
+        int g = ((l + r) >> 1);
+        add(l, g, id << 1, x, y, v);
+        add(g + 1, r, (id << 1) + 1, x, y, v);
+        dif[id] = min(dif[id << 1], dif[(id << 1) + 1]);
+    }
+
+    void setDif(int l, int r, int id, int x)
+    {
+        if (l > x || r < x)
+            return;
+        if (l == r)
+        {
+            dif[id] = mp(pow42[++ near42[x]] - val[id], x);
+            return;
+        }
+        push(id);
+        int g = ((l + r) >> 1);
+        setDif(l, g, id << 1, x);
+        setDif(g + 1, r, (id << 1) + 1, x);
+        dif[id] = min(dif[id << 1], dif[(id << 1) + 1]);
+    }
+
+    pair<long long, int> getDif(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return top;
+        if (x <= l && r <= y)
+            return dif[id];
+        push(id);
+        int g = ((l + r) >> 1);
+        pair<long long, int> a = getDif(l, g, id << 1, x, y);
+        pair<long long, int> b = getDif(g + 1, r, (id << 1) + 1, x, y);
+        return min(a, b);
+    }
+
+    void setAft(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return;
+        if (x <= l && r <= y)
+        {
+            aft[id] = y;
+            return;
+        }
+        push(id);
+        int g = ((l + r) >> 1);
+        setAft(l, g, id << 1, x, y);
+        setAft(g + 1, r, (id << 1) + 1, x, y);
+    }
+
+    int getAft(int l, int r, int id, int x)
+    {
+        if (l > x || r < x)
+            return -1;
+        if (l == r)
+            return aft[id];
+        push(id);
+        int g = ((l + r) >> 1);
+        int a = getAft(l, g, id << 1, x);
+        int b = getAft(g + 1, r, (id << 1) + 1, x);
+        return max(a, b);
+    }
+
+    void setVal(int l, int r, int id, int x, long long v)
+    {
+        if (l > x || r < x)
+            return;
+        if (l == r)
+        {
+            val[id] = v;
+            aft[id] = x;
+            FOR(i, 0, 10)
+            if (pow42[i] > v)
+            {
+                near42[x] = i;
+                dif[id] = mp(pow42[i] - v, x);
+                return;
+            }
+        }
+        push(id);
+        int g = ((l + r) >> 1);
+        setVal(l, g, id << 1, x, v);
+        setVal(g + 1, r, (id << 1) + 1, x, v);
+        dif[id] = min(dif[id << 1], dif[(id << 1) + 1]);
+    }
+
+    long long getVal(int l, int r, int id, int x)
+    {
+        if (l > x || r < x)
+            return -1;
+        if (l == r)
+            return val[id];
+        push(id);
+        int g = ((l + r) >> 1);
+        long long a = getVal(l, g, id << 1, x);
+        long long b = getVal(g + 1, r, (id << 1) + 1, x);
+        return max(a, b);
+    }
+} t;
+
+void setup()
+{
+    cin >> n >> q;
+    FOR(i, 1, n)
+        cin >> a[i];
+    t.build(1, n, 1);
+}
+
+void querry1()
+{
+    int x;
+    cin >> x;
+    int a = t.getAft(1, n, 1, x);
+    cout << t.getVal(1, n, 1, a) << '\n';
+}
+
+void querry2()
+{
+    int x, y;
+    long long v;
+    cin >> x >> y >> v;
+    t.setVal(1, n, 1, y, v);
+    if (x == y)
+        return;
+    t.add(1, n, 1, x, y - 1, maxC * maxC);
+    t.setAft(1, n, 1, x, y);
+}
+
+void querry3()
+{
+    int x, y;
+    long long v;
+    cin >> x >> y >> v;
+    int a = t.getAft(1, n, 1, x - 1);
+    int b = t.getAft(1, n, 1, y);
+    if (a != x - 1)
+        t.setVal(1, n, 1, x - 1, t.getVal(1, n, 1, a));
+    if (b != y)
+        t.setVal(1, n, 1, y, t.getVal(1, n, 1, b));
+    t.add(1, n, 1, x, y, v);
+    while(true)
+    {
+        pair<long long, int> a = t.getDif(1, n, 1, x, y);
+        if (a.F > 0)
+            break;
+        if (a.F == 0)
+            t.add(1, n, 1, x, y, v);
+        t.setDif(1, n, 1, a.S);
+    }
+}
+
+void xuly()
+{
+    int t;
+    FOR(i, 1, q)
+    {
+        cin >> t;
+        if (t == 1)
+            querry1();
+        if (t == 2)
+            querry2();
+        if (t == 3)
+            querry3();
+    }
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

@@ -1,0 +1,104 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 100001;
+
+int segtree[4*maxn], lazy[4*maxn], l[maxn], r[maxn], m[maxn];
+
+void update(int s, int e, int qs, int qe, int node, int val)
+{
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*node+1;
+    rc = lc+1;
+    if(lazy[node]){
+        segtree[node]|=lazy[node];
+        if(s!=e){
+            lazy[lc]|=lazy[node];
+            lazy[rc]|=lazy[node];
+        }
+        lazy[node] = 0;
+    }
+    if(s>e || s>qe || qs>e)
+        return;
+    if(s>=qs && qe>=e){
+        segtree[node]|=val;
+        if(s!=e){
+            lazy[lc]|=val;
+            lazy[rc]|=val;
+        }
+        return;
+    }
+    update(s, mid, qs, qe, lc, val);
+    update(mid+1, e, qs, qe, rc, val);
+    segtree[node] = segtree[lc]&segtree[rc];
+}
+
+int query(int s, int e, int qs, int qe, int node)
+{
+
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*node+1;
+    rc = lc+1;
+    if(lazy[node]){
+        segtree[node]|=lazy[node];
+        if(s!=e){
+            lazy[lc]|=lazy[node];
+            lazy[rc]|=lazy[node];
+        }
+        lazy[node] = 0;
+    }
+    //cout << s << " " << e << " " << qs << " " << qe << " " << segtree[t][node] << " " << t << "\n"; 
+    if(s>e || s>qe || qs>e)
+        return INT_MAX;
+    if(s>=qs && qe>=e)
+        return segtree[node];
+    return query(s, mid, qs, qe, lc)&query(mid+1, e, qs, qe, rc);
+}
+
+int main()
+{
+    cout << INT_MAX;
+    int n, q, i, j, k;
+    scanf("%d%d", &n, &q);
+    for(i=0; i<q; i++){
+        scanf("%d%d%d", &l[i], &r[i], &m[i]);
+        l[i]--, r[i]--;
+        /*for(j=0; j<=30; j++){
+            if(m[i]&(1<<j))
+                update(0, n-1, l[i], r[i], j, );
+        }*/
+        update(0, n-1, l[i], r[i], 0, m[i]);
+    }
+    int f = 1;
+    for(i=0; i<q; i++){
+        k = query(0, n-1, l[i], r[i], 0);
+        /*for(j=0; j<=30; j++){
+            if(query(0, n-1, l[i], r[i], j, 0))
+                k = (k+(1<<j));
+        }*/
+
+        if(k!=m[i]){
+            f = 0;
+            break;
+        }
+    }
+    if(!f)
+        printf("NO\n");
+    else{
+        printf("YES\n");
+        for(i=0; i<n; i++){
+            k = query(0, n-1, i, i, 0);
+            /*for(j=0; j<=30; j++){
+                //cout << i << " " << j << " " << query(0, n-1, i, i, j, 0) << "\n";
+                if(query(0, n-1, i, i, j, 0))
+                    k = (k+(1<<j));
+            }*/
+            printf("%d ", k);
+        }
+        printf("\n");
+    }
+    return 0;
+}

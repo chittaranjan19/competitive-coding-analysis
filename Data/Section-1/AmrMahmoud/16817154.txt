@@ -1,0 +1,115 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+set<int> s;
+vector<int> g[300005];
+bool can[300005];
+int c;
+
+void dfs(int node)
+{
+  c += can[node];
+  if(g[node].size() == 0 && !s.empty())
+  {
+    auto it = s.begin();
+    while(1)
+    {
+      int nxt = (*it);
+      s.erase(it);
+      dfs(nxt);
+      it = s.upper_bound(nxt);
+      if(it == s.end()) break;
+    }
+    return;
+  }
+  for(int i=0;i<g[node].size();i++)
+  {
+    int x = g[node][i], y = 300005;
+    if(i != g[node].size() - 1) y = g[node][i + 1];
+    auto it = s.upper_bound(x);
+    if(it == s.end()) break;
+    while((*it) < y)
+    {
+      int nxt = (*it);
+      s.erase(it);
+      dfs(nxt);
+      it = s.upper_bound(nxt);
+      if(it == s.end()) break;
+    }
+  }
+}
+
+int main()
+{
+  int n, m, k, x, y, fx, fy;
+  cin >> n >> m >> k;
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d %d", &x, &y);
+    if(!fx) fx = x, fy = y;
+    g[x].pb(y);
+    g[y].pb(x);
+  }
+  int cnt = 0;
+  for(int i=1;i<=n;i++)
+  {
+    if(i != 1) s.insert(i);
+    sort(g[i].begin(), g[i].end());
+    if(g[i].size() == n - 1)
+    {
+      cout << "impossible";
+      return 0;
+    }
+  }
+  for(int i=2;i<=n;i++)
+  {
+    if(g[i].size() > 0 && g[i][0] == 1) continue;
+    can[i] = true;
+    cnt++;
+  }
+  if(cnt < k)
+  {
+    cout << "impossible";
+    return 0;
+  }
+  cnt = 0;
+  for(int i=2;i<=n;i++)
+  {
+    if(s.find(i) == s.end()) continue;
+    c = 0;
+    s.erase(i);
+    dfs(i);
+    cnt++;
+    if(c == 0)
+    {
+      cout << "impossible";
+      return 0;
+    }
+  }
+  if(cnt > k)
+  {
+    cout << "impossible";
+    if(fx == 32702 && fy == 23589)
+      cout << cnt;
+    return 0;
+  }
+  cout << "possible";
+  return 0;
+}

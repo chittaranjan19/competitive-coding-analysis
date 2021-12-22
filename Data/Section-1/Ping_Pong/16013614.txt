@@ -1,0 +1,82 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e8;
+const int P = 239;
+const int MAX_N = 500;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+int main()
+{
+    //ifstream ifs("input.in");
+    //ofstream ofs("output.out");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, m, k, w;
+    scanf("%d %d %d %d", &n, &m, &k, &w);
+    char game[k][n][m];
+    for (int i = 0; i < k; i++)
+        for (int j = 0; j < n; j++)
+            for (int l = 0; l < m; l++)
+                scanf(" %c", &game[i][j][l]);
+    int graph[k + 1][k + 1];
+    for (int i = 0; i <= k; i++)
+    {
+        graph[i][0] = n * m;
+        graph[0][i] = n * m;
+    }
+    graph[0][0] = 0;
+    for (int i = 0; i < k; i++)
+        for (int j = i; j < k; j++)
+        {
+            int cnt = 0;
+            for (int l = 0; l < n; l++)
+                for (int r = 0; r < m; r++)
+                    if (game[i][l][r] != game[j][l][r])
+                        cnt++;
+            graph[i + 1][j + 1] = cnt * w;
+            graph[j + 1][i + 1] = cnt * w;
+        }
+    int cnt = 0;
+    vector<pair<int, int> > ans;
+    vector<bool> used(k + 1);
+    vector<int> min_e(k + 1, inf), sel_e(k + 1, -1);
+    for (int i = 0; i <= k; i++)
+    {
+        int v = -1;
+        for (int j = 0; j <= k; j++)
+            if (!used[j] && (v == -1 || min_e[j] < min_e[v]))
+                v = j;
+        used[v] = true;
+        if (sel_e[v] != -1)
+        {
+            ans.push_back(make_pair(v, sel_e[v]));
+            cnt += graph[v][sel_e[v]];
+        }
+        for (int to = 0; to <= k; to++)
+            if (graph[v][to] < min_e[to])
+            {
+                min_e[to] = graph[v][to];
+                sel_e[to] = v;
+            }
+    }
+    printf("%d\n", cnt);
+    for (int i = 0; i < k; i++)
+        printf("%d %d\n", ans[i].first, ans[i].second);
+    return 0;
+}

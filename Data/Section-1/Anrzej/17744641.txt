@@ -1,0 +1,144 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 5e5 + 10, l = 20;
+
+int gcd(int a, int b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll a[N], b[N], n, m, p;
+string s, c;
+multiset<char> mm;
+int z = 0;
+
+int get_len(int num)
+{
+	if (num == 0) return 1;
+	else{
+		int ans = 0;
+		while (num != 0)
+			num /= 10, ans += 1;
+		return ans;
+	}
+}
+
+string get_string(int num)
+{
+	string ans = "";
+	if (num == 0) return "0";
+	else{
+		while (num != 0)
+			ans += '0' + num % 10, num /= 10;
+		return ans;
+	}
+}
+
+map<char, int> mapa;
+map<char, int>::iterator iit;
+
+int main()
+{
+	cin >> s >> c;
+	n = s.length();
+	for (int i = 0; i < n; i++){
+		if (s[i] != '0')
+			//mm.insert(s[i]);
+			mapa[s[i]]++;
+		else z++;
+	}
+	for (int i = 0; i < c.length(); i++){
+		if (c[i] != '0')
+			//mm.erase(c[i]);
+			mapa[c[i]]--;
+		else z--;
+	}
+	for (iit = mapa.begin(); iit != mapa.end(); iit++)
+	{
+		for (int i = 0; i < iit->sc; i++)
+			mm.insert(iit->fs);
+	}
+	int len = 1, del = c.size();
+	while (1)
+	{
+		if (z+mm.size() - get_len(len) + c.size() == len)
+		{
+			string slen = get_string(len);
+			bool ok = 1;
+			for (int i = 0; i < slen.length(); i++)
+			{
+				if (slen[i] == '0')
+					z--;
+				else mm.erase(slen[i]);
+			}
+			break;
+		}
+		else len++;
+	}
+	multiset<char>::iterator it = mm.begin();
+	int cur = 0;
+	bool cmp = 1;
+
+	while (it != mm.end() && cur < c.length() && (*it == c[cur]))
+		cur++, it++;
+
+	if (cur == c.length())
+		cur--;
+	if (it == mm.end())
+		it--;
+	cmp = c[cur] < *it;
+	if (cmp)
+	{
+		if (c[0] == '0'){
+			cout << *mm.begin(); mm.erase(mm.begin());
+			while (z != 0)
+				cout << '0', z--;
+			for (int i = 0; i < c.length(); i++)
+				cout << c[i];
+		}
+		else{
+			for (int i = 0; i < c.length(); i++)
+				cout << c[i];
+			while (z != 0)
+				cout << '0', z--;
+		}
+		while (!mm.empty())
+			cout << *mm.begin(), mm.erase(mm.begin());
+	}
+	else{
+		cout << *mm.begin(); mm.erase(mm.begin());
+		while (z != 0)
+			cout << '0', z--;
+		while (!mm.empty() && *mm.begin() < c[0])
+			cout << *mm.begin(), mm.erase(mm.begin());
+		for (int i = 0; i < c.length(); i++)
+			cout << c[i];
+		while (!mm.empty())
+			cout << *mm.begin(), mm.erase(mm.begin());
+	}
+	return 0;
+}

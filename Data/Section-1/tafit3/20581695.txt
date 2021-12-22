@@ -1,0 +1,180 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
+
+public class ProblemC {
+    BufferedReader rd;
+
+    ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int n = pint();
+        Node root = new Node();
+        StringBuilder buf = new StringBuilder();
+        for (int i = 0; i < n; i++) {
+            String[] h = split(rd.readLine());
+            String s = rev(h[1]);
+            switch(h[0].charAt(0)) {
+                case '+':
+                    add(root, s);
+                    break;
+                case '-':
+                    del(root, s);
+                    break;
+                default:
+                    if(buf.length() > 0) {
+                        buf.append('\n');
+                    }
+                    buf.append(count(root, s, 0, s.lastIndexOf('1')));
+            }
+        }
+        out(buf);
+    }
+
+    private String rev(String s) {
+        int n = s.length();
+        char[] r = new char[20];
+        for(int i=0;i<r.length;i++) {
+            r[i] = '0';
+        }
+        for(int i=0;i<n;i++) {
+            r[n-1-i] = s.charAt(i);
+        }
+        return new String(r);
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private void add(Node n, String s) {
+        add(n, s, 0);
+    }
+
+    private void add(Node n, String s, int p) {
+        if(p == s.length()) {
+            add(n.m, s, 1);
+        } else {
+            int ix = s.charAt(p)%2;
+            if(n.n[ix] == null) {
+                n.n[ix] = new Node();
+            }
+            add(n.n[ix], s, p+1);
+        }
+    }
+
+    private void add(Map<String, Integer> m, String s, int x) {
+        m.put(s, m.getOrDefault(s, 0) + x);
+    }
+
+    private void del(Node n, String s) {
+        del(n, s, 0);
+    }
+
+    private void del(Node n, String s, int p) {
+        if(p == s.length()) {
+            add(n.m, s, -1);
+        } else {
+            int ix = s.charAt(p)%2;
+            if(n.n[ix] != null) {
+                del(n.n[ix], s, p+1);
+            }
+        }
+    }
+
+    private int count(Node n, String pat, int p, int lastOne) {
+        if(n == null) {
+            return 0;
+        }
+        int s;
+        if(pat.length() == p) {
+            s = n.sum();
+        } else {
+            s = 0;
+            if(p > lastOne) {
+                s += n.sum();
+            }
+            s += count(n.n[pat.charAt(p)%2], pat, p+1, lastOne);
+        }
+        return s;
+    }
+
+    private class Node {
+        Node[] n = new Node[2];
+        Map<String, Integer> m = new HashMap<>();
+
+        int sum() {
+            int s = 0;
+            for(Map.Entry<String, Integer> e: m.entrySet()) {
+                s += e.getValue();
+            }
+            return s;
+        }
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

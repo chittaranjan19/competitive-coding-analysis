@@ -1,0 +1,159 @@
+#include <iostream>
+#include <string>
+#include <cstring>
+#include <cstdlib>
+#include <ctime>
+#include <cmath>
+#include <vector>
+#include <cstdio>
+#include <algorithm>
+#include <set>
+#include <stack>
+#include <queue>
+#include <iomanip>
+#include <map>
+#include <bitset>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 1 << 21;
+const int P = (479 << 21) + 1;
+const int G = 3;
+const double PI = acos(-1.0);
+
+struct Complex
+{
+    double x, y;
+
+    Complex(double x = 0, double y = 0) : x(x), y(y) {}
+
+    Complex operator + (const Complex &b) const
+    {
+        return Complex(x + b.x, y + b.y);
+    }
+
+    Complex operator - (const Complex &b) const
+    {
+        return Complex(x - b.x, y - b.y);
+    }
+
+    Complex operator * (const Complex &b) const
+    {
+        return Complex(x * b.x - y * b.y, x * b.y + y * b.x);
+    }
+} m1[maxn], m2[maxn];
+bool e[maxn], ans[maxn];
+
+//int pow_mod(int x, int n, int p)
+//{
+//    int ret = 1;
+//    while(n)
+//    {
+//        if(n & 1) ret = 1LL * ret * x % p;
+//        x = 1LL * x * x % p;
+//        n >>= 1;
+//    }
+//    return ret;
+//}
+//
+//void getwn()
+//{
+//    for(int i = 1; i <= 23; ++i)
+//    {
+//        int t = 1 << i;
+//        wn[i] = pow_mod(G, (P - 1) / t, P);
+//    }
+//}
+
+void change(Complex *y, int len)
+{
+    for(int i = 1, j = len / 2; i < len - 1; ++i)
+    {
+        if(i < j) swap(y[i], y[j]);
+        int k = len >> 1;
+        while(j >= k)
+        {
+            j -= k;
+            k >>= 1;
+        }
+        if(j < k) j += k;
+    }
+}
+
+void fft(Complex *y, int len, int on)
+{
+    change(y, len);
+    for(int h = 2; h <= len; h <<= 1)
+    {
+        Complex wn(cos(-on * 2 * PI / h), sin(-on * 2 * PI / h));
+        for(int j = 0; j < len; j += h)
+        {
+            Complex w(1, 0);
+            for(int k = j; k < j + h / 2; ++k)
+            {
+                Complex u = y[k], t = w * y[k + h / 2];
+                y[k] = u + t, y[k + h / 2] = u - t;
+                w = w * wn;
+            }
+        }
+    }
+    if(on == -1)
+    {
+        for(int i = 0; i < len; ++i) y[i].x /= len;
+    }
+}
+
+void conv(bool *a, bool *b, int len)
+{
+    for(int i = 0; i < len; ++i)
+    {
+        m1[i] = Complex(a[i], 0);
+        m2[i] = Complex(b[i], 0);
+    }
+    fft(m1, len, 1);
+    fft(m2, len, 1);
+    for(int i = 0; i < len; ++i) m1[i] = m1[i] * m2[i];
+    fft(m1, len, -1);
+    for(int i = 0; i < len; ++i) a[i] = m1[i].x + 0.5 > 1;
+}
+
+void solve(int _max, int k)
+{
+    int len = 1, m1 = _max, m2 = 0;
+    ans[0] = true;
+    while(k)
+    {
+        if(k & 1) 
+        {
+            m2 += m1;
+            while(len <= m2) len <<= 1;
+            conv(ans, e, len);
+        }
+        if(k >>= 1)
+        {
+            m1 <<= 1;
+            while(len <= m1) len <<= 1;
+            conv(e, e, len);
+            k >>= 1;
+        }
+    }
+}
+
+int main()
+{
+//    getwn();
+    int n, k, _max = 0;
+    scanf("%d%d", &n, &k);
+    for(int i = 0; i < n; ++i)
+    {
+        int x;
+        scanf("%d", &x);
+        e[x] = true;
+        _max = max(_max, x);
+    }
+    solve(_max, k);
+    for(int i = 1; i <= _max * k; ++i) if(ans[i]) printf("%d ", i);
+    return 0;
+}

@@ -1,0 +1,80 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int arr[200005];
+pair<pair<int, int> , int> queries[200005];
+vector<int> beg[200005], en[200005];
+int ans[200005];
+set<pair<int, int> > s;
+
+int main()
+{
+  int n, q, x, y, z;
+  scanf("%d %d", &n, &q);
+  for(int i=0;i<n;i++)
+    scanf("%d", &arr[i]);
+  for(int i=0;i<q;i++)
+  {
+    scanf("%d %d %d", &x, &y, &z);
+    x--, y--;
+    queries[i] = mp(mp(x, y), z);
+    beg[x].pb(i);
+    en[y].pb(i);
+  }
+  for(int i=0;i<n;i++)
+  {
+    for(int j=0;j<beg[i].size();j++)
+    {
+      x = beg[i][j];
+      s.insert(mp(queries[x].s, x));
+    }
+    auto it = s.begin();
+    while(it != s.end())
+    {
+      if((*it).f == arr[i]) break;
+      x = (*it).s;
+      if(queries[x].f.s < i)
+        ans[x] = -1;
+      else ans[x] = i + 1;
+      auto it2 = it;
+      it2++;
+      s.erase(it);
+      it = it2;
+    }
+    it = s.end();
+    if(!s.empty()) it--;
+    while(!s.empty())
+    {
+      if((*it).f == arr[i]) break;
+      x = (*it).s;
+      if(queries[x].f.s < i)
+        ans[x] = -1;
+      else ans[x] = i + 1;
+      auto it2 = it;
+      if(it2 != s.begin()) it2--;
+      s.erase(it);
+      if(it2 == s.begin()) break;
+      it = it2;
+    }
+  }
+  for(int i=0;i<q;i++)
+    printf("%d\n", ans[i]);
+  return 0;
+}

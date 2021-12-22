@@ -1,0 +1,141 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define lgN 18
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int in[MAXN],out[MAXN],P[MAXN][28],lvl[MAXN],tim,lazy[MAXN<<2],s[MAXN<<2];
+int n,u,v;
+vector<int>adj[MAXN];
+void dfs(int nd,int pr){
+	in[nd]=++tim;
+	lvl[nd]=lvl[pr]+1;
+	P[nd][0]=pr;
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to==pr)
+			continue;
+		dfs(to,nd);	
+	}
+	out[nd]=tim;
+}
+void upd(int v,int nd,int x,int y){
+	if(v==1)
+		s[nd]=(y-x+1);
+	else
+		s[nd]=0;	
+	lazy[nd]=v;
+}
+void shift(int nd,int x,int y){
+	if(!lazy[nd])
+		return;
+	int mid=(x+y)>>1;	
+	upd(lazy[nd],nd<<1,x,mid);
+	upd(lazy[nd],nd<<1|1,mid+1,y);
+	lazy[nd]=0;
+}
+void inc(int tp,int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		upd(tp,nd,x,y);
+		return;		
+	}
+	shift(nd,x,y);
+	int mid=(x+y)>>1;
+	inc(tp,l,r,nd<<1,x,mid);
+	inc(tp,l,r,nd<<1|1,mid+1,y);
+	s[nd]=s[nd<<1]+s[nd<<1|1];
+}
+int tap(int p,int nd,int x,int y){
+	if(x==y)
+		return s[nd];	
+	shift(nd,x,y);	
+	int mid=(x+y)>>1;	
+	if(p<=mid)
+		return tap(p,nd<<1,x,mid);
+	else
+		return tap(p,nd<<1|1,mid+1,y);		
+}
+int LCA(int x,int y){
+	if(lvl[x]<lvl[y])
+		swap(x,y);
+	for(int i=lgN;i>=0;i--)
+		if(lvl[x]-(1<<i)>=lvl[y])
+			x=P[x][i];
+	if(x==y)
+		return x;
+	for(int i=lgN;i>=0;i--)
+		if(P[x][i]!=-1 and P[x][i]!=P[y][i])
+			x=P[x][i],y=P[y][i];
+	return P[x][0];
+}
+void build(){
+	for(int j=1;j<lgN;j++)
+		for(int i=1;i<=n;i++)
+			if(P[i][j-1]!=-1)
+				P[i][j]=P[P[i][j-1]][j-1];
+}
+inline void _add(int x,int y){
+	adj[x].pb(y);
+	adj[y].pb(x);
+}
+int main(){
+	scanf("%d",&n);
+	for(int i=0;i<n-1;i++)
+		scanf("%d%d",&u,&v),_add(u,v);
+	dfs(1,0);
+	build();
+	int q;
+	scanf("%d",&q);
+	while(q--){
+		int type;
+		scanf("%d",&type);
+		if(type==1){
+			int x;
+			scanf("%d",&x);
+			inc(1,in[x],out[x],1,1,n);
+			printf("%d\n",n-s[1]);
+		}
+		else if(type==2){
+			int x;
+			scanf("%d",&x);
+			inc(2,in[x],out[x],1,1,n);
+			printf("%d\n",n-s[1]);
+		}
+		else{
+			int x,y;
+			scanf("%d%d",&x,&y);
+			if(tap(in[x],1,1,n) or tap(in[y],1,1,n))
+				printf("Forgive me Sultan\n");
+			else	
+				printf("%d\n",LCA(x,y));
+		}
+	}
+	return 0;
+}
+/*
+7
+1 2
+1 3
+2 4
+2 5
+3 6
+3 7
+
+*/

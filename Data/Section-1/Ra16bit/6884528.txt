@@ -1,0 +1,61 @@
+#include <cstdio>
+#include <set>
+#include <algorithm>
+using namespace std;
+int n,w,i,j,cur,a[300300],b[300300],ans[300300];
+long long x,r;
+set<pair<long long, int> > s;
+bool cmp(int i, int j) {
+  return a[i]<a[j];
+}
+int main() {
+  scanf("%d%d",&n,&w);
+  for (i=0; i<n; i++) {
+    scanf("%d%d",&a[i],&b[i]);
+    s.insert(make_pair(a[i]*2LL,i));
+    if (a[i]>b[i]-a[i]) s.insert(make_pair(b[i],i));
+  }
+  while (cur+1<w) {
+    x=s.begin()->first;
+    i=s.begin()->second;
+    s.erase(s.begin());
+    if (x==a[i]*2LL && ans[i]==0) {
+      if (a[i]>b[i]-a[i]) {
+        set<pair<long long, int> >::iterator it=s.find(make_pair(b[i],i));
+        if (it!=s.end()) s.erase(it);
+      }
+      s.insert(make_pair((b[i]-a[i])*2LL,i));
+      ans[i]=1;
+      cur++;
+      r+=a[i];
+    } else {
+      if (a[i]>b[i]-a[i]) {
+        set<pair<long long, int> >::iterator it=s.find(make_pair(a[i]*2LL,i));
+        if (it!=s.end()) s.erase(it);
+      }
+      if (ans[i]==0) {
+        cur+=2;
+        r+=b[i];
+      } else {
+        cur++;
+        r+=b[i]-a[i];
+      }
+      ans[i]=2;
+    }
+  }
+  if (cur+1==w) {
+    x=2000000000; j=-1;
+    for (i=0; i<n; i++) if (ans[i]==0) {
+      if (a[i]<x) { x=a[i]; j=i; }
+    } else if (ans[i]==1) {
+      if (b[i]-a[i]<x) { x=b[i]-a[i]; j=i; }
+    }
+    if (j>=0) {
+      ans[j]++;
+      r+=x;
+    }
+  }
+  printf("%I64d\n",r);
+  for (i=0; i<n; i++) printf("%d",ans[i]);
+  return 0;
+}

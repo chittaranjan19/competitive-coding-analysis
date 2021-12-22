@@ -1,0 +1,74 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 300010;
+
+ll fact[maxn], mfact[maxn], ways[maxn];
+vector<pii> pts;
+
+ll modpow(ll a, ll b)
+{
+	ll x=1, y=a;
+	while(b){
+		if(b&1)
+			x = (x*y)%mod;
+		y = (y*y)%mod;
+		b/=2;
+	}
+	return x;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int h, w, n, i, j, x1, y1, x2, y2, x, y;
+	ll temp, ans;
+	fact[0] = mfact[0] = 1;
+	for(i=1; i<maxn; i++){
+		fact[i] = (fact[i-1]*1ll*i)%mod;
+		mfact[i] = modpow(fact[i], mod-2);
+	}
+	scanf("%d%d%d", &h, &w, &n);
+	pts.resize(n);
+	for(i=0; i<n; i++)
+		scanf("%d%d", &pts[i].f, &pts[i].s);
+	sort(all(pts));
+	ans = (((fact[h+w-2]*mfact[h-1])%mod)*mfact[w-1])%mod;
+	for(i=0; i<n; i++){
+		x1 = pts[i].f;
+		y1 = pts[i].s;
+		temp = (((fact[x1+y1-2]*mfact[x1-1])%mod)*mfact[y1-1])%mod;
+		ways[i] = (ways[i]+temp)%mod;
+		for(j=i+1; j<n; j++){
+			x2 = pts[j].f;
+			y2 = pts[j].s;
+			if(x2<x1 || y2<y1)
+				continue;
+			x = x2-x1;
+			y = y2-y1;
+			temp = (((fact[x+y]*mfact[x])%mod)*mfact[y])%mod;
+			ways[j] = ((ways[j]-(temp*ways[i])%mod+mod))%mod;
+		}
+		x = h-x1;
+		y = w-y1;
+		temp = (((fact[x+y]*mfact[x])%mod)*mfact[y])%mod;
+		ans = (ans - (ways[i]*temp)%mod + mod)%mod;
+	}
+	printf("%lld\n", ans);
+	return 0;
+}

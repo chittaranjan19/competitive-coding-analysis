@@ -1,0 +1,59 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int mod = 1e6 + 3;
+
+int pow_mod(int x, ll n)
+{
+    int ret = 1;
+    while(n)
+    {
+        if(n & 1) ret = (ll)ret * x % mod;
+        x = (ll)x * x % mod;
+        n >>= 1;
+    }
+    return ret;
+}
+
+int main()
+{
+    ll n, m;
+    cin >> n >> m;
+    if(m >= mod) cout << 1 << ' ' << 1 << endl;
+    else
+    {
+        ll now = 1;
+        for(int i = 1; i <= n && now < m; ++i) now <<= 1;
+        if(now < m) cout << 1 << ' ' << 1 << endl;
+        else
+        {
+            now = 0;
+            int tmp = pow_mod(2, n), up = 1, down = 1;
+            for(int i = 1; i < m; ++i)
+            {
+                for(int j = i; j % 2 == 0; j >>= 1)
+                {
+                    ++now;
+                }
+                up = (ll)up * (tmp - i + mod) % mod;
+                down = (ll)down * tmp % mod;
+            }
+            if(!up) cout << 1 << ' ' << 1 << endl;
+            else
+            {
+                now = pow_mod(pow_mod(2, now), mod - 2);
+                up = (ll)up * now % mod;
+                down = (ll)down * now % mod;
+                up = (down - up + mod) % mod;
+                cout << up << ' ' << down << endl;
+            }
+        }
+    }
+    return 0;
+}

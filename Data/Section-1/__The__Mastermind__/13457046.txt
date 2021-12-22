@@ -1,0 +1,136 @@
+const
+  tfi = '';//'584e.inp';
+  tfo = '';//'584e.out';
+
+var
+  n,res,tres,res1,tres1 : longint;
+  a,b,p,pa,pb,ppa,aa : array [1..2000] of longint;
+  tu,tv,u,v : array [1..4000000] of longint;
+
+procedure enter;
+  var i : longint;
+  begin
+    assign(input,tfi);
+    reset(input);
+    read(n);
+    for i := 1 to n do
+      begin
+        read(a[i]);
+        pa[a[i]] := i;
+      end;
+    for i := 1 to n do
+      begin
+        read(b[i]);
+        pb[b[i]] := i;
+      end;
+    close(input);
+  end;
+
+procedure swap(var i,j : longint);
+  var k : longint;
+  begin
+    k := i;
+    i := j;
+    j := k;
+  end;
+
+procedure testing;
+  var i,j,pos : longint;
+  begin
+    randomize;
+    for i := 1 to n do p[i] := i;
+    for i := 1 to n do
+      begin
+        j := random(i-1) + 1;
+        swap(p[i],p[j]);
+      end;
+    tres := 0;
+    tres1 := 0;
+    aa := a;
+    ppa := pa;
+    for i := 1 to n do
+      begin
+        pos := ppa[p[i]];
+        while pos <> pb[p[i]] do
+          if pos < pb[p[i]] then
+            begin
+              for j := pos+1 to pb[p[i]]-1 do
+                if pb[aa[j]] <= pos then
+                  begin
+                    inc(tres);
+                    tu[tres] := j;
+                    tv[tres] := pos;
+                    inc(tres1,j-pos);
+                    swap(ppa[aa[j]],ppa[p[i]]);
+                    swap(aa[j],aa[pos]);
+                    pos := j;
+                    break;
+                  end;
+              j := pb[p[i]];
+              inc(tres);
+              inc(tres1,j-pos);
+              tu[tres] := j;
+              tv[tres] := pos;
+              swap(ppa[aa[j]],ppa[p[i]]);
+              swap(aa[j],aa[pos]);
+              pos := j;
+            end
+          else
+            begin
+              for j := pos-1 downto pb[p[i]]+1 do
+                if pb[aa[j]] >= pos then
+                  begin
+                    inc(tres);
+                    inc(tres1,pos-j);
+                    tu[tres] := j;
+                    tv[tres] := pos;
+                    swap(ppa[aa[j]],ppa[p[i]]);
+                    swap(aa[j],aa[pos]);
+                    pos := j;
+                    break;
+                  end;
+              j := pb[p[i]];
+              inc(tres);
+              inc(tres1,pos-j);
+              tu[tres] := j;
+              tv[tres] := pos;
+              swap(ppa[aa[j]],ppa[p[i]]);
+              swap(aa[j],aa[pos]);
+              pos := j;
+            end;
+      end;
+    if tres1 < res1 then
+      begin
+        res := tres;
+        res1 := tres1;
+        for j := 1 to tres do
+          begin
+            u[j] := tu[j];
+            v[j] := tv[j];
+          end;
+      end;
+  end;
+
+procedure process;
+  var i : longint;
+  begin
+    res1 := maxlongint;
+    for i := 1 to 100 do testing;
+  end;
+
+procedure print;
+  var i : longint;
+  begin
+    assign(output,tfo);
+    rewrite(output);
+    writeln(res1);
+    writeln(res);
+    for i := 1 to res do writeln(u[i],' ',v[i]);
+    close(output);
+  end;
+
+begin
+  enter;
+  process;
+  print;
+end.

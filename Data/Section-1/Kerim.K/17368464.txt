@@ -1,0 +1,93 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN][3],H[MAXN][3];
+PII ans[MAXN];
+int a,c=0,x;
+int tennis(int x,int type){
+	if(!H[x][type])
+		return a+1;
+	return H[x][type];
+}
+int calc(int x,int y){
+	int nok=1,bir=0,iki=0,last;
+	while(nok<=a){
+		int val=arr[nok-1][1];
+		int lav=arr[nok-1][2];
+		int ps1=tennis(val+y,1);
+		int ps2=tennis(lav+y,2);
+		if(min(ps1,ps2)>a)
+			break;
+		if(ps1<ps2){
+			nok=ps1+1;
+			bir++;last=1;
+		}
+		else{
+			iki++;last=2;
+			nok=ps2+1;
+		}
+	}
+	if(bir==iki or nok!=a+1 or (bir==0 and iki==0))
+		return 0;
+	if(x<=max(bir,iki)){
+		if(bir>iki)
+			return (last==1);
+		else
+			return (last==2);	
+	}
+	return 0;
+}
+int main(){
+	scanf("%d",&a);
+	for(int i=1;i<=a;i++){
+		scanf("%d",&x);
+		arr[i][(x!=1)+1]++;
+		arr[i][1]+=arr[i-1][1];
+		arr[i][2]+=arr[i-1][2];
+		if(!H[arr[i][1]][1])
+			H[arr[i][1]][1]=i;
+		if(!H[arr[i][2]][2])
+			H[arr[i][2]][2]=i;
+	}
+	for(int t=1;t<=a;t++){
+		int st=1,en=a;
+		while(st+1<en){
+			int s=(st+en)>>1;
+			if(calc(s,t))
+				st=s;
+			else
+				en=s;	
+		}int pos=-1;
+		for(int i=en;i>=st;i--)
+			if(calc(i,t)){
+				pos=i;
+				break;
+			}
+		if(pos==-1)
+			continue;
+		ans[++c]=mp(pos,t);		
+	}
+	sort(ans+1,ans+c+1);
+	printf("%d\n",c);
+	for(int i=1;i<=c;i++)
+		printf("%d %d\n",ans[i].ff,ans[i].ss);
+	return 0;
+}
+

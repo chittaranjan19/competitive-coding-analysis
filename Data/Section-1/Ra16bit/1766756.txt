@@ -1,0 +1,106 @@
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+const int x[6]={0,0,0,1,1,2};
+const int y[6]={1,2,3,2,3,3};
+struct Drob {
+  int p,q;
+  Drob norm() {
+    if (q==0) q=1;
+    int d=abs(__gcd(p,q));
+    p/=d;
+    q/=d;
+    if (q<0) { p=-p; q=-q; }
+    return *this;
+  }
+} a[8][8],b[8],d,two,len;
+int i,j,k,p,l,ri;
+char r[4][1000100];
+Drob operator - (const Drob& a, const Drob& b) {
+  Drob cur;
+  cur.q=a.q*b.q;
+  cur.p=a.p*b.q-b.p*a.q;
+  return cur.norm();
+
+}
+Drob operator * (const Drob& a, const Drob& b) {
+  Drob cur;
+  cur.p=a.p*b.p;
+  cur.q=a.q*b.q;
+  return cur.norm();
+}
+Drob operator / (const Drob& a, const Drob& b) {
+  Drob cur;
+  cur.p=a.p*b.q;
+  cur.q=a.q*b.p;
+  return cur.norm();
+}
+int main() {
+  for (i=0; i<6; i++) { scanf("%d",&b[i].p); b[i].q=1; }
+  for (i=0; i<8; i++) for (j=0; j<6; j++) {
+    if (((i>>x[j])&1)!=((i>>y[j])&1)) a[j][i].p=1;
+    a[j][i].q=1;
+  }
+  for (i=0; i<6; i++) {
+    for (j=0; j<8; j++) if (a[i][j].p!=0) break;
+    for (k=i+1; k<6; k++) if (a[k][j].p!=0) {
+      d=a[k][j]/a[i][j];
+      for (p=0; p<8; p++) a[k][p]=a[k][p]-a[i][p]*d;
+      b[k]=b[k]-b[i]*d;
+    }
+  }
+  for (i=5; i>=0; i--) {
+    for (j=0; j<8; j++) if (a[i][j].p!=0) break;
+    for (k=i-1; k>=0; k--) if (a[k][j].p!=0) {
+      d=a[k][j]/a[i][j];
+      for (p=0; p<8; p++) a[k][p]=a[k][p]-a[i][p]*d;
+      b[k]=b[k]-b[i]*d;
+    }
+  }
+  two.p=2;
+  two.q=1;
+  for (i=3; i<6; i++) {
+    for (j=0; j<8; j++) if (a[i][j].p) a[i][j]=a[i][j]/two;
+    b[i]=b[i]/two;
+  }
+  for (i=0; i<6; i++) if (b[i].p!=0 && b[i].q!=1) { puts("-1"); return 0; }
+  l=0; ri=b[5].p;
+  if (-b[4].p<ri) ri=-b[4].p;
+  if (b[3].p<ri) ri=b[3].p;
+  if (b[2].p>l) l=b[2].p;
+  if (b[1].p>l) l=b[1].p;
+  if (-b[0].p>l) l=-b[0].p;
+  if (l<=ri) {
+    for (i=j=0; i<b[0].p+l; i++,j++) {
+      r[0][j]='a'; r[1][j]='a';
+      r[2][j]='a'; r[3][j]='b';
+    }
+    for (i=0; i<-b[1].p+l; i++,j++) {
+      r[0][j]='a'; r[1][j]='a';
+      r[2][j]='b'; r[3][j]='a';
+    }
+    for (i=0; i<-b[2].p+l; i++,j++) {
+      r[0][j]='a'; r[1][j]='a';
+      r[2][j]='b'; r[3][j]='b';
+    }
+    for (i=0; i<b[3].p-l; i++,j++) {
+      r[0][j]='a'; r[1][j]='b';
+      r[2][j]='a'; r[3][j]='a';
+    }
+    for (i=0; i<-b[4].p-l; i++,j++) {
+      r[0][j]='a'; r[1][j]='b';
+      r[2][j]='a'; r[3][j]='b';
+    }
+    for (i=0; i<b[5].p-l; i++,j++) {
+      r[0][j]='a'; r[1][j]='b';
+      r[2][j]='b'; r[3][j]='a';
+    }
+    for (i=0; i<l; i++,j++) {
+      r[0][j]='a'; r[1][j]='b';
+      r[2][j]='b'; r[3][j]='b';
+    }
+    printf("%d\n",j);
+    for (i=0; i<4; i++) puts(r[i]);
+  } else puts("-1");
+  return 0;
+}

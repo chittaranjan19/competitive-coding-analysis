@@ -1,0 +1,42 @@
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+const int MX=1010;
+int n,m,num,cur,i,j,k,a[MX],l[MX],r[MX],c[MX],pos[MX],ind[MX],f[MX],g[MX];
+bool b[MX];
+bool cmp(int i, int j) {
+  return r[i]<r[j];
+}
+int main() {
+  scanf("%d%d",&n,&m);
+  for (i=0; i<n; i++) {
+    scanf("%d%d%d",&l[i],&r[i],&c[i]);
+    r[i]=l[i]+r[i]-1;
+    pos[i]=r[i];
+    ind[i]=i;
+  }
+  pos[n]=0;
+  sort(pos,pos+n+1);
+  num=unique(pos,pos+n+1)-pos;
+  sort(ind,ind+n,cmp);
+  for (i=0; i<n; i++) a[i]=lower_bound(pos,pos+num,l[i])-pos-1;
+  for (k=0; k<m; k++) {
+    f[0]=j=0;
+    for (i=1; i<num; i++) {
+      f[i]=f[i-1]; g[i]=-1;
+      for (; j<n && r[ind[j]]==pos[i]; j++) if (!b[ind[j]]) {
+        cur=f[a[ind[j]]]+c[ind[j]];
+        if (cur>f[i]) {
+          f[i]=cur;
+          g[i]=ind[j];
+        }
+      }
+    }
+    for (i=num-1; f[i]>0; ) if (g[i]>=0) {
+      b[g[i]]=true;
+      i=a[g[i]];
+    } else i--;
+  }
+  for (i=0; i<n; i++) printf("%d%c",int(b[i]),(i==n-1)?'\n':' ');
+  return 0;
+}

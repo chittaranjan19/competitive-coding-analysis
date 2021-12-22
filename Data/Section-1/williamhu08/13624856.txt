@@ -1,0 +1,78 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+const int MAXA = 1e7 + 7, MOD = 1e9 + 7;
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+int pwr2[MAXA];
+int N, A[MAXA];
+int mfac[MAXA];
+int sfree[MAXA];
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	//compute powers of 2
+	pwr2[0] = 1;
+	for (int i = 1; i < MAXA; i++) {
+		pwr2[i] = mult(pwr2[i - 1], 2);
+	}
+	sfree[1] = -1;	//apparently you're supposed to ADD stuff with odd # of PFs
+	//compute minimum factor
+	for (int i = 2; i < MAXA; i++) {
+		for (int j = i; j < MAXA; j += i) {
+			if (!mfac[j]) {
+				mfac[j] = i;
+			}
+		}
+		//calc whether this thing is square free
+		//might not be square free
+		int x = i / mfac[i];
+		if (sfree[x] && x % mfac[i] != 0) {
+			sfree[i] = -sfree[x];
+		}
+	}
+	scanf("%d", &N);
+	for (int i = 0, x; i < N; i++) {
+		scanf("%d", &x);
+		//change so no square factors remain
+		int nx = 1;
+		while (x != 1) {
+			int f = mfac[x];
+			nx *= f;
+			while (x % f == 0) {
+				x /= f;
+			}
+		}
+		A[nx]++;
+	}
+	//ok let's now let's do the thing...
+	int ans = 0;
+	for (int i = 2; i < MAXA; i++) {
+		if (!sfree[i]) {
+			continue;
+		}
+		//otherwise ok...
+		int cnt = 0;
+		for (int j = i; j < MAXA; j += i) {
+			cnt += A[j];
+		}
+		ans = add(ans, mult(sfree[i] + MOD, mult(N - cnt, pwr2[cnt] - 1)));
+	}
+	printf("%d\n", ans);
+}

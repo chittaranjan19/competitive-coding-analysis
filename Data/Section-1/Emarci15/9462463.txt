@@ -1,0 +1,98 @@
+#include <cstdio>
+
+using namespace std;
+
+int n,m;
+
+int velso[100000];
+int vhova[100000];
+int vkov[100000];
+
+int elso[100000];
+int hova[100000];
+int kov[100000];
+
+bool eler[100000];
+int veler[100000];
+int oveler[100000];
+
+int D[100000];
+int De;
+
+int cc;
+int ovcc;
+
+void vdfs(int k) {
+    veler[k] = 1;
+    for(int i=velso[k]; i>=0; i=vkov[i]) {
+        if(!veler[vhova[i]]) vdfs(vhova[i]);
+    }
+    D[--De] = k;
+}
+
+int dfs(int k) {
+    eler[k] = 1;
+    int ret = 1;
+    for(int i=elso[k]; i>=0; i=kov[i]) {
+        if(!eler[hova[i]]) ret += dfs(hova[i]);
+    }
+    return ret;
+}
+
+void ovdfs(int k) {
+    oveler[k] = 1;
+    for(int i=velso[k]; i>=0; i=vkov[i]) {
+        if(!oveler[vhova[i]]) ovdfs(vhova[i]);
+    }
+    for(int i=elso[k]; i>=0; i=kov[i]) {
+        if(!oveler[hova[i]]) ovdfs(hova[i]);
+    }
+}
+
+int main()
+{
+    scanf("%d%d",&n,&m);
+
+    for(int i=0; i<n; i++) {
+        elso[i] = velso[i] = -1;
+    }
+
+    for(int i=0; i<m; i++) {
+        scanf("%d%d",&vhova[i],&hova[i]);
+        vhova[i]--; hova[i]--;
+
+        kov[i] = elso[vhova[i]];
+        elso[vhova[i]] = i;
+
+        vkov[i] = velso[hova[i]];
+        velso[hova[i]] = i;
+    }
+
+    De = n;
+    for(int i=0; i<n; i++) {
+        if(!veler[i]) vdfs(i);
+    }
+
+    int ans = 0;
+
+    for(int i=0; i<n; i++) {
+        if(!eler[D[i]]) {
+            cc++;
+            int c = dfs(D[i]);
+            if(c > 1) ans += c;
+        }
+    }
+
+    for(int i=0; i<n; i++) {
+        if(!oveler[i]) {
+            ovcc++;
+            ovdfs(i);
+        }
+    }
+
+    ans += cc-ovcc;
+
+    printf("%d\n",ans);
+
+    return 0;
+}

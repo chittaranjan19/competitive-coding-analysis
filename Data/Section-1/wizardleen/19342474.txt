@@ -1,0 +1,71 @@
+import java.io.BufferedInputStream;
+import java.util.Scanner;
+
+/**
+ * Created by leen on 7/23/16.
+ */
+public class _701C {
+    public static void main(String[] args) {
+
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024 * 64));
+        int n = scan.nextInt();
+        scan.nextLine();
+        String line = scan.nextLine();
+
+        long bitMask = 0;
+        int [] data = new int[n];
+
+        for(int i = 0; i < n; i++) {
+            int type = convertToType(line.charAt(i));
+            data[i] = type;
+            bitMask |= 1L << type;
+        }
+
+        int numTypes = 0;
+        for(int i = 0; i < 52; i++) {
+            if((bitMask & 1L << i) != 0)
+                numTypes++;
+        }
+
+        Table table = new Table();
+
+        int minLen = n;
+        for(int p1 = 0, p2 = 0; p1 < n; p1++) {
+            while(p2 < n && table.numTypes < numTypes)
+                table.add(data[p2++]);
+
+            if(table.numTypes == numTypes) {
+                table.remove(data[p1]);
+                int len = p2 - p1;
+                if(len < minLen)
+                    minLen = len;
+            }
+            else
+                break;
+        }
+
+        System.out.println(minLen);
+    }
+
+    static int convertToType(char c) {
+        if(c >= 'a')
+            return c - 'a' + 26;
+        else
+            return c - 'A';
+    }
+
+    static class Table {
+        int[] numByType = new int[52];
+        int numTypes;
+
+        void remove(int type) {
+            if(--numByType[type] == 0)
+                numTypes--;
+        }
+
+        void add(int type) {
+            if(++numByType[type] == 1)
+                numTypes++;
+        }
+    }
+}

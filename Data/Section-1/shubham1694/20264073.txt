@@ -1,0 +1,114 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 2010;
+
+int n, m, k, state[maxn], sz[maxn], l[maxn], r[maxn], t[maxn], d[maxn];
+int p1, p2, q1, q2;
+char str[maxn];
+pii last[maxn], ind[maxn][maxn], pos[maxn][maxn];
+ll ans, mat[maxn][maxn], pref_sum[maxn][maxn];
+
+int isInside(int x, int y)
+{
+	return (x>=p1 && x<=p2 && y>=q1 && y<=q2);
+}
+
+void horizontal(int x)
+{
+	int i, j, g;
+	for(i=q1; i<=q2; i++){
+		g = ind[x][i].f;
+		j = ind[x][i].s;
+		if(!state[g])
+			continue;
+		if(j+1 <= sz[g] && !isInside(pos[g][j+1].f, pos[g][j+1].s))
+			ans += pref_sum[g][j];
+		if(j-1 >= 1 && !isInside(pos[g][j-1].f, pos[g][j-1].s))
+			ans -= pref_sum[g][j-1];
+	}
+}
+
+void vertical(int y)
+{
+	int i, j, g;
+	for(i=p1+1; i<=p2-1; i++){
+		g = ind[i][y].f;
+		j = ind[i][y].s;
+		if(!state[g])
+			continue;
+		if(j+1 <= sz[g] && !isInside(pos[g][j+1].f, pos[g][j+1].s))
+			ans += pref_sum[g][j];
+		if(j-1 >= 1 && !isInside(pos[g][j-1].f, pos[g][j-1].s))
+			ans -= pref_sum[g][j-1];
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, u, v, w;
+	scanf("%d%d%d", &n, &m, &k);
+	for(i=1; i<=k; i++){
+		state[i] = 1;
+		scanf("%d", &sz[i]);
+		l[i] = maxn;
+		r[i] = 0;
+		t[i] = maxn;
+		d[i] = 0;
+		for(j=1; j<=sz[i]; j++){
+			scanf("%d%d%d", &u, &v, &w);
+			ind[u][v] = mp(i, j);
+			pos[i][j] = mp(u, v);
+			mat[u][v] = w;
+			pref_sum[i][j] = pref_sum[i][j-1] + mat[u][v];
+			l[i] = min(l[i], u);
+			r[i] = max(r[i], u);
+			t[i] = min(t[i], v);
+			d[i] = max(d[i], v);
+			if(j==sz[i])
+				last[i] = mp(u, v);
+		}
+	}
+	int q;
+	scanf("%d", &q);
+	while(q--){
+		scanf("%s", str);
+		if(str[0] == 'S'){
+			scanf("%d", &u);
+			state[u] ^= 1;
+		}
+		else{
+			scanf("%d%d%d%d", &p1, &q1, &p2, &q2);
+			ans = 0;
+			horizontal(p1);
+			if(p2 != p1)
+				horizontal(p2);
+			vertical(q1);
+			if(q2 != q1)
+				vertical(q2);
+			for(i=1; i<=k; i++){
+				if(state[i] && isInside(last[i].f, last[i].s))
+					ans += pref_sum[i][sz[i]];
+			}
+			printf("%lld\n", ans);
+		}
+	}
+	return 0;
+}

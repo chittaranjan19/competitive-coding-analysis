@@ -1,0 +1,66 @@
+#include<stdio.h>
+#include<memory.h>
+#include<vector>
+#include<algorithm>
+using namespace std;
+#define pp pair<int,int>
+#define ppp pair<int,pp>
+vector<ppp> G[3005];
+bool visited[3005]={false},flag=0;
+void dfs(int u,int stx,int sty)
+{
+    visited[u]=true;
+    //printf("u=%d\n",u);
+    int i,si=G[u].size();
+    for(i=0;i<si;i++)
+    {
+        if(!visited[G[u][i].first])
+        {
+            if(stx>=G[u][i].second.first && sty<=G[u][i].second.second)
+            {
+                dfs(G[u][i].first,stx,sty);
+            }
+        }
+    }
+}
+int main()
+{
+    int n,m,i,j,arr[3005]={0},ans=0,brr[3005]={0};
+    scanf("%d%d",&n,&m);
+    for(i=0;i<m;i++)
+    {
+        int u,v,a,b;
+        scanf("%d%d%d%d",&u,&v,&a,&b);
+        G[u].push_back(ppp(v,pp(a,b)));
+        arr[i]=a;
+        brr[i+1]=b;
+    }
+    sort(brr+1,brr+m+1);
+    for(i=0;i<m;i++)
+    {
+        //printf("\n\na=%d\n",arr[i]);
+        int low=1,high=m;
+        while(low<=high)
+        {
+            memset(visited,false,sizeof(visited));
+            int mid=(low+high)/2;
+            //printf("low=%d high=%d mid=%d\n",low,high,brr[mid]);
+            dfs(1,arr[i],brr[mid]);
+            if(visited[n])
+            {
+                low=mid+1;
+                if(brr[mid]-arr[i]+1>ans)
+                    ans=brr[mid]-arr[i]+1;
+            }
+            else
+            {
+                high=mid-1;
+            }
+        }
+    }
+    if(ans==0)
+        printf("Nice work, Dima!\n");
+    else
+        printf("%d\n",ans);
+    return 0;
+}

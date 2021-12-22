@@ -1,0 +1,241 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemB4 {
+    private static int ERA_MAX = 1010;
+
+    private boolean[] prime = new boolean[ERA_MAX];
+
+    private void start() {
+        prime[2] = true;
+        for (int i = 2; i < ERA_MAX; i++) {
+            if (i % 2 != 0) {
+                prime[i] = true;
+            }
+        }
+        int s = (int) Math.round(Math.floor(Math.sqrt(ERA_MAX)));
+        for (int i = 3; i <= s; i += 2) {
+            if(prime[i]) {
+                for (int j = i * i; j < ERA_MAX; j += i) {
+                    prime[j] = false;
+                }
+            }
+        }
+    }
+    int[] primes = new int[169];
+
+    Map<Integer, Map<Integer, Integer>> b = new HashMap<>();
+
+    BufferedReader rd;
+
+    ProblemB4() throws IOException {
+        start();
+        int p = 0;
+        for(int i=0;i<ERA_MAX;i++) {
+            if(prime[i]) {
+                primes[p++] = i;
+            }
+        }
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private boolean isPrime(long x) {
+        if(x < 4 || x%2 == 0) {
+            return x == 2 || x == 3;
+        }
+        for(long i=3;i*i<=x;i+=2) {
+            if(x%i==0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void compute() throws IOException {
+        int k = intarr()[1];
+        int[] c = intarr();
+
+        boolean res;
+        if(k == 1) {
+            res = true;
+        } else {
+            Map<Integer, Integer> m = getPrimeDivisors(k);
+            int max = 1;
+            for(Map.Entry<Integer, Integer> e: m.entrySet()) {
+                max = Math.max(max, e.getKey());
+            }
+            int w = pow(max, m.get(max));
+            boolean ok = false;
+            for(int x: c) {
+                if((x%w) == 0) {
+                    ok = true;
+                    break;
+                }
+            }
+            if(ok) {
+                m.remove(max);
+                for(int i=0;i<c.length;i++) {
+                    while((c[i] % max) == 0) {
+                        c[i] /= max;
+                    }
+                }
+                Queue<Integer> q = new ArrayDeque<>();
+                Set<Integer> checked = new HashSet<>();
+                for (int x : c) {
+                    if (checked.add(x)) {
+                        Map<Integer, Integer> z = getPrimeDivisors(x);
+                        for (Map.Entry<Integer, Integer> e : m.entrySet()) {
+                            Integer cur = z.get(e.getKey());
+                            if (cur != null) {
+                                if (cur >= e.getValue()) {
+                                    q.add(e.getKey());
+                                }
+                            }
+                        }
+                        while (!q.isEmpty()) {
+                            m.remove(q.poll());
+                        }
+                    }
+                    if (m.isEmpty()) {
+                        break;
+                    }
+                }
+                res = m.isEmpty();
+            } else {
+                res = false;
+            }
+        }
+        out(res?"Yes":"No");
+    }
+
+    private int pow(int x, int y) {
+        int z = 1;
+        for(int i=0;i<y;i++) {
+            z *= x;
+        }
+        return z;
+    }
+
+    private Map<Integer,Integer> getPrimeDivisors(int n) {
+        Map<Integer, Integer> res = b.get(n);
+        if(res != null) {
+            return res;
+        }
+        Map<Integer, Integer> m = new HashMap<>();
+        int px = 0;
+        int s = (int)Math.round(Math.floor(Math.sqrt(n)));
+        int p = 2;
+        int w = 1;
+        while(n > 1 && p <= s) {
+            while((n%p) == 0) {
+                inc(m,p);
+                n /= p;
+                w *= p;
+                Map<Integer, Integer> c = b.get(w);
+                if(c == null) {
+                    b.put(w, new HashMap<>(m));
+                }
+                c = b.get(n);
+                if(c != null) {
+                    for(Map.Entry<Integer, Integer> e: c.entrySet()) {
+                        Integer cur = m.get(e.getKey());
+                        Integer v = e.getValue();
+                        if(cur != null) {
+                            v += cur;
+                        }
+                        m.put(e.getKey(), v);
+                    }
+                    b.put(w*n, m);
+                    return m;
+                }
+            }
+            s = (int)Math.round(Math.floor(Math.sqrt(n)));
+            px++;
+            p = primes[px];
+        }
+        if(n > 1) {
+            inc(m,n);
+        }
+        return m;
+    }
+
+    private void inc(Map<Integer, Integer> map, int key) {
+        Integer value = map.get(key);
+        value = value == null ? 1 : value+1;
+        map.put(key, value);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB4();
+    }
+}

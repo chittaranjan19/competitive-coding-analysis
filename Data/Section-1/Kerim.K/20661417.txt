@@ -1,0 +1,104 @@
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+
+#define ff first
+#define ss second
+#define pp pop_back
+#define mp make_pair
+#define pb push_back
+#define lld long long
+#define mid(x, y) (x+y)/2
+#define pii pair <int, int>
+#define sz(x) (int)x.size()
+#define gcd(x, y) __gcd (x, y)
+#define all(x) x.begin(), x.end()
+#define foreach(i, x) for(auto i: x)
+#define lcm(x, y) (x*y) / __gcd (x, y)
+#define random srand((unsigned)time(NULL))
+#define FOR(i, x, y) for(int i=x; i<=y; i++)
+#define ROF(i, y, x) for(int i=y; i>=x; i--)
+
+using namespace std;
+using namespace __gnu_pbds;
+
+template <typename T> using ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+
+//min beryar ---> priority_queue < pii, vector< pii >, greater< pii > > Q;
+//max beryar ---> priority_queue < pii > Q;
+
+const int N = 2000006;
+const int Max = 100005;
+const int Mod = 1000000007;
+const int inf = 0x3f3f3f3f;
+
+int n, Q, a, b, type;
+int L[Max], w[Max], ans[Max];
+vector< int > prime[N], g[Max], noob[N];
+
+int cmo(int x, int y) {
+    if (~x && L[x] > L[y])
+        return x;
+    return y;
+}
+
+void Dfs(int v, int p) {
+    L[v] = L[p]+1;
+
+    foreach(i, prime[w[v]]) {
+        if (sz(noob[i]))
+            ans[v] = cmo(ans[v], noob[i].back());
+        noob[i].pb(v);
+    }
+
+    foreach(i, g[v])
+        if (i != p)
+            Dfs(i, v);
+
+    foreach(i, prime[w[v]])
+        noob[i].pp();
+}
+
+int main() {
+	//freopen("file.in", "r", stdin);
+	//freopen("file.out", "w", stdout);
+
+    FOR(i, 2, 2000000) {
+        if (sz(prime[i]) == 0) {
+
+            for(int x=i; x<=2000000; x+=i)
+                prime[x].pb(i);
+        }
+    }
+
+    scanf("%d%d", &n, &Q);
+
+    memset(ans, -1, sizeof(ans));
+
+    FOR(i, 1, n)
+        scanf("%d", &w[i]);
+
+    FOR(i, 2, n) {
+        scanf("%d%d", &a, &b);
+
+        g[a].pb(b);
+        g[b].pb(a);
+    }
+
+    Dfs(1, 0);
+
+    FOR(i, 1, Q) {
+        scanf("%d", &type);
+
+        if (type == 2) {
+            scanf("%d%d", &a, &b);
+            w[a] = b;
+
+			memset(ans, -1, sizeof(ans));
+            Dfs(1, 0);
+        }
+        else{
+            scanf("%d", &a);
+            printf("%d\n", ans[a]);
+        }
+    }
+}

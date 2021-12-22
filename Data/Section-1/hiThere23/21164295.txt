@@ -1,0 +1,102 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 205
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, m, low[mn], even;
+vector< pair<int, int> > g[mn], ans;
+vector<int> odd;
+bool mark[mn * mn], vis[mn];
+
+void setup()
+{
+    cin >> n >> m;
+    FOR(i, 1, n)
+    {
+        g[i].clear();
+        low[i] = 0;
+        vis[i] = false;
+    }
+    int u, v;
+    FOR(i, 1, m)
+    {
+        cin >> u >> v;
+        g[u].pb(mp(v, i));
+        g[v].pb(mp(u, i));
+        mark[i] = false;
+    }
+}
+
+void dfs(int u)
+{
+    vis[u] = true;
+    if (g[u].size() & 1)
+        odd.pb(u);
+    else
+        even ++;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].F;
+        if (!vis[v])
+            dfs(v);
+    }
+}
+
+void euler(int u)
+{
+    for(; low[u] < int(g[u].size()); low[u] ++)
+    {
+        int v = g[u][low[u]].F;
+        int e = g[u][low[u]].S;
+        if (mark[e])
+            continue;
+        mark[e] = true;
+        if (e <= m)
+            ans.pb(mp(u, v));
+        euler(v);
+    }
+}
+
+void xuly()
+{
+    ans.clear();
+    even = 0;
+    FOR(i, 1, n)
+    if (!vis[i])
+    {
+        int r = m;
+        odd.clear();
+        dfs(i);
+        FOR(u, 1, int(odd.size()) - 1)
+        {
+            g[odd[u - 1]].pb(mp(odd[u], ++ r));
+            g[odd[u]].pb(mp(odd[u - 1], r));
+            mark[r] = false;
+        }
+        euler(i);
+    }
+    cout << even << '\n';
+    FOR(i, 0, m - 1)
+        cout << ans[i].F << ' ' << ans[i].S << '\n';
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    int t;
+    cin >> t;
+    FOR(i, 1, t)
+    {
+        setup ();
+        xuly ();
+    }
+    return 0;
+}

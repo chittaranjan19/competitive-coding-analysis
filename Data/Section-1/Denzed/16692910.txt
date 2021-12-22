@@ -1,0 +1,71 @@
+#include <iostream>
+#include <vector>
+#include <map>
+#include <algorithm>
+#include <string>
+#include <set>
+
+using namespace std;
+
+template<typename T>
+using v = vector<T>;
+
+typedef long long ll;
+typedef pair<long long, int> pii;
+
+int main() {
+//    freopen("out.txt", "r", stdin);
+//    freopen("zcx.txt", "w", stdout);
+    ios_base::sync_with_stdio(false);
+    cout.tie(0);
+    int n, m, s, d;
+    cin >> n >> m >> s >> d;
+    v<int> a(n);
+    for (int i = 0; i < n; ++i)
+        cin >> a[i];
+    sort(a.begin(), a.end());
+    v<string> cmd;
+    v<int>    vs;
+    cmd.reserve(2 * n);
+    vs.reserve(2 * n);
+    int pos = 0;
+    for (int i = 0; i < n; ++i)
+    {
+        if (a[i] < pos) continue;
+        if (a[i] - pos - 1 < s)
+        {
+            cout << "IMPOSSIBLE\n";
+            return 0;
+        }
+        if (pos != a[i] - 1)
+        {
+            cmd.push_back("RUN");
+            vs.push_back(a[i] - 1 - pos);
+            pos = a[i] - 1;
+        }
+        int tgt = a[i] + 1;
+        for (int j = i + 1; j < n; ++j)
+        {
+            if (a[j] - tgt - 1 < s)
+                tgt = a[j] + 1;
+            else
+                break;
+        }
+        if (tgt - pos > d)
+        {
+            cout << "IMPOSSIBLE\n";
+            return 0;
+        }
+        cmd.push_back("JUMP");
+        vs.push_back(tgt - pos);
+        pos = tgt;
+    }
+    if (pos != m)
+    {
+        cmd.push_back("RUN");
+        vs.push_back(m - pos);
+    }
+    for (int i = 0; i < cmd.size(); ++i) {
+        cout << cmd[i] << " " << vs[i] << '\n';
+    }
+}

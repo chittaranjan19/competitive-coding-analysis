@@ -1,0 +1,94 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+
+const int N = 1e5 + 100;
+
+vector <pii> g[N];
+int n, m;
+
+vector <int> ts;
+bool mark[N];
+int dp[N];
+
+void dfs(int v, int x){
+	mark[v] = true;
+	for(pii nei : g[v]){
+		int u = nei.X;
+		int t = nei.Y;
+		if(t > x) continue;
+		if(!mark[u])
+			dfs(u, x);
+	}
+	ts.PB(v);
+}
+
+bool isval(int x){
+	memset(mark, 0, sizeof mark);
+	ts.clear();
+	for(int i = 0; i < n; ++i){
+		dp[i] = 1;
+		if(!mark[i])
+			dfs(i, x);
+	}
+	for(int i = 0; i < n; ++i){
+		int v = ts[i];
+		for(pii nei : g[v]){
+			int u = nei.X;
+			int t = nei.Y;
+			if(t > x) continue;
+			dp[v] = max(dp[v], dp[u] + 1);
+		}
+		if(dp[v] == n) return true;
+	}
+	return false;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	for(int i = 0; i < m; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; v --;
+		g[u].PB({v, i + 1});
+	}
+	if(!isval(m)){
+		cout << "-1\n";
+		return 0;
+	}
+	int down = 0, up = m;
+	while(up - down > 1){
+		int mid = (up + down) / 2;
+		if(isval(mid))
+			up = mid;
+		else
+			down = mid;
+	}
+	cout << up << "\n";
+	return 0;
+}

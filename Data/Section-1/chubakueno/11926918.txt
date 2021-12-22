@@ -1,0 +1,80 @@
+#include <bits/stdc++.h>
+using namespace std;
+vector<int> pset; // pset[i]: Padre del nodo i
+vector<int> setSize; // setSize[i]: Tamaño de la familia del nodo i
+int disjointSetsSize; // Cantidad de familias
+void init(int n)
+{
+    disjointSetsSize = n; // Al inicio cada nodo es una familia independiente
+    setSize.assign(n, 1); // El tamaño de cada familia es 1
+    pset.assign(n, 0); // Asignar n casilleros al vector
+    for(int i = 0; i < n; i++) pset[i] = i; // Cada nodo es jefe de familia
+}
+int findSet(int i) // Devuelve el jefe de familia del nodo i
+{
+    return (pset[i] == i)? i : (pset[i] = findSet(pset[i]));
+}
+bool isSameSet(int i, int j) // True si los nodos son de la misma familia
+{
+    return findSet(i) == findSet(j);
+}
+void unionSet(int i, int j) // Une las familias de los nodos i y j
+{
+    disjointSetsSize--; // Al unir dos familias, el total disminuye en 1
+    // El jefe de familia del nodo j se mantendrá
+    setSize[findSet(j)] += setSize[findSet(i)]; //Aumenta size de familia j
+    pset[findSet(i)] = findSet(j); // La familia de i tiene nuevo jefe
+}
+int numDisjointSets() { return disjointSetsSize; } // Cantidad de familias
+int sizeOfSet(int i) { return setSize[findSet(i)]; } // Size de la familia i
+vector<vector<pair<int,int> > > tree;
+int n,m,k,w;
+void dfs(int u,int prev){
+    for(int i=0;i<tree[u].size();++i){
+        int v=tree[u][i].first;
+        if(v==prev) continue;
+        int w=tree[u][i].second;
+        int modo=u+1;
+        if(w==n*m) modo=0;
+        cout<<v+1<<" "<<modo<<endl;
+        dfs(v,u);
+    }
+}
+int main(){
+    
+    scanf("%d %d %d %d\n",&n,&m,&k,&w);
+    vector<pair<int,pair<int,int> > > arist;
+    char arr[k][n][m];
+    for(int i=0;i<k;++i){
+        for(int j=0;j<n;++j)
+            cin>>arr[i][j];
+    }
+    for(int i=0;i<k;++i)
+        for(int j=i+1;j<k;++j){
+            int dist=0;
+            for(int y=0;y<n;++y)
+                for(int x=0;x<m;++x)
+                    if(arr[i][y][x]!=arr[j][y][x])
+                        ++dist;
+            arist.push_back(make_pair(min(dist*w,n*m),make_pair(i,j)));
+        }
+    sort(arist.begin(),arist.end());
+    init(k);
+    int maxw=0;
+    tree.resize(k);
+    long long ans=n*m;
+    for(int i=0;i<arist.size();++i){
+        int u=arist[i].second.first;
+        int v=arist[i].second.second;
+        int w=arist[i].first;
+        if(!isSameSet(u,v)){
+            ans+=w;
+            unionSet(u,v);
+            tree[u].push_back(make_pair(v,w));
+            tree[v].push_back(make_pair(u,w));
+        }
+    }
+    cout<<ans<<endl;
+    cout<<"1 0"<<endl;
+    dfs(0,-1);
+}

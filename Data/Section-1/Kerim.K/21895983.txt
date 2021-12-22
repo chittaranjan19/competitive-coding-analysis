@@ -1,0 +1,112 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+vector<pair<int,PII> >comp[MAXN];
+vector<PII>adj[MAXN];
+int all=0,vis[MAXN],ata[MAXN],size[MAXN],sub[MAXN];
+ll ans[MAXN];
+int tap(int x){
+	if(x==ata[x])
+		return x;
+	return ata[x]=tap(ata[x]);
+}
+void merge(int x,int y){
+	if((x=tap(x))==(y=tap(y)))
+		return;
+	ata[y]=x;
+	size[x]+=size[y];	
+}
+void dfs(int nd){
+	sub[nd]=size[nd];
+	vis[nd]=1;
+	for(int i=0;i<(int)adj[nd].size();i++){
+		int to=adj[nd][i].ff;
+		if(vis[to])
+			continue;
+		dfs(to);sub[nd]+=sub[to];
+	}
+}
+void dfs1(int nd,int pr){
+	for(int i=0;i<(int)adj[nd].size();i++){
+		int to=adj[nd][i].ff;
+		int ind=adj[nd][i].ss;
+		if(to==pr)
+			continue;
+		dfs1(to,nd);
+		ans[ind]=1LL*sub[to]*((all-sub[to])*2LL);	
+	}
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	int n;
+	scanf("%d",&n);
+	vector<pair<PII,PII> >vv;
+	for(int i=1;i<n;i++){
+		int u,v,w;
+		scanf("%d%d%d",&u,&v,&w);
+		vv.pb(mp(mp(w,i),mp(u,v)));
+	}
+	for(int i=1;i<=n;i++)
+		ata[i]=i,size[i]=1;
+	sort(all(vv));int S=1;comp[1].pb(mp(vv[0].ff.ss,vv[0].ss));
+	for(int i=1;i<(int)vv.size();i++){
+		if(vv[i].ff.ff!=vv[i-1].ff.ff)
+			S++;
+		comp[S].pb(mp(vv[i].ff.ss,vv[i].ss));
+	}
+	for(int i=1;i<=S;i++){
+		vector<int>gs;
+		tr(it,comp[i]){
+			int ind=it->ff;
+			int u=it->ss.ff;
+			int v=it->ss.ss;
+			int to=tap(u),from=tap(v);
+			gs.pb(to);gs.pb(from);
+			adj[to].pb(mp(from,ind));
+			adj[from].pb(mp(to,ind));
+		}
+		tr(it,gs)
+			if(!vis[*it]){
+				dfs(*it);all=sub[*it];
+				dfs1(*it,-1);
+			}
+		tr(it,gs)
+			vis[*it]=0,adj[*it].clear(),sub[*it]=0;
+		tr(it,comp[i])
+			merge(it->ss.ff,it->ss.ss);
+	}
+	//~ for(int i=1;i<n;i++)
+		//~ cout<<ans[i]<<" ";
+	//~ cout<<endl;
+	ll mx=0;
+	int cnt=0;
+	for(int i=1;i<n;i++){
+		if(mx<ans[i])
+			mx=ans[i],cnt=0;
+		if(mx==ans[i])
+			cnt++;
+	}
+	printf("%lld %d\n",mx,cnt);
+	for(int i=1;i<n;i++)
+		if(ans[i]==mx)
+			printf("%d ",i);
+	printf("\n");		
+	return 0;
+}

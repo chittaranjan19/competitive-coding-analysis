@@ -1,0 +1,135 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+#define all(x) x.begin(), x.end()
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 3e5 + 10, lg = 31, MAXN = 1111;
+ll mod = 1e9 + 7;
+
+ll gcd(ll a, ll b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll _gcd(ll a, ll b, ll & x, ll & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	ll _x1, _y1;
+	ll d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+ll binpow(ll a, ll n) {
+	ll res = 1;
+	while (n) {
+		if (n & 1)
+			res *= a;
+		a *= a;
+		n >>= 1;
+		a %= mod;
+		res %= mod;
+	}
+	return res;
+}
+
+
+void term_res(string res){
+	cout << res;
+	exit(0);
+}
+
+int dx[] = {0, 0, -1, 1}, dy[] = {-1, 1, 0, 0};
+pair<int, int> ed[100000];
+bool used[100000];
+
+void solve(){
+	vector<int> g[1212];
+	bool even[1212];
+	int even_cnt[1212];
+	int n, m;
+	cin >> n >> m;
+	vector<pair<int, int > > eans;
+	int ans = 0;
+	for(int i = 0; i < m; i++){
+		used[i] = 0;
+		int u, v;
+		cin >> u >> v;
+		ed[i] = mp(u, v);
+		g[u].push_back(i);
+		g[v].push_back(i);
+	}
+	vector<pair<int, int> > vv;
+	for(int i = 1; i <= n; i++){
+		even_cnt[i] = 0;
+		even[i] = g[i].size() % 2 == 0;
+		ans += g[i].size()%2 == 0;
+		if(even[i])
+			vv.push_back(g[i].size(), i);
+	}
+	sort(vv.begin(), vv.end());
+	for(int _i = 0; _i < vv.size(); _i++){
+		int i = vv[_i].sc;
+		if(!even[i]) continue;
+		int sz = g[i].size();
+		for(int j = 0; j < g[i].size(); j++){
+			int eid = g[i][j];
+			if(used[eid]) continue;
+			int v = ed[eid].fs, to = ed[eid].sc;
+			if(v != i) swap(v, to);
+			if(even_cnt[v] < sz/2)
+				eans.push_back(mp(to, v)), even_cnt[v] +=1;
+			else eans.push_back(mp(v, to)), even_cnt[to] +=1;
+			used[eid] = 1;
+		}
+	}
+	for(int i = 1; i <= n; i++){
+		if(even[i]) continue;
+		for(int j = 0; j < g[i].size(); j++){
+			int eid = g[i][j];
+			if(used[eid]) continue;
+			int v = ed[eid].fs, to = ed[eid].sc;
+			eans.push_back(mp(v, to));
+			used[eid] = 1;
+	}
+	}
+		cout << ans << endl;
+		for(int i = 0; i < eans.size(); i++){
+			cout << eans[i].fs << ' ' << eans[i].sc << '\n';
+		}
+}
+
+int main()
+{
+	int t;
+	cin >> t;
+	while(t--){
+		solve();
+	}
+	return 0;
+}

@@ -1,0 +1,156 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <unordered_map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+#define all(x) x.begin(), x.end()
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 4e5 + 10, lg = 31, MAXN = 1111;
+ll mod = 1e9 + 7;
+
+ll gcd(ll a, ll b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll _gcd(ll a, ll b, ll & x, ll & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	ll _x1, _y1;
+	ll d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+ll binpow(ll a, ll n) {
+	ll res = 1;
+	while (n) {
+		if (n & 1)
+			res *= a;
+		a *= a;
+		n >>= 1;
+		a %= mod;
+		res %= mod;
+	}
+	return res;
+}
+
+
+void term_res(string res){
+	cout << res;
+	exit(0);
+}
+
+int dx[] = {0, 0, -1, 1}, dy[] = {-1, 1, 0, 0};
+
+int n, half;
+int A[33][33];
+int ans = -2e9;
+pair<int,int> cur_ans = mp(0,0);
+
+map<pair<int ,int>, int> first_half;
+map<pair<int, int>, int> first_half_str;
+
+void rec(int cur, int a, int b, int c, int lvl = 0){
+	if(lvl == half){
+		if(!first_half.count(mp(a-b, b-c)) || first_half.count(mp(a-b, b-c)) < c)
+			first_half[mp(a-b, b-c)] = c, first_half_str[mp(a-b, b-c)] = cur;
+		return;
+	}
+	int s1 = cur*4+3;
+	int a1 = A[lvl][0]+a, b1 = A[lvl][1]+b, c1 = c;
+	rec(s1, a1, b1,c1, lvl+1);
+	int s2 = cur*4+2;
+	int a2 = A[lvl][0]+a, b2 = b, c2 = A[lvl][2] + c;
+	rec(s2, a2, b2, c2, lvl+1);
+	int s3 = cur*4+1;
+	int a3 = a, b3 = A[lvl][1]+b, c3 = A[lvl][2]+c;
+	rec(s3, a3, b3, c3, lvl+1);
+}
+
+void rec1(int cur, int a, int b, int c, int lvl = half){
+	if(lvl == n){
+		pair<int, int> pr = mp(b-a, c-b);
+		if(first_half.count(pr)){
+			int cur_tans = c+first_half[pr];
+			if(cur_tans > ans)
+				ans = cur_tans, cur_ans = mp(first_half_str[pr], cur);
+		}
+		return;
+	}
+	int s1 = cur*4+3;
+	int a1 = A[lvl][0]+a, b1 = A[lvl][1]+b, c1 = c;
+	rec1(s1, a1, b1,c1, lvl+1);
+	int s2 = cur*4+2;
+	int a2 = A[lvl][0]+a, b2 = b, c2 = A[lvl][2] + c;
+	rec1(s2, a2, b2, c2, lvl+1);
+	int s3 = cur*4+1;
+	int a3 = a, b3 = A[lvl][1]+b, c3 = A[lvl][2]+c;
+	rec1(s3, a3, b3, c3, lvl+1);
+}
+
+int main()
+{
+	cin >> n;
+	for(int i = 0;  i< n; i++){
+		for(int j = 0; j < 3; j++){
+			cin >> A[i][j];
+		}
+	}
+	half = n/2;
+	bool ok = 0;
+	rec(0, 0, 0, 0);
+	rec1(0, 0, 0, 0);
+	if(cur_ans == mp(0,0))
+		term_res("Impossible");
+	string res = "";
+	int cur = cur_ans.sc;
+	while(cur != 0){
+		int get = cur%4;
+		cur /= 4;
+		if (get == 1)
+			res = "MW"+res;
+		if(get == 2)
+			res = "LW"+res;
+		if(get == 3)
+			res = "LM"+res;
+	}
+	cur = cur_ans.fs;
+	while(cur != 0){
+		int get = cur%4;
+		cur /= 4;
+		if (get == 1)
+			res = "MW"+res;
+		if(get == 2)
+			res = "LW"+res;
+		if(get == 3)
+			res = "LM"+res;
+	}
+	for(int i = 0; i < res.length(); i+=2)
+		cout << res[i] << res[i+1] << '\n';
+	return 0;
+}

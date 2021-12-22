@@ -1,0 +1,94 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+int a[12], n;
+ll dp[111][12], fct[111];
+
+ll modpow(ll a, ll b)
+{
+	ll x=1, y=a;
+	while(b){
+		if(b&1)
+			x = (x*y)%mod;
+		y = (y*y)%mod;
+		b/=2;
+	}
+	return x;
+}
+
+ll solve(int len, int cur)
+{
+	if(cur>9){
+		if(len)
+			return 0;
+		return 1;
+	}
+	if(dp[len][cur]!=-1)
+		return dp[len][cur];
+	int i, j;
+	ll ret = 0, x, y, z, temp;
+	for(i=a[cur]; i<=len; i++){
+		temp = x = solve(len-i, cur+1);
+		for(j=len-i+1; j<=len; j++)
+			x = (x*1ll*j)%mod;
+		x = (x*modpow(fct[i], mod-2))%mod;
+		//cout << cur << " " << len << " " << i << " " << x << "\n";
+		ret = (ret+x)%mod;
+		if(cur==0){
+			y = z = 0;
+			y = temp;
+			y = (y*fct[len-1])%mod;
+			y = (y*modpow(fct[len-i], mod-2))%mod;
+			y = (y*modpow(fct[i-1], mod-2))%mod;
+			z = y;
+			/*
+			for(j=1; j<=i; j++){
+				y = temp;
+				y = (y*fct[len-j])%mod;
+				y = (y*modpow(fct[len-i], mod-2))%mod;
+				y = (y*modpow(fct[i-j], mod-2))%mod;
+				z = (z+y)%mod;
+			}
+			cout << cur << " " << len << " " << i << " " << z << " " << temp << " " << x << "\n";*/
+			ret = (ret-z+mod)%mod;
+		}
+	}
+	return dp[len][cur] = ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	memset(dp, -1, sizeof(dp));
+	int i, j, mn=0;
+	fct[0] = 1;
+	for(i=1; i<111; i++)
+		fct[i] = (fct[i-1]*1ll*i)%mod;
+	sd(n);
+	for(i=0; i<=9; i++)
+		sd(a[i]), mn+=a[i];
+	ll ans = 0;
+	for(i=mn; i<=n; i++){
+		//cout << solve(i, 0) << "\n";
+		ans = (ans+solve(i, 0))%mod;
+	}
+	printf("%lld\n", ans);
+	return 0;
+}

@@ -1,0 +1,140 @@
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+typedef pair<pii, pii> P;
+
+const int N = 100 * 1000 + 100;
+
+ll mn[4 * N];
+int cnt[4 * N];
+int lz[4 * N];
+
+vector <int> x;
+vector <int> y;
+
+inline void shift(int v){
+	mn[2 * v + 0] += lz[v];
+	lz[2 * v + 0] += lz[v];
+	mn[2 * v + 1] += lz[v];
+	lz[2 * v + 1] += lz[v];
+	lz[v] = 0;
+}
+
+void update(int v, int s, int e, int l, int r, int k){
+	if(r <= s || e <= l) return;
+	if(l <= s && e <= r){
+		mn[v] += k;
+		lz[v] += k;
+		return;
+	}
+	int mid = (s + e) / 2;
+	shift(v);
+	update(2 * v + 0, s, mid, l, r, k);
+	update(2 * v + 1, mid, e, l, r, k);
+	mn[v] = min(mn[2 * v + 0], mn[2 * v + 1]);
+	cnt[v] = 0;
+	if(mn[v] == mn[2 * v + 0]) cnt[v] += cnt[2 * v + 0]; else cnt[v] += y[mid] - y[s];
+	if(mn[v] == mn[2 * v + 1]) cnt[v] += cnt[2 * v + 1]; else cnt[v] += y[e] - y[mid];
+}
+
+int get(int s, int e){
+	if(mn[1] == 0) return cnt[1];
+	return y[e] - y[s];
+}
+
+ll rectu(vector <P> v){
+	int m = SZ(v);
+	x.clear();
+	y.clear();
+	vector <P> q;
+	memset(mn, 0, sizeof mn);
+	memset(lz, 0, sizeof lz);
+	memset(cnt, 0, sizeof cnt);
+	for(int i = 0; i < m; ++i){
+		if(v[i].Y.X < v[i].X.X) swap(v[i].X.X, v[i].Y.X);
+		if(v[i].Y.Y < v[i].X.Y) swap(v[i].X.Y, v[i].Y.Y);
+		v[i].Y.X ++; v[i].Y.Y ++;
+		x.PB(v[i].X.X); x.PB(v[i].Y.X);
+		y.PB(v[i].X.Y); y.PB(v[i].Y.Y);
+		q.PB({{v[i].X.X, +1}, {v[i].X.Y, v[i].Y.Y}});
+		q.PB({{v[i].Y.X, -1}, {v[i].X.Y, v[i].Y.Y}});
+	}
+	sort(x.begin(), x.end()); x.resize(unique(x.begin(), x.end()) - x.begin());
+	sort(y.begin(), y.end()); y.resize(unique(y.begin(), y.end()) - y.begin());
+	sort(q.begin(), q.end());
+	int k = 0;
+	ll sum = 0;
+	for(int i = 0; i < SZ(x) - 1; ++i){
+		while(k < SZ(q) && q[k].X.X <= x[i]){
+			int t1 = lower_bound(y.begin(), y.end(), q[k].Y.X) - y.begin();
+			int t2 = lower_bound(y.begin(), y.end(), q[k].Y.Y) - y.begin();
+			update(1, 0, SZ(y) - 1, t1, t2, q[k].X.Y);
+			k ++;
+		}
+		sum += (ll)(x[i + 1] - x[i]) * get(0, SZ(y) - 1);
+	}
+	return sum;
+}
+
+int n, m, k;
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m >> k;
+	vector <P> v;
+	vector <P> rec;
+	for(int i = 0; i < m; ++i){
+		int x1, x2, y1, y2;
+		cin >> x1 >> y1 >> x2 >> y2;
+		v.PB({{x1, y1}, {x2, y2}});
+		rec.PB({{x1, y1}, {x2, y2}});
+	}
+	int cnt = 0;
+	while(k){
+		cnt ++;
+		k /= 2;
+	}
+	for(int i = 0; i < cnt; ++i){
+		if(rectu(rec) % 2){
+			cout << "Hamed\n";
+			return 0;
+		}
+		v = rec;
+		rec.clear();
+		for(int i = 0; i < SZ(v); ++i){
+			if(v[i].Y.X < v[i].X.X) swap(v[i].X.X, v[i].Y.X);
+			if(v[i].Y.Y < v[i].X.Y) swap(v[i].X.Y, v[i].Y.Y);
+			v[i].X.X += (v[i].X.X % 2); v[i].X.X /= 2;
+			v[i].X.Y += (v[i].X.Y % 2); v[i].X.Y /= 2;
+			v[i].Y.X -= (v[i].Y.X % 2); v[i].Y.X /= 2;
+			v[i].Y.Y -= (v[i].Y.Y % 2); v[i].Y.Y /= 2;
+			if(v[i].X.X <= v[i].Y.X && v[i].X.Y <= v[i].Y.Y){
+				rec.PB(v[i]);
+			}
+		}
+	}
+	cout << "Malek\n";
+	return 0;
+}

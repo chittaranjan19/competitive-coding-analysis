@@ -1,0 +1,78 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int *cat, **tree, *size;
+int ans = 0, n, m;
+
+void dfs(int k, int l, int cnt)
+{
+    int i;
+    if (cnt > m)
+        return;
+    else if ((size[k] == 1 && k != 0) || (size[k] == 1 && k == 0 && n == 1))
+    {
+        ans++;
+        return;
+    }
+    else
+    {
+        for (i = 0; i < size[k]; i++)
+            if (tree[k][i] != l && tree[k][i] != -1)
+                if (cat[tree[k][i]] == 1)
+                    dfs(tree[k][i], k, cnt + 1);
+                else
+                    dfs(tree[k][i], k, 0);
+    }
+}
+
+int main()
+{
+    int i, j;
+    scanf("%d %d", &n, &m);
+    cat = malloc(sizeof(int) * n);
+    for (i = 0; i < n; i++)
+        scanf("%d", &cat[i]);
+    int b[n - 1][2];
+    for (i = 0; i < n - 1; i++)
+        scanf("%d %d", &b[i][0], &b[i][1]);
+    size = malloc(sizeof(int) * n);
+    for (i = 0; i < n; i++)
+        size[i] = 0;
+    for (i = 0; i < n - 1; i++)
+    {
+        size[b[i][0] - 1]++;
+        size[b[i][1] - 1]++;
+    }
+    int ma = 0;
+    for (i = 0; i < n; i++)
+        if (size[i] > ma)
+            ma = size[i];
+    int **tree = (int**)malloc(sizeof(int*) * n);
+    for (i = 0; i < n; i++)
+        tree[i] = (int*)malloc(sizeof(int) * ma);
+    for (i = 0; i < n; i++)
+        for (j = 0; j < ma; j++)
+            tree[i][j] = -1;
+    int used[n];
+    for (i = 0; i < n; i++)
+        used[i] = 0;
+    for (i = 0; i < n - 1; i++)
+    {
+        tree[b[i][0] - 1][used[b[i][0] - 1]] = b[i][1] - 1;
+        used[b[i][0] - 1]++;
+        tree[b[i][1] - 1][used[b[i][1] - 1]] = b[i][0] - 1;
+        used[b[i][1] - 1]++;
+    }
+    for (i = 0; i < n; i++)
+    {
+        for (j = 0; j < ma; j++)
+            printf("%d ", tree[i][j]);
+        printf("\n");
+    }
+    if (cat[0] == 0)
+        dfs(0, -1, 0);
+    else
+        dfs(0, -1, 1);
+    printf("%d", ans);
+    return 0;
+}

@@ -1,0 +1,116 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const ll MAX_N = 500000;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+ll bin_search_start(vector<pair<ll, ll> > &a, ll x)
+{
+    ll l = 0, r = a.size(), mid;
+    while (r - l > 1)
+    {
+        mid = (l + r) / 2;
+        if (x >= a[mid].first)
+            l = mid;
+        else
+            r = mid;
+    }
+    return l;
+}
+
+ll fact[200001];
+
+ll gcd_ex(ll a, ll b, ll &x, ll &y) // a * x + b * y = gcd(a, b)
+{
+    if (a == 0)
+    {
+        x = 0; y = 1;
+        return b;
+    }
+    ll x1, y1;
+    ll d = gcd_ex(b % a, a, x1, y1);
+    x = y1 - (b / a) * x1;
+    y = x1;
+    return d;
+}
+
+ll rev_mod(ll a, ll mod)
+{
+    ll x, y;
+    gcd_ex(a, mod, x, y);
+    return (x % mod + mod) % mod;
+}
+
+ll C(ll n, ll k)
+{
+    return (fact[n] * rev_mod(fact[n - k], MOD) % MOD) * rev_mod(fact[k], MOD) % MOD;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    fact[0] = 1;
+    for (ll i = 1; i <= 200000; i++)
+        fact[i] = (fact[i - 1] * i) % MOD;
+    ll n, k;
+    cin >> n >> k;
+    vector<pair<ll, ll> > points;
+    vector<pair<ll, ll> > segments;
+    points.push_back({-inf, 0});
+    points.push_back({inf, 1});
+    for (ll i = 0; i < n; i++)
+    {
+        ll l, r;
+        cin >> l >> r;
+        segments.push_back({l, r});
+        if (l > -inf)
+            points.push_back({l - 1, 1});
+        points.push_back({l, 0});
+        points.push_back({r, 1});
+        if (r < inf)
+            points.push_back({r + 1, 0});
+    }
+    sort(points.begin(), points.end());
+    vector<pair<ll, ll> > points1;
+    for (ll i = 0; i < points.size(); i++)
+        if (i == 0 || points[i] != points[i - 1])
+            points1.push_back(points[i]);
+    vector<pair<ll, ll> > parts;
+    for (ll i = 0; i < points1.size() / 2; i++)
+        parts.push_back({points1[i * 2].first, points1[i * 2 + 1].first});
+    ll len = parts.size();
+    ll dp[len];
+    for (ll i = 0; i < len; i++)
+        dp[i] = 0;
+    for (ll i = 0; i < n; i++)
+    {
+        ll pos = bin_search_start(parts, segments[i].first);
+        dp[pos]++;
+        if (segments[i].second < inf)
+        {
+            pos = bin_search_start(parts, segments[i].second + 1);
+            dp[pos]--;
+        }
+    }
+    for (ll i = 1; i < len; i++)
+        dp[i] += dp[i - 1];
+    ll ans = 0;
+    for (ll i = 0; i < len; i++)
+    {
+        if (dp[i] < k)
+            continue;
+        ll x = C(dp[i], k);
+        ans = (ans + (x * (parts[i].second - parts[i].first + 1)) % MOD) % MOD;
+    }
+    cout << ans;
+    return 0;
+}

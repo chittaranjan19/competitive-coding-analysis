@@ -1,0 +1,109 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class ProblemB {
+    BufferedReader rd;
+
+    private ProblemB() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        char[] s = rd.readLine().toCharArray();
+        char[] t = rd.readLine().toCharArray();
+        int n = s.length;
+        int m = t.length;
+        int[] pf = new int[100010];
+        int k = 0;
+        for(int q=2;q<=m;q++) {
+            while(k>0 && t[k] != t[q-1]) {
+                k = pf[k];
+            }
+            if(t[k] == t[q-1]) {
+                k++;
+            }
+            pf[q] = k;
+        }
+        boolean[] ends = new boolean[100010];
+        boolean found = false;
+        int q = 0;
+        for(int i=1;i<=n;i++) {
+            while(q>0 && t[q]!=s[i-1]) {
+                q = pf[q];
+            }
+            if(t[q] == s[i-1]) {
+                q++;
+            }
+            if(q == m) {
+                int ix = i-m;
+                ends[ix + m - 1] = true;
+                found = true;
+                q = pf[q];
+            }
+        }
+
+        if(!found) {
+            out(0);
+            return;
+        }
+        long[][] dp = new long[100010][2];
+        long[][] r = new long[100010][2];
+        dp[0][0] = 1;
+        r[0][1] = 1;
+        int pprev = -2;
+        int xprev = -2;
+        final long B = 1000000007;
+        for(int i=0;i<n;i++) {
+            dp[i+1][0] = dp[i][0] + dp[i][1];
+            dp[i+1][0] %= B;
+
+            r[i+1][1] = r[i][1] + dp[i][1];
+            r[i+1][1] %= B;
+
+            r[i+1][0] = r[i][0] + r[i+1][1];
+            r[i+1][0] %= B;
+
+            dp[i+1][1] = dp[i][1];
+            if(ends[i]) {
+                int prev = i-m;
+                if(xprev > -2) {
+                    if(prev-xprev < m) {
+                        pprev = xprev;
+                    } else {
+                        pprev = -2;
+                    }
+                }
+                long u = r[prev+1][0];
+                u %= B;
+                u += r[prev+1][1];
+                u %= B;
+                if(pprev > -2) {
+                    long v = r[pprev+1][0];
+                    v %= B;
+                    v += r[pprev+1][1];
+                    v %= B;
+                    u += 2*B;
+                    u -= v;
+                }
+                dp[i+1][1] += u;
+                dp[i+1][1] %= B;
+                xprev = prev;
+            }
+        }
+        long res = dp[n][0] + dp[n][1];
+        res %= B;
+        res += B-1;
+        res %= B;
+        out(res);
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB();
+    }
+}

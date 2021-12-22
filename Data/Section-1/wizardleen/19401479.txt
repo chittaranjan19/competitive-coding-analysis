@@ -1,0 +1,63 @@
+import java.io.BufferedInputStream;
+import java.util.Scanner;
+
+/**
+ * Created by leen on 7/25/16.
+ */
+public class _614C {
+    public static void main(String[] args) {
+
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024 * 64));
+        int n = scan.nextInt();
+        double x0 = scan.nextDouble(), y0 = scan.nextDouble();
+
+        double maxRadiusSquare = 0;
+        double minRadiusSquare = Long.MAX_VALUE;
+
+        double lastX = -1;
+        double lastY = -1;
+
+        for(int i = 0; i < n; i++) {
+
+            double x = scan.nextDouble(), y = scan.nextDouble();
+
+            double xDist = x - x0, yDist = y - y0;
+            double distSquare = xDist * xDist + yDist * yDist;
+            double minDistSquare = distSquare;
+            if(i > 0)
+                minDistSquare = pointToSegDistSquare(x0, y0, lastX, lastY, x, y);
+
+            if(minDistSquare < minRadiusSquare)
+                minRadiusSquare = minDistSquare;
+            if(distSquare > maxRadiusSquare)
+                maxRadiusSquare = distSquare;
+
+            lastX = x;
+            lastY = y;
+        }
+
+        System.out.println((maxRadiusSquare - minRadiusSquare) * Math.PI);
+    }
+
+    static double pointToSegDistSquare(double x, double y, double x1, double y1, double x2, double y2) {
+        double px = x - x1;
+        double py = y - y1;
+        double bx = x2 - x1;
+        double by = y2 - y1;
+
+        double bLen = Math.sqrt(bx * bx + by * by);
+        double ux = bx / bLen;
+        double uy = by / bLen;
+
+        double projLen = px * ux + py * uy;
+        if(projLen <= 0)
+            return px * px + py * py;
+        else if(projLen >= bLen)
+            return (x-x2)*(x-x2) + (y-y2)*(y-y2);
+
+        double projX = projLen * ux;
+        double projY = projLen * uy;
+
+        return (px-projX) * (px-projX) + (py-projY)*(py-projY);
+    }
+}

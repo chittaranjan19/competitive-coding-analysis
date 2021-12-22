@@ -1,0 +1,86 @@
+#include <iostream>
+#include <algorithm>
+#include <set>
+#include <vector>
+
+using namespace std;
+
+struct E {
+	int x1, x2, i, x;
+	bool isleft;
+	E(){}
+	E(int lx1, int lx2, int li, bool lisleft) {
+		x1 = lx1; x2 = lx2; i = li; isleft = lisleft;
+		if (isleft) x = x1;
+		else x = x2;
+	}
+};
+
+struct cmpEleft {
+	bool operator() (const E &e1, const E &e2) const {
+		return e1.x < e2.x || (e1.x == e2.x && e1.isleft);
+	}
+};
+
+struct cmpE {
+	bool operator() (const E &e1, const E &e2) const {
+		return e1.x2 < e2.x2 || (e1.x2 == e2.x2 && e1.x1 < e2.x1);
+	}
+};
+
+int main() {
+	int n, m;
+	cin >> n >> m;
+	vector<E> events;
+	for (int i = 0; i < m; i++) {
+		int r, c; cin >> r >> c;
+		int lb = n+1 - r;
+		int rb = c;
+		//cerr << lb << " " << rb << endl;
+		events.push_back(E(lb, rb, i+1, true));
+		events.push_back(E(lb, rb, i+1, false));
+	}
+	int esz = events.size();
+	sort(events.begin(), events.end(), cmpEleft());
+	set<E, cmpE> q;
+	int ind = 0;
+	vector<int> ans;
+	for (int i = 0; i < esz; i++) {
+		//cerr << events[i].i << " " << events[i].isleft << endl;
+	}
+	for (int x = 1; x <= n; x++) {
+		//cerr << "x = " << x << endl;
+		//cerr << "insert: ";
+		while (ind < esz && events[ind].isleft && events[ind].x1 == x) {
+			//cerr << events[ind].i << ' ';
+			q.insert(events[ind]);
+			ind++;
+		}
+		//cerr << endl;
+		if (q.size() == 0) continue;
+		set<E, cmpE>::iterator it = q.lower_bound(E(-1, x, 0, true));
+		if (it != q.begin()) {
+			it--;
+			//cerr << "remove: ";
+			while (it != q.begin()) {
+				set<E, cmpE>::iterator it2 = it;
+				it2--;
+				//cerr << (*it).i << ' ';
+				q.erase(it);
+				it = it2;
+			}
+			//cerr << (*it).i << endl;
+			q.erase(it);
+		}
+		if (q.size() > 0) {
+			ans.push_back((*q.begin()).i);
+			q.erase(q.begin());
+		}
+	}
+	cout << ans.size() << endl;
+	for (int i = 0; i < ans.size(); i++) {
+		if (i > 0) cout << ' ';
+		cout << ans[i];
+	}
+	cout << endl;
+}

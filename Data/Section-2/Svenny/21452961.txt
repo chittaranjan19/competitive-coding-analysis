@@ -1,0 +1,149 @@
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <algorithm>
+#include <iomanip>
+#include <vector>
+#include <list>
+#include <set>
+#include <map>
+#include <string>
+
+using namespace std;
+
+typedef long long ll;
+typedef long double ld;
+typedef unsigned uint;
+
+int sizes[7];
+int n;
+int i, j;
+map<pair<int, int>, set<int>> maybes;
+vector<int> futbes;
+string s;
+
+// S M L XL XXL XXXL
+// 1 2 3  4  5    6
+
+inline int getcode (string &s)
+{
+	if (s == "S")
+		return 1;
+	if (s == "M")
+		return 2;
+	if (s == "L")
+		return 3;
+	if (s == "XL")
+		return 4;
+	if (s == "XXL")
+		return 5;
+	if (s == "XXXL")
+		return 6;
+	return -1;
+}
+
+inline void pcode (int c)
+{
+	if (c == 1)
+		cout << "S" << endl;
+	else if (c == 2)
+		cout << "M" << endl;
+	else if (c == 3)
+		cout << "L" << endl;
+	else if (c == 4)
+		cout << "XL" << endl;
+	else if (c == 5)
+		cout << "XXL" << endl;
+	else if (c == 6)
+		cout << "XXXL" << endl;
+}
+
+int main ()
+{
+#ifdef CONTEST_ONME
+	freopen ("input.txt", "r", stdin);
+	freopen ("output.txt", "w", stdout);
+#endif
+
+	for (i = 1; i <= 6; i++)
+		cin >> sizes[i];
+	cin >> n;
+	futbes.resize (n);
+	for (i = 0; i < n; i++)
+	{
+		cin >> s;
+		int cd = getcode (s);
+		if (cd != -1)
+		{
+			futbes[i] = cd;
+			if (!sizes[cd])
+			{
+				cout << "NO" << endl;
+				return 0;
+			}
+			sizes[cd]--;
+		}
+		else
+		{
+			string sub1, sub2;
+			bool sgo = false;
+			for (j = 0; j < s.size (); j++)
+			{
+				if (s[j] == ',')
+					sgo = true;
+				else
+				{
+					if (sgo)
+						sub2.push_back (s[j]);
+					else
+						sub1.push_back (s[j]);
+				}
+			}
+			int cd1 = getcode (sub1);
+			int cd2 = getcode (sub2);
+			if (!sizes[cd1] && !sizes[cd2])
+			{
+				cout << "NO" << endl;
+				return 0;
+			}
+			maybes[make_pair (cd1, cd2)].insert (i);
+		}
+	}
+	for (auto it = maybes.begin (); it != maybes.end (); it++)
+	{
+		int cd1 = (*it).first.first;
+		int cd2 = (*it).first.second;
+		int sz = (*it).second.size ();
+		if (sizes[cd1] + sizes[cd2] < sz)
+		{
+			cout << "NO" << endl;
+			return 0;
+		}
+		for (auto iter = (*it).second.begin (); iter != (*it).second.end (); iter++)
+		{
+			if (!sizes[cd1] && !sizes[cd2])
+			{
+				cout << "NO" << endl;
+				return 0;
+			}
+			if (sizes[cd1] >= sizes[cd2])
+			{
+				sizes[cd1]--;
+				futbes[*iter] = cd1;
+			}
+			else
+			{
+				sizes[cd2]--;
+				futbes[*iter] = cd2;
+			}
+		}
+	}
+	cout << "YES" << endl;
+	for (i = 0; i < n; i++)
+		pcode (futbes[i]);
+
+#ifdef CONTEST_ONME
+	//system ("pause");
+#endif
+	return 0;
+}

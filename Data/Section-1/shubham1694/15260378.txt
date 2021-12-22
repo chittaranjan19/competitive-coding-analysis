@@ -1,0 +1,96 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1000100;
+const int block = 500;
+
+struct query{
+    int l, r, qno;
+    bool operator<(const query&q) const{
+        if(l/block==q.l/block)
+            return r<q.r;
+        return l/block < q.l/block;
+    }
+};
+
+int cnt[maxn], arr[maxn];
+query q[maxn];
+ll ans[maxn], cur;
+
+void add(int idx)
+{
+    ll x = cnt[arr[idx]];
+    x = x*x*1ll*arr[idx];
+    cur = cur - x;
+    cnt[arr[idx]]++;
+    x = cnt[arr[idx]];
+    x = x*x*1ll*arr[idx];
+    cur = cur+x;
+}
+
+void remove(int idx)
+{
+    ll x = cnt[arr[idx]];
+    x = x*x*1ll*arr[idx];
+    cur = cur - x;
+    cnt[arr[idx]]--;
+    x = cnt[arr[idx]];
+    x = x*x*1ll*arr[idx];
+    cur = cur+x;    
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int n, m, i, j, a, b, curl, curr;
+    scanf("%d%d", &n, &m);
+    for(i=1; i<=n; i++)
+        scanf("%d", &arr[i]);
+    for(i=0; i<m; i++){
+        scanf("%d%d", &q[i].l, &q[i].r);
+        q[i].qno = i;
+    }
+    sort(q, q+m);
+    curl = 1;
+    curr = 1;
+    for(i=0; i<m; i++){
+        a = q[i].l;
+        b = q[i].r;
+        //cout << a << " " << b << " " << curl << " " << curr << "\n"; 
+        while(curl<a){
+            remove(curl);
+            curl++;
+        }
+        while(curl>a){
+            add(curl-1);
+            curl--;
+        }
+        while(curr<=b){
+            add(curr);
+            curr++;
+        }
+        while(curr>b+1){
+            remove(curr-1);
+            curr--;
+        }
+        ans[q[i].qno] = cur;
+    }
+    for(i=0; i<m; i++)
+        printf("%lld\n", ans[i]);
+    return 0;
+}

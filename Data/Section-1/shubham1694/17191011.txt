@@ -1,0 +1,84 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 710;
+
+stack<int> st;
+char str[maxn];
+int n, nxt[maxn];
+ll dp[maxn][maxn][3][3];
+
+ll solve(int s, int e, int pc, int nc)
+{
+    if(s>e)
+        return 1;
+    if(dp[s][e][pc][nc]!=-1)
+        return dp[s][e][pc][nc];
+    ll ret = 0;
+    int sn = nxt[s];
+    if(sn==e){
+        if(pc==1)
+            ret = (ret + solve(s+1, e-1, 2, 0))%mod;
+        else if(pc==2)
+            ret = (ret + solve(s+1, e-1, 1, 0))%mod;
+        else
+            ret = (ret + solve(s+1, e-1, 1, 0) + solve(s+1, e-1, 2, 0))%mod;
+        if(nc==1)
+            ret = (ret + solve(s+1, e-1, 0, 2))%mod;
+        else if(nc==2)
+            ret = (ret + solve(s+1, e-1, 0, 1))%mod;
+        else
+            ret = (ret + solve(s+1, e-1, 0, 1) + solve(s+1, e-1, 0, 2))%mod;
+    }
+    else{
+        if(pc==1)
+            ret = (ret + (solve(s+1, sn-1, 2, 0)*solve(sn+1, e, 0, nc))%mod)%mod;
+        else if(pc==2)
+            ret = (ret + (solve(s+1, sn-1, 1, 0)*solve(sn+1, e, 0, nc))%mod)%mod;
+        else{
+            ll x = (solve(s+1, sn-1, 1, 0)*solve(sn+1, e, 0, nc))%mod;
+            ll y = (solve(s+1, sn-1, 2, 0)*solve(sn+1, e, 0, nc))%mod;
+            ret = (ret + x + y)%mod;
+        }
+        ll x = (solve(s+1, sn-1, 0, 1)*solve(sn+1, e, 1, nc))%mod;
+        ll y = (solve(s+1, sn-1, 0, 2)*solve(sn+1, e, 2, nc))%mod;
+        ret = (ret + x + y)%mod;
+    }
+    return dp[s][e][pc][nc] = ret;
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int i, j;
+    memset(dp, -1, sizeof(dp));
+    scanf("%s", str+1);
+    n = strlen(str+1);
+    for(i=n; i>=1; i--){
+        if(str[i]==')')
+            st.push(i);
+        else{
+            j = st.top();
+            st.pop();
+            nxt[i] = j;
+        }
+    }
+    ll ans = solve(1, n, 0, 0);
+    printf("%lld\n", ans);
+    return 0;
+}

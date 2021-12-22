@@ -1,0 +1,141 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include <queue>
+#include <deque>
+#include <bitset>
+#include <iterator>
+#include <list>
+#include <stack>
+#include <map>
+#include <set>
+#include <functional>
+#include <numeric>
+#include <utility>
+#include <limits>
+#include <time.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <assert.h>
+using namespace std;
+
+#define INF (1 << 30)
+#define INFL (1LL << 50)
+#define pb push_back
+#define loop_it(it, elements) for(auto it = elements.begin(); it != elements.end(); it++)
+#define loop(i, l, r) for(auto i = l; i < r; i++)
+#define loop_r(i, r, l) for(auto i = r; i >= l; i--)
+#define loop_k(i, l, r, k) for(auto i = l; i < r; i+=k)
+#define test_cases int test_cases;scanf("%d", &test_cases);for (int tc_0 = 1; tc_0 <= test_cases; tc_0++)
+
+typedef long long i64;
+typedef set<int> si;
+typedef vector<int> vi;
+typedef vector<i64> vi64;
+typedef vector<vi> vvi;
+typedef vector<vi64> vvi64;
+typedef pair<int, int> pii;
+typedef set<pii> spii;
+typedef vector<pii> vpii;
+typedef map<pii, vi> mpiivi;
+typedef map<int, int> mii;
+typedef map<int, vi> mivi;
+
+struct rect {
+    int x0, y0;
+    int x1, y1;
+    i64 area;
+
+    rect(int _x0, int _y0, int _x1, int _y1, i64 _area): x0(_x0), y0(_y0), x1(_x1), y1(_y1), area(_area) {}
+};
+
+int n; 
+
+int get_count(int x0, int y0, int x1, int y1) {
+    int minx = min(x0, x1);
+    int maxx = max(x0, x1);
+    int miny = min(y0, y1);
+    int maxy = max(y0, y1);
+    printf("? %d %d %d %d\n", minx, miny, maxx, maxy);
+    fflush(stdout);
+    int cnt1;
+    cin >> cnt1;
+    return cnt1;    
+}
+
+i64 get_area(int x0, int y0, int x1, int y1) {
+    int minx = min(x0, x1);
+    int maxx = max(x0, x1);
+    int miny = min(y0, y1);
+    int maxy = max(y0, y1);
+    return (maxy - miny + 1) * ((i64) maxx - minx + 1);
+}
+
+void print(int x0, int y0, int x1, int y1) {
+    int minx = min(x0, x1);
+    int maxx = max(x0, x1);
+    int miny = min(y0, y1);
+    int maxy = max(y0, y1);
+    printf(" %d %d %d %d", minx, miny, maxx, maxy);
+}
+
+bool compare_x(int x, int count) {
+    return get_count(x, 1, n, n) < count;
+}
+
+bool compare_x0(int x, int count) {
+    return get_count(1, 1, x, n) < count;
+}
+
+bool compare_y(int y, int count) {
+    return get_count(1, y, n, n) < count;
+}
+
+bool compare_y0(int y, int count) {
+    return get_count(1, 1, n, y) < count;
+}
+
+bool cmp_area(rect r1, rect r2) {
+    return r1.area < r2.area;
+}
+
+int main() {
+    cin >> n;
+    vi num(n);
+    loop(i, 0, n) {
+        num[i] = i + 1;
+    }
+    vi x(4), y(4);
+    x[0] = *lower_bound(num.rbegin(), num.rend(), 1, compare_x);
+    x[1] = *lower_bound(num.rbegin(), num.rend(), 2, compare_x);
+    x[2] = *lower_bound(num.begin(), num.end(), 1, compare_x0);
+    x[3] = *lower_bound(num.begin(), num.end(), 2, compare_x0);
+    y[0] = *lower_bound(num.rbegin(), num.rend(), 1, compare_y);
+    y[1] = *lower_bound(num.rbegin(), num.rend(), 2, compare_y);
+    y[2] = *lower_bound(num.begin(), num.end(), 1, compare_y0);
+    y[3] = *lower_bound(num.begin(), num.end(), 2, compare_y0);
+    sort(x.begin(), x.end());
+    sort(y.begin(), y.end());
+    vector<rect> rects;
+    loop(i, 0, 4) {
+        loop(j, i, 4) {
+            loop(k, 0, 4) {
+                loop(l, k, 4) if (get_count(x[i], y[k], x[j], y[l]) == 1) {
+                    i64 area = get_area(x[i], y[k], x[j], y[l]);
+                    rects.pb(rect(x[i], y[k], x[j], y[l], area));
+                }
+            }        
+        }        
+    }
+    sort(rects.begin(), rects.end(), cmp_area);
+    printf("! ");
+    print(rects[0].x0, rects[0].y0, rects[0].x1, rects[0].y1);
+    print(rects[1].x0, rects[1].y0, rects[1].x1, rects[1].y1);
+    printf("\n");
+    fflush(stdout);
+    return 0;
+}

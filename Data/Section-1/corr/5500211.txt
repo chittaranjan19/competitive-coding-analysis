@@ -1,0 +1,153 @@
+#include<cstdio>
+#include<cstring>
+#include<cstdlib>
+#include<cctype>
+
+#include<cmath>
+#include<iostream>
+#include<iomanip>
+#include<fstream>
+
+#include<string>
+#include<utility>
+#include<vector>
+#include<list>
+#include<queue>
+#include<map>
+#include<algorithm>
+#include<set>
+#include<sstream>
+#include<stack>
+										// SHOB D ASHE NAI
+#define ii long long int
+#define pi 2*acos(0.0)
+#define eps 1e-9
+#define mem(x,y) memset(x,y,sizeof(x))
+#define all(x) x.begin(), x.end()
+#define pb push_back
+#define sz(a) (int)a.size()
+#define inf 21474836
+
+#define mx 1000010
+#define valid(p,q) p>=1&&p<=n&&q>=1&&q<=m&&s[p-1][q-1]==next[(int)s[i-1][j-1]]
+#define node(i,j) (i-1)*m+j
+#define white 0
+#define grey 1
+#define black 2
+
+using namespace std;
+
+const int debug= 0;
+int dx[]={-1,0,1,0};
+int dy[]={0,1,0,-1};
+int vis[mx],dp[mx];
+vector <int> v[mx],top;
+char sss[mx];
+
+void dfs(int i);
+int call(int i);
+
+int main()
+{
+	//freopen("in.txt","r",stdin);
+	//freopen("out.txt","w",stdout);
+	string ss="DIMA";
+	int i,j,k,n,m;
+	char next[100],s[1010][1010];
+	
+	for (i=1;ss[i];++i) next[(int)ss[i-1]]=ss[i];
+	next['A']='D';
+	
+	while (cin>>n>>m)
+	{
+		vector <int> vv;
+		
+		k=n*m;
+		for (i=1;i<=k;++i) v[i].clear();
+		top.clear();
+		mem(vis,0);
+		
+		for (i=0;i<n;++i) scanf("%s",s[i]);
+		for (i=1;i<=n;++i) for (j=1;j<=m;++j)
+		{
+			sss[node(i,j)]= s[i-1][j-1];
+			if (s[i-1][j-1]=='D') vv.pb(node(i,j));
+				
+			for (k=0;k<4;++k)
+			{
+				//cout<<i<<" "<<j<<" -- "<<i+dx[k]<<" "<<j+dy[k]<<endl;
+				if (valid(i+dx[k],j+dy[k]))
+				{
+					//cout<<i<<" "<<j<<" - "<<i+dx[k]<<" "<<j+dy[k]<<endl;
+					v[node(i,j)].pb(node(i+dx[k],j+dy[k]));
+				}
+			}
+		}
+		/*
+		k=n*m;
+		for (i=1;i<=k;++i)
+		{
+			cout<<i<<":";
+			for (j=0;j<sz(v[i]);++j) cout<<" "<<v[i][j];
+			puts("");
+		}
+		puts("-----------");
+		*/
+		
+		int sz= sz(vv);
+		/*
+		for (i=0;i<sz;++i) cout<<vv[i]<<" ";
+		puts("");
+		*/
+		for (i=0;i<sz;++i) if (!vis[vv[i]]) dfs(vv[i]);
+		
+		mem(vis,0);
+		sz= sz(top);
+		int ans=0;
+		for (i=sz-1;i>=0;--i)
+		{
+			if (!vis[top[i]])
+			{
+				int tmp=call(top[i]);
+				ans=max(ans,tmp);
+				//cout<<top[i]<<" "<<tmp<<endl;
+			}
+		}
+		if (!ans) puts("Poor Dima!");
+		else if (ans>=inf) puts("Poor Inna!");
+		else cout<<ans<<endl;
+	}
+	
+	return 0;	
+}
+
+void dfs(int i)
+{
+	//cout<<"-- "<<i<<endl;
+	vis[i]=1;
+	int j,sz=sz(v[i]);
+	for (j=0;j<sz;++j)
+	{
+		if (!vis[v[i][j]]) dfs(v[i][j]);
+	}
+	if (sss[i]=='D') top.pb(i);
+}
+
+int call(int i)
+{
+	if (vis[i]==black) return dp[i];
+	vis[i]= grey;
+	int j,k,sz=sz(v[i]);
+	int ans=0;
+	
+	for (j=0;j<sz;++j)
+	{
+		k=v[i][j];
+		if (vis[k]==grey) return inf;
+		ans=max(ans,call(k));
+	}
+	vis[i]=black;
+	if (sss[i]=='A') ans++;
+	//cout<<i<<" rets "<<ans<<endl;
+	return dp[i]=ans;
+}

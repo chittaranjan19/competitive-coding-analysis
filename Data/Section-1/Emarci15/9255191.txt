@@ -1,0 +1,57 @@
+#include <cstdio>
+
+using namespace std;
+
+int n,t;
+
+long double rec[2][5001];
+long double rn[5001][5001];
+
+int p[5002];
+int tt[5002];
+long double ppow[5002];
+
+int main()
+{
+    scanf("%d%d",&n,&t);
+
+    for(int i=1; i<=n; i++) {
+        scanf("%d%d",&p[i],&tt[i]);
+        ppow[i] = 1.0l;
+        for(int j=1; j<tt[i]; j++) {
+            ppow[i] *= ((long double) (100.0l-p[i]))/100.0l;
+        }
+    }
+
+    rec[0][0] = 1.0l;
+    rn[0][0] = 1.0l;
+
+    p[n+1] = 0.0l;
+    tt[n+1] = t+1;
+
+    for(int i=1; i<=t; i++) {
+        rec[i%2][0] = rec[(i-1)%2][0]*(((long double) (100.0l-p[1]))/100.0l);
+        for(int j=1; j<=n; j++) {
+            if(i-tt[j] >= 0) {
+                rn[i][j] = ((rec[(i-1)%2][j-1]-(rn[i-tt[j]][j-1]*ppow[j]))*(((long double)p[j])/100.0l))
+                            +(rn[i-tt[j]][j-1]*ppow[j]);
+            } else {
+                rn[i][j] = rec[(i-1)%2][j-1]*(((long double)p[j])/100.0l);
+            }
+        }
+        rn[i][n+1] = 0.0l;
+        for(int j=1; j<=n; j++) {
+            rec[i%2][j] = (rec[(i-1)%2][j]-rn[i][j+1]) + rn[i][j];
+        }
+    }
+
+    long double sol = 0.0l;
+
+    for(int i=1; i<=n; i++) {
+        sol += i*(rec[t%2][i]);
+    }
+
+    printf("%Lf\n",sol);
+
+    return 0;
+}

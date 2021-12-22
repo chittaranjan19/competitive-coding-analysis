@@ -1,0 +1,88 @@
+#include <iostream>
+#include <cstring>
+
+#define Um muz[i-1][j]
+#define Rm muz[i][j+1]
+#define Dm muz[i+1][j]
+#define Lm muz[i][j-1]
+
+#define Up poseshennie[i-1][j]
+#define Rp poseshennie[i][j+1]
+#define Dp poseshennie[i+1][j]
+#define Lp poseshennie[i][j-1]
+
+#define Un nado_no_scoro[i-1][j]
+#define Rn nado_no_scoro[i][j+1]
+#define Dn nado_no_scoro[i+1][j]
+#define Ln nado_no_scoro[i][j-1]
+// (3 ≤ n, m ≤ 1000, 1 ≤ k ≤ min(n·m, 100 000)
+int koordinati_tochek[1000000][2]={0};
+
+int main()
+{
+    using namespace std;
+    char muz[1000][1000];
+    int n=0, m=0, k=0, y=0;
+    scanf("%d%d%d", &n, &m, &k);  // n <=> h; m <=> w
+    for (int i=0; i<n; i++)
+    {
+        for (int j=0; j<m; j++)
+        {
+            cin >> muz[i][j];
+            if (muz[i][j]=='.')
+            {
+                koordinati_tochek[y][0]=i;
+                koordinati_tochek[y][1]=j;
+                y++;
+            }
+        }
+    }
+    int xy[k][2];
+    for (int i=0; i<k; i++)
+    {
+        scanf("%d%d", &xy[i][0], &xy[i][1]);
+        xy[i][0]--;
+        xy[i][1]--;
+    }
+// end initialization
+    
+// sortirovka
+    int poseshennie[1000][1000]={0};
+    int nado_posetit[1000][2]={0};
+    bool nado_no_scoro[1000][1000]={0};
+    for (int nomer=0; nomer<y; nomer++)
+    {
+        if (poseshennie[koordinati_tochek[nomer][0]][koordinati_tochek[nomer][1]]==0)
+        {
+            memset(nado_posetit, 0, 8000);
+            memset(nado_no_scoro, 0, 1000000);
+            int i=koordinati_tochek[nomer][0], j=koordinati_tochek[nomer][1], ip=0, nach_ip=0, kolvo=1, summa_v_poseshennih=0;
+            while (kolvo>0)
+            {
+                while (kolvo>0)
+                {
+                    poseshennie[i][j]=1;
+                    if (Um=='.') { if (Up==0 && Un==0) {Un=1; nado_posetit[ip][0]=i-1; nado_posetit[ip][1]=j; ip++;} } else {summa_v_poseshennih++;}
+                    if (Lm=='.') { if (Lp==0 && Ln==0) {Ln=1; nado_posetit[ip][0]=i; nado_posetit[ip][1]=j-1; ip++;} } else {summa_v_poseshennih++;}
+                    if (Dm=='.') { if (Dp==0 && Dn==0) {Dn=1; nado_posetit[ip][0]=i+1; nado_posetit[ip][1]=j; ip++;} } else {summa_v_poseshennih++;}
+                    if (Rm=='.') { if (Rp==0 && Rn==0) {Rn=1; nado_posetit[ip][0]=i; nado_posetit[ip][1]=j+1; ip++;} } else {summa_v_poseshennih++;}
+                    i=nado_posetit[nach_ip][0];
+                    j=nado_posetit[nach_ip][1];
+                    nach_ip++;
+                    kolvo--;
+                }
+                kolvo=ip-nach_ip+1;
+            }
+            poseshennie[koordinati_tochek[nomer][0]][koordinati_tochek[nomer][1]]=summa_v_poseshennih;
+            int io=0;
+            while (io<ip)
+            {
+                poseshennie[nado_posetit[io][0]][nado_posetit[io][1]]=summa_v_poseshennih;
+                io++;
+            }
+        }
+    }
+    for (int i=0; i<k; i++)
+        printf("%d\n", poseshennie[xy[i][0]][xy[i][1]]);
+    return 0;
+}

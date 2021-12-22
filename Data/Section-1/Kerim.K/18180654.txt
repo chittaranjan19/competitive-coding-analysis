@@ -1,0 +1,88 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define left ping
+#define right pong
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+const int N=1e5+2;
+int left[MAXN],right[MAXN],v[MAXN];
+struct LazywithSegmentTree{
+	PII s[N<<2];
+	int lazy[N<<2];	
+	void build(int nd,int x,int y){
+		if(x==y){
+			s[nd].ss=x;
+			return;
+		}
+		int mid=(x+y)>>1;
+		build(nd<<1,x,mid);
+		build(nd<<1|1,mid+1,y);
+		s[nd]=max(s[nd<<1],s[nd<<1|1]);
+	}
+	void upd(int nd,int v){
+		lazy[nd]+=v;
+		s[nd].ff+=v;
+	}
+	void shift(int nd){
+		if(!lazy[nd])
+			return;
+		upd(nd<<1,lazy[nd]);
+		upd(nd<<1|1,lazy[nd]);
+		lazy[nd]=0;
+	}
+	void inc(int l,int r,int v,int nd,int x,int y){
+		if(l>y or x>r)
+			return;
+		if(l<=x and y<=r){
+			upd(nd,v);
+			return;
+		}shift(nd);
+		int mid=(x+y)>>1;
+		inc(l,r,v,nd<<1,x,mid);
+		inc(l,r,v,nd<<1|1,mid+1,y);
+		s[nd]=max(s[nd<<1],s[nd<<1|1]);
+	}
+}T;
+vector<PII>st[N];
+vector<int>en[N];
+pair<int,PII>ans;int q;
+void yaz(PII x){
+	for(int i=1;i<=q;i++)
+		if(left[i]<=x.ff and x.ff<=v[i] and 
+			v[i]<=x.ss and x.ss<=right[i])
+			printf("%d ",i);
+	printf("\n");		
+}
+int main(){
+	scanf("%d",&q);
+	for(int i=1;i<=q;i++){
+		scanf("%d%d%d",left+i,v+i,right+i);
+		st[left[i]].pb(mp(v[i],right[i]));
+		en[v[i]].pb(right[i]);
+	}T.build(1,1,N);
+	for(int i=1;i<N;i++){
+		tr(it,st[i])
+			T.inc(it->ff,it->ss,+1,1,1,N);
+		umax(ans,mp(T.s[1].ff,mp(i,T.s[1].ss)));
+		tr(it,en[i])
+			T.inc(i,*it,-1,1,1,N);	
+	}
+	printf("%d\n",ans.ff);
+	yaz(ans.ss);
+	return 0;
+}

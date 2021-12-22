@@ -1,0 +1,164 @@
+#include<iostream>
+#include<cstdio>
+#include<map>
+#include<string>
+#include<cstring>
+#include<vector>
+#include<algorithm>
+#include<queue>
+#include<set>
+#include<stack>
+
+#define fill(a,val) memset(a, (val), sizeof a)
+#define pb push_back
+#define scantype int
+#define lli long long int
+#define N 5010
+
+lli powermod(lli _a,lli _b,lli _m){lli _r=1;while(_b){if(_b%2==1)_r=(_r*_a)%_m;_b/=2;_a=(_a*_a)%_m;}return _r;}
+
+using namespace std;
+
+void scan(scantype &x);
+
+
+vector<pair<int,lli> > edge[N];
+vector<int> rev_edge[N];
+stack<int> stk;
+bool vis[N];
+
+void topo(int s)
+{
+       vis[s]=true;
+       for(int i=0;i<rev_edge[s].size();i++)
+              if(!vis[rev_edge[s][i]])
+                     topo(rev_edge[s][i]);
+
+       stk.push(s);
+}
+
+bool poss(pair<int,int> p)
+{
+       if(p.first==-1 && p.second==-1)return false;
+       return true;
+}
+vector< pair< pair<int,lli> , pair<int,int> > > ans[N];
+
+
+int main(void)
+{
+  int n,m;
+  lli t;
+  cin>>n>>m>>t;
+
+  for(int i=0;i<m;i++)
+  {
+         int x,y,z;
+         scan(x);scan(y);scan(z);
+         edge[x].pb({y,z});
+         rev_edge[y].pb(x);
+  }
+
+  fill(vis,false);
+  topo(n);
+
+  vector<int> ordr;
+
+  while(!stk.empty())
+  {
+         ordr.pb(stk.top());
+         stk.pop();
+  }
+
+ // for(int i=0;i<ordr.size();i++)
+   //    cout<<ordr[i]<<" ";
+
+  //cout<<endl;
+
+
+  fill(vis,false);
+  ans[n].pb({ {1,0},{-1,-1} });
+
+  for(int i=1;i<ordr.size();i++)
+  {
+      int s = ordr[i];
+
+      for(int j=0;j<edge[s].size();j++)
+      {
+             int node = edge[s][j].first;
+             int dist = edge[s][j].second;
+
+             for(int k=0;k<ans[node].size();k++)
+             {
+                    lli tot,tdis;
+
+                    tot = ans[node][k].first.first;
+                    tdis = ans[node][k].first.second;
+                    if(tdis+dist<=t)
+                    ans[s].pb({ {tot+1,tdis+dist}, {node,k} });
+             }
+      }
+  }
+
+
+  int mx=0;
+  int idx=0;
+  //cout<<"p";
+  for(int i=0;i<ans[1].size();i++)
+  {
+         //cout<<ans[1][i].first.first<<" "<<ans[1][i].first.second<<endl;
+         if(ans[1][i].first.second<=t)
+         {
+            if(ans[1][i].first.first>mx)
+            {
+                   mx = ans[1][i].first.first;
+                   idx = i;
+            }
+         }
+  }
+
+  vector<int> fans;
+
+  fans.pb(1);
+
+  pair<int,int> to;
+  to = ans[1][idx].second;
+
+  while(poss(to))
+  {
+         fans.pb(to.first);
+         to = ans[to.first][to.second].second;
+         if(to.first==-1)break;
+  }
+  cout<<fans.size()<<endl;
+
+  for(int i=0;i<fans.size();i++)
+       printf("%d ",fans[i]);
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+void scan(scantype &x)
+{
+    /*register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}*/
+
+    register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x;
+}

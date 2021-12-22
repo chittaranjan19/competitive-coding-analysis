@@ -1,0 +1,94 @@
+#include<bits/stdc++.h>
+
+using namespace std;
+
+#define maxn 100007
+#define INF 1 << 30
+#define LLINF 10000000000000000009
+#define pb push_back
+#define mp make_pair
+#define ss second
+#define ff first
+#define pii pair<int,int>
+
+
+typedef long long ll;
+typedef pair<ll,ll> PII;
+//priority_queue< PII , vector<PII>, greater<PII> >q;
+
+vector<pair < int, pair < int,int > > >v;
+int lazy[4*maxn];
+int s[4*maxn];
+void upd(int nd, int l, int r,int v)
+{
+	lazy[nd]+=v;
+	s[nd]+=(r-l+1)*v;
+}
+
+void shift(int nd, int l, int r)
+{
+	int v=lazy[nd];
+	int mid=(l+r)/2;
+	upd(nd*2,l,mid,v);
+	upd(nd*2+1,mid+1,r,v);
+	lazy[nd]=0;
+}
+
+void art(int nd,int l, int r, int x, int y)
+{
+	if(l>y or r<x)
+	return;
+	if(l>=x && r<=y)
+	{
+		upd(nd,l,r,1);
+		return;
+	}
+	shift(nd,l,r);
+	int mid=(l+r)/2;
+	art(nd*2,l,mid,x,y);
+	art(nd*2+1,mid+1,r,x,y);
+	s[nd]=s[nd*2]+s[nd*2+1];
+}
+
+int jogap(int l, int r, int x, int y, int nd)
+{
+	if(r<x or l>y)
+		return 0;
+	if(l>=x && r<=y)
+		return s[nd];
+	shift(nd,l,r);	
+	int mid=(l+r)/2;
+	int a=jogap(l,mid,x,y,nd*2);
+	int b=jogap(mid+1,r,x,y,nd*2+1);
+	return a+b;
+}
+int main()
+{
+	int n,k,l,c,ans=0;
+	cin>>n;
+	for(int i=0;i<n;i++)
+	{
+		cin>>k>>l;
+		c=l-k;
+		v.pb(mp(c,mp(k,l)));
+	}
+	sort(v.begin(),v.end());	
+	art(1,1,maxn,v[0].ss.ff,v[0].ss.ss);
+//	cout<<v[0].ss.ff<<" "<<v[0].ss.ss<<endl;
+	ans++;
+	for(int i=1;i<n;i++)
+	{	
+//		cout<<v[i].ss.ff<<" "<<v[i].ss.ss<<endl;
+		if(jogap(1,maxn,v[i].ss.ff,v[i].ss.ss,1)==0)
+		{
+//			cout<<i<<endl;
+			art(1,1,maxn,v[i].ss.ff,v[i].ss.ss);
+			ans++;
+		}
+	}
+	cout<<ans<<endl;
+
+
+return 0;
+}
+

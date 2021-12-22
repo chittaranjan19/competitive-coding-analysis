@@ -1,0 +1,88 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 55;
+
+int arr[maxn], p, n;
+int grt[maxn];
+ll dp[maxn][maxn][maxn][maxn];
+
+ll solve(int cur, int lt, int slt, int l)
+{
+	if(cur>n){
+		if(slt==0 && lt==0)
+			return 1;
+		return 0;
+	}
+	if(dp[cur][lt][slt][l]!=-1)
+		return dp[cur][lt][slt][l];
+	ll ret = 0;
+	if(cur==l)
+		ret = solve(cur+1, lt, slt, l);
+	else{
+		if(lt>0 && (slt-arr[cur])>=0)
+			ret+=solve(cur+1, lt-1, slt-arr[cur], l);
+		ret+=solve(cur+1, lt, slt, l);
+	}
+	return dp[cur][lt][slt][l] = ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	memset(dp, -1, sizeof(dp));
+	int i, j, k, l;
+	ll temp, t;
+	double ans, x, y;
+	ans = 0;
+	scanf("%d", &n);
+	for(i=1; i<=n; i++)
+		scanf("%d", &arr[i]);
+	scanf("%d", &p);
+	for(i=1; i<maxn; i++){
+		for(j=1; j<=n; j++){
+			if(arr[j]>i)
+				grt[i]++;
+		}
+	}
+	for(i=1; i<=n; i++){
+		for(j=p-arr[i]+1; j<=p; j++){
+			for(k=1; k<=n; k++){
+				temp = solve(1, k, j, i);
+				//cout << i << " " << j << " " << k << " " << temp << " ";
+				x = temp;
+				y = k+1;
+				for(l=n-k-1; l>1; l--){
+					x*=(double)l;
+					if(y<=n){
+						x = (double)x/y;
+						y++;
+					}
+				}
+				while(y<=n){
+					x = (double)x/y;
+					y++;
+				}
+				//cout << x << "\n";
+				ans = ans + x*(double)k;
+			}
+		}
+	}
+	printf("%.9lf\n", ans);
+	return 0;
+}

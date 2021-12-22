@@ -1,0 +1,70 @@
+#include <iostream> 
+#include <cstdio>
+#include <vector>
+#include <cmath>
+
+using namespace std;
+
+#define For(i , a , b) for (int i = a , _b = b ; i <= _b ; ++i)
+#define Ford(i , a  ,b) for (int i = a , _b = b : i >= _b ; --i)
+#define Rep(i , n) for (int i = 0 , _n = n ; i < _n ; ++i)
+#define sz(A) ((int)A.size())
+#define LL(x) (x << 1)
+#define RR(x) ((x << 1) | 1)
+
+typedef pair<int , int> pt;
+
+const int maxn = 100000 + 123;
+int n;
+int a[maxn];
+vector<pair<int , int> > V[maxn];
+long long toRoot[maxn] , mn[maxn];
+int sum[maxn];
+
+void add(int l , int r) {
+	sum[l]++;
+	sum[r + 1]--;
+}
+int timer = 0;
+int tin[maxn] , tout[maxn];
+void dfs(int u) {
+	tin[u] = ++timer;
+	Rep(i , sz(V[u])) {
+		int v = V[u][i].first , w = V[u][i].second;
+		toRoot[v] = toRoot[u] + w;
+		mn[v] = min(toRoot[u] , mn[u]);
+		dfs(v);
+	}
+	tout[u] = ++timer;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+
+	//freopen("input.inp" , "r" , stdin);
+	
+	cin >> n;
+	For(i , 1 , n) cin >> a[i];
+	For(i , 2 , n) {
+		int p , v; cin >> p >> v;
+		V[p].push_back(make_pair(i , v));
+	}
+	dfs(1);
+	For(v , 2 , n) {
+		if (a[v] < toRoot[v] - mn[v]) {
+			add(tin[v] , tout[v]);
+		}
+	}
+
+	int cur = 0;
+	int res = 0;
+	For(i , 1 , n) {
+		cur += sum[i];
+		if (cur)++res;
+	}
+	cout << res << endl;
+
+	return 0;
+
+}			

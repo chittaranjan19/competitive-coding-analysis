@@ -1,0 +1,94 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 1e5 + 100; 
+const int E = 2e5 + 100;
+int n;
+int l[N], r[N];
+vector <int> x;
+vector <int> g[N];
+vector <int> tour;
+
+int to[E], mark[E], ecnt;
+int from[E], c[E];
+
+void add(int u, int v){
+	from[ecnt] = u, to[ecnt] = v;
+	g[u].push_back(ecnt);
+	g[v].push_back(ecnt);
+	ecnt ++;
+}
+
+void dfs(int v){
+	while(SZ(g[v])){
+		int id = g[v].back();
+		g[v].pop_back();
+		int u = from[id] + to[id] - v;
+		if(!mark[id]){
+			mark[id] = true;
+			dfs(u);
+			if(u < v)
+				c[id] = 1;
+			else
+				c[id] = 0;
+		}
+	}
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for(int i = 0; i < n; ++i){
+		cin >> l[i] >> r[i]; r[i] ++;
+		x.PB(l[i]);
+		x.PB(r[i]);
+	}
+	sort(x.begin(), x.end());
+	x.resize(unique(x.begin(), x.end()) - x.begin());
+	for(int i = 0; i < n; ++i){
+		l[i] = lower_bound(x.begin(), x.end(), l[i]) - x.begin();
+		r[i] = lower_bound(x.begin(), x.end(), r[i]) - x.begin();
+		add(l[i], r[i]);
+	}
+	int lst = -1;
+	for(int i = 0; i < 2 * n; ++i){
+		if(SZ(g[i]) & 1){
+			if(lst == -1) lst = i;
+			else{
+				add(lst, i);
+				lst = -1;
+			}
+		}
+	}
+	for (int i = 0; i < 2 * n; i++)
+		if (!g[i].empty())
+			dfs(i);
+	for (int i = 0; i < n; i++)
+		cout << c[i] << " ";
+	cout << endl;
+	return 0;
+}

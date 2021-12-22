@@ -1,0 +1,85 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <fstream>
+#include <numeric>
+#include <stdexcept>
+#include <cassert>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int arr[3000], n;
+int need[3000];
+int res = 0;
+
+void dfs(int node, int sum)
+{
+  if(node * 2 >= (1 << (n + 1)))
+  {
+    res = max(res, sum);
+    return ;
+  }
+  dfs(node * 2, sum + arr[node * 2]);
+  dfs(node * 2 + 1, sum + arr[node * 2 + 1]);
+}
+
+void solve(int node, int sum)
+{
+  if(node * 2 >= (1 << (n + 1)))
+  {
+    need[node] = res - sum;
+    return ;
+  }
+  solve(node * 2, sum + arr[node * 2]);
+  solve(node * 2 + 1, sum + arr[node * 2 + 1]);
+  need[node] = min(need[node * 2], need[node * 2 + 1]);
+  need[node*2]-=need[node];
+  need[node*2 + 1]-=need[node];
+}
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  //freopen("suffix.in", "r", stdin);
+  //freopen("suffix.out", "w", stdout);
+  cin >> n;
+  for(int i=2;i<(1 << (n + 1));i++)
+    cin >> arr[i];
+  dfs(1, 0);
+  solve(1, 0);
+  LL sol = 0;
+  for(int i=2;i<(1 << (n + 1));i++)
+    sol+=need[i];
+  cout << sol;
+  return 0;
+}

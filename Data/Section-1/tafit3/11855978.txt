@@ -1,0 +1,132 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+
+public class ProblemB {
+    BufferedReader rd;
+
+    ProblemB() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        double w = intarr()[1];
+        int[] a = intarr();
+        NavigableMap<Integer, Integer> c = new TreeMap<>();
+        for(int x: a) {
+            Integer v = c.get(x);
+            if(v == null) {
+                v = 1;
+            } else {
+                v++;
+            }
+            c.put(x, v);
+        }
+
+        double res = 0;
+        while(!c.isEmpty()) {
+            Integer k = c.lastKey();
+            if(k == null) {
+                break;
+            }
+            int cur = c.get(k);
+            cur--;
+            if(cur > 0) {
+                c.put(k, cur);
+            } else {
+                c.remove(k);
+            }
+            int v = (k+1)/2;
+            Integer k2 = c.floorKey(v);
+            if(k2 != null) {
+                cur = c.get(k2);
+                cur--;
+                if(cur > 0) {
+                    c.put(k2, cur);
+                } else {
+                    c.remove(k2);
+                }
+                if(k2*2 > k) {
+                    res += 3.0/2*k;
+                } else {
+                    res += k2*3;
+                }
+            }
+        }
+        out(Math.min(w,res));
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB();
+    }
+}

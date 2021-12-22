@@ -1,0 +1,98 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+const int SQ = 317;
+
+int n, m, q;
+ll a[N];
+ll inisum[N];
+vector <int> s[N];
+int h[N]; 
+int T;
+int b[SQ][N];
+int c[N];
+ll toadd[SQ];
+ll add[SQ];
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m >> q;
+	for(int i = 0; i < n; ++i)
+		cin >> a[i];
+	for(int i = 0; i < m; ++i){
+		int sz; cin >> sz;
+		if(sz < SQ) h[i] = -1;
+		else h[i] = T ++;
+		for(int j = 0; j < sz; ++j){
+			int t; cin >> t; t --;
+			s[i].PB(t);
+			inisum[i] += a[t];
+		}
+	}
+	for(int i = 0; i < m; ++i){
+		if(h[i] == -1) continue;
+		memset(c, 0, sizeof c);
+		for(int j = 0; j < SZ(s[i]); ++j) c[s[i][j]] = 1;
+		for(int j = 0; j < m; ++j)
+			for(int k = 0; k < SZ(s[j]); ++k)
+				b[h[i]][j] += c[s[j][k]];
+	}
+	memset(a, 0, sizeof a);
+	for(int i = 0; i < q; ++i){
+		char ch;
+		int k, x;
+		cin >> ch >> k; k --;
+		if(ch == '?'){
+			ll ans = inisum[k];
+			if(SZ(s[k]) < SQ){
+				for(int j = 0; j < SZ(s[k]); ++j)
+					ans += a[s[k][j]];
+				for(int j = 0; j < T; ++j)
+					ans += toadd[j] * b[j][k];
+			}
+			else{
+				for(int j = 0; j < T; ++j)
+					ans += toadd[j] * b[j][k];	
+				ans += add[h[k]];
+			}
+			cout << ans << "\n";
+		}
+		else{
+			cin >> x;
+			if(SZ(s[k]) < SQ){
+				for(int j = 0; j < SZ(s[k]); ++j)
+					a[s[k][j]] += x;
+				for(int j = 0; j < T; ++j)
+					add[j] += b[j][k] * x;	
+			}
+			else
+				toadd[h[k]] += x;
+		}
+	}
+	return 0;
+}

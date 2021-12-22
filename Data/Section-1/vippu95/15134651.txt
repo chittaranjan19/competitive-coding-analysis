@@ -1,0 +1,125 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+#define llu unsigned long long
+const int lmt = 200005;
+vector<int> enm;
+int pw[3];
+bool def[lmt];
+int last;
+
+void get(int mask,int idx,int n){
+    def[idx] = true;
+    if(mask==7) return;
+    if(mask==6){
+        if(last>=0 && enm[last]<=pw[0]){
+            def[last] = true;
+            last--;
+        }
+        return;
+    }
+    if(mask==5){
+        if(last>=0 && enm[last]<=pw[1]){
+            def[last] = true;
+            last--;
+        }
+        return;
+    }
+    if(mask==3){
+        if(last>=0 && enm[last]<=pw[2]){
+            def[last] = true;
+            last--;
+        }
+        return;
+    }
+    if(mask==4){
+        if(last>=0 && enm[last]<=pw[0] && last-1>=0 && enm[last-1]<=pw[1]){
+            def[last] = true;
+            def[last-1] = true;
+            last-=2;
+            return;
+        }
+        if(last>=0 && enm[last]<=pw[0]+pw[1]){
+            def[last] = true;
+            last--;
+            return;
+        }
+    }
+    if(mask==2){
+        if(last>=0 && enm[last]<=pw[0] && last-1>=0 && enm[last-1]<=pw[2]){
+            def[last] = true;
+            def[last-1] = true;
+            last-=2;
+            return;
+        }
+        if(last>=0 && enm[last]<=pw[0]+pw[2]){
+            def[last] = true;
+            last--;
+            return;
+        }
+    }
+    if(mask==1){
+        if(last>=0 && enm[last]<=pw[1] && last-1>=0 && enm[last-2]<=pw[2]){
+            def[last] = true;
+            def[last-1] = true;
+            last-=2;
+            return;
+        }
+        if(last>=0 && enm[last]<=pw[2]+pw[1]){
+            def[last] = true;
+            last--;
+            return;
+        }
+    }
+}
+
+int  main(){
+    memset(def,false,sizeof(def));
+    int a,b,c,x,n;
+    cin>>n;
+    last = n-1;
+    cin>>pw[0]>>pw[1]>>pw[2];
+    sort(pw,pw+3);
+    for(int i=0;i<n;i++){
+        cin>>x;
+        enm.pb(x);
+    }
+    sort(enm.rbegin(),enm.rend());
+    if(enm[0]>pw[0]+pw[1]+pw[2]){
+        printf("-1\n");
+        return 0;
+    }
+//    for(int i=0;i<n;i++)
+//        cout<<enm[i]<<" ";
+//    cout<<endl;
+    int ans = 0;
+    for(int i=0;i<n;i++){
+        if(def[i]) continue;
+        ans++;
+        for(int j=1;j<=7;j++){
+            int tot = 0;
+            for(int k=0;k<3;k++){
+                if(j&(1<<k))
+                    tot += pw[k];
+            }
+            if(tot>=enm[i]){
+                //cout<<i<<" "<<j<<" done."<<endl;
+                get(j,i,n);
+                break;
+            }
+        }
+//        for(int j=0;j<n;j++)
+//            cout<<def[j]<<" ";
+//        cout<<endl;
+    }
+    printf("%d\n",ans);
+    return 0;
+}

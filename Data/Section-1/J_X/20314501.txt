@@ -1,0 +1,85 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 1000 + 5;
+
+int rg[maxn * maxn], dw[maxn * maxn], w[maxn][maxn];
+int n, m, q;
+
+int myhash(int x, int y)
+{
+    return x * (m + 1) + y;
+}
+
+int main()
+{
+    scanf("%d%d%d", &n, &m, &q);
+    for(int i = 0; i <= n; ++i)
+    {
+        for(int j = 0; j <= m; ++j)
+        {
+            if(i && j) scanf("%d", &w[i][j]);
+            rg[myhash(i, j)] = myhash(i, j + 1);
+            dw[myhash(i, j)] = myhash(i + 1, j);
+        }
+    }
+    while(q--)
+    {
+        int x1, y1, x2, y2, h, w;
+        scanf("%d%d%d%d%d%d", &x1, &y1, &x2, &y2, &h, &w);
+        int a1 = myhash(x1 - 1, 0), b1 = myhash(x2 - 1, 0), c1 = myhash(x1 + h - 1, 0), d1 = myhash(x2 + h - 1, 0);
+        int a2 = myhash(0, y1 - 1), b2 = myhash(0, y2 - 1), c2 = myhash(0, y1 + w - 1), d2 = myhash(0, y2 + w - 1);
+        for(int i = 0; i < y1; ++i)
+        {
+            a1 = rg[a1];
+            c1 = rg[c1];
+        }
+        for(int i = 0; i < y2; ++i)
+        {
+            b1 = rg[b1];
+            d1 = rg[d1];
+        }
+        for(int i = 0; i < x1; ++i)
+        {
+            a2 = dw[a2];
+            c2 = dw[c2];
+        }
+        for(int i = 0; i < x2; ++i)
+        {
+            b2 = dw[b2];
+            d2 = dw[d2];
+        }
+        for(int i = 0; i < w; ++i)
+        {
+            swap(dw[a1], dw[b1]);
+            swap(dw[c1], dw[d1]);
+            a1 = rg[a1];
+            b1 = rg[b1];
+            c1 = rg[c1];
+            d1 = rg[d1];
+        }
+        for(int i = 0; i < h; ++i)
+        {
+            swap(rg[a2], rg[b2]);
+            swap(rg[c2], rg[d2]);
+            a2 = dw[a2];
+            b2 = dw[b2];
+            c2 = dw[c2];
+            d2 = dw[d2];
+        }
+    }
+    for(int i = 1; i <= n; ++i)
+    {
+        int g = myhash(i, 0);
+        for(int j = 1; j <= m; ++j)
+        {
+            g = rg[g];
+            printf("%d%c", w[g / (m + 1)][g % (m + 1)], " \n"[j == m]);
+        }
+    }
+    return 0;
+}

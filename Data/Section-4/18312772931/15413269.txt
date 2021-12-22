@@ -1,0 +1,88 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+char s[1150][1150];
+int fa[1010050];
+int num[1100500];
+int v[1010050];
+int n,m;
+int id(int x,int y)
+{
+    return x*m+y;
+}
+int fi(int x)
+{
+    return x == fa[x]?x:fa[x]=fi(fa[x]);
+}
+int uni(int x,int y)
+{
+    int p = fi(x),q = fi(y);
+    if(p != q)
+    {
+        fa[p]=fa[q];
+        num[q]=num[p]+num[q];
+        num[p]=0;
+    }
+}
+int dx[4]={1,-1,0,0};
+int dy[4]={0,0,1,-1};
+int main()
+{
+
+    scanf("%d%d",&n,&m);
+    for(int i=1;i<=n;i++)
+        scanf("%s",s[i]+1);
+    for(int i=0;i<=id(n,m)+5;i++)
+        num[i]=1,fa[i]=i;
+    for(int i=1;i<=n;i++)
+    {
+        for(int j=1;j<=m;j++)
+        {
+            if(s[i][j]=='*')continue;
+            for(int k=0;k<4;k++)
+            {
+                int x = i + dx[k];
+                int y = j + dy[k];
+                if(x<1||x>n||y<1||y>m)continue;
+                if(s[x][y]=='*')continue;
+                uni(id(x,y),id(i,j));
+            }
+        }
+    }
+    for(int i=1;i<=n;i++)
+    {
+        for(int j=1;j<=m;j++)
+        {
+            if(s[i][j]=='.')
+                printf(".");
+            else
+            {
+                int ans = 1;
+                for(int k=0;k<4;k++)
+                {
+                    int x = i + dx[k];
+                    int y = j + dy[k];
+                    if(x<1||x>n||y<1||y>m)continue;
+                    if(s[x][y]=='*')continue;
+                    int idx = fi(id(x,y));
+                    if(v[idx]==0)
+                    {
+                        v[idx]=1;
+                        ans+=num[idx];
+                    }
+                }
+                printf("%d",ans%10);
+                for(int k=0;k<4;k++)
+                {
+                    int x = i + dx[k];
+                    int y = j + dy[k];
+                    if(x<1||x>n||y<1||y>m)continue;
+                    if(s[x][y]=='*')continue;
+                    int idx = fi(id(x,y));
+                    v[idx]=0;
+                }
+            }
+        }
+        printf("\n");
+    }
+}

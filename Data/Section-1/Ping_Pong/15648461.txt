@@ -1,0 +1,151 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int MAX_N = 500000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+int tree[MAX_N * 4];
+vector<int> graph[MAX_N];
+pair<int, int> d[MAX_N];
+int cnt_ver = 1, curr = 0;
+
+int dfs(int x, int par, int num)
+{
+	d[x].first = num;
+	num++;
+	int cnt = 0;
+	for (int i = 0; i < graph[x].size(); i++)
+		if (graph[x][i] != par)
+		{
+			int tmp = dfs(graph[x][i], x, num);
+			cnt += (tmp - num);
+			num = tmp;
+		}
+	d[x].second = cnt;
+	return num;
+}
+
+void make_tree(int n)
+{
+	while (cnt_ver < n)
+	{
+		cnt_ver <<= 1;
+		curr++;
+	}
+	for (int i = 0; i < n; i++)
+		tree[cnt_ver - 1 + i] = 0;
+	for (int i = cnt_ver - 2; i >= 0; i--)
+		tree[i] = -1;
+}
+
+void push(int x)
+{
+	tree[x * 2 + 1] = tree[x];
+	tree[x * 2 + 2] = tree[x];
+	tree[x] = -1;
+}
+
+void update(int x, int lx, int rx, int l, int r, int val)
+{
+	if (r < lx || l > rx)
+		return;
+	else if (lx >= l && rx <= r)
+		tree[x] = val;
+	else
+	{
+		if (tree[x] != -1)
+			push(x);
+		update(x * 2 + 1, lx, (lx + rx) / 2, l, r, val);
+		update(x * 2 + 2, (lx + rx) / 2 + 1, rx, l, r, val);
+	}
+}
+
+int ans(int x, int lx, int rx, int l, int r)
+{
+	if (r < lx || l > rx)
+		return 0;
+	else if (lx >= l && rx <= r)
+		return tree[x];
+	else
+	{
+		if (tree[x] != -1)
+			push(x);
+		return ans(x * 2 + 1, lx, (lx + rx) / 2, l, r) + ans(x * 2 + 2, (lx + rx) / 2 + 1, rx, l, r);
+	}
+}
+
+void print_tree()
+{
+	int j = 0, c = (cnt_ver * 2 - 1) / 2, c1 = 1;
+	for (int i = 0; i < curr + 1; i++)
+	{
+		for (int k = 0; k < c; k++)
+			cout << " ";
+		for (int i = 0; i < c1; i++)
+		{
+			if (tree[j] >= 0)
+				cout << " ";
+			cout << (tree[j] >= 0 ? tree[j] : -1);
+			j++;
+			for (int r = 0; r < c * 2 + 1; r++)
+				cout << " ";
+		}
+		cout << endl << endl;
+		c1 *= 2;
+		c /= 2;
+	}
+}
+
+int main()
+{
+	//ifstream ifs("a.in");
+	//ofstream ofs("a.out");
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+	int n, m;
+	scanf_s("%d", &n);
+	for (int i = 0; i < n - 1; i++)
+	{
+		int s, f;
+		scanf_s("%d %d", &s, &f);
+		graph[s - 1].push_back(f - 1);
+		graph[f - 1].push_back(s - 1);
+	}
+	dfs(0, -1, 0);
+	make_tree(n);
+	for (int i = 0; i < n; i++)
+		cout << d[i].first << " " << d[i].second << endl;
+	scanf_s("%d", &m);
+	for (int i = 0; i < m; i++)
+	{
+		int t, x;
+		scanf_s("%d %d", &t, &x);
+		if (t == 1)
+			update(0, cnt_ver - 1, cnt_ver * 2 - 2, cnt_ver - 1 + d[x - 1].first, cnt_ver - 1 + d[x - 1].first + d[x - 1].second, 1);
+		else if (t == 2)
+			update(0, cnt_ver - 1, cnt_ver * 2 - 2, cnt_ver - 1 + d[x - 1].first, cnt_ver - 1 + d[x - 1].first + d[x - 1].second, 0);
+		else
+			printf("%d\n", ans(0, cnt_ver - 1, cnt_ver * 2 - 2, cnt_ver - 1 + d[x - 1].first, cnt_ver - 1 + d[x - 1].first));
+		print_tree();
+	}
+	int tmp;
+	cin >> tmp;
+	return 0;
+}

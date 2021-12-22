@@ -1,0 +1,77 @@
+#include <cstdio>
+#include <memory.h>
+#include <queue>
+using namespace std;
+typedef pair<int,pair<int,int> > dst;
+int n,m,a,b,x,y,i,fi,fr,q[102],pg[102][102],po[102][102],cnt[102][102],p[102][102],s[102],t[102];
+bool g[102][102],o[102][102],c[102][102],f[102][102];
+priority_queue<dst, vector<dst>, greater<dst> > sq;
+void pnew(int x, int y, int z) {
+  if (z>=p[x][y]) return;
+  p[x][y]=z;
+  sq.push(make_pair(z,make_pair(x,y)));
+}
+void upd(int x, int y) {
+  if (--cnt[x][y]>0) return;
+  int cur=0;
+  for (int i=1; i<=n; i++) if (g[x][i] && c[i][y]) cur=max(cur,p[i][y]);
+  pnew(x,y,cur);
+}
+int main() {
+  scanf("%d%d%d%d",&n,&m,&a,&b);
+  for (i=0; i<m; i++) {
+    scanf("%d%d",&x,&y);
+	g[x][y]=true;
+	o[y][x]=true;
+  }
+  memset(pg,255,sizeof(pg));
+  memset(po,255,sizeof(po));
+  for (i=1; i<=n; i++) {
+    fi=0; fr=1;
+	q[0]=i; pg[i][i]=0;
+	while (fi<fr) {
+	  x=q[fi++];
+	  for (y=1; y<=n; y++) if (g[x][y] && pg[i][y]==-1) {
+	    pg[i][y]=pg[i][x]+1;
+		q[fr++]=y;
+	  }
+	}
+    fi=0; fr=1;
+	q[0]=i; po[i][i]=0;
+	while (fi<fr) {
+	  x=q[fi++];
+	  for (y=1; y<=n; y++) if (o[x][y] && po[i][y]==-1) {
+	    po[i][y]=po[i][x]+1;
+		q[fr++]=y;
+	  }
+	}
+	c[i][0]=true;
+	f[i][0]=true;
+  }
+  scanf("%d",&m);
+  for (i=1; i<=m; i++) {
+    scanf("%d%d",&s[i],&t[i]);
+	for (x=1; x<=n; x++) if (pg[s[i]][x]!=-1 && po[t[i]][x]!=-1 && pg[s[i]][t[i]]!=-1 && pg[s[i]][x]+po[t[i]][x]==pg[s[i]][t[i]]) {
+	  c[x][i]=true;
+	  for (y=1; y<=n; y++) if (x!=y && pg[s[i]][x]==pg[s[i]][y] && po[t[i]][x]==po[t[i]][y]) break;
+	  if (y>n) f[x][i]=true;
+	}
+  }
+  for (x=1; x<=n; x++) for (i=1; i<=m; i++) if (c[x][i]) for (y=1; y<=n; y++) if (g[x][y] && c[y][i]) cnt[x][i]++;
+  memset(p,120,sizeof(p)); p[b][0]=0;
+  sq.push(make_pair(0,make_pair(b,0)));
+  while (!sq.empty()) {
+    y=sq.top().first;
+	x=sq.top().second.first;
+	i=sq.top().second.second;
+	if (x==a && i==0) { printf("%d\n",y); return 0; }
+	sq.pop();
+	if (p[x][i]!=y) continue;
+	if (i) {
+	  if (f[x][i]) pnew(x,0,p[x][i]);
+	  for (y=1; y<=n; y++) if (o[x][y] && c[y][i]) upd(y,i);
+	} else for (y=1; y<=m; y++) if (c[x][y]) pnew(x,y,p[x][i]+1);
+  }
+  puts("-1");
+  return 0;
+}

@@ -1,0 +1,157 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 500010;
+
+int n, m;
+
+int rnk[maxn], parent[maxn], cS[maxn], cT[maxn], addedS[maxn], addedT[maxn];
+vector<pii> mst;
+vector<int> onlyS, onlyT;
+pii edge[maxn], both[maxn];
+
+int find(int x)
+{
+	if(parent[x]==x)
+		return x;
+	return parent[x] = find(parent[x]);
+}
+
+void merge(int x, int y)
+{
+	int rx, ry;
+	rx = find(x);
+	ry = find(y);
+	if(rx==ry)
+		return;
+	mst.pb(mp(x, y));
+	if(rnk[rx] < rnk[ry])
+		parent[rx] = ry;
+	else if(rnk[ry] < rnk[rx])
+		parent[ry] = rx;
+	else{
+		parent[ry] = rx;
+		rnk[rx]++;
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int s, t, ds, dt;
+	scanf("%d%d", &n, &m);
+	for(int i=1; i<=n; i++){
+		parent[i] = i;
+		rnk[i] = 1;
+		both[i] = mp(-1, -1);
+	}
+	for(int i=1; i<=m; i++)
+		scanf("%d%d", &edge[i].f, &edge[i].s);
+	scanf("%d%d%d%d", &s, &t, &ds, &dt);
+	for(int i=1; i<=m; i++){
+		if(edge[i].f != s && edge[i].f != t && edge[i].s != s && edge[i].s != t)
+			merge(edge[i].f, edge[i].s);
+	}
+	cS[s] = cT[t] = 1;
+	for(int i=1; i<=m; i++){
+		if(edge[i].f == s || edge[i].s == s){
+			int p = find(edge[i].f==s?edge[i].s:edge[i].f);
+			cS[p] = 1;
+		}
+		if(edge[i].f == t || edge[i].s == t){
+			int p = find(edge[i].f==t?edge[i].s:edge[i].f);
+			cT[p] = 1;
+		}
+	}
+	for(int i=1; i<=m; i++){
+		if(edge[i].f == s || edge[i].s == s){
+			int p = find(edge[i].f==s?edge[i].s:edge[i].f);
+			if(!cT[p] && !addedS[p])
+				onlyS.pb(edge[i].f==s?edge[i].s:edge[i].f), addedS[p] = 1;
+			else
+				both[p].f = (edge[i].f==s?edge[i].s:edge[i].f);
+		}
+		if(edge[i].f == t || edge[i].s == t){
+			int p = find(edge[i].f==t?edge[i].s:edge[i].f);
+			if(!cS[p] && !addedT[p])
+				onlyT.pb(edge[i].f==t?edge[i].s:edge[i].f), addedT[p] = 1;
+			else
+				both[p].s = (edge[i].f==t?edge[i].s:edge[i].f);
+		}
+	}
+	for(int it : onlyS){
+		if(ds > 0){
+			--ds;
+			merge(s, it);
+		}
+	}
+	for(int it : onlyT){
+		if(dt > 0){
+			--dt;
+			merge(t, it);
+		}
+	}
+	int done = 0;
+	for(int i=1; i<=n; i++){
+		if(both[i].f == -1 || both[i].s == -1)
+			continue;
+		pii it = both[i];
+		if(!done){
+			if(ds > 0 && dt > 0){
+				--ds;
+				--dt;
+				merge(s, it.f);
+				merge(t, it.s);
+				done = 1;
+			}
+			else
+				break;
+		}
+		else{
+			if(ds > 0){
+				merge(s, it.f);
+				--ds;
+			}
+			else if(dt > 0){
+				merge(t, it.s);
+				--dt;
+			}
+		}
+	}
+	if(cS[t] && !done && ds > 0 && dt > 0){
+		merge(s, t);
+		--ds;
+		--dt;
+	}
+	int isConnecTed = 1;
+	for(int i=2; i<=n; i++){
+		if(find(i) != find(1)){
+			isConnecTed = 0;
+			break;
+		}
+	}
+	if(!isConnecTed)
+		printf("No\n");
+	else{
+		printf("Yes\n");
+		for(pii it : mst)
+			printf("%d %d\n", it.f, it.s);
+	}
+	return 0;
+}

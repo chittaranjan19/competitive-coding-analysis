@@ -1,0 +1,133 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 10010;
+
+struct node{
+	int we;
+	node* arr[26];
+};	
+
+node* root1;
+node* root2;
+int n, m;
+string str1, str2;
+
+node* new_node()
+{
+	node* ret = (node*)(malloc(sizeof(node)));
+	for(int i=0; i<26; i++){
+		ret->arr[i] = NULL;
+	}
+	ret->we = 0;
+	return ret;
+}
+
+void insert1(int ind)
+{
+	int i, nxt;
+	node* temp = root1;
+	for(i=ind; i<n; i++){
+		nxt = str1[i]-'a';
+		if(temp->arr[nxt])
+			temp = temp->arr[nxt];
+		else{
+			temp->arr[nxt] = new_node();
+			temp = temp->arr[nxt];
+		}
+		temp->we++;
+	}
+}
+
+void insert2(int ind)
+{
+	int i, nxt;
+	node* temp = root2;
+	for(i=ind; i<m; i++){
+		nxt = str2[i]-'a';
+		if(temp->arr[nxt])
+			temp = temp->arr[nxt];
+		else{
+			temp->arr[nxt] = new_node();
+			temp = temp->arr[nxt];
+		}
+		temp->we++;
+	}
+}
+
+int search(int ind, int mn)
+{
+	int i, j, nxt;
+	node* temp = root1;
+	for(i=ind; i<m; i++){
+		nxt = str2[i]-'a';
+		if(temp->arr[nxt]){
+			temp = temp->arr[nxt];
+			if(temp->we == 1 && i>=mn)
+				return (i-ind+1);
+		}
+		else
+			return -1;
+	}
+	return -1;
+}
+
+int check(int ind)
+{
+	int i, j, nxt;
+	node* temp = root2;
+	for(i=ind; i<m; i++){
+		nxt = str2[i]-'a';
+		temp = temp->arr[nxt];
+		if(temp->we == 1)
+			return i;
+	}
+	return -1;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, k, ans;
+	boost
+	cin.tie(0);
+	cout.tie(0);
+	root1 = new_node();
+	root2 = new_node();
+	cin >> str1 >> str2;
+	n = (int)str1.size();
+	m = (int)str2.size();
+	for(i=0; i<n; i++)
+		insert1(i);
+	for(i=0; i<m; i++)
+		insert2(i);
+	ans = n+m;
+	for(i=0; i<m; i++){
+		j = check(i);
+		if(j==-1)
+			continue;
+		k = search(i, j);
+		if(k==-1)
+			continue;
+		ans = min(ans, k);
+	}
+	if(ans==(n+m))
+		ans = -1;
+	printf("%d\n", ans);
+	return 0;
+}

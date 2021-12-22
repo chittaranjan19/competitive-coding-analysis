@@ -1,0 +1,88 @@
+#include <iostream>
+#include <cstdio>
+#include <map>
+#include <algorithm>
+
+#define ll first.first
+#define rr first.second
+
+using namespace std;
+
+int n,t;
+int a[200000];
+
+int s;
+map<int,int>::iterator it[200000];
+map<int,int> db;
+pair<pair<int,int>,int> q[200000];
+
+long long prnt[200000];
+
+inline long long prod(int x) {
+    long long k = it[x]->second;
+    return ((k*k)*a[x]);
+}
+
+bool cmp(pair<pair<int,int>,int> x, pair<pair<int,int>,int> y) {
+    return ((x.ll/s < y.ll/s) || ((x.ll/s == y.ll/s) && (x.rr < y.rr)));
+}
+
+int main()
+{
+    scanf("%d%d",&n,&t);
+    for(int i=0; i<n; i++) {
+        scanf("%d",&a[i]);
+        db[a[i]] = 0;
+        it[i] = db.find(a[i]);
+    }
+
+    for(int i=0; i<t; i++) {
+        scanf("%d%d",&q[i].ll,&q[i].rr);
+        q[i].ll--; q[i].rr--;
+        q[i].second = i;
+    }
+
+    s = (int)sqrt(n);
+    sort(q,q+t,cmp);
+
+    long long sol(0ll);
+    int x(0),y(0);
+    it[0]->second++;
+    sol = prod(0);
+
+    for(int i=0; i<t; i++) {
+        while(y<q[i].rr) {
+            y++;
+            sol -= prod(y);
+            it[y]->second++;
+            sol += prod(y);
+        }
+        while(x>q[i].ll) {
+            x--;
+            sol -= prod(x);
+            it[x]->second++;
+            sol += prod(x);
+        }
+        while(y>q[i].rr) {
+            sol -= prod(y);
+            it[y]->second--;
+            sol += prod(y);
+            y--;
+        }
+        while(x<q[i].ll) {
+            sol -= prod(x);
+            it[x]->second--;
+            sol += prod(x);
+            x++;
+        }
+
+        prnt[q[i].second] = sol;
+    }
+
+    ios::sync_with_stdio(0);
+    cin.tie(NULL);
+
+    for(int i=0; i<t; i++) cout << prnt[i] << endl;
+
+    return 0;
+}

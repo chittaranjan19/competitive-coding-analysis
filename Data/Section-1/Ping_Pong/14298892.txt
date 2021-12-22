@@ -1,0 +1,83 @@
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+#include <algorithm>
+#include <vector>
+#include <set>
+#include <queue>
+#include <string>
+
+using namespace std;
+
+int gcd(int a, int b)
+{
+    int c;
+    if (a > b)
+    {
+        c = a;
+        a = b;
+        b = c;
+    }
+    while (a > 0)
+    {
+        c = a;
+        a = b % a;
+        b = c;
+    }
+    return b;
+}
+
+int bin_search_left(int *a, int x, int n)
+{
+    int l = -1, r = n, m;
+    while (r - l > 1)
+    {
+        m = (r + l) / 2;
+        if (x < a[m])
+            l = m;
+        else
+            r = m;
+    }
+    for (;a[r] == -1; r++);
+    return r;
+}
+
+bool comp(int a, int b)
+{
+    return a > b;
+}
+
+int main()
+{
+    int n, curr = 0, x;
+    scanf("%d", &n);
+    int a[n * n];
+    vector<int> ans;
+    for (int i = 0; i < n * n; i++)
+        scanf("%d", &a[i]);
+    for (int i = 0; i < n; i++)
+    {
+        sort(a, a + n * n, comp);
+        /*for (int i = 0; i < n * n; i++)
+            printf("%d ", a[i]);
+        printf("\n");*/
+        ans.push_back(a[0]);
+        for (int j = 0; j < ans.size(); j++)
+        {
+            if (ans[j] == a[0])
+            {
+                x = bin_search_left(a, gcd(a[0], ans[j]), n * n);
+                a[x] = -1;
+            }
+            else
+                for (int q = 0; q < 2; q++)
+                {
+                    x = bin_search_left(a, gcd(a[0], ans[j]), n * n);
+                    a[x] = -1;
+                }
+        }
+    }
+    for (int i = 0; i < n; i++)
+        printf("%d ", ans[i]);
+    return 0;
+}

@@ -1,0 +1,77 @@
+#include<bits/stdc++.h>
+using namespace std;
+#define ll long long int
+int x[1000006];
+ll dp[1000006][2];
+vector<pair<string,string> > vt;
+string str,rstr;
+int n;
+ll rec(int pos, int tk)
+{
+		ll ans = -1;
+		ll tmp = -1;
+		if(pos == n) return 0;
+		if(dp[pos][tk] != -2) return dp[pos][tk];
+		if(pos == 0)
+		{
+				ans = rec(pos+1,0);
+				tmp = rec(pos+1,1);
+		}
+		else
+		{
+				if(tk == 0)
+				{
+						if(vt[pos-1].first <= vt[pos].first)
+						{
+								ans = rec(pos+1,0);
+						}
+						if(vt[pos-1].first <= vt[pos].second)
+						{
+								tmp = rec(pos+1,1);
+						}
+				}
+				else
+				{
+						if(vt[pos-1].second <= vt[pos].first)
+						{
+								ans = rec(pos+1,0);
+						}
+						if(vt[pos-1].second <= vt[pos].second)
+						{
+								tmp = rec(pos+1,1);
+						}
+				}
+		}
+		if(ans == -1 && tmp == -1)
+		{
+				return -1;
+		}
+		if(ans != -1 && tmp != -1)
+		{
+				return dp[pos][tk] = min(ans,tmp+x[pos]);
+		}
+		else if(ans == -1)
+		{
+				return dp[pos][tk] = tmp + x[pos];
+		}
+		else return dp[pos][tk] = ans;
+}
+int main()
+{
+		int i;
+		scanf("%d",&n);
+		for(i=0;i<n;++i)
+				scanf("%d",x+i);
+		for(i=0;i<n;++i)
+		{
+				dp[i][0] = dp[i][1] = -2;
+				cin>>str;
+				rstr = str;
+				reverse(rstr.begin(),rstr.end());
+				vt.push_back(make_pair(str,rstr));
+		}
+		ll ans = rec(0,0);
+		if(ans < 0) printf("-1\n");
+		else cout<<ans<<"\n";
+
+}

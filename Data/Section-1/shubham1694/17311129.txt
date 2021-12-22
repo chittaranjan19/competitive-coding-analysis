@@ -1,0 +1,106 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 200010;
+
+int n, m, arr[maxn], nxt[maxn], diff[maxn], dp[maxn];
+vector<pii> v;
+
+int solve(int cur)
+{
+	if(cur>=m)
+		return 0;
+	if(dp[cur]!=-1)
+		return dp[cur];
+	int j, k, mx1, mx2, d1, d2, d3, ret;
+	j = nxt[cur];
+	k = j+1;
+	if(k>=m)
+		return dp[cur] = 1;
+	if(j==cur)
+		ret = solve(k) + 1;
+	else{
+		d1 = diff[cur];
+		if(d1>0)
+			ret = solve(k) + 1;
+		else{
+			d2 = diff[k];
+			if(d2<=0)
+				ret = solve(k) + 1;
+			else{
+				mx1 = v[j].s/abs(d1);
+				if(!(v[j].s%abs(d1)))
+					mx1--;
+				mx2 = v[k].s/abs(d2);
+				if(!(v[k].s%abs(d2)))
+					mx2--;
+				d3 = v[k].f - v[j].f - 1;
+				if((mx1+mx2)>=d3)
+					ret = solve(k) + 1;
+				else
+					ret = solve(k) + 2;
+			}
+		}
+	}
+	return dp[cur] = ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, d1, d2, d3, d4;
+	memset(dp, -1, sizeof(dp));
+	scanf("%d", &n);
+	for(i=1; i<=n; i++){
+		scanf("%d", &arr[i]);
+		if(arr[i]!=-1)
+			v.pb(mp(i, arr[i]));
+	}
+	if(v.empty()){
+		printf("1\n");
+		return 0;
+	}
+	m = v.size();
+	nxt[m-1] = m-1;
+	for(i=m-2; i>=0; i--){
+		d1 = v[i+1].s-v[i].s;
+		d2 = v[i+1].f-v[i].f;
+		if(d1%d2){
+			nxt[i] = i;
+			continue;
+		}
+		diff[i] = d1;
+		if(i==(m-2)){
+			nxt[i] = i+1;
+			continue;
+		}
+		d3 = v[i+2].s-v[i+1].s;
+		d4 = v[i+2].f-v[i+1].f;
+		if((d1/d2)==(d3/d4))
+			nxt[i] = nxt[i+1];
+		else
+			nxt[i] = i+1;
+	}
+	//for(i=0; i<m; i++)
+	//	cout << i << " " << dp[i] << " " << nxt[i] << " " << diff[i] << "\n";
+
+	int ans = solve(0);
+	
+	printf("%d\n", ans);
+	return 0;
+}

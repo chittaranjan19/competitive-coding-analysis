@@ -1,0 +1,112 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define MOD 1000000007
+#define inf 1000000000
+#define maxn 1000000
+
+#define ll long long
+#define pii pair<int, int>
+#define pb push_back
+#define sin scanint
+#define bitcount(x) __builtin_popcount(x)
+#define fill(s, p) memset(s, p, sizeof(s));
+
+#ifdef ONLINE_JUDGE
+#define gc getchar
+#endif
+
+#ifndef ONLINE_JUDGE
+#define gc getchar
+//freopen("input.txt", "r", stdin)
+//freopen("output.txt", "w", stdout)
+#endif
+
+void scanint(int &x)
+{
+    register int c = gc();
+    x = 0;
+    for(;(c<48 || c>57);c = gc());
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+}
+
+ll modpow(ll a, ll b)
+{
+    ll x=1ll, y=a;
+    while(b){
+        if(b%2)
+            x=(x*y)%MOD;
+        y=(y*y)%MOD;
+        b/=2;
+    }
+    return x;
+}
+
+vector<int> qb;
+vector<int> temp;
+vector<int> sol;
+int dp[maxn+100];
+
+int solve2(int num)
+{
+    if(num<=0)
+        return 0;
+    if(dp[num]!=-1)
+        return dp[num];
+    int i, curmin, cura, n;
+    curmin = inf;
+    for(i=0; qb[i]<=num; i++){
+        cura = 1+solve2(num-qb[i]);
+        curmin = min(curmin, cura);
+    }
+    return dp[num] = curmin;
+}
+
+void solve1(int num)
+{
+    if(num<=0)
+        return;
+    int i, curmin, cura, n;
+    curmin = inf;
+    for(i=0; qb[i]<=num; i++){
+        cura = 1+dp[num-qb[i]];
+        if(cura<curmin){
+            curmin = cura;
+            n = qb[i];
+        }
+    }
+    sol.pb(n);
+    solve1(num-n);
+}
+
+int main()
+{
+    int i, j, num;
+    fill(dp, -1);
+    qb.pb(1);
+    for(i=2; i<=6; i++){
+        num = modpow(10, i-1);
+        temp.clear();
+        for(j=0; j<qb.size(); j++){
+            temp.pb(num+qb[j]);
+        }
+        qb.pb(num);
+        for(j=0; j<temp.size(); j++)
+            qb.pb(temp[j]);
+    }
+    qb.pb(1000000);
+    sort(qb.begin(), qb.end());
+    for(i=1; i<=maxn; i++)
+        solve2(i);
+    //while(1){
+    //  sol.clear();
+        sin(num);
+        solve1(num);
+        printf("%d\n", sol.size());
+        for(i=0; i<sol.size(); i++)
+            printf("%d ", sol[i]);
+        printf("\n");
+    //}
+    return 0;
+}

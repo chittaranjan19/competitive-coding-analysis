@@ -1,0 +1,93 @@
+#include <iostream>
+#include <cstdio>
+#include <string>
+#include <cstring>
+#include <cstdlib>
+#include <stack>
+#include <algorithm>
+#include <cctype>
+#include <vector>
+#include <queue>
+#include <tr1/unordered_map>
+#include <cmath>
+#include <map>
+#include <bitset>
+#include <set>
+#include <iomanip>
+#include <utility>    
+using namespace std;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef vector<int> vi;
+typedef pair<int,int> ii;
+typedef vector< ii > vii;
+#define ALL(x) (x).begin(),x.end()
+#define CLEAR0(v) memset(v, 0, sizeof(v))
+#define CLEAR(v, x) memset(v, x, sizeof(v))
+#define COPY(a, b) memcpy(a, b, sizeof(a))
+#define CMP(a, b) memcmp(a, b, sizeof(a))
+#define REP(i,n) for(int i = 0; i<n; i++)
+#define REPP(i,a,n) for(int i = a; i<n; i++)
+#define REPD(i,n) for(int i = n-1; i>-1; i--)
+#define REPDP(i,a,n) for(int i = n-1; i>=a; i--)
+#define INF 0x3f3f3f3f
+
+ii pd[5100][5100];
+
+int n, m, t;
+vii g[5100];
+vi path;
+
+ii min_time(int k, int v){
+	if(k < 0) return ii(INF, INF);
+	
+	ii &ans = pd[k][v];
+	if(ans == ii(-INF, -INF)){
+		ans = ii(INF, INF);
+		REP(i, g[v].size()){
+			int u = g[v][i].first, w = g[v][i].second;
+			ii x = min_time(k-1, u);
+			if((x.first + w) <= t && ((x.first + w) < ans.first)) ans = ii(x.first + w, u);
+		}
+	}
+	return ans;
+}
+
+void dfs(int k, ii x){
+	if(x.second == INF) return;
+	path.push_back(x.second);
+	dfs(k-1, min_time(k-1, x.second));
+}
+
+int main(){
+	cin >> n >> m >> t;
+	REP(i, n+1)
+	REP(j, n+1){
+		pd[i][j] = ii(-INF, -INF);
+	}
+	pd[0][1] = ii(0, INF);
+
+	REP(i, m){
+		int u, v, w;
+		cin >> u >> v >> w;
+		g[v].push_back(make_pair(u, w));
+	}
+	
+	path.push_back(n);
+	ii z = ii(INF, INF);
+	int tam = 0;
+	for(int k = 0; k<n; k++){
+		ii x = min_time(k, n);
+		if(x.first <= t){
+			z = x;
+			tam = k;
+		}
+	}
+	dfs(tam, z);
+	cout << path.size() << endl;
+	if(path.size() > 0){
+		cout << path[path.size()-1];
+		for(int i = path.size()-2; i>=0; i--) cout << " " << path[i];
+		cout << endl;
+	}
+}

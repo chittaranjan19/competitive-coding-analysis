@@ -1,0 +1,133 @@
+#include<string>
+#include<iomanip>
+#include<cstdio>
+#include<math.h>
+#include<cmath>
+#include<algorithm>
+#include<vector>
+#include<set>
+#include<map>
+
+using namespace std;
+
+typedef long long ll;
+
+#if _DEBUG
+#include<fstream>
+ifstream cin("input.txt");
+ofstream cout("output.txt");
+#else
+#include<iostream>
+#endif
+
+const int maxx = 2000000;
+
+int parent[maxx + 2], size[maxx + 2];
+
+int find_set(int v) {
+	if (v == parent[v])
+		return v;
+	return parent[v] = find_set(parent[v]);
+}
+
+void make_set(int v) {
+	parent[v] = v;
+	size[v] = 1;
+}
+
+
+void union_set(int a, int b) {
+	a = find_set(a);
+	b = find_set(b);
+	if (a != b) {
+		if (size[a] < size[b])
+			swap(a, b);
+		parent[b] = a;
+		size[a] += size[b];
+	}
+}
+
+int a[1003][1003];
+
+struct str {
+	int point, x, y;
+	str() {}
+	str(int point, int x, int y) : point(point), x(x), y(y) {}
+	bool operator < (const str q) const {
+		return point > q.point;
+	}
+};
+
+
+vector < vector <int> > ans;
+
+int n, m, k;
+
+int need;
+
+
+void dfs(int x, int y, int put) {
+	if (need == 0) return;
+	ans[x][y] = put;
+	need--;
+	if (need == 0) return;
+	int xx[] = { -1, 1, 0, 0 };
+	int yy[] = { 0, 0, 1, -1 };
+	for (int i = 0; i < 4; i++) {
+		int x_now = x + xx[i];
+		int y_now = y + yy[i];
+		if (x_now < 0 || y_now < 0 || x_now >= n || y_now >= m) continue;
+		if (find_set(x * m + y) == find_set(x_now * m + y_now) && ans[x_now][y_now] == 0) {
+			dfs(x_now, y_now, put);
+		}
+	}
+}
+
+int main() {
+	
+	cin >> n >> m >> k;
+	vector <str> all;
+	ans.resize(n, vector <int>(m, 0));
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < m; j++) {
+			cin >> a[i][j];
+			all.push_back(str(a[i][j], i, j));
+			make_set(i * m + j);
+		}
+	}
+	sort(all.begin(), all.end());
+	for (int i = 0; i < (int)all.size();) {
+		int was = i;
+		while (i < (int)all.size() && all[i].point == all[was].point) {
+			int xx[] = { -1, 1, 0, 0 };
+			int yy[] = { 0, 0, -1, 1 };
+			for (int j = 0; j < 4; j++) {
+				int x = all[i].x + xx[j];
+				int y = all[i].y + yy[j];
+				if (x < 0 || y < 0 || x >= n || y >= m) continue;
+				if (a[x][y] >= a[all[i].x][all[i].y]) {
+					union_set(x * m + y, all[i].x * m + all[i].y);
+				}
+			}
+			i++;
+		}
+		for (int j = was; j < i; j++) {
+			int v = find_set(all[j].x * m + all[j].y);
+			int now = size[v];
+			if (k % all[j].point == 0 && k / all[j].point <= now) {
+				cout << "YES\n";
+				need = k / all[j].point;
+				dfs(all[j].x, all[j].y, all[j].point);
+				for (int q = 0; q < n; q++) {
+					for (int w = 0; w < m; w++) {
+						cout << ans[q][w] << ' ';
+					}
+					cout << '\n';
+				}
+				return 0;
+			}
+		}
+	}
+	cout << "NO\n";
+	return 0;
+}

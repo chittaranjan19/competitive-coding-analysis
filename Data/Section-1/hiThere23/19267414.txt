@@ -1,0 +1,111 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 1005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, k, cur, per[8], r, mark[mn], co = 0;
+long long xP[8], yP[8], xM[mn], yM[mn];
+
+struct relative
+{
+    int mon[mn], pos[mn];
+} place[8];
+
+int ccw(int x, int y, int z)
+{
+    long long ccw1 = (xM[y] - xP[x]) * (yP[x] - yM[z]);
+    long long ccw2 = (yM[y] - yP[x]) * (xP[x] - xM[z]);
+    return (ccw1 == ccw2? 0 : (ccw1 < ccw2? -1 : 1));
+}
+
+bool between(int x, int y, int z)
+{
+    long long disA = (xM[y] - xP[x]) * (xM[y] - xP[x]) + (yM[y] - yP[x]) * (yM[y] - yP[x]);
+    long long disB = (xM[z] - xP[x]) * (xM[z] - xP[x]) + (yM[z] - yP[x]) * (yM[z] - yP[x]);
+    long long disC = (xM[z] - xM[y]) * (xM[z] - xM[y]) + (yM[z] - yM[y]) * (yM[z] - yM[y]);
+    return (disA < disB  && disB > disC);
+}
+
+bool com(int a, int b)
+{
+    int x = ccw(cur, a, b);
+    if (x != 0)
+        return x == 1;
+    return between(cur, a, b);
+}
+
+void setup()
+{
+    cin >> k >> n;
+    FOR(i, 1, k)
+        cin >> xP[i] >> yP[i];
+    FOR(i, 1, n)
+    {
+        cin >> xM[i] >> yM[i];
+        FOR(j, 1, k)
+            place[j].mon[i] = i;
+    }
+}
+
+bool canBeHit(int u, int v)
+{
+    int p = place[v].pos[u];
+    while(p > 1)
+    {
+        int z = place[v].mon[-- p];
+        if (mark[z] == co)
+            continue;
+        if (ccw(v, z, u) || !between(v, z, u))
+            break;
+        if (r == k)
+            return false;
+        if (!canBeHit(z, per[++ r]))
+            return false;
+    }
+    mark[u] = co;
+    return true;
+}
+
+void xuly()
+{
+    FOR(i, 1, k)
+    {
+        cur = i;
+        sort(place[i].mon + 1, place[i].mon + n + 1, com);
+        FOR(j, 1, n)
+            place[i].pos[place[i].mon[j]] = j;
+    }
+    int ans = 0;
+    FOR(i, 1, n)
+    {
+        FOR(j, 1, k)
+            per[j] = j;
+        do
+        {
+            co ++;
+            if (canBeHit(i, per[r = 1]))
+            {
+                ans ++;
+                break;
+            }
+        }
+        while(next_permutation(per + 1, per + k + 1));
+    }
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

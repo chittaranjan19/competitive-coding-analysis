@@ -1,0 +1,122 @@
+#include <bits/stdc++.h>
+#define MULT 28
+#define MOD 1000000007
+using namespace std;
+typedef long long ll;
+char input[2010], sInicio[2010], sFin[2010];
+ll pot27[2010];
+ll inicio, fin, n, nInicio, nFin, hInicio, hFin, nVInicio, nVFin;
+vector< vector< ll > > M;
+set<ll> f;
+set<ll>::iterator it;
+
+vector<int> vInicio, vFin;
+
+void inicializar()
+{
+    n = strlen(input);
+    nInicio = strlen(sInicio);
+    nFin = strlen(sFin);
+    vInicio.clear();
+    vFin.clear();
+    M.clear();
+    M.resize(n);
+    for (int i = 0; i < n; i++)
+        M[i].resize(n);
+    f.clear();
+}
+
+int main()
+{
+    pot27[0] = 1;
+    for (int i = 1; i < 2010; i++)
+    {
+        pot27[i] = (pot27[i - 1] * MULT) % MOD;
+        //printf("pot27[%d] = %lld", i, pot27[i]);
+    }
+    while (scanf("%s %s %s", input, sInicio, sFin) == 3)
+    {
+        inicializar();
+        hInicio = sInicio[0] - 'a' + 1;
+        for (int i = 1; i < nInicio; i++)
+            hInicio = ((hInicio * MULT) + sInicio[i] - 'a' + 1) % MOD;
+        hFin = sFin[0] - 'a' + 1;
+        for (int i = 1; i < nFin; i++)
+            hFin = ((hFin * MULT) + sFin[i] - 'a' + 1) % MOD;
+        
+        //printf("(%lld, %lld) (%lld, %lld)\n", hInicio, nInicio, hFin, nFin);
+        // Calcular pos inicios en cadena principal
+        ll aux = input[0] - 'a' + 1;
+        for (int i = 1; i < nInicio; i++)
+            aux = ((aux * MULT) + input[i] - 'a' + 1) % MOD;
+        if (aux == hInicio)
+            vInicio.push_back(0);
+        //printf("aux[0] = %lld\n", aux);
+        for (int i = nInicio; i < n; i++)
+        {
+            aux = (aux - ((input[i - nInicio] - 'a' + 1) * pot27[nInicio - 1]) + MOD) % MOD;
+            aux = ((aux * MULT) + input[i] - 'a' + 1) % MOD;
+            //printf("aux[%lld] = %lld\n", i - nInicio + 1, aux);
+            if (aux == hInicio)
+                vInicio.push_back(i - nInicio + 1);
+        }
+        nVInicio = vInicio.size();
+        /*printf("vInicio = %d\n", nVInicio);
+        for (int i = 0; i < nVInicio; i++)
+            printf("%d ", vInicio[i]);
+        printf("\n")*/;
+        // Calcular pos fin en cadena principal
+        aux = input[0] - 'a' + 1;
+        for (int i = 1; i < nFin; i++)
+            aux = ((aux * MULT) + input[i] - 'a' + 1) % MOD;
+        if (aux == hFin)
+            vFin.push_back(0);
+        //printf("\naux[0] = %lld\n", aux);
+        for (int i = nFin; i < n; i++)
+        {
+            ll resta = (input[i - nFin] - 'a' + 1) * pot27[nFin - 1];
+            //printf("resta = %lld\n", resta);
+            aux = (aux - ((input[i - nFin] - 'a' + 1) * pot27[nFin - 1]) + MOD) % MOD;
+            //printf("aux[%lld] = %lld\n", i - nFin + 1, aux);
+            aux = ((aux * MULT) + input[i] - 'a' + 1) % MOD;
+            //printf("aux[%lld] = %lld\n", i - nFin + 1, aux);
+            if (aux == hFin)
+                vFin.push_back(i - nFin + 1);
+        }
+        nVFin = vFin.size();
+        /*printf("vFin = %d\n", vFin.size());
+        for (int i = 0; i < nVFin; i++)
+            printf("%d ", vFin[i]);
+        printf("\n");*/
+        // Calcular hashings
+        for (int i = 0; i < n; i++)
+        {
+            aux = 0;
+            for (int j = i; j < n; j++)
+            {
+                aux = ((aux * MULT) + input[j] - 'a' + 1) % MOD;
+                M[i][j] = aux;
+            }
+        }
+            
+        // Contar respuestas
+        int res = 0;
+        for (int i = 0; i < nVInicio; i++)
+        {
+            for (int j = 0; j < nVFin; j++)
+            {
+                if (vInicio[i] <= vFin[j])
+                {
+                    //printf("entro\n");
+                    it = f.find(M[vInicio[i]][vFin[j] + nFin - 1]);
+                    if (it == f.end())
+                    {
+                        res++;
+                        f.insert(M[vInicio[i]][vFin[j] + nFin - 1]);
+                    }
+                }
+            }
+        }
+        printf("%d\n", res);
+    }
+}

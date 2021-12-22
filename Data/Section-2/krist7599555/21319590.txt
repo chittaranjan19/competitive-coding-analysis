@@ -1,0 +1,96 @@
+#include <bits/stdc++.h>
+
+#define rep(n,m) for(n=1;n<=m;n++)
+#define pb push_back
+
+using namespace std;
+
+
+int S,T,Vs,Vt,N;
+
+vector<int> conec[100100];
+vector<pair<int,int>> ans;
+
+int unio  [100100];
+int needUS[100100];
+int needUT[100100];
+
+
+inline int fi(int n){
+	
+	return unio[n] = unio[n]==n ? n : fi(unio[n]);
+
+}
+
+
+int main(){
+	
+	iota(unio,unio+100100,0);
+	
+	int i,j,k;
+	
+	cin >> N >> k;
+	
+	ans.reserve(N);
+	
+	
+	while(k--){
+		
+		cin >> i >> j;
+		conec[i].pb(j);
+		conec[j].pb(i);
+		
+	}
+	
+	
+	rep(i,N){ if( i==S || i==T ) continue;
+	rep(j,N){ if( j==S || j==T ) continue;
+		
+		int h1 = fi(i);
+		int h2 = fi(j);
+		
+		if( h1!=h2 )
+			
+			ans.pb({i,j}), unio[h1] = h2;
+		
+	}}
+	
+	
+	for( int nex : conec[S] )	needUS[fi(nex)] = 1;
+	for( int nex : conec[T] )	needUT[fi(nex)] = 1;
+	
+	
+	rep(i,N){
+		
+		if( needUS[fi(i)] && i!=T && fi(i)!=fi(T) ) Vs--, ans.pb({i,S}), unio[fi(i)] = S;
+		if( needUT[fi(i)] && i!=S && fi(i)!=fi(S) ) Vt--, ans.pb({i,T}), unio[fi(i)] = T;	
+		
+	}
+	
+	if( fi(S)!=fi(T) ) Vs--, ans.pb({S,T}), unio[fi(T)] = S;
+		
+		
+		
+	if( ans.size() != N-1 || Vs<0 || Vt<0 ) 
+		
+		cout << "NO" << endl;
+	
+	else{
+		
+		cout << "YES" << endl;
+		
+		for(const auto &P : ans ) 
+		
+			cout << P.first << ' ' << P.second << endl;
+		
+	}
+	
+	return 0;
+	
+	
+
+
+
+
+	
+}

@@ -1,0 +1,109 @@
+#include <cstdio>
+#include <cstring>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <utility>
+#include <string>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <set>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define lsone(value) (value)&(-value)
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+class Fenwick {
+private:
+	vector<int> arr;
+	const int size;
+public:
+	Fenwick(int n) : arr(n+1), size(n) {
+		for (int it = 0; it < arr.size(); ++it)
+			arr[it] = 0;
+	}
+	void add(int v, int k) {
+		for (;k <= size; k += lsone(k)) {
+			arr[k] += v;
+		}
+	}
+	int get(int k) {
+		int total = 0;
+		for (;k > 0; k -= lsone(k))  {
+			total += arr[k];
+		}
+		return total;
+	}
+};
+
+template <typename U> class Comparator {
+public:
+    bool operator() (const U lhs, const U rhs) {
+        // implement
+        return true;
+    }
+};
+// end of template
+
+int main() {
+    // freopen("296B.in", "r", stdin);
+    int n;
+    string s, t;
+    scanf("%d", &n);
+    cin >> s >> t;
+
+    ii one[26];
+    int two[26][26];
+    for (int i = 0; i < 26; ++i) {
+    	one[i].a = one[i].b = -1;
+    	for (int j = 0; j < 26; ++j) {
+    		two[i][j] = -1;
+    	}
+    }
+
+    int ans = 0;
+    for (int it = 0; it < n; ++it) {
+    	if (s[it] != t[it]) {
+    		one[t[it]-'a'].a = it;
+    		one[s[it]-'a'].b = it;
+    		two[t[it]-'a'][s[it]-'a'] = it;
+    		++ans;
+    	}
+    }
+
+    for (int i = 0; i < 26; ++i) {
+    	for (int j = 0; j < 26; ++j) {
+    		if ((two[i][j] != -1) and (two[j][i] != -1)) {
+    			printf("%d\n%d %d\n", ans-2, two[i][j]+1, two[j][i]+1);
+    			return 0;
+    		}
+    	}
+    }
+
+    for (int it = 0; it < 26; ++it) {
+    	if ((one[it].a != -1) and (one[it].b != -1)) {
+    		printf("%d\n%d %d\n", ans-1, one[it].a+1, one[it].b+1);
+    		return 0;
+    	}
+    }
+
+    printf("%d\n-1 -1\n", ans);
+    return 0;
+}

@@ -1,0 +1,74 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+struct E {
+	int a, b; bool left; bool part; int count; int id;
+	E() {}
+	E(int la, int lb, bool lleft, bool lpart, int lc, int lid) { 
+		a = la; b = lb; left = lleft; part = lpart; count = lc; id = lid;
+	}
+	int get() const {
+		if (left) return a; return b;
+	}
+};
+struct cmpE {
+	bool operator() (const E &e1, const E &e2) const {
+		return e1.b < e2.b || (e1.b == e2.b && e1.a < e2.a);
+	}
+};
+struct cmpE2 {
+	bool operator() (const E &e1, const E &e2) const {
+		return e1.get() < e2.get() || (e1.get() == e2.get() && !e1.part && e2.part);
+	}
+};
+
+int assign[100000];
+int main() {
+	int n; cin >> n;
+	vector<E> events;
+	for (int i = 0; i < n; i++) {
+		int a, b; cin >> a >> b;
+		events.push_back(E(a, b, true, true, 0, i));
+	}
+	int m; cin >> m;
+	for (int i = 0; i < m; i++) {
+		int c, d, k; cin >> c >> d >> k;
+		events.push_back(E(c, d, true, false, k, i));
+		events.push_back(E(c, d, false, false, k, i));
+	}
+	sort(events.begin(), events.end(), cmpE2());
+	set<E, cmpE> actors;
+	for (int i = 0; i < events.size(); i++) {
+		E e = events[i];
+		if (e.part) {
+			set<E, cmpE>::iterator it = actors.lower_bound(E(0, e.b, false, false, 0, 0));
+			if (it == actors.end()) {
+				cout << "NO" << endl;
+				return 0;
+			}
+			E f = *it;
+			assign[e.id] = f.id;
+			actors.erase(it);
+			f.count--;
+			if (f.count > 0) {
+				actors.insert(f);
+			}
+		} else {
+			if (e.left) {
+				actors.insert(e);
+			} else {
+				actors.erase(e);
+			}
+		}
+	}
+	cout << "YES" << endl;
+	for (int i = 0; i < n; i++) {
+		if (i > 0) cout << ' ';
+		cout << assign[i] + 1;
+	}
+	cout << endl;
+}

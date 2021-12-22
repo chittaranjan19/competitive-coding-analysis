@@ -1,0 +1,121 @@
+/*
+PROG:kerim
+LANG:C++
+*/
+#include<bits/stdc++.h>
+#define MAXN 200009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define ff first
+#define ss second
+#define lgN 19
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef  long long int ull;
+typedef pair<ull,ull> PII;
+template<class T> bool checkMin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool checkMax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+vector<ull>E[MAXN];
+ull lvl[MAXN],P[MAXN][lgN+9],a,f[MAXN][lgN+9],b;
+pair<PII,ull> rr[MAXN];
+map<ull,map<ull,ull> >pm;
+ull dfs(ull nd,ull par)
+{
+	lvl[nd]=lvl[par]+1;
+	P[nd][0]=par;
+	f[nd][0]=pm[nd][par];
+	for(ull i=0;i<E[nd].size();i++){
+		if(E[nd][i]!=par)
+			dfs(E[nd][i],nd);
+	}
+}
+void build()
+{
+	for(ull j=1;(1<<j)<=a;j++)
+		for(ull i=1;i<=a;i++)
+			if(P[i][j-1]!=-1)
+				P[i][j]=P[P[i][j-1]][j-1],f[i][j]=f[i][j-1]*f[P[i][j-1]][j-1];
+}
+ull LCA(ull x,ull y)
+{
+	if(lvl[x]<lvl[y])
+		swap(x,y);
+	for(ull i=lgN;i>=0;i--)
+		if(lvl[x]-(1<<i)>=lvl[y])
+			x=P[x][i];
+	if(x==y)
+		return x;	
+	for(ull i=lgN;i>=0;i--)
+		if(P[x][i]!=-1 and P[x][i]!=P[y][i])
+			x=P[x][i],y=P[y][i];
+	return P[x][0];
+}
+ull get(ull k,ull l){
+	ull ans=1;
+	for(ull i=lgN;i>=0;i--){
+		if(lvl[k]-(1<<i)>=lvl[l]){
+			ans*=f[k][i];
+			k=P[k][i];
+		}
+	}
+	return ans;
+}
+void upd(ull x,ull y,ull z){
+	for(ull i=lgN;i>=0;i--){
+		if(lvl[x]-(1<<i)>=1){
+			f[x][i]/=y;
+			f[x][i]*=z;
+			x=P[x][i];
+		}
+	}
+}
+int main()
+{
+	cin>>a>>b;
+	for(ull i=1;i<a;i++)
+	{
+		ull x,y,z;
+		cin>>x>>y>>z;
+		E[x].pb(y);
+		E[y].pb(x);
+		pm[x][y]=z;
+		pm[y][x]=z;
+		rr[i]={{x,y},z};
+	}
+	for(ull i=1;i<=a;i++)
+		for(ull j=0;j<=lgN;j++)
+			P[i][j]=-1;
+	dfs(1,-1);
+	build();
+	while(b--){
+		ull n,m,y,f,type;
+		cin>>type>>n>>m;
+		if(type==1){
+			f=LCA(n,m);
+			cin>>y;
+			cout<<y/(get(n,f)*get(m,f))<<endl;
+		}
+		else{
+			ull u=rr[n].ff.ff,v=rr[n].ff.ss,c=rr[n].ss;
+			if(P[u][0]==v)
+				upd(u,c,m);
+			else
+				upd(v,c,m);	
+		}
+	}
+	return 0;
+}
+/*
+6 6
+1 2 2
+1 3 7
+1 4 4
+2 5 5
+2 6 2
+*/

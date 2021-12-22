@@ -1,0 +1,141 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define mp make_pair
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1.3e5;
+
+void setmax (int &a, int b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+int N, M;
+bool A[MAXN];
+vector<int> adj[MAXN];
+vector<int> cadj[MAXN];
+int sub[MAXN];
+
+int sdfs (int x, int p) {
+	sub[x] = A[x];
+	for (int t : adj[x]) {
+		if (t != p) {
+			sub[x] += sdfs(t, x);
+		}
+	}
+	return sub[x];
+}
+
+int E;
+bool ise[MAXN];
+
+void dfs (int x, int p) {
+	for (int t : adj[x]) {
+		if (t == p) {
+			continue;
+		}
+		if (sub[t] != M && sub[t] != 0) {
+			ise[x] = ise[t] = true;
+			cadj[x].push_back(t);
+			cadj[t].push_back(x);
+			E++;
+		}
+		dfs(t, x);
+	}
+}
+
+int depth[MAXN], ddown[MAXN];
+
+void dfsdep (int x, int p, int d) {
+	depth[x] = d;
+	for (int t : adj[x]) {
+		if (t != p) {
+			dfsdep(t, x, d + 1);
+			setmax(ddown[x], ddown[t] + 1);
+		}
+	}
+	// cerr << "ddown[" << x << "] = " << ddown[x] << endl;
+}
+
+int dup[MAXN];
+
+void dfsup (int x, int p) {
+	vector<pii> v;
+	for (int t : adj[x]) {
+		if (t != p) {
+			v.push_back(pii(ddown[t], t));
+		}
+	}
+	auto itm = max_element(all(v));
+	rep(it, v) {
+		int t = it->se;
+		int oth = 0;
+		if (it == itm) {
+			rep(jt, v) {
+				if (jt != it) {
+					setmax(oth, jt->fi + 1);
+				}
+			}
+		} else {
+			oth = itm->fi + 1;
+		}
+		dup[t] = max(oth, dup[x]) + 1;
+		dfsup(t, x);
+	}
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 1, x, y; i < N; i++) {
+		cin >> x >> y;
+		adj[x].push_back(y);
+		adj[y].push_back(x);
+	}
+	for (int i = 0, x; i < M; i++) {
+		cin >> x;
+		if (M == 1) {
+			cout << x << "\n0\n";
+			return 0;
+		}
+		A[x] = true;
+	}
+
+	//for every edge, check whether it is on the tree
+	sdfs(1, 0);
+	dfs(1, 0);
+	//find the farthest for each node now
+	copy_n(cadj + 1, N, adj + 1);
+	int s = find(ise + 1, ise + N + 1, true) - ise;
+	dfsdep(s, 0, 0);
+	dup[s] = A[s] ? 0 : -MAXN;
+	dfsup(s, 0);
+
+	int ans = 0, id = 0;
+	for (int i = 1; i <= N; i++) {
+		if (!ise[i]) {
+			continue;
+		}
+		// debug("dup[%d] = %d, ddown[%d] = %d\n", i, dup[i], i, ddown[i]);
+		int far = max(dup[i], ddown[i]);
+		if (far > ans) {
+			ans = far;
+			id = i;
+		}
+	}
+	cout << id << endl << 2 * E - ans << endl;
+}

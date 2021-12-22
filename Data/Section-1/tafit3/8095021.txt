@@ -1,0 +1,267 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class ProblemC {
+    BufferedReader rd;
+    char[][] c;
+    int n,m;
+
+    private ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        int[] a = intarr();
+        n = a[0];
+        m = a[1];
+        c = new char[n][];
+        for(int i=0;i<n;i++) {
+            c[i] = rd.readLine().toCharArray();
+        }
+        int px = -1;
+        int py = -1;
+        for(int i=0;py==-1 && i<n;i++) {
+            for(int j=0;py==-1 && j<m;j++) {
+                if(c[i][j] == 'X') {
+                    py = i;
+                    px = j;
+                }
+            }
+        }
+        int ox = px;
+        int oy = py;
+
+        int mr = right(px,py);
+        int md = down(px,py);
+        int res = -1;
+        if(verify(px,py,mr,md)) {
+            char[][] orig = new char[n][m];
+            for(int i=0;i<n;i++) {
+                System.arraycopy(c[i],0,orig[i],0,m);
+            }
+            boolean poss = true;
+            int[][] rdrs = new int[2][4];
+            int cnt = 0;
+            for(int k=0;k<2;k++) {
+                for(int i=0;i<n;i++) {
+                    System.arraycopy(orig[i],0,c[i],0,m);
+                }
+                int rs = 0;
+                int r = mr;
+                int d = md;
+                px = ox;
+                py = oy;
+                while(px+r<m||py+d<n) {
+                    boolean downPos = false;
+                    boolean rightPos = false;
+                    int downA = r*d;
+                    int rightA = r*d;
+                    if(py+d<n) {
+                        int q = downLen(px, py, r, d, false);
+                        if(q > 0) {
+                            downPos = true;
+                            downA = Math.min(r,q)*d;
+                        }
+                    }
+                    if(px+r<m) {
+                        int q = rightLen(px, py, r, d, false);
+                        if(q > 0) {
+                            rightPos = true;
+                            rightA = r*Math.min(d,q);
+                        }
+                    }
+
+                    if(!downPos && !rightPos) {
+                        break;
+                    }
+
+                    if(downPos && rightPos) {
+                        if(rs == 0) {
+                            if(k==0) {
+                                if(downA > rightA) {
+                                    downPos = false;
+                                }
+                            } else {
+                                if(downA <= rightA) {
+                                    downPos = false;
+                                }
+                            }
+                        } else if(downA == r*d && rightA == r*d) {
+                            poss = false;
+                            break;
+                        } else if(downA == r*d) {
+                            rightPos = false;
+                        } else {
+                            downPos = false;
+                        }
+                    }
+
+                    int q;
+                    if(downPos) {
+                        q = downLen(px, py, r, d, true);
+                    } else {
+                        q = rightLen(px, py, r, d, true);
+                    }
+
+                    if(rs == 0) {
+                        rs = 1;
+                        int last;
+                        if(downPos) {
+                            last = px+r;
+                            r = Math.min(r, q);
+                            px = last-r;
+                            py++;
+                        } else {
+                            last = py+d;
+                            d = Math.min(d, q);
+                            py = last-d;
+                            px++;
+                        }
+                    } else {
+                        if(downPos) {
+                            if(r == q) {
+                                py++;
+                            } else {
+                                poss = false;
+                                break;
+                            }
+                        } else {
+                            if(d == q) {
+                                px++;
+                            } else {
+                                poss = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if(poss) {
+                    for(int i=0;poss && i<n;i++) {
+                        for(int j=0;poss && j<m;j++) {
+                            if(c[i][j] != '.') {
+                                poss = false;
+                            }
+                        }
+                    }
+                }
+                if(!poss) {
+                    if(k==0) {
+                        poss = true;
+                    }
+                } else {
+                    rdrs[cnt][0] = r;
+                    rdrs[cnt][1] = d;
+                    rdrs[cnt][2] = rs;
+                    cnt++;
+                }
+            }
+            if(cnt > 0) {
+                if(cnt == 1) {
+                    res = get(rdrs[0]);
+                } else {
+                    res = Math.min(get(rdrs[0]), get(rdrs[1]));
+                }
+            }
+        }
+        out(res);
+    }
+
+    private int get(int[] rdrs) {
+        int r = rdrs[0];
+        int d = rdrs[1];
+        int rs = rdrs[2];
+        if(rs == 0) {
+            return Math.min(r,d);
+        } else {
+            return r*d;
+        }
+    }
+
+    private int downLen(int x,int y, int r, int d, boolean delete) {
+        int res = 0;
+        if(y+d < n) {
+            int i = 1;
+            while(i <= r && c[y+d][x+r-i] == 'X') {
+                if(delete) {
+                    c[y+d][x+r-i] = '.';
+                }
+                res++;
+                i++;
+            }
+        }
+        return res;
+    }
+
+    private int rightLen(int x, int y, int r, int d, boolean delete) {
+        int res = 0;
+        if(x+r < m) {
+            int i = 1;
+            while(i <= d && c[y+d-i][x+r] == 'X') {
+                if(delete) {
+                    c[y+d-i][x+r] = '.';
+                }
+                res++;
+                i++;
+            }
+        }
+        return res;
+    }
+
+    private boolean verify(int x,int y, int minX, int minY) {
+        for(int i=0;i<minY;i++) {
+            for(int j=0;j<minX;j++) {
+                if(c[y+i][x+j] != 'X') {
+                    return false;
+                }
+                c[y+i][x+j]='.';
+            }
+        }
+        return true;
+    }
+
+    private int right(int x, int y) {
+        int len = 0;
+        while((y < n) && (x < m)) {
+            if(c[y][x]=='X') {
+                len++;
+                x++;
+            } else {
+                return len;
+            }
+        }
+        return len;
+    }
+
+    private int down(int x, int y) {
+        int len = 0;
+        while((y < n) && (x < m)) {
+            if(c[y][x]=='X') {
+                len++;
+                y++;
+            } else {
+                return len;
+            }
+        }
+        return len;
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = s.split(" ");
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

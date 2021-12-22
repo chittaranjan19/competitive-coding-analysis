@@ -1,0 +1,113 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 155;
+
+int N, M;
+
+struct matrix {
+	bitset<MAXN> data[MAXN];
+	bitset<MAXN> &operator[] (int x) {
+		return data[x];
+	}
+	bitset<MAXN> operator[] (int x) const {
+		return data[x];
+	}
+	matrix& operator = (const matrix &m) {
+		for (int i = 0; i < N; i++) {
+			data[i] = m[i];
+		}
+		return *this;
+	}
+	matrix flip() const {
+		matrix res;
+		for (int i = 0; i < N; i++) {
+			for (int j = 0; j < N; j++) {
+				res[i][j] = data[j][i];
+			}
+		}
+		return res;
+	}
+	matrix operator * (const matrix &m) const {
+		matrix f = m.flip(), res;
+		for (int i = 0; i < N; i++) {
+			for (int j = 0; j < N; j++) {
+				res.data[i][j] = (data[i] & f[j]).any();
+			}
+		}
+		return res;
+	}
+	matrix& operator *= (const matrix &m) {
+		return *this = (*this) * m;
+	}
+} one;
+
+matrix pow (matrix m, int p) {
+	matrix res = one;
+	for (; p; p >>= 1) {
+		if (p & 1) {
+			res *= m;
+		}
+		m *= m;
+	}
+	return res;
+}
+
+int tt = clock();
+
+void pt() {
+	printf("Time: %f\n", float(clock() - tt) / CLOCKS_PER_SEC);
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	// atexit(pt);
+	scanf("%d %d", &N, &M);
+	for (int i = 0; i < N; i++) {
+		one[i][i] = true;
+	}
+	map<int, vector<pii> > mp;
+	for (int i = 0, a, b, d; i < M; i++) {
+		scanf("%d %d %d", &a, &b, &d);
+		mp[d].push_back(pii(a - 1, b - 1));
+	}
+	mp[1183940279].push_back(pii(N - 1, N - 1));
+	matrix adj, cpos = one;
+	adj[N - 1][N - 1] = true;
+	int prv = 0;
+	for (auto it : mp) {
+		int cur = it.first;
+		matrix npos = cpos * pow(adj, cur - prv);
+		if (npos[0][N - 1]) {
+			int lo = prv, hi = cur;
+			while (hi - lo > 1) {
+				//hmm time...is pretty tight.
+				int mid = (lo + hi) / 2;
+				if ((npos = (cpos * pow(adj, mid - lo)))[0][N - 1]) {
+					hi = mid;
+				} else {
+					cpos = npos;
+					lo = mid;
+				}
+			}
+			printf("%d\n", hi);
+			return 0;
+		}
+		prv = cur;
+		cpos = npos;
+		for (pii p : it.second) {
+			adj[p.first][p.second] = true;
+		}
+	}
+	puts("Impossible");
+}

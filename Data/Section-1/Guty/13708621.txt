@@ -1,0 +1,152 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+
+
+void imprimirVector (vector<int> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+int toNumber (string s)
+{
+	int Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (int number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+
+struct Intervalo
+{
+	Intervalo(tint ss, tint tt, tint ind)
+	{
+		s = ss;
+		t = tt;
+		indice = ind;
+	}
+	tint s,t,indice;
+};
+
+bool operator < (Intervalo i1, Intervalo i2)
+{
+	if (i1.t == i2.t)
+		return i1.s < i2.s;
+	else
+		return i1.t < i2.t;
+}
+
+int main()
+{
+	tint n,m;
+	cin >> n >> m;
+	if (m < n-1)
+	{
+		cout << "No" << endl;
+		return 0;
+	}
+	vector<tint> l (n);
+	vector<tint> r (n);
+	set<tint> a;
+	map<tint,tint> qa;
+	forn(i,n)
+		cin >> l[i] >> r[i];
+	forn(i,m)
+	{
+		tint aux;
+		cin >> aux;
+		a.insert(aux);
+	}
+	
+	
+	vector<Intervalo> bridge (n-1, Intervalo(-1,-1,-1));
+	forn(i,n-1)
+	{
+		bridge[i].s = l[i+1]-r[i];
+		bridge[i].t = r[i+1]-l[i];
+		bridge[i].indice = i+1;
+	}
+	sort(bridge.begin(),bridge.end());
+	vector<tint> ans;
+	forn(i,n-1)
+	{
+		if (a.lower_bound(bridge[i].s) != a.end())
+		{
+			tint b = *a.lower_bound(bridge[i].s);
+			if (qa[b] == 1)
+			{
+				qa[b]--;
+				a.erase(b);
+			}
+			if (b <= bridge[i].t)
+				ans.push_back(bridge[i].indice);
+			else
+			{
+				cout << "No" << endl;
+				return 0;
+			}
+		}
+		else
+		{
+			cout << "No" << endl;
+			return 0;
+		}
+			
+	}
+	cout << "Yes" << endl;
+	forn(i,ans.size())
+	{
+		if (i)
+			cout << " ";
+		cout << ans[i];
+	}
+	cout << endl;
+		
+	return 0;
+}
+
+
+

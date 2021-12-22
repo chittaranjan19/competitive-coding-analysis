@@ -1,0 +1,137 @@
+import java.util.*;
+
+/**
+ * Created by leen on 7/8/16.
+ */
+public class _687CV5 {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+
+        int n = scan.nextInt();
+        int k = scan.nextInt();
+
+        int[] c = new int[n + 1];
+        Node[][]  matrix = new Node[k + 1][n + 1];
+
+        for(int i = 0; i <= n; i++) {
+            if(i > 0)
+                c[i] = scan.nextInt();
+            matrix[0][i] = new Node().addValue(0);
+        }
+
+        for(int i = 1; i <=k; i++)
+            matrix[i][0] = new Node();
+
+        for(int i = 1; i <= k; i++) {
+            for(int j = 1; j <= n; j++) {
+
+                int lastK = i - c[j];
+                Node node = new Node();
+                matrix[i][j] = node;
+
+                if(lastK >= 0) {
+                    node.valueSet.union(matrix[lastK][j-1].valueSet);
+                    node.valueSet.leftShift(c[j]);
+                    node.valueSet.union(matrix[lastK][j-1].valueSet);
+                }
+
+                if(j > 1)
+                    node.valueSet.union(matrix[i][j-1].valueSet);
+            }
+        }
+
+        List<Integer> values = matrix[k][n].valueSet.values();
+
+        System.out.println(values.size());
+
+        StringBuilder buf = new StringBuilder();
+        boolean isFirst = true;
+        for(Integer val : values) {
+            if(isFirst)
+                isFirst = false;
+            else
+                buf.append(' ');
+            buf.append(val);
+        }
+
+        System.out.println(buf.toString());
+        System.out.flush();
+    }
+
+
+    static class Node {
+        BitMap valueSet = new BitMap();
+
+        Node addValue(int value) {
+            valueSet.add(value);
+            return this;
+        }
+    }
+
+    static class BitMap {
+        long[] value = new long[8];
+
+        void leftShift(int bits) {
+            int idx = bits / 64;
+            int rem = bits % 64;
+
+            if(idx > 0) {
+                for (int i = 7; i >= idx; i--)
+                    value[i] = value[i - idx];
+
+                for(int i = 0; i < idx; i++)
+                    value[i] = 0L;
+            }
+
+            for(int i = 7; i >=0; i--) {
+                value[i] <<= rem;
+                if(i >0)
+                    value[i] |= value[i-1] >>> (64-rem);
+            }
+        }
+
+        void rightShift(int bits) {
+            int idx = bits / 64;
+            int rem = bits % 64;
+
+            if(idx > 0) {
+                for(int i = 0; i < 8 - idx; i++)
+                    value[i] = value[i + idx];
+
+                for(int i = 7; i >= 8 -idx; i--)
+                    value[i] = 0L;
+            }
+
+            for(int i = 0; i < 8; i++) {
+                value[i] >>= rem;
+                if(i < 7)
+                    value[i] |= value[i + 1] << (64 - rem);
+            }
+        }
+
+        void add(int v) {
+            int idx = v / 64;
+            int rem = v % 64;
+
+            value[idx] |= 1L << rem;
+        }
+
+        void union(BitMap that) {
+            for(int i = 0; i < 8; i++)
+                value[i] |= that.value[i];
+
+        }
+
+        List<Integer> values() {
+            List<Integer> result = new ArrayList<Integer>();
+            for(int i = 0; i <= 500; i++) {
+                int idx = i / 64;
+                int shift = i % 64;
+                if((value[idx] & 1L << shift) > 0)
+                    result.add(i);
+            }
+            return result;
+        }
+    }
+
+}

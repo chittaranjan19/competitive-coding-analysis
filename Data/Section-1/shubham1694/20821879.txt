@@ -1,0 +1,100 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 2010;
+
+int n, mat[maxn][maxn], pos[maxn][maxn];
+int st[maxn][maxn*5];
+queue<pii> q;
+
+void update(int t, int s, int e, int q, int val, int node)
+{
+	if(s>e || s>q || q>e)
+		return;
+	if(s==e){
+		st[t][node] = val;
+		return;
+	}
+	int mid = (s+e)>>1;
+	int lc = node*2 + 1;
+	int rc = lc + 1;
+	update(t, s, mid, q, val, lc);
+	update(t, mid+1, e, q, val, rc);
+	st[t][node] = st[t][lc] + st[t][rc];
+}
+
+int query(int t, int s, int e, int q, int node)
+{
+	if(s>e || q>e || st[t][node]==0)
+		return inf;
+	if(s==e)
+		return s;
+	int mid = (s+e)>>1;
+	int lc = node*2 + 1;
+	int rc = lc + 1;
+	if(q<=mid)
+		return min(query(t, s, mid, q, lc), query(t, mid+1, e, q, rc));
+	else
+		return query(t, mid+1, e, q, rc);
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j;
+	scanf("%d", &n);
+	for(i=1; i<=n; i++){
+		for(j=1; j<=n; j++){
+			scanf("%d", &mat[i][j]);
+			if(mat[i][j]){
+				pos[i][j] = 1;
+				q.push(mp(i, j));
+			}
+			else
+				update(i, 1, n, j, 1, 0);
+		}
+	}
+	while(!q.empty()){
+		int x = q.front().f;
+		int y = q.front().s;
+		q.pop();
+		int prev = 0;
+		while(prev < n){
+			int npos = query(x, 1, n, prev+1, 0);
+			if(npos > n)
+				break;
+			prev = npos;
+			if(mat[y][npos]){
+				update(x, 1, n, npos, 0, 0);
+				pos[x][npos] = 1;
+				q.push(mp(x, npos));
+			}
+		}
+	}
+	for(i=1; i<=n; i++){
+		for(j=1; j<=n; j++){
+			if(!pos[i][j]){
+				printf("NO\n");
+				return 0;
+			}
+		}
+	}
+	printf("YES\n");
+	return 0;
+}

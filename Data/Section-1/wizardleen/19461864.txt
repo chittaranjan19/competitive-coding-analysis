@@ -1,0 +1,88 @@
+import java.io.BufferedInputStream;
+import java.util.Arrays;
+import java.util.Scanner;
+
+/**
+ * Created by leen on 7/28/16.
+ */
+public class _696D {
+
+    static int[] x;
+    static int[] prev;
+    static int[] next;
+    static int h;
+    static int n;
+    static double p;
+    static double[][][][] dpTable;
+    static boolean[][][][] visited;
+
+    public static void main(String[] args) {
+
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024 * 64));
+        n = scan.nextInt();
+        h = scan.nextInt();
+        p = scan.nextDouble();
+
+        x = new int[n];
+        for (int i = 0; i < n; i++)
+            x[i] = scan.nextInt();
+
+        Arrays.sort(x);
+
+        prev = new int[n];
+
+        prev[0] = 0;
+        for(int i = 1; i < n; i++) {
+            if(x[i] - x[i-1] < h)
+                prev[i] = prev[i-1];
+            else
+                prev[i] = i;
+        }
+
+        next = new int[n];
+
+        next[n-1] = n-1;
+        for(int i = n - 2; i >= 0; i--) {
+            if(x[i+1] - x[i] < h)
+                next[i] = next[i+1];
+            else
+                next[i] = i;
+        }
+
+        dpTable = new double[n][n][2][2];
+        visited = new boolean[n][n][2][2];
+
+        System.out.println(dp(0,n-1,0,0));
+    }
+
+    static double dp(int left, int right, int f1, int f2) {
+        if(left > right)
+            return 0.0;
+        if(visited[left][right][f1][f2])
+            return dpTable[left][right][f1][f2];
+
+        visited[left][right][f1][f2] = true;
+
+        int leftBorder = left == 0 ? x[0]-h : (f1 == 1 ? x[left-1] + h : x[left-1]);
+        int rightBorder = right == n-1 ? x[n-1]+h : (f2==1?x[right+1]-h : x[right+1]);
+
+        double result = 0;
+
+        // leftmost falls left
+        result += 0.5 * p * (Math.min(x[left] - leftBorder, h) + dp(left+1,right,0,f2));
+        // leftmost falls right
+        int t = Math.min(next[left], right);
+        result += 0.5 * (1-p) * (Math.min(x[t]-x[left]+h, rightBorder-x[left]) + dp(t+1,right,1,f2));
+        // rightmost falls right
+        result += 0.5 * (1-p) * (Math.min(h, rightBorder - x[right]) + dp(left, right-1,f1,0));
+        // rightmost falls left
+        int v = Math.max(left, prev[right]);
+        result += 0.5 * p * (Math.min(x[right] - x[v] + h, x[right] - leftBorder) + dp(left,v-1,f1,1));
+
+        dpTable[left][right][f1][f2] = result;
+
+        return result;
+
+    }
+
+}

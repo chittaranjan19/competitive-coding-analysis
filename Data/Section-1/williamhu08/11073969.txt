@@ -1,0 +1,54 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 510;
+
+int N, M, B, D;
+int A[MAXN];
+int dp[2][MAXN][MAXN];	//dp[prog][# line][# bug]
+
+void addeq (int &x, int y) {
+	x = (x + y) % D;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M >> B >> D;
+	for (int i = 1; i <= N; i++) {
+		cin >> A[i];
+	}
+	bool cur = true;
+	dp[cur][0][0] = 1;
+	for (int i = 1; i <= N; i++) {
+		cur ^= true;
+		for (int j = 0; j <= M; j++) {
+			for (int k = 0; k <= B; k++) {
+				dp[cur][j][k] = dp[cur ^ 1][j][k];
+			}
+		}
+		for (int j = 1; j <= M; j++) {
+			for (int k = A[i]; k <= B; k++) {
+				addeq(dp[cur][j][k], dp[cur][j - 1][k - A[i]]);
+			}
+		}
+	}
+	int ans = 0;
+	for (int i = 0; i <= B; i++) {
+		addeq(ans, dp[cur][M][i]);
+	}
+	cout << ans << endl;
+}

@@ -1,0 +1,109 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+vector<pii> v;
+vector<int> adj[maxn];
+int seen[maxn], parity[maxn];
+
+class dsu{
+	int parent[maxn], rnk[maxn], size[maxn];
+	public:
+		int find(int x){
+			if(parent[x]==x)
+				return x;
+			return parent[x] = find(parent[x]);
+		}
+		int getsize(int x){
+			return size[x];
+		}
+		int merge(int u, int v){
+			int ru, rv;
+			ru = find(u);
+			rv = find(v);
+			if(rnk[ru]>rnk[rv]){
+				parent[rv] = ru;
+				size[ru]+=size[rv];
+			}
+			else if(rnk[rv]>rnk[ru]){
+				parent[ru] = rv;
+				size[rv]+=size[ru];
+			}
+			else{
+				parent[rv] = ru;
+				rnk[ru]++;
+				size[ru]+=size[rv];
+			}
+		}
+		dsu(int n){
+			int i;
+			for(i=1; i<=n; i++){
+				parent[i] = i;
+				rnk[i] = 1;
+				size[i] = 1;
+			}
+		}
+};
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int n, m, i, j, u, r, f, root, temp;
+	ll sum = 0, p, x, y;
+	scanf("%d%d", &n, &m);
+	v.resize(n);
+	for(i=0; i<n; i++){
+		sd(v[i].f);
+		v[i].s = i+1;
+	}
+	sort(all(v));
+	for(i=1; i<=m; i++){
+		scanf("%d%d", &u, &r);
+		adj[u].pb(r);
+		adj[r].pb(u);
+	}
+	dsu d(n);
+	f = 1;
+	for(i=n-1; i>=0; i--){
+		u = v[i].s;
+		p = v[i].f;
+		for(auto k:adj[u]){
+			if(!seen[k])
+				continue;
+			root = d.find(k);
+			if(parity[root]==f)
+				continue;
+			parity[root] = f;
+			temp = d.find(u);
+			x = d.getsize(root);
+			y = d.getsize(temp);
+			x*=y;
+			sum+=(p*x);
+			d.merge(u, k);
+		}
+		seen[u] = 1;
+		//cout << u << " " << p << " " << sum << "\n";
+		f++;
+	}
+	//cout << sum << "\n";
+	sum*=2ll;
+	double ans = (double)sum/(n*(n-1)*1.0);
+	printf("%.9lf\n", ans);
+	return 0;
+}

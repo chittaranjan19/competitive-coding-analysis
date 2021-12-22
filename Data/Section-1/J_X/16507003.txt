@@ -1,0 +1,98 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 2e5 + 5;
+const int b = 30;
+
+ll s[maxn], t[maxn], fail[maxn];
+char cc[10];
+
+void kmp(int n)
+{
+    fail[0] = fail[1] = 0;
+    for(int i = 1; i < n; ++i)
+    {
+        int j = fail[i];
+        if(s[i] == s[j]) fail[i + 1] = j + 1;
+        else fail[i + 1] = fail[j];
+    }
+}
+
+int main()
+{
+    int n, m, l1 = 0, l2 = 0;
+    scanf("%d%d", &m, &n);
+    for(int i = 0; i < m; ++i)
+    {
+        int x;
+        scanf("%d%s", &x, cc);
+        int tmp = x * b + cc[1] - 'a';
+        if(!i || tmp % b != t[l2 - 1] % b) t[l2++] = tmp;
+        else t[l2 - 1] += x * b;
+    }
+    for(int i = 0; i < n; ++i)
+    {
+        int x;
+        scanf("%d%s", &x, cc);
+        int tmp = x * b + cc[1] - 'a';
+        if(!i || tmp % b != s[l1 - 1] % b) s[l1++] = tmp;
+        else s[l1 - 1] += x * b;
+    }
+    ll ans = 0;
+    if(l1 == 1)
+    {
+        for(int i = 0; i < l2; ++i)
+        {
+            if(s[0] % b == t[i] % b && t[i] >= s[0]) ans += (t[i] - s[0]) / b + 1;
+        }
+    }
+    else if(l1 == 2)
+    {
+        for(int i = 0; i < l2 - 1; ++i)
+        {
+            if(s[0] % b == t[i] % b && t[i] >= s[0] && s[1] % b == t[i + 1] % b && t[i + 1] >= s[1]) ++ans;
+        }
+    }
+    else
+    {
+        int tmp1 = s[0], tmp2 = s[l1 - 1];
+        for(int i = 0; i < l1 - 1; ++i) s[i] = s[i + 1];
+        l1 -= 2;
+        kmp(l1);
+        int j = 0, i = 1;
+        for(int i = 1; i < l2 - 1; ++i)
+        {
+            while(j && s[j] != t[i]) j = fail[j];
+            if(s[j] == t[i])
+            {
+                if(++j == l1)
+                {
+                    if(tmp1 % b == t[i - l1] % b && t[i - l1] >= tmp1 && tmp2 % b == t[i + 1] % b && t[i + 1] >= tmp2) ++ans;
+                    j = fail[j];
+                }
+            }
+        }
+//    while (i < l2 - 1)
+//    {
+//        if (j == -1 || t[i] == s[j])
+//        {
+//            i++;
+//            j++;
+//        }
+//        else
+//        {
+//            j = fail[j];
+//        }
+//        if (j == l1)
+//        {
+//                                if(tmp1 % b == t[i - l1 - 1] % b && t[i - l1 - 1] >= tmp1 && tmp2 % b == t[i] % b && t[i] >= tmp2) ++ans;
+//                        j = fail[j];
+//        }
+//    }
+    }
+    printf("%I64d\n", ans);
+    return 0;
+}

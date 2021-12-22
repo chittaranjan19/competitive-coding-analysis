@@ -1,0 +1,62 @@
+#include <cstdio>
+#include <string>
+#include <map>
+#include <algorithm>
+using namespace std;
+const int dx[4] = {0,1,0,-1};
+const int dy[4] = {1,0,-1,0};
+int d,x,y,z,i,j,k,l,c,e,n,m,si,sj,a[2999],b[2999],fi,fr;
+short qx[9999999],qy[9999999],qz[9999999];
+char s[55][55];
+map <int, int> mm;
+string p[55][55][2999],cur,r;
+int get(int x, int y, int z, int i, int j) {
+  int l=a[z];
+  if (s[x][y]!='S') l|=1<<(s[x][y]-'a');
+  if (l&(1<<(s[i][j]-'a'))) l^=1<<(s[i][j]-'a');
+  return l;
+}
+int main() {
+  mm[0]=a[0]=b[0]=0;
+  for (i=0; i<26; i++) {
+    x=1<<i; a[++e]=x; b[e]=1; mm[x]=e;
+    for (j=i+1; j<26; j++) {
+      y=x|(1<<j); a[++e]=y; b[e]=2; mm[y]=e;
+      for (k=j+1; k<26; k++) { z=y|(1<<k); a[++e]=z; b[e]=3; mm[z]=e; }
+    }
+  }
+  scanf("%d%d%d",&n,&m,&k);
+  for (i=0; i<n; i++) {
+    scanf("%s",s[i]);
+    for (j=0; j<m; j++) {
+      if (s[i][j]=='S') { qx[0]=i; qy[0]=j; }
+      if (s[i][j]=='T') { si=i; sj=j; }
+    }
+  }
+  if (abs(si-qx[0])+abs(sj-qy[0])==1) { puts(""); return 0; }
+  p[qx[0]][qy[0]][0]="S"; r=""; fi=0; fr=1;
+  while (fi<fr) {
+    x=qx[fi]; y=qy[fi]; z=qz[fi++];
+    if (r.length() && p[x][y][z].length()>r.length()) break;
+    for (d=0; d<4; d++) {
+      i=x+dx[d];
+      j=y+dy[d];
+      if (i>=0 && i<n && j>=0 && j<m) {
+        if (s[i][j]=='T') {
+          if (r=="" || p[x][y][z]<r) r=p[x][y][z];
+          continue;
+        }
+        l=get(x,y,z,i,j); c=mm[l];
+        if (mm.count(l)>0 && b[c]<k) {
+          cur=p[x][y][z];
+          cur+=s[i][j];
+          if (p[i][j][c]=="") {
+            p[i][j][c]=cur; qx[fr]=i; qy[fr]=j; qz[fr++]=c;
+          } else if (cur<p[i][j][c]) p[i][j][c]=cur;
+        }
+      }
+    }
+  }
+  if (r=="") puts("-1"); else puts(r.substr(1).c_str());
+  return 0;
+}

@@ -1,0 +1,68 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <string>
+#include <cstdlib>
+#include <algorithm>
+#define ll long long
+#define N 100003
+#define M 40004
+using namespace std; 
+const int INF = 0x3f3f3f3f;
+int m, n;
+int next_x[N<<1], head[N<<1], cur, value[N<<1], to[N<<1];
+bool flag[N];
+int a[N], ans = 0;
+int dfs(int st, int last){
+	int ret = 0;
+	for (int e = head[st]; e != -1; e = next_x[e]){
+		if (to[e] == last)	continue;
+		if (flag[to[e]])	continue;
+		ret += dfs(to[e], st)+1;
+		flag[to[e]] = true;
+	}
+	return ret;
+}
+void dfs(int st, int last, ll len){
+	if (len < 0)	len = 0;
+	if (len > a[st]){
+		ans+= dfs(st, last)+1;
+	}else{
+		for (int e = head[st]; e != -1; e = next_x[e]){
+			if (to[e] == last)	continue;
+			dfs(to[e], st, len+value[e]);
+		}
+	}	
+}
+int main(){
+#ifndef ONLINE_JUDGE
+//	freopen("1.txt", "r", stdin);
+#endif
+	int i, j, k;
+	int p, c;
+	memset(head, -1, sizeof(head));
+	memset(next_x, 0, sizeof(next_x));
+	memset(value, 0, sizeof(value));
+	memset(flag, false, sizeof(flag));
+	cur = 0;
+	scanf("%d", &n);
+	for (i = 1; i <= n; i++){
+		scanf("%d", &a[i]);
+	}
+	for (i = 1; i < n; i++){
+		scanf("%d%d", &p, &c);
+		to[cur] = p;
+		value[cur] = c;
+		next_x[cur] = head[i+1];
+		head[i+1] = cur++;
+		to[cur] = i+1;
+		value[cur] = c;
+		next_x[cur] = head[p];
+		head[p] = cur++;
+	}
+	ans = 0;
+	dfs(1, -1, 0);
+	cout << ans ;
+	return 0;
+}

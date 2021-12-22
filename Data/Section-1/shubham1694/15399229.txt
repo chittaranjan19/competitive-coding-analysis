@@ -1,0 +1,117 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+struct node{
+    int len;
+    vector<int> v;
+    bool operator<(const node&n) const{
+        return len<n.len;
+    }
+};  
+vector<node> vec;
+vector<int> temp;
+vector<pii> edges;
+int p[maxn], seen[maxn], fst[maxn];
+
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int n, i, j, k, f=1, ind;
+    scanf("%d", &n);
+    for(i=1; i<=n; i++)
+        scanf("%d", &p[i]);
+    for(i=1; i<=n; i++){
+        fst[i] = -1;
+        if(seen[i])
+            continue;
+        j = 0;
+        k = i;
+        temp.clear();
+        while(1){
+            j++;
+            temp.pb(k);
+            seen[k] = 1;
+            if(p[k]==i)
+                break;
+            k = p[k];
+        }
+        vec.pb((node){j, temp});
+    }
+    sort(all(vec));
+    for(i=0; i<vec.size(); i++){
+        k = vec[i].len;
+        //cout << i << " " << k << "\n";
+        if(k==1){
+            if(fst[1]==-1)
+                fst[1] = i;
+            else
+                edges.pb(mp(vec[fst[1]].v[0], vec[i].v[0]));
+        }
+        else if(k==2){
+            if(fst[2]==-1){
+                fst[2] = i;
+                if(fst[1]==-1)
+                    edges.pb(mp(vec[i].v[0], vec[i].v[1]));
+                else{
+                    edges.pb(mp(vec[fst[1]].v[0], vec[i].v[0]));
+                    edges.pb(mp(vec[fst[1]].v[0], vec[i].v[1]));
+                }
+            }
+            else{
+                edges.pb(mp(vec[fst[2]].v[0], vec[i].v[0]));
+                edges.pb(mp(vec[fst[2]].v[1], vec[i].v[1]));
+            }
+        }
+        else{
+            ind = -1;
+            for(j=1; j<=sqrt(k); j++){
+                if(k%j)
+                    continue;
+                if(fst[j]!=-1){
+                    ind = j;
+                    break;
+                }
+                if(fst[k/j]!=-1){
+                    ind = k/j;
+                    break;
+                }
+            }
+            //cout << ind << "\n";
+            if(ind==-1){
+                f = 0;
+                break;
+            }
+            for(j=0; j<k; j++){
+                edges.pb(mp(vec[i].v[j], vec[ind].v[j%k]));
+            }
+            if(fst[k]==-1)
+                fst[k] = i;
+        }
+    }
+    if(f){
+        printf("YES\n");
+        for(i=0; i<edges.size(); i++)
+            printf("%d %d\n", edges[i].f, edges[i].s);
+    }
+    else
+        printf("NO\n");
+    return 0;
+}

@@ -1,0 +1,259 @@
+#include <cstdio>
+#include <algorithm>
+
+using namespace std;
+
+int n;
+int a[200000],b[200000];
+int aa[200000],bb[200000];
+
+int c[200000];
+int cc[200000];
+
+//AVL
+struct Avl {
+    Avl* left;
+    Avl* right;
+    int x;
+    int lnum;
+    int rnum;
+    int h;
+    Avl() {
+        left = right = NULL;
+        lnum = rnum = 0;
+        h = 1;
+        x = -1;
+    }
+    Avl(int xx) {
+        left = right = NULL;
+        lnum = rnum = 0;
+        h = 1;
+        x = xx;
+    }
+    ~Avl() {
+        if(left != NULL) delete left;
+        if(right != NULL) delete right;
+    }
+};
+
+int height(Avl* r) {
+    if(r == NULL) return 0;
+    return r->h;
+}
+
+Avl* rotateLeft(Avl* rr) {
+    Avl* r = rr->right;
+    Avl* a = rr->left;
+    Avl* b = r->left;
+    Avl* c = r->right;
+    int ah = height(a);
+    int bh = height(b);
+    int ch = height(c);
+    int ac = rr->lnum;
+    int bc = r->lnum;
+    int cc = r->rnum;
+
+    r->left = rr;
+    rr->right = b;
+
+    r->lnum = ac+bc+1;
+    r->rnum = cc;
+    rr->lnum = ac;
+    rr->rnum = bc;
+
+    rr->h = max(ah,bh)+1;
+    r->h = max(rr->h,ch)+1;
+    return r;
+}
+
+Avl* rotateRight(Avl* r) {
+    Avl* rr = r->left;
+    Avl* a = rr->left;
+    Avl* b = rr->right;
+    Avl* c = r->right;
+    int ah = height(a);
+    int bh = height(b);
+    int ch = height(c);
+    int ac = rr->lnum;
+    int bc = rr->rnum;
+    int cc = r->rnum;
+
+    rr->right = r;
+    r->left = b;
+
+    rr->lnum = ac;
+    rr->rnum = bc+cc+1;
+    r->lnum = bc;
+    r->rnum = cc;
+
+    r->h = max(bh,ch)+1;
+    rr->h = max(ah,r->h)+1;
+    return rr;
+}
+
+Avl* addToAvl(Avl* r, int x) {
+    if(r == NULL) return new Avl(x);
+    Avl* rr = r;
+    if(x <= r->x) {
+        r->lnum++;
+        r->left = addToAvl(r->left,x);
+        r->h = max(height(r->left),height(r->right))+1;
+        if(height(r->left) > height(r->right)+1) rr = rotateRight(r);
+    } else {
+        r->rnum++;
+        r->right = addToAvl(r->right,x);
+        r->h = max(height(r->left),height(r->right))+1;
+        if(height(r->left)+1 < height(r->right)) rr = rotateLeft(r);
+    }
+    return rr;
+}
+
+Avl* findInAvl(Avl* r, int x) {
+    if(r == NULL) return NULL;
+    if(r->x == x) return r;
+    if(x <= r->x) return findInAvl(r->left,x);
+    return findInAvl(r->right,x);
+}
+
+Avl* remFromAvl(Avl* r) {
+    if(r == NULL) return NULL;
+    if(r->left == NULL) {
+        Avl* ret = r->right;
+        r->right = NULL;
+        delete r;
+        return ret;
+    }
+    if(r->right == NULL) {
+        Avl* ret = r->left;
+        r->left = 0;
+        delete r;
+        return ret;
+    }
+
+    int ah = height(r->left);
+    int bh = height(r->right);
+
+    Avl* rr = NULL;
+    if(ah > bh) {
+        rr = rotateRight(r);
+        rr->rnum--;
+        rr->right = remFromAvl(rr->right);
+    } else {
+        rr = rotateLeft(r);
+        rr->lnum--;
+        rr->left = remFromAvl(rr->left);
+    }
+
+    rr->h = max(height(rr->right),height(rr->left))+1;
+
+    return rr;
+}
+
+void printAvl(Avl* r) {
+    if(r == NULL) return;
+    printf("/(%d)",r->x);
+    printAvl(r->left);
+    printf("cerr << %d\n",r->x);
+    printf("\\(%d)",r->x);
+    printAvl(r->right);
+}
+
+Avl* removeFromAvl(Avl* r, int x) {
+    if(r->x == x) return remFromAvl(r);
+    if(x <= r->x) {
+        r->left = removeFromAvl(r->left,x);
+        r->lnum--;
+        r->h = max(height(r->left),height(r->right))+1;
+    } else {
+        r->right = removeFromAvl(r->right,x);
+        r->rnum--;
+        r->h = max(height(r->left),height(r->right))+1;
+    }
+    return r;
+}
+
+int countSmallerInAvl(Avl* r, int x) {
+    if(r == NULL) return 0;
+    if(r->x <= x) return 1+r->lnum+countSmallerInAvl(r->right,x);
+    return countSmallerInAvl(r->left,x);
+}
+
+int getXthFromAvl(Avl* r,int x) {
+    if(x==r->lnum) return r->x;
+    if(x <r->lnum) return getXthFromAvl(r->left,x);
+    if(x >r->lnum) return getXthFromAvl(r->right,x-(r->lnum+1));
+}
+
+Avl* root;
+
+int main()
+{
+    scanf("%d",&n);
+
+    for(int i=0; i<n; i++) {
+        scanf("%d",&aa[i]);
+    }
+    for(int i=0; i<n; i++) {
+        scanf("%d",&bb[i]);
+    }
+
+    root = NULL;
+    for(int i=0; i<n; i++) {
+        root = addToAvl(root,i);
+    }
+    for(int i=0; i<n; i++) {
+        a[i] = countSmallerInAvl(root,aa[i])-1;
+        root = removeFromAvl(root,aa[i]);
+    }
+    root = NULL;
+    for(int i=0; i<n; i++) {
+        root = addToAvl(root,i);
+    }
+    for(int i=0; i<n; i++) {
+        b[i] = countSmallerInAvl(root,bb[i])-1;
+        root = removeFromAvl(root,bb[i]);
+    }
+
+
+    int mar = 0;
+    for(int i=n-2,j=2; i>=0; i--,j++) {
+        c[i] = (a[i]+b[i]+mar)%j;
+        mar = (a[i]+b[i]+mar)/j;
+    }
+
+    root = NULL;
+    for(int i=0; i<n; i++) {
+        root = addToAvl(root,i);
+    }
+    for(int i=0; i<n; i++) {
+        cc[i] = getXthFromAvl(root,c[i]);
+        root = removeFromAvl(root,cc[i]);
+    }
+
+    for(int i=0; i<n-1; i++) {
+        printf("%d ",cc[i]);
+    }
+    printf("%d\n",cc[n-1]);
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

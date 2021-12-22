@@ -1,0 +1,100 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define PI acos(-1.0)
+#define LL long long
+#define EPS 1e-9
+
+using namespace std;
+
+int n,m;
+
+int DP[10000001];
+
+vector<int> primes;
+
+void get_primes(LL max){
+    char *sieve;
+    sieve = new char[max/8+1];
+    memset(sieve, 0xFF, (max/8+1) * sizeof(char));
+    for(LL x = 2; x <= max; x++)
+        if(sieve[x/8] & (0x01 << (x % 8))){
+            primes.push_back(x);
+            for(LL j = 2*x; j <= max; j += x)
+                sieve[j/8] &= ~(0x01 << (j % 8));
+        }
+    delete[] sieve;
+}
+
+int bs(int L,int R,int value)
+{
+    int mid;
+    while(R>=L)
+    {
+        mid=L+(R-L)/2;
+        if(primes[mid]>value)
+            R=mid-1;
+        else if(primes[mid]<value)
+            L=mid+1;
+        else break;
+    }
+    return mid;
+}
+
+int main()
+{
+    //freopen("input.txt","r",stdin);
+    //freopen("output.txt","w",stdout);
+    get_primes(10000001);
+    scanf("%d",&n);
+    int temp;
+    for(int i=0;i<n;i++)
+    {
+        scanf("%d",&temp);
+        int k=0;
+        while(temp>1 && primes[k] * primes[k] <= temp)
+        {
+            if(temp%primes[k]==0)
+            {
+                temp/=primes[k];
+                while(temp%primes[k] == 0)
+                    temp/=primes[k];
+                DP[primes[k]]++;
+            }
+            k++;
+        }
+        if(temp>1)
+        {
+            DP[temp]++;
+        }
+    }
+    for(int i=1;i<10000001;i++)
+        DP[i]+=DP[i-1];
+    int l,r,m;
+    scanf("%d",&m);
+    for(int i=0;i<m;i++)
+    {
+        scanf("%d %d",&l,&r);
+        if(l>10000000)
+            printf("0\n");
+        else printf("%d\n",(r<=10000000 ? DP[r] : DP[10000000])-DP[l-1]);
+    }
+    return 0;
+}

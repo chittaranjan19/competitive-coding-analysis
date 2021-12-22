@@ -1,0 +1,88 @@
+#include <iostream> 
+#include <cstdio>
+
+using namespace std;
+
+#define For(i , a , b) for (int i = a , _b = b ; i <= _b ; ++i)
+#define Ford(i , a  ,b) for (int i = a , _b = b : i >= _b ; --i)
+#define Rep(i , n) for (int i = 0 , _n = n ; i < _n ; ++i)
+#define sz(A) ((int)A.size())
+#define LL(x) (x << 1)
+#define RR(x) ((x << 1) | 1)
+
+typedef pair<int , int> pt;
+
+const int maxn = 4000 + 123;
+
+int n , k;
+int mat[maxn][maxn];
+
+int nextInt() {
+	int res = 0;
+	char c = 0;
+	while (c < '0' || c > '9') c = getchar();
+	for (; c >= '0' && c <= '9' ; c = getchar()) res = res * 10 + c - '0';
+	return res;
+}
+
+void ReadData() {
+	n = nextInt() , k = nextInt();
+	For(i , 1 , n) For(j , 1 , n) mat[i][j] = nextInt();
+
+	For(i , 1 , n) {
+		For(j , 1 , n) mat[i][j] += mat[i][j - 1];
+	}
+}
+
+int dp[804][maxn];
+
+bool minimize(int &a , const int &b) {
+	if (a > b) return a = b , true; return false;
+}
+
+int cost[maxn][maxn];
+void Init() {
+	For(i , 1 , n) For(j , i , n) {
+		if (i == j) cost[i][j] = 0; else {
+			cost[i][j] = cost[i][j - 1] + mat[j][j] - mat[j][i - 1];
+		}
+	}
+}
+
+const int INF = 1e9 + 213;
+
+void Solve(int i , int l , int r , int optL , int optR) {
+	if (l > r) return;
+	int mid = (l + r) >> 1;
+	int optMid = optL;
+	For(j , optL , optR) if (j < mid) {
+		if (minimize(dp[i][mid] , dp[i - 1][j] + cost[j + 1][mid])) optMid = j;
+	}
+	Solve(i , l , mid - 1 , optL , optMid);
+	Solve(i , mid + 1 , r , optMid , optR);
+}
+
+void Process() {
+	Init();
+	For(i , 1 , n) dp[0][i] = INF;
+	dp[0][0] = 0;
+	For(i , 1 , k) {
+		For(j , 1 , n) dp[i][j] = INF;
+		Solve(i , 1 , n , 0 , n);
+	}
+
+	int res = dp[k][n];
+	cout << res << endl;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	
+	//freopen("input.inp" , "r" , stdin);
+	ReadData();
+	Process();
+
+	return 0;
+
+}			

@@ -1,0 +1,106 @@
+import java.util.*;
+
+/**
+ * Created by leen on 6/16/16.
+ */
+public class _681D {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+
+        int n = scan.nextInt();
+        int m = scan.nextInt();
+
+        scan.nextLine();
+
+        Man[] men = new Man[1 + n];
+
+        for(int i = 1; i <= n; i++)
+            men[i] = new Man(i);
+
+        for(int i = 0; i < m; i++) {
+            String relation = scan.nextLine();
+            String[] splits = relation.split(" ");
+            int fatherIdx = Integer.parseInt(splits[0]);
+            int sonIdx = Integer.parseInt(splits[1]);
+            men[sonIdx].father = men[fatherIdx];
+            men[fatherIdx].children.add(men[sonIdx]);
+        }
+
+        String sendInfo = scan.nextLine();
+        String[] splits = sendInfo.split(" ");
+        for(int i = 1; i <= n; i++) {
+            int recvIdx = Integer.parseInt(splits[i - 1]);
+            Man recv = men[recvIdx];
+            Man sender = men[i];
+            recv.isReceiver = true;
+            recv.senders.add(sender);
+        }
+
+        List<Man> roots = new ArrayList<Man>();
+
+        for(int i = 1; i < n; i++) {
+            Man man = men[i];
+            if(man.father == null)
+                roots.add(man);
+        }
+
+        List<Man> out = new ArrayList<Man>();
+        for(Man root : roots) {
+            root.checked = true;
+            if(!process(root, out)) {
+                System.out.println(-1);
+                System.out.flush();
+                return;
+            }
+        }
+
+        System.out.println(out.size());
+
+        for(int i = out.size() - 1; i >=0; i--)
+            System.out.println(out.get(i).index);
+
+        System.out.flush();
+
+    }
+
+    static boolean process(Man tree, List<Man> out) {
+
+        tree.checked = true;
+
+        if(tree.isReceiver) {
+            for (Man sender : tree.senders) {
+                Man temp = sender;
+                while (!temp.checked) {
+                    if (temp.isReceiver)
+                        return false;
+                    temp.checked = true;
+                    temp = temp.father;
+                }
+            }
+            out.add(tree);
+        }
+
+        for(Man child : tree.children) {
+            if(!process(child, out))
+                return false;
+        }
+
+        return true;
+    }
+
+    static class Man {
+        final int index;
+        Man father;
+        boolean isReceiver;
+        boolean checked;
+        final List<Man> senders = new ArrayList<Man>();
+        final List<Man> children = new ArrayList<Man>();
+
+        Man(int index) {
+            this.index = index;
+        }
+
+
+    }
+
+}

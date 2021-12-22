@@ -1,0 +1,130 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+using namespace std;
+
+typedef long long ll;
+#define mod 1000000007
+#define pi acos(-1.0)
+#define LINF 1000000000000000000LL
+
+int n;
+multiset <int> s;
+int a[3];
+
+int main()
+{
+    scanf("%d", &n);
+    for(int i = 0; i < 3; i++)
+        scanf("%d", &a[i]);
+    sort(a, a + 3);
+    for(int i = 0; i < n; i++)
+    {
+        int c;
+        scanf("%d", &c);
+        s.insert(c);
+    }
+    int res = 0;
+    if(*s.rbegin() > a[0] + a[1] + a[2])
+    {
+        puts("-1");
+        return 0;
+    }
+    while(!s.empty() && *s.rbegin() > a[1] + a[2]) //all
+    {
+        res++;
+        s.erase(s.find(*s.rbegin()));
+    }
+    while(!s.empty() && *s.rbegin() > a[0] + a[2]) //1 and 2
+    {
+        res++;
+        s.erase(s.find(*s.rbegin()));
+        if(!s.empty() && *s.begin() <= a[0])
+        {
+            multiset <int>::iterator it = s.lower_bound(a[0]);
+            if(it == s.end())
+                it = s.find(*s.rbegin());
+            if(*it > a[0])
+                it--;
+            s.erase(it);
+        }
+    }
+    while(!s.empty() && *s.rbegin() > a[0] + a[1]) //0 and 2
+    {
+        res++;
+        s.erase(s.find(*s.rbegin()));
+        if(!s.empty() && *s.begin() <= a[1])
+        {
+            multiset <int>::iterator it = s.lower_bound(a[1]);
+            if(it == s.end())
+                it = s.find(*s.rbegin());
+            if(*it > a[1])
+                it--;
+            s.erase(it);
+        }
+    }
+    while(a[0] + a[1] > a[2] && !s.empty() && *s.rbegin() > a[2]) //0 and 1
+    {
+        res++;
+        s.erase(s.find(*s.rbegin()));
+        if(!s.empty() && *s.begin() <= a[2])
+        {
+            multiset <int>::iterator it = s.lower_bound(a[2]);
+            if(it == s.end())
+                it = s.find(*s.rbegin());
+            if(*it > a[2])
+                it--;
+            s.erase(it);
+        }
+    }
+    while(!s.empty()) //2
+    {
+        res++;
+        s.erase(s.find(*s.rbegin()));
+        if(s.empty())
+            break;
+        if(*s.begin() <= a[1])
+        {
+            multiset <int>::iterator it = s.lower_bound(a[1]);
+            if(it == s.end())
+                it = s.find(*s.rbegin());
+            if(*it > a[1])
+                it--;
+            s.erase(it);
+            if(s.empty())
+                break;
+            if(*s.begin() <= a[0])
+            {
+                multiset <int>::iterator it = s.lower_bound(a[0]);
+                if(it == s.end())
+                    it = s.find(*s.rbegin());
+                if(*it > a[0])
+                    it--;
+                s.erase(it);
+            }
+        }
+        else
+            if(*s.begin() <= a[0] + a[1])
+            {
+                multiset <int>::iterator it = s.lower_bound(a[0] + a[1]);
+                if(it == s.end())
+                    it = s.find(*s.rbegin());
+                if(*it > a[0] + a[1])
+                    it--;
+                s.erase(it);
+            }
+    }
+    cout << res << endl;
+    return 0;
+}

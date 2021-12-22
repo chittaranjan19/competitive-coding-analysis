@@ -1,0 +1,151 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int sub[MAXN],vis[MAXN];
+vector<PII>adj[MAXN];
+void f1(int nd,int pr){
+	sub[nd]=1;
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i].ff;
+		if(vis[to] or to==pr)
+			continue;
+		f1(to,nd);
+		sub[nd]+=sub[to];	
+	}
+}
+int f2(int nd,int pr,int weight){
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i].ff;
+		if(vis[to] or to==pr)
+			continue;
+		if(sub[to]>weight)
+			return f2(to,nd,weight);
+	}
+	return nd;
+}
+int n,L,R,mx=0;
+int uu,vv;
+vector<pair<PII,int> >on;
+PII s[MAXN];
+PII tap(int l,int r){
+	PII res=mp(INF,-1);
+	for(int i=l;i<=r;i++)
+		umin(res,s[i]);
+	return res;	
+}
+void upd(int p,PII v){
+	umin(s[p],v);
+}
+int solve(int nd,int pr,int lvl,int cnt,int limit){
+	on.pb(mp(mp(lvl,cnt),nd));
+	if(L-lvl>=1 and L-lvl<=mx){
+		PII res=tap(L-lvl,min(mx,R-lvl));
+		if(2*cnt-lvl>=res.ff){
+			uu=nd,vv=res.ss;
+			return 1;
+		}
+	}
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i].ff;
+		int val=adj[nd][i].ss;
+		if(vis[to] or to==pr)
+			continue;
+		if(solve(to,nd,lvl+1,cnt+(val>=limit),limit))
+			return 1;
+	}	
+	return 0;
+}
+void reset(){
+	for(int j=1;j<=mx;j++)
+		s[j]=mp(INF,-1);
+	mx=0;	
+}
+void init(){
+	memset(vis,0,sizeof vis);
+	memset(sub,0,sizeof sub);
+}
+int dfs(int nd,int x){
+	f1(nd,-1);
+	nd=f2(nd,-1,sub[nd]>>1);mx=0;
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i].ff;
+		int val=adj[nd][i].ss;
+		if(!vis[to]){
+			on.clear();
+			if(solve(to,nd,1,(val>=x),x)){
+				reset();
+				return 1;
+			}
+			tr(it,on){
+				upd(it->ff.ff,mp((it->ff.ff)-2*(it->ff.ss),it->ss));
+				umax(mx,it->ff.ff);
+			}
+		}
+	}
+	if(L<=mx){
+		PII res=tap(L,min(mx,R));
+		if(res.ff<=0){
+			reset();
+			uu=nd;
+			vv=res.ss;
+			return 1;
+		}
+	}
+	reset();
+	vis[nd]=1;
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i].ff;
+		if(!vis[to] and dfs(to,x))
+			return 1;
+	}
+	return 0;
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif
+	scanf("%d%d%d",&n,&L,&R);
+	for(int j=0;j<MAXN;j++)
+		s[j]=mp(INF,-1);
+	vector<int>t;
+	for(int i=1;i<n;i++){
+		int u,v,w;
+		scanf("%d%d%d",&u,&v,&w);
+		adj[u].pb(mp(v,w));
+		adj[v].pb(mp(u,w));
+		t.pb(w);
+	}
+	sort(all(t));
+	int st=0,en=t.size()-1;
+	while(st+1<en){
+		int mid=(st+en)>>1;
+		init();
+		if(dfs(1,t[mid]))
+			st=mid;
+		else
+			en=mid;
+	}
+	init();
+	if(dfs(1,t[en])){
+		printf("%d %d\n",uu,vv);
+		return 0;
+	}init();
+	dfs(1,t[st]);
+	printf("%d %d\n",uu,vv);
+	return 0;
+}

@@ -1,0 +1,53 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int n, dp[3][102][102*102], sl1[123];
+
+struct so{
+    int sl, v;
+} soda[123];
+
+bool com(so x, so y)
+{
+    return x.v > y.v;
+}
+int main()
+{
+    ios_base::sync_with_stdio(false);
+    //freopen("inp.txt","r",stdin);
+    //freopen("out.txt","w",stdout);
+    cin >> n;
+    for(int i = 1; i <= n; i++) cin >> soda[i].sl;
+    for(int i = 1; i <= n; i++) cin >> soda[i].v;
+    int sum = 0;
+    for(int i = 1; i <= n; i++) sum += soda[i].sl;
+    int luu = sum;
+    sort(soda+1, soda+n+1, com); //Sort the tich
+    for(int i = 1; i <= n; i++) sl1[i] = sl1[i-1] + soda[i].v;
+    int ans = 0;
+    for(int i = 1; i <= n; i++){
+        ans++;
+        sum -= soda[i].v;
+        if(sum <= 0) break;
+    }
+    memset(dp, -1, sizeof(dp));
+    dp[0][0][0] = 0;
+    dp[1][0][0] = 0;
+    int cur = 0, pre = 1;
+    for(int i = 1; i <= n; i++)
+    {
+        swap(cur, pre);
+        for(int j = 1; j <= min(j, ans); j++)
+            for(int t = 0; t <= sl1[i]; t++){
+                dp[cur][j][t] = dp[pre][j][t];
+                if(t >= soda[i].v) dp[cur][j][t] = max(dp[cur][j][t], dp[pre][j-1][t-soda[i].v] + soda[i].sl);
+            }
+    }
+    int kq = -1;
+    for(int i = luu; i <= sl1[n]; i++){
+        kq = max(kq, dp[cur][ans][i]);
+    }
+    cout << ans <<" "<<luu-kq;
+    return 0;
+}

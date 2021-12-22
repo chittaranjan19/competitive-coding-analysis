@@ -1,0 +1,98 @@
+#include <iostream>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+
+#define fr first
+#define sc second
+#define mkp make_pair
+
+int n, m, k, sz, csz, ans;
+pair <int, pair <int, int> > d[3000];
+bool u[100][100], u2[100][100], ok;
+char c[100][100];
+
+bool in(int x, int y){
+	return ((0 <= x && x < n) && (0 <= y && y < m));
+}
+
+void dfs(int x, int y){
+	u[x][y] = 1;
+	if((x == 0 || x == n - 1 || y == 0 || y == m - 1) && c[x][y] == '.'){
+		ok = 0;
+		return;
+	}
+	csz ++;
+	for(int i = -1; i < 2; ++ i){
+		for(int j = -1; j < 2; ++ j){
+			if(abs(i) + abs(j) == 1){
+				if(in(i + x, j + y) && c[i + x][j + y] == '.' && !u[i + x][j + y]){
+					dfs(i + x, j + y);
+					if(ok == 0){
+						return;
+					}
+				}
+			}
+		}
+	}
+}
+void dfs2(int x, int y){
+	u2[x][y] = 1;
+	for(int i = -1; i < 2; ++ i){
+		for(int j = -1; j < 2; ++ j){
+			if(abs(i) + abs(j) == 1){
+				if(in(i + x, j + y) && c[i + x][j + y] == '.' && !u2[x][y]){
+					dfs(i + x, j + y);
+				}
+			}
+		}
+	}
+}
+
+void dfs3(int x, int y){
+    c[x][y] = '*';
+	for(int i = -1; i < 2; ++ i){
+		for(int j = -1; j < 2; ++ j){
+			if(abs(i) + abs(j) == 1){
+				if(in(i + x, j + y) && c[i + x][j + y] == '.' && u[i + x][j + y]){
+					dfs(i + x, j + y);
+				}
+			}
+		}
+	}
+}
+
+int main(){
+	cin >> n >> m >> k;
+	for(int i = 0; i < n; ++ i){
+		for(int j = 0; j < m; ++ j){
+			cin >> c[i][j];
+		}
+	}
+	for(int i = 0; i < n; ++ i){
+		for(int j = 0; j < m; ++ j){
+			if(c[i][j] == '.' && !u[i][j] && !u2[i][j]){
+				ok = 1;
+				csz = 0;
+				dfs(i, j);
+				if(ok) d[sz ++] = mkp(csz, mkp(i, j));
+				else {
+					dfs2(i, j);
+				}
+			}
+		}
+	}
+	sort(d, d + sz);
+	for(int i = 0; i < sz - k; ++ i){
+		ans += d[i].fr;
+		dfs3(d[i].sc.fr, d[i].sc.sc);
+	}
+	cout << ans << '\n';
+	for(int i = 0; i < n; ++ i){
+		if(i) cout << '\n';
+		for(int j = 0; j < m; ++ j){
+			cout << c[i][j];
+		}
+	}
+	return 0;
+}

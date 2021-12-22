@@ -1,0 +1,82 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+PII d[MAXN];
+int r[MAXN],n,m,ans[MAXN];
+vector<int>adj[MAXN];
+int road(int x,int y){
+	for(int i=0;i<adj[x].size();i++)
+		if(adj[x][i]==y)
+			return 1;
+	return 0;			
+}
+int ok(int x){
+	queue<int>q;
+	for(int i=1;i<=n;i++){	
+		adj[i].resize(0);
+		r[i]=ans[i]=0;
+	}
+	for(int i=1;i<=x;i++){
+		adj[d[i].ff].pb(d[i].ss);
+		r[d[i].ss]++;
+	}
+	int c=0;
+	for(int i=1;i<=n;i++)
+		if(!r[i])
+			q.push(i);
+	while(!q.empty()){
+		int nd=q.front();
+		ans[++c]=nd;
+		q.pop();
+		for(int i=0;i<adj[nd].size();i++){
+			int to=adj[nd][i];
+			r[to]--;
+			if(!r[to])
+				q.push(to);
+		}
+	}
+	for(int i=1;i<c;i++)
+		if(!road(ans[i],ans[i+1]))
+			return 0;
+	return 1;		
+}
+int main(){
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=m;i++){
+		int x,y;
+		scanf("%d%d",&x,&y);
+		d[i]=mp(x,y);
+	}
+	int l=1,e=m;
+	while(l+1<e){
+		int mid=(l+e)>>1;
+		if(ok(mid))
+			e=mid;
+		else
+			l=mid;	
+	}
+	for(int i=l;i<=e;i++)
+		if(ok(i)){
+			printf("%d\n",i);
+			return 0;
+		}
+	printf("-1\n");	
+	return 0;
+}

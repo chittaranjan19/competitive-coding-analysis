@@ -1,0 +1,154 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 60
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, k, mark[mn], d[mn], trace[mn];
+int num = 0, q[mn], l, r, traceE[mn];
+deque< pair<int, int> > que;
+
+struct edge
+{
+    int v, f, c, rev;
+
+    edge(int v = 0, int c = 0, int rev = 0): v(v), c(c), rev(rev){f = 0;}
+};
+vector<edge> g[mn];
+
+
+void setup()
+{
+    cin >> n >> k;
+    int c;
+    FOR(u, 1, n)
+    FOR(v, 1, n)
+    {
+        cin >> c;
+        if (!c)
+            continue;
+        g[u].pb(edge(v, c, g[v].size()));
+        g[v].pb(edge(u, 0, g[u].size() - 1));
+    }
+}
+
+bool bfs()
+{
+    q[l = r = 1] = 1;
+    d[1] = 0, mark[1] = ++ num;
+    while(l <= r)
+    {
+        int u = q[l ++];
+        FOR(i, 0, int(g[u].size()) - 1)
+        {
+            int v = g[u][i].v;
+            if (mark[v] == num || g[u][i].f == g[u][i].c)
+                continue;
+            mark[v] = num;
+            d[v] = d[u] + 1;
+            q[++ r] = v;
+        }
+    }
+    return mark[n] == num;
+}
+
+int dfs(int u, int low)
+{
+    if (u == n)
+        return low;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].v;
+        if (d[v] != d[u] + 1 || g[u][i].f == g[u][i].c)
+            continue;
+        int get = dfs(v, min(low, g[u][i].c - g[u][i].f));
+        if (get)
+        {
+            g[u][i].f += get;
+            int id = g[u][i].rev;
+            g[v][id].f -= get;
+            return get;
+        }
+    }
+    return 0;
+}
+
+bool argument()
+{
+    while(!que.empty())
+        que.pop_back();
+    que.push_back(mp(1, 0));
+    d[1] = 0, mark[1] = ++ num;
+    while(!que.empty())
+    {
+        int u = que.front().F;
+        int w = que.front().S;
+        que.pop_front();
+        if (w != d[u])
+            continue;
+        if (u == n)
+            break;
+        FOR(i, 0, int(g[u].size()) - 1)
+        if(g[u][i].c || g[u][i].f)
+        {
+            int v = g[u][i].v;
+            int add = (g[u][i].c == g[u][i].f);
+            if (mark[v] == num && d[v] <= d[u] + add)
+                continue;
+            mark[v] = num;
+            d[v] = d[u] + add;
+            trace[v] = u;
+            traceE[v] = i;
+            if (add)
+                que.push_back(mp(v, d[v]));
+            else
+                que.push_front(mp(v, d[v]));
+        }
+    }
+    if (mark[n] != num || d[n] > k)
+        return false;
+    k -= d[n];
+    int v = n;
+    while(v != 1)
+    {
+        int u = trace[v];
+        int id = traceE[v];
+        if (d[u] != d[v])
+            g[u][id].c ++;
+        v = u;
+    }
+    return true;
+}
+
+void xuly()
+{
+    long long ans = 0;
+    int add;
+    while(bfs())
+    {
+        do
+        {
+            add = dfs(1, maxC);
+            ans += add;
+        }
+        while(add);
+        if (!argument())
+            break;
+    }
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

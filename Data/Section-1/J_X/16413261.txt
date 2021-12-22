@@ -1,0 +1,55 @@
+#include <iostream>
+#include <cstring>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 1000 + 5;
+
+ll dp[maxn][4];
+int ss[2][maxn];
+
+int change(ll x, int k)
+{
+    int len = 0;
+    ss[k][len] = 0;
+    while(x)
+    {
+        ss[k][++len] = x & 1;
+        x >>= 1;
+    }
+    return len;
+}
+
+int main()
+{
+    ll s, x;
+    while(cin >> s >> x)
+    {
+        int len = max(change(s, 0), change(x, 1));
+//        len = maxn - 3;
+        dp[0][0] = 1;
+        for(int i = 1; i <= len; ++i)
+        {
+            memset(dp[i], 0, sizeof(dp[i]));
+            for(int p = 0; p < 4; ++p)
+            {
+                if(!dp[i - 1][p]) continue;
+                for(int j = 0; j < 2; ++j)
+                {
+                    int k = j ^ ss[1][i], tmp = (p > 1) + j + k;
+                    if((tmp & 1) != ss[0][i]) continue;
+                    dp[i][tmp] += dp[i - 1][p];
+                }
+            }
+        }
+        ll ans = 0;
+        for(int i = 0; i < 2; ++i)
+        {
+            ans += dp[len][i];
+        }
+        cout << ans << endl;
+    }
+    return 0;
+}

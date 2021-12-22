@@ -1,0 +1,122 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int P[100005][17], h[100005], lazy[100005][17], id[100005];
+
+int query(int p, int q)
+{
+  int log;
+  if(h[p] < h[q])
+    swap(p, q);
+  for(log = 1; (1 << log) <= h[p]; log++);
+  log--;
+  for(int i = log; i >= 0; i--)
+    if(h[p] - (1 << i) >= h[q])
+      p = P[p][i];
+  if(p == q)
+    return p;
+  for(int i = log; i >= 0; i--)
+    if(P[p][i] != -1 && P[p][i] != P[q][i])
+      p = P[p][i], q = P[q][i];
+  return P[p][0];
+}
+
+inline void update(int x, int k)
+{
+  int log;
+  for(log = 1; (1 << log) <= h[x]; log++);
+  log--;
+  for(int i = log; i >= 0; i--)
+    if(h[x] - (1 << i) >= k)
+    {
+      lazy[x][i]++;
+      x = P[x][i];
+    }
+}
+
+vector<pair<int, int> > g[100005];
+
+void dfs(int node, int parent = -1, int depth = 1, int last = 0)
+{
+  id[last] = node;
+  P[node][0] = parent;
+  h[node] = depth;
+  for(int i=0;i<g[node].size();i++)
+  {
+    if(g[node][i].f == parent) continue;
+    dfs(g[node][i].f, node, depth + 1, g[node][i].s);
+  }
+}
+
+int main()
+{
+  int n, x, y, q;
+  scanf("%d", &n);
+  for(int i=0;i<n-1;i++)
+  {
+    scanf("%d %d", &x, &y);
+    g[x].pb(mp(y, i));
+    g[y].pb(mp(x, i));
+  }
+  setdp(P);
+  dfs(1);
+  for(int j = 1; (1 << j) <= n; j++)
+    for(int i = 1; i <= n; i++)
+      if(P[i][j - 1] != -1)
+        P[i][j] = P[P[i][j - 1]][j - 1];
+  scanf("%d", &q);
+  while(q--)
+  {
+    scanf("%d %d", &x, &y);
+    int lca = query(x, y);
+    update(x, h[lca]);
+    update(y, h[lca]);
+  }
+  for(int j = 17; j > 0; j--)
+  {
+    if((1 << j) > n) continue;
+    for(int i = 1; i <= n; i++)
+    {
+      lazy[i][j - 1] += lazy[i][j];
+      lazy[P[i][j - 1]][j - 1] += lazy[i][j];
+    }
+  }
+  for(int i=0;i<n-1;i++)
+    printf("%d ", lazy[id[i]][0]);
+  return 0;
+}

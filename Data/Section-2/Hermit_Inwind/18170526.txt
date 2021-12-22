@@ -1,0 +1,91 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+int n,m;
+int l[505],r[505];
+
+
+struct Node
+{
+    int fa[505];
+
+    void init()
+    {
+        for (int i=0;i<=n;i++)
+            fa[i] = i;
+    }
+
+    int fnd(int x)
+    {
+        if (x!=fa[x])
+            fa[x] = fnd(fa[x]);
+        return fa[x];
+    }
+
+    void uni(int x,int y)
+    {
+        int tx = fnd(x);
+        int ty = fnd(y);
+
+        if (tx!=ty)
+        {
+            fa[tx] = ty;
+        }
+    }
+}s[505],e[505];
+
+int getans(Node a,Node b)
+{
+    int ans = 0;
+    for (int i=1;i<=n;i++)
+    {
+        a.uni(i,b.fnd(i));
+    }
+
+    for (int i = 1;i <= n; i++)
+    {
+        if (a.fnd(i) == i)
+            ans++;
+    }
+    return ans;
+}
+
+void solve()
+{
+    s[0].init();
+    e[m+1].init();
+
+    for (int i = 1; i <= m ; i++)
+    {
+        s[i] = s[i - 1];
+        s[i].uni(l[i],r[i]);
+    }
+
+    for (int i = m; i>=1; i--)
+    {
+        e[i] = e[i+1];
+        e[i].uni(l[i],r[i]);
+    }
+
+    int k;
+    scanf("%d",&k);
+    int a,b;
+    while (k--)
+    {
+        scanf("%d%d",&a,&b);
+        int ans = getans(s[a-1],e[b+1]);
+        printf("%d\n",ans);
+    }
+}
+
+int main()
+{
+    scanf("%d%d",&n,&m);
+    int a,b;
+    for (int i=1;i<=m;i++)
+    {
+        scanf("%d%d",&l[i],&r[i]);
+    }
+    solve();
+    return 0;
+}

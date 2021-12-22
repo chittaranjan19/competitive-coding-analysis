@@ -1,0 +1,85 @@
+import sys
+
+n          = int(sys.stdin.readline())
+origDigits = int(sys.stdin.readline())
+
+def digit2List(m):
+    l = []
+    if m == 0:
+        return [0]
+    else:
+        while m > 0:
+            l.append(m % 10)
+            m = m / 10
+        l.reverse()
+        return l
+
+def list2Digit(l):
+    c = 0
+    d = 1
+    for x in reversed(l):
+        c += d*x
+        d *= 10
+    return c
+
+def sumarK(l,k):
+    return [(x + k) % 10 for x in l]
+    
+def shiftPosition(l):
+    p = l.pop(-1)
+    l[0:0] = [p]
+    return l
+    
+def menor(a,b):
+    return a < b
+
+def igual(a,b):
+    return a == b
+
+def minList(l1,l2,n): # Tienen que tener el mismo largo "n" las dos
+    menores = map(menor,l1,l2)
+    iguales = map(igual,l1,l2)
+    i = 0
+    while i < n and iguales[i]:
+        i+=1
+    if i == n:
+        return 0 # l1 == l2, que en nuestro problema no nos interesa (podemos suponer menor como menorOIgual)
+    elif menores[i]:
+        return 1 # l1 < l2
+    else:
+        return 2 # l1 > l2      
+
+def respuesta(l):
+    sol = ''
+    for x in l:
+        sol = sol + str(x)
+    return sol
+    
+dl = digit2List(origDigits)
+largo = len(dl)
+while largo < n:
+    dl[0:0] = [0]
+    largo += 1
+
+shiftList = []
+
+for i in range(n):
+    dl = shiftPosition(dl)
+    shiftList.append(list(dl))
+    
+
+semiFinalList = []
+for x in shiftList:
+    for i in range(10):
+        x = sumarK(x,1)
+        semiFinalList.append(x)
+
+finalList = [s for s in semiFinalList if s[0] == 0]
+
+resp = finalList[0]
+for x in finalList:
+    if minList(x,resp,n) == 1:
+        resp = list(x)
+          
+print respuesta(resp)
+#print respuesta(min(map(list2Digit,finalList)))

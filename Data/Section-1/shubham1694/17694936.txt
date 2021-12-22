@@ -1,0 +1,109 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 2000010;
+
+vector<int> adj[maxn];
+vector<int> nodes[maxn], pf;
+int factor[maxn], depth[maxn], num[maxn], ans[maxn];
+
+void pre()
+{
+	ll i, j;
+	for(i=2; i<maxn; i+=2)
+		factor[i] = 2;
+	for(i=3; i<maxn; i+=2){
+		if(!factor[i]){
+			for(j=i; j<maxn; j+=i)
+				factor[j] = i;
+		}
+	}
+}
+
+void find_factors(int val)
+{
+	pf.clear();
+	while(val!=1){
+		pf.pb(factor[val]);
+		val/=factor[val];
+	}
+}
+
+void dfs(int cur, int p, int d)
+{
+	depth[cur] = d;
+	for(int it:adj[cur]){
+		if(it!=p)
+			dfs(it, cur, d+1);
+	}
+}
+
+void solve(int cur, int p)
+{
+	int i, curdepth = -1, curans = -1;
+	find_factors(num[cur]);
+	for(auto it:pf){
+		for(i=it; i<maxn; i+=it){
+			if(!nodes[i].empty()){
+				if(curdepth < depth[nodes[i].back()]){
+					curdepth = depth[nodes[i].back()];
+					curans = nodes[i].back();
+				}
+			}
+		}
+	}
+	ans[cur] = curans;
+	nodes[num[cur]].pb(cur);
+	for(int it:adj[cur]){
+		if(it!=p)
+			solve(it, cur);
+	}
+	nodes[num[cur]].pop_back();
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	pre();
+	int n, t, q, i, j, u, v;
+	scanf("%d%d", &n, &q);
+	for(i=1; i<=n; i++)
+		scanf("%d", &num[i]);
+	for(i=1; i<n; i++){
+		scanf("%d%d", &u, &v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	dfs(1, 0, 0);
+	solve(1, 0);
+	for(i=1; i<=n; i++)
+		cout << ans[i] << "\n";
+	while(q--){
+		scanf("%d%d", &t, &u);
+		if(t==1)
+			printf("%d\n", ans[u]);
+		else{
+			scanf("%d", &v);
+			num[u] = v;
+			for(i=0; i<maxn; i++)
+				nodes[i].clear();
+			solve(1, 0);
+		}
+	}
+	return 0;
+}

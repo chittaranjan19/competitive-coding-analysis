@@ -1,0 +1,221 @@
+import java.util.*
+
+private var nil: Node = Node()
+
+
+
+private class SetWithCountImpl {
+    var t = Tree()
+
+    fun add(x: Int) {
+        val node = Node()
+        node.t = x
+        rbInsert(t, node)
+    }
+
+    fun countLessThan(x: Int): Int {
+        var n = t.root
+        var prev = n
+        while (n !== nil) {
+            prev = n
+            if (n.t > x) {
+                n = n.c[0]
+            } else if (n.t < x) {
+                n = n.c[1]
+            } else {
+                break
+            }
+        }
+        n = prev
+        var res = 0
+        while (n !== nil) {
+            if (n.t <= x) {
+                if (n.c[0] !== nil) {
+                    res += n.c[0].count
+                }
+                if (n.t < x) {
+                    res++
+                }
+                if (n.p === nil) {
+                    n = nil
+                } else {
+                    while (n.p !== nil && n.p.c[0] === n) {
+                        n = n.p
+                    }
+                    if (n.p !== nil) {
+                        n = n.p
+                    }
+                }
+            } else if (n.t > x) {
+                n = n.p
+            }
+        }
+        return res
+    }
+
+}
+
+private class Tree {
+    internal var root = nil
+}
+
+private class Node {
+    internal var t: Int = 0
+    internal var p = nil
+    internal var c = arrayOf(nil, nil)
+    internal var count = 1
+    internal var red: Boolean = false
+}
+
+private fun treeInsert(t: Tree, z: Node) {
+    var y = nil
+    var x = t.root
+    while (x !== nil) {
+        y = x
+        y.count++
+        if (z.t < x.t) {
+            x = x.c[0]
+        } else {
+            x = x.c[1]
+        }
+    }
+    z.p = y
+    if (y === nil) {
+        t.root = z
+    } else if (z.t < y.t) {
+        y.c[0] = z
+    } else {
+        y.c[1] = z
+    }
+}
+
+private fun rbInsert(t: Tree, x: Node) {
+    var x = x
+    treeInsert(t, x)
+    x.red = true
+    while (x !== t.root && x.p.red) {
+        if (x.p === x.p.p.c[0]) {
+            val y = x.p.p.c[1]
+            if (y !== nil && y.red) {
+                x.p.red = false
+                y.red = false
+                x.p.p.red = true
+                x = x.p.p
+            } else {
+                if (x === x.p.c[1]) {
+                    x = x.p
+                    leftRotate(t, x)
+                }
+                x.p.red = false
+                x.p.p.red = true
+                rightRotate(t, x.p.p)
+            }
+        } else {
+            val y = x.p.p.c[0]
+            if (y !== nil && y.red) {
+                x.p.red = false
+                y.red = false
+                x.p.p.red = true
+                x = x.p.p
+            } else {
+                if (x === x.p.c[0]) {
+                    x = x.p
+                    rightRotate(t, x)
+                }
+                x.p.red = false
+                x.p.p.red = true
+                leftRotate(t, x.p.p)
+            }
+        }
+    }
+    t.root.red = false
+}
+
+private fun leftRotate(t: Tree, x: Node) {
+    val xc = x.count
+    var yc0 = 0
+    val y = x.c[1]
+    x.c[1] = y.c[0]
+    if (y.c[0] !== nil) {
+        y.c[0].p = x
+        yc0 = y.c[0].count
+    }
+    y.p = x.p
+    if (x.p === nil) {
+        t.root = y
+    } else if (x === x.p.c[0]) {
+        x.p.c[0] = y
+    } else {
+        x.p.c[1] = y
+    }
+    y.c[0] = x
+    x.p = y
+    y.count = xc
+    x.count = (if (x.c[0] === nil) 0 else x.c[0].count) + 1 + yc0
+}
+
+private fun rightRotate(t: Tree, x: Node) {
+    val xc = x.count
+    var yc1 = 0
+    val y = x.c[0]
+    x.c[0] = y.c[1]
+    if (y.c[1] !== nil) {
+        y.c[1].p = x
+        yc1 = y.c[1].count
+    }
+    y.p = x.p
+    if (x.p === nil) {
+        t.root = y
+    } else if (x === x.p.c[1]) {
+        x.p.c[1] = y
+    } else {
+        x.p.c[0] = y
+    }
+    y.c[1] = x
+    x.p = y
+    y.count = xc
+    x.count = (if (x.c[1] === nil) 0 else x.c[1].count) + 1 + yc1
+}
+
+
+fun main(args: Array<String>) {
+    nil.c = arrayOf(nil, nil);
+    readLine()
+    val a = readLine()!!.split(' ').map(String::toInt)
+    val res: MutableList<Int> = arrayListOf()
+    val s: SetWithCountImpl = SetWithCountImpl()
+    val z: MutableSet<Int> = hashSetOf()
+    var x = 0
+    val D = 10000
+    while(x < a.size) {
+        if(a[x] == 0) {
+            s.add(D-x)
+            res.add(x)
+            z.add(x)
+            break
+        }
+        x++
+    }
+    var y = 1
+    while(y < a.size) {
+        x = 0
+        while(x < a.size) {
+            if(s.countLessThan(D-x) == a[x] && !z.contains(x)) {
+                s.add(D-x)
+                res.add(x)
+                z.add(x)
+                break;
+            }
+            x++
+        }
+        y++
+    }
+    val buf = StringBuilder()
+    for(d in res) {
+        if(buf.length > 0) {
+            buf.append(' ')
+        }
+        buf.append(d+1)
+    }
+    println(buf)
+}

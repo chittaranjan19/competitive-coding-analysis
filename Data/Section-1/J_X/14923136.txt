@@ -1,0 +1,84 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <vector>
+
+using namespace std;
+
+typedef pair<int, int> P;
+typedef long long ll;
+
+const int MAXN = 1e5 + 5;
+
+vector<P> vec[MAXN << 1];
+int a[MAXN << 1], h[MAXN << 1];
+ll ans[MAXN], max_[MAXN << 1], sum[MAXN << 1];
+
+void solve(int l, int r)
+{
+    if(l >= r) return;
+    int m = (l + r) >> 1;
+    solve(l, m);
+    solve(m + 1, r);
+    ll now = 0;
+    for(int i = m + 1; i <= r; ++i)
+    {
+        max_[i] = max(now, sum[i - 1] - sum[m] + 2 * h[i]);
+        now = max_[i];
+    }
+    now = 0;
+    for(int i = m; i >= l; --i)
+    {
+        now = max(now, sum[m] - sum[i - 1] + 2 * h[i]);
+        for(int j = 0; j < vec[i].size(); ++j)
+        {
+            P p = vec[i][j];
+            if(p.first > r || p.first <= m) continue;
+            ans[p.second] = max(ans[p.second], now + max_[p.first]);
+        }
+    }
+}
+
+int main()
+{
+    int n, m;
+    while(~scanf("%d%d", &n, &m))
+    {
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", a + i);
+            a[i + n] = a[i];
+        }
+        for(int i = 1; i <= 2 * n; ++i)
+        {
+            sum[i] = sum[i - 1] + a[i];
+        }
+        for(int i = 1; i <= n; ++i)
+        {
+            vec[i].clear();
+            scanf("%d", h + i);
+            h[i + n] = h[i];
+        }
+        h[2 * n + 1] = h[1];
+        for(int i = 0; i < m; ++i)
+        {
+            ans[i] = 0;
+            int x, y;
+            scanf("%d%d", &x, &y);
+            if(x <= y)
+            {
+                vec[y + 1].push_back(P(x + n - 1, i));
+            }
+            else
+            {
+                vec[y + n + 1].push_back(P(x + n - 1, i));
+            }
+        }
+        solve(1, 2 * n + 1);
+        for(int i = 0; i < m; ++i)
+        {
+            printf("%I64d\n", ans[i]);
+        }
+    }
+    return 0;
+}

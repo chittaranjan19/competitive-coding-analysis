@@ -1,0 +1,109 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+#include <bitset>
+
+using namespace std;
+
+const int maxn = 1000 + 5;
+const int maxm = 200000 + 5;
+
+struct edge
+{
+    int to, next;
+
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxm << 2], Q[maxm];
+int head1[maxm], head2[maxm], head3[maxm], tot, tot1, id[maxm];
+bool ans[maxm];
+vector<int> vec[maxn];
+bitset<maxn> dp1[maxm], dp2[maxm];
+
+void init()
+{
+    memset(head1, -1, sizeof(head1));
+    memset(head2, -1, sizeof(head2));
+    memset(head3, -1, sizeof(head3));
+    tot = tot1 = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head1[u]);
+    head1[u] = tot++;
+    G[tot] = edge(u, head2[v]);
+    head2[v] = tot++;
+}
+
+void addedge1(int u, int v, int p)
+{
+    Q[tot1] = edge(v, head3[u]);
+    id[tot1] = p;
+    head3[u] = tot1++;
+}
+
+void solve(int l, int r)
+{
+    if(l == r) return;
+    int m = (l + r) >> 1;
+    solve(l, m);
+    solve(m + 1, r);
+    for(int u = l; u <= m; ++u)
+    {
+        for(int i = head3[u]; ~i; i = Q[i].next)
+        {
+            int v = Q[i].to;
+            if(v > m && v <= r) ans[id[i]] = (dp1[u] & dp2[v]).any();
+        }
+    }
+    for(int u = m; u >= l; --u)
+    {
+        for(int i = head1[u]; ~i; i = G[i].next)
+        {
+            int v = G[i].to;
+            if(v <= r) dp1[u] |= dp1[v];
+        }
+    }
+    for(int u = m + 1; u <= r; ++u)
+    {
+        for(int i = head2[u]; ~i; i = G[i].next)
+        {
+            int v = G[i].to;
+            if(v >= l) dp2[u] |= dp2[v];
+        }
+    }
+}
+
+int main()
+{
+    int n, m, q;
+    scanf("%d%d%d", &n, &m, &q);
+    init();
+    for(int i = 1; i <= m; ++i)
+    {
+        int u, v;
+        scanf("%d%d", &u, &v);
+        if(!vec[u].empty()) addedge(vec[u].back(), i);
+        if(!vec[v].empty()) addedge(vec[v].back(), i);
+        dp1[i][u] = dp1[i][v] = dp2[i][u] = dp2[i][v] = 1;
+        vec[u].push_back(i);
+        vec[v].push_back(i);
+    }
+    for(int i = 1; i <= q; ++i)
+    {
+        int l, r, u, v;
+        scanf("%d%d%d%d", &l, &r, &u, &v);
+        int lb = lower_bound(vec[u].begin(), vec[u].end(), l) - vec[u].begin();
+        int ub = upper_bound(vec[v].begin(), vec[v].end(), r) - vec[v].begin();
+        if(lb < vec[u].size() && ub)
+        {
+            if(vec[u][lb] == vec[v][ub - 1]) ans[i] = true;
+            else addedge1(vec[u][lb], vec[v][ub - 1], i);
+        }
+    }
+    solve(1, m);
+    for(int i = 1; i <= q; ++i) puts(ans[i] ? "Yes" : "No");
+    return 0;
+}

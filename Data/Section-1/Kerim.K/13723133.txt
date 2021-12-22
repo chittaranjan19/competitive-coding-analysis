@@ -1,0 +1,116 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define ff first
+#define cs(x,y) cout<<"Case "<<y<<": "<<x<<endl;
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool checkMin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool checkMax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll arr[MAXN],s[MAXN*4],h[MAXN*4][22][2],k[66],lazy[MAXN*4],xx;
+void build(ll nd,ll x,int y){
+	if(x==y){
+		s[nd]=arr[x];
+		for(int i=0,j=arr[x];i<22;i++,j/=2){
+			if(j%2==0)
+				h[nd][i][0]=1;
+			else
+				h[nd][i][1]=1;	
+		}
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd*2,x,mid);
+	build(nd*2+1,mid+1,y);
+	s[nd]=s[nd*2]+s[nd*2+1];
+	for(int i=0;i<22;i++)
+		h[nd][i][0]=(h[nd*2][i][0]+h[nd*2+1][i][0]);
+	for(int i=0;i<22;i++)
+		h[nd][i][1]=(h[nd*2][i][1]+h[nd*2+1][i][1]);	
+}
+int upd(int nd,ll v){
+	lazy[nd]=(v^lazy[nd]);
+	ll x=0,z=65;
+	for(int i=0;i<22;i++){
+		if((v&(1<<i))==(1<<i)){
+			x+=h[nd][i][0];
+			swap(h[nd][i][0],h[nd][i][1]);
+		}
+		else
+			x+=h[nd][i][1];
+			
+		k[z--]=x%2;	
+		x/=2;
+	}
+	while(x!=0)
+		k[z--]=x%2,x/=2;	
+	for(int i=z+1;i<=65;i++)
+		x=(x*2)+k[i];
+	return x;
+}
+void shift(int nd){
+	if(lazy[nd]){
+		s[nd*2]=upd(nd*2,lazy[nd]);
+		s[nd*2+1]=upd(nd*2+1,lazy[nd]);
+		lazy[nd]=0;
+	}
+}
+void inc(int l,int r,ll v,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		s[nd]=upd(nd,v);
+		return;
+	}
+	shift(nd);
+	int mid=(x+y)>>1;
+	inc(l,r,v,nd*2,x,mid);
+	inc(l,r,v,nd*2+1,mid+1,y);
+	s[nd]=s[nd*2]+s[nd*2+1];
+	for(int i=0;i<22;i++)
+		h[nd][i][0]=(h[nd*2][i][0]+h[nd*2+1][i][0]);
+	for(int i=0;i<22;i++)
+		h[nd][i][1]=(h[nd*2][i][1]+h[nd*2+1][i][1]);	
+}
+int tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return s[nd];
+	shift(nd);	
+	int mid=(x+y)>>1;		
+	int i1=tap(l,r,nd*2,x,mid);
+	int i2=tap(l,r,nd*2+1,mid+1,y);
+	return (i1+i2);
+}
+int main(){
+	int a;
+	cin>>a;
+	for(int i=1;i<=a;i++)
+		cin>>arr[i];
+	build(1,1,a);	
+	int q;
+	cin>>q;
+	while(q--){
+		ll type,l,r;
+		cin>>type>>l>>r;
+		if(type==1){
+			cout<<tap(l,r,1,1,a)<<endl;
+		}
+		else{
+			cin>>xx;
+			inc(l,r,xx,1,1,a);
+		}
+	}
+	return 0;
+}

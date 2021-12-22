@@ -1,0 +1,76 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define fr first
+#define sc second
+#define mkp make_pair
+
+int n, t[int(8e5) + 1], a[int(2e5) + 1], r[int(2e5) + 1], k = 1, x;
+pair <int, int> b[int(2e5) + 1];
+
+int get(int l, int r){
+	int mn = int(1e9);
+	l += k - 1;
+	r += k - 1;
+	while(l <= r){
+		if(l % 2 == 1){
+			mn = min(mn, t[l]);
+			l ++;
+		}
+		if(r % 2 == 0){
+			mn = min(mn, t[r]);
+			r --;
+		}
+		l /= 2;
+		r /= 2;
+	}
+	return mn;
+}
+
+int main(){
+	cin >> n;
+	while(k < n) k *= 2;
+	for(int i = 1; i <= n; ++ i){
+		cin >> a[i];
+		b[i] = mkp(a[i], i);
+		t[k + i - 1] = a[i];
+	}
+	for(int i = k - 1; i > 0; i --){
+		t[i] = min(t[i + i], t[i + i + 1]);
+	}
+	sort(b, b + n);
+	cout << b[n].fr << ' ';
+	x = 1;
+	for(int q = n - 1; q >= 0; q --){
+		int pos = b[q].sc, sz1 = x, sz2 = x;
+		if(get(pos - x, pos) >= b[q].fr)
+		for(int i = pos - x; i > 0; -- i){
+			if(a[i] < a[pos]){
+				break;
+			}
+			sz1 ++;
+			if(!r[sz1]){
+				r[sz1] = a[pos];
+			}
+		} else {
+			sz1 = 0;
+		}
+		if(get(pos, pos + x) >= b[q].fr)
+		for(int i = pos + x; i <= n; ++ i){
+			if(a[pos] > a[i]){
+				break;
+			}
+			sz2 ++;
+			x = max(sz2 + sz1, x);
+			if(!r[sz2 + sz1]){
+				r[sz2 + sz1] = a[pos];
+			}
+		} else {
+			sz2 = 0;
+		}
+	}
+	for(int i = 2; i <= n; ++ i){
+		cout << r[i] << ' ';
+	}
+	return 0;
+}

@@ -1,0 +1,69 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mod 1000000007
+
+const int lmt = 1000005;
+int z[lmt];
+
+void z_function(string s) {
+    int n = (int) s.length();
+    for (int i = 1, l = 0, r = 0; i < n; ++i) {
+        if (i <= r)
+            z[i] = min (r - i + 1, z[i - l]);
+        while (i + z[i] < n && s[z[i]] == s[i + z[i]])
+            ++z[i];
+        if (i + z[i] - 1 > r)
+            l = i, r = i + z[i] - 1;
+    }
+    return ;
+}
+
+lli power(lli a,lli b){
+	lli id = 1;
+	while(b>0){
+		if(b&1LL)
+			id = ( (id%mod)*(a%mod) )%mod;
+		a = ( (a%mod)*(a%mod) )%mod;
+		b=b>>1LL;
+	}
+	return id;
+}
+
+int main(){
+    int n,m,pos;
+    cin>>n>>m;
+    string s;
+    cin>>s;
+    int len = s.size();
+    z_function(s);
+    bool posi = true;
+    int cnt = 0;
+    int last = 0;
+    while(m--){
+        cin>>pos;
+        if(!posi) continue;
+        if(pos>last){
+            last = pos + len - 1;
+            cnt += len;
+        }
+        else{
+            int conc = last-pos+1;
+            if(z[len-conc] != conc){
+                posi = false;
+                continue;
+            }
+            cnt += len - conc;
+            last = pos + len - 1;
+        }
+    }
+    if(!posi){
+        printf("0\n");
+        return 0;
+    }
+    cnt = n - cnt;
+    printf("%lld\n",power(26,cnt));
+    return 0;
+}

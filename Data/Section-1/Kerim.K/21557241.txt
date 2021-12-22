@@ -1,0 +1,116 @@
+#include "bits/stdc++.h"
+#define MAXN 300009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+set<pair<PII,int> >s;
+map<int,int>cmp,love;
+int arr[MAXN],rr[MAXN],ans[MAXN],adap[MAXN];
+map<int,set<PII> >pm;
+vector<int>cnt[MAXN];
+int sz[MAXN],vis[MAXN],ID[MAXN];
+int id(int x){
+	return ID[x];
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	int n,m,c=0;
+	scanf("%d%d",&n,&m);
+	vector<PII>v,un;
+	for(int i=1;i<=n;i++){
+		scanf("%d",arr+i);
+		cmp[arr[i]]=i;
+		v.pb(mp(arr[i],i));
+	}
+	sort(all(v));
+	un.pb(v[0]);
+	ID[v[0].ss]=1;
+	for(int i=1;i<int(v.size());i++){
+		int cnt=0;
+		if(v[i].ff!=v[i-1].ff){
+			cnt++;
+			un.pb(v[i]);
+		}
+		ID[v[i].ss]=ID[v[i-1].ss]+cnt;	
+	}
+	tr(it,cmp)
+		it->ss=++c;
+	for(int i=1;i<=n;i++){
+		cnt[id(i)].pb(i);
+		sz[id(i)]++;
+	}
+	for(int i=1;i<=m;i++){
+		scanf("%d",rr+i);
+		int x=rr[i],fup=0;
+		while(x>1){
+			pm[x].insert(mp(fup,i));
+			love[x]=1;
+			fup++;
+			if(x&1)
+				x++;
+			x/=2;	
+		}
+		pm[1].insert(mp(fup,i));
+	}	
+	for(int i=0;i<un.size();i++)
+		if(love[un[i].ff]){
+			s.insert(mp(*pm[un[i].ff].begin(),cnt[id(v[i].ss)].back()));
+			
+		}
+	//~ tr(it,cmp)
+		//~ if(love[it->ff])
+			//~ s.insert(mp(*pm[it->ff].begin(),cnt[it->ss].back()));		
+	for(int i=1;i<INF;i++){
+		if(s.size()==0)
+			break;	
+		pair<PII,int> k=*s.begin();
+		if(vis[k.ff.ss]){
+			s.erase(k);
+			continue;
+		}
+		vis[k.ff.ss]=1; 
+		ans[k.ss]=k.ff.ss;
+		adap[k.ff.ss]=k.ff.ff;	
+		sz[id(k.ss)]--;
+		cnt[id(k.ss)].pop_back();
+		int x=rr[k.ff.ss],fup=0;
+		s.erase(k);
+		while(x>=1){
+			pm[x].erase(mp(fup,k.ff.ss));
+			if(sz[cmp[x]]>0 and pm[x].size()>0)
+				s.insert(mp(*pm[x].begin(),cnt[cmp[x]].back()));
+			fup++;
+			if(x>2 and x&1)
+				x++;
+			x/=2;	
+		}
+	}
+	int comp=0,adapter=0;
+	for(int i=1;i<=m;i++)
+		adapter+=adap[i];
+	for(int i=1;i<=n;i++)
+		comp+=(ans[i]!=0);
+	printf("%d %d\n",comp,adapter);
+	for(int i=1;i<=m;i++)
+		printf("%d ",adap[i]);
+	printf("\n");
+	for(int i=1;i<=n;i++)
+		printf("%d ",ans[i]);
+	printf("\n");	
+	return 0;
+}

@@ -1,0 +1,166 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <algorithm>
+using namespace std;
+
+#define eps 1e-8
+
+struct Rectangle
+{
+    int x1, y1, x2, y2;
+    int w, h;
+};
+
+Rectangle a[105];
+int i, j, k, n, w, h;
+int used[105], flag, best_i, minh;
+int cnt;
+int deltaX, deltaY, bestX, bestY;
+double best;
+
+int gcd(int a, int b)
+{
+    if(b == 0) return a;
+    return gcd(b, a % b);
+}
+
+int main()
+{
+    scanf("%d %d %d", &w, &h, &n);
+    w *= 10; h *= 10;
+
+    bool swp = false;
+    if(w < h) 
+    {
+        swap(w, h);
+        swp = true;
+    }
+
+    for(i = 0; i < n; i++)
+    {
+        scanf("%d %d", &a[i].w, &a[i].h);
+        a[i].w *= 10;
+        a[i].h *= 10;
+        if(swp)
+            swap(a[i].w, a[i].h);
+    }
+//  if(w > h)
+    {
+        k = 0;
+        while(k <= w && cnt < n)
+        {
+            best = 0.0;
+            for(i = 0; i < n; i++)
+            {
+                if(flag)
+                {
+                    if(!used[i] && (double)(a[i].w) / a[i].h > best && a[i].w <= h)
+                    {
+                        best = (double)(a[i].h) / a[i].w;
+                        best_i = i; 
+                    }
+                }
+                else
+                {
+                    if(!used[i] && (double)(a[i].h) / a[i].w > best && a[i].h <= h)
+                    {
+                        best = (double)(a[i].h) / a[i].w;
+                        best_i = i;
+                    }
+                }
+            }
+            if(best < eps)
+                break;
+            if(flag)
+            {
+                a[best_i].x1 = k;
+                a[best_i].y1 = 0;
+                a[best_i].x2 = k + a[best_i].h;
+                a[best_i].y2 = a[best_i].w;
+                k += a[best_i].h;
+                swap(a[best_i].h, a[best_i].w);
+            }
+            else
+            {
+                a[best_i].x1 = k;
+                a[best_i].y1 = 0;
+                a[best_i].x2 = k + a[best_i].w;
+                a[best_i].y2 = a[best_i].h;
+                k += a[best_i].w;
+            }
+            if(k > w)
+                break;
+
+            used[best_i] = 1;
+            cnt++;
+            flag = 1 - flag;
+        }
+
+        if(cnt < n && best > eps)
+            k = a[best_i].x1;
+        bool ok = true;
+        while(k < w && ok)
+        {
+            ok = false;
+            minh = 123456789;
+            for(i = 0; i < n; i++)
+            {
+                if(used[i])
+                {
+                    deltaX = a[i].w / gcd(a[i].w, a[i].h);
+                    deltaY = a[i].h / gcd(a[i].w, a[i].h);
+                    if(k + deltaX <= w && a[i].y2 + deltaY <= h && a[i].y2 < minh && 
+                        2 * a[i].w >= (a[i].x2 - a[i].x1 + deltaX) && 2 * a[i].h >= (a[i].y2 - a[i].y1 + deltaY))
+                    //  2 * a[i].w * a[i].h >= (a[i].x2 - a[i].x1 + deltaX) * (a[i].y2 - a[i].y1 + deltaY))
+                    {
+                        minh = a[i].y2;
+                        best_i = i;
+                        ok = true;
+                        bestX = deltaX;
+                        bestY = deltaY;
+                    }
+                }
+            }
+            for(i = 0; i < n; i++)
+                if(i != best_i && used[i] && a[i].x1 >= a[best_i].x2)
+                {
+                    a[i].x1 += bestX;
+                    a[i].x2 += bestX;
+                }
+            a[best_i].x2 += bestX;
+            a[best_i].y2 += bestY;
+            k += bestX;
+        }
+    }
+//  else
+//  {
+        
+//  }
+
+    for(i = 0; i < n; i++)
+    {
+        if(used[i])
+        {
+            if(!swp)
+                printf("%d.%d %d.%d %d.%d %d.%d\n", a[i].x1 / 10, a[i].x1 % 10, a[i].y1 / 10, a[i].y1 % 10, 
+                                                    a[i].x2 / 10, a[i].x2 % 10, a[i].y2 / 10, a[i].y2 % 10);
+            else
+                printf("%d.%d %d.%d %d.%d %d.%d\n", a[i].y1 / 10, a[i].y1 % 10, a[i].x1 / 10, a[i].x1 % 10, 
+                                                    a[i].y2 / 10, a[i].y2 % 10, a[i].x2 / 10, a[i].x2 % 10);
+        }
+        else
+            printf("-1 -1 -1 -1\n");
+    }   
+    return 0;
+}
+

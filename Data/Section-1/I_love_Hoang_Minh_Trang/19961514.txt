@@ -1,0 +1,79 @@
+#include <bits/stdc++.h>
+#define FORE(i, a, b) for(int i = a; i <= b; i++)
+#define FORD(i, a, b) for(int i = a; i >= b; i--)
+#define FOR(i, a, b) for(int i = a; i < b; i++)
+const int MAXN = 1e6 * 5;
+const int INF = 1e9 + 7;
+
+using namespace std;
+struct data{
+    int num, q[2], en;
+};
+
+data x[MAXN];
+int q, k;
+char ch;
+int dem = 1;
+void add(int k)
+{
+    int cur = 1;
+    FORD(i, 30, 1){
+        int z = (k >> (i - 1)) & 1;
+        if (x[cur].q[z] == 0)
+            x[cur].q[z] = ++dem;
+        x[cur].num++;
+        cur = x[cur].q[z];
+    }
+    x[cur].num++;
+    x[cur].en = k;
+}
+
+void del(int k)
+{
+    int cur = 1;
+    FORD(i, 30, 1){
+        int z = (k >> (i - 1)) & 1;
+        x[cur].num--;
+        cur = x[cur].q[z];
+    }
+    x[cur].num--;
+    if (x[cur].num == 0) x[cur].en = 0;
+}
+
+int get(int k)
+{
+    int cur = 1;
+    FORD(i, 30, 1){
+        int z = (k >> (i - 1)) & 1;
+        if (z == 1){
+            if (x[cur].q[0] == 0 || x[ x[cur].q[0] ].num == 0) cur = x[cur].q[1]; // way 1
+            else cur = x[cur].q[0];
+        } else{
+            if (x[cur].q[1] && x[ x[cur].q[1] ].num) cur = x[cur].q[1]; // way 1
+            else cur = x[cur].q[0];
+        }
+    }
+    int res = k ^ x[cur].en;
+    if (res == 0) return k;
+    else
+    return max(res, k);
+}
+
+int main()
+{
+    ios::sync_with_stdio(0); cin.tie(0);
+    #ifndef ONLINE_JUDGE
+    freopen("D.inp", "r", stdin);
+    freopen("D.out", "w", stdout);
+    #endif //MIKELHPDATKE
+    cin >> q;
+    FORE(i, 1, q){
+        cin >> ch >> k;
+        if (ch == '+') add(k);
+        else if(ch == '-') del(k);
+        else cout<<get(k)<<endl;
+    }
+    //cout << x[1].r<<"wtf"<<endl;
+
+    return 0;
+}

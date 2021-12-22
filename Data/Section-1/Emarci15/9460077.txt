@@ -1,0 +1,79 @@
+#include <cstdio>
+#include <map>
+
+using namespace std;
+
+int n,d;
+
+map<int,int> t[30001];
+int a[30001];
+
+int sz[30003];
+
+int x;
+
+int main()
+{
+    scanf("%d%d",&n,&d);
+
+    for(int i=0; i<n; i++) {
+        scanf("%d",&x);
+        a[x]++;
+    }
+
+    for(int i=30000; i>=0; i--) {
+        sz[i] = sz[i+1]+a[i];
+    }
+
+    t[d].insert(make_pair(d,a[0]+a[d]));
+
+    int ans = 0;
+    if(d == 2) {
+        printf("%d\n",sz[2]+a[0]);
+        return 0;
+    } else if(d == 1) {
+        printf("%d\n",sz[0]);
+        return 0;
+    }
+
+
+    for(int i=d; i<=30000; i++) {
+        //printf("cerr << %d\n",i);
+        for(map<int,int>::iterator it = t[i].begin(); it!=t[i].end(); it++) {
+            int q = it->first;
+            int v = it->second;
+            ans = max(ans,v);
+            if(q == 3) {
+                ans = max(ans,v+sz[i+2]);
+                continue;
+            }
+            if((i+q-1)>30000) {
+                continue;
+            }
+            if(sz[i+q-1]+v <= ans) continue;
+            map<int,int>::iterator iit = t[i+q-1].find(q-1);
+            if((iit == t[i+q-1].end()) || (v+a[i+q-1] > iit->second)) {
+                t[i+q-1][q-1] = v+a[i+q-1];
+            }
+            if((i+q)>30000) {
+                continue;
+            }
+            if(sz[i+q]+v <= ans) continue;
+            iit = t[i+q].find(q);
+            if((iit == t[i+q].end()) || (v+a[i+q] > iit->second)) {
+                t[i+q][q] = v+a[i+q];
+            }
+            if((i+q+1)>30000) {
+                continue;
+            }
+            if(sz[i+q+1]+v <= ans) continue;
+            iit = t[i+q+1].find(q+1);
+            if((iit == t[i+q+1].end()) || (v+a[i+q+1] > iit->second)) {
+                t[i+q+1][q+1] = v+a[i+q+1];
+            }
+        }
+    }
+    printf("%d\n",ans);
+
+    return 0;
+}

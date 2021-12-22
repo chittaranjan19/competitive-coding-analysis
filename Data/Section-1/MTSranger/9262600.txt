@@ -1,0 +1,118 @@
+#include <iostream>
+#include <iomanip>
+#include <cstring>
+
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef pair<ll, ld> pllld;
+
+ld dp[5001][5001];	// dp[k][j] = P(reach k songs at time j)
+ld tmp[5001][5001]; // tmp[k][j] = P(guess kth song correct on the jth try)
+ld cum[5001][5001];	// cum[k][j] = P(guess kth song correct with <= j tries)
+
+int main() {
+	int n, maxtime; cin >> n >> maxtime;
+	ld prob[n];
+	int times[n];
+	for (int i = 0; i < n; i++) {
+		int p, t; cin >> p >> t;
+		prob[i] = p / 100.0;
+		times[i] = t;
+	}
+
+	memset(dp, 0, sizeof dp);
+	memset(tmp, 0, sizeof tmp);
+	memset(cum, 0, sizeof cum);
+
+	for (int k = 0; k < n; k++) {
+		ld p = prob[k];
+		ld p2 = 1 - prob[k];
+
+		// compute tmp[k][i] = P(exactly i tries for kth song)
+		ld sum = 0;
+		for (int i = 1; i <= maxtime && i < times[k]; i++) {
+			tmp[k][i] = p;
+			sum += p;
+			p *= p2;
+			if (p < 1e-100) p = 0;
+		}
+
+		// the t_k th guess must be correct
+		if (times[k] <= maxtime) {
+			tmp[k][times[k]] = 1 - sum;
+		}
+
+		// compute the cumulative probability
+		// cum[k][i] = P(<= i tries on kth song)
+		sum = 0;
+		for (int i = 1; i <= maxtime; i++) {
+			sum += tmp[k][i];
+			cum[k][i] = sum;
+		}
+
+		//for (int i = 1; i <= maxtime; i++) cerr << tmp[k][i] << ' '; cerr << endl;
+		//for (int i = 1; i <= maxtime; i++) cerr << cum[k][i] << ' '; cerr << endl;
+	}
+
+	// perform dp to compute dp[k][j] = P(reach kth song exactly on step j)
+	for (int j = 1; j <= maxtime; j++) {
+		dp[1][j] = tmp[0][j];
+	}
+	ld add[maxtime+1];
+	ld remove[maxtime+1];
+	for (int k = 2; k <= n; k++) {
+		memset(add, 0, sizeof add);
+		memset(remove, 0, sizeof remove);
+
+		ld curr = 0;
+		for (int j = 1; j <= maxtime; j++) {
+			dp[k][j] = curr;
+			curr -= remove[j];
+			curr *= 1 - prob[k-1];
+			curr += add[j];
+			curr += dp[k-1][j] * tmp[k-1][1];
+			
+			int t = j + times[k-1] - 1;
+			if (t <= maxtime) {
+				remove[t] += dp[k-1][j] * tmp[k-1][times[k-1] - 1];
+				add[t] += dp[k-1][j] * tmp[k-1][times[k-1]];
+				if (t < maxtime) {
+					remove[t+1] += add[t];
+				}
+			}
+		}
+		/*
+		for (int j = 1; j <= maxtime; j++) {
+			ld sum = 0;
+			for (int jj = 1; jj < j; jj++) {
+				sum += dp[k-1][jj] * tmp[k-1][j - jj];
+			}
+			dp[k][j] = sum;
+		}
+		*/
+	}
+	/*
+	cerr << "dp:" << endl;
+	for (int k = 1; k <= n; k++) {
+		for (int j = 1; j <= maxtime; j++) {
+			cerr << dp[k][j] << ' ';
+		}
+		cerr << endl;
+	}
+	*/
+
+	// compute answer = sum(k * sum(P(reach kth song on step j) * P(not reach k+1 on maxtime)))
+	ld ans = 0;
+	for (int k = 1; k <= n; k++) {
+		ld stuff = 0;
+		for (int j = 1; j <= maxtime; j++) {
+			// note: cum[n][] = 0, so this works for k == n
+			stuff += dp[k][j] * (1.0 - cum[k][maxtime - j]);
+		}
+		//cerr << stuff << ' ';
+		ans += k * stuff;
+	}
+	//cerr << endl;
+	cout << setprecision(10) << fixed << ans << endl;
+}

@@ -1,0 +1,98 @@
+import java.io.*;
+import java.util.*;
+
+public class E {
+	static class Event {
+		int x1, x2, x, i;
+		boolean isleft;
+		public Event(){}
+		public Event(int lx1, int lx2, int id, boolean blah) {
+			x1 = lx1; x2 = lx2; i = id; isleft = blah;
+			if (blah) {
+				x = x1;
+			} else {
+				x = x2;
+			}
+		}
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + x1;
+			result = prime * result + x2;
+			return result;
+		}
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Event other = (Event) obj;
+			if (x1 != other.x1)
+				return false;
+			if (x2 != other.x2)
+				return false;
+			return true;
+		}
+		
+	}
+	public static void main(String[] argv) {
+		Scanner sc = new Scanner(System.in);
+		int n = sc.nextInt();
+		int m = sc.nextInt();
+		ArrayList<Event> events = new ArrayList<Event>();
+		for (int i = 0; i < m; i++) {
+			int r = sc.nextInt();
+			int c = sc.nextInt();
+			int lb = n+1 - r;
+			int rb = c;
+			events.add(new Event(lb, rb, i+1, true));
+			events.add(new Event(lb, rb, i+1, false));
+		}
+		Collections.sort(events, new Comparator<Event>() {
+			@Override
+			public int compare(Event e1, Event e2) {
+				if (e1.x == e2.x) {
+					if (e1.isleft) return -1;
+					return 1;
+				}
+				return e1.x - e2.x;
+			}
+		});
+		ArrayList<Integer> answer = new ArrayList<Integer>();
+		TreeSet<Event> queue = new TreeSet<Event>(new Comparator<Event>() {
+
+			@Override
+			public int compare(Event e1, Event e2) {
+				if (e1.x2 == e2.x2) {
+					return e1.x1 - e2.x1;
+				}
+				return e1.x2 - e2.x2;
+			}
+		});
+		int ind = 0;
+		for (int x = 1; x <= n; x++) {
+			while (ind < events.size() && events.get(ind).isleft && events.get(ind).x == x) {
+				queue.add(events.get(ind));
+				ind++;
+			}
+			if (queue.size() > 0) {
+				answer.add(queue.first().i);
+				queue.remove(queue.first());
+			}
+			while (ind < events.size() && !events.get(ind).isleft && events.get(ind).x == x) {
+				queue.remove(events.get(ind));
+				ind++;
+			}
+		}
+		System.out.println(answer.size());
+		for (int i = 0; i < answer.size(); i++) {
+			if (i > 0) System.out.print(' ');
+			System.out.print(answer.get(i));
+		}
+		System.out.println();
+	}
+}

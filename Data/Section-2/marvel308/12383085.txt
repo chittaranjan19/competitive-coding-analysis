@@ -1,0 +1,86 @@
+#include<stdio.h>
+int a[1<<21]={0},tree[5000005]={0},temp[1<<21]={0},ans[1<<21]={0};
+void merge1(int l,int r,int idx)
+{
+    int mid=(l+r)/2;
+
+    int x=l,y=mid+1,c=0,i;
+    //tree[idx]=tree[2*idx]+tree[2*idx+1];
+    //printf("---\n");
+    while(x<=mid && y<=r)
+    {
+        //printf("x=%d y=%d\n",a[x],a[y]);
+        if(a[x]<a[y])
+        {
+            //tree[idx]+=(r-y+1);
+            temp[c++]=a[x++];
+        }
+        else
+        {
+            //printf("## %d\n",mid-x+1);
+            tree[idx]+=(mid-x+1);
+            temp[c++]=a[y++];
+        }
+    }
+    //printf("----\n");
+    while(x<=mid)
+    {
+        //tree[idx]+=(r-mid);
+        temp[c++]=a[x++];
+    }
+    //printf("-----\n");
+    while(y<=r)
+    {
+        //tree[idx]+=(mid-l+1);
+        temp[c++]=a[y++];
+    }
+    //printf("------\n");
+    for(i=0;i<c;i++)
+    {
+        a[l+i]=temp[i];
+    }
+}
+void merge_sort(int l,int r,int idx)
+{
+    //printf("l=%d r=%d\n",l,r);
+    if(l>r)
+        return ;
+    if(l==r)
+    {
+        tree[idx]=0;
+        //depth[idx]=depth1;
+        return;
+    }
+    int mid=(l+r)/2;
+    merge_sort(l,mid,2*idx);
+    merge_sort(mid+1,r,2*idx+1);
+    //depth[idx]=depth1;
+    merge1(l,r,idx);
+    ans[r-l+1]+=tree[idx];
+    //printf("idx=%d tree=%d\n",idx,tree[idx]);
+}
+int main()
+{
+    int n,i;
+    scanf("%d",&n);
+    for(i=1;i<=(1<<n);i++)
+    {
+        scanf("%d",&a[i]);
+    }
+    merge_sort(1,1<<n,1);
+    int q;
+    scanf("%d",&q);
+    while(q--)
+    {
+        int x,sum=0;
+        scanf("%d",&x);
+        int si=(1<<x);
+        ans[1<<x]=(1<<(n-x))*(si)*(si-1)/2-ans[1<<x];
+        for(i=x;i<=n;i++)
+        {
+            sum+=ans[1<<i];
+        }
+        printf("%d\n",sum);
+    }
+    return 0;
+}

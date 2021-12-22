@@ -1,0 +1,57 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> ii;
+typedef pair<ii,ll> iii;
+bool comp (ll lhs, ll rhs) {return lhs>rhs;}
+int main(){
+    ios::sync_with_stdio(false);
+    int n,m;
+    cin>>n>>m;
+    vector<ii> islands(n);
+    for(int i=0;i<n;++i){
+        cin>>islands[i].first;
+        cin>>islands[i].second;
+    }
+    vector<iii> difs(n-1);
+    for(int i=0;i<n-1;++i){
+        difs[i].first.first=islands[i+1].first-islands[i].second;
+        difs[i].first.second=islands[i+1].second-islands[i].first;
+        difs[i].second=i;
+    }
+    sort(difs.begin(),difs.end());
+    multiset <ll,bool(*)(ll,ll)> pq(comp);
+    multimap <ll,ll> ind;
+    vector<ll> ans(n-1);
+    for(int i=0;i<m;++i){
+        ll tmp;
+        cin>>tmp;
+        pq.insert(tmp);
+        ind.insert(make_pair(tmp,i));
+    }
+    bool ok=true;
+    if(m<n-1) ok=false;
+    for(int i=difs.size()-1;i>=0;--i){
+        if(!ok) break;
+        multiset<ll,bool(*)(ll,ll)>::iterator it=pq.lower_bound(difs[i].first.second);
+        if(it==pq.end()) {ok=false;break;}
+        else{
+            if(*it<difs[i].first.first) {ok=false;break;}
+            multimap<ll,ll>::iterator tmp=ind.find(*it);
+            ll index=tmp->second;
+            ll val=tmp->first;
+            //cout<<difs[i].first.first<<" "<<difs[i].second<<" "<<val<<endl;
+            ans[difs[i].second]=index;
+            ind.erase(tmp);
+            pq.erase(it);
+        }
+    }
+    if(ok==false){
+        cout<<"NO";
+        return 0;
+    }
+    cout<<"YES"<<endl;
+    for(int i=0;i<ans.size();++i){
+        cout<<ans[i]+1<<" ";
+    }   
+}

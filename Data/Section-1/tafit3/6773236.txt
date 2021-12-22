@@ -1,0 +1,98 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class TheChildAndToy {
+    private Map<Integer, Set<Integer>> edgeMap = new HashMap<>();
+    private SortedMap<Integer, Set<Integer>> s2map = new TreeMap<>();
+
+    private TheChildAndToy() throws IOException {
+        BufferedReader rd = new BufferedReader(new InputStreamReader(System.in));
+        String h = rd.readLine();
+        String[] q = h.split("\\s+");
+        int n = Integer.parseInt(q[0]);
+        int m = Integer.parseInt(q[1]);
+        h = rd.readLine();
+        q = h.split("\\s+");
+        int[] v = new int[n];
+        for(int i=0;i<n;i++) {
+            v[i] = Integer.parseInt(q[i]);
+        }
+
+        for(int i=0;i<m;i++) {
+            h = rd.readLine();
+            q = h.split("\\s+");
+            int a = Integer.parseInt(q[0])-1;
+            int b = Integer.parseInt(q[1])-1;
+            addEdge(a,b);
+        }
+
+        for(int i=0;i<n;i++) {
+            addToMultiMap(s2map, v[i], i);
+        }
+
+        long total = 0;
+        while(!s2map.isEmpty()) {
+            int mk = s2map.lastKey();
+            Set<Integer> verts = s2map.get(mk);
+            int vert;
+            if(verts.size() == 1) {
+                s2map.remove(mk);
+                vert = verts.iterator().next();
+            } else {
+                int cost = Integer.MIN_VALUE;
+                int costv = -1;
+                for(Integer vx: verts) {
+                    int ccost = 0;
+                    Set<Integer> nbrs = edgeMap.get(vx);
+                    if(nbrs != null && !nbrs.isEmpty()) {
+                        for(Integer nbr: nbrs) {
+                            ccost += v[nbr];
+                        }
+                    }
+                    if(ccost > cost) {
+                        cost = ccost;
+                        costv = vx;
+                    }
+                }
+                vert = costv;
+                verts.remove(vert);
+            }
+            Set<Integer> nbrs = edgeMap.remove(vert);
+            if(nbrs != null && !nbrs.isEmpty()) {
+                int ccost = 0;
+                for(Integer nbr: nbrs) {
+                    ccost += v[nbr];
+                }
+                total += ccost;
+                for(Integer nbr: nbrs) {
+                    edgeMap.get(nbr).remove(vert);
+                }
+            }
+        }
+        out(total);
+    }
+
+    private void addEdge(int a, int b) {
+        addToMultiMap(edgeMap,a,b);
+        addToMultiMap(edgeMap,b,a);
+    }
+
+    private void addToMultiMap(Map<Integer, Set<Integer>> m, int a, int b) {
+        Set<Integer> s = m.get(a);
+        if(s == null) {
+            s = new HashSet<>();
+            m.put(a,s);
+        }
+        s.add(b);
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new TheChildAndToy();
+    }
+}

@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 105;
+
+int N, K;
+char A[3][10 * MAXN];
+bool vis[3 * MAXN][3][MAXN];	//vis[time][row][col]
+
+bool can (pii p, pii dir, int t) {
+	//this time is t. can he move?
+	t--;
+	p.second += dir.second;
+	if (p.second >= N || isalpha(A[p.first][p.second + 2 * t])) {
+		return false;
+	}
+	p.first += dir.first;
+	if (p.first < 0 || p.first >= 3 || isalpha(A[p.first][p.second + 2 * t])) {
+		return false;
+	}
+	t++;
+	return !isalpha(A[p.first][p.second + 2 * t - 1]) && !isalpha(A[p.first][p.second + 2 * t]);
+}
+
+pii dirs[3] = {pii(0, 0), pii(1, 1), pii(-1, 1)};
+
+void solve() {
+	fillchar(vis, false);
+	fillchar(A, 0);
+	scanf("%d %d", &N, &K);
+	queue<pii> que;
+	for (int i = 0; i < 3; i++) {
+		scanf("%s", A[i]);
+		for (int j = 0; j < N; j++) {
+			if (A[i][j] == 's') {
+				que.push(pii(i, j));
+				vis[0][i][j] = true;
+			}
+		}
+	}
+	for (int d = 1; d < 3 * MAXN; d++) {
+		for (int sz = que.size(); sz--; ) {
+			pii p = que.front();
+			if (p.second == N - 1) {
+				puts("YES");
+				return;
+			}
+			que.pop();
+			for (pii pr : dirs) {
+				//can he move
+				pii np = pii(p.first + pr.first, p.second + pr.second);
+				if (can(p, pr, d)) {
+					if (!vis[d][np.first][np.second]) {
+						que.push(np);
+						vis[d][np.first][np.second] = true;
+					}
+				}
+			}
+		}
+	}
+	puts("NO");
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	int tt;
+	for (scanf("%d", &tt); tt--; ) {
+		solve();
+	}
+}

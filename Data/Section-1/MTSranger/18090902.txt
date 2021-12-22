@@ -1,0 +1,47 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int numB[100005];
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	int n, k; cin >> n >> k;
+	string s; cin >> s;
+
+	int best = 0;
+	for (int blah = 0; blah < 2; blah++) {
+		if (blah == 1) {
+			for (int i = 0; i < n; i++) {
+				if (s[i] == 'a') s[i] = 'b';
+				else s[i] = 'a';
+			}
+		}
+
+		numB[0] = (s[0] == 'b') ? 1 : 0;
+		for (int i = 1; i < n; i++) {
+			numB[i] = numB[i-1];
+			if (s[i] == 'b') numB[i]++;
+		}
+
+		for (int start = 0; start < n; start++) {
+			int x = numB[start];
+			if (s[start] == 'b') x--;
+			int lb = start;
+			int ub = n-1;
+			while (ub - lb > 4) {
+				int mid = lb+(ub-lb)/2;
+				if (numB[mid] - x <= k) lb = mid;
+				else ub = mid;
+			}
+			int end = lb;
+			while (end < ub && numB[end+1] - x <= k) end++;
+			best = max(best, end-start+1);
+		}
+	}
+
+	cout << best << endl;
+}

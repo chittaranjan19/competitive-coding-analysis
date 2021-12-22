@@ -1,0 +1,93 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const int N = 100000;
+const int inf = (int)1e9;
+const int MOD = (int)1e9 + 7;
+const ld eps = 1e-6;
+const int ABC = 26;
+
+vector<int> p;
+vector<int> h;
+
+void build(int n)
+{
+    p.resize(n);
+    for (int i = 0; i < n; i++)
+        p[i] = i;
+    h.resize(n, 0);
+}
+
+int get_p(int x)
+{
+    if (x != p[x])
+        x = get_p(p[x]);
+    return p[x];
+}
+
+bool union_s(int x, int y)
+{
+    x = get_p(x);
+    y = get_p(y);
+    if (x == y)
+        return false;
+    if (h[x] >= h[y])
+        p[y] = x;
+    else
+        p[x] = y;
+    if (h[x] == h[y])
+        h[x]++;
+    return true;
+}
+
+int main()
+{
+    //freopen("point.in", "r", stdin);
+    //freopen("point.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.precision(20);
+    int n, m;
+    cin >> n >> m;
+    bool ok[n][m];
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            ok[i][j] = false;
+    for (int i = 0; i < n; i++)
+    {
+        int k;
+        cin >> k;
+        for (int j = 0; j < k; j++)
+        {
+            int x;
+            cin >> x;
+            ok[i][x - 1] = true;
+        }
+    }
+    vector<pair<int, pair<int, int> > > edge;
+    for (int i = 0; i < n; i++)
+        for (int j = i + 1; j < n; j++)
+        {
+            int c = 2;
+            for (int k = 0; k < m; k++)
+            {
+                if (ok[i][k] && ok[j][k])
+                    c = min(c, 0);
+                if (ok[i][k] || ok[j][k])
+                    c = min(c, 1);
+            }
+            edge.push_back({c, {i, j}});
+        }
+    sort(edge.begin(), edge.end());
+    build(n);
+    int cnt = 0;
+    for (auto i : edge)
+        if (union_s(i.second.first, i.second.second))
+            cnt += i.first;
+    cout << cnt;
+    return 0;
+}

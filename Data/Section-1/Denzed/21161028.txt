@@ -1,0 +1,105 @@
+#include <bits/stdc++.h>
+
+#define f       first
+#define s       second
+#define mp      make_pair
+#define rank    something_which_is_supposed_to_be_rank
+#define left    something_which_is_supposed_to_be_left
+#define right   something_which_is_supposed_to_be_right
+
+using namespace std;
+
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+
+const int N = 200000, ITER = 15;
+
+int n, m, s, t, ds, dt;
+vector<int> parent, rank;
+vector<pair<int,int>> edges, spanning_tree, new_edges;
+
+int get(int u) {
+    return (u == parent[u] ? u : parent[u] = get(parent[u]));
+}
+
+inline bool check(int u) {
+    return (u == s && !ds) || (u == t && !dt);
+}
+
+inline void decrease(int u) {
+    if (u == s) {
+        --ds;
+    } else if (u == t) {
+        --dt;
+    }
+}
+
+inline void join(int u, int v) {
+    pair<int,int> edge = {u, v};
+    u = get(u);
+    v = get(v);
+    if (u == v || check(u) || check(v)) {
+        return;
+    }
+    decrease(u);
+    decrease(v);
+    spanning_tree.push_back(edge);
+    if (rank[v] < rank[u]) {
+        swap(u, v);
+    }
+    parent[u] = v;
+    rank[v] += (rank[u] == rank[v]);
+}
+
+int main() {
+    srand(time(0));
+    cin.sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n >> m;
+    for (int i = 0, a, b; i < m; ++i) {
+        cin >> a >> b;
+        edges.push_back({a, b});
+    }
+    cin >> s >> t >> ds >> dt;
+    parent.resize(n + 1);
+    rank.resize(n + 1);
+    for (int i = 0; i <= n; ++i) {
+        parent[i] = i;
+    }
+    for (auto e: edges) {
+        if (e.f != s && e.f != t && e.s != s && e.s != t) {
+            join(e.f, e.s);
+        }
+    }
+    for (auto e: edges) {
+        if (e.f != s && e.f != t && e.s != s && e.s != t) {
+            join(e.f, e.s);
+        } else {
+            new_edges.push_back(e);
+        }
+    }
+    for (int i = 0; i < ITER; ++i) {
+        auto backup_parent(parent);
+        auto backup_rank(rank);
+        auto backup_spanning_tree(spanning_tree);
+        random_shuffle(new_edges.begin(), new_edges.end());
+        for (auto e: new_edges) {
+            join(e.f, e.s);
+        }
+        if ((int) spanning_tree.size() == n - 1) {
+            cout << "Yes\n";
+            for (auto e: spanning_tree) {
+                cout << e.f << " " << e.s << "\n";
+            }
+            return 0;
+        }
+        swap(parent, backup_parent);
+        swap(rank, backup_rank);
+        swap(spanning_tree, backup_spanning_tree);
+    }
+    cout << "No\n";
+    cerr << "Time elapsed: " << (ld) clock() / CLOCKS_PER_SEC << "\n";
+    return 0;
+}

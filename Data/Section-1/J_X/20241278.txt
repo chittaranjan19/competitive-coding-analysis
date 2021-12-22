@@ -1,0 +1,82 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 2e5 + 5;
+const int mod = 1e9 + 7;
+
+struct edge
+{
+    int to, next;
+} G[maxn << 1];
+int head[maxn], tot, dep[maxn], cnt1, cnt2;
+bool used[maxn << 1];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot].to = v;
+    G[tot].next = head[u];
+    head[u] = tot++;
+}
+
+int pow_mod(int x, int n)
+{
+    int ret = 1;
+    while(n)
+    {
+        if(n & 1) ret = (ll)ret * x % mod;
+        x = (ll)x * x % mod;
+        n >>= 1;
+    }
+    return ret;
+}
+
+void dfs(int u, int d)
+{
+    dep[u] = d;
+    ++cnt1;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        if(used[i]) continue;
+        int v = G[i].to;
+        used[i] = used[i ^ 1] = true;
+        if(dep[v]) cnt2 = dep[u] - dep[v] + 1;
+        else dfs(v, d + 1);
+    }
+}
+
+int main()
+{
+    int n, ans = 1;
+    init();
+    scanf("%d", &n);
+    for(int i = 1; i <= n; ++i)
+    {
+        int p;
+        scanf("%d", &p);
+        addedge(i, p);
+        addedge(p, i);
+    }
+    for(int i = 1; i <= n; ++i)
+    {
+        if(!dep[i])
+        {
+            cnt1 = cnt2 = 0;
+            dfs(i, 1);
+            ans = (ll)ans * (pow_mod(2, cnt2) - 2 + mod) % mod * pow_mod(2, cnt1 - cnt2) % mod;
+        }
+    }
+    printf("%d\n", ans);
+    return 0;
+}

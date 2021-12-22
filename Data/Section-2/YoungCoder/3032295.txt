@@ -1,0 +1,153 @@
+ # include <iostream>
+ # include <cstdlib>
+ # include <cstdio>
+ # include <sstream>
+ using namespace std;
+ 
+ struct segment_tree
+ {
+     int l, r, val, min;
+     char used;
+ };
+ 
+ const int N = 1000000;
+ int n, m, l, r, cnt, a[N];
+ segment_tree d[N];
+ char s[N];
+ 
+ void build (int v)
+ {
+     if (d[v].l == d[v].r)
+     {
+         d[v].min = a[d[v].r];
+         d[v].used = true;
+     }
+      
+     else
+     {
+         int m = (d[v].l + d[v].r) >> 1;
+         
+         d[v << 1].l = d[v].l;
+         d[v << 1].r = m;
+         d[(v << 1) + 1].l = m + 1;
+         d[(v << 1) + 1].r = d[v].r;
+         
+         build (v << 1);
+         build ((v << 1) + 1);
+         
+         d[v].min = min (d[v << 1].min, d[(v << 1) + 1].min);
+     }
+ }
+ 
+ void update (int v, int l, int r)
+ {
+     if (d[v].l == l && d[v].r == r)
+     {
+         d[v].min += cnt;
+         d[v].val = cnt;
+     }
+      
+     else
+     {
+         int m = (d[v].l + d[v].r) >> 1;
+         
+         if (r <= m)
+          update (v << 1, l, r);
+          
+         if (l > m)
+          update ((v << 1) + 1, l, r);
+          
+         if (l <= m && r > m)
+         {
+             update (v << 1, l, m);
+             update ((v << 1), m + 1, r);
+         }
+     }
+     
+     if (!d[v].used)
+      d[v].min = min (d[v << 1].min, d[(v << 1) + 1].min);
+ }
+ 
+ int solve (int v, int l, int r)
+ {
+     //cout << v << " " << d[v].min << " " << d[v].val << " " << d[v].l << " " << d[v].r << " " << l << " " << r << "\n";
+     if (d[v].val)
+     {
+         d[v << 1].val = d[v].val;
+         d[(v << 1) + 1].val = d[v].val;
+         d[v << 1].min += d[v].val;
+         d[(v << 1) + 1].min += d[v].val;
+         d[v].val = 0;        
+     }
+     
+     if (d[v].l == l && d[v].r == r)
+      return d[v].min;
+     
+     else
+     {
+         int m = (d[v].l + d[v].r) >> 1;
+     
+         if (r <= m)
+          return solve (v << 1, l, r);
+      
+         if (l > m)
+          return solve ((v << 1) + 1, l, r);
+     
+         if (l <= m && r > m) 
+          return min (solve (v << 1, l, m), solve ((v << 1) + 1, m + 1, r));
+     }
+ }
+ 
+ int main ()
+ {
+     /*freopen ("input.txt", "r", stdin);
+     freopen ("output.txt", "w", stdout);*/
+     
+     cin >> n;
+     
+     for (int i = 1; i <= n; ++i)
+      cin >> a[i];
+     
+     d[1].l = 1;
+     d[1].r = n;
+     build (1);
+     
+     scanf ("%d\n", &m);
+     
+     for (int i = 1; i <= m; ++i)
+     {
+         gets (s);
+         stringstream fin (s);
+         fin >> l >> r;
+         ++l;
+         ++r;
+         if (fin >> cnt)
+         {
+             if (l > r)
+             {
+                 update (1, l, n);
+                 update (1, 1, r);
+             }
+             else
+              update (1, l, r);
+              
+         }
+         else
+         {
+             if (l > r)
+              cout << min (solve (1, l, n), solve (1, 1, r));
+             else
+              cout << solve (1, l, r);
+             cout << "\n";
+         }
+     }
+     
+     return 0;
+ }
+     
+     
+     
+     
+     
+     
+     

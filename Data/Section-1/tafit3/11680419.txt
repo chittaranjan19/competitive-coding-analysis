@@ -1,0 +1,162 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.TreeSet;
+
+public class ProblemC {
+    BufferedReader rd;
+
+    ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        long[] a = longarr();
+        long w = a[0];
+        long m = a[1];
+        boolean res;
+        if(w == 2 || m == 1) {
+            res = true;
+        } else {
+            Set<Long> ws = new TreeSet<>();
+            long y = 1;
+            long limit = 10000000000L;
+            while(y <= limit) {
+                ws.add(y);
+                y *= w;
+            }
+            long[] v = new long[ws.size()];
+            {
+                int i = 0;
+                for(Long r: ws) {
+                    v[i++] = r;
+                }
+            }
+
+            long[] s = new long[v.length];
+            s[0] = v[0];
+            for(int i=1;i<s.length;i++) {
+                s[i] = s[i-1] + v[i];
+            }
+
+            boolean[] avail = new boolean[v.length];
+            Arrays.fill(avail, true);
+            long u = m;
+            while(isAnyTrue(avail) && u != 0) {
+                int d = 1;
+                boolean found = false;
+                for(int i=1;i<v.length;i++) {
+                    if(avail[i] && (Math.abs(v[i] - u) <= Math.abs(v[d] - u))) {
+                        d = i;
+                        found = true;
+                    }
+                }
+                if(found) {
+                    avail[d] = false;
+                    u = Math.abs(u - v[d]);
+                } else {
+                    break;
+                }
+            }
+            res = false;
+            for(int x=-1;x<2;x++) {
+                for(int e=-1;e<2;e++) {
+                    long k = u;
+                    if(avail[0]) {
+                        k += x*v[0];
+                    }
+                    if(avail[1]) {
+                        k += x*v[1];
+                    }
+                    if(k == 0) {
+                        res = true;
+                    }
+                }
+            }
+        }
+        out(res?"YES":"NO");
+    }
+
+    private boolean isAnyTrue(boolean[] u) {
+        for(boolean x: u) {
+            if(x) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

@@ -1,0 +1,115 @@
+const   fi      ='cf466_c.inp';
+        fo      ='cf466_c.out';
+        oo      =5*trunc(1e5);
+
+var     f       :text;
+        n       :longint;
+        a, s    :array[0..oo] of int64;
+        vt      :Array[0..oo] of int64;
+        sum     :longint;
+        res     :longint;
+procedure nhap;
+var     i :longint;
+begin
+        assign(f, fi);
+        reset(f);
+        readln(f, n);
+        for i:=1 to n do read(f, a[i]);
+        close(f);
+        s[0]:=0;
+        s[1]:=a[1];
+        for i:=2 to n do s[i]:=s[i-1]+a[i];
+        vt[0]:=0;
+        for i:=1 to n do vt[i]:=i;
+end;
+
+Procedure QuickSort(L, H:Longint);
+Var     i, j, la:Longint;
+        x, tg   :Longint;
+begin
+        i:=L;
+        j:=H;
+        x:=S[vt[(L+H) div 2]];
+        Repeat
+              While s[vt[i]]<x do inc(i);
+              While s[vt[j]]>x do dec(j);
+              If i<=j then
+               begin
+                     tg:=vt[i];
+                     vt[i]:=vt[j];
+                     vt[j]:=tg;
+                     inc(i);
+                     dec(j);
+               end;
+        Until i>j;
+        If i<H then QuickSort(i, H);
+        If L<j then QuickSort(L, j);
+end;
+
+function get(x:longint):longint;
+var     l, r, m    :longint;
+begin
+        l:=1;
+        r:=n;
+        repeat
+                if l>r then exit(0);
+                if l=r then
+                        if s[vt[l]]=x then exit(l) else exit(0);
+                m:=(l+r) div 2;
+                if s[vt[m]]<x then l:=m+1;
+                if s[vt[m]]=x then exit(m);
+                if s[vt[m]]>x then r:=m-1;
+        until false;
+end;
+
+procedure xuly;
+var     i, g, m :longint;
+        stack :array[1..oo] of int64;
+        top    , j :longint;
+begin
+        nhap;
+        QuickSort(1,n);
+        sum:=0;
+        for i:=1 to n do sum:=sum+a[i];
+        if sum mod 3 <>0 then
+                begin
+                        res:=0;
+                        exit;
+                end;
+        m:=sum div 3;
+        g:=get(m);
+        top:=0;
+        for i:=g downto 1 do
+                if s[i]=m then
+                        begin
+                                inc(top);
+                                stack[top]:=i;
+                        end;
+        for i:=g+1 to n do
+                if s[i]=m then
+                        begin
+                                inc(top);
+                                stack[top]:=i;
+                     end;
+        res:=0;
+        repeat
+                i:=stack[top];
+                dec(top);
+                for j:=i+1 to n do
+                        if ((s[j]-s[i]) = m) and (s[n]-s[j]=m) and (n<>j) then
+                                                inc(res);
+        until top=0;
+end;
+
+procedure xuat;
+begin
+        assign(f, fo);
+        rewrite(f);
+        write(f,res);
+        close(f);
+end;
+
+BEGIN
+        xuly;
+        xuat;
+END.

@@ -1,0 +1,112 @@
+//INOG
+//<MohammadJavad Akbari/>
+//I Try So Hard And Got So Far,But In The End It Doesn't Even Matter... 
+
+#include<bits/stdc++.h>
+using namespace std;
+
+#define mp make_pair
+#define int long long
+#define ld long double
+#define all(x) x.begin(),x.end()
+#define endl '\n'
+#define MohammadJA main
+
+const long long MAXN=1e6+51;
+const long long MAXM=3e3;
+const long long MOD=1610612741;
+const long long mod=1e9+7;
+const long long INF=1e15+5040;
+
+const int MAX_LOG=21;
+const int dx[4]={1,-1,0,0};
+const int dy[4]={0,0,-1,1};
+
+int p[MAXN];
+int root(int x){if(p[x]<0)return x;return p[x]=root(p[x]);}
+inline void merge(int x,int y){x=root(x);y=root(y);p[y]+=p[x];p[x]=y;}
+
+vector<int>ver[MAXN],ras;
+vector<pair<pair<int,pair<int,int>>,int>>eg,h;
+int ed[MAXN];
+int size[MAXN];
+int vis[MAXN];
+
+void dfs(int v,int dad,int cons){
+    vis[v]=cons;
+    size[v]=p[ras[v]]*-1;
+    for(auto u:ver[v])
+        if(u!=dad){
+            dfs(u,v,cons);
+            size[v]+=size[u];
+        }
+}
+
+MohammadJA(){
+	//ios_base::sync_with_stdio(0);
+	//cin.tie(0);cout.tie(0);
+	fill(p,p+MAXN,-1);
+	int n;
+	cin>>n;
+	for(int i=0;i<n-1;i++){
+	    int x,y,z;
+	    cin>>x>>y>>z;
+	    eg.push_back(mp(mp(z,mp(x,y)),i));
+	}
+	int cnt=0;
+	sort(all(eg));
+	reverse(all(eg));
+	while(eg.size()){
+	    int w=eg.back().first.first;
+	    while(eg.back().first.first==w && eg.size()){
+	        ras.push_back(root(eg.back().first.second.first));
+	        ras.push_back(root(eg.back().first.second.second));
+	        h.push_back(eg.back());
+	        eg.pop_back();
+	    }
+	
+	    sort(all(ras));
+	    ras.resize(unique(all(ras))-ras.begin());
+	    for(auto e:h){
+	        int v=lower_bound(all(ras),root(e.first.second.first))-ras.begin();
+	        int u=lower_bound(all(ras),root(e.first.second.second))-ras.begin();
+	        ver[v].push_back(u);
+	        ver[u].push_back(v);
+	    }
+	 
+	    for(int i=0;i<ras.size();i++)
+	        if(!vis[i])dfs(i,-1,i+1);
+	    
+	    for(auto e:h){
+	        int v=lower_bound(all(ras),root(e.first.second.first))-ras.begin();
+	        int u=lower_bound(all(ras),root(e.first.second.second))-ras.begin();
+	        
+	        merge(ras[u],ras[v]);
+	        
+	        int id=e.second;
+	        int k=min(size[v],size[u]);
+	        ed[id]=k*(size[vis[v]-1]-k);
+	        
+	    }
+	    
+	    for(int i=0;i<ras.size();i++)ver[i].clear(),vis[i]=0,size[i]=0;
+	    h.clear();
+	    ras.clear();
+	    
+	}
+	int mx=0;
+	vector<int>ans;
+	for(int i=0;i<n-1;i++){
+		if(ed[i]==mx)
+			ans.push_back(i);
+		else if(ed[i]>mx){
+			ans.clear();
+			ans.push_back(i);
+			mx=ed[i];
+		}
+	}
+	sort(all(ans));
+	cout<<mx*2<<' '<<ans.size()<<'\n';
+	for(auto a:ans)cout<<a+1<<' ';
+}
+

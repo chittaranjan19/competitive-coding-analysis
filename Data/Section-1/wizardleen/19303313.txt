@@ -1,0 +1,62 @@
+import java.util.Scanner;
+
+/**
+ * Created by leen on 7/20/16.
+ */
+public class _699E {
+
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+
+        int n = scan.nextInt(), k = scan.nextInt();
+
+        double[] p = new double[n];
+
+        for(int i = 0; i < n; i++)
+            p[i] = scan.nextDouble();
+
+        int numCombinations = 1 << n;
+        double[] dp = new double[numCombinations];
+        dp[0] = 1.0;
+
+        double[] result = new double[n];
+
+        for(int combination = 1; combination < numCombinations; combination++) {
+            double remainProbability = 1.0;
+            for(int j = 0; j < n; j++)
+                remainProbability -= (combination & 1 << j) != 0 ? p[j] : 0.0;
+
+            for(int j = 0; j < n; j++) {
+                if((combination & 1 << j) != 0)
+                    dp[combination] += dp[combination ^ 1 << j] * p[j] / (remainProbability + p[j]);
+            }
+
+            if(countBits(combination, n) == k) {
+                for(int j = 0; j < n; j++) {
+                    if((combination & 1 << j) != 0)
+                        result[j] += dp[combination];
+                }
+            }
+        }
+
+        StringBuilder buf = new StringBuilder();
+        boolean first = true;
+
+        for(int i = 0; i < n; i++) {
+            if(first)
+                first = false;
+            else
+                buf.append(' ');
+            buf.append(result[i]);
+        }
+        System.out.println(buf.toString());
+    }
+
+    static int countBits(int bitMask, int n) {
+        int numBits = 0;
+        for(int i = 0; i < n; i++)
+            numBits += (bitMask & 1 << i) != 0 ? 1 : 0;
+        return numBits;
+    }
+
+}

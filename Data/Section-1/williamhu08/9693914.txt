@@ -1,0 +1,148 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 205, MAXA = 20010;
+
+void kill() {
+	cout << "Impossible";
+	exit(0);
+}
+
+int N, A[MAXN];
+bool isprime[MAXA];
+vector<int> adj[MAXN];
+int prv[MAXN], flow[MAXN], cap[MAXN][MAXN];
+bool vis[MAXN];
+vector<int> bdj[MAXN];
+
+int aug() {
+	int totalflow = 0;
+	while (true) {
+		memset(prv, -1, sizeof(prv));
+		memset(flow, 0, sizeof(flow));
+		memset(vis, false, sizeof(vis));
+		flow[0] = 1 << 29;
+		int maxflow, maxloc;
+		while (true) {
+			maxflow = 0;
+			maxloc = -1;
+			for (int i = 0; i <= N + 1; i++) {
+				if (!vis[i] && flow[i] > maxflow) {
+					maxflow = flow[i];
+					maxloc = i;
+				}
+			}
+			if (maxloc == -1 || maxloc == N + 1) {
+				break;
+			}
+			vis[maxloc] = true;
+			for (int i = 0; i <= N + 1; i++) {
+				if (cap[maxloc][i]) {
+					int m = min(maxflow, cap[maxloc][i]);
+					if (flow[i] < m) {
+						flow[i] = m;
+						prv[i] = maxloc;
+					}
+				}
+			}
+		}
+		if (maxloc == -1) {
+			break;
+		}
+		int p = flow[N + 1];
+		totalflow += p;
+		for (int cur = N + 1; cur; ) {
+			int nxt = prv[cur];
+			cap[nxt][cur] -= p;
+			cap[cur][nxt] += p;
+			if (cur != N + 1 && nxt) {
+				bdj[cur].push_back(nxt);
+				bdj[nxt].push_back(cur);
+				// cerr << cur << ' ' << nxt << endl;
+			}
+			cur = nxt;
+		}
+	}
+	return totalflow;
+}
+
+vector<vector<int> > ans;
+
+void dfsans (int x, vector<int> &v) {
+	v.push_back(x);
+	vis[x] = true;
+	for (int t : bdj[x]) {
+		if (!vis[t]) {
+			dfsans(t, v);
+		}
+	}
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	int nodd = 0, neven = 0;
+	for (int i = 1; i <= N; i++) {
+		cin >> A[i];
+		(A[i] % 2 ? nodd : neven)++;
+	}
+	if (nodd != neven) {
+		kill();
+	}
+	fillchar(isprime, true);
+	for (int i = 2; i < MAXA; i++) {
+		for (int j = 2 * i; j < MAXA; j += i) {
+			isprime[j] = false;
+		}
+	}
+	//match it
+	for (int i = 1; i <= N; i++) {
+		for (int j = 1; j <= N; j++) {
+			if (isprime[A[i] + A[j]] && (A[i] % 2)) {
+				// cerr << i << " adj " << j << endl;
+				adj[i].push_back(j);
+				cap[i][j]++;
+			}
+		}
+		(A[i] % 2 ? cap[0][i] : cap[i][N + 1]) = 2;
+	}
+	//ok let's match everything with TWO things.
+	//odd ones go from source = 0, even ones go to sink = N + 1
+	int maxflow = 0;
+	for (int a = 1; a; ) {
+		a = aug();
+		maxflow += a;
+	}
+	if (maxflow != N) {
+		kill();
+	}
+	fillchar(vis, false);
+	for (int i = 1; i <= N; i++) {
+		if (!vis[i]) {
+			ans.push_back(vector<int> ());
+			dfsans(i, ans.back());
+		}
+	}
+	cout << (N = ans.size()) << '\n';
+	for (int i = 0; i < N; i++) {
+		cout << ans[i].size() << ' ';
+		for (int j : ans[i]) {
+			cout << j << ' ';
+		}
+		cout << '\n';
+	}
+}

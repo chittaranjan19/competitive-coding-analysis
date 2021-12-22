@@ -1,0 +1,95 @@
+#include <bits/stdc++.h>
+#define FORE(i, a, b) for(int i = a; i <= b; i++)
+#define FORD(i, a, b) for(int i = a; i >= b; i--)
+#define FOR(i, a, b) for(int i = a; i < b; i++)
+const int MAXN = 501;
+const int INF = 1e9 + 7;
+
+using namespace std;
+int m, n;
+char ch[MAXN][MAXN];
+int dp[2][MAXN][MAXN];
+bool cur, next;
+void add(int &a, int b)
+{
+    a += b;
+    if (a >= INF) a -= INF;
+}
+
+int main()
+{
+    ios::sync_with_stdio(0); cin.tie(0);
+    #ifndef ONLINE_JUDGE
+    freopen("570E.inp", "r", stdin);
+    freopen("570E.out", "w", stdout);
+    #endif //MIKELHPDATKE
+    cin >> m >> n;
+    FORE(i, 1, m) FORE(j, 1, n){
+        char c;
+        cin >> c;
+        ch[i][j] = c;
+    }
+    if (ch[1][1] != ch[m][n]){
+        cout << 0;
+        return 0;
+    }
+
+    dp[0][1][m] = 1;
+    cur = 1; next = 0;
+    int sl = (m + n) / 2 + 1;
+    for(int l = 2; l <= sl; l++){
+        cur ^= 1; next ^= 1;
+        //cout <<l<<endl;
+        FORE(i, 1, m) FORE(j, 1, n) dp[next][i][j] = 0;
+        FORE(a, 1, m) FORE(x, 1, m){
+            int b = l - a, y = m + n - l + 2 - x;
+            if (b < 1 || b > n || y < 1 || y > n || a > x || (a == x && b > y)) continue;
+            if (ch[a][b] != ch[x][y]) continue;
+            FORE(p, 0, 1) FORE(q, 0, 1){
+                //cout << a<<" "<<b<<" "<<x<<" "<<y<<endl;
+                int a1, b1, ab, x1, y1, xy;
+                a1 = a + p; ab = l + 1; b1 = ab - a1;
+                x1 = x - q; xy = m + n - l + 2 - 1; y1 = xy - x1;
+               // if (a1 == 3 && b1 == 1 && x1 == 3 && y1 == 1) cout<<"wtf"<<dp[cur][a][x]<<endl;
+                if (a1 < 1 && a1 > m && x1 < 1 && x1 > n) continue;
+                if (b1 < 1 || b1 > n || y1 < 1 || y1 > n || a1 > x1 || (a1 == x1 && b1 > y1)) continue;
+                if (ch[a1][b1] != ch[x1][y1]) continue;
+                add(dp[next][a1][x1], dp[cur][a][x]);
+                //if (a1 == 3 && b1 == 1 && x1 == 3 && y1 == 1) cout<<"wtf"<<dp[next][a1][x1]<<" "<<l<<"??"<<cur<<endl;
+            }
+        }
+    }
+
+    //cout << dp[cur][3][3]<<endl;
+    int ans = 0;
+    if ((m + n + 1) % 2 == 1){
+        int mid = (m + n + 2) / 2;
+        FORE(x, 1, m){
+            int y = mid - x;
+            if (y < 1 && y > n) continue;
+            add(ans, dp[cur][x][x]);
+        }
+        cout << ans;
+    }
+    else{
+        int mid = (m + n + 1) / 2;
+        FORE(x, 1, m){
+            int y = mid - x;
+            if (y < 1 && y > n) continue;
+            int a, b;
+            a = x; b = y + 1;
+            if (a + b == mid + 1 && b <= n && ch[x][y] == ch[a][b]){
+                //cout << x << " "<<y<<" "<<a<<" "<<b<<" "<<dp[0][x][a]<<endl;
+                add(ans, dp[cur][x][a]);
+            }
+            a = x + 1; b = y;
+            if (a + b == mid + 1 && a <= m && ch[x][y] == ch[a][b]){
+                //cout << x << " "<<y<<" "<<a<<" "<<b<<" "<<dp[0][x][a]<<endl;
+                add(ans, dp[cur][x][a]);
+            }
+        }
+        cout << ans;
+    }
+    return 0;
+}
+

@@ -1,0 +1,193 @@
+#include <iostream>
+#include <cmath>
+#include <vector>
+
+using namespace std;
+
+class point
+{
+    public:
+	double x, y;
+	point()
+	{
+	    x = 0;
+	    y = 0;
+	}
+	point(int x, int y)
+	{
+	    this->x = x;
+	    this->y = y;
+	}
+};
+
+class window
+{
+    public:
+	point start, end;
+	window(point p1, point p2)
+	{
+	    start = p1;
+	    end = p2;
+	}
+};
+
+double euclid(point p1, point p2)
+{
+    return sqrt((p1.x-p2.x)*(p1.x-p2.x)+(p1.y-p2.y)*(p1.y-p2.y));
+}
+
+double heron(point p1, point p2, point p3)
+{
+    double a, b, c;
+    a = euclid(p1, p2);
+    b = euclid(p2, p3);
+    c = euclid(p1, p3);
+    double s = (a+b+c)/2;
+    return sqrt(s*(s-a)*(s-b)*(s-c));
+}
+
+point calc_lowpoint(point p, int h, int f)
+{
+    point ans;
+    ans.y = -h;
+    if(p.x == 0)
+    {
+	ans.x = 0;
+	return ans;
+    }
+    double slope;
+    slope = (p.y-f)/p.x;
+    //cout<<"slope "<<slope<<" -h-f "<<-h-f<<endl;
+    ans.x = (-h-f)/slope;
+    //cout<<"ans x "<<ans.x<<endl;
+    return ans;
+}
+
+point get_intersection(point p, int h, int f)// cuando h = 0
+{
+    point ans;
+    ans.y = 0;
+    if(p.x == 0)
+    {
+	ans.x = 0;
+	return ans;
+    }
+    double slope;
+    slope = (p.y-f)/p.x;
+    ans.x = -f/slope;
+    return ans;
+}
+
+
+point get_inters_2(window w, int h, int f)// interseccion de las luces
+{
+    point ans;
+    double m1, m2;
+
+    m1 = (h - f)/w.end.x;
+    m2 = (-h + f)/w.start.x;
+    
+    ans.x = (2*f)/(m2-m1);
+    ans.y = m1*(ans.x) + f;
+
+    return ans;
+}
+
+double trapezoid_area(point h1, point h2, point b1, point b2)
+{
+    double a, c, h;
+    a = abs(h1.x - h2.x);
+    c = abs(b1.x - b2.x);
+    h = h1.y;
+    return (a+c)*h/2;
+}
+
+double solve_area(window w, int light, int h)
+{
+    double extra;
+    short center = 0;
+    
+    if(w.start.x > 0)
+	center = 1;
+    if(w.end.x < 0)
+	center = -1;
+
+    point lowpoint1, lowpoint2, light_point(0, light);
+    lowpoint1 = calc_lowpoint(w.start, h, light);
+    lowpoint2 = calc_lowpoint(w.end, h, light);
+    
+    double big_area, remainder, total;
+    big_area = heron(light_point, lowpoint1, lowpoint2);
+    remainder = heron(light_point, w.start, w.end);
+    total = big_area - remainder;
+
+    point inters1, inters2;
+    inters1 = get_intersection(w.start, h, light);
+    inters2 = get_intersection(w.end, h, light);
+
+    if(w.start.x <= 0 && w.end.x >= 0)
+    {
+	big_area = heron(light_point, inters1, inters2);
+	extra = big_area - remainder;
+    }
+    else if(center == 1 && w.end.x > lowpoint1.x || center == -1 && w.start.x < lowpoint2.x)
+    {
+	/*cout<<"in"<<endl;
+	cout<<"end "<<w.end.x<<" start "<<w.start.x<<endl;
+	cout<<"lp "<<lowpoint1.x<<" "<<lowpoint2.x<<endl;*/
+	point reflect;
+	if(center == 1)
+	{
+	    reflect = lowpoint1;
+	    reflect.y = -reflect.y;
+	    extra = trapezoid_area(reflect, w.end, inters1, inters2);
+	}
+	else
+	{
+	    reflect = lowpoint2;
+	    reflect.y = -reflect.y;
+	    extra = trapezoid_area(reflect, w.start, inters1, inters2);
+	}
+    }
+    else
+    {
+	point middle;
+	middle = get_inters_2(w, h, light);
+	extra = heron(inters1, inters2, middle);
+    }
+    
+    extra *= 2;
+    total *= 2;
+
+    total -= extra;
+
+    return total;   
+}
+
+int main()
+{
+    //point p1(0, 0), p2(3, 5), p3(1, 4);
+    //cout<<heron(p1, p2, p3)<<endl;
+    /*point p1(1, 2), p2(2, 2), i;
+    window w(p1, p2);
+    solve_area(w, 4, 2);*/
+    //i = get_inters_2(w, 2, 4);
+    //cout<<i.x<<" "<<i.y<<endl;
+    
+    int n, h, f;
+    double total = 0;
+    cin>>n>>h>>f;
+    for(int a = 0; a < n; a++)
+    {
+	int l, r;
+	cin>>l>>r;
+	point lp(l, h), rp(r, h);
+	window w(lp, rp);
+	total += solve_area(w, f, h);
+    }
+    cout<<total<<endl;
+
+    return 0;
+}
+
+

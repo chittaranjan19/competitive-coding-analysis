@@ -1,0 +1,156 @@
+#define DEBUG
+
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <climits>
+#include <ctime>
+#include <cassert>
+#include <limits.h>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define vl vector <long long>
+#define vb vector <bool>
+#define vs vector <string>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define lsone(value) (value)&(-value)
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define loop(i, n) for(int i = 0; i < n; ++i)
+#define loop1(i, n) for(int i = 1; i <= n; ++i)
+#define reverse_iterate(a, b) for(__typeof(b.rend()) a = b.rbegin(); a != b.rend(); ++a)
+#define iterate(a, b) for(__typeof(b.begin()) a = b.begin(); a != b.end(); ++a)
+#define all(i) i.begin(), i.end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const double PI = acos(-1);
+
+#ifdef DEBUG
+	#define debug(...) printf(__VA_ARGS__)
+	#define GetTime() fprintf(stderr,"Running time: %.3lf second\n",((double)clock())/CLOCKS_PER_SEC)
+#else
+	#define debug(...) 
+	#define GetTime() 
+#endif
+
+// end of template
+
+struct Bott {
+	int idx;
+	double dist_p;
+	double dist;
+
+	Bott(double a, double b, int c) {
+		dist_p = a;
+		dist = b;
+		idx = c;
+	}
+
+	bool operator< (const Bott &rhs) const {
+		return dist_p > rhs.dist_p;
+	}
+};
+
+inline double sqr(double x) {
+	return x*x;
+}
+
+double get_dist(double a, double b, double x, double y) {
+	return sqrt(sqr(x-a)+sqr(y-b));
+}
+
+int main() {
+    // freopen("672C.in", "r", stdin);
+    
+    int ax, ay, bx, by, tx, ty;
+    scanf("%d %d %d %d %d %d", &ax, &ay, &bx, &by, &tx, &ty);
+
+    int n;
+    scanf("%d", &n);
+    pque<Bott> pq_a, pq_b;
+    double ans = 0.0;
+
+    double min_pos_a = 1e20, min_pos_b = 1e20;
+    loop(idx, n) {
+    	int x, y;
+    	scanf("%d %d", &x, &y);
+
+    	double dist = get_dist(x, y, tx, ty);
+    	ans += dist*2;
+
+    	Bott a(get_dist(x, y, ax, ay)-dist, dist, idx), b(get_dist(x, y, bx, by)-dist, dist, idx);
+    	// cout << a.dist_p << " " << b.dist_p << " " << dist*2 << endl;
+    	if (a.dist_p < 0)
+    		pq_a.pu(a);
+    	else
+    		min_pos_a = min(min_pos_a, a.dist_p);
+
+    	if (a.dist_p == b.dist_p)
+    		continue;
+    	if (b.dist_p < 0)
+    		pq_b.pu(b);
+    	else
+    		min_pos_b = min(min_pos_b, b.dist_p);
+    }
+
+    // printf("\n%.20lf\n", ans);
+
+    if (pq_a.size()+pq_b.size() == 0) { // all of the cost is going to be much higher
+    	ans += min(min_pos_a, min_pos_b);
+    } else {
+    	if (((pq_a.size() > 0) and (pq_b.size() > 0)) and (pq_a.top().idx == pq_b.top().idx)) {
+    		double a_first = pq_a.top().dist_p;
+    		double b_first = pq_b.top().dist_p;
+    		pq_a.pop();
+    		pq_b.pop();
+    		if (pq_a.size()) {
+    			b_first += pq_a.top().dist_p;
+    		}
+    		if (pq_b.size()) {
+    			a_first += pq_b.top().dist_p;
+    		}
+    		ans += min(a_first, b_first);
+    	} else {
+    		if (pq_a.size()) {
+    			ans += pq_a.top().dist_p;
+    		}
+    		if (pq_b.size()) {
+    			ans += pq_b.top().dist_p;
+    		}
+    	}
+    }
+
+    printf("%.20lf\n", ans);
+
+    return 0;
+}

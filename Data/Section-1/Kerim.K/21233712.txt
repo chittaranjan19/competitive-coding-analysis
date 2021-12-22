@@ -1,0 +1,110 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+#define left cep
+#define right sag
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int arr[159],PALIN[159][159];
+int dp[155][155];
+char s[159];
+int f(int x,int y){
+	if(x==y)
+		return 1;
+	if(x+1==y)
+		return s[x]==s[y];
+	int &ret=PALIN[x][y];
+	if(~ret)
+		return ret;
+	if(s[x]!=s[y])
+		return ret=0;
+	return ret=f(x+1,y-1);	
+}
+ll mod(ll x){
+	return (x%INF);
+}
+ll R[159][159],pw[234];
+ll L[159][159],pw1[234];
+ll LL[159][159];
+ll RR[159][159];
+int ok(int x,int x1,int y1,int y){
+	if(x1<x)
+		return f(y1,y);
+	if(y1>y)
+		return f(x,x1);
+	int LEFT=(x1-x+1);	
+	int RIGHT=(y-y1+1);	
+	int sz=(LEFT+RIGHT);
+	int mid=(sz>>1)+(sz&1);
+	if(mid<=LEFT){
+		int cnt=x+mid-(sz&1);
+		return (L[x][cnt-(sz%2==0)]==mod(R[cnt][x1]+mod(pw[x1-cnt+1]*R[y1][y])) 
+			and LL[x][cnt-(sz%2==0)]==mod(RR[cnt][x1]+mod(pw1[x1-cnt+1]*RR[y1][y])));
+	}mid-=LEFT;
+	int cnt=y1+mid-(sz&1);
+	return (R[cnt][y]==mod(L[y1][cnt-(sz%2==0)]+mod(pw[cnt-y1+(sz&1)]*L[x][x1]))
+			and RR[cnt][y]==mod(LL[y1][cnt-(sz%2==0)]+mod(pw1[cnt-y1+(sz&1)]*LL[x][x1])));
+};
+int rec(int l,int r){
+	if(l>r)
+		return 0;
+	if(l==r){
+		if(~arr[1])
+			return arr[1];
+		return 0;	
+	}
+	int &ret=dp[l][r];
+	if(~ret)
+		return ret;ret=0;
+	for(int left=l-1;left<r;left++)
+		for(int right=r+1;right>left;right--){
+			if(left<l and right>r)
+				continue;
+			int val=arr[(r-right+1)+(left-l+1)];	
+			if(ok(l,left,right,r) and ~val)
+				umax(ret,rec(left+1,right-1)+val);
+		}
+	return ret;	
+}
+int main(){
+	memset(dp,-1,sizeof dp);
+	memset(PALIN,-1,sizeof PALIN);
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif
+	pw[0]=1,pw1[0]=1;
+	for(int i=1;i<159;i++)
+		pw[i]=mod(pw[i-1]*27);
+	for(int i=1;i<159;i++)
+		pw1[i]=mod(pw1[i-1]*1453);			
+	int n;
+	scanf("%d",&n);
+	for(int i=1;i<=n;i++)
+		scanf("%d",arr+i);
+	scanf("%s",s+1);
+	for(int i=1;i<=n;i++)
+		for(int j=i;j<=n;j++){
+			L[i][j]=mod(L[i][j-1]*27+(s[j]-'a'));
+			LL[i][j]=mod(LL[i][j-1]*1453+(s[j]-'a'));
+		}
+	for(int i=n;i>=1;i--)
+		for(int j=i;j<=n;j++){
+			R[i][j]=mod(R[i+1][j]*27+(s[i]-'a'));
+			RR[i][j]=mod(RR[i+1][j]*1453+(s[i]-'a'));
+		}
+	printf("%d\n",rec(1,n));	
+	return 0;
+}

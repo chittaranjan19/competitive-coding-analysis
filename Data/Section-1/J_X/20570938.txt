@@ -1,0 +1,88 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#define ls rt << 1
+#define rs rt << 1 | 1
+#define lson ls, l, m
+#define rson rs, m + 1, r
+
+using namespace std;
+
+const int maxn = 1e5 + 5;
+
+long double node1[maxn << 2], node2[maxn << 2], ans;
+
+void pushup(int rt)
+{
+    node1[rt] = node1[ls] + node2[ls] * node1[rs];
+    node2[rt] = node2[ls] * node2[rs];
+}
+
+void build(int rt, int l, int r)
+{
+    if(l == r)
+    {
+        int a, b;
+        scanf("%d%d", &a, &b);
+        long double p = (long double)a / b;
+        node1[rt] = node2[rt] = (1 - p) / p;
+        return;
+    }
+    int m = (l + r) >> 1;
+    build(lson);
+    build(rson);
+    pushup(rt);
+}
+
+void update(int rt, int l, int r, int pos, long double c)
+{
+    if(l == r)
+    {
+        node1[rt] = node2[rt] = (1 - c) / c;
+        return;
+    }
+    int m = (l + r) >> 1;
+    pos <= m ? update(lson, pos, c) : update(rson, pos, c);
+    pushup(rt);
+}
+
+double query(int rt, int l, int r, int x, int y, double c)
+{
+    if(x <= l && r <= y)
+    {
+        ans += c * node1[rt];
+        return c * node2[rt];
+    }
+    int m = (l + r) >> 1;
+    if(x <= m) c = query(lson, x, y, c);
+    if(m < y) c = query(rson, x, y, c);
+    return c;
+}
+
+int main()
+{
+    int n, q;
+    scanf("%d%d", &n, &q);
+    build(1, 1, n);
+    while(q--)
+    {
+        int op;
+        scanf("%d", &op);
+        if(op == 1)
+        {
+            int pos, a, b;
+            scanf("%d%d%d", &pos, &a, &b);
+            update(1, 1, n, pos, (long double)a / b);
+        }
+        else
+        {
+            int l, r;
+            scanf("%d%d", &l, &r);
+            ans = 0;
+            query(1, 1, n, l, r, 1);
+            printf("%.10f\n", (double)(1 / (1 + ans)));
+        }
+    }
+    return 0;
+}

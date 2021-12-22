@@ -1,0 +1,107 @@
+#include <iostream>
+#include <iomanip>
+#include <cstring>
+#include <cmath>
+
+using namespace std;
+typedef long long ll;
+typedef double ld;
+
+ld dp[2][5001];	// dp[k][j] = P(reach k songs at time j)
+ld prob[5001];
+ld pows[5001];
+ld EPS = 1e-20;
+int times[5001];
+int n;
+int maxtime;
+
+// compute powers
+inline void compute(int k) {
+	memset(pows, 0, times[k] * sizeof(double)); pows[0] = 1; 
+	for (int j = 1; j < times[k]; j++) {
+		pows[j] = pows[j-1] * (1 - prob[k]);
+		if (pows[j] < EPS) {
+			pows[j] = 0;
+			break;
+		}
+	}
+}
+
+// compute answer = sum(k * sum(P(reach kth song on step j) * P(not reach k+1 on maxtime)))
+inline ld getupdate(int k) {
+	int kk = k&1;
+	ld sum = 0;
+	for (int j = 1; j <= maxtime; j++) {
+		if (k == n) {
+			sum += dp[kk][j];
+		} else if (maxtime - j < times[k]) {
+			sum += dp[kk][j] * pows[maxtime - j];
+		}
+	}
+	return sum;
+}
+
+int main() {
+	// read input
+	cin >> n >> maxtime;
+	for (int i = 0; i < n; i++) {
+		int p, t; cin >> p >> t;
+		prob[i] = p / 100.0;
+		times[i] = t;
+	}
+
+	// perform dp to compute dp[k][j] = P(reach kth song exactly on step j)
+	ld ans = 0;
+	memset(dp, 0, sizeof dp);
+
+	// handle k == 1
+	compute(0);
+	for (int j = 1; j <= min(times[0]-1, maxtime); j++) {
+		dp[1][j] = pows[j-1] * prob[0];
+	}
+	if (times[0] <= maxtime) {
+		dp[1][times[0]] = pows[times[0] - 1];
+	}
+
+	// handle k > 1
+	ld add[maxtime+2];
+	ld remove[maxtime+2];
+	for (int k = 2; k <= n; k++) {
+		memset(add, 0, sizeof add);
+		memset(remove, 0, sizeof remove);
+		compute(k-1);
+		ans += (k-1) * getupdate(k-1);
+
+		ld curr = 0;
+		ld p = prob[k-1];
+		ld q = 1 - prob[k-1];
+		int t = times[k-1];
+		int kprev = (k-1)&1;
+		int kcurr = k&1;
+		for (int j = 1; j <= maxtime; j++) {
+			dp[kcurr][j] = curr;
+			curr -= remove[j];
+			curr *= q;
+			curr += add[j];
+
+			if (t > 1) {
+				curr += dp[kprev][j] * prob[k-1];
+				int endt = j + times[k-1] - 1;
+				if (endt <= maxtime) {
+					remove[endt] += dp[kprev][j] * pows[t-2] * p;
+					add[endt] = dp[kprev][j] * pows[t-1];
+					remove[endt+1] += add[endt];
+				}
+			} else {
+				curr += dp[kprev][j];
+				remove[j+1] += dp[kprev][j];
+			}
+
+			if (curr < EPS) curr = 0;
+		}
+	}
+	ans += n * getupdate(n);
+
+	// output answer
+	cout << setprecision(10) << fixed << ans << endl;
+}

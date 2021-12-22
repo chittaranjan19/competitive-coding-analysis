@@ -1,0 +1,112 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1010;
+
+struct node{
+	int val;
+	node* l;
+	node* r;
+	node* u;
+	node* d;
+	node(int v){
+		this->val = v;
+		this->l = this->r = this->u = this->d = NULL;
+	}
+};
+
+node* mat[maxn][maxn];
+int n, m, arr[maxn][maxn];
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, q;
+	scanf("%d%d%d", &n, &m, &q);
+	for(i=0; i<=n+1; i++){
+		for(j=0; j<=m+1; j++)
+			mat[i][j] = new node(-1);
+	}
+	for(i=1; i<=n+1; i++){
+		for(j=1; j<=m+1; j++){
+			mat[i-1][j]->d = mat[i][j];
+			mat[i][j]->u = mat[i-1][j];
+			mat[i][j-1]->r = mat[i][j];
+			mat[i][j]->l = mat[i][j-1];
+		}
+	}
+	for(i=1; i<=n; i++){
+		for(j=1; j<=m; j++){
+			int x;
+			scanf("%d", &x);
+			mat[i][j]->val = x;
+		}
+	}
+	int a, b, c, d, h, w;
+	while(q--){
+		scanf("%d%d%d%d%d%d", &a, &b, &c, &d, &h, &w);
+		for(i=0; i<w; i++){
+			node* temp = mat[a-1][b+i]->d;
+			mat[a-1][b+i]->d = mat[c-1][d+i]->d;
+			mat[c-1][d+i]->d = temp;
+			mat[a][b+i]->u = mat[c-1][d+i];
+			mat[c][d+i]->u = mat[a-1][b+i];
+
+			temp = mat[a+h][b+i]->u;
+			mat[a+h][b+i]->u = mat[c+h][d+i]->u;
+			mat[c+h][d+i]->u = temp;
+			mat[a+h-1][b+i]->d = mat[c+h][d+i];
+			mat[c+h-1][d+i]->d = mat[a+h][b+i];
+		}
+		for(i=0; i<h; i++){
+			node* temp = mat[a+i][b-1]->r;
+			mat[a+i][b-1]->r = mat[c+i][d-1]->r;
+			mat[c+i][d-1]->r = temp;
+			mat[a+i][b]->l = mat[c+i][d-1];
+			mat[c+i][d]->l = mat[a+i][b-1];
+
+			temp = mat[a+i][b+w]->l;
+			mat[a+i][b+w]->l = mat[c+i][d+w]->l;
+			mat[c+i][d+w]->l = temp;
+			mat[a+i][b+w-1]->r = mat[c+i][d+w];
+			mat[c+i][d+w-1]->r = mat[a+i][d+w];
+		}
+		for(i=0; i<w; i++){
+			swap(mat[a][b+i], mat[c][d+i]);
+			swap(mat[a+h-1][b+i], mat[c+h-1][d+i]);
+		}
+		for(i=1; i<h-1; i++){
+			swap(mat[a+i][b], mat[c+i][d]);
+			swap(mat[a+i][b+w-1], mat[c+i][d+w-1]);
+		}
+	}
+	for(i=1; i<=m; i++){
+		node* temp = mat[0][i]->d;
+		for(j=1; j<=n; j++){
+			arr[j][i] = temp->val;
+			temp = temp->d;
+		}
+	}
+	for(i=1; i<=n; i++){
+		for(j=1; j<=m; j++)
+			printf("%d ", arr[i][j]);
+		printf("\n");
+	}
+	return 0;
+}

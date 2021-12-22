@@ -1,0 +1,103 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 400009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll arr[MAXN],in[MAXN],out[MAXN],tim,pos[MAXN],lazy[MAXN<<2],s[MAXN<<2];
+vector<ll>adj[MAXN];
+void dfs(ll nd,ll pr){
+	in[nd]=++tim;
+	pos[tim]=nd;
+	for(ll i=0;i<adj[nd].size();i++){
+		ll to=adj[nd][i];
+		if(to!=pr)
+			dfs(to,nd);
+	}
+	out[nd]=tim;
+}
+void build(ll nd,ll x,ll y){
+	if(x==y){
+		s[nd]=ll(1<<(arr[pos[x]]));
+		return;
+	}
+	ll mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+	s[nd]=s[nd<<1]|s[nd<<1|1];
+}
+void upd(ll nd,ll v){
+	lazy[nd]=v;
+	s[nd]=ll(1<<v);
+}
+void shift(ll nd){
+	if(lazy[nd]==0)
+		return;
+	upd(nd<<1,lazy[nd]);
+	upd(nd<<1|1,lazy[nd]);
+	lazy[nd]=0;
+}
+void inc(ll l,ll r,ll v,ll nd,ll x,ll y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		upd(nd,v);
+		return;
+	}
+	ll mid=(x+y)>>1;
+	shift(nd);
+	inc(l,r,v,nd<<1,x,mid);
+	inc(l,r,v,nd<<1|1,mid+1,y);
+	s[nd]=s[nd<<1]|s[nd<<1|1];	
+}
+ll tap(ll l,ll r,ll nd,ll x,ll y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return s[nd];
+	ll mid=(x+y)>>1;
+	shift(nd);
+	return ll(tap(l,r,nd<<1,x,mid)|tap(l,r,nd<<1|1,mid+1,y));
+}
+int main(){
+	ll n,q;
+	scanf("%lld%lld",&n,&q);
+	for(ll i=1;i<=n;i++)
+		scanf("%lld",arr+i);
+	for(ll i=0;i<n-1;i++){
+		ll u,v;
+		scanf("%lld%lld",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	dfs(1,0);
+	build(1,1,n);
+	while(q--){
+		ll type,v,c;
+		scanf("%lld%lld",&type,&v);
+		if(type==1){
+			scanf("%lld",&c);
+			inc(in[v],out[v],c,1,1,n);
+		}
+		else{
+			ll k=ll(tap(in[v],out[v],1,1,n));
+			printf("%d\n",__builtin_popcountll(k));		
+		}
+	}
+	return 0;
+}
+

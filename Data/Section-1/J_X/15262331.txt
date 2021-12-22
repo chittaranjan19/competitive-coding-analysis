@@ -1,0 +1,109 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int MAXN = 2100 + 5;
+
+char s[MAXN], t[MAXN];
+struct trie
+{
+    int ch[MAXN * MAXN][26], val[MAXN * MAXN], dp[MAXN];
+    int tot;
+
+    void init()
+    {
+        memset(ch[0], 0, sizeof(ch[0]));
+        tot = 0;
+    }
+
+    int newnode()
+    {
+        ++tot;
+        memset(ch[tot], 0, sizeof(ch[tot]));
+        val[tot] = 0;
+        return tot;
+    }
+
+    void insert(int st, int nd)
+    {
+        int u = 0;
+        for(int i = st; i <= nd; ++i)
+        {
+            int c = s[i] - 'a';
+            if(!ch[u][c])
+            {
+                ch[u][c] = newnode();
+            }
+            u = ch[u][c];
+            val[u] = st * MAXN + i;
+        }
+        u = 0;
+        for(int i = st; i; --i)
+        {
+            int c = s[i] - 'a';
+            if(!ch[u][c])
+            {
+                ch[u][c] = newnode();
+            }
+            u = ch[u][c];
+            val[u] = st * MAXN + i;
+        }
+    }
+
+    void solve(int n)
+    {
+        dp[n + 1] = 0;
+        for(int i = n; i; --i)
+        {
+            dp[i] = MAXN;
+            int now = 0;
+            for(int j = i; j <= n; ++j)
+            {
+                int c = t[j] - 'a';
+                now = ch[now][c];
+                if(!now) break;
+                dp[i] = min(dp[i], dp[j + 1] + 1);
+            }
+        }
+        if(dp[1] == MAXN)
+        {
+            puts("-1");
+        }
+        else
+        {
+            printf("%d\n", dp[1]);
+            int st = 1, now = 0;
+            for(int nd = 1; nd <= n; ++nd)
+            {
+                int c = t[nd] - 'a';
+                now = ch[now][c];
+                if(dp[st] == dp[nd + 1] + 1)
+                {
+                    printf("%d %d\n", val[now] / MAXN, val[now] % MAXN);
+                    st = nd + 1;
+                    now = 0;
+                }
+            }
+        }
+    }
+} tree;
+
+int main()
+{
+    while(~scanf("%s%s", s + 1, t + 1))
+    {
+        int len1 = strlen(s + 1), len2 = strlen(t + 1);
+        for(int i = 1; i <= len1; ++i)
+        {
+            tree.insert(i, len1);
+        }
+        tree.solve(len2);
+    }
+    return 0;
+}

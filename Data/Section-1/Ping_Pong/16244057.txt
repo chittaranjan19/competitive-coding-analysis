@@ -1,0 +1,101 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+using namespace std;
+
+const long long inf = (long long)2 * 1e9;
+const long long MOD = (long long)1e9 + 7;
+const long long P = 239;
+const long long MAX_N = 200000;
+const long double pi = 3.141592653589;
+const long double eps = 1e-6;
+
+long long cnt_ver = 1;
+vector<long long> tree;
+
+void make_tree(long long* a, long long n)
+{
+    while (cnt_ver < n)
+        cnt_ver <<= 1;
+    tree.resize(cnt_ver * 2 - 1);
+    for (long long i = 0; i < cnt_ver * 2 - 1; i++)
+        tree[i] = 0;
+}
+
+long long ans(long long x, long long lx, long long rx, long long l, long long r)
+{
+    if (r < lx || l > rx)
+        return 0;
+    else if (lx >= l && rx <= r)
+        return tree[x];
+    else
+        return max(ans(x * 2 + 1, lx, (lx + rx) / 2, l, r), ans(x * 2 + 2, (lx + rx) / 2 + 1, rx, l, r));
+}
+
+void update(long long x, long long val)
+{
+    tree[x] = val;
+    while (x > 0)
+    {
+        tree[(x - 1) / 2] = max(tree[(x - 1) / 2 * 2 + 1], tree[(x - 1) / 2 * 2 + 2]);
+        x = (x - 1) / 2;
+    }
+}
+
+int main()
+{
+    //ifstream ifs("input.in");
+    //ofstream ofs("test.txt");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    long long n;
+    scanf("%I64d", &n);
+    long long a[n], p[n], dp[n];
+    map<long long, long long> m;
+    for (long long i = 0; i < n; i++)
+    {
+        long long r, h;
+        scanf("%I64d %I64d", &r, &h);
+        a[i] = r * r * h;
+        p[i] = r * r * h;
+        m[r * r * h] = 0;
+    }
+    sort(a, a + n);
+    make_tree(a, n);
+    for (long long i = 0; i < n; i++)
+    {
+        long long x = p[i];
+        long long l = -1, r = n - 1, mid;
+        while (r - l > 1)
+        {
+            mid = (l + r) / 2;
+            if (x <= a[mid])
+                r = mid;
+            else
+                l = mid;
+        }
+        dp[i] = ans(0, cnt_ver - 1, cnt_ver * 2 - 2, cnt_ver - 1, cnt_ver - 1 + r - 1) + p[i];
+        r += m[p[i]];
+        update(cnt_ver - 1 + r, dp[i]);
+        m[p[i]]++;
+    }
+    long long ans = 0;
+    for (long long i = 0; i < n; i++)
+        ans = max(ans, dp[i]);
+    cout.precision(20);
+    long double ans1 = (long double)ans;
+    cout << ans * pi;
+    return 0;
+}

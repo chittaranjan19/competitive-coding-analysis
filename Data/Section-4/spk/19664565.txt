@@ -1,0 +1,125 @@
+#include<iostream>
+#include<cstdio>
+#include<map>
+#include<string>
+#include<cstring>
+#include<vector>
+#include<algorithm>
+#include<queue>
+#include<set>
+#include<stack>
+
+#define fill(a,val) memset(a, (val), sizeof a)
+#define pb push_back
+#define scantype int
+#define min(a,b) a<b?a:b
+#define max(a,b) a>b?a:b
+#define lli long long int
+#define N 1000001
+
+lli powermod(lli _a,lli _b){lli _r=1;while(_b){if(_b%2==1)_r=(_r*_a);_b/=2;_a=(_a*_a);}return _r;}
+
+using namespace std;
+
+void scan(scantype &x);
+
+int a[N+3];
+lli seg[4*N],ans[N+3];
+vector<pair<int,int> > query[N+3];
+map<int,int> last;
+
+void update(int s,int e,int pos,int val,int idx)
+{
+     if(s==e)
+     {
+         seg[idx] = val;
+         return;
+     }
+
+     int m = (s+e)>>1;
+
+     if(pos<=m)
+        update(s,m,pos,val,2*idx+1);
+     else
+        update(m+1,e,pos,val,2*idx+2);
+
+     seg[idx] = seg[2*idx+1]^seg[2*idx+2];
+}
+
+lli get(int s,int e,int l,int r,int idx)
+{
+    if(l<=s && e<=r)
+        return seg[idx];
+    if(l>e || r<s)
+        return 0;
+
+    int mid = (s+e)>>1;
+
+    return (get(s,mid,l,mid,idx*2+1)^get(mid+1,e,mid+1,r,idx*2+2));
+}
+
+int main(void)
+{
+  int n,q;
+  cin>>n;
+
+  for(int i=1;i<=n;i++)scan(a[i]);
+  for(int i=1;i<=n;i++)last[a[i]]=-1;
+
+  cin>>q;
+  for(int i=1;i<=q;i++)
+  {
+      int x,y;
+      scan(x);scan(y);
+      query[y].pb({x,i});
+  }
+
+  for(int i=1;i<=n;i++)
+    sort(query[i].begin(),query[i].end());
+
+  for(int right=1;right<=n;right++)
+  {
+     int pela = last[a[right]];
+
+     if(pela!=-1)
+        update(1,n,pela,a[right],0);
+
+     last[a[right]]=right;
+
+     for(int j=0;j<query[right].size();j++)
+     {
+         int left = query[right][j].first;
+         int idx  = query[right][j].second;
+         ans[idx] = get(1,n,left,right,0);
+     }
+  }
+
+  for(int i=1;i<=q;i++)
+    printf("%lld\n",ans[i]);
+
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+void scan(scantype &x)
+{
+    /*register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}*/
+
+    register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x;
+}

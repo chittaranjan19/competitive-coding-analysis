@@ -1,0 +1,108 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<pair<int, int> > g[400005], tree[400005];
+pair<int, int> e[400005];
+bool bridge[400005], rev[400005], done[400005];
+int visited[400005], ind[400005], cnt[400005];
+
+int dfs(int node, int depth = 1, int parent = -1)
+{
+  visited[node] = depth;
+  int maxi = depth;
+  for(auto p : g[node])
+  {
+    if(!visited[p.f])
+    {
+      int temp = dfs(p.f, depth + 1, node);
+      maxi = min(maxi, temp);
+      if(temp > depth)
+        bridge[p.s] = true;
+    }
+    else if(parent != p.f) maxi = min(maxi, visited[p.f]);
+  }
+  return maxi;
+}
+
+void index(int node, int idx)
+{
+  ind[node] = idx;
+  cnt[idx]++;
+  for(auto p : g[node])
+  {
+    if(bridge[p.s]) continue;
+    if(!done[p.s])
+    {
+      done[p.s] = true;
+      if(e[p.s].f != node) rev[p.s] = true;
+    }
+    if(ind[p.f] == idx) continue;
+    index(p.f, idx);
+  }
+}
+
+void solve(int node, int parent = -1)
+{
+  for(auto p : tree[node])
+  {
+    if(p.f == parent) continue;
+    if(e[p.s].f != node) rev[p.s] = true;
+    solve(p.f, node);
+  }
+}
+
+int main()
+{
+  int n, m, x, y;
+  cin >> n >> m;
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d %d", &x, &y);
+    g[x].pb(mp(y, i));
+    g[y].pb(mp(x, i));
+    e[i] = mp(x, y);
+  }
+  dfs(1);
+  int idx = 1;
+  pair<int, int> ch = mp(0, 0);
+  for(int i=1;i<=n;i++)
+  {
+    if(!ind[i])
+    {
+      index(i, idx);
+      if(cnt[idx] > ch.f)
+        ch = mp(cnt[idx], idx);
+      idx++;
+    }
+  }
+  for(int i=0;i<m;i++)
+  {
+    if(!bridge[i]) continue;
+    tree[ind[e[i].f]].pb(mp(ind[e[i].s], i));
+    tree[ind[e[i].s]].pb(mp(ind[e[i].f], i));
+  }
+  solve(ch.s);
+  cout << ch.f << "\n";
+  for(int i=0;i<m;i++)
+  {
+    if(rev[i]) swap(e[i].f, e[i].s);
+    printf("%d %d\n", e[i].f, e[i].s);
+  }
+  return 0;
+}

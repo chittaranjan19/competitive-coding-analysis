@@ -1,0 +1,180 @@
+#include <cstdio>
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
+
+int n,m,q,s;
+int ext[100001][11];
+int seat[100001][11][2];
+
+bool eler[100001][12];
+int t[100001][12];
+
+inline int dx(int x) {
+    return -(x&1);
+}
+
+inline int dy(int x) {
+    return ((x>>1)-1);
+}
+
+int sor[1100][2];
+int se,sv;
+
+void upd(int X, int Y) {
+    se = sv = 0;
+    sor[0][0] = X;
+    sor[0][1] = Y;
+
+    while(se <= sv) {
+        int x(sor[se][0]);
+        int y(sor[se][1]);
+        se++;
+
+        if((x/s) != (X/s)) continue;
+
+        if((t[x][y-1]==4) && (!eler[x][y-1])) {
+            ext[x][y-1] = ext[x][y];
+            if(ext[x][y] < -1) {
+                seat[x][y-1][0] = seat[x][y][0];
+                seat[x][y-1][1] = seat[x][y][1];
+            }
+            eler[x][y-1] = 1;
+            sor[++sv][0] = x;
+            sor[sv][1] = y-1;
+        }
+        if(((x+1)/s == X/s) && (t[x+1][y]==3) && (!eler[x+1][y])) {
+            ext[x+1][y] = ext[x][y];
+            if(ext[x][y] < -1) {
+                seat[x+1][y][0] = seat[x][y][0];
+                seat[x+1][y][1] = seat[x][y][1];
+            }
+            eler[x+1][y] = 1;
+            sor[++sv][0] = x+1;
+            sor[sv][1] = y;
+        }
+        if((t[x][y+1]==0) && (!eler[x][y+1])) {
+            ext[x][y+1] = ext[x][y];
+            if(ext[x][y] < -1) {
+                seat[x][y+1][0] = seat[x][y][0];
+                seat[x][y+1][1] = seat[x][y][1];
+            }
+            eler[x][y+1] = 1;
+            sor[++sv][0] = x;
+            sor[sv][1] = y+1;
+        }
+    }
+
+    for(int i=0; i<=sv; i++) eler[sor[i][0]][sor[i][1]] = 0;
+}
+
+int main()
+{
+    scanf("%d%d%d",&n,&m,&q);
+
+    s = ((int)sqrt(n)) / ((int)sqrt(m));
+
+    for(int i=0; i<n; i++) {
+        for(int j=1; j<=m; j++) {
+            char c = getchar();
+            while((c!='<') && (c!='>') && (c!='^')) c = getchar();
+
+            if(c=='<') {
+                t[i][j] = 0;//000
+            } else if(c=='^') {
+                t[i][j] = 3;//011
+            } else if(c=='>') {
+                t[i][j] = 4;//100
+            }
+        }
+        t[i][m+1] = 4;
+    }
+
+    fill(&ext[0][0],&ext[n][0],-1);
+
+    for(int i=0; i<n; i+=s) {
+        for(int j=1; j<=m; j++) {
+            if(t[i][j] == 3) {
+                ext[i][j] = j;
+                upd(i,j);
+            }
+        }
+    }
+
+    for(int i=0; i<n; i++) {
+        if(t[i][1] == 0) {
+            ext[i][1] = -2;
+            seat[i][1][0] = i+1;
+            seat[i][1][1] = 0;
+            upd(i,1);
+        }
+        if(t[i][m] == 4) {
+            ext[i][m] = -2;
+            seat[i][m][0] = i+1;
+            seat[i][m][1] = m+1;
+            upd(i,m);
+        }
+    }
+
+    for(int i=0; i<q; i++) {
+        char c = getchar();
+        while((c!='A') && (c!='C')) c = getchar();
+
+        int x,y;
+        scanf("%d%d",&x,&y);
+        x--;
+        if(c=='A') {
+            while((x>=0) && (ext[x][y] >= 0)) {
+                y = ext[x][y];
+                x -= (x%s) + 1;
+            }
+
+            if(x<0) {
+                printf("0 %d\n",y);
+            } else if(ext[x][y] == -1) {
+                printf("-1 -1\n");
+            } else {
+                printf("%d %d\n",seat[x][y][0],seat[x][y][1]);
+            }
+        } else {
+            c = getchar();
+            while((c!='<') && (c!='>') && (c!='^')) c = getchar();
+
+            if(c=='<') {
+                t[x][y] = 0;//000
+            } else if(c=='^') {
+                t[x][y] = 3;//011
+            } else if(c=='>') {
+                t[x][y] = 4;//100
+            }
+
+            for(int i=1; i<=m; i++) ext[x][y] = -1;
+
+            for(int i=1; i<=m; i++) {
+                if((y==1) && (c=='<')) {
+                    ext[x][y] = -2;
+                    seat[x][y][0] = x;
+                    seat[x][y][1] = 0;
+                } else if((y==m) && (c=='>')) {
+                    ext[x][y] = -2;
+                    seat[x][y][0] = x;
+                    seat[x][y][1] = m;
+                } else if((!(x%s)) && (c=='^')) {
+                    ext[x][y] = y;
+                } else if(c=='^') {
+                    ext[x][y] = ext[x-1][y];
+
+                    if(ext[x][y] < -1) {
+                        seat[x][y][0] = seat[x-1][y][0];
+                        seat[x][y][1] = seat[x-1][y][1];
+                    }
+                } else continue;
+                upd(x,y);
+            }
+            for(int i=1; i<=m; i++) if(ext[x][y] == -1) upd(x,y);
+        }
+    }
+
+    return 0;
+}

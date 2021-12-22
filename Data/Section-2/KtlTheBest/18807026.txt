@@ -1,0 +1,131 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define int2 long long
+#define pb push_back
+#define fr first
+#define sc second
+
+int2 n, m, cnt, cnt2, a, b, col[100010];
+vector <int2> v[100010], ans_a, ans_b;
+pair <int2, int2> sz[100010];
+bool u[100010], u1[100010], abi[100010];
+
+void dfs1(int2 x, int2 pr){
+	u[x] = 1;
+	sz[cnt].fr ++;
+	sz[cnt].sc = x;
+	for(int2 i = 0; i < v[x].size(); ++ i){
+		int2 to = v[x][i];
+		col[cnt] ++;
+		if(!u[to]){
+			dfs1(to, x);
+		}
+	}
+}
+
+void dfs(int2 x, int2 ab){
+	u[x] = 0;
+	abi[x] = ab;
+	for(int2 i = 0; i < v[x].size(); ++ i){
+		int2 to = v[x][i];
+		if(u[to]){
+			dfs(to, (ab + 1) % 2);
+		}
+	}
+}
+
+void dfs_check(int2 x){
+	u[x] = 1;
+	bool ok = 0;
+	//cerr << '(' << x << ", " << abi[x] << "): ";
+	for(int2 i = 0; i < v[x].size(); ++ i){
+		int2 to = v[x][i];
+		//cerr << '(' << to << ", " << abi[to] << ") ";
+		if(abi[x] == abi[to]){
+			ok = 1;
+		} else {
+			cnt2 ++;
+		}
+	}
+	//cerr << '\n';
+	if(!ok){
+		if(abi[x] == 1){
+			a ++;
+			ans_a.pb(x);
+		} else {
+			b ++;
+			ans_b.pb(x);
+		}
+	}
+	for(int2 i = 0; i < v[x].size(); ++ i){
+		int2 to = v[x][i];
+		//cerr << "u[" << to << "]: " << u[to] << '\n';
+		if(!u[to]){
+			dfs_check(to);
+		}
+	}
+}
+
+int main(){
+	ios_base :: sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	for(int2 i = 0; i < m; ++ i){
+	 	int2 x, y;
+	 	cin >> x >> y;
+	 	v[x].pb(y);
+	 	v[y].pb(x);
+	}
+	for(int2 i = 1; i <= n; ++ i){
+		if(!u[i]){
+			dfs1(i, -1);
+			col[cnt] /= 2;
+			cnt ++;
+		}
+	}
+	bool ok = 0;
+	for(int2 i = 0; i < cnt; ++ i){
+		if(sz[i].fr > 1){
+			ok = 1;
+		}
+	}
+	if(ok == 0 || n == 2){
+		cout << 1 << '\n';
+		cout << 1 << '\n';
+		cout << 1 << '\n';
+		cout << 2;
+		return 0;
+	}
+	for(int2 i = 0; i < cnt; ++ i){
+		if(sz[i].fr > 1){
+			int2 st = sz[i].sc;
+			dfs(st, 0);
+			dfs_check(st);
+			//cerr << cnt2 << ' ' << col[i] << '\n';
+			if(cnt2 == 2 * col[i]){
+				cout << a << '\n';
+				for(int2 j = 0; j < ans_a.size(); ++ j){
+					cout << ans_a[j] << ' ';
+				}
+				cout << '\n';
+				cout << b << '\n';
+				for(int2 j = 0; j < ans_b.size(); ++ j){
+					cout << ans_b[j] << ' ';
+				}
+				return 0;
+			} else {
+				cnt2 = 0;
+				a = 0;
+				b = 0;
+				ans_a.clear();
+				ans_b.clear();
+			}
+		}
+	}
+	for(int2 i = 1; i <= 3; ++ i){
+    	//cout << abi[i] << ' ';
+    }
+	cout << -1;
+	return 0;
+}

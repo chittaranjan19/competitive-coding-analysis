@@ -1,0 +1,104 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1000010;
+const int block = 400;
+
+struct query{
+	int l, r, qno;
+	bool operator<(const query&q) const{
+		if((l/block)==(q.l/block))
+			return r<q.r;
+		return (l/block)<(q.l/block);
+	}
+};
+
+query q[maxn];
+int arr[maxn];
+int ans[maxn], cnt[maxn], res=0;
+map<int, int> m1;
+
+void remove(int ind)
+{
+	int p = cnt[arr[ind]];
+	if(!p)
+		res--;
+	if(p+1==0)
+		res++;
+	cnt[arr[ind]]++;
+}
+
+void add(int ind)
+{
+	int p = cnt[arr[ind]];
+	if(!p)
+		res--;
+	if(p-1==0)
+		res++;
+	cnt[arr[ind]]--;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int n, i, j, m, a, b, curl, curr, p, z=0;
+	scanf("%d%d", &n, &m);
+	p = 0;
+	for(i=1; i<=n; i++){
+		scanf("%d", &arr[i]);
+		m1[arr[i]];
+	}
+	j = 1;
+	for(auto it=m1.begin(); it!=m1.end(); ++it)
+		it->second = j++;
+	for(i=1; i<=n; i++){
+		cnt[m1[arr[i]]] = arr[i];
+		arr[i] = m1[arr[i]];
+	}
+	for(i=1; i<=m; i++){
+		scanf("%d%d", &q[i].l, &q[i].r);
+		q[i].qno = i;
+	}
+	sort(q+1, q+m+1);
+	curl = curr = 1;
+	for(i=1; i<=m; i++){
+		a = q[i].l;
+		b = q[i].r;
+		//cout << a << " " << b << " " << curl << " " << curr << "\n";
+		while(curl<a){
+			remove(curl);
+			curl++;
+		}
+		while(curl>a){
+			add(curl-1);
+			curl--;
+		}
+		while(curr<=b){
+			add(curr);
+			curr++;	
+		}
+		while(curr>b+1){
+			remove(curr-1);
+			curr--;
+		}
+		ans[q[i].qno] = res;
+	}
+	for(i=1; i<=m; i++)
+		printf("%d\n", ans[i]);
+	return 0;
+}

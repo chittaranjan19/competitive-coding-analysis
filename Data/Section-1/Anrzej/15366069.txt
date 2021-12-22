@@ -1,0 +1,89 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+const int N = 1e5 + 10;
+
+ll n, A, cf, cm, m, a[N];
+pair<ll, ll> p[N];
+ll mn[N], mx[N];
+
+int main()
+{
+	cin >> n >> A >> cf >> cm >> m;
+	for (int i = 0; i < n; i++)
+		cin >> a[i], p[i] = mp(a[i], i);
+	sort(p, p + n);
+	p[n] = mp(A, -1);
+	ll have = m, lvl = p[0].fs, cnt = 1;
+	mn[0] = 0;
+	for (int i = 1; i <= n; i++)
+	{
+		ll need = p[i].fs - lvl;
+		need *= cnt;
+		if (need <= have){
+			lvl = p[i].fs;
+			have -= need;
+			mn[i] = mn[i - 1] + need;
+			cnt += 1;
+		}
+		else mn[i] = 2e18;
+	}
+	mn[n + 1] = 2e18;
+	have = m, lvl = p[n].fs, cnt = 1; int id = 1;
+	mx[0] = 0;
+	for (int i = n - 1; i >= 0; i--)
+	{
+		ll need = lvl - p[i].fs;
+		if (need <= have){
+			have -= need;
+			mx[id] = mx[id-1] + need;
+			id++;
+		}
+		else mx[id] = 2e18;
+	}
+	mn[n] = 2e18;
+	ll ans = 0, mnc = 0, mnn = -1, mxc = 0;
+	for (int i = 0; i < n; i++)
+	{
+		ll need = mn[i];
+		have = m - need;
+		int k = upper_bound(mx, mx + n, have) - mx;
+		if (mx[k] > have)
+			k--;
+		have -= mx[k];
+		ll tmnn = min(p[i].fs + (have / (i + 1)), p[i+1].fs);
+		ll tans = (k)*cf + tmnn*cm;
+		if (ans < tans){
+			mnc = i, ans = tans, mxc = k, mnn = tmnn;
+		}
+	}
+	for (int i = 0; i <= mnc; i++)
+		a[p[i].sc] = mnn;
+	for (int i = 0; i < mxc; i++)
+	{
+		a[p[n - 1 - i].sc] = A;
+	}
+	cout << ans << endl;
+	for (int i = 0; i < n; i++)
+		cout << a[i] << ' ';
+	return 0;
+}

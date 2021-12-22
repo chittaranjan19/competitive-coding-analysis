@@ -1,0 +1,59 @@
+#include<cstdio>
+#include<vector>
+#include<algorithm>
+using namespace std;
+char a[5005][5005];
+int aib[5005][5005];
+int n,m;
+vector< pair<int,int> > v;
+void update_aib(int k,int p)
+{
+    ///mai am un interval care incepe <=p si se termina pe k:
+    for(int i=p;i<=m;i+=(i&(-i)))
+        aib[k][i]++;
+}
+int FixPe(int j,int k)
+{
+    ///cate intervale incep pe <=j si se termina pe k:
+    int ans=0;
+    for(int i=j;i;i-=(i&(-i)))
+        ans+=aib[k][i];
+    return ans;
+}
+int main()
+{
+    int Ans=0;
+    scanf("%d %d\n",&n,&m);
+    for(int i=1;i<=n;i++)
+        gets(a[i]+1);
+    for(int i=1;i<=n;i++)
+    {
+        int start=-1;
+        for(int j=1;j<=m+1;j++)
+            if(a[i][j]=='1')
+            {
+                if(start==-1)
+                    start=j;
+            }
+            else
+            {
+                if(start!=-1)
+                    update_aib(j-1,start);
+                start=-1;
+            }
+    }
+    for(int j=1;j<=m;j++)
+    {
+        int query=0;
+        for(int i=1;i<=n;i++)
+            if(a[i][j]=='1')
+                query++;
+        for(int k=j;k<=m;k++)
+        {
+            Ans=max(Ans,query*(k-j+1));
+            query-=FixPe(j,k);
+        }
+    }
+    printf("%d\n",Ans);
+    return 0;
+}

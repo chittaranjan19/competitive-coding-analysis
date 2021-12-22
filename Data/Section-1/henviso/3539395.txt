@@ -1,0 +1,195 @@
+#include <iostream>
+#include <cstdio>
+#include <string>
+#include <cstring>
+#include <cstdlib>
+#include <stack>
+#include <algorithm>
+#include <cctype>
+#include <vector>
+#include <queue>
+#include <tr1/unordered_map>
+#include <cmath>
+#include <map>
+#include <bitset>
+using namespace std;
+typedef long long ll;
+typedef vector<int> vi;
+typedef pair<int,int> ii;
+typedef long double real;
+///////////////////////////////UTIL/////////////////////////////////
+#define ALL(x) (x).begin(),x.end()
+#define CLEAR0(v) memset(v, 0, sizeof(v))
+#define CLEAR(v, x) memset(v, x, sizeof(v))
+#define INRANGE0(x, n) ((x) > -1 && (x) < n)
+#define INRANGE(x, a, b) ((x) >= a && (x) <= b)
+#define COPY(a, b) memcpy(a, b, sizeof(a))
+#define REP(i,n) for(int i = 0; i<n; i++)
+#define REPP(i,a,n) for(int i = a; i<n; i++)
+#define REPD(i,n) for(int i = n-1; i>-1; i--)
+#define REPDP(i,a,n) for(int i = a; i>-1; i--)
+#define pb push_back
+#define pf push_front
+#define sz size()
+#define mp make_pair
+/////////////////////////////NUMERICAL//////////////////////////////
+#define INCMOD(a,b,c) (((a)+b)%c)
+#define DECMOD(a,b,c) ((a)+c-b)%c)
+#define ROUNDINT(a) (int)((double)(a) + 0.5)
+#define INF 2000000000
+#define EPS 10e-7
+/////////////////////////////BITWISE////////////////////////////////
+#define CHECK(S, j) (S & (1 << j))
+#define CHECKFIRST(S) (S & (-S))  //PRECISA DE UMA TABELA PARA TRANSFORMAR EM INDICE
+#define SET(S, j) S |= (1 << j)
+#define SETALL(S, j) S = (1 << j)-1  //J PRIMEIROS
+#define UNSET(S, j) S &= ~(1 << j)
+#define TOOGLE(S, j) S ^= (1 << j)
+///////////////////////////////64 BITS//////////////////////////////
+#define LCHECK(S, j) (S & (1ULL << j))
+#define LSET(S, j) S |= (1ULL << j)
+#define LSETALL(S, j) S = (1ULL << j)-1ULL  //J PRIMEIROS
+#define LUNSET(S, j) S &= ~(1ULL << j)
+#define LTOOGLE(S, j) S ^= (1ULL << j)
+//scanf(" %d ", &t);
+
+typedef long long int ll;
+
+unsigned long long r, l;
+
+typedef vector<int> vi;
+
+vi st[100100], ft;
+int n;
+int g1[100100];
+int g[100100][2];
+int grau[100100];
+bitset<100100> bs;
+int row[100100];
+int col[100100];
+int tam[100100];
+int sgts;
+
+void st_create(int ind, int size){
+    int len = (int)(2 * pow(2.0, floor((log(size) / log(2.0)) + 1)));
+    st[ind].assign(len, 0);
+}
+
+int st_rmq(int up, int vertex, int L, int R, int r, int i){
+    //cout << " ESTOU EM " << L << "," << R << " COM FLAG " << st[vertex] << " E UP " << up << " QUERO " << i << endl;
+    if(i > R || i < L) return -1;
+    if(L == i && R == i) return up+st[r][vertex];
+    
+    up += st[r][vertex];
+    int mid = (L+R)/2;
+    if(i <= mid) return st_rmq(up, 2*vertex, L, (L+R)/2, r, i);
+    else return st_rmq(up, 2*vertex+1, (L+R)/2+1, R, r, i);
+}
+
+int st_rmq(int up, int r, int c){
+    //cout << " CHAMEI RMQ COM " << up << " i " << endl;
+    return st_rmq(up, 1, 0, tam[r]-1, r, c);
+} 
+
+void st_update(int f, int vertex, int L, int R, int r, int i, int j){
+    //cout << " ESTOU EM " << vertex << " COM FLAG " << st[r][vertex] << endl;
+    //cout << " CHAMANDO UPDATE FLAG " << f << " DE " << L << ", " << R << ", " << i << ", " << j << endl;
+    if(i>R || j<L) return;
+    if(L >= i && R <= j)
+    {
+        //cout << "DROPANDO FLAG " << f << " EM " << L << " ATE " << R << endl;
+        st[r][vertex] += f;
+        return;
+    }
+    else{       
+        st[r][2*vertex] += st[r][vertex];
+        st[r][2*vertex+1] += st[r][vertex];
+        st[r][vertex] = 0;
+        st_update(f, 2*vertex, L, (L+R)/2, r, i, j);
+        st_update(f, 2*vertex+1, (L+R)/2+1, R, r, i, j);
+        return;
+    }
+}
+
+void st_update(int f, int r, int i, int j){
+    return st_update(f, 1, 0, tam[r]-1, r, i, j);
+}
+
+void ft_create(vi &t, int n){ t.assign(n+1, 0); }
+
+int ft_rsq(const vi &t, int b){
+    int sum = 0; for(; b; b -= CHECKFIRST(b)) sum += t[b];
+    return sum;
+}
+
+int ft_rsq(const vi &t, int a, int b){
+    return ft_rsq(t, b) - (a == 1? 0 : ft_rsq(t, a-1)); 
+}
+
+void ft_adjust(vi &t, int k, int v){
+    for(; k  <= (int)t.size(); k += CHECKFIRST(k)) t[k] += v;
+}
+
+void dfs(int u, int r, int c){
+    row[u] = r;
+    col[u] = c++;
+    bs[u] = true;
+    if(g[u].size() != 1){
+        REP(i, g[u].size()) if(!bs[g[u][i]]) dfs(g[u][i], r, c);
+    }
+    else{
+        tam[r] = c;
+        st_create(r, c);
+    }
+}
+
+int main(){
+    int q;
+    while(cin >> n >> q){
+        int a, b;
+        REP(i, n-1){    
+            scanf(" %d %d ", &a, &b);
+            g[a].push_back(b);
+            g[b].push_back(a);
+        }
+        bs.reset();
+        bs[1] = true;
+        col[1] = 0;
+        REP(i, g[1].size()){
+            dfs(g[1][i], i, 0);
+            sgts = g[1].size();
+        }
+        ft_create(ft, n+10);
+        //cout << " V " << endl;
+        //REP(i, n) cout << v[i] << " ";
+        //cout << endl;
+        
+        int c, d;
+        REP(i, q){
+            scanf(" %d ", &a);
+            if(a == 0){
+                scanf(" %d %d %d ", &b, &c, &d);
+                if(b != 1){
+                    if(col[b]+1 <= d){
+                        int dist = abs(col[b]+1-d);
+                        ft_adjust(ft, dist+1, c);
+                        st_update(c, row[b], max(0, dist), min(tam[row[b]]-1, col[b]+d));
+                    }
+                    else{
+                        st_update(c, row[b], max(0, col[b]-d), min(tam[row[b]]-1, col[b]+d));
+                    }
+                    
+                }
+                else ft_adjust(ft, d+1, c);
+            }
+            else{
+                scanf(" %d ", &b);
+                if(b == 1) printf("%d\n", ft_rsq(ft, 1, n));
+                else{
+                    //cout << " CONSULTANDO VERTICE " << b << " DIST " << col[b]+2 << " EM DIANTE\n";
+                    printf("%d\n", st_rmq(0, row[b], col[b])+ft_rsq(ft, col[b]+2, n));
+                }
+            }
+        }
+    }
+}

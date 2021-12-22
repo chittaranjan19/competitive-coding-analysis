@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1000010;
+
+int z[maxn], seen[maxn], n;
+char str[maxn];
+set<int> mset;
+
+void compute_z()
+{
+    int l, r, i, k;
+    l = r = -1;
+    for(i=1; i<n; i++){
+        if(r<i){
+            l = r = i;
+            while(1){
+                if(str[r]!=str[r-l])
+                    break;
+                r++;
+            }
+            z[i] = r-l;
+            r--;
+        }
+        else{
+            k = i-l;
+            if(z[k] < (r-i+1))
+                z[i] = z[k];
+            else{
+                l = i;
+                while(1){
+                    if(str[r]!=str[r-l])
+                        break;
+                    r++;
+                }
+                z[i] = r-l;
+                r--;
+            }
+        }
+    } 
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int i, j, ans, mn;
+    scanf("%s", str);
+    n = strlen(str);
+    compute_z();
+    ans = 0;
+    mn = inf;
+    for(i=n-1; i>0; i--){
+        auto it = mset.lower_bound(-z[i]);
+        if(it!=mset.end())
+            ans = max(ans, -(*it));
+        if(z[i]==(n-i))
+            mset.insert(-z[i]);
+    }
+    if(!ans)
+        printf("Just a legend\n");
+    else{
+        str[ans] = '\0';
+        printf("%s\n", str);
+    }
+    return 0;
+}

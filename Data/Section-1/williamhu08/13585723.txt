@@ -1,0 +1,63 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+const int MAXN = 4010;
+
+int N;
+ll V[MAXN], D[MAXN], P[MAXN];
+set<int> st;
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 1; i <= N; i++) {
+		cin >> V[i] >> D[i] >> P[i];
+		st.insert(i);
+	}
+	vector<int> ans;
+	while (!st.empty()) {
+		int b = *st.begin();
+		ans.push_back(b);
+		st.erase(st.begin());	//remove him out of line
+		//remove the other ones
+		ll cry = V[b];
+		for (int i : st) {
+			P[i] -= cry;
+			cry--;
+			if (cry == 0) {
+				break;
+			}
+		}
+		//ok let's do this
+		for (int i : st) {
+			if (P[i] >= 0) {
+				continue;
+			}
+			//decrement the rest
+			for (auto jt = st.lower_bound(i); jt != st.end(); jt++) {
+				P[*jt] -= D[i];
+			}
+		}
+		for (auto it = st.begin(); it != st.end(); ) {
+			if (P[*it] < 0) {
+				st.erase(it++);
+			} else {
+				it++;
+			}
+		}
+	}
+	cout << ans.size() << endl;
+	for (int i : ans) {
+		cout << i << ' ';
+	}
+}

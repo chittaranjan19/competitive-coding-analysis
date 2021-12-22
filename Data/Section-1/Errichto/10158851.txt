@@ -1,0 +1,66 @@
+#include<cstdio>
+#include<algorithm>
+#include<vector>
+#include<cstring>
+#include<set>
+#include<assert.h>
+using namespace std;
+#define FOR(i,a,n) for(int i = (a); i <= (n); ++i)
+#define FORD(i,a,n) for(int i = (a); i >= (n); --i)
+#define REP(i,n) FOR(i,0,(n)-1)
+#define RI(i,n) FOR(i,1,(n))
+#define pb push_back
+#define st first
+#define nd second
+#define mp make_pair
+#define mini(a,b) a=min(a,(b))
+#define maxi(a,b) a=max(a,(b))
+bool debug;
+typedef vector<int> vi;
+typedef long long ll;
+typedef long double ld;
+typedef pair<int,int> pii;
+const int inf = 1e9;
+const int nax = 1e6 + 5;
+const ll mod = (ll) inf * inf + 3;
+
+ll h[nax];
+ll L[nax];
+pii kr[nax];
+
+ll r() { return (rand() << 16) ^ rand(); }
+#define rand dupa
+
+int main(int argc, char * argv[]) {
+	debug = argc > 1;
+	int n, m;
+	scanf("%d%d", &n, &m);
+	srand(42);
+	REP(i, m)
+		scanf("%d%d", &kr[i].st, &kr[i].nd);
+	RI(i, n) h[i] = (((ll) r() << 32) + r()) % mod;
+	REP(i, m) {
+		L[kr[i].st] = (L[kr[i].st] + h[kr[i].nd]) % mod;
+		L[kr[i].nd] = (L[kr[i].nd] + h[kr[i].st]) % mod;
+	}
+	ll res = 0;
+	REP(i, m) {
+		L[kr[i].st] = (mod + L[kr[i].st] - h[kr[i].nd]) % mod;
+		L[kr[i].nd] = (mod + L[kr[i].nd] - h[kr[i].st]) % mod;
+		if(L[kr[i].st] == L[kr[i].nd]) ++res;
+		L[kr[i].st] = (L[kr[i].st] + h[kr[i].nd]) % mod;
+		L[kr[i].nd] = (L[kr[i].nd] + h[kr[i].st]) % mod;
+	}
+	vector<ll> w;
+	RI(i, n) w.pb(L[i]);
+	sort(w.begin(), w.end());
+	REP(i, (int) w.size()) {
+		int j = i;
+		while(j + 1 < (int) w.size() && w[j + 1] == w[j]) ++j;
+		int d = j - i + 1;
+		res += (ll) d * (d - 1) / 2;
+		i = j;
+	}
+	printf("%lld\n", res);
+	return 0;
+}

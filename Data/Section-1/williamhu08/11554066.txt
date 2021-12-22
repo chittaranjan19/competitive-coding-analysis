@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+
+ll N, K;
+int L, M;
+
+int add (int x, int y) {
+    return (x + y) % M;
+}
+
+int subtr (int x, int y) {
+    x -= y;
+    if (x < 0) {
+        x += M;
+    }
+    return x;
+}
+
+int mult (int x, int y) {
+    return ll(x) * y % M;
+}
+
+typedef vector<vector<int> > matrix;
+
+matrix mult (matrix a, matrix b) {
+    matrix res(2, vector<int> (2));
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            for (int k = 0; k < 2; k++) {
+                res[i][j] = add(res[i][j], mult(a[i][k], b[k][j]));
+            }
+        }
+    }
+    return res;
+}
+
+int pwr (int x, ll y) {
+    int res = 1;
+    for (; y; y >>= 1) {
+        if (y & 1) {
+            res = mult(res, x);
+        }
+        x = mult(x, x);
+    }
+    return res;
+}
+
+matrix pwr (matrix x, ll y) {
+    matrix res(2, vector<int> (2));
+    res[0][0] = res[1][1] = 1;
+    for (; y; y >>= 1) {
+        if (y & 1) {
+            res = mult(res, x);
+        }
+        x = mult(x, x);
+    }
+    return res; 
+}
+
+int main() {
+    if (fopen("input.txt", "r")) {
+        freopen("input.txt", "r", stdin);
+    }
+    ios::sync_with_stdio(false);
+    cin >> N >> K >> L >> M;
+    //F_n + 2
+    matrix fb(2, vector<int> (2));
+    fb[0][0] = fb[0][1] = fb[1][0] = 1;
+    int num0 = pwr(fb, N + 2)[0][1], num1 = subtr(pwr(2, N), num0);
+    int c1 = __builtin_popcountll(K), c0 = L - c1;
+    cout << mult(pwr(num0, c0), pwr(num1, c1)) << endl;
+}

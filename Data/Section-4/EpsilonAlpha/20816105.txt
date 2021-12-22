@@ -1,0 +1,246 @@
+import java.io.*;
+
+/*
+ * Created by Epsilon Alpha on 22-Sep-16 at 3:31 PM.
+ */
+
+public final class Complete2
+{
+    public static void main(String[] args) throws Exception
+    {
+        Parser Reader = new Parser(System.in);
+        OutputWriter Writer = new OutputWriter(System.out);
+        String S = Reader.next();
+        char[] C = S.toCharArray();
+
+        int len = S.length();
+        boolean solved = false;
+        int counter = 0;
+        if(len<26)
+            Writer.println(-1);
+        else
+        {
+            int[] count = new int[27];
+
+            //Traverse first 26 characters
+            for(int i=0;i<26;i++)
+            {
+                char z = S.charAt(i);
+                if(z=='?')
+                    counter++;
+                else
+                {
+                    count[z - 'A']++;
+                    if(count[z - 'A']==1)
+                        counter++;
+                }
+            }
+
+            if(counter==26) //Valid match
+            {
+                solved = true;
+                int k = 0;
+                while (count[k] > 0)
+                    k++;
+
+                for(int i=0;i<26;i++)
+                {
+                    if (C[i] == '?')
+                    {
+                        C[i] = (char) ('A' + k);
+                        k++;
+                        while(count[k]>0)
+                            k++;
+                    }
+                }
+
+                for(int i=26;i<len;i++)
+                    if(C[i]=='?')
+                        C[i] = 'A';
+
+                Writer.println(String.valueOf(C));
+            }
+            if(!solved)
+            {
+                for(int i=26;i<len && !solved;i++)
+                {
+                    //Add new character to String
+                    if(C[i]=='?')
+                        counter++;
+                    else //Character
+                    {
+                        count[C[i]-'A']++;
+                        if(count[C[i]-'A']==1)
+                            counter++;
+                    }
+
+                    //Remove character from String
+                    if(C[i-26]=='?')
+                        counter--;
+                    else //Character
+                    {
+                        if(count[C[i-26]-'A']==1)
+                            counter--;
+                        count[C[i-26]-'A']--;
+                    }
+
+                    if(counter==26) // Valid combination found
+                    {
+                        int k = 0;
+                        while(count[k]>0)
+                            k++;
+
+                        for(int j=i-25;j<=i;j++)
+                        {
+                            if(C[j]=='?')
+                            {
+                                C[j] = (char) ('A' + k);
+                                k++;
+                                while(count[k]>0)
+                                    k++;
+                            }
+                        }
+
+                        for(int j=0;j<len;j++)
+                            if(C[j]=='?')
+                                C[j] = 'A';
+
+                        Writer.println(String.valueOf(C));
+                        solved = true;
+                    }
+                }
+                if(!solved)
+                    Writer.println(-1);
+            }
+        }
+
+        Writer.close();
+    }
+
+    private static class Parser
+    {
+        final private int BUFFER_SIZE = 1 << 16;
+
+        private DataInputStream din;
+        private byte[] buffer;
+        private int bufferPointer, bytesRead;
+
+        public Parser(InputStream in)
+        {
+            din = new DataInputStream(in);
+            buffer = new byte[BUFFER_SIZE];
+            bufferPointer = bytesRead = 0;
+        }
+
+        public int nextInt() throws Exception
+        {
+            int ret = 0;
+            byte c = read();
+            while (c <= ' ') c = read();
+            boolean neg = c == '-';
+            if (neg) c = read();
+            do
+            {
+                ret = ret * 10 + c - '0';
+                c = read();
+            } while (c > ' ');
+            if (neg) return -ret;
+            return ret;
+        }
+
+        public long nextLong() throws Exception
+        {
+            long ret = 0;
+            byte c = read();
+            while (c <= ' ') c = read();
+            boolean neg = c == '-';
+            if (neg) c = read();
+            do
+            {
+                ret = ret * 10 + c - '0';
+                c = read();
+            } while (c > ' ');
+            if (neg) return -ret;
+            return ret;
+        }
+
+        public String next() throws Exception
+        {
+            StringBuffer ret = new StringBuffer();
+            byte c = read();
+            while (c <= ' ') c = read();
+            do
+            {
+                ret = ret.append((char) c);
+                c = read();
+            } while (c > ' ');
+            return ret.toString();
+        }
+
+        public String nextLine() throws Exception
+        {
+            StringBuffer ret = new StringBuffer();
+            byte c = read();
+            while (c <= ' ') c = read();
+            do
+            {
+                ret = ret.append((char) c);
+                c = read();
+            } while (c != '\n');
+            return ret.toString();
+        }
+
+        private void fillBuffer() throws Exception
+        {
+            bytesRead = din.read(buffer, bufferPointer = 0, BUFFER_SIZE);
+            if (bytesRead == -1) buffer[0] = -1;
+        }
+
+        private byte read() throws Exception
+        {
+            if (bufferPointer == bytesRead) fillBuffer();
+            return buffer[bufferPointer++];
+        }
+    }
+
+    private static class OutputWriter
+    {
+        private final PrintWriter writer;
+
+        public OutputWriter(OutputStream outputStream)
+        {
+            writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(outputStream)), true);
+        }
+
+        public OutputWriter(Writer writer)
+        {
+            this.writer = new PrintWriter(writer);
+        }
+
+        public void print(Object... objects)
+        {
+            for (int i = 0; i < objects.length; i++)
+            {
+                if (i != 0)
+                    writer.print(' ');
+                writer.print(objects[i]);
+            }
+        }
+
+        public void println(Object... objects)
+        {
+            print(objects);
+            writer.println();
+        }
+
+        public void close()
+        {
+            writer.close();
+        }
+
+        public void flush()
+        {
+            writer.flush();
+        }
+    }
+}

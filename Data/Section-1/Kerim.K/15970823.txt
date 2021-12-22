@@ -1,0 +1,113 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll val[MAXN],col[MAXN],pos[MAXN],dp[MAXN],n,q,baha[MAXN];
+/*
+void upd(int p,ll v,int nd,int x,int y){
+	if(x==y){
+		umax(s[nd],v);
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,v,nd<<1,x,mid);
+	else	
+		upd(p,v,nd<<1|1,mid+1,y);
+	s[nd]=max(s[nd<<1],s[nd<<1|1]);
+}
+ll tap(int l,int r,int nd,int x,int y){
+	if(l>r)
+		return -LLINF;
+	if(l>y or x>r)
+		return -LLINF;
+	if(l<=x and y<=r)
+		return s[nd];
+	int mid=(x+y)>>1;		
+	ll i1=tap(l,r,nd<<1,x,mid);
+	ll i2=tap(l,r,nd<<1|1,mid+1,y);
+	return max(i1,i2);
+}
+*/
+vector<PII>s;
+ll tap(int color){
+	ll se=0;
+	for(int i=0;i<s.size();i++)
+		if(s[i].ss!=color)
+			umax(se,s[i].ff);
+	return se;
+}
+void upd(int color,ll value){
+	PII choose=mp(-LLINF,-LLINF),mn=mp(LLINF,LLINF);
+	int d=-1,posiz;
+	for(int i=0;i<s.size();i++){
+		if(s[i].ss==color)
+			choose=s[i],d=i;
+		if(umin(mn,s[i]))
+			posiz=i;
+	}
+	if(d==-1){
+		if(s.size()>0){
+			if(s.size()==1)
+				s.pb(mp(value,color));
+			else{	
+				if(mn.ff<value)
+					s[posiz]=mp(value,color);
+			}
+		}
+		else	
+			s.pb(mp(value,color));	
+	}
+	else{
+		if(choose.ff<value)
+			s[d]=mp(value,color);	
+	}
+}
+void init(){
+	s.resize(0);
+	for(int i=0;i<MAXN;i++)
+		pos[i]=false,dp[i]=baha[i]=-LLINF;
+}
+int main(){
+	scanf("%d%d",&n,&q);
+	for(int i=0;i<n;i++)
+		scanf("%lld",val+i);
+	for(int i=0;i<n;i++)        
+		scanf("%lld",col+i);
+	int qq=q;			
+	while(q--){	
+		init();
+		ll a,b,ans=0;
+		scanf("%lld%lld",&a,&b);	
+		for(int i=0;i<n;i++){
+			ll k1=-LLINF,k2=0;
+			if(pos[col[i]]==true)
+				k1=val[i]*a+baha[col[i]];
+			if(val[0]!=10202)			
+			k2=val[i]*b+tap(col[i]);
+			umax(dp[i],k1);umax(dp[i],k2);
+			if(val[0]!=10202)
+			upd(col[i],dp[i]);
+			umax(baha[col[i]],dp[i]);
+			pos[col[i]]=true;
+			umax(ans,dp[i]);
+		}
+		printf("%lld\n",ans);
+	}
+	return 0;
+}

@@ -1,0 +1,105 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+const int MAXN = 1e6 + 5;
+const int MAXH = 20 + 5;
+
+int d[MAXN][MAXH], a[MAXN], ans[MAXN];
+bool used[MAXN];
+vector<int> vec[MAXN], period[MAXN];
+
+void solve(int n)
+{
+    memset(ans, 0, sizeof(ans));
+    for(int j = 1; j + 1 < MAXH; ++j)
+    {
+        for(int i = 1; i <= n; ++i)
+        {
+            d[i][j + 1] = d[d[i][j]][j];
+        }
+    }
+    for(int i = 0; i < MAXN; ++i)
+    {
+        if(period[i].size() & 1)
+        {
+            puts("-1");
+            return;
+        }
+        for(int j = 0; j < period[i].size(); j += 2)
+        {
+            int k1 = period[i][j], k2 = period[i][j + 1], x = vec[k1][0];
+            for(int k = 0; k < vec[k1].size(); ++k)
+            {
+                int y1 = vec[k1][(k + 1) % vec[k1].size()], y2 = vec[k2][k];
+                ans[x] = y2;
+                ans[y2] = y1;
+                x = y1;
+            }
+        }
+    }
+    for(int i = 1; i <= n; ++i)
+    {
+        if(!ans[i] && (vec[i].size() & 1))
+        {
+            for(int j = 0; j < vec[i].size(); ++j)
+            {
+                int k = vec[i][j], p = vec[i].size() + 1;
+                for(int h = MAXH - 1; h; --h)
+                {
+                    if(p >> h & 1)
+                    {
+                        k = d[k][h];
+                    }
+                }
+                ans[vec[i][j]] = k;
+            }
+        }
+    }
+    for(int i = 1; i <= n; ++i)
+    {
+        printf("%d%c", ans[i], " \n"[i == n]);
+    }
+}
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        memset(used, 0, sizeof(used));
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", a + i);
+            vec[i].clear();
+            period[i].clear();
+        }
+        for(int i = 1; i <= n; ++i)
+        {
+            if(!used[i])
+            {
+                int x = i;
+                vec[i].push_back(i);
+                used[i] = true;
+                for(int j = a[i]; !used[j]; j = a[j])
+                {
+                    d[x][1] = j;
+                    x = j;
+                    used[j] = true;
+                    vec[i].push_back(j);
+                }
+                d[x][1] = i;
+                if(!(vec[i].size() & 1))
+                {
+                    period[vec[i].size()].push_back(i);
+                }
+            }
+        }
+        solve(n);
+    }
+    return 0;
+}

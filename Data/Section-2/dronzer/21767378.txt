@@ -1,0 +1,98 @@
+#include<bits/stdc++.h>
+
+#define LOCAL 0
+
+#define lli long long int
+#define forn(i,n) for(int i=0;i<(int)n;i++)
+#define llu unsigned long long int
+#define ld long double
+#define all(v) v.begin(),v.end()
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+#define si(n) scanf("%d",&n)
+#define slli(n) scanf("%lld",&n);
+#define ss(n) scanf("%s",n);
+
+const long double EPS = 1e-10;
+const lli MOD = 1000000007ll;
+const lli mod1 = 1000000009ll;
+const lli mod2 = 1100000009ll;
+int INF = (int)1e9;
+int debug = 0;
+
+using namespace std;
+
+void print(int a[],int s,int e){for(int i=s;i<=e;i++)cout<<a[i]<<" ";cout<<"\n";}
+void print(vector<int> &v,int s,int e){for(int i=s;i<=e;i++)cout<<v[i]<<" ";cout<<"\n";}
+void print(vector<int> &v){for(int x:v)cout<<x<<" ";cout<<"\n";}
+
+lli bit_count(lli _x){lli _ret=0;while(_x){if(_x%2==1)_ret++;_x/=2;}return _ret;}
+lli bit(lli _mask,lli _i){return (_mask&(1<<_i))==0?0:1;}
+lli powermod(lli _a,lli _b,lli _m){lli _r=1;while(_b){if(_b%2==1)_r=(_r*_a)%_m;_b/=2;_a=(_a*_a)%_m;}return _r;}
+lli add(lli a,lli b,lli m=MOD){lli x=a+b;while(x>=m)x-=m;return x;}
+lli sub(lli a,lli b,lli m=MOD){lli x=a-b;while(x<0)x+=m;return x;}
+lli mul(lli a,lli b,lli m=MOD){lli x=a*b;x%=m;if(x<m)x+=m;return x;}
+
+typedef vector< int > vi;
+typedef vector< lli > vli;
+typedef vector< vi > vvi;
+int dpa[5010][5010];
+int parent[5010][5010];
+int dp[5010][5010];
+int main()
+{
+if(LOCAL){
+    freopen("input.txt","r",stdin);
+    //freopen("output.txt","w",stdout);
+    debug = 1;
+}
+    srand (time(NULL));
+
+int u,o,r,n,t,m;
+cin>>n>>m>>t;
+vvi gr(n+1);
+forn(i,m){
+	cin>>u>>o>>r;
+	gr[u].pb(o);
+	dpa[u][o]=r;
+}
+forn(i,n+1) forn(j,n+1) dp[i][j] = INF;
+stack<int> s,q;
+parent[1][1]=-1;
+dp[1][1] = 0;
+int sz,j;
+s.push(1);
+for(int i=1;i<n;i++){
+	while(!s.empty()){
+	j = s.top();
+	s.pop();
+	//cout<<j<<endl;
+	for(int it: gr[j]){
+		q.push(it);
+		if(dp[it][i+1] > dp[j][i]+dpa[j][it]){
+		dp[it][i+1] = dp[j][i]+dpa[j][it];
+		//cout<<it<<"ddfg"<<endl;
+		parent[it][i+1] = j;
+		}
+		if(it == n) sz = i+1;
+	}
+}
+	while(!q.empty()){ s.push(q.top());q.pop();}
+}
+cout<<sz<<endl;
+int cur = n;
+vi ans;
+
+while(cur!=-1){
+	ans.pb(cur);
+	//cout<<cur<<endl;
+	cur = parent[cur][sz];
+	sz--;
+}
+reverse(all(ans));
+for(int it:ans) cout<<it<<" ";
+return 0;
+}
+        

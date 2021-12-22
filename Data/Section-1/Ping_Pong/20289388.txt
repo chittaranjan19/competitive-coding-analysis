@@ -1,0 +1,83 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll N = 100000;
+const ll inf = (ll)1e9;
+const ll MOD = (ll)1e9 + 7;
+const ld eps = 1e-6;
+const ll ABC = 26;
+const ll P = 239;
+
+vector<ll> F;
+
+void build(ll n)
+{
+    F.resize(n, 0);
+}
+
+void add(ll x, ll val)
+{
+    for (; x < F.size(); x = x | (x + 1))
+        F[x] = (F[x] + val) % MOD;
+}
+
+ll get(ll x)
+{
+    ll res = 0;
+    for (; x >= 0; x = (x & (x + 1)) - 1)
+        res = (res + F[x]) % MOD;
+    return res;
+}
+
+ll get(ll l, ll r)
+{
+    return (get(r) - get(l - 1) + MOD) % MOD;
+}
+
+int main()
+{
+    //freopen("point.in", "r", stdin);
+    //freopen("point.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    ll r, m;
+    cin >> r >> m;
+    set<ll> s;
+    s.insert(0);
+    ll a[m][2];
+    for (ll i = 0; i < m; i++)
+    {
+        cin >> a[i][0] >> a[i][1];
+        s.insert(a[i][1]);
+    }
+    vector<ll> b;
+    for (auto x : s)
+        b.push_back(x);
+    sort(b.begin(), b.end());
+    ll n = b.size();
+    map<ll, ll> mt;
+    for (ll i = 0; i < n; i++)
+        mt[b[i]] = i;
+    vector<vector<ll> > bus(n);
+    for (ll i = 0; i < m; i++)
+        bus[mt[a[i][1]]].push_back(i);
+    build(n);
+    vector<ll> dp(n, 0);
+    dp[0] = 1;
+    add(0, dp[0]);
+    for (ll i = 1; i < n; i++)
+        for (ll j : bus[i])
+        {
+            dp[i] = (dp[i] + get(lower_bound(b.begin(), b.end(), a[j][0]) - b.begin(), i - 1)) % MOD;
+            add(i, dp[i]);
+        }
+    if (b[n - 1] == r)
+        cout << dp[n - 1];
+    else
+        cout << 0;
+    return 0;
+}

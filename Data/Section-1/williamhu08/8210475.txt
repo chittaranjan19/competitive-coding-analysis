@@ -1,0 +1,85 @@
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 2010, INF = 0x3f3f3f3f;
+
+void read (char *str, int &len) {
+	gets(str);
+	len = strlen(str);
+}
+
+int N, M;
+char S[MAXN], T[MAXN];
+int dp[MAXN][MAXN];	//first i chars, remove j chars. max # of occurrences
+int nxt[MAXN];	//where match starting at >= i ends. if it's bad then it's INF
+
+void setmax (int &a, int b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces477C.in", "r", stdin);
+#endif
+	read(S, N);
+	read(T, M);
+	memset(nxt, 63, sizeof(nxt));
+	for (int i = 0; i < N; i++) {
+		int m = 0;
+		for (int j = i; j < N; j++) {
+			if (T[m] == S[j]) {
+				if (++m == M) {
+					nxt[i] = j + 1;	//match starting
+					break;
+				}
+			}
+		}
+	}
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j <= i; j++) {
+			setmax(dp[i + 1][j], dp[i][j]);
+			setmax(dp[i + 1][j + 1], dp[i][j]);
+			int t = nxt[i];
+			if (t != INF) {
+				setmax(dp[t][j + (t - i - M)], dp[i][j] + 1);
+			}
+		}
+	}
+	for (int i = 0; i <= N; i++) {
+		printf("%d ", dp[N][i]);
+	}
+}

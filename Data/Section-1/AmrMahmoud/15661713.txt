@@ -1,0 +1,106 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<int> tree[200005];
+int DP[200005][5];
+bool v[200005][5];
+int nxt[200005], fchild[200005];
+
+void dfs(int node, int parent = -1)
+{
+  int last = 0;
+  fchild[node] = -1;
+  for(int i=0;i<tree[node].size();i++)
+  {
+    int x = tree[node][i];
+    if(x == parent) continue;
+    dfs(x, node);
+    if(fchild[node] == -1) fchild[node] = x;
+    if(last) nxt[last] = x;
+    last = x;
+  }
+  nxt[last] = -1;
+}
+
+int solve(int node, int cnt)
+{
+  if(!node || node == -1) return 0;
+  int &temp = DP[node][cnt];
+  if(v[node][cnt]) return temp;
+  v[node][cnt] = true;
+  if(cnt)
+    temp = solve(nxt[node], cnt - 1) + solve(fchild[node], 1) + 1;
+  else temp = 0;
+  temp = max(temp, solve(nxt[node], cnt) + solve(fchild[node], 2));
+  return temp;
+}
+
+int main()
+{
+  //freopen("bishops.in", "r", stdin);
+  //freopen("bishops.out", "w", stdout);
+  int n, a, b;
+  LL x, y;
+  scanf("%d %I64d %I64d", &n, &x, &y);
+  if(n == 2)
+  {
+    cout << x;
+    return 0;
+  }
+  for(int i=0;i<n-1;i++)
+  {
+    scanf("%d %d", &a, &b);
+    tree[a].pb(b);
+    tree[b].pb(a);
+  }
+  bool must = false;
+  for(int i=1;i<=n && !must;i++)
+    must |= (tree[i].size() == n - 1);
+  if(x >= y)
+  {
+    LL res = 0;
+    if(must) res = x + y * 1LL * (n - 2);
+    else res = y * 1LL * (n - 1);
+    cout << res << "\n";
+    return 0;
+  }
+  dfs(1);
+  LL res = solve(fchild[1], 2);
+  cout << res * x + (n - 1 - res) * y;
+  return 0;
+}

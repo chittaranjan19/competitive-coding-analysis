@@ -1,0 +1,87 @@
+#include <bits/stdc++.h>
+
+#define f first
+#define s second
+#define mp make_pair
+
+using namespace std;
+
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+
+const int N = 1e5, INF = 1e9 + 7;
+
+int tree[N << 2][2], n, a[N];
+
+void build(int v, int l, int r) {
+    if (l + 1 == r) {
+        tree[v][0] = tree[v][1] = a[l];
+        return;
+    }
+    build(2 * v + 1, l, (l + r) >> 1);
+    build(2 * v + 2, (l + r) >> 1, r);
+    tree[v][0] = min(tree[2 * v + 1][0], tree[2 * v + 2][0]);
+    tree[v][1] = max(tree[2 * v + 1][1], tree[2 * v + 2][1]);
+}
+
+void build() {
+    build(0, 0, n);
+}
+
+int getMin(int v, int lt, int rt, int l, int r);
+
+int getMin(int l, int r) {
+    return getMin(0, 0, n, l, r);
+}
+
+int getMin(int v, int lt, int rt, int l, int r) {
+    if (l <= lt && rt <= r) {
+        return tree[v][0];
+    } else if (lt >= r || l >= rt) {
+        return INF;
+    }
+    return min(getMin(2 * v + 1, lt, (lt + rt) >> 1, l, r), getMin(2 * v + 2, (lt + rt) >> 1, rt, l, r));
+}
+
+int getMax(int v, int lt, int rt, int l, int r);
+
+int getMax(int l, int r) {
+    return getMax(0, 0, n, l, r);
+}
+
+int getMax(int v, int lt, int rt, int l, int r) {
+    if (l <= lt && rt <= r) {
+        return tree[v][1];
+    } else if (lt >= r || l >= rt) {
+        return -INF;
+    }
+    return max(getMax(2 * v + 1, lt, (lt + rt) >> 1, l, r), getMax(2 * v + 2, (lt + rt) >> 1, rt, l, r));
+}
+
+int main() {
+    cin.sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n;
+    for (int i = 0; i < n; cin >> a[i++]);
+    build();
+    int L = 0, R = 1;
+    for (int i = 0; i < n; ++i) {
+        int l = i, r = n + 1;
+        for (int m; l + 1 < r; ) {
+            m = (l + r) >> 1;
+            // cerr << i << " " << m << " -> " << getMin(i, m) << " " << getMax(i, m) << "\n";
+            if (abs(getMax(i, m) - getMin(i, m)) <= 1) {
+                l = m;
+            } else {
+                r = m;
+            }
+        }
+        if (l - i > R - L) {
+            L = i, R = l;
+        }
+    }
+    cout << R - L << "\n";
+    return 0;
+}

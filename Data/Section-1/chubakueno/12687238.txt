@@ -1,0 +1,78 @@
+#include <bits/stdc++.h>
+#define MULT 27LL
+#define MOD 1000000007LL
+using namespace std;
+typedef long long ll;
+char input[2010], sInicio[2010], sFin[2010];
+ll pot27[2010];
+ll inicio, fin, n, nInicio, nFin, hInicio, hFin, nVInicio, nVFin;
+vector< vector< ll > > M;
+set<ll> f;
+set<ll>::iterator it;
+
+vector<int> vInicio, vFin;
+
+void inicializar()
+{
+    n = strlen(input);
+    nInicio = strlen(sInicio);
+    nFin = strlen(sFin);
+    vInicio.clear();
+    vFin.clear();
+    M.clear();
+    M.resize(n);
+    for (int i = 0; i < n; i++)
+        M[i].resize(n);
+    f.clear();
+}
+
+int main()
+{
+    pot27[0] = 1;
+    for (int i = 1; i < 2010; i++)
+    {
+        pot27[i] = (pot27[i - 1] * MULT) % MOD;
+        //printf("pot27[%d] = %lld", i, pot27[i]);
+    }
+    while (scanf("%s %s %s", input, sInicio, sFin) == 3)
+    {
+        inicializar();
+        hInicio = 0;
+        for (int i = 0; i < nInicio; i++)
+            hInicio = ((hInicio * MULT) + sInicio[i]-'a'+1) % MOD;
+        hFin = 0;
+        for (int i = 0; i < nFin; i++)
+            hFin = ((hFin * MULT) + sFin[i]-'a'+1) % MOD;
+        ll aux = 0;
+        for (int i = 0; i < n; i++)
+        {
+            aux = 0;
+            for (int j = i; j < n; j++)
+            {
+                aux = ((aux * MULT) + input[j]-'a'+1) % MOD;
+                M[i][j] = aux;
+            }
+            if((i+nInicio-1)<n&&hInicio==M[i][i+nInicio-1]) vInicio.push_back(i);
+            if((i+nFin-1)<n&&hFin==M[i][i+nFin-1]) vFin.push_back(i);
+        }
+        nVInicio=vInicio.size();
+        nVFin=vFin.size();
+        int res = 0;
+        for (int i = 0; i < nVInicio; i++)
+        {
+            for (int j = 0; j < nVFin; j++)
+            {
+                if (vInicio[i] <= vFin[j]&&vInicio[i]+nInicio<=vFin[j]+nFin)
+                {
+                    it = f.find(M[vInicio[i]][vFin[j] + nFin - 1]);
+                    if (it == f.end())
+                    {
+                        res++;
+                        f.insert(M[vInicio[i]][vFin[j] + nFin - 1]);
+                    }
+                }
+            }
+        }
+        printf("%d\n", res);
+    }
+}

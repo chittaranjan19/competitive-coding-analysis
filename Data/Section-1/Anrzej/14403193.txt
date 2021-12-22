@@ -1,0 +1,84 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+#define pb push_back
+
+int dp[55][55][55];
+
+int main()
+{
+	for (int i = 0; i <= 30; i++){
+		for (int j = 0; j <= 30; j++)
+			dp[i][j][0] = 0;
+	}
+	for (int i = 1; i <= 30; i++){
+		for (int j = 1; j <= 30; j++){
+			for (int k = 1; k <= 50; k++)
+				dp[i][j][k] = 1e9;
+		}
+	}
+	dp[1][1][1] = 0;
+	for (int i = 2; i <= 30; i++){
+		for (int k = 1; k <= 50; k++)
+		{
+			if (k > i) continue;
+			if (k == i){
+				dp[1][i][k] = 0, dp[i][1][k] = 0;
+				continue;
+			}
+			for (int h = 1; h < i; h++){
+				for (int nk = 0; nk <= k; nk++){
+					dp[1][i][k] = min(dp[1][i][k], dp[1][h][nk] + dp[1][i - h][k - nk] + 1);
+				}
+			}
+			dp[i][1][k] = dp[1][i][k];
+		}
+	}
+	for (int i = 2; i <= 30; i++){
+		for (int j = 2; j <= 30; j++){
+			for (int k = 1; k <= 50; k++)
+			{
+				if (i*j == k){
+					dp[i][j][k] = 0;
+					continue;
+				}
+				if (i*j < k) continue;
+				for (int hi = 1; hi < i; hi++){
+					for (int nk = 0; nk <= k; nk++){
+						dp[i][j][k] = min(dp[i][j][k], dp[hi][j][nk] + dp[i - hi][j][k - nk] + j*j);
+					}
+				}
+				for (int hj = 1; hj < i; hj++){
+					for (int nk = 0; nk <= k; nk++){
+						dp[i][j][k] = min(dp[i][j][k], dp[i][hj][nk] + dp[i][j - hj][k - nk] + i*i);
+					}
+				}
+			}
+		}
+	}
+	int n;
+	cin >> n;
+	while (n--){
+		int a, b, c;
+		cin >> a >> b >> c;
+		cout << dp[a][b][c] << endl;
+	}
+	return 0;
+}

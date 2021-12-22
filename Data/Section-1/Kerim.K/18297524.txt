@@ -1,0 +1,66 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<pair<int,int>,int> line;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int dis[MAXN];
+vector<pair<int,int> >adj[MAXN];
+line G[MAXN];
+int main(){
+	int n,m,s;
+	scanf("%d%d%d",&n,&m,&s);
+	for(int i=1;i<=m;i++){
+		int u,v,w;
+		scanf("%d%d%d",&u,&v,&w);
+		adj[u].pb(mp(v,w));
+		adj[v].pb(mp(u,w));
+		G[i]=mp(mp(u,v),w);
+	}int l;
+	scanf("%d",&l);
+	queue<int>q;
+	fill(dis,dis+MAXN,INF);
+	q.push(s);dis[s]=0;
+	while(!q.empty()){
+		int nd=q.front();
+		q.pop();
+		tr(it,adj[nd])
+			if(umin(dis[it->ff],dis[nd]+it->ss))
+				q.push(it->ff);
+	}int ans=0;
+	for(int i=1;i<=n;i++){
+		if(dis[i]>=l){
+			ans+=(dis[i]==l);
+			continue;
+		}
+		tr(it,adj[i]){
+			if(dis[i]+it->ss<l)
+				continue;
+			int need=l-dis[i];
+			need=it->ss-need;
+			if(l<=dis[it->ff]+need){
+				if(need)
+					ans++;
+			}
+		}
+	}
+	for(int i=1;i<=m;i++)
+		if(G[i].ss==2*l-(dis[G[i].ff.ff]+dis[G[i].ff.ss]) and
+			l-G[i].ff.ff>0 and l-G[i].ff.ss>0)
+			ans--;
+	printf("%d\n",ans);
+	return 0;
+}

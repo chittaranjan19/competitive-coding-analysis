@@ -1,0 +1,157 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+int toNumber (string s)
+{
+	int Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (int number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+struct Pata
+{
+	Pata(tint ll, tint cc, tint ind)
+	{
+		largo  = ll;
+		costo  = cc;
+		indice = ind;
+	}
+	tint largo,costo,indice;
+};
+
+
+bool operator < (Pata p1, Pata p2)
+{
+	
+	if (p1.costo == p2.costo)
+		return p1.largo < p2.largo;
+	else if (p1.largo == p2.largo)
+		return p1.indice < p2.indice;
+	else
+		return p1.costo < p2.costo;
+}
+
+bool wayToSort (Pata p1, Pata p2)
+{
+	
+	if (p1.largo == p2.largo)
+		return p1.costo < p2.costo;
+	else if (p1.costo == p2.costo)
+		return p1.indice < p2.indice;
+	else
+		return p1.largo < p2.largo;
+}
+
+
+int main()
+{
+	tint n;
+	cin >> n;
+	vector<tint> l (n);
+	vector<tint> d (n);
+	forn(i,n)
+		cin >> l[i];
+	forn(i,n)
+		cin >> d[i];
+	
+	vector<Pata> pata (n,Pata(-1,-1,-1));
+	forn(i,n)
+		pata[i] = Pata(l[i],d[i],i);
+		
+	sort(pata.begin(),pata.end(), wayToSort);
+	
+	vector<tint> ans (n);
+	set<Pata> patota;
+	ans[0] = 0;
+	patota.insert(pata[0]);
+	tint k = 1;
+	forsn(i,1,n)
+	{
+		set<Pata> patitas = patota;
+		tint total = 0;
+		tint cantidad = i+1;
+		Pata maxi = pata[i];
+		//debug(maxi.largo);
+		//debug(pata[i-1].largo);
+		if (pata[i-1].largo == maxi.largo)
+			k++;
+		else
+			k=1;
+		//debug(k);
+		//debug(cantidad/2+1);
+		while (k < cantidad/2 + 1 && total < ans[i-1]+pata[i].costo)
+		{
+			Pata menor = *patitas.begin();
+			patitas.erase(menor);
+			if (menor.largo != maxi.largo)
+			{
+				total += menor.costo;
+				cantidad--;
+			}
+		}
+		
+		//debug(total);
+		
+		//cout << "------" << endl;
+		patota.insert(pata[i]);
+		ans[i] = min(ans[i-1] + pata[i].costo,total);
+				
+	}	
+	//imprimirVector(ans);
+	cout << ans[n-1] << endl;
+	return 0;
+}
+
+
+

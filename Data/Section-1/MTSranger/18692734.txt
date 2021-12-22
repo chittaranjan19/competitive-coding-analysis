@@ -1,0 +1,55 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+const int N = 300005;
+vector<int> tree[N];
+int par[N];
+int cen[N];
+int treeSize[N];
+
+int dfs(int node) {
+	int sz = 1;
+	int bigChild = -1;
+	int bigChildSize = 0;
+	for (int i = 0; i < tree[node].size(); i++) {
+		int child = tree[node][i];
+		dfs(child);
+		sz += treeSize[child];
+		if (treeSize[child] > bigChildSize) {
+			bigChild = child;
+			bigChildSize = treeSize[child];
+		}
+	}
+	treeSize[node] = sz;
+
+	if (sz == 1) {
+		cen[node] = node;
+	} else {
+		cen[node] = cen[bigChild];
+		while ((treeSize[node] - treeSize[cen[node]]) * 2 >= treeSize[node]) {
+			cen[node] = par[cen[node]];
+		}
+	}
+}
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	int n, q; cin >> n >> q;
+	par[0] = -1;
+	for (int i = 1; i < n; i++) {
+		int p; cin >> p; p--;
+		tree[p].push_back(i);
+		par[i] = p;
+	}
+
+	dfs(0);
+
+	for (int qq = 0; qq < q; qq++) {
+		int v; cin >> v; v--;
+		cout << cen[v]+1 << endl;
+	}
+}

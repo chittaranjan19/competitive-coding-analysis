@@ -1,0 +1,139 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 1e5 + 5;
+const int maxm = 2e5 + 5;
+const int maxh = 60 + 5;
+const int mod = 1e9 + 7;
+
+struct edge
+{
+    int to, next;
+    ll w;
+} G[maxm << 1];
+int head[maxn], tot, dfn[maxn], cnt, clk, ans, row;
+int f[maxn][maxh][2], tmp[2], pp[maxh];
+ll a[maxm], d[maxn];
+bool ok[maxh];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = clk = 0;
+}
+
+void ins(int &a, int b)
+{
+    a += b;
+    if(a >= mod) a -= mod;
+}
+
+void addedge(int u, int v, ll w)
+{
+    G[tot].to = v;
+    G[tot].next = head[u];
+    G[tot].w = w;
+    head[u] = tot++;
+}
+
+void dfs1(int u, int fa, ll q)
+{
+    dfn[u] = ++clk;
+    d[u] = q;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        edge e = G[i];
+        if(e.to == fa) continue;
+        if(!dfn[e.to]) dfs1(e.to, u, q ^ e.w);
+        else if(dfn[e.to] < dfn[u]) a[cnt++] = d[e.to] ^ d[u] ^ e.w;
+    }
+}
+
+void dfs2(int u)
+{
+    dfn[u] = -1;
+    memset(f[u], 0, sizeof(f[u]));
+    for(int i = 0; i <= 60; ++i) f[u][i][0] = 1;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        edge e = G[i];
+        if(dfn[e.to] < 0) continue;
+        dfs2(e.to);
+        for(int k = 0; k <= 60; ++k)
+        {
+            int p = e.w >> k & 1;
+            tmp[0] = tmp[1] = 0;
+            for(int j = 0; j < 2; ++j)
+            {
+                for(int l = 0; l < 2; ++l)
+                {
+                    ins(tmp[j ^ l ^ p], (ll)f[u][k][j] * f[e.to][k][l] % mod);
+                }
+            }
+            if(ok[k]) ins(ans, (ll)(tmp[0] + tmp[1]) * pp[k] % mod * pp[row - 1] % mod);
+            else ins(ans, (ll)tmp[1] * pp[k] % mod * pp[row] % mod);
+            for(int j = 0; j < 2; ++j) ins(f[u][k][j], f[e.to][k][j ^ p]);
+        }
+    }
+}
+
+void gauss()
+{
+    row = 0;
+    for(int i = 60; i >= 0; --i)
+    {
+        int p = row;
+        while(p < cnt && !(a[p] >> i & 1)) ++p;
+        if(p < cnt)
+        {
+            swap(a[row], a[p]);
+            for(int j = 0; j < cnt; ++j) if(row != j && (a[j] >> i & 1)) a[j] ^= a[row];
+            ++row;
+        }
+    }
+}
+
+int main()
+{
+    pp[0] = 1;
+    for(int i = 1; i < maxh; ++i)
+    {
+        pp[i] = (pp[i - 1] << 1) % mod;
+    }
+    int n, m;
+    init();
+    scanf("%d%d", &n, &m);
+    for(int i = 0; i < m; ++i)
+    {
+        int u, v;
+        ll w;
+        scanf("%d%d%I64d", &u, &v, &w);
+        addedge(u, v, w);
+        addedge(v, u, w);
+    }
+    memset(dfn, 0, sizeof(dfn));
+    ans = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        if(!dfn[i])
+        {
+            cnt = 0;
+            dfs1(i, 0, 0);
+            gauss();
+            for(int j = 0; j <= 60; ++j)
+            {
+                ok[j] = 0;
+                for(int k = 0; k < row; ++k) if(a[k] >> j & 1) ok[j] = true;
+            }
+            dfs2(i);
+        }
+    }
+    printf("%d\n", ans);
+    return 0;
+}

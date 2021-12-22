@@ -1,0 +1,122 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 100010, MOD = 1e9 + 7;
+
+void kill() {
+	cout << "0\n";
+	exit(0);
+}
+
+int N, M;
+vector<pii> V[MAXN];
+vector<int> adj[MAXN];
+int par[MAXN], sz[MAXN], col[MAXN];
+bool seen[MAXN], vis[MAXN];
+int ans = 1;
+
+void mult() {
+	ans = (ans * 2) % MOD;
+}
+
+int find (int x) {
+	return x == par[x] ? x : par[x] = find(par[x]);
+}
+
+void merge (int x, int y) {
+	x = find(x);
+	y = find(y);
+	if (x == y) {
+		return;
+	}
+	par[x] = y;
+	sz[y] += sz[x];
+}
+
+void dfs (int x, int c) {
+	if (vis[x]) {
+		if (c == col[x]) {
+			return;
+		}
+		kill();
+	}
+	vis[x] = true;
+	col[x] = c;
+	rep(it, adj[x]) {
+		dfs(*it, !c);
+	}
+}
+
+void color() {
+	fillchar(vis, false);
+	bool fst = true;
+	for (int i = 1; i <= N; i++) {
+		if (!vis[i] && i == find(i)) {
+			dfs(i, 0);
+			if (!fst) {
+				mult();
+			} else {
+				fst = false;
+			}
+		}
+	}
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d", &N, &M);
+	for (int i = 1; i <= N; i++) {
+		par[i] = i;
+		sz[i] = 1;
+	}
+	for (int i = 0, a, b, c; i < M; i++) {
+		cin >> a >> b >> c;
+		V[c].push_back(pii(a, b));
+		seen[a] = seen[b] = true;
+		if (c == 1) {
+			//love!!
+			merge(a, b);
+		}
+	}
+	if (V[0].empty()) {
+		//then no haters!
+		for (int i = 1; i <= N; i++) {
+			if (!seen[i]) {
+				mult();
+			}
+		}
+		if (M == 0) {
+			ans = (ans * 500000004ll) % MOD;	//special!
+		}
+		cout << ans << endl;
+		return 0;
+	}
+	for (pii p : V[0]) {
+		if (find(p.first) == find(p.second)) {
+			kill();
+		}
+	}
+	//check if it is bipartite
+	for (pii p : V[0]) {
+		int x = find(p.first), y = find(p.second);
+		adj[x].push_back(y);
+		adj[y].push_back(x);
+	}
+	color();
+	for (int i = 1; i <= N; i++) {
+		if (!seen[i]) {
+			mult();
+		}
+	}
+	cout << ans << endl;
+}

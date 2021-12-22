@@ -1,0 +1,108 @@
+import java.io.*;
+import java.sql.Array;
+import java.util.*;
+
+public class Main {
+
+    public void QS(int[] a1, int[] a2, int[] a3, int l, int r) {
+        int x = a3[(l+r) /2];
+        int i = l;
+        int j = r;
+        int k;
+        while (i <= j) {
+            while(a3[i] < x) i++;
+            while(a3[j] > x) j--;
+            if(i <= j) {
+                k = a3[i];
+                a3[i] = a3[j];
+                a3[j] = k;
+                k = a1[i];
+                a1[i] = a1[j];
+                a1[j] = k;
+                k = a2[i];
+                a2[i]= a2[j];
+                a2[j] = k;
+                i++;
+                j--;
+            }
+        }
+        if(j > l) QS(a1, a2, a3, l, j);
+        if(r > i) QS(a1, a2, a3, i, r);
+    }
+
+
+    public int sum(int v, int vl, int vr, int l, int r, int[] t, int[] t2){
+        if(l > r) return 2147483647;
+        if(l == r) return t[l+t.length/2];
+        if (vl == l && vr == r) return t[v];
+        int mid = (vl + vr) >> 1;
+        return  Math.min(sum(v*2, vl, mid, l, Math.min(mid,r), t ,t2), sum(v*2+1, mid + 1, vr, Math.max(mid+1,l), r, t, t2));
+    }
+    public void add(int v, int vl, int vr, int l, int r, int x, int[] t, int[] t2) {
+        push(v,vl,vr,t,t2);
+        if (l > r) return;
+        if (vl == l && vr == r) {
+            t[v] = x;
+            t2[v] = x;
+            return;
+        }
+        int mid = (vl + vr) >> 1;
+        add(v*2, vl, mid, l, Math.min(r,mid), x, t, t2);
+        add(v*2+1, mid+1, vr, Math.max(l, mid + 1), r, x, t, t2);
+    }
+    public void push(int v, int vl, int vr, int[] t, int[] t2) {
+        if (t2[v] != -2147483648) {
+            if (t[v] > t2[v])
+                t[v] = t2[v];
+            if (v < (t.length ) / 2) {
+                t2[v * 2] = t2[v];
+                if (t[v] < t[v*2]) t[v*2] = t[v];
+                t2[v * 2 + 1] = t2[v];
+                if (t[v*2+1] > t[v]) t[v*2+1] = t[v];
+                t2[v] = -2147483648;
+            }
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        new Main();
+    }
+
+    Main() throws IOException {
+        Scanner in = new Scanner(new File("rmq.in"));
+        PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("rmq.out")));
+        int a = in.nextInt(), b = in.nextInt();
+        int k;
+
+        for (k = 1; k <= a; k <<= 1) ;
+        int[] t = new int[k * 2];
+        for(int i = 0; i < k; i++)
+            t[i+k] = 2147483647;
+        int[] t2 = new int[k * 2];
+        int[] a1 = new int[b];
+        int[] a2 = new int[b];
+        int[] a3 = new int[b];
+        for (int i = 0; i < b; i++) {
+            a1[i] = in.nextInt();
+            a2[i] = in.nextInt();
+            a3[i] = in.nextInt();
+        }
+        QS(a1, a2, a3, 0, b-1);
+        for(int i = 0; i < b; i++){
+            add(1, 0, k-1, a1[i]-1, a2[i]-1, a3[i], t, t2);
+        }
+        for(int i = k-1; i >= 1; i--)
+            t[i] = Math.min(t[i*2], t[i*2+1]);
+        for(int i =0; i < b; i++) {
+            if (sum(1, 0, k - 1, a1[i] - 1, a2[i] - 1, t, t2) != a3[i]) {
+                out.println("inconsistent");
+                out.close();
+                break;
+            }
+        }
+        out.println("consistent");
+        for(int i = 0; i < a; i++)
+            out.print(t[i+k] + " ");
+        out.close();
+    }
+}

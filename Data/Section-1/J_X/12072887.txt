@@ -1,0 +1,147 @@
+#include <iostream>
+#include <bits/stdc++.h>
+#define lson (rt << 1)
+#define rson (rt << 1 | 1)
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 1e5 + 5;
+
+char s[maxn];
+int cnt[30];
+
+struct segtree
+{
+    int node[4 * maxn], lazy[4 * maxn];
+
+    void pushup(int rt)
+    {
+        node[rt] = node[lson] + node[rson];
+    }
+
+    void pushdown(int rt, int l, int r)
+    {
+        int m = (l + r) >> 1;
+        if(~lazy[rt])
+        {
+            lazy[lson] = lazy[rson] = lazy[rt];
+            node[lson] = lazy[rt] * (m - l);
+            node[rson] = lazy[rt] * (r - m);
+            lazy[rt] = -1;
+        }
+    }
+
+    void build(int rt, int l, int r, char c)
+    {
+        lazy[rt] = -1;
+        if(r - l == 1)
+        {
+            node[rt] = s[l] == c;
+            return;
+        }
+        int m = (l + r) >> 1;
+        build(lson, l, m, c);
+        build(rson, m, r, c);
+        pushup(rt);
+    }
+
+    int query(int rt, int l, int r, int L, int R)
+    {
+        if(L <= l && r <= R)
+        {
+            return node[rt];
+        }
+        int m = (l + r) >> 1, sum = 0;
+        pushdown(rt, l, r);
+        if(L < m)
+        {
+            sum += query(lson, l, m, L, R);
+        }
+        if(m < R)
+        {
+            sum += query(rson, m, r, L, R);
+        }
+        return sum;
+    }
+
+    void update(int rt, int l, int r, int L, int R, int flag)
+    {
+        if(L <= l && r <= R)
+        {
+            lazy[rt] = flag;
+            node[rt] = flag * (r - l);
+            return;
+        }
+        int m = (l + r) >> 1;
+        pushdown(rt, l, r);
+        if(L < m)
+        {
+            update(lson, l, m, L, R, flag);
+        }
+        if(m < R)
+        {
+            update(rson, m, r, L, R, flag);
+        }
+        pushup(rt);
+    }
+} t[26];
+
+int main()
+{
+    int n, q;
+    scanf("%d%d", &n, &q);
+    scanf("%s", s + 1);
+    for(int i = 0; i < 26; ++i)
+    {
+        t[i].build(1, 1, n + 1, i + 'a');
+    }
+    while(q--)
+    {
+        int l, r, x;
+        scanf("%d%d%d", &l, &r, &x);
+        int L, R;
+        if(x)
+        {
+            L = l;
+            for(int i = 0; i < 26; ++i)
+            {
+                R = L + t[i].query(1, 1, n + 1, l, r + 1);
+                if(L != R)
+                {
+                    t[i].update(1, 1, n + 1, l, r + 1, 0);
+                    t[i].update(1, 1, n + 1, L, R, 1);
+                    L = R;
+                }
+            }
+        }
+        else
+        {
+            R = r;
+            for(int i = 0; i < 26; ++i)
+            {
+                L = R - t[i].query(1, 1, n + 1, l, r + 1);
+                if(L != R)
+                {
+                    t[i].update(1, 1, n + 1, l, r + 1, 0);
+                    t[i].update(1, 1, n + 1, L + 1, R + 1, 1);
+                    R = L;
+                }
+            }
+        }
+    }
+    for(int i = 1; i <= n; ++i)
+    {
+        for(int j = 0; j < 26; ++j)
+        {
+            if(t[j].query(1, 1, n + 1, i, i + 1) == 1)
+            {
+                putchar(j + 'a');
+                break;
+            }
+        }
+    }
+    puts("");
+    return 0;
+}

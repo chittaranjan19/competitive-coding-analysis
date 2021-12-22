@@ -1,0 +1,80 @@
+
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+ll n;
+pair<ll, ll> a[5000];
+pair<ll, ll> w[5000], l[5000];
+map<ll, ll> wd, ln, rw, rl;
+
+ll dp[5000][5000];
+
+int main()
+{
+    cin >> n;
+    for (int i = 0; i < n; i++){
+        ll u, v;
+        cin >> u >> v;
+        if (u > v)
+            swap(u, v);
+        a[i] = mp(u, v);
+    }
+    for (int i = 0; i < n; i++){
+        w[i] = mp(a[i].fs, i + 1);
+    }
+    for (int i = 0; i < n; i++){
+        l[i] = mp(a[i].sc, i + 1);
+    }
+    sort(w, w + n);
+    sort(l, l + n);
+    for (int i = 0; i < n; i++){
+        wd[w[i].fs] = i + 1;
+        rw[i + 1] = w[i].fs;
+        ln[l[i].fs] = i + 1;
+        rl[i + 1] = l[i].fs;
+    }
+    memset(dp, 0, sizeof(dp));
+    for (int i = 0; i < n; i++){
+        ll x, y;
+        x = wd[a[i].fs], y = ln[a[i].sc];
+        dp[x][y] += 1;
+    }
+    int fl[5000], fd[5000];
+    for (int i = 4000; i >= 0; i--){
+        for (int j = 4000; j >= 0; j--){
+            dp[i][j] += dp[i][j + 1] + dp[i + 1][j] - dp[i + 1][j + 1];
+        }
+    }
+    pair<ll, ll> a;
+    ll ans = 0;
+    for (int i = 0; i <= 4000; i++){
+        for (int j = 0; j <= 4000; j++){
+            //if (rl.count(j) == 0 || rw.count(i) == 0)
+                //continue;
+            ll x = rl[i], y = rw[j];
+            if (ans < x*y*dp[i][j]){
+                ans = x*y*dp[i][j];
+                a = mp(x,y);
+            }
+        }
+    }
+    cout << ans << endl;
+    cout << a.fs << ' ' << a.sc;
+    return 0;
+}

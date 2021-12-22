@@ -1,0 +1,113 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll N = 100000;
+const ll inf = (ll)1e18;
+const ll MOD = (ll)1e9 + 7;
+const ld eps = 1e-6;
+const ll ABC = 26;
+
+
+int main()
+{
+    //freopen("point.in", "r", stdin);
+    //freopen("point.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.precision(20);
+    ll n, m, k;
+    cin >> n >> m >> k;
+    ll a[n];
+    for (ll i = 0; i < n; i++)
+        cin >> a[i];
+    ll b[n][m];
+    for (ll i = 0; i < n; i++)
+        for (ll j = 0; j < m; j++)
+            cin >> b[i][j];
+    if (m == 1)
+    {
+        if (k != 1)
+        {
+            cout << -1 << endl;
+            return 0;
+        }
+        ll cnt = 0;
+        for (ll i = 0; i < n; i++)
+            if (a[i] == 0)
+                cnt += b[i][0];
+        cout << cnt << endl;
+        return 0;
+    }
+    ll dp[n][m][k];
+    for (ll i = 0; i < n; i++)
+        for (ll j = 0; j < m; j++)
+            for (ll l = 0; l < k; l++)
+                dp[i][j][l] = inf;
+    if (a[0] == 0)
+    {
+        for (ll j = 0; j < m; j++)
+            dp[0][j][0] = b[0][j];
+    }
+    else
+    {
+        dp[0][a[0] - 1][0] = 0;
+    }
+    ll pref[m][k], suff[m][k];
+    for (ll i = 1; i < n; i++)
+    {
+        for (ll j = 0; j < m; j++)
+            for (ll l = 0; l < k; l++)
+            {
+                pref[j][l] = dp[i - 1][j][l];
+                suff[j][l] = dp[i - 1][j][l];
+            }
+        for (ll l = 0; l < k; l++)
+            for (ll j = 1; j < m; j++)
+                pref[j][l] = min(pref[j][l], pref[j - 1][l]);
+        for (ll l = 0; l < k; l++)
+            for (ll j = m - 2; j >= 0; j--)
+                suff[j][l] = min(suff[j][l], suff[j + 1][l]);
+        if (a[i] == 0)
+        {
+            for (ll j = 0; j < m; j++)
+                for (ll l = 0; l < k; l++)
+                {
+                    dp[i][j][l] = min(dp[i][j][l], dp[i - 1][j][l] + b[i][j]);
+                    if (l > 0)
+                    {
+                        if (j == m - 1)
+                            dp[i][j][l] = min(dp[i][j][l], pref[j - 1][l - 1] + b[i][j]);
+                        else if (j == 0)
+                            dp[i][j][l] = min(dp[i][j][l], suff[j + 1][l - 1] + b[i][j]);
+                        else
+                            dp[i][j][l] = min(dp[i][j][l], min(pref[j - 1][l - 1], suff[j + 1][l - 1]) + b[i][j]);
+                    }
+                }
+        }
+        else
+        {
+            for (ll l = 0; l < k; l++)
+            {
+                dp[i][a[i] - 1][l] = min(dp[i][a[i] - 1][l], dp[i - 1][a[i] - 1][l]);
+                if (l > 0)
+                {
+                    if (a[i] - 1 == m - 1)
+                        dp[i][a[i] - 1][l] = min(dp[i][a[i] - 1][l], pref[a[i] - 1 - 1][l - 1]);
+                    else if (a[i] - 1 == 0)
+                        dp[i][a[i] - 1][l] = min(dp[i][a[i] - 1][l], suff[a[i] - 1 + 1][l - 1]);
+                    else
+                        dp[i][a[i] - 1][l] = min(dp[i][a[i] - 1][l], min(pref[a[i] - 1 - 1][l - 1], suff[a[i] - 1 + 1][l - 1]));
+                }
+            }
+        }
+    }
+    ll ans = inf;
+    for (ll j = 0; j < m; j++)
+        ans = min(ans, dp[n - 1][j][k - 1]);
+    cout << (ans != inf ? ans : -1) << endl;
+    return 0;
+}

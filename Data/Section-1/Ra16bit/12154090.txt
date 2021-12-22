@@ -1,0 +1,48 @@
+#include <cstdio>
+#include <vector>
+using namespace std;
+int n,m,ii,i,j,res,d[4];
+bool u[10010],w[10010];
+vector<int> b(4);
+void rec2(vector<int> a) {
+  if (a.size()==1) {
+    if (a[0]<0) {
+      if (n-a[0]<10000 && w[-a[0]]!=i) {
+        w[-a[0]]=i;
+        if (++res<=m) printf("%d%d%d%d%04d\n",d[0],d[1],d[2],d[3],n-a[0]);
+      }
+    } else if (n-a[0]>=0 && u[a[0]]!=i) {
+      u[a[0]]=i;
+      if (++res<=m) printf("%d%d%d%d%04d\n",d[0],d[1],d[2],d[3],n-a[0]);
+    }
+    return;
+  }
+  for (int i=0; i<a.size(); i++) for (int j=0; j<i; j++) {
+    vector<int> c;
+    c.push_back(a[i]+a[j]);
+    for (int k=0; k<a.size(); k++) if (i!=k && j!=k) c.push_back(a[k]);
+    rec2(c);
+    if (res>=m) return;
+    c[0]=a[i]*a[j];
+    rec2(c);
+    if (res>=m) return;
+  }
+}
+void rec(int l) {
+  if (l==4) {
+    rec2(b);
+    return;
+  }
+  b[l]=d[l];  rec(l+1);
+  if (res>m) return;
+  b[l]=-d[l]; rec(l+1);
+}
+int main() {
+  scanf("%d%d",&n,&m);
+  for (i=0; i<10000; i++) {
+    for (ii=i, j=0; j<4; j++, ii/=10) d[j]=ii%10;
+    rec(0);
+    if (res>=m) break;
+  }
+  return 0;
+}

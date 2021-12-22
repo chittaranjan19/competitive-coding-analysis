@@ -1,0 +1,103 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <queue>
+#include <cstring>
+#include <string>
+#include <cmath>
+#include <set>
+#include <map>
+#include <vector>
+#include <climits>
+#include <bitset>
+using namespace std;
+#define pb push_back
+#define ALL(x) x.begin(),x.end()
+#define PII pair<int,int>
+#define MP(x,y) make_pair((x),(y))
+#define ll long long
+#define ull unsigned ll
+#define scan(x) scanf("%d",&(x))
+#define scan2(x,y) scanf("%d%d",&(x),&(y))
+#define scan3(x,y,z) scanf("%d%d%d",&(x),&(y),&(z))
+#define scan4(x,y,z,k) scanf("%d%d%d%d",&(x),&(y),&(z),&(k))
+#define Max(a,b) a=max(a,b)
+#define Min(a,b) a=min(a,b)
+#define fuck(x) cout<<#x<<" "<<x<<endl
+#define D(x) 1LL*(x)*(x)
+char tp[11];
+struct Node{
+    Node(){
+        val=0;
+        nx[0] = nx[1]=-1;
+    }
+    void init(){
+        val=0;
+        nx[0] = nx[1]=-1;
+    }
+    int val;
+    int nx[2];
+}nd[6606666];
+int idx=0;
+int q[66];
+int tl=0;
+void zuo(int x){
+    tl=0;
+    while(x){
+        q[tl++] = (x&1);
+        x>>=1;
+    }
+    while(tl<32) q[tl++] = 0;
+    reverse(q,q+tl);
+}
+void ins(int tp){
+    int rt=0;
+    for(int i=0;i<tl;i++){
+        if(nd[rt].nx[q[i]] == -1){
+            nd[++idx].init();
+            nd[rt].nx[q[i]] = idx;
+        }
+        rt = nd[rt].nx[q[i]];
+        nd[rt].val+=tp;
+    }
+}
+int qr(){
+    int res=0;
+    int rt=0;
+    for(int i=0;i<tl;i++){
+        int v = q[i]^1;
+        int to = nd[rt].nx[v];
+        if(to != -1 &&  nd[to].val > 0){
+            rt = to;
+            res = res*2 + v;
+            //cout<<"->"<<v<<endl;
+        }else{
+            rt = nd[rt].nx[q[i]];
+            res = res*2 + q[i];
+            //cout<<"->"<<q[i]<<endl;
+        }
+    }
+    return res;
+}
+int main(){
+    //freopen("in.txt","r",stdin);
+	int Q;scan(Q);
+	zuo(0);
+	ins(1);
+	while(Q--){
+        int x;
+        scanf("%s%d",tp,&x);
+        if(tp[0] == '+'){
+            zuo(x);
+            ins(1);
+        }else if(tp[0] == '-'){
+            zuo(x);
+            ins(-1);
+        }else{
+            zuo(x);
+            int r = qr();
+            cout<<(r^x)<<endl;
+        }
+	}
+    return 0;
+}

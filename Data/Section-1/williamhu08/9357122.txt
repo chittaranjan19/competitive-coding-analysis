@@ -1,0 +1,139 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+#include <iomanip>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 100010;
+
+struct edge {
+	int u, v, w;
+	int id;
+	void read (int i) {
+		cin >> u >> v >> w;
+		id = i;
+	}
+	bool operator < (const edge &e) const {
+		return w < e.w;
+	}
+};
+
+int N, M;
+edge edges[MAXN];
+int par[MAXN];
+vector<pii> adj[MAXN];
+int ind[MAXN], low[MAXN], cur;
+int ans[MAXN];
+
+int find (int x) {
+	return x == par[x] ? x : par[x] = find(par[x]);
+}
+
+void dfs (int x, int ed) {
+	ind[x] = low[x] = ++cur;
+	for (pii pt : adj[x]) {
+		int v = pt.first, id = pt.second;
+		if (ind[v] == 0) {
+			dfs(v, id);
+			if (low[x] > low[v]) {
+				low[x] = low[v];
+			}
+		} else if (id != ed && ind[x] > ind[v]) {
+			if (low[x] > ind[v]) {
+				low[x] = ind[v];
+			}
+		}
+	}
+	if (ed != -1 && ind[x] == low[x]) {
+		ans[ed] = 2;
+	}
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 1; i <= N; i++) {
+		par[i] = i;
+	}
+	for (int i = 0; i < M; i++) {
+		edges[i].read(i);
+	}
+	sort(edges, edges + M);
+	for (int s = 0, t = 0; s < M; s = t) {
+		for (; edges[s].w == edges[t].w && t < M; t++);
+		vector<int> nodes;
+		for (int j = s; j < t; j++) {
+			int pu = find(edges[j].u), pv = find(edges[j].v);
+			if (pu != pv) {
+				int id = edges[j].id;
+				ans[id] = 1;
+				//check if this edge is a bridge
+				nodes.push_back(pu);
+				nodes.push_back(pv);
+				adj[pu].push_back(pii(pv, id));
+				adj[pv].push_back(pii(pu, id));
+			}
+		}
+		for (int x : nodes) {
+			if (ind[x] == 0) {
+				dfs(x, -1);
+			}
+		}
+		for (int x : nodes) {
+			ind[x] = 0;
+			adj[x].clear();
+		}
+		for (int j = s; j < t; j++) {
+			//merge
+			int pu = find(edges[j].u), pv = find(edges[j].v);
+			if (pu != pv) {
+				par[pu] = pv;
+			}
+		}
+	}
+	for (int i = 0; i < M; i++) {
+		if (ans[i] == 0) {
+			puts("none");
+		} else if (ans[i] == 1) {
+			puts("at least one");
+		} else {
+			puts("any");
+		}
+	}
+}

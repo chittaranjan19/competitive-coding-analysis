@@ -1,0 +1,183 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <deque>
+#include <set>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+typedef pair<int, pii> ipii;
+
+const int N = 100 * 1000 + 100;
+//const int SQ = 320;
+const int oo = 1e9 + 100;
+
+int n;
+int h[N];
+int L[N];
+int R[N];
+int ans[N];
+vector <pair<pii, pii> > q;
+set <pii> st[N];
+vector <pii> chap[N];
+piii qu[N];
+
+int mn[4 * N];
+
+void bld(int v, int s, int e){
+	if(e - s == 1){
+		mn[v] = h[s];
+		return;
+	}
+	int mid = (s + e) / 2;
+	bld(2 * v + 0, s, mid);
+	bld(2 * v + 1, mid, e);
+	mn[v] = min(mn[2 * v + 0], mn[2 * v + 1]);
+}
+
+int gt_mn(int v, int s, int e, int l, int r){
+	if(r <= s || e <= l) return oo; 
+	if(l <= s && e <= r) return mn[v];
+	int mid = (s + e) / 2;
+	return min(gt_mn(2 * v + 0, s, mid, l, r), gt_mn(2 * v + 1, mid, e, l, r));
+}
+/*
+int seg[4 * N];
+
+void update(int v, int s, int e, int p, int x){
+	if(p < s || e <= p) return;
+	if(e - s == 1){
+		seg[v] = x;
+		return;
+	}
+	int mid = (s + e) / 2;
+	update(2 * v + 0, s, mid, p, x);
+	update(2 * v + 1, mid, e, p, x);
+	seg[v] = max(seg[2 * v + 0], seg[2 * v + 1]);
+}
+
+int get(int v, int s, int e, int l, int r){
+	if(r <= s || e <= l) return 0;
+	if(l <= s && e <= r) return seg[v];
+	int mid = (s + e) / 2;
+	return max(get(2 * v + 0, s, mid, l, r), get(2 * v + 1, mid, e, l, r));
+}
+
+void Build(int w){
+	memset(seg, 0, sizeof seg);
+	deque <pii> t;
+	for(int i = 0; i < n; ++i){
+		while(SZ(t) && t.back().X >= h[i])
+			t.pop_back();
+		t.push_back(MP(h[i], i));
+		while(SZ(t) && t.front().Y <= i - w)
+			t.pop_front();
+		update(1, 0, n, i, t.front().X);
+	}
+}
+*/
+piii sg[4 * N];
+
+void modify(int v, int s, int e, int p, int x, int ind, int k){
+	if(p < s || e <= p) return;
+	if(e - s == 1){
+		if(SZ(st[p]) && k)
+			st[p].erase(st[p].begin());
+		st[p].insert(MP(x, ind));
+		sg[v] = MP(*st[p].begin(), p);
+		return;
+	}
+	int mid = (s + e) / 2;
+	modify(2 * v + 0, s, mid, p, x, ind, k);
+	modify(2 * v + 1, mid, e, p, x, ind, k);
+	sg[v] = min(sg[2 * v + 0], sg[2 * v + 1]);
+}
+
+piii gt(int v, int s, int e, int l, int r){
+	if(r <= s || e <= l) return MP(MP(oo, oo), oo);
+	if(l <= s && e <= r) return sg[v];
+	int mid = (s + e) / 2;
+	return min(gt(2 * v + 0, s, mid, l, r), gt(2 * v + 1, mid, e, l, r));
+}
+
+int main(){
+	scanf("%d", &n);
+	for(int i = 0; i < n; ++i)
+		scanf("%d", h + i);
+	bld(1, 0, n);
+	vector <pii> t;
+	for(int i = 0; i < n; ++i){
+		while(SZ(t) && t.back().X >= h[i])
+			t.pop_back();
+		if(SZ(t)) L[i] += i - t.back().Y;
+		else L[i] += i + 1;
+		t.PB(MP(h[i], i));
+	}
+	t.clear();
+	for(int i = n; i --;){
+		while(SZ(t) && t.back().X >= h[i])
+			t.pop_back();
+		if(SZ(t)) R[i] += t.back().Y - i - 1;
+		else R[i] += n - i - 1;
+		t.PB(MP(h[i], i));
+	}	
+	int Q;
+	cin >> Q;
+	for(int i = 0; i < Q; ++i){
+		int l, r, w;
+		scanf("%d%d%d", &l, &r, &w);
+		l --;
+		q.PB(MP(MP(w, i), MP(l, r)));
+		qu[i] =  MP(MP(l, r), w);
+//		if(w > SQ)
+			chap[l + w - 1].PB(MP(w, i));
+	}
+	sort(q.begin(), q.end());
+/*
+	int T = 0;
+	for(int i = 0; i < Q; ++i){
+		int w = q[i].X.X;
+		int l = q[i].Y.X;
+		int r = q[i].Y.Y;
+		if(w > SQ) break;
+		if(w > T){
+			Build(w);
+			T = w;
+		}
+		ans[q[i].X.Y] = get(1, 0, n, l + w - 1, r);
+	}
+*/	
+	for(int i = 0; i <= n; ++i)
+		modify(1, 0, n, i, oo, oo, 0);
+	for(int i = 0; i < n; ++i){
+//		if(L[i] + R[i] <= SQ) continue;
+		for(int j = 0; j < SZ(chap[i]); ++j){
+			int w = chap[i][j].X;
+			int ii = chap[i][j].Y;
+			int x = gt_mn(1, 0, n, i - w + 1, i + 1);
+			modify(1, 0, n, w, x, ii, 0);
+			ans[ii] = x;
+		}
+		piii tmp = gt(1, 0, n, 0, L[i] + R[i] + 1);
+//		cerr << "bug : " << i << " " << tmp.X.X << " " << tmp.X.Y << " " << tmp.Y << "\n";
+		while(tmp.X.X < h[i]){
+			modify(1, 0, n, tmp.Y, h[i], tmp.X.Y, 1);
+			if(qu[tmp.X.Y].X.Y > i)
+				if(qu[tmp.X.Y].Y <= L[i] || (qu[tmp.X.Y].X.Y > i + qu[tmp.X.Y].Y - L[i] && qu[tmp.X.Y].Y - L[i] <= R[i]))
+					ans[tmp.X.Y] = h[i];
+			tmp = gt(1, 0, n, 0, L[i] + R[i] + 1);
+		}
+	}
+	for(int i = 0; i < Q; ++i)
+		printf("%d\n", ans[i]); 
+	return 0;
+}

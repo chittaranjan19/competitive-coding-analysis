@@ -1,0 +1,125 @@
+#include<bits/stdc++.h>
+#define MAXN 1000009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int imp[MAXN],arr[MAXN],pos[MAXN],s[MAXN<<2];
+int tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return s[nd];
+	int mid=(x+y)>>1;
+	int i1=tap(l,r,nd<<1,x,mid);
+	int i2=tap(l,r,nd<<1|1,mid+1,y);
+	return i1+i2;		
+}
+void upd(int p,int nd,int x,int y){
+	if(x==y){
+		s[nd]++;
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,nd<<1,x,mid);
+	else
+		upd(p,nd<<1|1,mid+1,y);
+	s[nd]=s[nd<<1]+s[nd<<1|1];		
+}
+int T[MAXN<<2];
+int n,k,xx;
+int LOG[MAXN],M[MAXN][21];
+int query(int l,int r){
+	int k=LOG[r-l+1];
+	return min(M[l][k],M[r-(1<<k)+1][k]);
+}
+void build(){
+	for(int j=1;j<21;j++)
+		for(int i=1;i<=n;i++)
+			M[i][j]=min(M[i][j-1],(i+(1<<j-1)<=n?M[i+(1<<j-1)][j-1]:INF));
+}
+int bul(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return INF;
+	if(l<=x and y<=r)
+		return T[nd];
+	int mid=(x+y)>>1;
+	int i1=bul(l,r,nd<<1,x,mid);
+	int i2=bul(l,r,nd<<1|1,mid+1,y);
+	return min(i1,i2);		
+}
+void taz(int p,int v,int nd,int x,int y){
+	if(x==y){
+		T[nd]=v;
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		taz(p,v,nd<<1,x,mid);
+	else
+		taz(p,v,nd<<1|1,mid+1,y);
+	T[nd]=min(T[nd<<1],T[nd<<1|1]);		
+}
+int gg(int st,int en,int val){
+	while(st+1<en){
+		int mid=(st+en)>>1;
+		if(bul(mid,pos[val],1,1,n)>=val)
+			en=mid;
+		else
+			st=mid;	
+	}
+	for(int i=st;i<=en;i++)
+		if(bul(i,pos[val],1,1,n)>=val)
+			return i;
+}
+int ff(int st,int en,int val){
+	while(st+1<en){
+		int mid=(st+en)>>1;
+		if(bul(pos[val],mid,1,1,n)>=val)
+			st=mid;
+		else
+			en=mid;	
+	}
+	for(int i=en;i>=st;i--)
+		if(bul(pos[val],i,1,1,n)>=val)
+			return i;
+}
+int main(){
+	scanf("%d%d",&n,&k);
+	for(int i=1;i<=n;i++){
+		scanf("%d",&arr[i]);
+	//	M[i][0]=arr[i];
+		pos[arr[i]]=i;
+		taz(i,arr[i],1,1,n);
+	//	LOG[i]=log2(i);
+	}
+	//build();
+	for(int i=1;i<=k;i++)
+		scanf("%d",&xx),imp[xx]=1;
+	int ans=0;	
+	for(int i=1;i<=n;i++){
+		if(imp[i])
+			continue;
+		int left=gg(1,pos[i],i);
+		int right=ff(pos[i],n,i);
+		ans+=(right-left+1)-tap(left,right,1,1,n);
+		taz(pos[i],INF,1,1,n);
+		upd(pos[i],1,1,n);	
+	}
+	printf("%d\n",ans);
+	return 0;
+}

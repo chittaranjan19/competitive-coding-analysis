@@ -1,0 +1,104 @@
+#include <bits/stdc++.h>
+
+#define f       first
+#define s       second
+#define mp      make_pair
+#define rank    something_which_is_supposed_to_be_rank
+#define left    something_which_is_supposed_to_be_left
+#define right   something_which_is_supposed_to_be_right
+
+using namespace std;
+
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+
+const ll INF = 1e18 + 179;
+
+ll n, m, k, cur = 0, dir = 1, cur_time = 0;
+bool is_main = 1;
+vector<pair<ll,ll>> detectors;
+vector<ll> times;
+map<ll,vector<ll>> main_diagonal, counter_diagonal;
+
+bool is_final() {
+    return ((is_main && cur == 0 && dir == -1) ||
+            (is_main && cur == m - n && dir == 1) ||
+            (!is_main && cur == n && dir == 1) ||
+            (!is_main && cur == m && dir == -1));
+}
+
+int main() {
+    cin.sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n >> m >> k;
+    detectors.resize(k);
+    for (ll i = 0; i < k; ++i) {
+        cin >> detectors[i].f >> detectors[i].s;
+        main_diagonal[detectors[i].s - detectors[i].f].push_back(i);
+        counter_diagonal[detectors[i].f + detectors[i].s].push_back(i);
+    }
+    times.resize(k, INF);
+    for (bool last = false; !last; ) {
+        vector<pair<ll,ll>> points;
+        if (is_main) {
+            points.push_back({0, cur});
+            points.push_back({-cur, 0});
+            points.push_back({n, n + cur});
+            points.push_back({m - cur, m});
+        } else {
+            points.push_back({0, cur});
+            points.push_back({cur, 0});
+            points.push_back({n, cur - n});
+            points.push_back({cur - m, m});
+        }
+        if (dir == 1) {
+            sort(points.begin(), points.end());
+        } else {
+            sort(points.begin(), points.end(), greater<pair<ll,ll>>());
+        }
+        pair<ll,ll> f, s;
+        for (auto p = points.begin(); p != points.end(); ++p) {
+            if (0 <= p->f && p->f <= n && 0 <= p->s && p->s <= m) {
+                f = *p;
+                break;
+            }
+        }
+        for (auto p = points.rbegin(); p != points.rend(); ++p) {
+            if (0 <= p->f && p->f <= n && 0 <= p->s && p->s <= m) {
+                s = *p;
+                break;
+            }
+        }
+        // cerr << "cur_time: " << cur_time << " (" << f.f << ", " << f.s << ") -> (" << s.f << ", " << s.s << ")\n";
+        // cerr << "is_main: " << is_main << "\n";
+
+        if (is_main) {
+            assert(f.s - f.f == s.s - s.f);
+            for (ll i: main_diagonal[f.s - f.f]) {
+                times[i] = min(times[i], cur_time + abs(detectors[i].f - f.f));
+            }
+        } else {
+            assert(f.s + f.f == s.s + s.f);
+            for (ll i: counter_diagonal[f.s + f.f]) {
+                times[i] = min(times[i], cur_time + abs(detectors[i].f - f.f));
+            }
+        }
+
+        last = is_final();
+        cur_time += abs(f.f - s.f);
+        if (dir == 1) {
+            dir = (s.f < n ? 1 : -1);
+        } else {
+            dir = (s.f > 0 ? -1 : 1);
+        }
+        cur = (is_main ? s.f + s.s : s.s - s.f);
+        is_main ^= 1;
+    }
+    for (ll t: times) {
+        cout << (t < INF ? t : -1) << "\n";
+    }
+    cerr << "Time elapsed: " << (ld) clock() / CLOCKS_PER_SEC << "\n";
+    return 0;
+}

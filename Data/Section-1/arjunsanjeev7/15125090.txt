@@ -1,0 +1,113 @@
+/*	 Hello World!	*/
+
+#include <bits/stdc++.h>
+
+#define pb push_back
+#define pf push_front
+#define mp make_pair
+#define f first
+#define s second
+#define let(x,a) __typeof(a) x(a)
+#define all(a) (a).begin(),(a).end() 
+#define endl '\n'
+#define present(c,x) ((c).find(x) != (c).end()) 
+#define tr(v,it) for( let(it,v.begin()) ; it != v.end() ; it++)
+#define rtr(v,it) for( let(it,v.rbegin()) ; it != v.rend() ; it++)
+#define rep1(i,n) for(int i=0; i<(int)n;i++)
+#define rep2(i,a,b) for(int i=(int)a; i<=(int)b; i++)
+
+#define trace1(x)                cerr << #x << ": " << x << endl;
+#define trace2(x, y)             cerr << #x << ": " << x << " | " << #y << ": " << y << endl;
+#define trace3(x, y, z)          cerr << #x << ": " << x << " | " << #y << ": " << y << " | " << #z << ": " << z << endl;
+#define trace4(a, b, c, d)       cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << endl;
+#define trace5(a, b, c, d, e)    cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << endl;
+#define trace6(a, b, c, d, e, f) cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << " | " << #f << ": " << f << endl;
+
+#define LL long long int
+#define PII pair<int,int>
+#define VI vector<int>
+#define inf INT_MAX
+
+using namespace std;
+
+LL mod=1e9+7;
+
+void FastIO()
+{
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	cout.tie(NULL);
+}
+
+int k,l,z,flag;
+LL n;
+string s;
+vector< vector<LL> > dp,cum;
+
+LL foo(int pos, int from)
+{
+	if(dp[pos][from]!=-1) return dp[pos][from];
+	if(s[from]=='0') return dp[pos][from]=0;
+	if(!from) return dp[pos][from]=1;
+	k=from-1;
+	LL ret=0;
+	l=pos-from+1;
+	z=max(0,k-l+2);
+	if(z<=k)
+	{
+		ret=cum[k][k]-cum[k][z]+dp[k][z];
+		if(ret>=mod) ret-=mod;
+		else if(ret<0) ret+=mod;
+	}
+	if(z-1>=0)
+	{
+		flag=0;
+		for(int i=0;i<l;i++)
+		{
+			if(s[z-1+i]<s[from+i])
+			{
+				flag=1;
+				break;
+			}
+			else if(s[z-1+i]>s[from+i])
+			{
+				flag=2;
+				break;
+			}
+		}
+		if(flag==1)
+		{
+			ret=ret+foo(k,z-1);
+			if(ret>=mod) ret-=mod;
+		}
+	}
+	return dp[pos][from]=ret;
+}
+
+int main()
+{
+	FastIO();
+	cin>>n;
+	cin>>s;
+	dp.assign(n+1,vector<LL>(n+1,-1));
+	cum.assign(n+1,vector<LL>(n+1,0));
+	LL ans=0;
+	for(int i=0;i<n;i++)
+	{
+		for(int j=i;j<n;j++)
+		{
+			foo(j,i);
+			cum[j][i]=dp[j][i];
+			if(i) cum[j][i]+=cum[j][i-1];
+			if(cum[j][i]>=mod) cum[j][i]%=mod;
+			if(j==n-1)
+			{
+				//trace1(dp[j][i]);
+				ans+=dp[j][i];
+				if(ans>=mod) ans%=mod;
+			}
+		}
+	}
+	cout<<ans<<endl;
+	return 0;
+}

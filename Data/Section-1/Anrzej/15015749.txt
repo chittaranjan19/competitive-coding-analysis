@@ -1,0 +1,89 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+map<int, int> to, from;
+vector<int> dd, solo;
+pair<int, int> d[2200000];
+int n, ps[2200000], k;
+int main()
+{
+	cin >> n >> k;
+	for (int i = 0; i < n; i++)
+	{
+		int x, y;
+		scanf_s("%d%d", &x, &y);
+		d[i] = mp(x, y);
+		if (y == x){
+			solo.push_back(x);
+			dd.push_back(x);
+		}
+		else
+		{
+		dd.push_back(x);
+		dd.push_back(y);
+		}
+	}
+	sort(dd.begin(), dd.end());
+	int prev = -1e9 - 100, cur = 0;
+	for (int i = 0; i < dd.size(); i++)
+	{
+		int cr = dd[i];
+		if (prev != cr)
+			prev = cr, cur++;
+		to[cr] = cur;
+		from[cur] = cr;
+	}
+	memset(ps, 0, sizeof(ps));
+	for (int i = 0; i < n; i++)
+	{
+		ps[to[d[i].fs]]++;
+		ps[to[d[i].sc]]--;
+	}
+	for (int i = 1; i < 2200000; i++)
+		ps[i] += ps[i - 1];
+	vector<pair<int, int> > ans;
+	int st = -1;
+	for (int i = 0; i < 2200000; i++)
+	{
+		if (st == -1 && ps[i] >= k){
+			st = i;
+			continue;
+		}
+		if (st != -1 && ps[i] < k)
+		{
+			ans.push_back(mp(st, i));
+			st = -1;
+		}
+	}
+	for (int i = 0; i < solo.size(); i++)
+	{
+		if (ps[to[solo[i]]-1] + 1 == k)
+			ans.push_back(mp(to[solo[i]], to[solo[i]]));
+		ps[to[solo[i]] - 1] += 1;
+	}
+	cout << ans.size() << endl;
+	for (int i = 0; i < ans.size(); i++)
+	{
+		printf("%d %d\n", from[ans[i].fs], from[ans[i].sc]);
+	}
+	return 0;
+}

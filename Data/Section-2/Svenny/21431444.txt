@@ -1,0 +1,172 @@
+#include <cstdlib>
+#include <memory>
+#include <fstream>
+#include <map>
+#include <set>
+#include <list>
+
+using namespace std;
+
+typedef pair<int, int> ip;
+
+int n, m;
+
+int main ()
+{
+    int k; cin >> n >> m >> k;
+	map<int, set<int>> sums;
+	map<int, set<int>> diffs;
+	int *xs = new int[k + 1];
+	int *ts = new int[k + 1];
+	for (int i = 1; i <= k; i++)
+	{
+		ip xy;
+		cin >> xy.first >> xy.second;
+		sums[xy.first + xy.second].insert (i);
+		diffs[xy.second - xy.first].insert (i);
+		ts[i] = -1;
+		xs[i] = xy.first;
+	}
+	ip xy;
+	int time = 0;
+	xy.first = 0;
+	xy.second = 0;
+	int dir = 1; // 1 /   2 \   3 /v   4 \v
+	bool brk = false;
+	do
+	{
+		if (dir == 1 || dir == 3) // on diffs
+		{
+			auto mydiff = diffs.find (xy.second - xy.first);
+			if (mydiff != diffs.end ())
+			{
+				for (auto kid = (*mydiff).second.begin (); kid != (*mydiff).second.end (); kid++)
+				{
+					if (ts[*kid] == -1)
+						ts[*kid] = time + abs (xs[*kid] - xy.first);
+				}
+			}
+		}
+		else // on sums
+		{
+			auto mysum = sums.find (xy.second + xy.first);
+			if (mysum != sums.end ())
+			{
+				for (auto kid = (*mysum).second.begin (); kid != (*mysum).second.end (); kid++)
+				{
+					if (ts[*kid] == -1)
+						ts[*kid] = time + abs (xs[*kid] - xy.first);
+				}
+			}
+		}
+		int n1, n2;
+		if (brk)
+			break;
+		switch (dir)
+		{
+		case 1:
+			n1 = n - xy.first;
+			n2 = m - xy.second;
+			if (n1 > n2) // (x, m) is closer
+			{
+				dir = 4;
+				xy.first += n2;
+				xy.second = m;
+				time += n2;
+			}
+			else if (n1 < n2) // (n, y) is closer
+			{
+				dir = 2;
+				xy.first = n;
+				xy.second += n1;
+				time += n1;
+			}
+			else // we are in (n,m), exit
+			{
+				brk = true;
+				time += n1;
+				xy.first = n;
+				xy.second = m;
+			}
+			break;
+		case 2:
+			n1 = xy.first;
+			n2 = m - xy.second;
+			if (n1 > n2) // (x, m) is closer
+			{
+				dir = 3;
+				xy.first -= n2;
+				xy.second = m;
+				time += n2;
+			}
+			else if (n1 < n2) // (0, y) is closer
+			{
+				dir = 1;
+				xy.first = 0;
+				xy.second += n1;
+				time += n1;
+			}
+			else // we are in (0,m), exit
+			{
+				brk = true;
+				time += n1;
+				xy.first = 0;
+				xy.second = m;
+			}
+			break;
+		case 3:
+			n1 = xy.first;
+			n2 = xy.second;
+			if (n1 > n2) // (x, 0) is closer
+			{
+				dir = 2;
+				xy.first -= n2;
+				xy.second = 0;
+				time += n2;
+			}
+			else if (n1 < n2) // (0, y) is closer
+			{
+				dir = 4;
+				xy.first = 0;
+				xy.second -= n1;
+				time += n1;
+			}
+			else // we are in (0,0), exit
+			{
+				brk = true;
+				time += n1;
+				xy.first = 0;
+				xy.second = 0;
+			}
+			break;
+		case 4:
+			n1 = xy.second;
+			n2 = n - xy.first;
+			if (n1 > n2) // (n, y) is closer
+			{
+				dir = 3;
+				xy.first = n;
+				xy.second -= n2;
+				time += n2;
+			}
+			else if (n1 < n2) // (x, 0) is closer
+			{
+				dir = 1;
+				xy.first += n1;
+				xy.second = 0;
+				time += n1;
+			}
+			else // we are in (n,0), exit
+			{
+				brk = true;
+				time += n1;
+				xy.first = n;
+				xy.second = 0;
+			}
+			break;
+		}
+	} while (true);
+	for (int i = 1; i <= k; i++)
+		cout << ts[i] << endl;
+    return 0;
+}

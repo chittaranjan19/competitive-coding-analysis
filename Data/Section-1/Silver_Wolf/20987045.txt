@@ -1,0 +1,86 @@
+#include <bits/stdc++.h>
+using namespace std;
+const int MAXN=1e5+100;
+const int MAXL=20;
+const int INF=1e9+17;
+
+set<pair<int,int>>st[MAXL];
+bitset<MAXN>bt[MAXL];
+long long ans[MAXL];
+
+set<pair<int,int>>::iterator ffind(int n,int m){
+    set<pair<int,int>>::iterator it=st[m].lower_bound(make_pair(n,INF));
+    it--;
+    return it;
+}
+inline long long calc(pair<int,int> a){return 1LL*(a.second-a.first+2)*(a.second-a.first+1)/2;}
+void del(int n,int m){
+    bt[m][n]=false;
+    pair<int,int> h=*ffind(n,m);
+    st[m].erase(h);  ans[m]-=calc(h);
+    if(h.first==h.second)return;
+    else if(h.first ==n)st[m].insert(make_pair(h.first+1,h.second)),ans[m]+=calc(make_pair(h.first+1,h.second));
+    else if(h.second==n)st[m].insert(make_pair(h.first,h.second-1)),ans[m]+=calc(make_pair(h.first,h.second-1));
+    else{
+        st[m].insert(make_pair(h.first,n-1));   ans[m]+=calc(make_pair(h.first,n-1));
+        st[m].insert(make_pair(n+1,h.second));   ans[m]+=calc(make_pair(n+1,h.second));
+    }
+}
+void ins(int n,int m){
+    bt[m][n]=true;
+    if(!bt[m][n+1] && !bt[m][n-1]){
+        st[m].insert(make_pair(n,n));
+        ans[m]++;
+        return;
+    }
+    if(bt[m][n+1] && bt[m][n-1]){
+        int first=ffind(n-1,m)->first;
+        int second=ffind(n+1,m)->second;
+        ans[m]-=calc(*ffind(n-1,m));
+        ans[m]-=calc(*ffind(n+1,m));
+        st[m].erase(*ffind(n-1,m));
+        st[m].erase(*ffind(n+1,m));
+        st[m].insert(make_pair(first,second));
+        ans[m]+=calc(make_pair(first,second));
+        return;
+    }
+    if(bt[m][n+1]){
+        int second=ffind(n+1,m)->second;
+        ans[m]-=calc(*ffind(n+1,m));
+        st[m].erase(*ffind(n+1,m));
+        st[m].insert(make_pair(n,second));
+        ans[m]+=calc(make_pair(n,second));
+        return ;
+    }
+    if(bt[m][n-1]){
+        int first=ffind(n-1,m)->first;
+        ans[m]-=calc(*ffind(n-1,m));
+        st[m].erase(*ffind(n-1,m));
+        st[m].insert(make_pair(first,n));
+        ans[m]+=calc(make_pair(first,n));
+        return;
+    }
+}
+
+void change(int x,int y){
+    for(int i=0;i<MAXL;i++,y/=2){
+        if(bt[i][x]==y%2);
+        else if(y%2)ins(x,i);
+        else del(x,i);
+    }
+}
+int main(){
+    int n;  cin>>n;
+    int m;  cin>>m;
+    for(int i=0;i<n;i++){
+        int x;  cin>>x;
+        change(i+1,x);
+    }
+    while(m--){
+        int x,y;    cin>>x>>y;
+        change(x,y);
+        int res=0;
+        for(int i=0;i<MAXL;i++)res+=ans[i]*(1LL<<i);
+        cout<<res<<'\n';
+    }
+}

@@ -1,0 +1,97 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 100010;
+
+int N, A[MAXN];
+vector<int> vall;
+int par[MAXN], sz[MAXN];
+vector<int> inds[MAXN];
+multiset<int> sizes;
+
+int find (int x) {
+	return x == par[x] ? x : par[x] = find(par[x]);
+}
+
+void merge (int x, int y) {
+	x = find(x);
+	y = find(y);
+	if (x == y) {
+		return;
+	}
+	par[x] = y;
+	sizes.erase(sizes.find(sz[x]));
+	sizes.erase(sizes.find(sz[y]));
+	sizes.insert(sz[y] += sz[x]);
+}
+
+void mergenum (int i, int val) {
+	if (i > 0) {
+		if (A[i - 1] >= val) {
+			merge(i, i - 1);
+		}
+	}
+	if (i < N) {
+		if (A[i + 1] >= val) {
+			merge(i, i + 1);
+		}
+	}
+}
+
+void add (int i) {
+	//add it to the good old list
+	sizes.insert(1);
+}
+
+void mergeall (int val) {
+	for (int i : inds[val]) {
+		add(i);
+	}
+	for (int i : inds[val]) {
+		mergenum(i, val);
+	}
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 0; i < N; i++) {
+		cin >> A[i];
+		vall.push_back(A[i]);
+		par[i] = i;
+		sz[i] = 1;
+	}
+	sort(all(vall));
+	vall.resize(unique(all(vall)) - vall.begin());
+	for (int i = 0; i < N; i++) {
+		A[i] = lower_bound(all(vall), A[i]) - vall.begin();
+		inds[A[i]].push_back(i);
+	}
+	cout << vall.back() << ' ';
+	mergeall(vall.size() - 1);
+	int cur = vall.size() - 1;
+	for (int i = 2; i <= N; i++) {
+		//ok let's see this
+		//while cur is not ok, decrement cur
+		while (cur > 0) {
+			if (*sizes.rbegin() < i) {
+				mergeall(--cur);
+			} else {
+				break;
+			}
+		}
+		cout << vall[cur] << ' ';
+	}
+}

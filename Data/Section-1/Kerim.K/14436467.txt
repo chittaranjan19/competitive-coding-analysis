@@ -1,0 +1,78 @@
+#include<bits/stdc++.h>
+#define MAXN 500009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"You can do IT.I belive YOU!!!"<<endl;
+#define ff first
+#define ss second
+#define lg(x) ceil(log2(x))
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN],ans[MAXN],s[MAXN*4];
+pair<PII,int> rr[MAXN];
+map<int,int>pm;
+void upd(int p,int v,int nd,int x,int y){
+	if(x==y){
+		s[nd]=v;
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,v,nd*2,x,mid);
+	else	
+		upd(p,v,nd*2+1,mid+1,y);
+	s[nd]=min(s[nd*2],s[nd*2+1]);
+}
+int tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return INF;
+	if(l<=x and y<=r)
+		return s[nd];
+	int mid=(x+y)>>1;		
+	int i1=tap(l,r,nd*2,x,mid);
+	int i2=tap(l,r,nd*2+1,mid+1,y);
+	return min(i1,i2);
+}
+int main(){
+	for(int i=0;i<MAXN*4;i++)
+		s[i]=INF;
+	int n,m;
+	cin>>n>>m;
+	for(int i=1;i<=n;i++)
+		scanf("%d",arr+i);
+	for(int i=1;i<=m;i++)
+		scanf("%d%d",&rr[i].ff.ss,&rr[i].ff.ff),rr[i].ss=i;
+	sort(rr,rr+(m+1));
+	int c=1;	
+	for(int i=1;i<=m;i++){
+		while(c<=rr[i].ff.ff){
+			int k=arr[c];
+			if(pm[k]>0)
+				upd(pm[k],c-pm[k],1,1,n);
+			pm[k]=c;
+			c++;
+		}
+		int nh=tap(rr[i].ff.ss,rr[i].ff.ff,1,1,n);
+		if(nh==INF)
+			nh=-1;
+		ans[rr[i].ss]=nh;
+	}
+	for(int i=1;i<=m;i++)
+		printf("%d\n",ans[i]);
+	return 0;
+}
+/*
+5 1
+1 1 2 3 2
+1 5
+*/

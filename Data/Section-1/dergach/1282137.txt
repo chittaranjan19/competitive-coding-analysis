@@ -1,0 +1,84 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <algorithm>
+using namespace std;
+
+#define eps 1e-8
+
+int n, k, t[4005], d[4005], i, j;
+int mem[4005][4005];
+int end_time = 0;
+
+int solve(int i, int propuskov)
+{
+    if(mem[i][propuskov] != -1)
+        return mem[i][propuskov];
+
+    if(i == n)
+    {
+        return max(86400 - end_time, 0);
+    }
+    if(propuskov == k)
+    {
+        int res = -1234567890;
+        for(int j = i; j < n; j++)
+        {
+            if(t[j] - end_time > res)
+                res = t[j] - end_time - 1;
+            if(end_time < t[j]) //|| end_time == 1)
+                end_time = t[j] + d[j];
+            else
+                end_time += 1 + d[j];
+        }
+        if(86401 - end_time > res)
+            res = 86400 - end_time;
+        return mem[i][propuskov] = max(res, 0);
+    }
+
+    int tmp = end_time;
+    int res = t[i] - end_time - 1;
+
+    if(end_time < t[i]) //|| end_time == 1)
+        end_time = t[i] + d[i];
+    else
+        end_time += 1 + d[i];
+
+    int tmp2 = solve(i + 1, propuskov);
+    if(tmp2 > res)
+        res = tmp2;
+
+    end_time = tmp;
+    tmp2 = solve(i + 1, propuskov + 1);
+    if(tmp2 > res)
+        res = tmp2;
+    return mem[i][propuskov] = max(res, 0);
+}
+
+
+int main()
+{
+    scanf("%d %d", &n, &k);
+    for(i = 0; i < n; i++)
+    {
+        scanf("%d %d", &t[i], &d[i]);
+        d[i]--;
+    }
+    if(n == 0)
+    {
+        printf("86400\n");
+        return 0;
+    }
+    memset(mem, -1, sizeof(mem));
+    printf("%d\n", solve(0, 0));
+    return 0;
+}

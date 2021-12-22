@@ -1,0 +1,154 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 500010;
+
+vector<int> adj[maxn], dfstree;
+int st1[maxn*5], st2[maxn*5], lazy[maxn*5], strt[maxn], en[maxn];
+int n, m;
+
+void dfs(int cur, int p)
+{
+	strt[cur] = dfstree.size();
+	dfstree.pb(cur);
+	for(int it:adj[cur]){
+		if(it!=p)
+			dfs(it, cur);
+	}
+	en[cur] = dfstree.size() - 1;
+}
+
+void propagate_down(int s, int e, int node)
+{
+	if(lazy[node]){
+		st1[node] = max(st1[node], lazy[node]);
+		if(s!=e){
+			int lc = 2*node + 1;
+			int rc = lc + 1;
+			lazy[lc] = max(lazy[lc], lazy[node]);
+			lazy[rc] = max(lazy[rc], lazy[node]);
+		}
+		lazy[node] = 0;
+	}
+}
+
+void update1(int s, int e, int qs, int qe, int node, int val)
+{
+	propagate_down(s, e, node);
+	if(s>e || s>qe || qs>e)
+		return;
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	if(s>=qs && qe>=e){
+		st1[node] = max(st1[node], val);
+		if(s!=e){
+			lazy[lc] = max(lazy[lc], val);
+			lazy[rc] = max(lazy[rc], val);
+		}
+		return;
+	}
+	update1(s, mid, qs, qe, lc, val);
+	update1(mid+1, e, qs, qe, rc, val);
+	st1[node] = max(st1[lc], st1[rc]);
+}
+
+void update2(int s, int e, int q, int node, int val)
+{
+	if(s>e || s>q || q>e)
+		return;
+	if(s==e){
+		st2[node] = max(st2[node], val);
+		return;
+	}
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	update2(s, mid, q, lc, val);
+	update2(mid+1, e, q, rc, val);
+	st2[node] = max(st2[lc], st2[rc]);
+}
+
+int query1(int s, int e, int q, int node)
+{
+	propagate_down(s, e, node);
+	if(s==e)
+		return st1[node];
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	if(q<=mid)
+		return query1(s, mid, q, lc);
+	else
+		return query1(mid+1, e, q, rc);
+}
+
+int query2(int s, int e, int qs, int qe, int node)
+{
+	if(s>e || s>qe ||qs>e)
+		return 0;
+	if(s>=qs && qe>=e)
+		return st2[node];
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	return max(query2(s, mid, qs, qe, lc), query2(mid+1, e, qs, qe, rc));
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int t, u, v, i, j, rs, re, ans;
+	scanf("%d", &n);
+	for(i=1; i<n; i++){
+		scanf("%d%d", &u, &v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	dfs(1, 0);
+	scanf("%d", &m);
+	j = 0;
+	while(m--){
+		j++;
+		scanf("%d%d", &t, &u);
+		rs = strt[u];
+		re = en[u];
+		if(t==1)
+			update1(0, dfstree.size()-1, rs, re, 0, j);
+		else if(t==2)
+			update2(0, dfstree.size()-1, rs, 0, j);
+		else{
+			int x = query1(0, dfstree.size()-1, rs, 0);
+			int y = query2(0, dfstree.size()-1, rs, re, 0);
+			if(y>=x)
+				ans = 0;
+			else
+				ans = 1;
+			//cout << x << " " << y << " " << rs << " " << re << " ";
+			printf("%d\n", ans);
+		}
+		//for(i=0; i<9; i++)
+		//	cout << "st " << i << " " << st2[i] << "\n";
+			//cout << "st " << i << " " << st1[i] << " " << lazy[i] << " " << st2[i] << "\n";  
+	}
+	return 0;
+}

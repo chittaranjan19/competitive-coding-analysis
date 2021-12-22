@@ -1,0 +1,106 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef long long ll;
+typedef unsigned long long int llu;
+#define pb push_back
+#define mp make_pair
+#define X first
+#define Y second
+#define mem(a, v) memset(a, v, sizeof(a))
+#define PI acos(-1)
+#define S(a) scanf("%d",&a)
+#define SL(a) scanf("%lld",&a)
+#define S2(a, b) scanf("%d%d",&a,&b)
+#define nl printf("\n")
+#define deb(x) cout<<#x<<" : "<<x<<endl;
+#define deb2(x, y) cout<<#x<<" : "<<x<<" | "<<#y<<" : "<<y<<endl;
+#define deb3(x, y, z) cout<<#x<<" : "<<x<<" | "<<#y<<" : "<<y<<" | "<<#z<<" : "<<z<<endl;
+#define debv(x) {cout<<#x<<" : "<<endl; for(int ii =0; ii < x.size(); ii++) cout<<x[ii]<<" "; cout<<endl; }
+#define debarr(x, xs) {cout<<#x<<" : "<<endl; for(int ii =0; ii < xs; ii++) cout<<x[ii]<<" "; cout<<endl; }
+//auto T=clock(); 
+//cout<<double(clock()-T)/CLOCKS_PER_SEC<<'\n';
+const ll mod = 1000000007LL;
+const int lmt = 1000005;
+string siz[] = {"S", "M", "L", "XL", "XXL", "XXXL"};
+map<string, int> M;
+
+int cnt[10];
+int taken = 0;
+map<pair<int, int>, int> pairMap;
+int singleMap[10];
+bool poss = true;
+int totSum = 0;
+
+void pre() {
+	for(int i = 0; i < 6; i++)
+		M[siz[i]] = i;
+	for(int i = 0; i < 6; i++) {
+		S(cnt[i]);
+		totSum += cnt[i];
+	}
+}
+
+void process(string s) {
+	string tmp = "", tmp1 = "";
+	bool flag = false;
+	for(int i = 0; i < s.size(); i++) {
+		if(flag)
+			tmp1 += s[i];
+		else if(s[i] == ',')
+			flag = true;
+		else
+			tmp += s[i];
+	}
+	if(flag) {
+		int x = M[tmp], y = M[tmp1];
+		singleMap[x]++;
+		singleMap[y]++;
+		pairMap[mp(x, y)]++;
+	}else {
+		taken++;
+		int x = M[tmp];
+		cnt[x]--;
+		if(cnt[x] < 0)
+			poss = false;
+	}
+}
+
+int main(){
+	pre();
+	int n;
+	S(n);
+
+	for(int i = 0; i < n; i++) {
+		string s;
+		cin>>s;
+		process(s);
+	}
+	if(totSum < n) {
+		printf("NO\n");
+		return 0;
+	}
+	if(!poss) {
+		printf("NO\n");
+		return 0;
+	}
+
+	for(int i = 0; i < 5; i++) {
+		int tmp = pairMap[mp(i, i+1)];
+		if(tmp > cnt[i]) {
+			tmp -= cnt[i];
+			cnt[i] = 0;
+			if(tmp > cnt[i+1])
+				break;
+			cnt[i+1] -= tmp;
+		}
+		else
+			cnt[i] -= tmp;
+		taken += pairMap[mp(i, i+1)];
+	}
+	if(taken == n)
+		printf("YES\n");
+	else
+		printf("NO\n");
+    return 0;
+}

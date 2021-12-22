@@ -1,0 +1,124 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 200010, MAXA = 500010;
+
+int N, Q;
+int ncur;
+vector<int> primes;
+vector<int> pr[MAXN];
+int numdiv[MAXA];
+bool has[MAXN];
+ll ans;
+
+int getp (vector<int> &v, int mask) {
+	int sz = v.size(), p = 1;
+	for (int i = 0; i < sz; i++) {
+		if (mask & (1 << i)) {
+			p *= v[i];
+		}
+	}
+	return p;
+}
+
+int count (vector<int> &v) {
+	//count # of numbers that are relatively prime to this
+	int num = 0, sz = v.size();
+	int ppcnt = 0;
+	for (int i = 1; i < (1 << sz); i++) {
+		int val = numdiv[getp(v, i)];
+		if (__builtin_popcount(i) % 2) {
+			num += val;
+		} else {
+			num -= val;
+		}
+	}
+	return ncur - num;
+}
+
+void add (vector<int> &v) {
+	//LOL of course
+	int sz = v.size();
+	//add # of numbers that are relatively prime to this:
+	ans += count(v);
+	ncur++;
+	for (int i = 1; i < (1 << sz); i++) {
+		numdiv[getp(v, i)]++;
+	}
+}
+
+void del (vector<int> &v) {
+	//# that are relatively prime to this number
+	ans -= count(v);
+	if (v.empty()) {
+		//careful!
+		ans++;
+	}
+	ncur--;
+	int sz = v.size();
+	for (int i = 1; i < (1 << sz); i++) {
+		numdiv[getp(v, i)]--;
+	}	
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d", &N, &Q);
+	//# of relatively primes with this guy
+	//basically the cnt minus the # that is divisible by this shit
+	for (int i = 2; i < MAXA; i++) {
+		bool pr = true;
+		for (int x : primes) {
+			if (x * x > i) {
+				break;
+			}
+			if (i % x == 0) {
+				pr = false;
+				break;
+			}
+		}
+		if (pr) {
+			primes.push_back(i);
+		}
+	}
+	for (int i = 0, x; i < N; i++) {
+		scanf("%d", &x);
+		//factorize it
+		for (int j : primes) {
+			if (j * j > x) {
+				break;
+			}
+			if (x % j == 0) {
+				while (x % j == 0) {
+					x /= j;
+				}
+				pr[i].push_back(j);
+			}
+		}
+		if (x != 1) {
+			pr[i].push_back(x);
+		}
+	}
+	for (int i = 0, x; i < Q; i++) {
+		scanf("%d", &x);
+		x--;
+		if (has[x]) {
+			del(pr[x]);
+		} else {
+			add(pr[x]);
+		}
+		has[x] ^= true;
+		cout << ans << '\n';
+	}
+}

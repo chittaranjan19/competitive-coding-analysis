@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 500010, SQRT = 710;
+
+int N, Q;
+ll A[MAXN], add[SQRT];
+unordered_map<ll, set<int> > inds[SQRT];
+
+void inc (int ind, int x) {
+	unordered_map<ll, set<int> > &mp = inds[ind / SQRT];
+	ll &ref = A[ind];
+	set<int> &st = mp[ref];
+	st.erase(ind);
+	if (st.empty()) {
+		mp.erase(ref);
+	}
+	mp[ref += x].insert(ind);
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d", &N, &Q);
+	//sqrt(N) trick
+	for (int i = 0, x; i < N; i++) {
+		scanf("%d", &x);
+		A[i] = x;
+		inds[i / SQRT][x].insert(i);	//you suck
+	}
+	//sqrt(N) trick DAMNIT
+	int qt, lt, rt, x;
+	while (Q--) {
+		scanf("%d", &qt);
+		if (qt == 1) {
+			scanf("%d %d %d", &lt, &rt, &x);
+			lt--;
+			rt--;
+			if (lt / SQRT == rt / SQRT) {
+				for (int i = lt; i <= rt; i++) {
+					inc(i, x);
+				}
+			} else {
+				//go left, go right
+				for (; lt % SQRT; lt++) {
+					inc(lt, x);
+				}
+				for (; rt % SQRT != SQRT - 1; rt--) {
+					inc(rt, x);
+				}
+				//SQRT * log N
+				if (lt <= rt) {
+					for (int i = lt / SQRT; i <= rt / SQRT; i++) {
+						add[i] += x;
+					}
+				}
+			}
+		} else {
+			scanf("%d", &x);
+			int lo = MAXN, hi = -1;
+			for (int i = 0; i * SQRT < N; i++) {
+				ll w = x - add[i];
+				if (!inds[i].count(w)) {
+					continue;
+				}
+				set<int> &st = inds[i][w];
+				lo = min(lo, *st.begin());
+				hi = max(hi, *st.rbegin());
+			}
+			printf("%d\n", hi == -1 ? -1 : hi - lo);
+		}
+	}
+}

@@ -1,0 +1,64 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 4e5 + 10;
+
+int N, M, Q;
+int L[MAXN], R[MAXN];
+vector<int> allx;
+int psum[MAXN];
+int uncov[MAXN];
+
+int indexof (int x) {
+	return lower_bound(all(allx), x) - allx.begin();	//+1? rukiddingme
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	allx.push_back(-1);
+	for (int i = 1; i <= N; i++) {
+		cin >> L[i] >> R[i];
+		R[i] += L[i];
+		allx.push_back(L[i]);
+		allx.push_back(R[i]);
+	}
+	sort(all(allx));
+	allx.resize(unique(all(allx)) - allx.begin());
+	for (int i = 1; i <= N; i++) {
+		psum[indexof(L[i])]++;
+		psum[indexof(R[i])]--;
+	}
+	M = allx.size() - 1;
+	for (int i = 1; i <= M; i++) {
+		psum[i] += psum[i - 1];
+	}
+	//calc uncov
+	for (int i = 1; i < M; i++) {
+		//[i, i + 1]
+		if (!psum[i]) {
+			uncov[i] = allx[i + 1] - allx[i];
+			// cerr << "uncov[" << i << "] = " << uncov[i] << endl;
+		}
+	}
+	for (int i = 1; i <= M; i++) {
+		uncov[i] += uncov[i - 1];
+	}
+	cin >> Q;
+	for (int x, y; Q--; ) {
+		cin >> x >> y;
+		//how much is uncovered from [ind y - 1 to ind x - 1]
+		cout << uncov[indexof(L[y]) - 1] - uncov[indexof(L[x]) - 1] << '\n';
+	}
+}

@@ -1,0 +1,131 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <string>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+int g[7][7];
+int visited[7];
+int dom[110][3];
+int flag;
+void explore(int u){
+        visited[u] = 1;
+        for(int i = 0; i < 7; i++){
+                if (g[u][i] && !visited[i]){
+         
+                        explore(i);
+                }
+        }
+        return;
+}
+
+int is_connected(int u){
+        explore(u);
+        for(int i = 0; i < 7; i++){
+                if (!visited[i]){
+                        for(int j = 0; j < 7; j++)
+                                if (g[i][j]) return 0;
+                }
+        }
+        return 1;
+}
+
+vector <int> res;
+
+int main(){
+        int n;
+        cin >> n;
+        int m = n;
+        for(int i = 0; i < n; i++){
+                int x, y;
+                cin >> x >> y;
+                dom[i][0] = x;
+                dom[i][1] = y;
+                g[x][y]++;
+                g[y][x]++;
+        }
+        int o = 0;
+        int s = 0;
+        s = dom[0][0];
+        for(int i = 0; i < 7; i++){
+                int c = 0;
+                for(int j = 0; j < 7; j++){
+                        c += g[i][j];
+                }
+                //      cout << c << endl;
+                if (c & 1){
+                        o++;
+                        s = i;
+                }
+        }
+//        cout << o << endl;
+
+        
+        if ( o > 2  || !is_connected(dom[0][0]) ){
+                cout << "No solution" << endl;
+                return 0;
+
+        }
+        memset(visited, 0, sizeof(visited));
+        
+
+        int current = s;
+
+        res.push_back(s);
+        while (n--){
+                for(int i = 0; i < 7; i++){
+                        if (g[current][i]){
+                                g[current][i]--;
+                                g[i][current]--;
+                                if (is_connected(i)){
+                                        current = i;
+                                        res.push_back(i);
+                                        memset(visited, 0, sizeof(visited));
+                                        break;
+                                }
+
+                                else{
+                                        g[current][i]++;
+                                        g[i][current]++;
+                                }
+                                memset(visited, 0, sizeof(visited));
+                        }
+                }
+        }
+        
+        for(int j = 0; j < res.size() - 1; j++){
+                int x = res[j];
+                int y = res[j+1];
+                for(int i = 0; i < m; i++){
+                        flag = 0;
+                        if (!dom[i][2]){
+                                if (x == dom[i][0] && y == dom[i][1]){
+                                        cout << i+1 << " +" << endl;
+                                        flag = 1;
+                                        dom[i][2] = 1;
+                                }
+                                else if (x == dom[i][1] && y == dom[i][0]){
+                                        flag = 1;
+                                        dom[i][2] = 1;
+                                        cout  << i + 1 << " -" << endl;
+                                }
+                        }
+                        if (flag){
+                                break;
+                        }
+                        
+                }
+        }
+                                                
+
+
+        return 0;
+}
+                        
+        
+                
+                        
+        

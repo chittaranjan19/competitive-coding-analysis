@@ -1,0 +1,83 @@
+#include<cstdio>
+#include<cstring>
+#include<cmath>
+#include<cstdlib>
+#include<queue>
+#include<vector>
+#include<algorithm>
+#include<iostream>
+#include<queue>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+#define in(a) scanf("%d", &a)
+#define out(a) printf("%d ", a)
+#define x first
+#define y second
+
+using namespace std;
+
+#define N 3*100001
+int n, m, v0;
+
+ll inf = 1000000000000000000;
+vector< pair<int, int> >  gr[N];
+vector<int> e[N];
+vector<ll> elen;
+
+int main()
+{
+    in(n); in(m);
+    for (int i = 0; i < m; i++)
+    {
+        int v, u, l;
+        in(v); in(u); in(l);
+        gr[v].push_back(mp(u, l));
+        gr[u].push_back(mp(v, l));
+        e[v].push_back(i);
+        e[u].push_back(i);
+        elen.push_back(l);
+    }
+
+    in(v0);
+
+    vector<ll> way(N, inf);
+    int goodE[N];
+    memset(goodE, -1, sizeof(goodE));
+
+    way[v0] = 0;
+
+    priority_queue< pair<int, int> > q;
+    q.push(mp(v0, 0));
+
+    while (!q.empty())
+    {
+        int curV = q.top().x; ll dist = -q.top().y;
+        q.pop();
+        if (dist > way[curV]) continue;
+        for (int i = 0; i < gr[curV].size(); i++)
+        {
+            int next = gr[curV][i].x, len = gr[curV][i].y;
+
+            if (way[curV] + len <= way[next])
+            {
+                if (way[curV] + len == way[next] && len >= elen[goodE[next]]) continue;
+                way[next] = way[curV] + len;
+                q.push(mp(next, -way[next]));
+                goodE[next] = e[curV][i];
+            }
+        }
+    }
+    ll sum = 0;
+    for (int i = 1; i <= n; i++) (goodE[i] != -1 ? sum += elen[goodE[i]] : sum += 0);
+
+    cout << sum << endl;
+
+    for (int i = 1; i <= n; i++)
+    {
+        if (goodE[i] != -1)
+            printf("%d ", (goodE[i] + 1));
+    }
+    return 0;
+}

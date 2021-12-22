@@ -1,0 +1,301 @@
+//the juice is worth the squeeze.
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 3e5 + 10;
+
+struct node {
+	node *ch[2], *p;
+	node *m;
+	bool r;
+	int v, w, s;
+	int id;
+};
+
+int N, M, D;
+node *null = new node, nodes[2 * MAXN], *ncur = nodes;
+node *V[MAXN], *E[MAXN];
+
+void print (node *n) {
+	printf("%d: p = %d, ch[0] = %d, ch[1] = %d, m = %d, r = %d, v = %d, w = %d, s = %d.\n", n -> id, n -> p -> id, n -> ch[0] -> id, n -> ch[1] -> id, n -> m -> id, n -> r, n -> v, n -> w, n -> s);	
+}
+
+void print() {
+	puts("-------------DEBUG------------");
+	for (int i = 1; i <= N; i++) {
+		print(V[i]);
+	}
+	puts("-----");
+	for (int i = 1; i <= M; i++) {
+		node *n = E[i];
+		if (n == NULL) {
+			break;
+		}
+		print(n);
+	}
+	puts("-------------NOW END DEBUG------------");
+}
+
+node *getnode (int v, int w, int id) {
+	node *res = ncur++;
+	res -> ch[0] = res -> ch[1] = res -> p = null;
+	res -> m = res;
+	res -> v = v;
+	res -> w = w;
+	res -> s = v;
+	res -> id = id;
+	return res;
+}
+
+int getdir (node *n) {
+	if (n -> p == null) {
+		return -1;
+	}
+	for (int i = 0; i < 2; i++) {
+		if (n == n -> p -> ch[i]) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+bool isroot (node *n) {
+	return getdir(n) == -1;
+}
+
+node *max (node *u, node *v) {
+	//max by weight (i.e. edge)
+	return u -> w > v -> w ? u : v;
+}
+
+void setc (node *n, node *c, int d) {
+	n -> ch[d] = c;
+	if (c != null) {
+		c -> p = n;
+	}
+}
+
+void rev (node *n) {
+	swap(n -> ch[0], n -> ch[1]);
+	n -> r ^= 1;
+}
+
+void push (node *n) {
+	if (n -> r) {
+		for (node *c : n -> ch) {
+			if (c != null) {
+				rev(c);
+			}
+		}
+		n -> r = 0;
+	}
+}
+
+void pull (node *n) {
+	//called when either child is changed, or data is modified.
+#warning pull is tricky. what about other fields?
+	n -> m = max(max(n -> ch[0] -> m, n -> ch[1] -> m), n);
+	n -> s = n -> ch[0] -> s + n -> ch[1] -> s + n -> v;
+}
+
+void rot (node *n) {
+	node *p = n -> p, *g = p -> p;
+	bool d = getdir(n);
+	if (!isroot(p)) {
+		g -> ch[getdir(p)] = n;
+	}
+	setc(p, n -> ch[!d], d);
+	n -> p = g;	//this line forgot include...
+#warning is this correct (in rot function)?
+	setc(n, p, !d);
+	pull(p);
+	pull(n);
+}
+
+void splay (node *n) {
+	while (!isroot(n)) {
+		node *p = n -> p;
+		if (!isroot(p)) {
+			push(p -> p);
+		}
+		push(p);
+		push(n);
+		if (!isroot(p)) {
+			rot(getdir(n) == getdir(p) ? n : p);
+		}
+		rot(n);
+	}
+	push(n);
+}
+
+void expose (node *n) {
+	for (node *cur = n, *v = null; cur != null; v = cur, cur = cur -> p) {
+		splay(cur);
+		assert(v == null || v -> p == cur);
+		// setc(cur, v, 1);
+		cur -> v += cur -> ch[1] -> s - v -> s;
+		cur -> ch[1] = v;
+		pull(cur);
+	}
+	splay(n);
+}
+
+void evert (node *u) {
+	expose(u);
+	rev(u);
+}
+
+void link (node *u, node *v) {
+	// printf("link %d %d\n", u -> id, v -> id);
+	evert(u);
+	// printf("cool u. "); print(u);
+	evert(v);
+	// printf("cool v. "); print(v);
+	u -> p = v;
+	v -> v += u -> s;
+	// printf("end u. "); print(u);
+	// printf("end v. "); print(v);
+}
+
+void cut (node *u, node *v) {
+	evert(v);
+	expose(u);
+	push(v);
+	//cut it now
+	splay(u);
+	// printf("\t\tcutting thing %d %d\n", u -> id, v -> id);
+	// print();
+	//now cut par-child relationships, splayed!
+	v -> p = null;
+	u -> ch[0] = null;
+	// puts("\t\tafter cutting");
+	// print();
+}
+
+node *path_max (node *u, node *v) {
+	evert(u);
+	expose(v);
+	return v -> m;
+}
+
+int size (node *u) {
+	//need to apparently do this
+	evert(u);
+	return u -> s;
+}
+
+bool conn (node *u, node *v) {
+	expose(u);
+	expose(v);
+	// puts("--after exposing--");
+	// print();
+	return u -> p != null;
+}
+
+struct edge {
+	int a, b, w, id;
+	bool operator < (const edge &e) const {
+		return w == e.w ? id > e.id : w > e.w;
+	}
+};
+
+vector<edge> ed(1);
+set<edge> s;
+
+void add_edge (edge e) {
+	// printf("Add edge %d %d with id %d\n", e.a, e.b, e.id);
+	node *va = V[e.a], *vb = V[e.b], *ve = E[e.id];
+	if (size(va) % 2 && size(vb) % 2) {
+		D -= 2;
+	}
+	link(va, ve);
+	link(vb, ve);
+	// puts("veeaabb");
+	// printf("vee %d vaa %d vbb %d\n", size(ve), size(va), size(vb));
+	// print();
+}
+
+bool del_edge (edge e) {
+	node *va = V[e.a], *vb = V[e.b], *ve = E[e.id];
+	cut(va, ve);
+	cut(vb, ve);
+	if (size(va) % 2 && size(vb) % 2) {
+		D += 2;
+	}
+	return size(va) % 2 == 0;
+}
+
+void new_edge (int a, int b, int w) {
+	int id = ed.size();
+	edge e = {a, b, w, id};
+	ed.push_back(e);
+	E[id] = getnode(0, w, id);
+	if (conn(V[a], V[b])) {
+		node *m = path_max(V[a], V[b]);
+		if (m -> w <= w) {
+			return;
+		}
+		edge ee = ed[m -> id];
+		del_edge(ee);
+		s.erase(ee);
+	}
+	add_edge(e);
+	s.insert(e);
+}
+
+int max_cost() {
+	if (D) {
+		return -1;
+	}
+	while (del_edge(*s.begin())) {
+		s.erase(s.begin());
+	}
+	edge e = *s.begin();
+	add_edge(e);
+	return e.w;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	//init
+	null -> ch[0] = null -> ch[1] = null -> p = null -> m = null;
+	null -> r = null -> v = null -> w = null -> s = 0;
+	null -> id = 0;
+	scanf("%d %d", &N, &M);
+	for (int i = 1; i <= N; i++) {
+		V[i] = getnode(1, 0, M + i);
+	}
+	D = N;
+	// puts("---gddddiiiii---");
+	// for (int j = 1; j <= N; j++) {
+	// 	printf("size(%d) = %d, ", j, size(V[j]));
+	// }
+	// puts("\n-----blffff----");
+	for (int i = 1, a, b, w; i <= M; i++) {
+		scanf("%d %d %d", &a, &b, &w);
+		new_edge(a, b, w);
+		printf("%d\n", max_cost());
+		// printf("D = %d\n", D);
+		/*
+		for (int j = 1; j <= N; j++) {
+			printf("size(%d) = %d, ", j, size(V[j]));
+		}
+		puts("");
+		print();
+		*/
+	}
+}

@@ -1,0 +1,125 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD {
+    BufferedReader rd;
+
+    ProblemD() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int n = pint();
+        Map<Integer, Set<Integer>> m = new HashMap<>();
+        int[][] p = new int[n][];
+        for(int i=0;i<n;i++) {
+            p[i] = intarr();
+            m.computeIfAbsent(p[i][0], k -> new HashSet<>()).add(p[i][1]);
+        }
+        int[] y = new int[3];
+        long res = 0;
+        for(y[0]=0;y[0]<n;y[0]++) {
+            for(y[1]=y[0]+1;y[1]<n;y[1]++) {
+                for(y[2]=y[1]+1;y[2]<n;y[2]++) {
+                    for(int d=0;d<3;d++) {
+                        int g = (d+1)%3;
+                        int h = (d+2)%3;
+                        int dx = p[y[d]][0] - p[y[g]][0];
+                        int dy = p[y[d]][1] - p[y[g]][1];
+                        int nx = p[y[h]][0] + dx;
+                        int ny = p[y[h]][1] + dy;
+                        Set<Integer> s = m.get(nx);
+                        if(s != null) {
+                            if(s.contains(ny)) {
+                                res++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        out(res / 4);
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

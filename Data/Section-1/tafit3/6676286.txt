@@ -1,0 +1,130 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Iterator;
+
+/**
+ * Date: 11.05.14
+ * Time: 17:48
+ */
+public class ShowerLine {
+    private ShowerLine() throws IOException {
+        BufferedReader rd = new BufferedReader(new InputStreamReader(System.in));
+        String h;
+        String[] q;
+        int[][] a = new int[5][5];
+        for(int i=0;i<5;i++) {
+            h = rd.readLine();
+            q = h.split("\\s+");
+            for(int j=0;j<5;j++) {
+                a[i][j] = Integer.parseInt(q[j]);
+            }
+        }
+        Iterator<int[]> it = new PermIterator(5);
+        int maxHappiness = 0;
+        while(it.hasNext()) {
+            int[] p = it.next();
+            int[] happiness = new int[5];
+            for(int i=0;i<5;i++) {
+                for(int j=i;j<4;j+=2) {
+                    happiness[p[j]] += a[p[j]][p[j+1]];
+                    happiness[p[j+1]] += a[p[j+1]][p[j]];
+                }
+            }
+            int hapSum = 0;
+            for(int i: happiness) {
+                hapSum += i;
+            }
+            maxHappiness = Math.max(maxHappiness, hapSum);
+        }
+        out(maxHappiness);
+    }
+
+
+    private int fac(int i) {
+        int a = 1;
+        int b = i;
+        while(b > 1) {
+            a *= b;
+            b--;
+        }
+        return a;
+    }
+
+    private class PermIterator implements Iterator<int[]> {
+        private final boolean[] d;
+        private final int n;
+        private int[][] p;
+        private int act;
+        private boolean nextAvail;
+
+        private PermIterator(int n) {
+            d = new boolean[n];
+            this.n = n;
+            p = new int[2][n];
+            for(int i=0;i<n;i++) {
+                p[0][i] = i;
+            }
+            nextAvail = true;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return nextAvail;
+        }
+
+        private void computeNext() {
+            int y = n-1;
+            for(int i=0;i<n;i++) d[i]=false;
+            d[p[act][y]] = true;
+            while(y > 0 && p[act][y] < p[act][y-1]) {
+                y--;
+                d[p[act][y]] = true;
+            }
+            if(y == 0) {
+                nextAvail = false;
+            } else {
+                d[p[act][y-1]] = true;
+                if(y > 1) {
+                    System.arraycopy(p[act],0,p[1-act],0,y-1);
+                }
+                for(int j=p[act][y-1]+1;j<n;j++) {
+                    if(d[j]) {
+                        p[1-act][y-1] = j;
+                        d[j]=false;
+                        break;
+                    }
+                }
+
+                for(int j=0;j<n;j++) {
+                    if(d[j]) {
+                        p[1-act][y] = j;
+                        y++;
+                        if(y == n) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        @Override
+        public int[] next() {
+            computeNext();
+            act = 1-act;
+            return p[1-act];
+        }
+
+        @Override
+        public void remove() {}
+    }
+
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ShowerLine();
+    }
+}

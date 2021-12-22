@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 1300
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+#define ex 0.000001
+
+using namespace std;
+int n, m, q, t[mn][mn], rig[mn * mn];
+int bel[mn * mn], co[mn * mn];
+
+void setup()
+{
+    cin >> n >> m >> q;
+    int r = 0;
+    FOR(i, 0, n)
+    FOR(j, 0, m)
+        t[i][j] = ++ r;
+    FOR(i, 0, n)
+    FOR(j, 0, m)
+    {
+        rig[t[i][j]] = t[i][j + 1];
+        bel[t[i][j]] = t[i + 1][j];
+    }
+    FOR(i, 1, n)
+    FOR(j, 1, m)
+        cin >> co[t[i][j]];
+}
+
+int reach(int x, int y)
+{
+    int cur = 1;
+    FOR(i, 1, x)
+        cur = bel[cur];
+    FOR(i, 1, y)
+        cur = rig[cur];
+    return cur;
+}
+
+void xuly()
+{
+    int a, b, c, d, h, w;
+    FOR(i, 1, q)
+    {
+        cin >> a >> b >> c >> d >> h >> w;
+        int l1 = reach(a, b - 1);
+        int l2 = reach(c, d - 1);
+        int r1 = reach(a, b + w - 1);
+        int r2 = reach(c, d + w - 1);
+        int u1 = reach(a - 1, b);
+        int u2 = reach(c - 1, d);
+        int d1 = reach(a + h - 1, b);
+        int d2 = reach(c + h - 1, d);
+        FOR(i, 1, h)
+        {
+            swap(rig[l1], rig[l2]);
+            swap(rig[r1], rig[r2]);
+            l1 = bel[l1], l2 = bel[l2];
+            r1 = bel[r1], r2 = bel[r2];
+        }
+        FOR(i, 1, w)
+        {
+            swap(bel[u1], bel[u2]);
+            swap(bel[d1], bel[d2]);
+            u1 = rig[u1], u2 = rig[u2];
+            d1 = rig[d1], d2 = rig[d2];
+        }
+    }
+    int st = rig[bel[1]], x = 1, y = 1, beg = st;
+    while(x <= n)
+    {
+        cout << co[st] << ' ';
+        if (y < m)
+            y ++, st = rig[st];
+        else
+            x ++, y = 1, st = beg = bel[beg], cout << '\n';
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

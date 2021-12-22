@@ -1,0 +1,117 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int MAX_N = 1000000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+int a[MAX_N], a1[MAX_N];
+vector<int> tree[MAX_N * 4];
+int cnt = 1;
+
+void make_tree(int n)
+{
+    while (cnt < n)
+        cnt *= 2;
+    for (int i = 0; i < n; i++)
+        tree[cnt - 1 + i].push_back(a[i]);
+    for (int i = cnt - 2; i >= 0; i--)
+    {
+        int u1 = 0, u2 = 0;
+        while (u1 < tree[i * 2 + 1].size() || u2 < tree[i * 2 + 2].size())
+            if (u2 == tree[i * 2 + 2].size())
+            {
+                tree[i].push_back(tree[i * 2 + 1][u1]);
+                u1++;
+            }
+            else if (u1 == tree[i * 2 + 1].size())
+            {
+                tree[i].push_back(tree[i * 2 + 2][u2]);
+                u2++;
+            }
+            else
+            {
+                if (tree[i * 2 + 1][u1] >= tree[i * 2 + 2][u2])
+                {
+                    tree[i].push_back(tree[i * 2 + 1][u1]);
+                    u1++;
+                }
+                else
+                {
+                    tree[i].push_back(tree[i * 2 + 2][u2]);
+                    u2++;
+                }
+            }
+    }
+}
+
+int count(int x, int lx, int rx, int l, int r, int v)
+{
+    if (r < lx || l > rx)
+        return 0;
+    else if (lx >= l && rx <= r)
+    {
+        int lb = -1, rb = tree[x].size(), mid;
+        while (rb - lb > 1)
+        {
+            mid = (lb + rb) / 2;
+            if (v < tree[x][mid])
+                lb = mid;
+            else
+                rb = mid;
+        }
+        return lb + 1;
+    }
+    else
+        return count(x * 2 + 1, lx, (lx + rx) / 2, l, r, v) + count(x * 2 + 2, (lx + rx) / 2 + 1, rx, l, r, v);
+}
+
+int main()
+{
+    //ifstream ifs("input.in");
+    //ofstream ofs("output.out");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n;
+    scanf_s("%d", &n);
+    for (int i = 0; i < n; i++)
+        scanf_s("%d", &a[i]);
+    map<int, int> m;
+    for (int i = n - 1; i >= 0; i--)
+    {
+        if (m.find(a[i]) == m.end())
+            m[a[i]] = 0;
+        m[a[i]]++;
+        a1[i] = m[a[i]];
+    }
+    m.clear();
+    for (int i = 0; i < n; i++)
+    {
+        if (m.find(a[i]) == m.end())
+            m[a[i]] = 0;
+        m[a[i]]++;
+        a[i] = m[a[i]];
+    }
+    make_tree(n);
+    long long ans = 0;
+    for (int i = 1; i < n; i++)
+        ans += count(0, cnt - 1, cnt * 2 - 2, cnt - 1, cnt - 1 + i - 1, a1[i]);
+    printf("%I64d", ans);
+    return 0;
+}

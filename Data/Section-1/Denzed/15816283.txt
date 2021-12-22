@@ -1,0 +1,97 @@
+#include <bits/stdc++.h>
+
+#define f       first
+#define s       second
+#define mp      make_pair
+#define rank    something_which_is_supposed_to_be_rank
+#define left    something_which_is_supposed_to_be_left
+#define right   something_which_is_supposed_to_be_right
+
+using namespace std;
+
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+
+const int N = 500;
+
+int n, m, parent[N], rank[N], reversed[N], color[N];
+bool matrix[N][N];
+
+inline int find_set(int v) {
+    if (v == parent[v]) {
+        return v;
+    }
+    return parent[v] = find_set(parent[v]);
+}
+
+inline void union_sets(int a, int b) {
+    bool flag = (color[b] == color[a]);
+    a = find_set(a);
+    b = find_set(b);
+    if (a != b) {
+        if (rank[a] < rank[b]) {
+            swap(a, b);
+        }
+        if (flag) {
+            for (int i = 0; i < n; ++i) {
+                if (find_set(i) == b) {
+                    color[i] = 2 - color[i];
+                }
+            }
+        }
+        parent[b] = a;
+        if (rank[a] == rank[b]) {
+            ++rank[a];
+        }
+    }
+}
+
+inline void Nay() {
+    cout << "No\n";
+    exit(0);
+}
+
+int main() {
+    cin.sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n >> m;
+    for (int i = 0; i < n; ++i) {
+        parent[i] = i;
+    }
+    for (int a, b; m--; ) {
+        cin >> a >> b;
+        --a, --b;
+        matrix[a][b] = matrix[b][a] = true;
+    }
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            if (i != j && !matrix[i][j]) {
+                union_sets(i, j);
+            }
+        }
+    }
+    for (int i = 0; i < n; ++i) {
+        if (find_set(i) == i && !rank[i]) {
+            color[i] = 1;
+        }
+    }
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            if (i == j) {
+                continue;
+            }
+            if (matrix[i][j] != (abs(color[i] - color[j]) < 2)) {
+                Nay();
+            }
+        }
+    }
+    cout << "Yes\n";
+    for (int i = 0; i < n; ++i) {
+        cout << char('a' + color[i]);
+    }
+    cout << "\n";
+    cerr << "Time elapsed: " << (ld) clock() / CLOCKS_PER_SEC << "\n";
+    return 0;
+}

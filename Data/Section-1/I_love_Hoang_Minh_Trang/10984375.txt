@@ -1,0 +1,149 @@
+const   fi      ='';//'540C.inp';
+        fo      ='';//'540C.out';
+        maxn    =trunc(1e3)+3;
+        maxm    =trunc(1e3)*2;
+
+type    data    =record
+        x,y:longint;
+        end;
+        arr1    =array[0..maxn,0..maxm] of longint;
+        arr2    =array[0..maxn,0..maxm] of boolean;
+        arr3    =array[0..maxn,0..maxm] of data;
+var     n, m    :longint;
+        count   :longint;
+        top     :longint;
+        a       :arr1;
+        vet     :arr3;
+        free    :arr2;
+        dx      :array[1..4] of longint=(-1,0,1,0);
+        dy      :Array[1..4] of longint=(0,1,0,-1);
+        r1,c1   :longint;
+        r2,c2   :longint;
+        b       :Arr1;
+        trace   :Arr3;
+        cx      :arr2;
+        find    :boolean;
+
+function inrange(x,y:longint):boolean;
+begin
+        if (x>0) and (x<=n) and (y>0) and (y<=m) then exit(true);
+        exit(false);
+end;
+
+procedure Visit(x,y:longint);
+var     i, j, u,v:longint;
+begin
+        //writeln(x,' ',y,'=');
+        if find then exit;
+        cx[x,y]:=false;
+        for i:=1 to 4 do
+        begin
+                u:=x+dx[i];
+                v:=y+dy[i];
+                if inrange(u,v) and (u=r2) and (v=c2) then
+                begin
+                        find:=true;
+                        exit;
+                end;
+                if inrange(u,v) and cx[u,v] and (b[u,v]=0) then
+                begin
+                        vet[u,v].x:=x;
+                        vet[u,v].y:=y;
+                        Visit(u,v);
+                end;
+        end;
+end;
+procedure update;
+var     i, j, x, y      :longint;
+begin
+        if (a[r2,c2]=1) and (not ((r2=r1) and (c1=c2))) then
+        begin
+                writeln('YES');
+                halt;
+        end;
+        x:=r2;y:=c2;
+        for i:=1 to n do
+        for j:=1 to m do b[i,j]:=a[i,j];
+        //writeln(x,' == ',y);
+        //writeln(r2,'=',c2);
+        while not ((x=r1) and (y=c1)) do
+        begin
+                //writeln(x,' ',y);
+                //writeln(x,' ',y,' ',r1,' ',c1);
+                //if (x=r1) and (y=c1) then break;
+                b[x,y]:=1;
+                i:=vet[x,y].x;
+                j:=vet[x,y].y;
+                x:=i;
+                y:=j;
+         //       if (x*y=0) then break;
+        end;
+
+        //writeln('trueee');
+        fillchar(trace,sizeof(trace),0);
+        fillchar(cx,sizeof(cx),true);
+        find:=false;
+        Visit(r2,c2);
+        if find then
+        begin
+                writeln('YES');
+                halt;
+        end;
+
+end;
+
+procedure Dfs(x,y:longint);
+var     i, v ,u, j   :longint;
+begin
+      //  writeln(x,' ',y,' ',vet[x,y].x,' ',vet[x,y].y);
+        if (x=r2) and (y=c2) then update
+        else
+        begin
+                free[x,y]:=false;
+                for i:=1 to 4 do
+                begin
+                        u:=x+dx[i];
+                        v:=y+dy[i];
+                        if inrange(u,v) and free[u,v] and ((a[u,v]=0) or ((u=r2) and (v=c2)))  then
+                        begin
+                                vet[u,v].x:=x;
+                                vet[u,v].y:=y;
+                                dfs(u,v);
+                        end;
+                end;
+        end;
+end;
+
+procedure xuly;
+begin
+        fillchar(free,sizeof(free),true);
+        fillchar(vet,sizeof(vet),0);
+        dfs(r1,c1);
+        writeln('NO');
+end;
+
+procedure run;
+var     i, j    :longint;
+        ch :char;
+begin
+        assign(input,fi);assign(output,fo);
+        reset(input);rewrite(output);
+        readln(n, m);
+        for i:=1 to n do
+        begin
+                for j:=1 to m do
+                begin
+                        read(ch);
+                        if ch='.' then a[i,j]:=0 else a[i,j]:=1;
+                end;
+                readln;
+        end;
+        readln(r1,c1);
+        readln(r2,c2);
+        xuly;
+        close(input);close(output);
+end;
+
+begin
+        run;
+end.

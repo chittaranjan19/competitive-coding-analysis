@@ -1,0 +1,132 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define pb push_back
+#define mp make_pair
+#define LL long long
+#define mn 1003
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+struct point{
+    double x, y;
+    point(){x = y = 0;};
+    point(double _x, double _y){x = _x, y = _y;};
+
+    bool between(point a, point b)
+    {
+        if (x > max(a.x, b.x) || x < min(a.x, b.x))
+            return false;
+        if (y > max(a.y, b.y) || y < min(a.y, b.y))
+            return false;
+        return true;
+    }
+};
+
+LL gcd(LL a, LL b)
+{
+    a = abs(a), b = abs(b);
+    if (b == 0)
+        return a;
+    return gcd(b, a % b);
+}
+
+struct dt{
+    LL a, b, c;
+    dt(){a = b = c = 0;}
+    dt(point x, point y)
+    {
+        LL xx = x.x - y.x;
+        LL yy = x.y - y.y;
+        a = yy, b = -xx;
+        c = - (a * x.x + b * x.y);
+        LL d = gcd(gcd(a, b), c);
+        a /= d, b /= d, c /= d;
+        if (a < 0)
+            a = -a, b = -b, c = -c;
+    }
+};
+
+point intersect(dt a, dt b)
+{
+    if (a.a == b.a && a.b == b.b)
+    {
+        if (a.c == b.c)
+            return point(-1, -1);
+        return point(-2, -2);
+    }
+    double rex, rey;
+    long long dc = a.a * b.b - a.b * b.a;
+    long long da = a.b * b.c - a.c * b.b;
+    long long db = a.a * b.c - a.c * b.a;
+    rex = da / dc;
+    rey = - db / dc;
+    return point(rex, rey);
+}
+
+int n, greet[mn];
+pair<point, point> men[mn];
+
+void setup ()
+{
+    cin >> n;
+    int t, s, f;
+    FOR(i, 1, n)
+    {
+        cin >> t >> s >> f;
+        if (s < f)
+            men[i] = mp(point(t, s), point(t + f - s, f));
+        else
+            men[i] = mp(point(t, s), point(t + s - f, f));
+    }
+}
+
+void xuly()
+{
+    FOR(i, 1, n - 1)
+    FOR(j, i + 1, n)
+    {
+        dt a = dt(men[i].F, men[i].S);
+        dt b = dt(men[j].F, men[j].S);
+        point k = intersect(a, b);
+        if (k.x == -2 && k.y == -2)
+            continue;
+        if (k.x == -1 && k.y == -1)
+        {
+            bool ok = false;
+            if (men[i].F.between(men[j].F, men[j].S))
+                ok = true;
+            if (men[i].S.between(men[j].F, men[j].S))
+                ok = true;
+            if (men[j].F.between(men[i].F, men[i].S))
+                ok = true;
+            if (men[j].S.between(men[i].F, men[i].S))
+                ok = true;
+            if (ok)
+            {
+                greet[i] ++;
+                greet[j] ++;
+            }
+            continue;
+        }
+        if (k.between(men[i].F, men[i].S) && k.between(men[j].F, men[j].S))
+        {
+            greet[i] ++;
+            greet[j] ++;
+        }
+    }
+    FOR(i, 1, n)
+    cout << greet[i] << " ";
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

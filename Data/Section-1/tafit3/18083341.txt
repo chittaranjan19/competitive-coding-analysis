@@ -1,0 +1,228 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class ProblemB {
+    private final Frac ONE = new Frac(1,1);
+    private final Frac ZERO = new Frac(0,1);
+    BufferedReader rd;
+    List<Glass> g;
+
+    ProblemB() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        g = new ArrayList<>();
+        for(int i=0;i<a[0];i++) {
+            for(int j=0;j<=i;j++) {
+                Glass glass = new Glass();
+                glass.in = i==0?ONE:ZERO;
+                glass.state = ZERO;
+                glass.id = g.size();
+                glass.level = i;
+                g.add(glass);
+            }
+        }
+        int c = 0;
+        for(int i=0;i<a[1];i++) {
+            Map<Integer, Frac> toAddIn = new HashMap<>();
+            for(Glass glass: g) {
+                if(glass.in.l > 0) {
+                    glass.state = glass.state.add(glass.in);
+                    int cmp = glass.state.compareTo(ONE);
+                    if(cmp >= 0) {
+                        c++;
+                        if(glass.id+glass.level+1 < g.size()) {
+                            Frac lower = glass.in.div2();
+                            Frac additional = glass.state.subtract(ONE);
+                            glass.state = ONE;
+                            if(additional.compareTo(ZERO) != 0) {
+                                add(glass, additional);
+                            }
+                            for(int k=1;k<=2;k++) {
+                                int y = glass.id+glass.level + k;
+                                toAddIn.put(y, toAddIn.getOrDefault(y,ZERO).add(lower));
+                            }
+                        }
+                        glass.in = ZERO;
+                    }
+                }
+            }
+
+            while(!toAddIn.isEmpty()) {
+                Map<Integer, Frac> toAddIn2 = new HashMap<>();
+                for (Map.Entry<Integer, Frac> e : toAddIn.entrySet()) {
+                    Glass x = g.get(e.getKey());
+                    if (x.state.compareTo(ONE) < 0) {
+                        x.in = x.in.add(e.getValue());
+                    } else {
+                        if (x.id + x.level + 1 < g.size()) {
+                            Frac lower = e.getValue().div2();
+                            for (int k = 1; k <= 2; k++) {
+                                int y = x.id + x.level + k;
+                                toAddIn2.put(y, toAddIn2.getOrDefault(y, ZERO).add(lower));
+                            }
+                        }
+                    }
+                }
+                toAddIn = toAddIn2;
+            }
+        }
+        out(c);
+    }
+
+    private void add(Glass glass, Frac additional) {
+        boolean divide = false;
+        if(glass.state.compareTo(ONE) == 0) {
+            divide = true;
+        } else {
+            glass.state = glass.state.add(additional);
+            if(glass.state.compareTo(ONE) > 0) {
+                additional = glass.state.subtract(ONE);
+                glass.state = ONE;
+                divide = true;
+            }
+        }
+        if(divide) {
+            if(glass.id+glass.level+1 < g.size()) {
+                Frac d = additional.div2();
+                for(int k=1;k<=2;k++) {
+                    add(g.get(glass.id+glass.level+k), d);
+                }
+            }
+        }
+    }
+
+    private class Glass {
+        int id;
+        int level;
+        Frac in;
+        Frac state;
+    }
+
+    private class Frac implements Comparable<Frac> {
+        final long l,m;
+
+        public Frac(long l, long m) {
+            long g = gcd(l,m);
+            this.l = l/g;
+            this.m = m/g;
+        }
+
+        public Frac add(Frac a) {
+            return new Frac(a.l*m+l*a.m,m*a.m);
+        }
+
+        public Frac subtract(Frac a) {
+            return new Frac(l*a.m-a.l*m,m*a.m);
+        }
+
+        public Frac div2() {
+            return new Frac(l, m*2);
+        }
+
+        public String toString() {
+            return l+"/"+m;
+        }
+
+        @Override
+        public int compareTo(Frac z) {
+            long a = l*z.m;
+            long b = m*z.l;
+            if(a > b) {
+                return 1;
+            } else if(a < b) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    public static long gcd(long a, long b) {
+        while (b > 0) {
+            long c = a % b;
+            a = b;
+            b = c;
+        }
+        return a;
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB();
+    }
+}

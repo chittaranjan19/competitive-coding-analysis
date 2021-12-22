@@ -1,0 +1,100 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define ppcnt __builtin_popcount
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 10;
+
+int N, M, K;
+bool adj[MAXN][MAXN];
+int dp[1 << MAXN][1 << MAXN];
+
+bool testbit (int x, int b) {
+	return (x >> b) & 1;
+}
+
+int getdp (int msub, int mleaf) {
+	if (ppcnt(mleaf) < 2) {
+		return 0;
+	}
+	int &ref = dp[msub][mleaf];
+	if (ref != -1) {
+		return ref;
+	}
+	ref = 0;
+	//you take the one leaf out
+	int t = __builtin_ctz(mleaf);
+	for (int i = 0; i < N; i++) {
+		//take this one out
+		if (testbit(msub, i) && !testbit(mleaf, i) && adj[t][i]) {
+			//remove this edge
+			int nb = msub ^ (1 << t), nl = mleaf ^ (1 << t);
+			ref += getdp(nb, nl) + getdp(nb, nl ^ (1 << i));
+		}
+	}
+	return ref;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	cin >> N >> M >> K;
+	for (int a, b; M--; ) {
+		cin >> a >> b;
+		a--;
+		b--;
+		adj[a][b] = adj[b][a] = true;
+	}
+	memset(dp, -1, sizeof(dp));
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < N; j++) {
+			if (adj[i][j]) {
+				int b = (1 << i) ^ (1 << j);
+				dp[b][b] = 1;
+			}
+		}
+	}
+	int ans = 0;
+	for (int i = 3; i < (1 << N); i++) {
+		if (ppcnt(i) == K) {
+			ans += getdp((1 << N) - 1, i);
+		}
+	}
+	cout << ans << endl;
+}

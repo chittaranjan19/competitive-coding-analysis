@@ -1,0 +1,187 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD {
+    Map<Integer, Map<Integer, Road>> roadMap = new HashMap<Integer, Map<Integer, Road>>();
+    int result;
+    long[] lens;
+
+    private ProblemD() throws IOException {
+        BufferedReader rd = new BufferedReader(new InputStreamReader(System.in));
+        String h = rd.readLine();
+        String[] q = h.split("\\s+");
+        int n = Integer.parseInt(q[0]);
+        int m = Integer.parseInt(q[1]);
+        int k = Integer.parseInt(q[2]);
+
+        for(int i=0;i<m;i++) {
+            h = rd.readLine();
+            q = h.split("\\s+");
+            int u = Integer.parseInt(q[0])-1;
+            int v = Integer.parseInt(q[1])-1;
+            int x = Integer.parseInt(q[2]);
+            addRoad(u,v,x, false);
+        }
+
+        for(int i=0;i<k;i++) {
+            h = rd.readLine();
+            q = h.split("\\s+");
+            int s = Integer.parseInt(q[0])-1;
+            int y = Integer.parseInt(q[1]);
+            addRoad(0, s, y, true);
+        }
+        computeTrainsInUse(n);
+        computeWithoutTrains(n);
+        out(result);
+    }
+
+    private void computeTrainsInUse(int n) {
+        boolean[] v = new boolean[n];
+        lens = new long[n];
+        for(int i=1;i<n;i++) {
+            lens[i] = 5000000000000000000L;
+        }
+
+
+        SortedMap<Long, Set<Integer>> pq = new TreeMap<Long, Set<Integer>>();
+        pq.put(0L, new HashSet<Integer>(Arrays.asList(0)));
+        while(!pq.isEmpty()) {
+            Long len = pq.firstKey();
+            Set<Integer> nds = pq.get(len);
+            Iterator<Integer> it = nds.iterator();
+            Integer elNode = it.next();
+            if(nds.size() == 1) {
+                pq.remove(len);
+            } else {
+                it.remove();
+            }
+            Map<Integer, Road> rds = roadMap.get(elNode);
+            if(rds != null) {
+                for(Map.Entry<Integer, Road> ed: rds.entrySet()) {
+                    int node2 = ed.getKey();
+                    Road road = ed.getValue();
+                    if(!v[node2]) {
+                        if(lens[node2] > lens[elNode] + road.len) {
+                            lens[node2] = lens[elNode] + road.len;
+                            Set<Integer> els = pq.get(lens[node2]);
+                            if(els == null) {
+                                els = new HashSet<Integer>();
+                                pq.put(lens[node2], els);
+                            }
+                            els.add(node2);
+                        }
+                    }
+                }
+            }
+            v[elNode] = true;
+        }
+    }
+
+    private void computeWithoutTrains(int n) {
+        boolean[] v = new boolean[n];
+        long[] lens2 = new long[n];
+        for(int i=1;i<n;i++) {
+            lens2[i] = 5000000000000000000L;
+        }
+
+        SortedMap<Long, Set<Integer>> pq = new TreeMap<Long, Set<Integer>>();
+        pq.put(0L, new HashSet<Integer>(Arrays.asList(0)));
+        while(!pq.isEmpty()) {
+            Long len = pq.firstKey();
+            Set<Integer> nds = pq.get(len);
+            Iterator<Integer> it = nds.iterator();
+            Integer elNode = it.next();
+            if(nds.size() == 1) {
+                pq.remove(len);
+            } else {
+                it.remove();
+            }
+            Map<Integer, Road> rds = roadMap.get(elNode);
+            if(rds != null) {
+                for(Map.Entry<Integer, Road> ed: rds.entrySet()) {
+                    Road road = ed.getValue();
+                    if(!road.train) {
+                        int node2 = ed.getKey();
+                        if(!v[node2]) {
+                            if(lens2[node2] > lens2[elNode] + road.len) {
+                                lens2[node2] = lens2[elNode] + road.len;
+                                Set<Integer> els = pq.get(lens2[node2]);
+                                if(els == null) {
+                                    els = new HashSet<Integer>();
+                                    pq.put(lens2[node2], els);
+                                }
+                                els.add(node2);
+                            }
+                        }
+                    }
+                }
+            }
+            v[elNode] = true;
+        }
+
+        Map<Integer, Road> rq = roadMap.get(0);
+        for(int i=1;i<n;i++) {
+            Road road = rq.get(i);
+            if(road != null && road.train) {
+                if(lens[i] == lens2[i]) {
+                    result++;
+                } else if(lens[i] < road.len) {
+                    result++;
+                }
+            }
+        }
+    }
+
+    private class Road {
+        boolean train;
+        int len;
+
+        private Road(boolean train, int len) {
+            this.train = train;
+            this.len = len;
+        }
+    }
+
+    private void addRoad(int a,int b,int x, boolean train) {
+        addRoadInt(a,b,x,train, true);
+        addRoadInt(b,a,x,train, false);
+    }
+
+    private void addRoadInt(int a,int b,int x, boolean train, boolean add) {
+        Map<Integer, Road> roads = roadMap.get(a);
+        if(roads == null) {
+            roads = new HashMap<Integer, Road>();
+            roadMap.put(a, roads);
+        }
+        Road p = roads.get(b);
+        if(p == null) {
+            roads.put(b,new Road(train,x));
+        } else if(p.len > x) {
+            roads.put(b,new Road(train,x));
+            if(p.train && add) {
+                result++;
+            }
+        } else if(p.len == x) {
+            if(p.train) {
+                if(p.train && add) {
+                    result++;
+                }
+                p.train = false;
+            } else if(train && add) {
+                result++;
+            }
+        } else if(train && add) {
+            result++;
+        }
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

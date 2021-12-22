@@ -1,0 +1,149 @@
+#include<bits/stdc++.h>
+#define s(x) scanf("%d",&x)
+#define ll long long
+#define l(x) scanf("%lld",&x)
+#define cst int t; s(t); while(t--)
+#define fr freopen("in.txt", "r", stdin)
+#define finp ios_base::sync_with_stdio(false)
+#define pb push_back
+#define pf printf
+ ll mod=1000000007;
+
+using namespace std;
+
+char s[1009][1009];
+int v[1009][1009];
+int res[1009][1009];
+int n,m;
+int x;
+int id=1;
+vector<int> p,q;
+
+void bfs(int i, int j)
+{
+    v[i][j]=id,x++;
+    p.pb(i);
+    q.pb(j);
+    if(i<n-1&&s[i+1][j]=='.'&&v[i+1][j]==0)
+        bfs(i+1, j);
+    if(i>0&&s[i-1][j]=='.'&&v[i-1][j]==0)
+        bfs(i-1, j);
+    if(j<m-1&&s[i][j+1]=='.'&&v[i][j+1]==0)
+        bfs(i, j+1);
+    if(j>0&&s[i][j-1]=='.'&&v[i][j-1]==0)
+        bfs(i, j-1);
+}
+
+void buildres(void)
+{
+    memset(res, 0, sizeof(res));
+    memset(v, 0, sizeof(v));
+    for(int i=0; i<n; i++)
+    {
+        for(int j=0 ; j<m; j++)
+        {
+
+            x=0;
+            if(s[i][j]=='.' && res[i][j]==0){
+                p.clear();
+                q.clear();
+                bfs(i,j);
+            /*for(int k=0; k<n; k++)
+                for(int l=0; l<m; l++)
+                    if(v[k][l]==id)
+                        res[k][l]=x;*/
+            for(int k=0; k<p.size(); k++)
+                res[p[k]][q[k]]=x;
+            id++;
+            }
+
+        }
+    }
+
+
+}
+
+struct data{
+int val, id;
+};
+
+bool sortby(const data &a, const data &b)
+{
+    return a.id<b.id;
+}
+
+int main()
+{
+  // fr;
+  // freopen("out.txt","w",stdout);
+    s(n);
+    s(m);
+    for(int i=0; i<n; i++)
+        scanf("%s",s[i]);
+   // for(int i=0; i<n; i++) printf("%s\n",s[i]);
+    buildres();
+    for(int i=0; i<n; i++){
+        for(int j=0; j<m; j++){
+            int flag=0, add=0;
+            if(s[i][j]=='*'){
+                //int x=(1 + (i>0?res[i-1][j]:0) + (i<n-1?res[i+1][j]:0) + (j>0?res[i][j-1]:0) +(j<m-1?res[i][j+1]:0));
+                vector<data> p;
+                if(i>0)
+                {
+                    data t;
+                    t.val=res[i-1][j];
+                    t.id=v[i-1][j];
+                    p.pb(t);
+                }
+                if(i<n-1){
+                    data t;
+                    t.val=res[i+1][j];
+                    t.id=v[i+1][j];
+                    p.pb(t);
+                }
+                if(j>0){
+                    data t;
+                    t.val=res[i][j-1];
+                    t.id=v[i][j-1];
+                    p.pb(t);
+                }
+                if(j<m-1){
+                    data t;
+                    t.val=res[i][j+1];
+                    t.id=v[i][j+1];
+                    p.pb(t);
+                }
+                sort(p.begin(), p.end(), sortby);
+                int k=0;
+                int x=0;
+                while(k<p.size())
+                {
+                    x+=p[k].val;
+                   // cout<<p[k].val<<' '<<p[k].id<<' ';
+                    int l=k;
+                    while(l<p.size() && p[l].id==p[k].id)
+                        l++;
+                    k=l;
+                }
+                x++;
+                //cout<<x<<endl;
+                s[i][j]='0'+x%10;
+            }
+           // printf("%3d ,",res[i][j]);
+           // cout<<v[i][j]<<' ';
+        }
+           // cout<<endl;
+        }
+    for(int i=0; i<n; i++) printf("%s\n",s[i]);
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+

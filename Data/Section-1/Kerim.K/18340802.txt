@@ -1,0 +1,142 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll n,arr[MAXN],lazy[MAXN<<2],q;
+struct node{
+	ll mn,dif,val;
+	void init(){
+		mn=dif=val=0;
+	}
+}s[MAXN<<2];
+node operator+(const node &x,const node &y){
+	node z;z.init();
+	z.mn=min(x.mn,y.mn);
+	if(x.dif and y.dif and x.val==y.val){
+		z.val=x.val;
+		z.dif=1;
+	}
+	return z;
+}
+node bul(ll x){
+	ll deg=42LL;node z;z.init();
+	for(ll i=1;i<12;i++){
+		if(x<=deg){
+			z.mn=deg-x;
+			z.dif=1;
+			z.val=x;
+			return z;
+		}
+		deg*=42LL;
+	}
+}
+void build(ll nd,ll x,ll y){
+	if(x==y){
+		s[nd]=bul(arr[x]);
+		return;
+	}
+	ll mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+	s[nd]=s[nd<<1]+s[nd<<1|1];
+}
+void shift(ll nd){
+	if(s[nd].dif){
+		s[nd<<1|1]=s[nd<<1]=s[nd];
+		lazy[nd<<1]=lazy[nd<<1|1]=lazy[nd];
+		return;
+	}
+	ll &v=lazy[nd];
+	if(!v)
+		return;
+	s[nd<<1].mn-=v;
+	lazy[nd<<1]+=v;
+	s[nd<<1].val+=v;
+	s[nd<<1|1].mn-=v;
+	lazy[nd<<1|1]+=v;
+	s[nd<<1|1].val+=v;
+	v=0;
+}
+ll tap(ll p,ll nd,ll x,ll y){
+	if(x==y)
+		return s[nd].val;
+	ll mid=(x+y)>>1;
+	shift(nd);
+	if(p<=mid)
+		return tap(p,nd<<1,x,mid);
+	return tap(p,nd<<1|1,mid+1,y);		
+}
+void update(ll l,ll r,ll v,ll nd,ll x,ll y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r and s[nd].dif){
+		s[nd]=bul(v);
+		return;
+	}
+	shift(nd);
+	ll mid=(x+y)>>1;
+	update(l,r,v,nd<<1,x,mid);
+	update(l,r,v,nd<<1|1,mid+1,y);
+	s[nd]=s[nd<<1]+s[nd<<1|1];
+}
+ll inc(ll l,ll r,ll v,ll nd,ll x,ll y){
+	if(l>y or x>r)
+		return 2e18;
+	if(l<=x and y<=r and s[nd].mn>v){
+		s[nd].mn-=v;
+		lazy[nd]+=v;
+		s[nd].val+=v;
+		return s[nd].mn;
+	}
+	if(l<=x and y<=r and s[nd].dif){
+		s[nd]=bul(s[nd].val+v);
+		return s[nd].mn;
+	}
+	shift(nd);
+	ll mid=(x+y)>>1;
+	ll i1=inc(l,r,v,nd<<1,x,mid);
+	ll i2=inc(l,r,v,nd<<1|1,mid+1,y);
+	s[nd]=s[nd<<1]+s[nd<<1|1];
+	return min(i1,i2);
+}
+int main(){
+	scanf("%lld%lld",&n,&q);
+	for(ll i=1;i<=n;i++)
+		scanf("%lld",arr+i);
+	build(1,1,n);
+	while(q--){
+		ll type;
+		scanf("%lld",&type);
+		if(type==1){
+			ll x;
+			scanf("%lld",&x);
+			printf("%lld\n",tap(x,1,1,n));
+		}
+		else if(type==2){
+			ll a,b,x;
+			scanf("%lld%lld%lld",&a,&b,&x);
+			update(a,b,x,1,1,n);
+		}
+		else{
+			ll a,b,x;
+			scanf("%lld%lld%lld",&a,&b,&x);
+			while(inc(a,b,x,1,1,n)==0){}
+		}
+	}
+	return 0;
+}

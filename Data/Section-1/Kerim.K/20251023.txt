@@ -1,0 +1,75 @@
+#include "bits/stdc++.h"
+#define MAXN 200009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+ll pw[MAXN];
+int n,vis[MAXN],go[MAXN];
+ll mod(ll x){
+	if(x<0)
+		x+=INF;
+	return (x%INF);
+}
+ll ans=1;
+void calc(int c,int sz){
+	ans=mod(ans*mod(mod(pw[c]-2)*pw[sz-c]));
+}
+int color=0;
+int S[MAXN],comp[MAXN];
+int seen[MAXN];
+vector<int>adj[MAXN];
+void dfs(int x,int cur){
+	if(vis[x]){
+		calc(cur-vis[x],S[comp[x]]);
+		return;
+	}
+	vis[x]=cur;
+	dfs(go[x],cur+1);
+}
+void bfs(int nd){
+	if(comp[nd])
+		return;
+	comp[nd]=color;S[color]++;
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i];
+		bfs(to);
+	}		
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	pw[0]=1LL;
+	for(int i=1;i<MAXN;i++)
+		pw[i]=mod(pw[i-1]*2LL);
+	scanf("%d",&n);
+	for(int i=1;i<=n;i++){
+		scanf("%d",go+i);
+		adj[i].pb(go[i]);
+		adj[go[i]].pb(i);
+	}
+	for(int i=1;i<=n;i++)
+		if(!comp[i])
+			color++,bfs(i);
+	for(int i=1;i<=n;i++)
+		if(!seen[comp[i]]){
+			seen[comp[i]]=1;
+			dfs(i,1);
+		}
+	printf("%lld\n",ans);
+	return 0;
+}
+ 

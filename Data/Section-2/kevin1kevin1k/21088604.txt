@@ -1,0 +1,43 @@
+from heapq import *
+
+n = int(raw_input())
+A = map(int, raw_input().split())
+
+cnt = 0
+Sum = [0]
+# A_i + ... + A_j = Sum[j] - Sum[i-1]
+for i in range(n):
+    cnt += A[i]
+    Sum.append(cnt)
+
+perm = map(int, raw_input().split())
+d = {(0, n+1): Sum[n] - Sum[0]}
+sum_num = {Sum[n] - Sum[0]: 1}
+heap = [-(Sum[n] - Sum[0])]
+heapify(heap)
+for p in perm:
+    for itv in d:
+        l, r = itv
+        if p in range(l+1, r):
+            sm = d[itv]
+            del d[itv]
+            # if sum_num[sm] == [] and heap[0] == sm:
+            sum_num[sm] -= 1
+            # if -heap[0] == sm and sum_num[sm] == 0:
+            #     heappop(heap)
+            d[(l, p)] = Sum[p-1] - Sum[l]
+            d[(p, r)] = Sum[r-1] - Sum[p]
+            if Sum[p-1] - Sum[l] not in sum_num:
+                sum_num[Sum[p-1] - Sum[l]] = 1
+            else:
+                sum_num[Sum[p-1] - Sum[l]] += 1
+            if Sum[r-1] - Sum[p] not in sum_num:
+                sum_num[Sum[r-1] - Sum[p]] = 1
+            else:
+                sum_num[Sum[r-1] - Sum[p]] += 1
+            heappush(heap, -(Sum[p-1] - Sum[l]))
+            heappush(heap, -(Sum[r-1] - Sum[p]))
+            break
+    while sum_num[-heap[0]] == 0:
+        heappop(heap)
+    print -heap[0]

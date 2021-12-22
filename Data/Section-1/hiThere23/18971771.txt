@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 200005
+#define maxC 1000000007
+#define line pair<long long, long long>
+#define A first
+#define B second
+#define mp make_pair
+
+using namespace std;
+int n, r = 1;
+long long a[mn], s[mn], sum = 0, best = 1ll * maxC * maxC;
+line li[mn], st[mn];
+double rLim[mn];
+
+bool com(line a, line b)
+{
+    return a.A > b.A || (a.A == b.A && a.B < b.B);
+}
+
+void setup()
+{
+    cin >> n;
+    FOR(i, 1, n)
+    {
+        cin >> a[i];
+        s[i] = s[i - 1] + a[i];
+        sum += a[i] * i;
+        li[i] = mp(-a[i], a[i] * i - s[i]);
+    }
+}
+
+double inter(line a, line b)
+{
+    return (1.0 * (b.B - a.B)) / (a.A - b.A);
+}
+
+void convex()
+{
+    sort(li + 1, li + n + 1, com);
+    st[1] = li[1];
+    rLim[0] = - maxC;
+    rLim[1] = maxC;
+    FOR(i, 2, n)
+    {
+        if (li[i].A == li[i - 1].A)
+            continue;
+        double xx = inter(li[i], st[r]);
+        while(xx <= rLim[r - 1])
+        {
+            r --;
+            xx = inter(li[i], st[r]);
+        }
+        st[++ r] = li[i];
+        rLim[r - 1] = xx;
+        rLim[r] = maxC;
+    }
+}
+
+void xuly()
+{
+    convex();
+    int id = 0;
+    FOR(i, 1, n)
+    {
+        while(rLim[id] < i)
+            id ++;
+        best = min(best, st[id].A * i + st[id].B + s[i]);
+    }
+    cout << sum - best;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

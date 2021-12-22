@@ -1,0 +1,62 @@
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <set>
+// #include <multiset>
+#include <utility>
+#define MAXN 100010
+#define INF 0x7FFFFFFF
+#define msg(a) cout<<#a<<" : "<<a<<endl;
+
+using namespace std;
+
+int v[MAXN], SA[MAXN];
+set < pair< pair<int, int>, int> > S;
+set < pair< pair<int, int>, int> >::iterator it;
+multiset <int> MS;
+multiset <int>::iterator it1;
+
+void mostrars(){
+	for( set < pair< pair<int, int>, int> >::iterator it = S.begin(); it!=S.end(); it++ ){
+		cout<<"("<<(*it).first.first<<", "<<(*it).first.second<<")"<<(*it).second<<endl;
+	}
+}
+
+int main(){
+	int n, e, a, b, c, d;
+	v[0] = SA[0] = 0;
+	
+	cin>>n;
+	for(int i=1; i<=n; i++) cin>>v[i], SA[i]=v[i]+SA[i-1];
+
+	S.insert(make_pair(make_pair(1, n), SA[n]));
+	MS.insert(SA[n]);
+	for(int i=1; i<=n; i++){
+		cin>>e;
+		// cout<<"Buscando a "<<v[e]<<endl;
+		it = upper_bound(S.begin(), S.end(), make_pair(make_pair(e, INF), INF));
+		// if( it==S.end() ) cout<<"Hemos llegado al final\n";
+		it--;
+		// cout<<"El elemento "<<v[e]<<" se encuentra entre "<<(*it).first.first<<" y "<<(*it).first.second<<endl;
+		it1 = MS.find((*it).second);
+		a = (*it).first.first; b = e-1;
+		c = e+1; d = (*it).first.second;
+		S.erase(it); MS.erase(it1);
+		// msg(a);msg(b);msg(c);msg(d);
+		if( a<=b ){
+			S.insert( make_pair(make_pair(a, b), SA[b]-SA[a-1]) );
+			MS.insert( SA[b]-SA[a-1] );
+		}
+		if( c<=d ){
+			S.insert( make_pair(make_pair(c, d), SA[d]-SA[c-1]) );
+			MS.insert( SA[d]-SA[c-1] );
+		}
+		// mostrars();
+		if( MS.size()==0 ) cout<<"0\n";
+		else{
+			it1 = MS.end(); it1--; cout<<*it1<<endl;
+		}
+
+	}
+	return 0;
+}

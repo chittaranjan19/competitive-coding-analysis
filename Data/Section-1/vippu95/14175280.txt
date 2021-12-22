@@ -1,0 +1,77 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mod 1000000007
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+
+const int lmt = 500005;
+lli fwd[lmt];
+lli bwd[lmt];
+lli sum[lmt];
+
+bool isvowel(char ch){
+    if(ch=='A' || ch=='E' || ch=='I' || ch=='O' || ch=='U'
+        || ch=='Y')
+        return true;
+    return false;
+}
+
+int main(){
+    string s;
+    cin>>s;
+    int n = s.size();
+    for(int i=1;i<=n;i++){
+        fwd[i] = fwd[i-1];
+        if(isvowel(s[i-1]))
+            fwd[i] += (long long)i;
+    }
+    for(int i=n;i>=1;i--){
+        bwd[i] = bwd[i+1];
+        if(isvowel(s[i-1]))
+            bwd[i] += (long long)(n-i+1);
+    }
+    for(int i=1;i<=n;i++){
+        sum[i] = sum[i-1];
+        if(isvowel(s[i-1]))
+            sum[i]++;
+    }
+    int md = n/2;
+    if(n&1) md++;
+    double ans = 0;
+    for(int len=1;len<=md;len++){
+//        DEBUG(len);
+        double tmp = 0;
+        if(len-1>=1)
+            tmp += fwd[len-1];
+        if(n-len+1 >= len)
+            tmp += (sum[n-len+1]-sum[len-1])*(long long)len;
+        if(n>=n-len+2)
+            tmp += bwd[n-len+2];
+//        DEBUG(tmp);
+        tmp /= (double)len;
+//        DEBUG(tmp);
+//        cout<<endl;
+        ans += tmp;
+    }
+    for(int len=md+1;len<=n;len++){
+//        DEBUG(len);
+        int upto = n-len+1;
+        double tmp = 0;
+        if(upto>=1)
+            tmp += fwd[upto];
+        tmp += bwd[n-upto+1];
+        int r = n-upto;
+        int l = upto+1;
+        if(r>=l)
+            tmp += (sum[r]-sum[l-1])*(long long)(n-len+1);
+//        DEBUG(tmp);
+        tmp /= (double)len;
+//        DEBUG(tmp);
+//        cout<<endl;
+        ans += tmp;
+    }
+    printf("%.8lf\n",ans);
+    return 0;
+}

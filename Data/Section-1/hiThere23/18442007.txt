@@ -1,0 +1,156 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 2000000000
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int n, m, p[mn], pa[mn][18], h[mn], mark[mn], num = 0;
+int sz[mn], spe[mn], root, best[mn];
+vector<int> g[mn];
+bool cened[mn];
+
+void dfs(int u)
+{
+    mark[u] = num;
+    sz[u] = 1;
+    spe[u] = 0;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        if (mark[v] == num || cened[v])
+            continue;
+        dfs(v);
+        if (sz[v] > sz[spe[u]])
+            spe[u] = v;
+        sz[u] += sz[v];
+    }
+}
+
+int cenD(int u)
+{
+    num ++;
+    dfs(u);
+    int siz = (sz[u] >> 1);
+    while(sz[spe[u]] > siz)
+        u = spe[u];
+    cened[u] = true;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        if (cened[v])
+            continue;
+        int x = cenD(v);
+        p[x] = u;
+    }
+    return u;
+}
+
+void dfs2(int u)
+{
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        if (v == pa[u][0])
+            continue;
+        pa[v][0] = u;
+        FOR(i, 1, 17)
+            pa[v][i] = pa[pa[v][i - 1]][i - 1];
+        h[v] = h[u] + 1;
+        dfs2(v);
+    }
+}
+
+int lca(int a, int b)
+{
+    if (h[a] > h[b])
+        swap(a, b);
+    int dif = h[b] - h[a];
+    FOR(i, 0, 17)
+    if ((dif >> i) & 1)
+        b = pa[b][i];
+    if (a == b)
+        return a;
+    FORD(i, 17, 0)
+    if (pa[a][i] != pa[b][i])
+    {
+        a = pa[a][i];
+        b = pa[b][i];
+    }
+    return pa[a][0];
+}
+
+void setup()
+{
+    cin >> n >> m;
+    int u, v;
+    FOR(i, 1, n - 1)
+    {
+        cin >> u >> v;
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+    root = cenD(1);
+    dfs2(1);
+}
+
+int dis(int a, int b)
+{
+    int l = lca(a, b);
+    return h[a] + h[b] - (h[l] << 1);
+}
+
+void update(int x)
+{
+    int id = x;
+    while(x)
+    {
+        best[x] = min(best[x], dis(x, id));
+        x = p[x];
+    }
+}
+
+void querry(int x)
+{
+    int ans = maxC, id = x;
+    while(x)
+    {
+        ans = min(ans, best[x] + dis(x, id));
+        x = p[x];
+    }
+    cout << ans << '\n';
+}
+
+void xuly()
+{
+    FOR(i, 1, n)
+        best[i] = maxC;
+    int type, x = 1;
+    while(x)
+    {
+        best[x] = dis(x, 1);
+        x = p[x];
+    }
+    FOR(i, 1, m)
+    {
+        cin >> type >> x;
+        if (type == 1)
+            update(x);
+        else
+            querry(x);
+    }
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

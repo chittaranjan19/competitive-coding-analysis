@@ -1,0 +1,112 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int q, r = 0, top = 0;
+int lQue[mn], nQue[mn];
+string s;
+long long poQ[mn], poQ1[mn], a[mn + 1], divQ[mn];
+long long fac[mn], divfac[mn], way[mn];
+
+void setup()
+{
+    int t;
+    cin >> q >> s;
+    FOR(i, 1, q)
+    {
+        cin >> t;
+        if (t == 1)
+            cin >> s;
+        else
+        {
+            cin >> lQue[++ r];
+            nQue[r] = s.size();
+            top = max(top, lQue[r]);
+        }
+    }
+    top ++;
+}
+
+long long power(long long a, long long b)
+{
+    long long re = 1;
+    while(b)
+    {
+        if (b & 1)
+            re = (re * a) % maxC;
+        b >>= 1;
+        a = (a * a) % maxC;
+    }
+    return re;
+}
+
+long long c(int a, int b)
+{
+    long long re = (fac[b] * divfac[a]) % maxC;
+    re = (re * divfac[b - a]) % maxC;
+    return re;
+}
+
+void build(int x)
+{
+    long long sum = 0;
+    FOR(i, x, top)
+    {
+        long long add = (c(x - 1, i - 1) * poQ1[i - x]) % maxC;
+        add = (add * divQ[i]) % maxC;
+        sum += add;
+        way[i] = sum;
+    }
+    way[x - 1] = 0;
+}
+
+void prepare()
+{
+    fac[0] = divfac[0] = poQ[0] = poQ1[0] = 1;
+    FOR(i, 1, top)
+    {
+        fac[i] = (fac[i - 1] * i) % maxC;
+        divfac[i] = power(fac[i], maxC - 2);
+        poQ[i] = (poQ[i - 1] * 26) % maxC;
+        poQ1[i] = (poQ1[i - 1] * 25) % maxC;
+    }
+    divQ[top] = power(26, maxC - 1 - top);
+    FORD(i, top - 1, 0)
+        divQ[i] = (divQ[i + 1] * 26) % maxC;
+}
+
+void xuly()
+{
+    prepare();
+    FOR(i, 1, r)
+    {
+        if (nQue[i] != nQue[i - 1])
+            build(nQue[i]);
+        if (lQue[i] < nQue[i])
+        {
+            cout << "0\n";
+            continue;
+        }
+        long long ans = (way[lQue[i]] - way[nQue[i] - 1]) % maxC;
+        ans = (ans + maxC) % maxC;
+        ans = (ans * poQ[lQue[i]]) % maxC;
+        cout << ans << '\n';
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

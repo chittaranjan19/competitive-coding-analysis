@@ -1,0 +1,76 @@
+#include<stdio.h>
+#include<math.h>
+#include<string.h>
+#include<iostream>
+#include<algorithm>
+#include<map>
+#define FOR(i,n) for(i=0;i<(n);i++)
+#define CLR(a) memset(a,0,sizeof(a))
+#define CIN(a) scanf("%d",&a)
+using namespace std;
+#define N 3
+typedef struct TRIE
+{
+    struct TRIE *ch[N];
+}Trie;
+Trie *NewNode()
+{
+    Trie *t=(Trie *)malloc(sizeof(struct TRIE));
+    for(int i=0;i<N;i++) t->ch[i]=NULL;
+    return t;
+}
+void Insert(Trie *t,char c[])//插入单词
+{
+    if(*c==0)
+    {
+        return ;
+    }
+    //路径节点
+    if(!(t->ch[*c-'a'])) t->ch[*c-'a']=NewNode();
+    Insert(t->ch[*c-'a'],c+1);
+}
+int Query(Trie *t,char c[],int z)
+{
+    if(t==NULL) return 0;
+    if(*c==0) return (z==1);
+    if(Query(t->ch[*c-'a'],c+1,z)) return 1;
+    if(z==0)
+    {
+        if(*c!='a') if(Query(t->ch[0],c+1,1)) return 1;
+        if(*c!='b') if(Query(t->ch[1],c+1,1)) return 1;
+        if(*c!='c') if(Query(t->ch[2],c+1,1)) return 1;
+    }
+    return 0;
+}
+char s[600005];
+int main()
+{
+    map<int,Trie *> M;
+    int n,m;
+    scanf("%d%d",&n,&m);
+    while(n--)
+    {
+        scanf("%s",s);
+        int len=strlen(s);
+        if(M.count(len)==0)
+            M[len]=NewNode();
+        Insert(M[len],s);
+    }
+    while(m--)
+    {
+        scanf("%s",s);
+        int len=strlen(s);
+        if(M.count(len)==0)
+        {
+            printf("NO\n");
+        }
+        else
+        {
+            if(Query(M[len],s,0))
+            {
+                printf("YES\n");
+            }
+            else printf("NO\n");
+        }
+    }
+}

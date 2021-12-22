@@ -1,0 +1,71 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct Trie{
+    int cnt,nrfii;
+    Trie *fii[2];
+    Trie(){
+        cnt=nrfii=0;
+        fii[0]=0;
+        fii[1]=0;
+    }
+};
+
+Trie *T = new Trie;
+
+int n;
+char c;
+long long s;
+
+void add(Trie *nod, long long s, int n){
+    int v=s%10;
+    v%=2;
+    if(n==18){
+        nod->cnt++;
+    }
+    else{
+        if(nod->fii[v]==0){
+            nod->fii[v] = new Trie;
+            nod->nrfii++;
+        }
+        add(nod->fii[v], s/10, n+1);
+    }
+}
+
+bool sub(Trie *nod, long long s, int n){
+    int v=s%10;
+    v%=2;
+    if(n==18){
+        nod->cnt--;
+    }
+    else if(sub(nod->fii[v],s/10,n+1)){
+        nod->fii[v]=0;
+        nod->nrfii--;
+    }
+    if(nod->cnt==0 && nod->nrfii==0 && nod!=T) return true;
+    return false;
+}
+
+int qry(Trie *nod, long long s, int n){
+    int v=s%10;
+    v%=2;
+    if(n==18){
+        return nod->cnt;
+    }
+    else{
+        if(nod->fii[v]==0) return 0;
+        else return qry(nod->fii[v],s/10,n+1);
+    }
+}
+
+int main()
+{
+    cin >> n;
+    for(int i=1;i<=n;i++){
+        cin >> c >> s;
+        if(c=='+') add(T,s,1);
+        if(c=='-') sub(T,s,1);
+        if(c=='?') cout << qry(T,s,1) << '\n';
+    }
+}

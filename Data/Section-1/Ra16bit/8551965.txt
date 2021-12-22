@@ -1,0 +1,37 @@
+#include <cstdio>
+#include <memory.h>
+#include <algorithm>
+using namespace std;
+const int inf=2000000000;
+int n,m,i,a[505],b[505],w[505],s[505],v[505],k[505],f[505][1010],g[1010];
+bool cmp(int i, int j) {
+  if (a[i]!=a[j]) return a[i]<a[j];
+  return b[i]>b[j];
+}
+int F(int i, int j) {
+  if (f[i][j]>=0) return f[i][j];
+  f[i][j]=0;
+  memset(g,0,sizeof(g));
+  int cur=a[k[i]],last=b[k[i]];
+  for (int e=i+1; e<=n; e++) {
+    for (; cur<=a[k[e]]; cur++) g[cur]=max(g[cur],g[cur-1]);
+    int ri=b[k[e]];
+    if (ri<=last && w[k[e]]<=j) {
+      g[ri]=max(g[ri],g[cur-1]+F(e,min(s[k[e]],j-w[k[e]])));
+      f[i][j]=max(f[i][j],g[ri]);
+    }
+  }
+  return f[i][j]+=v[k[i]];
+}
+int main() {
+  scanf("%d%d",&n,&m);
+  b[0]=1005;
+  for (i=1; i<=n; i++) {
+    scanf("%d%d%d%d%d",&a[i],&b[i],&w[i],&s[i],&v[i]);
+    k[i]=i;
+  }
+  sort(k+1,k+n+1,cmp);
+  memset(f,255,sizeof(f));
+  printf("%d\n",F(0,m));
+  return 0;
+}

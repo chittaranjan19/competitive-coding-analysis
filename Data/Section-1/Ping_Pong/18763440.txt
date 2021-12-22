@@ -1,0 +1,127 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const int inf = (int)2 * 1e8;
+const int MOD = (int)1e9 + 7;
+const int P = 239;
+const int MAX_N = 500000;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+int n, m;
+bool graph[3000][3000];
+int dist[3000][3000];
+queue<int> q;
+
+void bfs(int p)
+{
+    while (!q.empty())
+    {
+        int x = q.front();
+        q.pop();
+        for (int i = 0; i < n; i++)
+            if (graph[x][i] && (dist[p][i] > dist[p][x] + 1))
+            {
+                dist[p][i] = dist[p][x] + 1;
+                q.push(i);
+            }
+    }
+}
+
+bool comp(pair<int, int> a, pair<int, int> b)
+{
+    return a.first > b.first;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    scanf("%d %d", &n, &m);
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+        {
+            graph[i][j] = false;
+            dist[i][j] = inf;
+        }
+    for (int i = 0; i < m; i++)
+    {
+        int s, f;
+        scanf("%d %d", &s, &f);
+        graph[s - 1][f - 1] = true;
+    }
+    for (int i = 0; i < n; i++)
+    {
+        dist[i][i] = 0;
+        q.push(i);
+        bfs(i);
+    }
+    vector<vector<pair<int, int> > > from(n), to(n);
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            if (i != j && dist[j][i] != inf)
+            {
+                to[i].push_back(make_pair(dist[j][i], j));
+                for (int g = to[i].size() - 2; g >= 0; g--)
+                    if (to[i][g].first < to[i][g + 1].first)
+                    {
+                        pair<int, int> tmp = to[i][g];
+                        to[i][g] = to[i][g + 1];
+                        to[i][g + 1] = tmp;
+                    }
+                    else
+                        break;
+                if (to[i].size() > 3)
+                    to[i].pop_back();
+            }
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            if (i != j && dist[i][j] != inf)
+            {
+                from[i].push_back(make_pair(dist[i][j], j));
+                for (int g = from[i].size() - 2; g >= 0; g--)
+                    if (from[i][g].first < from[i][g + 1].first)
+                    {
+                        pair<int, int> tmp = from[i][g];
+                        from[i][g] = from[i][g + 1];
+                        from[i][g + 1] = tmp;
+                    }
+                    else
+                        break;
+                if (from[i].size() > 3)
+                    from[i].pop_back();
+            }
+    int ans = -1, x1, x2, x3, x4;
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            for (int g = 0; g < to[i].size(); g++)
+                for (int h = 0; h < from[j].size(); h++)
+                    if (dist[i][j] != inf && to[i][g].second != j && to[i][g].second != from[j][h].second && i != j && i != from[j][h].second)
+                        if (to[i][g].first + dist[i][j] + from[j][h].first > ans)
+                        {
+                            ans = to[i][g].first + dist[i][j] + from[j][h].first;
+                            x1 = to[i][g].second;
+                            x2 = i;
+                            x3 = j;
+                            x4 = from[j][h].second;
+                        }
+    cout << x1 + 1 << " " << x2 + 1 << " " << x3 + 1 << " " << x4 + 1 << endl;
+    return 0;
+}

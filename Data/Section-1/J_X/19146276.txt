@@ -1,0 +1,177 @@
+#include <iostream>
+#include <cstdio>
+#include <queue>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const ll INF = 1LL << 58;
+const int maxn = 200 + 5;
+const int maxm = 40000 + 5;
+
+char s[maxn];
+int a[maxn];
+struct mat
+{
+    int r, c;
+    ll a[maxn][maxn];
+
+    mat(int r = 0, int c = 0) : r(r), c(c)
+    {
+        for(int i = 0; i < r; ++i) fill(a[i], a[i] + c, -INF);
+    }
+} ma;
+struct trie
+{
+    int ch[maxn][26], tot, fail[maxn], val[maxn];
+
+    void init()
+    {
+        tot = 0;
+        memset(ch[0], 0, sizeof(ch[0]));
+        val[0] = 0;
+    }
+
+    void insert(char *s, int k)
+    {
+        int u = 0;
+        for(int i = 0; s[i]; ++i)
+        {
+            int c = s[i] - 'a';
+            if(!ch[u][c])
+            {
+                ch[u][c] = ++tot;
+                memset(ch[tot], 0, sizeof(ch[tot]));
+                val[tot] = 0;
+            }
+            u = ch[u][c];
+        }
+        val[u] += a[k];
+    }
+
+    void getfail()
+    {
+        queue<int> que;
+        for(int i = 0; i < 26; ++i)
+        {
+            if(ch[0][i])
+            {
+                que.push(ch[0][i]);
+                fail[ch[0][i]] = 0;
+            }
+        }
+        while(!que.empty())
+        {
+            int u = que.front();
+            que.pop();
+            int f = fail[u];
+            for(int i = 0; i < 26; ++i)
+            {
+                int v = ch[u][i];
+                if(v)
+                {
+                    fail[v] = ch[f][i];
+                    val[v] += val[fail[v]];
+                    que.push(v);
+                }
+                else ch[u][i] = ch[f][i];
+            }
+        }
+    }
+
+    void build()
+    {
+        getfail();
+        ma = mat(tot + 1, tot + 1);
+        for(int i = 0; i <= tot; ++i)
+        {
+            for(int j = 0; j < 26; ++j)
+            {
+                int t = ch[i][j];
+                ma.a[i][t] = max(ma.a[i][t], (ll)val[t]);
+            }
+        }
+    }
+
+//    ll solve(ll m)
+//    {
+//        getfail();
+//        int upp = min((ll)maxm - 2, m);
+//        fill(dp[0], dp[0] + tot + 1, -INF);
+//        dp[0][0] = 0;
+//        ll ret = 0;
+//        for(int i = 0; i <= upp; ++i)
+//        {
+//            fill(dp[i + 1], dp[i + 1] + tot + 1, -INF);
+//            for(int s = 0; s <= tot; ++s)
+//            {
+//                sum[i] = max(sum[i], dp[i][s]);
+//                for(int j = 0; j < 26; ++j)
+//                {
+//                    int t = ch[s][j];
+//                    dp[i + 1][t] = max(dp[i + 1][t], dp[i][s] + val[t]);
+//                }
+//            }
+//        }
+//        for(int i = 1; i <= upp; ++i)
+//        {
+//            ret = max(ret, sum[i] * (m / i) + sum[m % i]);
+//        }
+//        return ret;
+//    }
+} ac;
+
+mat mul(const mat &a, const mat &b)
+{
+    mat c(a.r, b.c);
+    for(int i = 0; i < a.r; ++i)
+    {
+        for(int j = 0; j < b.c; ++j)
+        {
+            for(int k = 0; k < a.c; ++k) c.a[i][j] = max(c.a[i][j], a.a[i][k] + b.a[k][j]);
+        }
+    }
+    return c;
+}
+
+mat pow(mat x, ll n)
+{
+    mat ret = mat(x.r, x.c);
+    for(int i = 0; i < ret.r; ++i) ret.a[i][i] = 0;
+    while(n)
+    {
+        if(n & 1) ret = mul(ret, x);
+        x = mul(x, x);
+        n >>= 1;
+    }
+    return ret;
+}
+
+int main()
+{
+    int n;
+    ll m;
+    scanf("%d%I64d", &n, &m);
+    ac.init();
+    for(int i = 0; i < n; ++i)
+    {
+        scanf("%d", a + i);
+    }
+    for(int i = 0; i < n; ++i)
+    {
+        scanf("%s", s);
+        ac.insert(s, i);
+    }
+    ac.build();
+//    for(int i = 0; i <= ac.tot; ++i)
+//    {
+//        for(int j = 0; j < ac.tot; ++j) cout << ma.a[i][j] << ' ';
+//        cout << endl;
+//    }
+    ma = pow(ma, m);
+    printf("%I64d\n", *max_element(ma.a[0], ma.a[0] + ac.tot + 1));
+    return 0;
+}

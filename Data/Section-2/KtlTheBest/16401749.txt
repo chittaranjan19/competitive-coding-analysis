@@ -1,0 +1,71 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int n, m, d;
+stack <int> st;
+string s, x[100000];
+
+struct vec {
+	int nxt[26];
+	int num;
+	bool ok;
+} t[int(1e6) + 1];
+
+void add(string b, int c){
+	int v = 0;
+	for(int i = 0; i < b.size(); ++ i){
+		if(!t[v].nxt[b[i] - 'a']){
+			t[v].nxt[b[i] - 'a'] = d + 1;
+			d ++;
+		}
+		v = t[v].nxt[b[i] - 'a'];
+		//cerr << b[i] << ' ' << v << '\n';
+	}
+	t[v].num = c;
+	t[v].ok = 1;
+}
+
+bool dfs(int v, int sz){
+	//cerr << sz << '\n';
+	//cerr << sz << ' ' << s[sz] << ' ' << v << ' ' << t[v].nxt[s[sz] - 'a'] << '\n';
+	if(t[v].ok == 1){
+		//cerr << x[t[v].num] << '\n';
+		st.push(t[v].num);
+		if(!dfs(0, sz)){
+			st.pop();
+		}
+	}
+	if(sz == -1){
+		while(st.size()){
+			cout << x[st.top()] << ' ';
+			st.pop();
+		}
+		exit(0);
+	}
+	//cerr << sz << ' ' << s[sz] << ' ' << v << ' ' << t[v].nxt[s[sz] - 'a'] << '\n';
+	if(t[v].nxt[s[sz] - 'a']){
+		dfs(t[v].nxt[s[sz] - 'a'], sz - 1);
+	}
+	//cerr << sz << '\n';
+	return 0;
+}
+
+int main(){
+	//cerr << t[9].nxt[8];
+	cin >> n;
+	cin >> s;
+	cin >> m;
+	for(int i = 0; i < m; ++ i){
+		cin >> x[i];
+		string z = "";
+		for(int j = 0; j < x[i].size(); ++ j){
+			z += tolower(x[i][j]);
+		}
+		add(z, i);
+		//cerr << '\n';
+		//cerr << "ok\n";
+	}
+	dfs(0, n - 1);
+	cerr << "NO";
+	return 0;
+}

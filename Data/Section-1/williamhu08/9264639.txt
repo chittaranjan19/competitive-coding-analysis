@@ -1,0 +1,112 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+#include <iomanip>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 17;
+
+struct node {
+	int dat[60];
+	node() {
+		fillchar(dat, 0);
+	}
+	int &operator[] (int x) {
+		return dat[x];
+	}
+	int operator[] (int x) const {
+		return dat[x];
+	}
+	node operator + (const node &n) const {
+		//this is actually quite critical.
+		node res;
+		for (int i = 0; i < 60; i++) {
+			int t = dat[i];
+			res[i] = t + n[(i + t) % 60];
+		}
+		return res;
+	}
+	void set (int x) {
+		for (int i = 0; i < 60; i++) {
+			dat[i] = 2 - bool(i % x);
+		}
+	}
+} ZERO;
+
+int N;
+int arr[MAXN];
+node tree[2 * MAXN];
+
+void update (int x, int v) {
+	//first update this guy
+	for (tree[x += MAXN].set(v); x >>= 1; ) {
+		tree[x] = tree[2 * x] + tree[2 * x + 1];
+	}
+}
+
+node query (int a, int b, int cur = 1, int l = 0, int r = MAXN) {
+	if (r <= a || b <= l) {
+		return ZERO;
+	}
+	if (a <= l && r <= b) {
+		return tree[cur];
+	}
+	int mid = (l + r) / 2;
+	return query(a, b, 2 * cur, l, mid) + query(a, b, 2 * cur + 1, mid, r);
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	cin >> N;
+	int q, x, y;
+	char c;
+	for (int i = 0; i < N; i++) {
+		cin >> q;
+		update(i, q);
+	}
+	for (cin >> q; q--; ) {
+		cin >> c >> x >> y;
+		x--;
+		if (c == 'A') {
+			cout << query(x, y - 1)[0] << '\n';
+		} else {
+			update(x, y);
+		}
+	}
+}

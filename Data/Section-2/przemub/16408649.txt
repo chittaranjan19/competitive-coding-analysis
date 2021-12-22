@@ -1,0 +1,58 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+long long sumy[10][10];
+
+long long suma(int x1, int x2, int y1, int y2) {
+	//printf("%dx%d, %dx%d, %dx%d, %dx%d\n", x2, y2, x1-1, y2, x2-1,y1,x1-1,y1-1);
+	long long wynik = sumy[x2][y2];
+	if (x1 != 0)
+		wynik -= sumy[x1-1][y2];
+	if (y1 != 0) {
+		wynik -= sumy[x2][y1-1];
+		if (x1 != 0)
+			wynik += sumy[x1-1][y1-1];
+	}
+
+	return wynik;
+}
+
+int main() {
+	int r, co, n, k;
+	scanf("%d %d %d %d", &r, &co, &n, &k);
+
+	bool tab[r][co];
+	memset(tab, 0, sizeof(tab));
+	for (int i = 0; i < n; i++) {
+		int x, y;
+		scanf("%d %d", &x, &y);
+		tab[x-1][y-1] = true;
+	}
+
+	memset(sumy, 0, sizeof(sumy));
+	sumy[0][0] = tab[0][0];
+	for (int i = 1; i < co; i++)
+		sumy[0][i] = sumy[0][i-1] + tab[0][i];
+	for (int i = 1; i < r; i++)
+		sumy[i][0] = sumy[i-1][0] + tab[i][0];
+	for (int i = 1; i < r; i++)
+		for (int j = 1; j < co; j++)
+			sumy[i][j] = sumy[i-1][j] + sumy[i][j-1] - sumy[i-1][j-1] +
+				tab[i][j];
+
+	int wynik = 0;
+	for (int a = 0; a < r; a++)
+		for (int b = a; b < r; b++)
+			for (int c = 0; c < co; c++)
+				for (int d = c; d < co; d++) {
+					if (suma(a, b, c, d) >= k) {
+						wynik++;
+					}
+				}
+
+	printf("%d", wynik);
+
+}
+
+

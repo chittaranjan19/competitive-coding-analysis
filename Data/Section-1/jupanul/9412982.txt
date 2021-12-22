@@ -1,0 +1,87 @@
+#include <cstring>
+
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+using namespace std;
+const int MAX_N = 100005;
+
+int n;
+int p[MAX_N];
+int q[MAX_N];
+int v[MAX_N];
+int answer[MAX_N];
+
+void update(int place) {
+    for (int i = place; i <= n; i += i & -i) {
+        ++ v[i];
+    }
+}
+int query(int place) {
+    int answer = 0;
+    for (int i = place; i; i -= i & -i) {
+        answer += v[i];
+    }
+    return answer;
+}
+int search_(int val) {
+    int i, step;
+    
+    for ( step = 1; step < n; step <<= 1 );
+    
+    for( i = 0; step; step >>= 1 )
+    {
+        if( i + step <= n)
+        {
+            if( val > v[i+step] )
+            {
+                i += step, val -= v[i];
+                if ( !val ) return i;
+            }
+        }
+    }
+    
+    return i;
+}
+
+inline void _update(int x) {
+    for (int i = x; i <= n; i += i & -i) {
+        v[i] --;
+    }
+}
+
+int main() {
+    //ifstream cin("f.in");
+    cin >> n;
+    for (int i = 1; i <= n; ++ i) {
+        cin >> p[i];
+        ++ p[i];
+        update(p[i]);
+        p[i] = p[i] - query(p[i]);
+    }
+    memset(v, 0, sizeof v);
+    for (int i = 1; i <= n; ++ i) {
+        cin >> q[i];
+        ++ q[i];
+        update(q[i]);
+        q[i] = q[i] - query(q[i]);
+    }
+    for (int i = n - 1; i >= 1; -- i) {
+        answer[i] += p[i] + q[i];
+        if (answer[i] >= n - i + 1) {
+            answer[i] -= (n - i + 1);
+            ++ answer[i - 1];
+        }
+    }
+    for (int i = 1; i <= n; ++ i) {
+        v[i] = i & -i;
+    }
+    for (int i = 1; i <= n; ++ i) {
+        int val = answer[i] + 1;
+        int j = search_(val);
+        //cout << i << " " << j << endl;
+        _update(j + 1);
+        cout << j << (i == n ? '\n' : ' ');
+    }
+    return 0;
+}

@@ -1,0 +1,78 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int P = 239;
+const int MAX_N = 200000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+vector<int> tree;
+int cnt_ver = 1;
+
+void make_tree(int* a, int n)
+{
+    while (cnt_ver < n)
+        cnt_ver <<= 1;
+    tree.resize(cnt_ver * 2 - 1);
+    for (int i = 0; i < cnt_ver * 2 - 1; i++)
+        tree[i] = 0;
+}
+
+int ans(int x, int lx, int rx, int l, int r)
+{
+    if (r < lx || l > rx)
+        return 0;
+    else if (lx >= l && rx <= r)
+        return tree[x];
+    else
+        return max(ans(x * 2 + 1, lx, (lx + rx) / 2, l, r), ans(x * 2 + 2, (lx + rx) / 2 + 1, rx, l, r));
+}
+
+void update(int x, int v)
+{
+    tree[x] = v;
+    while (x > 0)
+    {
+        tree[(x - 1) / 2] = max(tree[(x - 1) / 2 * 2 + 1], tree[(x - 1) / 2 * 2 + 2]);
+        x = (x - 1) / 2;
+    }
+}
+
+int main()
+{
+    //ifstream ifs("input.txt");
+    //ofstream ofs("output.txt");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n;
+    cin >> n;
+    int a[n];
+    for (int i = 0; i < n; i++)
+        cin >> a[i];
+    make_tree(a, n);
+    int ans1 = 0;
+    for (int i = 0; i < n; i++)
+    {
+        int cnt = ans(0, cnt_ver - 1, cnt_ver * 2 - 2, cnt_ver - 1, cnt_ver - 1 + a[i] - 2) + 1;
+        ans1 = max(ans1, cnt);
+        update(cnt_ver - 1 + a[i] - 1, cnt);
+    }
+    cout << ans1;
+    return 0;
+}

@@ -1,0 +1,62 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 1000000 + 5;
+const ll INF = 2e18;
+
+ll dp[maxn][3];
+int c[maxn];
+
+ll solve(int p, int n, int a, int b)
+{
+    for(int i = 1; i <= n; ++i)
+    {
+        dp[i][0] = dp[i][1] = INF;
+        dp[i][2] = min(dp[i - 1][0], dp[i - 1][2]) + a;
+        for(int j = -1; j < 2; ++j)
+        {
+            int x = c[i] + j;
+            if(x % p == 0)
+            {
+                int tmp = abs(j) * b;
+                dp[i][0] = min(dp[i][0], dp[i - 1][0] + tmp);
+                dp[i][1] = min(dp[i][1], min(dp[i - 1][1], dp[i - 1][2]) + tmp);
+            }
+        }
+    }
+    return *min_element(dp[n], dp[n] + 3);
+}
+
+int main()
+{
+    int n, a, b;
+    while(~scanf("%d%d%d", &n, &a, &b))
+    {
+        ll ans = INF;
+        for(int i = 1; i <= n; ++i) scanf("%d", c + i);
+        for(int i = 1; i <= n; i += max(1, n - 1))
+        {
+            for(int j = c[i] - 1; j < c[i] + 2; ++j)
+            {
+                int x = j;
+                for(int k = 2; 1LL * k * k <= x; ++k)
+                {
+                    if(x % k == 0)
+                    {
+                        ans = min(ans, solve(k, n, a, b));
+                        while(x % k == 0) x /= k;
+                    }
+                }
+                if(x != 1) ans = min(ans, solve(x, n, a, b));
+            }
+        }
+        printf("%I64d\n", ans);
+    }
+    return 0;
+}

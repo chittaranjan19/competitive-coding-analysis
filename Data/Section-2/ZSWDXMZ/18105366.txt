@@ -1,0 +1,102 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+int main()
+{
+    int n, t;
+
+    int yhsj[11][11];
+    memset(yhsj, 0, sizeof (yhsj));
+
+    yhsj[1][1] = 1;
+    for (int i=1; i<11; i++)
+    {
+        for (int j=1; j<=i; j++)
+        {
+            if (1 == i && 1 == j)
+            {
+                continue;
+            }
+            yhsj[i][j] = yhsj[i-1][j-1] + yhsj[i-1][j];
+        }
+    }
+
+    int hh[11], hb[11];
+
+    memset (hh, 0, sizeof (hh));
+    memset (hb, 0, sizeof (hb));
+
+    int sum = 0;
+
+    for (int i=1; i<11; i++)
+    {
+        sum = 0;
+        for (int j=1; j<=i; j++)
+        {
+            sum += yhsj[i][j];
+            hb[i] = hb[i - 1] + i;
+        }
+        hh[i] = hh[i-1] + sum;
+    }
+
+    while (scanf("%d%d", &n, &t) != EOF)
+    {
+        if (t < 1)
+        {
+            printf("0\n");
+        }
+        else if (t >= hh[n])
+        {
+            printf("%d\n", hb[n]);
+        }
+        else
+        {
+            int k = 0;
+            for (int i=1; i<=n; i++)
+            {
+                if (hh[i] >= t)
+                {
+                    k = i;
+                }
+            }
+            int i = k;
+            int flag = 0, sum = 0;
+
+            for (int j=1; j<=i/2; j++)
+            {
+                sum += j*2;
+
+                if (t >= hh[i] - sum)
+                {
+                    printf("%d\n", hb[i] - j * 2);
+                    flag = 1;
+                    break;
+                }
+            }
+
+            if (!flag)
+            {
+                if (0 != i%2)
+                {
+                    if (t >= hh[i - 1] + yhsj[i][i / 2 + 1])
+                    {
+                        printf("%d\n", hb[i - 1] + 1);
+                    }
+                    else
+                    {
+                        printf("%d\n", hb[i - 1]);
+                    }
+                }
+                else
+                {
+                    printf("%d\n", hb[i - 1]);
+                }
+            }
+        }
+    }
+    return 0;
+}

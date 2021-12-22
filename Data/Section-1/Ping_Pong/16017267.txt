@@ -1,0 +1,74 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e8;
+const int P = 239;
+const int MAX_N = 500;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+int main()
+{
+    //ifstream ifs("input.in");
+    //ofstream ofs("output.out");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, m, k;
+    cin >> n >> m >> k;
+    int a[n];
+    for (int i = 0; i < n; i++)
+        cin >> a[i];
+    int p[n][n];
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            p[i][j] = 0;
+    for (int i = 0; i < k; i++)
+    {
+        int f, s, c;
+        cin >> f >> s >> c;
+        p[f - 1][s - 1] = c;
+    }
+    long long dp[1 << n][n];
+    for (int i = 0; i < (1 << n); i++)
+        for (int j = 0; j < n; j++)
+            dp[i][j] = 0;
+    for (int i = 0; i < n; i++)
+        dp[1 << i][i] = a[i];
+    for (int mask = 1; mask < (1 << n); mask++)
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                if (!((mask >> j) & 1))
+                    dp[mask + (1 << j)][j] = max(dp[mask + (1 << j)][j], dp[mask][i] + a[j] + p[i][j]);
+    long long ans = 0;
+    for (int mask = 0; mask < (1 << n); mask++)
+    {
+        int cnt = 0;
+        for (int i = 0; i < n; i++)
+            cnt += (mask >> i) & 1;
+        if (cnt == m)
+            for (int i = 0; i < n; i++)
+                ans = max(ans, dp[mask][i]);
+    }
+    /*for (int i = 0; i < (1 << n); i++)
+    {
+        for (int j = 0; j < n; j++)
+            cout << dp[i][j] << " ";
+        cout << endl;
+    }*/
+    cout << ans;
+    return 0;
+}

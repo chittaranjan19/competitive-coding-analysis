@@ -1,0 +1,140 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <deque>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+const int SQ = 320;
+
+int n, b[N];
+int m;
+piii q[N];
+int ans[N];
+
+bool cmp(piii a, piii b){
+	if(a.X.X / SQ == b.X.X / SQ)
+		return (a.X.Y < b.X.Y);
+	return (a.X.X < b.X.X);
+}
+
+deque <int> deq[N];
+int bad[N];
+int k;
+int sum;
+int cnt[N];
+
+void ad(int p, int ind, int d){
+	if(cnt[p] == 0)
+		sum ++;
+	cnt[p] ++;
+	if(d){
+		deq[p].push_front(ind);
+		if(bad[p] != -1) return;
+		int sz = SZ(deq[p]);
+		if(sz > 2 && deq[p][0] - deq[p][1] != deq[p][1] - deq[p][2]){
+			bad[p] = ind;
+			k ++;
+		}
+	}
+	else{
+		deq[p].push_back(ind);
+		int sz = SZ(deq[p]);
+		for(int i = sz - 1; i > 1; --i){
+			if(deq[p][i] - deq[p][i - 1] != deq[p][i - 1] - deq[p][i - 2]){
+				if(bad[p] != -1)
+					k ++;
+				bad[p] = deq[p][i - 2];
+				return;
+			}
+		}
+	}
+}
+
+void rm(int p, int ind, int d){
+	cnt[p] --;
+	if(cnt[p] == 0)
+		sum --;
+	if(d){
+		deq[p].pop_front();
+		if(bad[p] == ind){ 
+			k --;
+			bad[p] = -1;
+		}
+	}
+	else{
+		int sz = SZ(deq[p]);
+		if(sz > 2 && bad[p] == deq[p][ sz - 3 ]){
+			k --;
+			bad[p] = -1;
+			deq[p].pop_back();
+			sz --;
+			for(int i = sz - 1; i > 1; --i){
+				if(deq[p][i] - deq[p][i - 1] != deq[p][i - 1] - deq[p][i - 2]){
+					bad[p] = deq[p][i - 2];
+					k ++;
+					return;
+				}
+			}
+		}
+		else
+			deq[p].pop_back();	
+	}
+}
+
+int main(){
+	memset(bad, -1, sizeof bad);
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	scanf("%d", &n);
+	for(int i = 0; i < n; ++i)
+		scanf("%d", b + i);
+	scanf("%d", &m);
+	for(int i = 0; i < m; ++i){
+		int l, r;
+		scanf("%d%d", &l, &r);
+		l --;
+		q[i] = MP(MP(l, r), i);
+	}
+	sort(q, q + m, cmp);
+	int x = 0, y = 0;
+	for(int i = 0; i < m; ++i){
+		int l = q[i].X.X;
+		int r = q[i].X.Y;
+		while(y < r){
+			ad(b[y], y, 1);
+			y ++;
+//						cerr <<"bug : "<< x << " " << y << " " << k << " " << sum << "\n";
+		}
+		while(x > l){
+			x --;
+			ad(b[x], x, 0);
+//						cerr <<"bug : "<< x << " " << y << " " << k << " " << sum << "\n";
+		}
+		while(y > r){
+			y --;
+			rm(b[y], y, 1);
+//						cerr <<"bug : "<< x << " " << y << " " << k << " " << sum << "\n";
+		}
+		while(x < l){
+			rm(b[x], x, 0);
+			x ++;
+//						cerr <<"bug : "<< x << " " << y << " " << k << " " << sum << "\n";
+		}
+//			cerr << "bug : " << l << " " << r << " " << sum << " " << k << "\n";
+		ans[ q[i].Y ] = sum;
+		if(sum == k) ans[ q[i].Y ] ++;
+	}
+	for(int i = 0; i < m; ++i)
+		printf("%d\n", ans[i]);
+	return 0;
+}

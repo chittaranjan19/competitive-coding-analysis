@@ -1,0 +1,62 @@
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+const int zz=300,ww=100000/zz;
+struct walrus { int first,second,third; } c[ww+5][zz+5];
+int i,j,n,m,e,ee,l,r,ll,rr,tt,p,le,ri,h,a[100100],b[100100],k[ww+5],t[ww+5][zz+5];
+long long xx,yy,cur,res;
+bool cmp(walrus a, walrus b) {
+  if (a.first!=b.first) return a.first<b.first;
+  return a.second>b.second;
+}
+int main() {
+  scanf("%d%d",&n,&m);
+  for (i=0; i<n; i++) scanf("%d%d",&a[i],&b[i]);
+  for (i=p=0; i<n; i+=zz,p++) {
+    for (e=j=0; i+j<n && j<zz; j++) { c[p][j].first=b[i+j]; c[p][j].second=a[i+j]; c[p][j].third=i+j; e++; }
+    sort(c[p],c[p]+e,cmp); ee=0;
+    for (j=1; j<e; j++) {
+      while (ee>=0 && c[p][j].second>=c[p][ee].second) ee--;
+      if (ee>=0 && c[p][j].first==c[p][ee].first) continue;
+      c[p][++ee]=c[p][j];
+      if (ee>0) {
+        xx=c[p][ee-1].second-c[p][ee].second;
+        yy=c[p][ee].first-c[p][ee-1].first;
+        t[p][ee]=xx/yy;
+        if (xx%yy!=0) t[p][ee]++;
+      } else t[p][ee]=0;
+    }
+    k[p]=ee;
+  }
+  while (m--) {
+    scanf("%d%d%d",&l,&r,&tt); l--; r--;
+    ll=l%zz; p=l; res=0;
+    while (l<=r && ll!=zz) {
+      cur=b[l];
+      cur=cur*tt+a[l];
+      if (cur>res) { res=cur; p=l; }
+      l++; ll++;
+    }
+    rr=r%zz;
+    while (l<=r && rr!=-1) {
+      cur=b[r];
+      cur=cur*tt+a[r];
+      if (cur>res) { res=cur; p=r; }
+      r--; rr--;
+    }
+    j=l/zz;
+    e=(r+1)/zz;
+    for (; j<e; j++) {
+      le=0; ri=k[j];
+      while (le<ri) {
+        h=(le+ri)/2;
+        if (t[j][h]>=tt) ri=h; else le=h+1;
+      }
+      cur=c[j][ri].first;
+      cur=cur*tt+c[j][ri].second;
+      if (cur>res) { res=cur; p=c[j][ri].third; }
+    }
+    printf("%d\n",p+1);
+  }
+  return 0;
+}

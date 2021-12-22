@@ -1,0 +1,82 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define FOR(i, a, b) for(int i = a; i <= b; i++)
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int dp[109][109],cp[109][109][109],ep[109][109][109];
+string s,t,v,fup;
+int rec(int x,int y,int z){
+	if(z>=int(v.size())-1)
+		return -INF;
+	if(x>s.size() or y>t.size())
+		return 0;
+	int &r=cp[x][y][z];
+	int &ret=ep[x][y][z];
+	if(r!=-1)
+		return r;
+	r=-INF;	
+	if(s[x]==t[y])
+		r=rec(x+1,y+1,dp[z][s[x]-'A'])+1,ret=1;
+	if(rec(x+1,y,z)>r)
+		r=rec(x+1,y,z),ret=2;
+	if(rec(x,y+1,z)>r)
+		r=rec(x,y+1,z),ret=3;
+	return r;		
+}
+int choose_best(string h,int ind){
+	int ans=0;
+	for(int i=1;i<=h.size();i++)
+		if(v.substr(1,i)==h.substr(ind-i+1,i))
+			ans=i;		
+	return ans;		
+}
+void str_automan(){
+	v="#"+v;
+	s="#"+s;
+	t="#"+t;
+	for(int i=1;i<v.size();i++)
+		for(int j=0;j<26;j++){
+			string pre="#"+v.substr(1,i-1)+char(j+65);
+			dp[i][j]=choose_best(pre,i);
+		}
+}
+void tap(int x,int y,int z){
+	if(x>=s.size() or y>=t.size())
+		return;
+	int &ret=ep[x][y][z];
+	if(ret==1){
+		cout<<s[x];
+		tap(x+1,y+1,dp[z][s[x]-'A']);
+	}
+	else if(ret==2)
+		tap(x+1,y,z);
+	else if(ret==3)
+		tap(x,y+1,z);	
+}
+int main(){
+	memset(cp,-1,sizeof(cp));
+	cin>>s>>t>>v;
+	str_automan();
+	if(rec(1,1,1)<=0)
+		cout<<"0"<<endl;
+	else
+		tap(1,1,1),cout<<endl;
+	return 0;
+}
+

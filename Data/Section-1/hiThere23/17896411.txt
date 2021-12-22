@@ -1,0 +1,83 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define F first
+#define S second
+
+using namespace std;
+int n, m, a[mn], num[mn], nex[mn], pos[mn], ans[mn], last[mn], pre[mn];
+pair< pair<int, int> , int > querry[mn];
+struct bitTree
+{
+    int tree[mn];
+
+    void update(int x, int val)
+    {
+        for(; x < mn; x += (x & (-x)))
+            tree[x] += val;
+    }
+
+    int sum(int x)
+    {
+        int re = 0;
+        for(; x; x -= (x & (-x)))
+            re += tree[x];
+        return re;
+    }
+} t;
+
+void setup()
+{
+    cin >> n >> m;
+    FOR(i, 1, n)
+    {
+        cin >> a[i];
+        a[i] = min(a[i], n + 1);
+    }
+    FOR(i, 1, m)
+        cin >> querry[i].F.S >> querry[i].F.F, querry[i].S = i;
+    sort(querry + 1, querry + m + 1);
+}
+
+void xuly()
+{
+    int r = 0;
+    FOR(i, 1, m)
+    {
+        while(r < querry[i].F.F)
+        {
+            r ++;
+            if (++ num[a[r]] == 1)
+                pos[a[r]] = r, pre[r] = -1;
+            else
+                nex[last[a[r]]] = r, pre[r] = last[a[r]];
+            last[a[r]] = r;
+            if (num[a[r]] == a[r])
+                t.update(pos[a[r]], 1);
+            if (num[a[r]] == a[r] + 1)
+            {
+                if (pre[pos[a[r]]] > 0)
+                    t.update(pre[pos[a[r]]], 1);
+                t.update(pos[a[r]], -2);
+                pos[a[r]] = nex[pos[a[r]]];
+                t.update(pos[a[r]], 1);
+                num[a[r]] --;
+            }
+        }
+        ans[querry[i].S] = t.sum(r) - t.sum(querry[i].F.S - 1);
+    }
+    FOR(i, 1, m)
+        cout << ans[i] << '\n';
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

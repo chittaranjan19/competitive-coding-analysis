@@ -1,0 +1,136 @@
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
+
+public class C_Tor {
+	private static class App {
+		public static App of(int x, int t) {
+			return new App(x, t, -1);
+		}
+		
+		int x, t_last, t_wipe;
+		
+		private App() {
+			throw new AssertionError();
+		}
+		
+		private App(int x, int t_last, int t_wipe) {
+			this.x = x;
+			this.t_last = t_last;
+			this.t_wipe = t_wipe;
+		}
+	}
+	
+	private final boolean isDebug;
+	
+	private int n, q;
+	private int[] types, vals;
+	
+	public C_Tor(boolean isDebug) {
+		this.isDebug = isDebug;
+	}
+	
+	public void readInput() {
+		Scanner sc = null;
+		if (isDebug) {
+			try {
+				sc = new Scanner(new FileInputStream("src\\x0002_codeforces_round_366_div_2\\C_input1.txt"));
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			sc =  new Scanner(System.in);
+		}
+		
+		n = sc.nextInt();
+		q = sc.nextInt();
+		if (isDebug)
+			System.out.format("n=%d q=%d%n", n, q);
+		
+		types = new int[q];
+		vals = new int[q];
+		for (int i = 0; i < q; ++i) {
+			types[i] = sc.nextInt();
+			vals[i] = sc.nextInt();
+		}
+		
+		if (isDebug) {
+			for (int i = 0; i < q; ++i) {
+				System.out.format("%d %d ", types[i], vals[i]);
+				System.out.println();
+			}
+		}
+	}
+	
+	public void solve() {
+		int notReadCnt = 0;
+		int t = -1;
+		int t_seen = 0;
+		Map<Integer, App> pending = new HashMap<>();
+		Queue<App> notifications = new LinkedList<App>();
+		for (int i = 0; i < q; ++i) {
+			switch (types[i]) {
+			case 1: {
+				notReadCnt++;
+				t++;
+				
+				App app = pending.get(vals[i]);
+				if (app == null) {
+					app = App.of(1, t);
+					pending.put(vals[i], app);
+				} else {
+					app.x++;
+					app.t_last++;
+				}
+				notifications.add(app);
+			}
+				break;
+			case 2: {
+				App app = pending.get(vals[i]);
+				if (app != null) {
+	 				notReadCnt -= app.x;
+					app.x = 0;
+					app.t_wipe = t;
+				}
+			}
+				break;
+			case 3: {
+				int t_to_read = vals[i];
+				for (int tt = t_seen; tt < t_to_read; ++tt) {
+					App app = notifications.remove();
+					if (app.t_wipe < tt) {
+//						if (app.x > 0) {
+							app.x--;
+							notReadCnt--;
+//						}
+						
+						app.t_wipe = tt;
+					}
+				}
+				t_seen = Math.max(t_seen, t_to_read);
+			}
+				break;
+			default:
+				throw new AssertionError();
+			}
+			System.out.println(notReadCnt);
+		}
+	}
+	
+	public static void main(String[] args) {
+		C_Tor solver = new C_Tor(false);
+		solver.readInput();
+		solver.solve();
+	}
+}

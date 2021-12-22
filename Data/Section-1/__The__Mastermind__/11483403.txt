@@ -1,0 +1,88 @@
+const
+  tfi = '';//'534d.inp';
+  tfo = '';//'534d.out';
+  base = 1000000007;
+
+var
+  n : longint;
+  head,f,adj,next : array [1..200000] of longint;
+
+procedure addedge(j,u,v : longint);
+  begin
+    adj[j] := v;
+    next[j] := head[u];
+    head[u] := j;
+  end;
+
+procedure enter;
+  var i,x : longint;
+  begin
+    assign(input,tfi);
+    reset(input);
+    read(n);
+    for i := 2 to n do
+      begin
+        read(x);
+        addedge(i-1,x,i);
+      end;
+    close(input);
+  end;
+
+function pow(x,i : longint) : longint;
+  var tmp : longint;
+  begin
+    if i = 1 then exit(x);
+    tmp := pow(x,i div 2);
+    tmp := int64(tmp)*tmp mod base;
+    if i mod 2 = 1 then tmp := int64(tmp)*x mod base;
+    exit(tmp);
+  end;
+
+procedure visit1(u : longint);
+  var v,j : longint;
+  begin
+    f[u] := 1;
+    j := head[u];
+    while j <> 0 do
+      begin
+        v := adj[j];
+        visit1(v);
+        f[u] := int64(f[u])*(f[v] + 1) mod base;
+        j := next[j];
+      end;
+  end;
+
+procedure visit2(u : longint);
+  var v,j : longint;
+  begin
+    j := head[u];
+    while j <> 0 do
+      begin
+        v := adj[j];
+        //f[v] := (f[v] + f[v]*(f[u] div (f[v] + 1)) mod base) mod base;
+        f[v] := (f[v] + int64(f[v])*(int64(f[u])*pow(f[v] + 1,base-2) mod base) mod base) mod base;
+        visit2(v);
+        j := next[j];
+      end;
+  end;
+
+procedure process;
+  begin
+    visit1(1);
+    visit2(1);
+  end;
+
+procedure print;
+  var i : longint;
+  begin
+    assign(output,tfo);
+    rewrite(output);
+    for i := 1 to n do write(f[i],' ');
+    close(output);
+  end;
+
+begin
+  enter;
+  process;
+  print;
+end.

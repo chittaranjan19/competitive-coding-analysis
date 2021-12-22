@@ -1,0 +1,81 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<math.h>
+#include<stack>
+#include<vector>
+using namespace std;
+typedef long long int ll;
+#define pair<int,int>
+int main()
+{
+    ll n,sum=0,i,a[50005]={0},def[50005]={0},exc[50005]={0};
+    scanf("%I64d",&n);
+    for(i=0;i<n;i++)
+    {
+        scanf("%I64d",&a[i]);
+        sum+=a[i];
+    }
+    ll k=sum/n,op=0,count=0;
+    stack<ll> s1,s2;
+    
+    for(i=0;i<n;i++)
+    {
+        
+        if(a[i]<k)
+        {
+            
+            def[i]=k-a[i];
+            while(!s2.empty())
+            {
+                int id=s2.top();
+                
+                if(exc[id]<=def[i])
+                {
+                    op+=(llabs(id-i)*exc[id]);
+                    def[i]-=exc[id];
+                    s2.pop();
+                }
+                else
+                {
+                    op+=(llabs(id-i)*def[i]);
+                    exc[id]-=def[i];
+                    def[i]=0;
+                }
+                if(def[i]==0)
+                    break;
+            }
+            if(def[i]!=0)
+                s1.push(i);
+
+        }
+        else
+        {
+            
+            exc[i]=a[i]-k;
+            while(!s1.empty())
+            {
+                int id=s1.top();
+                
+                if(def[id]<=exc[i])
+                {
+                    op+=(llabs(id-i)*def[id]);
+                    exc[i]-=def[id];
+                    s1.pop();
+                }
+                else
+                {
+                    op+=(llabs(id-i)*exc[i]);
+                    def[id]-=exc[i];
+                    exc[i]=0;
+                }
+                
+                if(exc[i]==0)
+                    break;
+            }
+            if(exc[i]!=0)
+                s2.push(i);
+        }
+    }
+    printf("%I64d",op);
+    return 0;
+}

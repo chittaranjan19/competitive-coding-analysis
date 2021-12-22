@@ -1,0 +1,78 @@
+import java.io.BufferedInputStream;
+import java.util.Scanner;
+
+/**
+ * Created by leen on 8/29/16.
+ */
+public class _711B {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 64 * 1024));
+        int n = scan.nextInt();
+
+        if(n == 1) {
+            scan.nextInt();
+            System.out.println(1);
+            return;
+        }
+
+        int emptyX = -1, emptyY = -1;
+        long[] rowSums = new long[n];
+        long[] colSums = new long[n];
+        long diagSum = 0;
+        long sDiagSum = 0;
+
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < n; j++) {
+                int v = scan.nextInt();
+                if(v == 0) {
+                    emptyX = i;
+                    emptyY = j;
+                }
+                else {
+                    rowSums[i]+=v;
+                    colSums[j]+=v;
+                    if(i == j)
+                        diagSum+=v;
+                    if(i+j==n-1)
+                        sDiagSum+=v;
+                }
+            }
+        }
+
+        long value = -1;
+        for(int i = 0; i < n; i++) {
+            if(value == -1) {
+                if (i != emptyX)
+                    value = rowSums[i];
+                else if (i != emptyY)
+                    value = colSums[i];
+            }
+            else {
+                if(i != emptyX && rowSums[i] != value || i != emptyY && colSums[i] != value) {
+                    System.out.println(-1);
+                    return;
+                }
+            }
+        }
+
+        if(emptyX != emptyY && value != diagSum || emptyX + emptyY != n -1 && value != sDiagSum) {
+            System.out.println(-1);
+            return;
+        }
+
+        long v = value - rowSums[emptyX];
+
+        if(v <= 0) {
+            System.out.println(-1);
+            return;
+        }
+
+        if(colSums[emptyY] + v != value || emptyX == emptyY && diagSum + v != value
+                || emptyX + emptyY == n-1 && sDiagSum + v != value) {
+            System.out.println(-1);
+            return;
+        }
+
+        System.out.println(v);
+    }
+}

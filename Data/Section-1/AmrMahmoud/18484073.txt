@@ -1,0 +1,160 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 4000000000000000000
+#define EPS 1e-12
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+typedef complex<double> point;
+
+#define X real()
+#define Y imag()
+#define polar(r, t) (r * exp(point(0, t)))
+#define length(a) hypot(a.X, a.Y)
+#define angle(a) atan2(a.Y, a.X)
+#define vec(a, b) (b - a)
+#define dot(a, b) ((conj(a) * b).X)
+#define cross(a, b) ((conj(a) * b).Y)
+#define lengthsqr(a) dot(a, a)
+#define vec_rot(v, t) (v * exp(point(0, t)))
+#define vec_rot_around(v, t, a) (vec_rot(vec(a, v), t) + a)
+#define reflect(v, m) (conj(v / m) * m)
+#define normalize(v) (v / length(v))
+#define ccw(a, b, c) (cross(vec(a, b), vec(a, c)) > EPS)
+#define same(a, b) (lengthsqr(vec(a, b)) < EPS)
+
+const double PI = acos(-1.);
+
+inline pair<pair<point, point>, bool> line_circle_intersection(const point &x, int r, const point &a, const point &b)
+{
+  pair<pair<point, point>, bool> res;
+  res.s = false;
+  double A = dot(vec(a, b), vec(a, b));
+  double B = 2 * dot(vec(a, b), vec(x, a));
+  double C = dot(vec(x, a), vec(x, a));
+  C -= r * 1.0 * r;
+  double tmp = B * B - 4 * A * C;
+  if(tmp < 0)
+    return res;
+  if(tmp == 0)
+    res.f.f = res.f.s = (a - B / (2.0 * A) * (b - a));
+  else
+  {
+    tmp = sqrt(tmp);
+    res.f.f = (a + (-B + tmp) / (2.0 * A) * (b - a));
+    res.f.s = (a + (-B - tmp) / (2.0 * A) * (b - a));
+  }
+  res.s = true;
+  return res;
+}
+
+bool sorter(pair<double, int> a, pair<double, int> b)
+{
+  if(fabs(a.f - b.f) <= EPS) return a.s > b.s;
+  return a.f < b.f;
+}
+
+int main()
+{
+  int x, y, v, t, xx, yy, r, n;
+  cin >> x >> y >> v >> t >> n;
+  LL d = v * 1LL * t;
+  point p = point(x, y);
+  vector<pair<double, int> > bp;
+  int cnt = 0;
+  bool debug = false;
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d %d %d", &xx, &yy, &r);
+    //if(i == 0 && xx == 810489927)
+     // debug = true;
+    LL dist = (xx - x) * 1LL * (xx - x);
+    dist += (yy - y) * 1LL * (yy - y);
+    if(dist <= r * 1LL * r)
+    {
+      cout << 1;
+      return 0;
+    }
+    LL tmp = dist - r * 1LL * r;
+    LL sq = (LL)(sqrt(tmp) + EPS);
+    if(sq * sq == tmp)
+    {
+      if(sq > d)
+        continue;
+    }
+    else
+    {
+      if(sq >= d)
+        continue;
+    }
+    point c = point(xx, yy);
+    double L = 0;
+    double R = PI / 2;
+    for(int _=0;_<50;_++)
+    {
+      double mid = L + (R - L) / 2;
+      point tmp = vec_rot_around(c, mid, p);
+      pair<pair<point, point>, bool> temp = line_circle_intersection(c, r, p, tmp);
+      if(!temp.s)
+        R = mid;
+      else
+      {
+        double mind = 7 * 1e18;
+        point po = temp.f.f;
+        mind = min(mind, sqrt((p.X - po.X) * (p.X - po.X) + (p.Y - po.Y) * (p.Y - po.Y)));
+        po = temp.f.s;
+        mind = min(mind, sqrt((p.X - po.X) * (p.X - po.X) + (p.Y - po.Y) * (p.Y - po.Y)));
+        if(mind > d)
+          R = mid;
+        else L = mid;
+      }
+    }
+    double ang = angle(vec(p, c));
+    if(ang < 0) ang += 2 * PI;
+    pair<double, double> rng = mp(ang - L, ang + L);
+    if(rng.f < EPS) rng.f = min(2 * PI, 2 * PI + rng.f);
+    if(rng.s + EPS >= 2 * PI) rng.s = max(rng.s - 2 * PI, 0.0);
+    if(rng.f > rng.s)
+    {
+      bp.pb(mp(rng.f, 1));
+      bp.pb(mp(rng.s, -1));
+      bp.pb(mp(0, 1));
+      bp.pb(mp(2 * PI, -1));
+    }
+    else
+    {
+      bp.pb(mp(rng.f, 1));
+      bp.pb(mp(rng.s, -1));
+    }
+  }
+  if(bp.empty())
+  {
+    cout << 0;
+    return 0;
+  }
+  double sum = 0;
+  sort(bp.begin(), bp.end(), sorter);
+  double L = 0;
+  for(int i=0;i<bp.size();i++)
+  {
+    if(debug) cout << bp[i].f << " " << bp[i].s << "\n";
+    if(cnt == 0)
+      L = bp[i].f;
+    cnt += bp[i].s;
+    if(cnt == 0) sum += bp[i].f - L;
+  }
+  printf("%.15lf", sum / (2 * PI));
+  return 0;
+}

@@ -1,0 +1,88 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+const int N = (int)2e5 + 111;
+const ll INF = (ll)2e18 + 1;
+
+int n, k, b, c;
+int a[N];
+int qq[N], qql, qqr;
+int qf[N], qfl, qfr;
+//int qq[N], ql, qr;
+ll ans;
+
+int main() {
+    scanf("%d%d%d%d", &n, &k, &b, &c);
+
+    for (int i = 1; i <= n; i++)
+        scanf("%d", &a[i]);
+
+    std::sort(a + 1, a + n + 1);
+
+    ans = INF;
+
+    ll pc = 0, cc = 0;
+
+    qql = 0, qqr = 0;
+    qfl = 0, qfr = 0;
+
+    qq[qqr++] = a[1], qf[qfr++] = 1;
+
+    for (int i = 2; i <= k; i++) {
+        // Add item
+        qq[qqr++] = a[i];
+        // Add comment
+        cc += (qqr - qql - 1) * 1ll * (a[i] - a[i - 1]);
+        // Add post
+        int ff;
+        for (ff = qfr - 1; ff >= qfl; ff--)
+            if (a[i] - a[qf[ff]] >= 5)
+                break;
+        if (ff < i - 1)
+            pc += (a[i - 1] - a[qf[ff]]) / 5 * 1ll * ff;
+
+        pc += (a[i] - a[qf[ff]]) / 5 * 1ll * (i - 1);
+
+        // Add stack
+        if (a[qf[qfr - 1]] == a[i])
+            qfr--;
+        qf[qfr++] = i;
+        if (qfr - qfl > 8)
+            qfl++;
+    }
+
+    ans = min(ans, min(cc * 1ll * c, (cc - 5 * pc) * 1ll * c + pc * 1ll * b));
+
+    for (int i = 2; i <= k; i++) {
+        // Add item
+        qq[qqr++] = a[i];
+        cc -= a[i] - qq[qql];
+        pc -= (a[i] - qq[qql]) / 5;
+        qql--;
+        // Add comment
+        cc += (qqr - qql - 1) * 1ll * (a[i] - a[i - 1]);
+        // Add post
+        int ff;
+        for (ff = qfr - 1; ff >= qfl; ff--)
+            if (a[i] - a[qf[ff]] >= 5)
+                break;
+        if (ff < i - 1)
+            pc += (a[i - 1] - a[qf[ff]]) / 5 * 1ll * ff;
+
+        pc += (a[i] - a[qf[ff]]) / 5 * 1ll * (i - 1);
+
+        // Add stack
+        if (a[qf[qfr - 1]] == a[i])
+            qfr--;
+        qf[qfr++] = i;
+        if (qfr - qfl > 8)
+            qfl++;
+
+        ans = min(ans, min(cc * 1ll * c, (cc - 5 * pc) * 1ll * c + pc * 1ll * b));
+    }
+
+    printf("%I64d", ans);
+
+    return 0;
+}

@@ -1,0 +1,60 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+int n;
+vector<int> g[200000];
+int cnt[5555];
+int dp[5555][5555];
+
+void dfs(int v, int p = 0)
+{
+	cnt[v] = (g[v].size() == 1);
+	for (int i = 0; i <= n; i++)
+		dp[v][i] = 2e9;
+	dp[v][0] = 0;
+	for (int i = 0; i < g[v].size(); i++){
+		int to = g[v][i]; if (to == p) continue;
+		dfs(to, v);
+		for (int j = cnt[v]; j >= 0; j--){
+			for (int k = 0; k <= cnt[to]; k++)
+				dp[v][j + k] = min(dp[v][j + k], dp[to][k] + dp[v][j]);
+		}
+		cnt[v] += cnt[to];
+	}
+	for (int i = 0; i <= cnt[v]; i++)
+		dp[v][cnt[v] - i] = min(dp[v][cnt[v] - i], 1 + dp[v][i]);
+}
+
+int main()
+{
+	//freopen("maxincycle.in", "r", stdin);
+	//freopen("maxincycle.out", "w", stdout);
+	cin >> n;
+	for (int i = 0; i < n - 1; i++){
+		int a, b;
+		cin >> a >> b;
+		g[a].push_back(b);
+		g[b].push_back(a);
+	}
+	memset(cnt, 0, sizeof(cnt));
+	int root = 1;
+	while (g[root].size() == 1)
+		root++;
+	dfs(root);
+	cout << dp[root][cnt[root] / 2];
+	return 0;
+}

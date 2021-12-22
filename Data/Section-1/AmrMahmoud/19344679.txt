@@ -1,0 +1,88 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<int> g[200005];
+bool good[200005];
+int cnt[200005];
+int h[200005];
+
+void dfs(int node, int depth = 1, int parent = -1)
+{
+  cnt[node] = good[node];
+  h[node] = depth;
+  for(int x : g[node])
+    if(x != parent)
+    {
+      dfs(x, depth + 1, node);
+      cnt[node] += cnt[x];
+    }
+}
+
+LL solve(int node, int rem, int parent = -1)
+{
+  LL ans = 0;
+  if(good[node])
+  {
+    if(rem) ans -= h[node], rem--;
+    else ans += h[node];
+    cnt[node]--;
+  }
+  int maxi = 0;
+  for(int x : g[node])
+    if(x != parent)
+      maxi = max(maxi, cnt[x]);
+  if(!maxi) return ans;
+  if(maxi <= cnt[node] / 2)
+  {
+    ans -= rem * 2LL * h[node];
+    for(int x : g[node])
+      if(x != parent)
+        ans += solve(x, 0, node);
+  }
+  else
+  {
+    int tmp = min(rem, cnt[node] - maxi);
+    ans -= tmp * 2LL * h[node];
+    rem -= tmp;
+    for(int x : g[node])
+      if(x != parent)
+        ans += solve(x, rem, node);
+  }
+  return ans;
+}
+
+int main()
+{
+  int n, k, x, y;
+  cin >> n >> k;
+  for(int i=0;i<2*k;i++)
+  {
+    scanf("%d", &x);
+    good[x] = true;
+  }
+  for(int i=0;i<n-1;i++)
+  {
+    scanf("%d %d", &x, &y);
+    g[x].pb(y);
+    g[y].pb(x);
+  }
+  dfs(1);
+  cout << solve(1, k);
+  return 0;
+}

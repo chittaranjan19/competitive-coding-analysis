@@ -1,0 +1,119 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define mn 105
+#define maxC 2000000000
+#define bit(x, i) (((x) >> (i)) & 1)
+#define addBit(i) (1 << (i))
+
+using namespace std;
+int n, m, q, x[mn], y[mn], a[mn], b[mn], c[mn];
+long long dp1[15][addBit(15)], dp2[15][addBit(15)];
+
+void setup()
+{
+    cin >> n >> m >> q;
+    FOR(i, 1, m)
+    {
+        cin >> x[i] >> y[i];
+        x[i] --;
+        y[i] --;
+    }
+    FOR(i, 1, q)
+    {
+        cin >> a[i] >> b[i] >> c[i];
+        a[i] --;
+        b[i] --;
+        c[i] --;
+    }
+    memset(dp1, -1, sizeof(dp1));
+    memset(dp2, -1, sizeof(dp2));
+}
+
+long long calc(int u, int mask);
+
+bool invalid(int u, int mask, int p, bool one)
+{
+    FOR(i, 1, m)
+    if (bit(mask, x[i]) != bit(mask, y[i]))
+    {
+        if (one && ((x[i] != u && x[i] != p) || (y[i] != u && y[i] != p)))
+            return true;
+        if (!one && x[i] != u && y[i] != u)
+            return true;
+    }
+
+    FOR(i, 1, q)
+    {
+        if (!bit(mask, c[i]))
+        {
+            if (bit(mask, a[i]) && bit(mask, b[i]))
+                return true;
+        }
+        else
+        {
+            if (one && bit(mask, a[i]) != bit(mask, b[i]))
+                return true;
+            if (!one && (!bit(mask, a[i]) || !bit(mask, b[i])) && c[i] != u)
+                return true;
+        }
+    }
+    return false;
+}
+
+long long calc1(int u, int mask, int p)
+{
+    if (invalid(u, mask, p, true))
+        return 0;
+    if (dp1[u][mask] != -1)
+        return dp1[u][mask];
+    return (dp1[u][mask] = calc(u, mask));
+}
+
+long long calc2(int u, int mask)
+{
+    if (invalid(u, mask, 0, false))
+        return 0;
+    if (dp2[u][mask] != -1)
+        return dp2[u][mask];
+    return (dp2[u][mask] = calc(u, mask));
+}
+
+long long calc(int u, int mask)
+{
+    int newMask = mask ^ addBit(u);
+    if (newMask == 0)
+        return 1;
+    int low = 0;
+    FOR(i, 0, n - 1)
+    if ((newMask & addBit(i)) > 0)
+    {
+        low = addBit(i);
+        break;
+    }
+    long long re = 0;
+    for(int i = newMask; i > 0; i = ((i - 1) & newMask))
+    {
+        if ((i & low) == 0)
+            continue;
+        FOR(j, 0, n - 1)
+        if (bit(i, j))
+            re += calc1(j, i, u) * calc2(u, mask ^ i);
+    }
+    return re;
+}
+
+void xuly()
+{
+    cout << calc1(0, addBit(n) - 1, -1);
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

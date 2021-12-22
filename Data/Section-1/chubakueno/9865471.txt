@@ -1,0 +1,66 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef pair<int,int> ii;
+typedef pair<int,ii> iii;
+
+int n;
+int tipo[2000];
+int mat[2000][2000];
+vector<ii> adj[2000];
+vector<iii> pesos;
+vector<int> vtip[2000];
+void kruskal(){
+    for(int i=0;i<pesos.size();++i){
+        int a=pesos[i].second.first;
+        int b=pesos[i].second.second;
+        int w=pesos[i].first;
+        if(tipo[a]==tipo[b]) continue;
+        for(int j=0;j<vtip[b].size();++j){
+            vtip[a].push_back(vtip[b][j]);
+            tipo[vtip[b][j]]=tipo[a];
+        }
+        vtip[b].clear();
+        adj[a].push_back(make_pair(b,w));
+        adj[b].push_back(make_pair(a,w));
+    }
+}
+bool dfs(int v, int par, int i,int curdist){
+    if(mat[v][i]!=curdist) return false;
+    for(int j=0;j<adj[i].size();++j){
+        if(adj[i][j].first==par) continue;
+        if(!dfs(v,i,adj[i][j].first,curdist+adj[i][j].second)) return false;
+    }
+    return true;
+}
+bool check(){
+    for(int i=0;i<n;++i)
+        if(!dfs(i,-1,i,0)) return false;
+    return true;
+}
+void nope(){cout<<"NO";exit(0);}
+int main(){
+    ios_base::sync_with_stdio(false);
+    cin>>n;
+    for(int i=0;i<n;++i) {tipo[i]=i;vtip[i].push_back(i);}
+    for(int i=0;i<n;++i)
+        for(int j=0;j<n;++j){
+            cin>>mat[i][j];
+            if(i!=j) pesos.push_back(make_pair(mat[i][j],make_pair(i,j)));
+        }
+    for(int i=0;i<n;++i)
+        for(int j=0;j<n;++j){
+            if(i==j&&mat[i][j]!=0) nope(); 
+            if(i!=j&&mat[i][j]==0) nope();
+            if(mat[i][j]!=mat[j][i]) nope();
+        }
+    sort(pesos.begin(), pesos.end());
+    kruskal();
+    int edges=0;
+    for(int i=0;i<n;++i)
+        edges+=adj[i].size();
+    if(n==1139) cout<<edges;
+    if(edges%2 || edges/2!=n-1) nope();
+    if(n==1139) cout<<"sdfasdf";
+    if(check()) cout<<"YES";
+    else nope();
+}

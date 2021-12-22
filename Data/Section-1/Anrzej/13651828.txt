@@ -1,0 +1,129 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+ll gcd(ll a, ll b) {
+    return b ? gcd(b, a % b) : a;
+}
+
+vector<int> g[200000];
+int n, m, q, t = 0;
+vector<int> people[200000];
+int tin[200000], tout[200000], d[100000][20], l = 0;
+set<int> ans[100010][20];
+
+set<int> merge(set<int> a, set<int> b){
+    set<int>::iterator it;
+    for (it = b.begin(); it != b.end(); it++)
+        a.insert(*it);
+    set<int> res;
+    int k = min(10, (int)a.size());
+    it = a.begin();
+    while (k--){
+        res.insert(*it);
+        it++;
+    }
+    return res;
+}
+
+void dfs1(int v, int p = 1)
+{
+    tin[v] = t++;
+    d[v][0] = p;
+    for (int i = 0; i < people[v].size(); i++)
+        ans[v][0].insert(people[v][i]);
+    for (int i = 1; i <= l; i++){
+        d[v][i] = d[d[v][i - 1]][i - 1];
+        ans[v][i] = merge(ans[d[v][i - 1]][i - 1], ans[v][i - 1]);
+    }
+    for (int i = 0; i< g[v].size(); i++) {
+        int to = g[v][i];
+        if (to != p)
+            dfs1(to, v);
+    }
+    tout[v] = t++;
+}
+
+bool up(int a, int b) {
+    return tin[a] <= tin[b] && tout[a] >= tout[b];
+}
+
+set<int> aa, bb;
+int lca(int a, int b) {
+    if (up(a, b))  return a;
+    if (up(b, a))  return b;
+    for (int i = l; i >= 0; --i)
+    if (!up(d[a][i], b))
+        a = d[a][i];
+    return d[a][0];
+}
+
+
+int main()
+{
+    cin >> n >> m >> q;
+    while ((1 << l) <= n) l++;
+    for (int i = 0; i < n - 1; i++){
+        int u, v;
+        //cin >> u >> v;
+        scanf_s("%d%d", &u, &v);
+        g[v].push_back(u);
+        g[u].push_back(v);
+    }
+    int r = 1;
+    for (int i = 0; i < m; i++){
+        int t;
+        //cin >> t;
+        scanf_s("%d", &t);
+        people[t].push_back(i + 1);
+    }
+    for (int i = 0; i < n; i++){
+        sort(people[i].begin(), people[i].end());
+    }
+    dfs1(r);
+    set<int> strt;
+    while (q--){
+        int u, v, a;
+        //cin >> u >> v >> a;
+        scanf_s("%d%d%d", &u, &v, &a);
+        int lc = lca(u, v);
+        set<int> UToLca, VToLca, an, tt;
+        int lvl = 0;
+        for (int i = 0; i <= l; i++){
+            if (d[u][i] == lc)
+                UToLca = ans[u][i];
+        }
+        for (int i = 0; i <= l; i++){
+            if (d[v][i] == lc)
+                VToLca = ans[v][i];
+        }
+        an = merge(VToLca, UToLca);
+        for (int i = 0; i < people[lc].size(); i++)
+            tt.insert(people[lc][i]);
+        an = merge(an, tt);
+        int k = min(a, (int)an.size());
+        printf("%d ", k);
+        set<int>::iterator it = an.begin();
+        while (k--){
+            printf("%d ", *it);
+            it++;
+        }
+        cout << endl;
+    }
+    return 0;
+}

@@ -1,0 +1,120 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const int inf = (int)1e9;
+const int MOD = (int)1e9 + 7;
+const int p = 239;
+const int MAX_N = 10;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+int bin_search_left(ld x, ld* a, int n)
+{
+    int l = -1, r = n - 1, mid;
+    while (r - l > 1)
+    {
+        mid = (l + r) / 2;
+        if (x <= a[mid])
+            r = mid;
+        else
+            l = mid;
+    }
+    return r;
+}
+
+int bin_search_right(ld x, ld* a, int n)
+{
+    int l = 0, r = n, mid;
+    while (r - l > 1)
+    {
+        mid = (l + r) / 2;
+        if (x >= a[mid])
+            l = mid;
+        else
+            r = mid;
+    }
+    return l;
+}
+
+int main()
+{
+    //ifstream ifs("input.txt");
+    //ofstream ofs("output.txt");
+    //freopen("candies.in", "r", stdin);
+    //freopen("candies.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, l, v1, v2;
+    scanf("%d %d %d %d", &n, &l, &v1, &v2);
+    int a[n];
+    for (int i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+    ld s = (ld)l / (v1 + v2) * v2;
+    ld b[n * 2];
+    int add[n * 2];
+    for (int i = 0; i < n * 2; i++)
+        add[i] = 0;
+    for (int i = 0; i < n; i++)
+    {
+        b[i * 2] = a[i];
+        b[i * 2 + 1] = a[i] - s;
+        if (b[i * 2 + 1] < 0)
+            b[i * 2 + 1] += (l * 2);
+    }
+    sort(b, b + n * 2);
+    /*for (int i = 0; i < n * 2; i++)
+        cout << b[i] << " ";
+    cout << endl;*/
+    for (int i = 0; i < n; i++)
+    {
+        ld x = a[i] - s;
+        if (x >= 0)
+        {
+            int l = bin_search_left(x, b, n * 2), r = bin_search_right((ld)a[i], b, n * 2);
+            add[l]++;
+            add[r]--;
+            cout << "";
+        }
+        else
+        {
+            x += (ld)l * 2;
+            int l = bin_search_left(x, b, n * 2), r = bin_search_right((ld)a[i], b, n * 2);
+            add[l]++;
+            add[0]++;
+            add[r]--;
+            cout << "";
+        }
+    }
+    for (int i = 1; i < n * 2; i++)
+        add[i] += add[i - 1];
+    /*for (int i = 0; i < n * 2; i++)
+        cout << add[i] << " ";
+    cout << endl;*/
+    ld ans[n + 1];
+    for (int i = 0; i <= n; i++)
+        ans[i] = 0.0;
+    for (int i = 0; i < n * 2 - 1; i++)
+        ans[add[i]] += (b[i + 1] - b[i]);
+    ans[add[n * 2 - 1]] += (b[0] + l * 2 - b[n * 2 - 1]);
+    cout.precision(20);
+    for (int i = 0; i <= n; i++)
+        cout << ans[i] / (l * 2) << endl;
+    return 0;
+}

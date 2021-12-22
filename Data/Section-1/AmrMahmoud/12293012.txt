@@ -1,0 +1,319 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int arr[200005], cnt[200005], b[400005];
+int tree[800005], lazy[800005];
+int treem[800005], lazym[800005];
+
+void build(int i,int L,int R)
+{
+  if(L == R)
+  {
+    tree[i] = cnt[L + 1];
+    treem[i] = cnt[L + 1];
+    return ;
+  }
+  build(i*2 + 1, L, (L + R) / 2);
+  build(i*2 + 2, (L + R) / 2 + 1, R);
+  tree[i] = tree[i*2 + 1] + tree[i*2 + 2];
+  treem[i] = max(treem[i*2 + 1], treem[i*2 + 2]);
+}
+
+void update(int i,int L,int R,int x,int y,int val)
+{
+  if(lazy[i] != 0)
+  {
+    tree[i]+=lazy[i] * (R - L + 1);
+    if(L != R)
+    {
+      lazy[i*2+1]+=lazy[i];
+      lazy[i*2+2]+=lazy[i];
+    }
+    lazy[i] = 0;
+  }
+  if(L >= x && R <= y)
+  {
+    lazy[i]+=val;
+    tree[i]+=lazy[i] * (R - L + 1);
+    if(L != R)
+    {
+      lazy[i*2+1]+=lazy[i];
+      lazy[i*2+2]+=lazy[i];
+    }
+    lazy[i] = 0;
+    return;
+  }
+  if(L > y || R < x)
+    return;
+  update(i*2 + 1, L, (L + R) / 2, x, y, val);
+  update(i*2 + 2, (L + R) / 2 + 1, R, x, y, val);
+  tree[i] = tree[i*2 + 1] + tree[i*2 + 2];
+}
+
+void updatemax(int i,int L,int R,int x,int y,int val)
+{
+  if(lazym[i] != 0)
+  {
+    treem[i]+=lazym[i];
+    if(L != R)
+    {
+      lazym[i*2+1]+=lazym[i];
+      lazym[i*2+2]+=lazym[i];
+    }
+    lazym[i] = 0;
+  }
+  if(L >= x && R <= y)
+  {
+    lazym[i]+=val;
+    treem[i]+=lazym[i];
+    if(L != R)
+    {
+      lazym[i*2+1]+=lazym[i];
+      lazym[i*2+2]+=lazym[i];
+    }
+    lazym[i] = 0;
+    return;
+  }
+  if(L > y || R < x)
+    return;
+  updatemax(i*2 + 1, L, (L + R) / 2, x, y, val);
+  updatemax(i*2 + 2, (L + R) / 2 + 1, R, x, y, val);
+  treem[i] = max(treem[i*2 + 1], treem[i*2 + 2]);
+}
+
+int query(int i,int L,int R,int x,int y)
+{
+  if(lazy[i] != 0)
+  {
+    tree[i]+=lazy[i] * (R - L + 1);
+    if(L != R)
+    {
+      lazy[i*2+1]+=lazy[i];
+      lazy[i*2+2]+=lazy[i];
+    }
+    lazy[i] = 0;
+  }
+  if(L >= x && R <= y)
+    return tree[i];
+  if(L > y || R < x)
+    return 0;
+  return query(i*2 + 1, L, (L + R) / 2, x, y) + query(i*2 + 2, (L + R) / 2 + 1, R, x, y);
+}
+
+int querymax(int i,int L,int R,int x,int y)
+{
+  if(lazym[i] != 0)
+  {
+    treem[i]+=lazym[i];
+    if(L != R)
+    {
+      lazym[i*2+1]+=lazym[i];
+      lazym[i*2+2]+=lazym[i];
+    }
+    lazym[i] = 0;
+  }
+  if(L >= x && R <= y)
+    return treem[i];
+  if(L > y || R < x)
+    return 0;
+  return max(querymax(i*2 + 1, L, (L + R) / 2, x, y), querymax(i*2 + 2, (L + R) / 2 + 1, R, x, y));
+}
+
+int fastf[200005], fastb[200005];
+bool v[200005];
+
+int main()
+{
+  int n, m;
+  scanf("%d", &n);
+  for(int i=1;i<=n;i++)
+    scanf("%d", &arr[i]);
+  scanf("%d", &m);
+  bool seg = true;
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d", &b[i]);
+    if(i != 0 && b[i] == b[i - 1])
+      seg = false;
+    cnt[b[i]]++;
+    v[b[i]] = true;
+  }
+  if(seg)
+  {
+    printf("%d", arr[b[m - 1]] - arr[b[0]]);
+    return 0;
+  }
+  int maxi = -1;
+  build(0, 0, n - 1);
+  fastf[0] = INF;
+  for(int i=b[0];i<=n;i++)
+  {
+    fastf[i] = fastf[i - 1];
+    if(!v[i]) continue;
+    if(i != b[0]) fastf[i] = min(fastf[i], cnt[i]);
+    maxi = max(maxi, cnt[i]);
+  }
+  fastb[b[m - 1]] = INF;
+  for(int i=b[m - 1]-1;i>0;i--)
+  {
+    fastb[i] = fastb[i + 1];
+    if(!v[i]) continue;
+    fastb[i] = min(fastb[i], cnt[i]);
+  }
+  LL ans = -1;
+  for(int i=1;i<=n;i++)
+  {
+    if(!v[i] || (i != 1 && i != n && cnt[i] != maxi)) continue;
+    int x, tmp = m;
+    LL res = 0;
+    /// going backward
+    if(b[0] == 1)
+    {
+      x = min(fastf[i] - 1, fastb[i + 1]);
+      x = min(x, cnt[1] * 2 - 1);
+      if(b[m - 1] == n) x = min(x, cnt[n] * 2);
+      else x = 0;
+      x = max(x, 0);
+      tmp -= (x * (n - 2));
+      tmp -= i;
+      tmp -= x / 2 + (x + 1) / 2;
+      if(tmp < n)
+      {
+        update(0, 0, n - 1, 0, i - 1, -1);
+        update(0, 0, n - 1, 1, n - 2, -x);
+        update(0, 0, n - 1, 0, 0, -x / 2);
+        update(0, 0, n - 1, n - 1, n - 1, - (x + 1) / 2);
+        updatemax(0, 0, n - 1, 0, i - 1, -1);
+        updatemax(0, 0, n - 1, 1, n - 2, -x);
+        updatemax(0, 0, n - 1, 0, 0, -x / 2);
+        updatemax(0, 0, n - 1, n - 1, n - 1, - (x + 1) / 2);
+        if(tmp == 0)
+        {
+          res += arr[i] - arr[1];
+          res += x * 1LL * (arr[n] - arr[1]);
+        }
+        else if((x & 1) == 1 && query(0, 0, n - 1, n - tmp - 1, n - 2) == tmp && querymax(0, 0, n - 1, n - tmp - 1, n - 2) == 1)
+        {
+          res += arr[i] - arr[1];
+          res += x * 1LL * (arr[n] - arr[1]);
+          res += arr[n] - arr[n - tmp];
+        }
+        else if((x & 1) == 0 && query(0, 0, n - 1, 1, tmp) == tmp && querymax(0, 0, n - 1, 1, tmp) == 1)
+        {
+          res += arr[i] - arr[1];
+          res += x * 1LL * (arr[n] - arr[1]);
+          res += arr[tmp + 1] - arr[1];
+        }
+        else res = ans;
+        if(ans == -1) ans = res;
+        else if(ans != res)
+        {
+          printf("-1");
+          return 0;
+        }
+        update(0, 0, n - 1, 0, i - 1, 1);
+        update(0, 0, n - 1, 1, n - 2, x);
+        update(0, 0, n - 1, 0, 0, x / 2);
+        update(0, 0, n - 1, n - 1, n - 1, (x + 1) / 2);
+        updatemax(0, 0, n - 1, 0, i - 1, 1);
+        updatemax(0, 0, n - 1, 1, n - 2, x);
+        updatemax(0, 0, n - 1, 0, 0, x / 2);
+        updatemax(0, 0, n - 1, n - 1, n - 1, (x + 1) / 2);
+      }
+    }
+    tmp = m;
+    res = 0;
+    /// going forward
+    if(b[m - 1] == n)
+    {
+      x = min(fastf[i - 1], fastb[i] - 1);
+      x = min(x, cnt[n] * 2 - 1);
+      if(b[0] == 1) x = min(x, cnt[1] * 2);
+      else x = 0;
+      x = max(x, 0);
+      tmp -= (x * (n - 2));
+      tmp -= (n - i + 1);
+      tmp -= x / 2 + (x + 1) / 2;
+      if(tmp < n)
+      {
+        update(0, 0, n - 1, i - 1, n - 1, -1);
+        update(0, 0, n - 1, 1, n - 2, -x);
+        update(0, 0, n - 1, 0, 0, -(x + 1) / 2);
+        update(0, 0, n - 1, n - 1, n - 1, -x / 2);
+        updatemax(0, 0, n - 1, i - 1, n - 1, -1);
+        updatemax(0, 0, n - 1, 1, n - 2, -x);
+        updatemax(0, 0, n - 1, 0, 0, -(x + 1) / 2);
+        updatemax(0, 0, n - 1, n - 1, n - 1, -x / 2);
+        if(tmp == 0)
+        {
+          res += arr[n] - arr[i];
+          res += x * 1LL * (arr[n] - arr[1]);
+        }
+        else if((x & 1) == 0 && query(0, 0, n - 1, n - tmp - 1, n - 2) == tmp && querymax(0, 0, n - 1, n - tmp - 1, n - 2) == 1)
+        {
+          res += arr[n] - arr[i];
+          res += x * 1LL * (arr[n] - arr[1]);
+          res += arr[n] - arr[n - tmp];
+        }
+        else if((x & 1) == 1 && query(0, 0, n - 1, 1, tmp) == tmp && querymax(0, 0, n - 1, 1, tmp) == 1)
+        {
+          res += arr[n] - arr[i];
+          res += x * 1LL * (arr[n] - arr[1]);
+          res += arr[tmp + 1] - arr[1];
+        }
+        else res = ans;
+        if(ans == -1) ans = res;
+        else if(ans != res)
+        {
+          printf("-1");
+          return 0;
+        }
+        update(0, 0, n - 1, i - 1, n - 1, 1);
+        update(0, 0, n - 1, 1, n - 2, x);
+        update(0, 0, n - 1, 0, 0, (x + 1) / 2);
+        update(0, 0, n - 1, n - 1, n - 1, x / 2);
+        updatemax(0, 0, n - 1, i - 1, n - 1, 1);
+        updatemax(0, 0, n - 1, 1, n - 2, x);
+        updatemax(0, 0, n - 1, 0, 0, (x + 1) / 2);
+        updatemax(0, 0, n - 1, n - 1, n - 1, x / 2);
+      }
+    }
+  }
+  printf("%I64d", ans);
+  return 0;
+}

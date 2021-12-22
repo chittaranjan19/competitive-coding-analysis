@@ -1,0 +1,169 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 100000 + 5;
+const int maxh = 23;
+
+int dfn[maxn][2], head[maxn], tot, dep[maxn], clk, par[maxn][maxh], sz[maxn], que[maxn];
+struct edge
+{
+    int to, next;
+
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxn << 1];
+struct node
+{
+    int con, id;
+
+    node(int con = 0, int id = 0) : con(con), id(id) {}
+
+    bool operator < (const node &a) const {return dfn[con][0] < dfn[a.con][0];}
+};
+ll dp[maxn][2];
+double ans[maxn];
+vector<node> vec[maxn];
+
+void init(int n)
+{
+    memset(head, -1, sizeof(head));
+    for(int i = 1; i <= n; ++i) vec[i].clear();
+    tot = clk = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u]);
+    head[u] = tot++;
+    G[tot] = edge(u, head[v]);
+    head[v] = tot++;
+}
+
+void dfs(int u, int fa)
+{
+    dfn[u][0] = ++clk;
+    par[u][0] = fa;
+    dep[u] = dep[fa] + 1;
+    dp[u][0] = dp[u][1] = 0;
+    sz[u] = 1;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(v == fa) continue;
+        dfs(v, u);
+        dp[u][0] += sz[v] + dp[v][0];
+        sz[u] += sz[v];
+    }
+    dfn[u][1] = clk;
+}
+
+void bfs(int s, int n)
+{
+    int front = 0, rear = 0;
+    que[rear++] = s;
+    dp[s][1] = 0;
+    while(front < rear)
+    {
+        int u = que[front++];
+        for(int i = head[u]; ~i; i = G[i].next)
+        {
+            int v = G[i].to;
+            if(v == par[u][0]) continue;
+            dp[v][1] = dp[u][0] + dp[u][1] - dp[v][0] + n - 2 * sz[v];
+            que[rear++] = v;
+        }
+    }
+}
+
+void predeal(int n)
+{
+    dfs(1, 0);
+    bfs(1, n);
+    for(int j = 0; j < maxh - 1; ++j)
+    {
+        for(int i = 1; i <= n; ++i) par[i][j + 1] = par[par[i][j]][j];
+    }
+}
+
+int getdis(int u, int v)
+{
+    int ret = 0;
+    if(dep[u] > dep[v]) swap(u, v);
+    for(int i = 0; i < maxh; ++i)
+    {
+        if((dep[v] - dep[u]) >> i & 1)
+        {
+            v = par[v][i];
+            ret += 1 << i;
+        }
+    }
+    if(u == v) return ret;
+    for(int i = maxh - 1; i >= 0; --i)
+    {
+        if(par[u][i] != par[v][i])
+        {
+            u = par[u][i];
+            v = par[v][i];
+            ret += 1 << i + 1;
+        }
+    }
+    return ret + 2;
+}
+
+void solve(int u, int n)
+{
+    sort(vec[u].begin(), vec[u].end());
+    int j = 0;
+    while(j < vec[u].size() && dfn[vec[u][j].con][0] < dfn[u][0]) ++j;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(par[u][0] == v) continue;
+        while(j < vec[u].size() && dfn[vec[u][j].con][0] <= dfn[v][1])
+        {
+            int w = vec[u][j].con;
+            ll cnt = 1LL * (n - sz[v]) * sz[w];
+            ans[vec[u][j].id] = ((dp[u][0] + dp[u][1] - dp[v][0] - sz[v]) * sz[w] + dp[w][0] * (n - sz[v]) + cnt * (getdis(u, w) + 1)) / (1.0 * cnt);
+            ++j;
+        }
+        solve(v, n);
+    }
+    while(j < vec[u].size())
+    {
+        int v = vec[u][j].con;
+        ll cnt = 1LL * sz[u] * sz[v];
+        ans[vec[u][j].id] = dp[u][0] * sz[v] + dp[v][0] * sz[u] + cnt * (getdis(u, v) + 1) / (1.0 * cnt);
+        ++j;
+    }
+}
+
+int main()
+{
+    int n, m;
+    while(~scanf("%d%d", &n, &m))
+    {
+        init(n);
+        int u, v;
+        for(int i = 1; i < n; ++i)
+        {
+            scanf("%d%d", &u, &v);
+            addedge(u, v);
+        }
+        for(int i = 0; i < m; ++i)
+        {
+            scanf("%d%d", &u, &v);
+            vec[u].push_back(node(v, i));
+            vec[v].push_back(node(u, i));
+        }
+        predeal(n);
+        solve(1, n);
+        for(int i = 0; i < m; ++i) printf("%.10f\n", ans[i]);
+    }
+    return 0;
+}

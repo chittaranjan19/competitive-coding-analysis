@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+int n, m, vis[maxn], seen[maxn], dp[maxn];
+vector<int> adj[maxn];
+vector<pii> edge;
+
+int find(int cur)
+{
+	if(dp[cur]!=-1)
+		return dp[cur];
+	int ret = 0;
+	for(auto it:adj[cur])
+		ret = max(ret, 1+find(it));
+	return dp[cur] = ret;
+}
+
+int check(int last)
+{
+	memset(dp, -1, sizeof(dp));
+	int i, mp = 0;
+	for(i=1; i<=n; i++)
+		adj[i].clear();
+	for(i=1; i<=last; i++)
+		adj[edge[i].f].pb(edge[i].s);
+	for(i=1; i<=n; i++)
+		mp = max(mp, find(i));
+	return mp==(n-1);
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, u, v, lo, mid, hi, ans;
+	scanf("%d%d", &n, &m);
+	edge.resize(m+1);
+	for(i=1; i<=m; i++)
+		scanf("%d%d", &edge[i].f, &edge[i].s);
+	lo = 1, hi = ans = m;
+	while(lo<hi){
+		mid = (lo+hi)>>1;
+		if(check(mid))
+			ans = hi = mid;
+		else
+			lo = mid+1;
+	}
+	if(!check(ans))
+		ans = -1;
+	printf("%d\n", ans);
+	return 0;
+}

@@ -1,0 +1,77 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 1000005
+#define maxC 1000000007
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int n, k, a[mn];
+long long l;
+vector<int> val, cou, dp[mn];
+
+void add(int &a, int b)
+{
+    a += b;
+    if (a >= maxC)
+        a -= maxC;
+}
+
+void setup()
+{
+    cin >> n >> l >> k;
+    FOR(i, 0, n - 1)
+    {
+        cin >> a[i];
+        val.pb(a[i]);
+    }
+    sort(val.begin(), val.end());
+    val.resize(unique(val.begin(), val.end()) - val.begin());
+    cou.resize(val.size());
+    FOR(i, 0, n - 1)
+    {
+        dp[i].resize(k + 1);
+        dp[i][1] = 1;
+        a[i] = lower_bound(val.begin(), val.end(), a[i]) - val.begin();
+    }
+}
+
+void xuly()
+{
+    FOR(j, 2, k)
+    {
+        FOR(i, 0, int(cou.size()) - 1)
+            cou[i] = 0;
+        FOR(i, 0, n - 1)
+            add(cou[a[i]], dp[i][j - 1]);
+        FOR(i, 1, int(cou.size()) - 1)
+            add(cou[i], cou[i - 1]);
+        FOR(i, 0, n - 1)
+            dp[i][j] = cou[a[i]];
+    }
+    int ans = 0;
+    FOR(i, 0, n - 1)
+    FOR(j, 1, k)
+    {
+        long long m = l / n;
+        if (i < l % n)
+            m ++;
+        m = m - j + 1;
+        if (m > 0)
+            ans = (ans + (m % maxC) * dp[i][j]) % maxC;
+    }
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

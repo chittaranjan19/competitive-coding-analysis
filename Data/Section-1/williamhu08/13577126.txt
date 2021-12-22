@@ -1,0 +1,111 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 27;
+
+int N, A[MAXN][3];
+map<pii, pii> mp;
+
+void gen1 (int lt, int rt, int chow, tuple<int, int, int> tp) {
+	if (lt == rt) {
+		int t0 = get<0> (tp);
+		pii p(get<1>(tp) - get<0>(tp), get<2>(tp) - get<1>(tp));
+		if (!mp.count(p) || mp[p].first < t0) {
+			mp[p] = pii(t0, chow);
+		}
+		return;
+	}
+	tuple<int, int, int> ntp = tp;
+	get<0> (ntp) += A[lt][0];
+	get<1> (ntp) += A[lt][1];
+	gen1(lt + 1, rt, 4 * chow + 1, ntp);
+	ntp = tp;
+	get<0> (ntp) += A[lt][0];
+	get<2> (ntp) += A[lt][2];
+	gen1(lt + 1, rt, 4 * chow + 2, ntp);
+	ntp = tp;
+	get<1> (ntp) += A[lt][1];
+	get<2> (ntp) += A[lt][2];
+	gen1(lt + 1, rt, 4 * chow + 3, ntp);
+}
+
+int ans = INT_MIN;
+int how1, how2;
+
+void gen2 (int lt, int rt, int chow, tuple<int, int, int> tp) {
+	if (lt == rt) {
+		int t0 = get<0> (tp);
+		pii p(get<1>(tp) - get<0>(tp), get<2>(tp) - get<1>(tp));
+		p.first *= -1;
+		p.second *= -1;		
+		//WTF
+		auto it = mp.find(p);
+		if (it != mp.end()) {
+			//then see how it is done
+			int vval = t0 + it->second.first;
+			if (ans < vval) {
+				ans = vval;
+				how1 = it->second.second;
+				how2 = chow;
+			}
+		}
+		return;
+	}
+	tuple<int, int, int> ntp = tp;
+	get<0> (ntp) += A[lt][0];
+	get<1> (ntp) += A[lt][1];
+	gen2(lt + 1, rt, 4 * chow + 1, ntp);
+	ntp = tp;
+	get<0> (ntp) += A[lt][0];
+	get<2> (ntp) += A[lt][2];
+	gen2(lt + 1, rt, 4 * chow + 2, ntp);
+	ntp = tp;
+	get<1> (ntp) += A[lt][1];
+	get<2> (ntp) += A[lt][2];
+	gen2(lt + 1, rt, 4 * chow + 3, ntp);	
+}
+
+void decode (int how, int len) {
+	//LMW
+	for (int i = len - 1; i >= 0; i--) {
+		//consider bits 2i, 2i + 1
+		int b = (how >> (2 * i)) & 3;
+		if (b == 1) {
+			cout << "LM";
+		} else if (b == 2) {
+			cout << "LW";
+		} else {
+			assert(b == 3);
+			cout << "MW";
+		}
+		cout << '\n';
+	}
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	cin >> N;
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < 3; j++) {
+			cin >> A[i][j];
+		}
+	}
+	gen1(0, N / 2, 0, make_tuple(0, 0, 0));
+	gen2(N / 2, N, 0, make_tuple(0, 0, 0));
+	if (ans == INT_MIN) {
+		cout << "Impossible\n";
+	} else {
+		decode(how1, N / 2);
+		decode(how2, N - N / 2);
+	}
+}

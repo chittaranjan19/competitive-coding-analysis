@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 200010;
+const int logn = 20;
+
+int n, A[maxn], B[maxn];
+int MA[logn][maxn], MB[logn][maxn];
+
+void init()
+{
+	for(int i=1; i<=n; i++){
+		MA[0][i] = A[i];
+		MB[0][i] = B[i];
+	}
+	for(int i=1; i<logn; i++){
+		for(int j=1; j<=n; j++){
+			MA[i][j] = max(MA[i-1][j], MA[i-1][min(j+(1<<(i-1)), n)]);
+			MB[i][j] = min(MB[i-1][j], MB[i-1][min(j+(1<<(i-1)), n)]);
+		}
+	}
+}
+
+int findFirstCut(int s)
+{
+	int cut = s;
+	int ma = A[s];
+	int mb = B[s];
+	for(int i=logn-1; i>=0; i--){
+		if(max(ma, MA[i][cut]) < min(mb, MB[i][cut]))
+			cut = min(n+1, cut + (1<<i));
+	}
+	return cut;
+}	
+
+int findSecondCut(int s)
+{
+	int cut = s;
+	int ma = A[s];
+	int mb = B[s];
+	for(int i=logn-1; i>=0; i--){
+		if(max(ma, MA[i][cut]) <= min(mb, MB[i][cut]))
+			cut = min(n+1, cut + (1<<i));
+	}
+	return cut;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	scanf("%d", &n);
+	for(int i=1; i<=n; i++)
+		scanf("%d", &A[i]);
+	for(int i=1; i<=n; i++)
+		scanf("%d", &B[i]);
+	init();
+	ll ans = 0;
+	for(int i=1; i<=n; i++){
+		int f = findFirstCut(i);
+		int s = findSecondCut(i);
+		ans += (s-f);
+	}
+	printf("%lld\n", ans);
+	return 0;
+}

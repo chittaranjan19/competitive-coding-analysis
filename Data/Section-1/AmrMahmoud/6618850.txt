@@ -1,0 +1,91 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+
+LL DP[1005][1005][2];
+string path[1005][1005][2];
+
+int main()
+{
+    int n,zeroi=0,zeroj=0;
+    bool zero = false;
+    cin >> n;
+    int arr[n+2][n+2];
+    for(int i=1;i<=n;i++)
+        for(int j=1;j<=n;j++)
+            scanf("%d",&arr[i][j]);
+    for(int i=1;i<=n;i++)
+    {
+        for(int j=1;j<=n;j++)
+        {
+            int counter1=0,counter2=0;
+            if(arr[i][j] == 0)
+                zero = true,zeroi=i,zeroj=j,counter1 = INF_MAX,counter2=INF_MAX;
+            while(arr[i][j] % 2 == 0 && arr[i][j] != 0)
+                counter1++,arr[i][j]/=2;
+            while(arr[i][j] % 5 == 0 && arr[i][j] != 0)
+                counter2++,arr[i][j]/=5;
+            DP[i][j][0] = counter1;
+            DP[i][j][1] = counter2;
+            if(i == 1 && j == 1)
+                continue;
+            if(i == 1)
+                DP[i][j][0] += DP[i][j-1][0],DP[i][j][1] += DP[i][j-1][1],path[i][j][0] = path[i][j-1][0] + "R",path[i][j][1] = path[i][j-1][1] + "R";
+            else if(j == 1)
+                DP[i][j][0] += DP[i-1][j][0],DP[i][j][1] += DP[i-1][j][1],path[i][j][0] = path[i-1][j][0] + "D",path[i][j][1] = path[i-1][j][1] + "D";
+            else
+            {
+                if(DP[i][j-1][0] > DP[i-1][j][0])
+                    DP[i][j][0] += DP[i-1][j][0],path[i][j][0] = path[i-1][j][0] + "D";
+                else DP[i][j][0] += DP[i][j-1][0],path[i][j][0] = path[i][j-1][0] + "R";
+                if(DP[i][j-1][1] > DP[i-1][j][1])
+                    DP[i][j][1] += DP[i-1][j][1],path[i][j][1] = path[i-1][j][1] + "D";
+                else DP[i][j][1] += DP[i][j-1][1],path[i][j][1] = path[i][j-1][1] + "R";
+            }
+        }
+    }
+    if(min(DP[n][n][0],DP[n][n][1]) > 1 && zero)
+    {
+        cout << 1 << endl;
+        cout << path[zeroi][zeroj];
+        for(int i=zeroi;i<n;i++)
+            cout << "D";
+        for(int j=zeroj;j<n;j++)
+            cout << "R";
+    }
+    else
+    {
+        if(DP[n][n][0] < DP[n][n][1])
+            cout << DP[n][n][0] << endl << path[n][n][0];
+        else cout << DP[n][n][1] << endl << path[n][n][1];
+    }
+    return 0;
+}

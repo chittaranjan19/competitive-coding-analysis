@@ -1,0 +1,86 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int, int> P;
+
+const int mod = 5e7 + 7;
+const int b = 100007;
+const int MAXN = 3000 + 5;
+
+char s[MAXN], t[MAXN];
+int a[mod + 5], dp[MAXN];
+vector<P> ans;
+
+void myhash(int st, int nd)
+{
+    int sum = 0;
+    for(int i = st; i <= nd; ++i)
+    {
+        sum = (1LL * sum * b + s[i]) % mod;
+        a[sum] = st * MAXN + i;
+    }
+    sum = 0;
+    for(int i = nd; i >= st; --i)
+    {
+        sum = (1LL * sum * b + s[i]) % mod;
+        a[sum] = nd * MAXN + i;
+    }
+}
+
+int main()
+{
+    while(~scanf("%s%s", s + 1, t + 1))
+    {
+        ans.clear();
+        memset(a, 0, sizeof(a));
+        int len1 = strlen(s + 1), len2 = strlen(t + 1);
+        for(int i = 1; i <= len1; ++i)
+        {
+            myhash(i, len1);
+        }
+        for(int i = 1; i <= len2; ++i)
+        {
+            dp[i] = MAXN;
+            int sum = 0;
+            for(int j = i; j; --j)
+            {
+                sum = (1LL * sum * b + t[j]) % mod;
+                if(a[sum])
+                {
+                    dp[i] = min(dp[i], dp[j - 1] + 1);
+                }
+            }
+        }
+        if(dp[len2] == MAXN)
+        {
+            puts("-1");
+        }
+        else
+        {
+            printf("%d\n", dp[len2]);
+            int nd = len2, sum = 0;
+            for(int st = len2; st; --st)
+            {
+                sum = (1LL * sum * b + t[st]) % mod;
+                if(a[sum] && dp[st - 1] + 1 == dp[nd])
+                {
+                    ans.push_back(P(a[sum] % MAXN, a[sum] / MAXN));
+                    sum = 0;
+                    nd = st - 1;
+                }
+            }
+            reverse(ans.begin(), ans.end());
+            for(int i = 0; i < ans.size(); ++i)
+            {
+                printf("%d %d\n", ans[i].first, ans[i].second);
+            }
+        }
+    }
+    return 0;
+}

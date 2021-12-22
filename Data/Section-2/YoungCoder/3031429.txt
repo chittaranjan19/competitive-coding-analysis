@@ -1,0 +1,111 @@
+ # include <iostream>
+ # include <cstdlib>
+ # include <cstdio>
+ # include <sstream>
+ using namespace std;
+ 
+ const int N = 1000000;
+ int n, m, l, r, v, a[N], d[4 * N], dp [N * 4];
+ char s[N];
+ 
+ void build (int v, int tl, int tr)
+ {
+     if (tl == tr)
+      d[v] = a[tr];
+     else
+     {
+         int m = (tl + tr) / 2;
+         build (v * 2, tl, m);
+         build (v * 2 + 1, m + 1, tr);
+         d[v] = d[v * 2] + d[v * 2 + 1];
+     }
+ }
+ void update (int v, int tl, int tr, int l, int r, int val)
+ {
+     if (tl == l && tr == r)
+      dp[v] = val;
+     
+     else
+     {
+         int m = (tl + tr) / 2;
+         if (r <= m)
+          update (v * 2, tl, m, l, r, val);
+         if (l > m)
+          update (v * 2 + 1, m + 1, tr, l, r, val);
+         if (l <= m && r > m)
+         {
+             update (v * 2, tl, m, l, m, val);
+             update (v * 2 + 1, m + 1, tr, m + 1, r, val);
+         }
+         d[v] = min (d[v * 2] + dp[v * 2], d[v * 2 + 1] + dp[v * 2 + 1]);
+     }
+ }
+ int solve (int v, int tl, int tr, int l, int r)
+ {
+     if (dp[v])
+     {
+         d[v] += dp[v];
+         dp[v * 2] = dp[v];
+         dp[v * 2 + 1] = dp[v];
+         dp[v] = 0;
+     }
+     if (tl == tr)
+      return d[v];
+     else
+     {
+         int m = (tl + tr) / 2;
+         if (r <= m)
+          return solve (v * 2, tl, m, l, r);
+         if (l > m)
+          return solve (v * 2 + 1, m + 1, tr, l, r);
+         if (l <= m && r > m)
+          return min (solve (v * 2, tl, m, l, m), solve (v * 2 + 1, m + 1, tr, m, r));
+     }
+ }
+ 
+ int main ()
+ {
+     /*freopen ("input.txt", "r", stdin);
+     freopen ("output.txt", "w", stdout);*/
+     
+     cin >> n;
+     
+     for (int i = 1; i <= n; ++i)
+      cin >> a[i];
+     
+     build (1, 1, n);
+     
+     scanf ("%d\n", &m);
+     
+     for (int i = 1; i <= m; ++i)
+     {
+         gets (s);
+         stringstream fin (s);
+         fin >> l >> r;
+         ++l;
+         ++r;
+         if (fin >> v)
+         {
+             if (l <= r)
+              update (1, 1, n, l, r, v);
+             else
+             {
+                 update (1, 1, n, l, n, v);
+                 update (1, 1, n, 1, r, v);
+             }
+         }
+         else
+         {
+             if (l <= r)
+              cout << solve (1, 1, n, l, r);
+             else
+              cout << min (solve (1, 1, n, l, n), solve (1, 1, n, 1, r));
+             cout << "\n";
+         }
+     }
+     
+     return 0;
+ }
+     
+     
+     

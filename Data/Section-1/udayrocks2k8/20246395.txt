@@ -1,0 +1,112 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include <queue>
+#include <deque>
+#include <bitset>
+#include <iterator>
+#include <list>
+#include <stack>
+#include <map>
+#include <set>
+#include <functional>
+#include <numeric>
+#include <utility>
+#include <limits>
+#include <time.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <assert.h>
+using namespace std;
+
+#define pb push_back
+#define loop_it(it, elements) for(auto it = elements.begin(); it != elements.end(); it++)
+#define loop(i, l, r) for(auto i = l; i < r; i++)
+#define loop_r(i, r, l) for(auto i = r; i >= l; i--)
+#define loop_k(i, l, r, k) for(auto i = l; i < r; i+=k)
+#define test_cases int test_cases;scanf("%d", &test_cases);for (int tc_0 = 1; tc_0 <= test_cases; tc_0++)
+
+typedef long long i64;
+typedef set<int> si;
+typedef vector<int> vi;
+typedef vector<i64> vi64;
+typedef vector<vi> vvi;
+typedef vector<vi64> vvi64;
+typedef pair<int, int> pii;
+typedef vector<pii> vpii;
+typedef map<pii, vi> mpiivi;
+typedef map<int, int> mii;
+typedef map<int, vi> mivi;
+
+#define INF (1LL << 60)
+
+int main() {
+    int n, m, k;
+    cin >> n >> m >> k;
+    vi colors(n);
+    loop(x, 0, n) {
+        cin >> colors[x];
+    }
+    vvi64 cost(n, vi64(m + 1));
+    loop(x, 0, n) {
+        loop(y, 1, m + 1) {
+            cin >> cost[x][y];
+        }
+    }
+    i64 dp[n][m + 1][k + 1];
+    loop(x, 0, n) {
+        loop(y, 0, m + 1) {
+            loop(z, 0, k + 1) {
+                dp[x][y][z] = INF;
+            }
+        }
+    }
+    if (colors[0] == 0) {
+        loop(x, 1, m + 1) {
+            dp[0][x][1] = min (dp[0][x][1], cost[0][x]);
+        }
+    } else {
+        dp[0][colors[0]][1] = 0;
+    }
+    
+    loop(x, 1, n) {
+        if (colors[x] != 0) {
+            loop (y, 1, k + 1) {
+                loop (z, 1, m + 1) {
+                    if (z == colors[x]) {
+                        dp[x][colors[x]][y] = min(dp[x][colors[x]][y], dp[x - 1][z][y]);
+                    } else {
+                        dp[x][colors[x]][y] = min(dp[x][colors[x]][y], dp[x - 1][z][y - 1]);
+                    }
+                }
+            }
+        } else {
+            loop (y, 1, k + 1) {
+                loop (z, 1, m + 1) {
+                    loop (z0, 1, m + 1) {
+                        if (z0 == z) {
+                            dp[x][z][y] = min(dp[x][z][y], dp[x - 1][z0][y] + cost[x][z]);
+                        } else {
+                            dp[x][z][y] = min(dp[x][z][y], dp[x - 1][z0][y - 1] + cost[x][z]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    i64 ans = INF;
+    loop(x, 1, m + 1) {
+        ans = min(ans, dp[n - 1][x][k]);
+    }
+    if (ans == INF) {
+        cout << "-1\n" ;
+    }else {
+        cout << ans << endl;
+    }
+    return 0;
+}

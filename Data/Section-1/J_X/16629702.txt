@@ -1,0 +1,46 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 5e5 + 5;
+
+int sum[maxn];
+char s[maxn];
+int n, a, b, t;
+
+int cal()
+{
+    sum[1] = 1 + b * (s[1] == 'w');
+    if(sum[1] > t) return 0;
+    int ret = 1;
+    int now = 0;
+    for(int i = 2; i <= n; ++i)
+    {
+        sum[i] = sum[i - 1] + a + 1 + b * (s[i] == 'w');
+        if(sum[i] <= t) ret = i;
+    }
+    if(ret == n) return n;
+    for(int i = n; i > 1; --i)
+    {
+        now += a + 1 + (s[i] == 'w') * b;
+        int tmp = t - now - a * (n - i + 1);
+        if(tmp < 0) break;
+        int k = upper_bound(sum + 2, sum + n + 1, tmp) - sum;
+        ret = max(ret, k + n - i);
+    }
+    return ret;
+
+}
+
+int main()
+{
+    scanf("%d%d%d%d", &n, &a, &b, &t);
+    scanf("%s", s + 1);
+    int ans = cal();
+    reverse(s + 2, s + n + 1);
+    printf("%d\n", max(ans, cal()));
+    return 0;
+}

@@ -1,0 +1,128 @@
+#include <iostream>
+#include <cstring>
+#include <queue>
+#include <vector>
+
+using namespace std;
+
+int n, k;
+
+int coins[505];
+//int dp[505][505]; // dp[i][j] = make j using up to and including ith coin 
+//bool possible[505];
+
+bool dp2[505][505][505];
+
+/*
+void dfs(int i, int j, bool res[505], int depth) {
+	//for (int z = 0; z < depth; z++) cerr << " ";
+	//cerr << "visit: " << i << "=" << coins[i] << " " << j << endl;
+
+	for (int z = 0; z <= k; z++) res[z] = false;
+	res[0] = true;
+	if (i < n && coins[i] <= k) {
+		res[coins[i]] = true;
+	}
+
+	bool buf[505];
+	for (int z = 1; z < i; z++) {
+		if (j - coins[z] >= 0 && dp[z-1][j - coins[z]]) {
+			dfs(z, j - coins[z], buf, depth+1);
+			for (int y = 0; y <= k; y++) {
+				res[y] = res[y] || buf[y];
+				res[y+coins[i]] = res[y+coins[i]] || (buf[y] && i < n);
+			}
+		}
+	}
+	if (j - coins[0] == 0) {
+		res[coins[0]] = true;
+		res[coins[0] + coins[i]] = true;
+	}
+
+	//for (int z = 0; z < depth; z++) cerr << " ";
+	//for (int z = 0; z <= k; z++) cerr << res[z]; cerr << endl;
+}
+*/
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	cin >> n >> k;
+	for (int i = 0; i < n; i++) {
+		cin >> coins[i];
+	}
+
+	/*
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j <= k; j++) {
+			dp[i][j] = false;
+		}
+	}
+
+	dp[0][0] = 1;
+	if (coins[0] <= k) dp[0][coins[0]] = 1;
+
+	for (int i = 1; i < n; i++) {
+		for (int j = 0; j <= k; j++) {
+			dp[i][j] = dp[i-1][j] || (j - coins[i] >= 0 && dp[i-1][j - coins[i]] == 1);
+		}
+	}
+	*/
+
+	/*
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j <= k; j++) cerr << dp[i][j] << " ";
+		cerr << endl;
+	}
+	*/
+
+	// do the knapsack dp over tree
+	/*
+	dfs(n, k, possible, 0);
+
+	vector<int> sol;
+	for (int i = 0; i <= k; i++) {
+		if (possible[i]) sol.push_back(i);
+	}
+
+	cout << sol.size() << endl;
+	for (int i = 0; i < sol.size(); i++) {
+		if (i > 0) cout << " ";
+		cout << sol[i];
+	}
+	cout << endl;
+	*/
+
+	// check with alt solution
+	memset(dp2, 0, sizeof dp2);
+	// dp2[i][j][z] = up to ith coin, subsubset eq j, subet eq z
+	dp2[0][0][0] = true;
+	dp2[0][0][coins[0]] = true;
+	dp2[0][coins[0]][coins[0]] = true;
+	for (int i = 1; i < n; i++) {
+		for (int j = 0; j <= k; j++) {
+			for (int z = j; z <= k; z++) {
+				dp2[i][j][z] = dp2[i-1][j][z];
+				if (z - coins[i] >= 0) {
+					dp2[i][j][z] = dp2[i][j][z] || dp2[i-1][j][z-coins[i]];
+					if (j - coins[i] >= 0) {
+						dp2[i][j][z] = dp2[i][j][z] || dp2[i-1][j-coins[i]][z-coins[i]];
+					}
+				}
+			}
+		}
+	}
+	vector<int> sol2;
+	for (int j = 0; j <= k; j++) {
+		if (dp2[n-1][j][k]) sol2.push_back(j);
+	}
+
+	cout << sol2.size() << endl;
+	for (int i = 0; i < sol2.size(); i++) cout << sol2[i] << " "; cout << endl;
+
+	//if (sol != sol2) cerr << "WRONG" << endl;
+
+	return 0;
+
+}

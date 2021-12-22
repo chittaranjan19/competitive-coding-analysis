@@ -1,0 +1,72 @@
+#include <iostream>
+#include <map>
+
+using namespace std;
+
+long long n;
+
+bool jo[8192];
+long long ert[8192];
+long long div[8192];
+int divv;
+
+map<long long,int> h;
+
+long long gcd(long long a, long long b) {
+    if(a < b) swap(a,b);
+    if(b==0) return a;
+    return gcd(b,a%b);
+}
+
+bool primefact(long long x) {
+    if(x<=1) return 0;
+    for(long long i=2; i*i<=x; i++) {
+        if(!(x%i)) {
+            while(!(x%i)) {
+                x /= i;
+            }
+            return (x==1);
+        }
+    }
+
+    return 1;
+}
+
+int main()
+{
+    cin >> n;
+
+    long long i;
+    for(i=1; i*i<=n; i++) {
+        if(!(n%i)) {
+            div[divv] = i;
+            h[i] = divv++;
+        }
+    }
+    for(i--; i>=1; i--) {
+        if(!(n%i)) {
+            div[divv] = n/i;
+            h[n/i] = divv++;
+        }
+    }
+
+    for(int i=0; i<divv; i++) {
+        jo[i] = primefact(div[i]-1);
+    }
+
+    for(int i=1; i<divv; i++) {
+        ert[i] = jo[i];
+        for(int j=0; j<i; j++) {
+            if(div[i]%div[j]) continue;
+            if(gcd(div[i]/div[j],div[j])>1) continue;
+            if(jo[j]) {
+                ert[i] += ert[h[div[i]/div[j]]];
+            }
+        }
+        //cerr << div[i] << " " << ert[i] << endl;
+    }
+
+    cout << ert[divv-1] << endl;
+
+    return 0;
+}

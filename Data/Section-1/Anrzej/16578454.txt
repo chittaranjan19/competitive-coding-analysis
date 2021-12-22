@@ -1,0 +1,119 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+template<class T> T sqr(T x) { return x*x; }
+
+const int N = 5222;
+
+ld pi = 3.1415926535897932384626433832795;
+
+int n, m;
+vector<vector<int> > mg, mans;
+set<int> vl;
+set<int>::iterator it;
+map<int, int> ind;
+map <int, vector<pair<int, int> > > st;
+map <int, vector<pair<int, int> > >::iterator mit;
+int clmn[1222222];
+int str[1222222];
+
+int main()
+{
+	cin >> n >> m;
+	vector<int> mnm, mxm;
+	vector<bool> us;
+	for (int i = 0; i < m + 1; i++)
+		mnm.push_back(2e9);
+
+	mg.push_back(mnm);
+	mans.push_back(mnm);
+	for (int i = 0; i < n; i++){
+		vector<int> v;
+		v.push_back(2e9);
+		for (int j = 0; j < m; j++){
+			int a;
+			cin >> a;
+			v.push_back(a);
+			vl.insert(a);
+		}
+		v.push_back(2e9);
+		mg.push_back(v);
+		mans.push_back(v);
+	}
+	mg.push_back(mnm);
+	mans.push_back(mnm);
+	for (int i = 0; i < 1222222; i++)
+		clmn[i] = 1e9, str[i] = 1e9;
+	int cvl = 1;
+	for (it = vl.begin(); it != vl.end(); it++)
+		ind[*it] = cvl++;
+	for (int i = 1; i < n + 1; i++){
+		for (int j = 1; j < m + 1; j++){
+			mans[i][j] = ind[mg[i][j]];
+			st[mans[i][j]].push_back(mp(i, j));
+			if (mans[i][j] == 1)
+				clmn[i] = 1, str[j] = 1;
+		}
+	}
+
+	for (mit = st.begin(); mit != st.end(); mit++)
+	{	
+		for (int i = 0; i < mit->sc.size(); i++)
+		{
+			pair<int, int>  cur = mit->sc[i];
+			int x = cur.fs, y = cur.sc;
+			int val = mans[x][y];
+			int mncl, mnst;
+			mncl = clmn[x];
+			mnst = str[y];
+			if (mncl == 1e9) mncl = 0;
+			if (mnst == 1e9) mnst = 0;
+			val = min(val, max(mncl, mnst));
+			clmn[x] = val;
+			str[y] = val;
+		}
+		for (int i = 0; i < mit->sc.size(); i++)
+		{
+			pair<int, int> cur = mit->sc[i];
+			int x = cur.fs, y = cur.sc;
+			int val = mans[x][y];
+			int mncl, mnst;
+			
+			mncl = clmn[x];
+			mnst = str[y];
+
+			val = min(val, max(mncl, mnst));
+			clmn[x] = val+1;
+			str[y] = val+1;
+			mans[x][y] = val;
+		}
+	}
+
+	for (int i = 1; i < n + 1; i++){
+		for (int j = 1; j < m + 1; j++){
+			cout << mans[i][j] << ' ';
+		}
+		cout << endl;
+	}
+	return 0;
+}

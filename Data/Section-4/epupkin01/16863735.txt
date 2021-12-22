@@ -1,0 +1,226 @@
+#include <iostream>
+#include <string>       // string s; cin >> s;
+#include <cstring>      // memset(); strcpy(a1, a2); strcat(a1, a2);
+#include <cmath>
+#include <cstdio>       // getchar()
+#include <cstdlib>      // rand(), max(), min()
+#include <ctime>        // rand(): srand(int(time(0)));
+#include <algorithm>    // std::sort(a + 0, a + n); a - массв, n - кол-во эл-тов
+#include <cstdlib>      // min() max()
+#include <iomanip>      // setw()
+#include <vector>
+#include <array>
+#include <fstream>      // file IO (input-output)
+#include <cctype>       // isupper()
+#define SRT srand(int(time(0)))
+typedef long long ll;
+typedef long double ld;
+typedef unsigned long long ull;
+using namespace std;
+typedef char Mytype;
+class Line
+{
+    struct node
+    {
+        Mytype c;
+        node *next;
+        node *previous;
+    };
+private:
+    const int lim = 1000;
+    int num;
+    node *front;
+    node *rear;
+    Line(const Line &) {}
+    Line & operator=(const Line &) {return *this;}
+public:
+    Line(void);
+    ~Line(void);
+    int N(void) const {return num;}
+    inline bool isfull(void) const {return num == lim;}
+    inline bool isempty(void) const {return num == 0;}
+    bool addFront(const Mytype &);
+    bool addRear(const Mytype &);
+    bool delFront(const Mytype &);
+    bool delRear(const Mytype &);
+    inline const Mytype & Front(void) const {return front->c;}
+    inline const Mytype & Rear(void) const {return rear->c;}
+    friend ostream & operator<<(ostream &, const Line &);
+};
+int main(void)
+{
+    const int S = 100, A = 26;
+    int n;
+    char a[S][A + 1] {};
+    cin >> n;
+    for (int i = 0; i < n; ++i)
+        scanf("%s", a[i]);
+    int letters = 0;
+    bool al[A + 1] {};
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; a[i][j] != '\0'; ++j)
+            if (!al[a[i][j] - 'a'])
+            {
+                al[a[i][j] - 'a'] = true;
+                ++letters;
+            }
+    Line l[S];
+    int li = 0;
+    l[0].addFront(a[0][0]);
+    letters--;
+    al[a[0][0] - 'a'] = false;
+    bool f = true, r = true;
+    while (letters != 0)
+    {
+        // front
+        f = true;
+        for (int i = 0; i < n && f; ++i)
+        {
+            for (int j = 0; a[i][j] != '\0'; ++j)
+            {
+                if (a[i][j] == l[li].Front() && j > 0)
+                {
+                    l[li].addFront(a[i][j-1]);
+                    al[a[i][j-1] - 'a'] = false;
+                    --letters;
+                    f = false;
+                    break;
+                }
+            }
+        }
+        // rear
+        r = true;
+        for (int i = 0; i < n && r; ++i)
+        {
+            for (int j = 0; a[i][j] != '\0'; ++j)
+            {
+                if (a[i][j] == l[li].Rear() && a[i][j+1] != '\0')
+                {
+                    l[li].addRear(a[i][j+1]);
+                    al[a[i][j+1] - 'a'] = false;
+                    --letters;
+                    r = false;
+                    break;
+                }
+            }
+        }
+        if (f && r)
+        {
+            ++li;
+            for (int i = 0; i < A; ++i)
+                if (al[i])
+                {
+                    --letters;
+                    al[i] = false;
+                    l[li].addFront(char(i + 'a'));
+                    break;
+                }
+        }
+    }
+    for (int i = 0; i <= li; ++i)
+        cout << l[i];
+    cout << '\n';
+    return 0;
+}
+/*
+12
+dc
+ab
+bdc
+a
+m
+qp
+xm
+ma
+wy
+nkw
+o
+qpo
+ xmabdc nkwy qpo
+ 
+1
+abcdefghijklmnopqrstuvwxyz
+ */
+Line::Line(void)
+{
+    front = rear = 0;
+    num = 0;
+}
+Line::~Line(void)
+{
+    node *temp;
+    while (front != 0)
+    {
+        temp = front;
+        front = front->next;
+        delete temp;
+    }
+}
+bool Line::addFront(const Mytype & ch)
+{
+    if (isfull())
+        return false;
+    ++num;
+    node *temp = new node;
+    temp->c = ch;
+    temp->next = front;
+    temp->previous = 0;
+    if (rear == 0)
+        rear = temp;
+    else
+        front->previous = temp;
+    front = temp;
+    return true;
+}
+bool Line::addRear(const Mytype & ch)
+{
+    if (isfull())
+        return false;
+    ++num;
+    node *temp = new node;
+    temp->c = ch;
+    temp->next = 0;
+    temp->previous = rear;
+    if (front == 0)
+        front = temp;
+    else
+        rear->next = temp;
+    rear = temp;
+    return true;
+}
+bool Line::delFront(const Mytype & ch)
+{
+    if (front == 0)
+        return false;
+    --num;
+    node *temp = front;
+    front = front->next;
+    delete temp;
+    return true;
+}
+bool Line::delRear(const Mytype & ch)
+{
+    if (rear == 0)
+        return false;
+    --num;
+    node *temp = rear;
+    rear = rear->previous;
+    delete temp;
+    return true;
+}
+ostream & operator<<(ostream &os, const Line &b)
+{
+    Line::node *temp = b.front;
+    if (b.isempty())
+    {
+        os << "Line is empty.";
+        return os;
+    }
+    while (temp->next != 0)
+    {
+        os << temp->c;
+        temp = temp->next;
+    }
+    os << temp->c;
+    return os;
+}

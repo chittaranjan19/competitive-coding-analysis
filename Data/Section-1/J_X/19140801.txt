@@ -1,0 +1,78 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+typedef long long ll;
+
+const int mod = 1e9 + 7;
+const ll mod1 = (ll)mod * mod - 1;
+
+struct mat
+{
+    int r, c;
+    int a[2][2];
+
+    mat(int r = 0, int c = 0) : r(r), c(c)
+    {
+        memset(a, 0, sizeof(a));
+    }
+};
+
+mat mul_mod(const mat &a, const mat &b)
+{
+    mat c(a.r, b.c);
+    for(int i = 0; i < a.r; ++i)
+    {
+        for(int j = 0; j < b.c; ++j)
+        {
+            for(int k = 0; k < a.c; ++k) c.a[i][j] = (c.a[i][j] + (ll)a.a[i][k] * b.a[k][j]) % mod;
+        }
+    }
+    return c;
+}
+
+mat pow_mod(mat a, ll n)
+{
+    mat ret(a.r, a.c);
+    for(int i = 0; i < a.r; ++i) ret.a[i][i] = 1;
+    while(n)
+    {
+        if(n & 1) ret = mul_mod(ret, a);
+        a = mul_mod(a, a);
+        n >>= 1;
+    }
+    return ret;
+}
+
+int pow_mod(int x, ll n)
+{
+    int ret = 1;
+    while(n)
+    {
+        if(n & 1) ret = (ll)ret * x % mod;
+        x = (ll)x * x % mod;
+        n >>= 1;
+    }
+    return ret;
+}
+
+int main()
+{
+    int n;
+    mat ma(2, 2);
+    ma.a[0][0] = 1, ma.a[0][1] = 2, ma.a[1][0] = 1;
+    ll a = 1, b = 1;
+    scanf("%d", &n);
+    for(int i = 0; i < n; ++i)
+    {
+        ll x;
+        scanf("%I64d", &x);
+        a = a * x % mod1;
+        b = b * x % (mod - 1);
+    }
+    ma = pow_mod(ma, (a - 2 + mod1) % mod1);
+    printf("%d/%d\n", ma.a[0][0], pow_mod(2, (b - 1 + mod - 1) % (mod - 1)));
+    return 0;
+}

@@ -1,0 +1,57 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+typedef long long ll;
+typedef pair<ll, ll> pll;
+typedef pair<ll, pll> data;
+const int MAXN = 3e5 + 10;
+
+#define fi first
+#define se second
+
+int N;
+pll A[MAXN];
+
+int main() {
+	scanf("%d", &N);
+	for (int i = 0; i < N; i++) {
+		scanf("%lld %lld", &A[i].fi, &A[i].se);
+	}
+	pll limak = A[0];
+	sort(A, A + N);
+	reverse(A, A + N);
+	priority_queue<data, vector<data>, greater<data>> pq;
+	int lpos = find(A, A + N, limak) - A;
+
+	int ptr = 0;
+	for (int i = 0; i < N; i++) {
+		if (A[i].fi > A[lpos].fi) {
+			ptr = i + 1;
+			pq.push(data(A[i].se - A[i].fi + 1, A[i]));
+		}
+	}
+
+	size_t ans = pq.size();
+	while (!pq.empty()) {
+		//give the balloons
+		data tp = pq.top();
+		pq.pop();
+
+		ll nbal = tp.fi;
+		if (nbal > limak.fi) {
+			break;
+		}
+
+		limak.fi -= nbal;
+		//ok after that push in the stuff
+		while (ptr < N && A[ptr].fi > limak.fi) {
+			if (ptr != lpos) {
+				pq.push(data(A[ptr].se - A[ptr].fi + 1, A[ptr]));
+			}
+			ptr++;
+		}
+		ans = min(ans, pq.size());
+	}
+
+	printf("%lu\n", ans + 1);
+}

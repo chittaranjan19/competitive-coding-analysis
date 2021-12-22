@@ -1,0 +1,73 @@
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <cstring>
+
+using namespace std;
+typedef pair<int, int> pii;
+
+int arr[100000];
+int cum1[100000];
+int cum2[100000];
+int find1[300001];
+int find2[300001];
+int main() {
+	int n; cin >> n;
+	int cnt1 = 0, cnt2 = 0;
+	memset(find1, -1, sizeof find1);
+	memset(find2, -1, sizeof find2);
+	for (int i = 0; i < n; i++) {
+		cin >> arr[i];
+		if (arr[i] == 1) {
+			find1[cnt1] = i;
+			cnt1++;
+		} else { 
+			find2[cnt2] = i;
+			cnt2++;
+		}
+		cum1[i] = cnt1;
+		cum2[i] = cnt2;
+	}
+	vector<pii> ans;
+	for (int f = 1; f <= n; f++) {
+		int i = 0, c1 = 0, c2 = 0, s1 = 0, s2 = 0;
+		bool win = true;
+		while (true) {
+			int i1 = find1[c1+f-1];
+			int i2 = find2[c2+f-1];
+			if (i1 == -1 && i2 == -1) {
+				win = false;
+				break;
+			}
+			if (i1 == -1) {
+				s2++;
+				i = i2;
+			} else if (i2 == -1) {
+				s1++;
+				i = i1;
+			} else {
+				if (i1 < i2) {
+					s1++;
+					i = i1;
+				} else {
+					s2++;
+					i = i2;
+				}
+			}
+			c1 = cum1[i];
+			c2 = cum2[i];
+		}
+		if (i == n-1) {
+			if ((arr[n-1] == 1 && s1 > s2) ||
+				(arr[n-1] == 2 && s2 > s1)) {
+				int s = max(s1, s2);
+				ans.push_back(pii(s, f));
+			}
+		}
+	}
+	sort(ans.begin(), ans.end());
+	cout << ans.size() << endl;
+	for (int i = 0; i < ans.size(); i++) {
+		cout << ans[i].first << ' ' << ans[i].second << endl;
+	}
+}

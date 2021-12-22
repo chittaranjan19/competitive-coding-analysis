@@ -1,0 +1,122 @@
+/*
+*Rainto96
+*Beijing University of Posts and Telecommunications School of Software Engineering
+*http://blog.csdn.net/u011775691
+*/
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <queue>
+#include <cstring>
+#include <string>
+#include <cmath>
+#include <set>
+#include <map>
+#include <vector>
+#include <climits>
+#include <sstream>
+using namespace std;
+#define pb push_back
+#define ALL(x) x.begin(),x.end()
+#define VINT vector<ll>
+#define PII pair<ll,ll>
+#define MP(x,y) make_pair((x),(y))
+#define LL long long
+#define ull unsigned long long
+#define MEM0(x)  memset(x,0,sizeof(x))
+#define MEM(x,val) memset((x),val,sizeof(x))
+#define scan(x) scanf("%d",&(x))
+#define scan2(x,y) scanf("%d%d",&(x),&(y))
+#define scan3(x,y,z) scanf("%d%d%d",&(x),&(y),&(z))
+#define scan4(x,y,z,k) scanf("%d%d%d%d",&(x),&(y),&(z),&(k))
+#define Max(a,b) a=max(a,b)
+#define Min(a,b) a=min(a,b)
+#define fuck(x) cout<<#x<<" - "<<x<<endl
+int c[501111];
+map<int ,int > mp;
+int n,K;
+void update(map<int,int>::iterator st, int dian, int frt ){
+    int to1 = (dian / (st->second))*frt + (st->first);
+    int num1 = st->second;
+    if(to1 != st->first ) mp[to1] += num1;
+    if( dian % (st->second) != 0){
+        mp[to1 + frt] += dian % (st->second);
+        mp[to1] -= dian % (st->second);
+    }
+    if(to1 != st->first ) mp.erase(st);
+}
+void solve(){
+    while(mp.size()>2 && K){
+        auto st = mp.begin();
+        auto st1 = mp.begin();
+        auto ed = mp.end();
+        auto ed1 = mp.end();
+        st1++;ed--;
+        ed1--;ed1--;
+        int d1 = (st1->first - st->first) * (st->second);
+        int d2 = (ed->first - ed1->first) * (ed->second);
+        d1 = min(d1, K);
+        d2 = min(d2, K);
+        if(d1 > d2){
+            int dian = d2;
+            update(ed,dian,-1);
+            update(st,dian,1);
+            K -= d2;
+        }else{
+            int dian = d1;
+            update(st,dian,1);
+            update(ed,dian,-1);
+            K -= d1;
+        }
+    }
+}
+int main(){
+    freopen("C:/OJ/OJ/in.txt","r",stdin);
+    scan2(n,K);
+    for(int i=0;i<n;i++) {
+        scan(c[i])
+        mp[c[i]]++;
+    }
+    if(n==1){
+        puts("0");
+    }else{
+        solve();
+
+        if(mp.size() == 1){
+            puts("0");
+        }else{
+
+            auto st = mp.begin();
+            auto st1 = mp.begin();
+            st1++;
+
+            if(K==0){
+                printf("%d\n",st1->first - st->first);
+                return 0;
+            }
+
+            if(st->first + 1 == st1->first){
+                puts("1");
+            }else{
+                int delta = (st1->first - st->first);
+                if( delta & 1){
+                    mp[st->first + delta/2]=0;
+                    mp[st->first + delta/2 + 1]=0;
+                }else{
+                    mp[st->first + delta/2]=0;
+                }
+                solve();
+                if(mp.size() == 1){
+                    puts("0");
+                }else{
+                    auto st = mp.begin();
+                    auto st1 = mp.begin();
+                    st1++;
+                    printf("%d\n",st1->first - st->first);
+                }
+            }
+        }
+    }
+    return 0;
+}
+

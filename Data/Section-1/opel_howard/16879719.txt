@@ -1,0 +1,168 @@
+#define DEBUG
+
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <climits>
+#include <ctime>
+#include <cassert>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define vl vector <long long>
+#define vb vector <bool>
+#define vs vector <string>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define lsone(value) (value)&(-value)
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define loop(i, n) for(int i = 0; i < n; ++i)
+#define loop1(i, n) for(int i = 1; i <= n; ++i)
+#define reverse_iterate(a, b) for(__typeof(b.rend()) a = b.rbegin(); a != b.rend(); ++a)
+#define iterate(a, b) for(__typeof(b.begin()) a = b.begin(); a != b.end(); ++a)
+#define all(i) i.begin(), i.end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const double PI = acos(-1);
+
+#ifdef DEBUG
+	#define debug(...) printf(__VA_ARGS__)
+	#define GetTime() fprintf(stderr,"Running time: %.3lf second\n",((double)clock())/CLOCKS_PER_SEC)
+#else
+	#define debug(...) 
+	#define GetTime() 
+#endif
+
+// end of template
+
+
+int x_mov[] = {1, 0, -1, 0};
+int y_mov[] = {0, 1, 0, -1};
+int main() {
+    // freopen("540C.in", "r", stdin);
+    
+    int n, m;
+    scanf("%d %d%*c", &n, &m);
+    vs grid(n);
+    loop(i, n) {
+    	getline(cin, grid[i]);
+    }
+    int r1, c1;
+    int r2, c2;
+    scanf("%d %d %d %d", &r1, &c1, &r2, &c2);
+
+    --r1, --c1, --r2, --c2;
+
+    int count_emp = 0;
+
+    bool is_neighbor = false;
+    loop(mov_idx, 4) {
+    	ii curr(r2, c2);
+		ii n_pos(curr.a+y_mov[mov_idx], curr.b+x_mov[mov_idx]);
+		if ((n_pos.a < 0) or (n_pos.a >= n) or (n_pos.b < 0) or (n_pos.b >= m))
+			continue;
+		
+		if ((n_pos.a == r1) and (n_pos.b == c1)) {
+			is_neighbor = true;
+		} else if (grid[n_pos.a][n_pos.b] != 'X') {
+			count_emp++;
+		}
+    }
+
+    if ((r1 == r2) and (c1 == c2)) {
+    	if (count_emp > 0) {
+    		puts("YES");
+    	} else {
+    		puts("NO");
+    	}
+    	return 0;
+    }
+    if (is_neighbor) {
+    	if (grid[r2][c2] == 'X') {
+    		puts("YES");
+    	} else if (count_emp > 0) {
+    		puts("YES");
+    	} else {
+    		puts("NO");
+    	}
+    	return 0;
+    }
+
+    
+    que<ii> q;
+    q.pu(mp(r1, c1));
+
+	vector<vb> v(n, vb(m, false));
+    v[r1][c1] = true;
+
+    bool finish = false;
+    while (!q.empty()) {
+    	ii curr = q.front();
+    	q.po();
+    	loop(mov_idx, 4) {
+    		ii n_pos(curr.a+y_mov[mov_idx], curr.b+x_mov[mov_idx]);
+    		if ((n_pos.a < 0) or (n_pos.a >= n) or (n_pos.b < 0) or (n_pos.b >= m))
+    			continue;
+    		if (v[n_pos.a][n_pos.b])
+    			continue;
+    		if ((n_pos.a == r2) and (n_pos.b == c2)) {
+	    		if (grid[n_pos.a][n_pos.b] == 'X') {
+	    			puts("YES");
+	    			return 0;
+	    		} else {
+	    			finish = true;
+	    			break;
+	    		}
+    		}
+    		if (grid[n_pos.a][n_pos.b] == 'X') {
+    			continue;
+    		}
+    		v[n_pos.a][n_pos.b] = true;
+    		q.pu(n_pos);
+    	}
+    	if (finish) {
+    		break;
+    	}
+    }
+    if (!finish) { // there is no possible way to reach the end
+    	puts("NO");
+    	return 0;
+    }
+
+	if (count_emp > 1) {
+		puts("YES");
+	} else {
+		puts("NO");
+	}
+
+    return 0;
+}

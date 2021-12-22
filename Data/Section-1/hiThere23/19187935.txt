@@ -1,0 +1,223 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define maxx 1ll * maxC * maxC
+#define F first
+#define S second
+#define mp make_pair
+#define pb push_back
+
+using namespace std;
+int n, m, q, pos[mn], num = 0, rig = 0, beg[mn];
+int belong[mn], sz[mn], spe[mn], p[mn][18], h[mn];
+int st[mn], en[mn], ans[mn], co[mn];
+vector<int> g[mn], girl[mn];
+
+struct interval
+{
+    pair<long long, int> tree[mn << 2];
+    long long f[mn << 2];
+
+    void build(int l, int r, int id)
+    {
+        if (l == r)
+        {
+            tree[id] = mp(co[l], l);
+            return;
+        }
+        int g = ((l + r) >> 1);
+        build(l, g, id << 1);
+        build(g + 1, r, (id << 1) + 1);
+        tree[id] = min(tree[id << 1], tree[(id << 1) + 1]);
+    }
+
+    void push(int id)
+    {
+        tree[id << 1].F += f[id];
+        tree[(id << 1) + 1].F += f[id];
+        f[id << 1] += f[id];
+        f[(id << 1) + 1] += f[id];
+        f[id] = 0;
+    }
+
+    void update(int l, int r, int id, int x, int y, long long k)
+    {
+        if (l > y || r < x)
+            return;
+        if (x <= l && r <= y)
+        {
+            tree[id].F += k;
+            f[id] += k;
+            return;
+        }
+        int g = ((l + r) >> 1);
+        push(id);
+        update(l, g, id << 1, x, y, k);
+        update(g + 1, r, (id << 1) + 1, x, y, k);
+        tree[id] = min(tree[id << 1], tree[(id << 1) + 1]);
+    }
+
+    pair<long long, int> get(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return mp(maxx, maxx);
+        if (x <= l && r <= y)
+            return tree[id];
+        int g = ((l + r) >> 1);
+        push(id);
+        pair<long long, int> a = get(l, g, id << 1, x, y);
+        pair<long long, int> b = get(g + 1, r, (id << 1) + 1, x, y);
+        return min(a, b);
+    }
+} t;
+
+void dfs(int u)
+{
+    sz[u] = 1;
+    spe[u] = 0;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        if (v == p[u][0])
+            continue;
+        h[v] = h[u] + 1;
+        p[v][0] = u;
+        FOR(i, 1, 17)
+            p[v][i] = p[p[v][i - 1]][i - 1];
+        dfs(v);
+        sz[u] += sz[v];
+        if (sz[v] > sz[spe[u]])
+            spe[u] = v;
+    }
+}
+
+void hld(int u)
+{
+    if (beg[num] == 0)
+        beg[num] = u;
+    belong[u] = num;
+    st[u] = rig + 1;
+    FOR(i, 0, int(girl[u].size()) - 1)
+    {
+        int x = girl[u][i];
+        pos[x] = ++ rig;
+        co[rig] = x;
+    }
+    en[u] = rig;
+    if (spe[u])
+    {
+        hld(spe[u]);
+        FOR(i, 0, int(g[u].size()) - 1)
+        {
+            int v = g[u][i];
+            if (v == p[u][0] || v == spe[u])
+                continue;
+            num ++;
+            hld(v);
+        }
+    }
+}
+
+pair<long long, int> get(int a, int b)
+{
+    pair<long long, int> re = mp(maxx, maxx);
+    while(belong[a] != belong[b])
+    {
+        re = min(re, t.get(1, m, 1, st[beg[belong[a]]], en[a]));
+        a = p[beg[belong[a]]][0];
+    }
+    re = min(re, t.get(1, m, 1, st[b], en[a]));
+    return re;
+}
+
+int lca(int a, int b)
+{
+    if (h[a] > h[b])
+        swap(a, b);
+    int dif = h[b] - h[a];
+    FOR(i, 0, 17)
+    if ((dif >> i) & 1)
+        b = p[b][i];
+    if (a == b)
+        return a;
+    FORD(i, 17, 0)
+    if (p[a][i] != p[b][i])
+    {
+        a = p[a][i];
+        b = p[b][i];
+    }
+    return p[a][0];
+}
+
+void setup()
+{
+    cin >> n >> m >> q;
+    int u, v;
+    FOR(i, 1, n - 1)
+    {
+        cin >> u >> v;
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+    FOR(i, 1, m)
+    {
+        cin >> u;
+        girl[u].pb(i);
+    }
+}
+
+void querry1()
+{
+    int u, v, k;
+    cin >> u >> v >> k;
+    int l = lca(u, v);
+    rig = 0;
+    FOR(i, 1, k)
+    {
+        pair<long long, int> best = min(get(u, l), get(v, l));
+        if (best.F >= maxx)
+            break;
+        ans[++ rig] = co[best.S];
+        t.update(1, m, 1, best.S, best.S, maxx);
+    }
+    cout << rig << ' ';
+    FOR(i, 1, rig)
+        cout << ans[i] << ' ';
+    cout << '\n';
+}
+
+void querry2()
+{
+    int v;
+    long long k;
+    cin >> v >> k;
+    t.update(1, m, 1, st[v], en[v], k);
+}
+
+void xuly()
+{
+    dfs(1);
+    hld(1);
+    t.build(1, m, 1);
+    int t;
+    FOR(i, 1, q)
+    {
+        cin >> t;
+        if (t == 1)
+            querry1();
+        else
+            querry2();
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

@@ -1,0 +1,167 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+const int lmt = 1005;
+vector< pair<int,int> > adj[lmt];
+int par[lmt];
+lli dist[lmt];
+int bridge[lmt];
+const lli smoo = (long long)1e10;
+const lli oo = (long long)1e16;
+set< pair<int,int> > path;
+
+void dijkstra(int s,int t){
+	memset(par,-1,sizeof(par));
+	set< pair<lli,int> > st;
+	st.insert({0,s});
+	for(int i=0;i<lmt;i++){
+		dist[i]=oo;
+		bridge[i]=oo;
+	}
+
+	bridge[s] = 0;
+	dist[s] = 0;
+
+	while(!st.empty()){
+		pair<lli,int> pr = *st.begin();
+		st.erase(st.begin());
+		int node = pr.second;
+		lli d = pr.first;
+
+		for(int i=0;i<adj[node].size();i++){
+			int child = adj[node][i].first;
+			lli newd = adj[node][i].second;
+
+			if(dist[child]>dist[node]+newd){
+				dist[child] = dist[node] + newd;
+				par[child] = node;
+				int newb = bridge[node];
+				if(newd==0) newb++;
+				bridge[child] = newb;
+				st.insert({dist[child],child}); 
+			}else if(dist[child]==dist[node]+newd){
+				int newb = bridge[node];
+				if(newd==0) newb++;
+				if(newb<bridge[child]){
+					par[child] = node;
+					st.insert({dist[child],child});
+					bridge[child] = newb;
+				}
+			}
+		}
+	}
+
+	return ;
+}
+
+bool vis[lmt];
+void dfs(int s){
+	if(vis[s]) return;
+	vis[s] = true;
+	for(int i=0;i<adj[s].size();i++){
+		int child = adj[s][i].first;
+
+		if(adj[s][i].second==0){
+			if((path.find({s,child}) == path.end()) && (path.find({child,s})==path
+				.end())){
+				adj[s][i].second = oo;
+			}
+		}
+		dfs(child);
+	}
+}
+vector< pair<int,int> > tmppath;
+
+void setWeight(int x,int y,int wt){
+	for(int i=0;i<adj[x].size();i++){
+		if(adj[x][i].first==y){
+			adj[x][i].second += wt;
+			return;
+		}
+	}
+}
+
+int adjmat[lmt][lmt];
+
+int main(){
+	memset(adjmat,-1,sizeof(adjmat));
+	int n,m,s,t;
+	lli l;
+	scanf("%d %d %lld %d %d",&n,&m,&l,&s,&t);
+	for(int i=0;i<m;i++){
+		int a,b;
+		lli c;
+		scanf("%d %d %lld",&a,&b,&c);
+		adj[a].pb({b,c});
+		adj[b].pb({a,c});
+		adjmat[a][b] = c;
+		adjmat[b][a] = c;
+	}
+	dijkstra(s,t);
+	//cout<<l<<" "<<dist[t]<<" "<<bridge[t]<<endl;
+	if(l-dist[t] < bridge[t]){
+		printf("NO\n");
+		return 0;
+	}
+	int cur = t;
+	while(par[cur] != -1){
+		path.insert({cur,par[cur]});
+		cur = par[cur];
+	}
+	memset(vis,false,sizeof(vis));
+	for(int i=0;i<n;i++){
+		if(!vis[i])
+			dfs(i);
+	}
+	set< pair<int,int> > :: iterator it = path.begin();
+	while(it != path.end()){
+		if(adjmat[it->first][it->second]==0){
+			tmppath.pb(*it);
+			//cout<<it->first<<" "<<it->second<<"\n";
+		}
+		it++;
+	}
+	int cnt = 0;
+	int end = tmppath.size()-1;
+	for(int i=0;i<=end;i++){
+		//DEBUG(i);
+		setWeight(tmppath[i].first,tmppath[i].second,1);
+		setWeight(tmppath[i].second,tmppath[i].first,1);
+		cnt++;
+	}
+	int req = l-dist[t]-bridge[t];
+	//DEBUG(req);
+	srand(time(NULL));
+	while(req>0){
+		for(int i=0;i<=end;i++){
+			//DEBUG(i);
+			int nw = rand()%req+1;
+			setWeight(tmppath[i].first,tmppath[i].second,nw);
+			setWeight(tmppath[i].second,tmppath[i].first,nw);
+			req -= nw;
+			if(req<=0) break;
+		}
+	}
+		dijkstra(s,t);
+	if(dist[t] != l){
+		printf("NO\n");
+		return 0;
+	}
+	printf("YES\n");
+	for(int i=0;i<n;i++){
+		for(int j=0;j<adj[i].size();j++){
+			int child = adj[i][j].first;
+			int wt = adj[i][j].second;
+			if(child>i)
+				cout<<i<<" "<<child<<" "<<wt<<"\n";
+		}
+	}
+    return 0;
+}

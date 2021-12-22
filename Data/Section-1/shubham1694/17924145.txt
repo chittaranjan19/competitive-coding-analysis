@@ -1,0 +1,89 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+const int logn = 20;
+
+int n, q, x, arr[maxn], dp[logn][maxn];
+map<int, ll> ans;
+
+int gcd(int a, int b)
+{
+	if(!b)
+		return a;
+	return gcd(b, a%b);
+}
+
+void fill()
+{
+	int i, j;
+	for(i=1; i<logn; i++){
+		for(j=1; j<=n; j++)
+			dp[i][j] = gcd(dp[i-1][j], dp[i-1][min(n, (j+(1<<(i-1))))]);
+	}
+}
+
+int g(int x, int y)
+{
+	int diff = y-x+1;
+	int lg = log2(diff);
+	int ret = gcd(dp[lg][x], dp[lg][y-(1<<lg)+1]);
+	return ret;
+}
+
+void solve()
+{
+	int i, val, lo, mid, hi, cur;
+	for(i=1; i<=n; i++){
+		cur = i;
+		while(cur<=n){			
+			lo = cur;
+			hi = n;
+			while(lo<hi){
+				mid = (lo + hi) >> 1;
+				if((lo + hi)%2)
+					mid++;
+				if(g(cur, mid)==g(i, cur))
+					lo = mid;
+				else
+					hi = mid - 1;
+			}
+			ans[g(i, cur)] += (lo - cur + 1);
+			cur = lo + 1;
+		}
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j;
+	scanf("%d", &n);
+	for(i=1; i<=n; i++){
+		scanf("%d", &arr[i]);
+		dp[0][i] = arr[i];
+	}
+	fill();
+	solve();
+	scanf("%d", &q);
+	while(q--){
+		scanf("%d", &x);
+		printf("%lld\n", ans[x]);
+	}
+	return 0;
+}

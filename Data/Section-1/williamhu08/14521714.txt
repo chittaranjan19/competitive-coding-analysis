@@ -1,0 +1,87 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define mp make_pair
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1e5 + 10;
+
+struct node {
+	map<int, int> cnt;	//cnt[x] = # of times this appears
+	map<int, ll> scolor;	//mcnt[count] = sum of colors
+	int size;	//size
+	void inc (int x, int c) {
+		//increment x by c occurrences
+		auto it = cnt.find(x);
+		if (it == cnt.end()) {
+			cnt[x] = c;
+			scolor[c] += x;
+			return;
+		}
+		int &ref = cnt[x];
+		scolor[ref] -= x;
+		ref += c;
+		scolor[ref] += x;
+	}
+};
+
+int N, C[MAXN];
+vector<int> adj[MAXN];
+node nodes[MAXN];
+ll ans[MAXN];
+
+node *merge (node *n1, node *n2) {
+	if (n1->size < n2->size) {
+		swap(n1, n2);
+	}
+	for (auto it : n2->cnt) {
+		n1->inc(it.fi, it.se);
+	}
+	n1->size += n2->size;
+	return n1;
+}
+
+node* dfs (int x, int p) {
+	node *res = nodes + x;
+	res->cnt[C[x]] = 1;
+	res->scolor[1] = C[x];
+	res->size = 1;
+	for (int t : adj[x]) {
+		if (t == p) {
+			continue;
+		}
+		res = merge(res, dfs(t, x));
+	}
+	ans[x] = res->scolor.rbegin()->se;
+	return res;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d", &N);
+	for (int i = 1; i <= N; i++) {
+		scanf("%d", &C[i]);
+	}
+	for (int i = 1, x, y; i < N; i++) {
+		scanf("%d %d", &x, &y);
+		adj[x].push_back(y);
+		adj[y].push_back(x);
+	}
+	dfs(1, 0);
+	for (int i = 1; i <= N; i++) {
+		cout << ans[i] << ' ';
+	}
+	cout << endl;
+}

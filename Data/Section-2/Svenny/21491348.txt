@@ -1,0 +1,100 @@
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <algorithm>
+#include <iomanip>
+#include <vector>
+#include <list>
+#include <set>
+#include <map>
+#include <string>
+
+using namespace std;
+
+typedef long long ll;
+typedef long double ld;
+typedef unsigned uint;
+
+ll n, m, k, i;
+ll color;
+ll l, r;
+
+vector<int> scolors;
+map<int, set<int>> uses;
+vector<int> selfpairs;
+
+int main ()
+{
+#ifdef CONTEST_ONME
+	freopen ("input.txt", "r", stdin);
+	freopen ("output.txt", "w", stdout);
+#endif
+
+	cin >> n >> m >> k;
+	scolors.resize (n + 1);
+	selfpairs.resize (k + 1);
+	for (i = 1; i <= n; i++)
+	{
+		cin >> color;
+		scolors[i] = color;
+	}
+	for (i = 1; i <= m; i++)
+	{
+		cin >> l >> r;
+		if (scolors[l] != scolors[r])
+		{
+			uses[scolors[l]].insert (scolors[r]);
+			uses[scolors[r]].insert (scolors[l]);
+		}
+		else
+		{
+			selfpairs[scolors[l]]++;
+		}
+	}
+	ll counter = 0;
+	while (true)
+	{
+		bool allzero = true;
+		ll maxused = -1;
+		ll muid = -1;
+		if (uses.empty ())
+			break;
+		for (auto it = uses.begin (); it != uses.end (); it++)
+		{
+			if ((*it).second.size ())
+				allzero = false;
+			if ((*it).second.size () + selfpairs[(*it).first] > maxused)
+			{
+				maxused = (*it).second.size () + selfpairs[(*it).first];
+				muid = (*it).first;
+			}
+		}
+		if (allzero)
+			break;
+		if (muid != -1 && uses[muid].size ())
+		{
+			list<int> psfd;
+			for (const auto &abcd : uses[muid])
+			{
+				psfd.push_back (abcd);
+			}
+			for (const auto &adc : psfd)
+			{
+				uses[adc].erase (muid);
+				counter++;
+				if (selfpairs[adc])
+				{
+					counter += selfpairs[adc];
+					selfpairs[adc] = 0;
+				}
+			}
+			uses.erase (muid);
+		}
+	}
+	cout << counter << endl;
+
+#ifdef CONTEST_ONME
+	//system ("pause");
+#endif
+	return 0;
+}

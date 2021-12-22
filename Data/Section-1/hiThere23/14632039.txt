@@ -1,0 +1,102 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define base 100007
+
+using namespace std;
+int n, must[26];
+bool fro[26][26];
+string s[mn], ans;
+
+void setup()
+{
+    cin >> n;
+    FOR(i, 1, n)
+        cin >> s[i];
+}
+
+void deal(int l, int r, int u)
+{
+    if (l >= r)
+        return;
+    if (int(s[l].length()) < u + 1)
+    {
+        deal(l + 1, r, u);
+        return;
+    }
+    FOR(i, l + 1, r + 1)
+    {
+        if (i == r + 1)
+        {
+            deal(l, r, u + 1);
+            return;
+        }
+        if (int(s[i].length()) < u + 1)
+        {
+            cout << "Impossible";
+            exit(0);
+        }
+        if (s[i][u] != s[i - 1][u])
+        {
+            if (fro[s[i][u] - 'a'][s[i - 1][u] - 'a'])
+            {
+                cout << "Impossible";
+                exit(0);
+            }
+            fro[s[i - 1][u] - 'a'][s[i][u] - 'a'] = true;
+            deal(l, i - 1, u + 1);
+            deal(i, r, u);
+            return;
+        }
+    }
+}
+
+void xuly ()
+{
+    deal(1, n, 0);
+    FOR(i, 0, 25)
+    FOR(j, 0, 25)
+    FOR(k, 0, 25)
+    if (fro[j][i] && fro[i][k])
+    {
+        if (fro[k][j])
+        {
+            cout << "Impossible";
+            return;
+        }
+        fro[j][k] = true;
+    }
+    FOR(i, 0, 25)
+    FOR(j, 0, 25)
+    if (fro[j][i])
+        must[i] |= (1 << j);
+    int state = 0;
+    FOR(i, 0, 25)
+    FOR(j, 0, 26)
+    {
+        if (j == 26)
+        {
+            cout << "Impossible";
+            return;
+        }
+        if ((state & must[j]) == must[j] && ((state >> j) & 1) == 0)
+        {
+            ans += 'a' + j;
+            state |= (1 << j);
+            break;
+        }
+    }
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

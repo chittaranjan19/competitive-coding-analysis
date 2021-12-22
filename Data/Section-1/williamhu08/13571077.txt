@@ -1,0 +1,111 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 26;
+
+int N;
+int A[MAXN][3];
+
+map<vector<int>, int> mp1;
+map<vector<int>, int> mp2;
+map<vector<int>, ll> how1, how2;
+
+void getmp (int lt, int rt, ll chow, vector<int> v, map<vector<int>, int> &mp, map<vector<int>, ll> &how) {
+	if (lt == rt) {
+		how[v] = chow;
+		// cerr << "how[" << v[0] << ", " << v[1] << ", " << v[2] << "] = " << chow << endl;
+		int x = v[0];
+		for (int &a : v) {
+			a -= x;
+		}
+		auto it = mp.find(v);
+		if (it == mp.end()) {
+			mp[v] = x;
+		} else {
+			int &ref = mp[v];
+			ref = max(ref, x);
+		}
+		return;
+	}
+	for (int i = 0; i < 3; i++) {
+		for (int j = i + 1; j < 3; j++) {
+			vector<int> nv = v;
+			nv[i] += A[lt][i];
+			nv[j] += A[lt][j];
+			getmp(lt + 1, rt, 4 * chow + i + j, nv, mp, how);
+		}
+	}
+}
+
+void decode (ll how, int len) {
+	//LMW
+	for (int i = len - 1; i >= 0; i--) {
+		//consider bits 2i, 2i + 1
+		int b = (how >> (2 * i)) & 3;
+		if (b == 1) {
+			cout << "LM";
+		} else if (b == 2) {
+			cout << "LW";
+		} else {
+			assert(b == 3);
+			cout << "MW";
+		}
+		cout << '\n';
+	}
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < 3; j++) {
+			cin >> A[i][j];
+		}
+	}
+	getmp(0, N / 2, 0, vector<int> (3), mp1, how1);
+	getmp(N / 2, N, 0, vector<int> (3), mp2, how2);
+	int ans = INT_MIN;
+	pair<vector<int>, vector<int> > pans;
+	for (auto it : mp1) {
+		vector<int> v = it.first;
+		int val = it.second;
+		for (int &i : v) {
+			i *= -1;
+		}
+		auto jt = mp2.find(v);
+		if (jt != mp2.end()) {
+			val += jt->second;
+			if (ans >= val) {
+				continue;
+			}
+			ans = val;
+			v = it.first;
+			for (int &i : v) {
+				i += it.second;
+			}
+			vector<int> v2 = jt->first;
+			for (int &i : v2) {
+				i += jt->second;
+			}
+			pans = make_pair(v, v2);
+		}
+	}
+	if (ans == INT_MIN) {
+		cout << "Impossible\n";
+	} else {
+		//let's print ans
+		decode(how1[pans.first], N / 2);
+		decode(how2[pans.second], N - N / 2);
+	}
+}

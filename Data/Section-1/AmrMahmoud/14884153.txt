@@ -1,0 +1,183 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<pair<int, int> > tree[200005];
+
+struct disjointset
+{
+	vector<int> rank, parent;
+	int subtrees;
+
+	disjointset(int n)
+	{
+		subtrees = n;
+		for(int i=0;i<n;i++)
+			rank.pb(1),parent.pb(i);
+	}
+
+	int find_set(int x)
+	{
+		if(x == parent[x])
+			return x;
+		return parent[x] = find_set(parent[x]);
+	}
+
+	void link(int x,int y, int z)
+	{
+		if(rank[x] > rank[y])
+			swap(x, y);
+		parent[x] = y;
+		if(rank[x] == rank[y])
+			rank[y]++;
+	}
+
+	bool union_sets(int x,int y, int z)
+	{
+		x = find_set(x),y = find_set(y);
+		if(x != y)
+		{
+			link(x,y,z);
+			subtrees--;
+		}
+		return x != y;
+	}
+
+	bool same_set(int x,int y)
+	{
+		return find_set(x) == find_set(y);
+	}
+};
+
+int P[200005][20], h[200005];
+int cost[200005][20];
+vector<pair<pair<int, int>, pair<int, int> > > edges;
+LL res[200005];
+
+void dfs(int node, int depth = 1, int parent = -1)
+{
+  h[node] = depth;
+  P[node][0] = parent;
+  for(int i=0;i<tree[node].size();i++)
+  {
+    if(tree[node][i].f == parent) continue;
+    dfs(tree[node][i].f, depth + 1, node);
+    cost[tree[node][i].f][0] = tree[node][i].s;
+  }
+}
+
+int query(int p, int q)
+{
+  int log;
+  if(h[p] < h[q])
+    swap(p, q);
+  for(log = 1; (1 << log) <= h[p]; log++);
+  log--;
+  for(int i = log; i >= 0; i--)
+    if(h[p] - (1 << i) >= h[q])
+      p = P[p][i];
+  if(p == q)
+    return p;
+  for(int i = log; i >= 0; i--)
+    if(P[p][i] != -1 && P[p][i] != P[q][i])
+      p = P[p][i], q = P[q][i];
+  return P[p][0];
+}
+
+int solve(int x, int k)
+{
+  int log;
+  for(log = 1; (1 << log) <= h[x]; log++);
+  log--;
+  int res = 0;
+  for(int i = log; i >= 0; i--)
+    if(h[x] - (1 << i) >= k)
+    {
+      res = max(res, cost[x][i]);
+      x = P[x][i];
+    }
+  return res;
+}
+
+int main()
+{
+  int n, m, x, y, z;
+  scanf("%d %d", &n, &m);
+  disjointset temp(n + 2);
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d %d %d", &x, &y, &z);
+    edges.pb(mp(mp(z, i), mp(x, y)));
+  }
+  setdp(P);
+  sort(edges.begin(), edges.end());
+  LL sum = 0;
+  for(int i=0;i<edges.size();i++)
+  {
+    x = edges[i].s.f;
+    y = edges[i].s.s;
+    z = edges[i].f.f;
+    if(temp.same_set(x, y)) continue;
+    else
+    {
+      temp.union_sets(x, y, z);
+      tree[x].pb(mp(y, z));
+      tree[y].pb(mp(x, z));
+      sum += z;
+    }
+  }
+  dfs(1);
+  for(int j = 1; (1 << j) <= n; j++)
+    for(int i = 1; i <= n; i++)
+      if(P[i][j - 1] != -1)
+        P[i][j] = P[P[i][j - 1]][j - 1], cost[i][j] = max(cost[P[i][j - 1]][j - 1], cost[i][j - 1]);
+  int ind;
+  for(int i=0;i<edges.size();i++)
+  {
+    x = edges[i].s.f;
+    y = edges[i].s.s;
+    z = edges[i].f.f;
+    ind = edges[i].f.s;
+    int lca = query(x, y);
+    int ch = max(solve(x, h[lca]), solve(y, h[lca]));
+    if(ch >= z) res[ind] = sum;
+    else res[ind] = sum - ch + z;
+  }
+  for(int i=0;i<m;i++)
+    printf("%I64d\n", res[i]);
+  return 0;
+}

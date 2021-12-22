@@ -1,0 +1,160 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const ll MAX_N = 500000;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+class Matrix
+{
+    public: ll n;
+    public: ll mod;
+    public: vector<vector<ll> > matrix;
+
+    public: Matrix(ll n, ll mod)
+    {
+        this->n = n;
+        this->mod = mod;
+        matrix.resize(n);
+        for (ll i = 0; i < n; i++)
+            matrix[i].resize(n);
+    }
+
+    public: void mult(Matrix m)
+    {
+        vector<vector<ll> > ans(n);
+        for (ll i = 0; i < n; i++)
+            ans[i].resize(n, 0);
+        for (ll i = 0; i < n; i++)
+            for (ll j = 0; j < n; j++)
+                for (ll k = 0; k < n; k++)
+                    ans[i][j] = (ans[i][j] + matrix[k][j] * m.matrix[i][k]) % mod;
+        swap(matrix, ans);
+    }
+
+    public: void mult()
+    {
+        vector<vector<ll> > ans(n);
+        for (ll i = 0; i < n; i++)
+            ans[i].resize(n, 0);
+        for (ll i = 0; i < n; i++)
+            for (ll j = 0; j < n; j++)
+                for (ll k = 0; k < n; k++)
+                    ans[i][j] = (ans[i][j] + matrix[k][j] * matrix[i][k]) % mod;
+        swap(matrix, ans);
+    }
+
+    public: void binpow(ll p)
+    {
+        Matrix tmp = Matrix(n, mod);
+        tmp.matrix = matrix;
+        for (ll i = 0; i < n; i++)
+            for (ll j = 0; j < n; j++)
+                matrix[i][j] = (i == j ? 1 : 0);
+        while (p)
+        {
+            if (p & 1)
+                mult(tmp);
+            tmp.mult();
+            p >>= 1;
+        }
+    }
+
+    public: void prll()
+    {
+        for (ll i = 0; i < n; i++)
+        {
+            for (ll j = 0; j < n; j++)
+                cout << matrix[i][j] << " ";
+            cout << endl;
+        }
+    }
+
+};
+
+class Vector
+{
+    public: ll n;
+    public: ll mod;
+    public: vector<ll> vect;
+
+    public: Vector(ll n, ll mod)
+    {
+        this->n = n;
+        this->mod = mod;
+        vect.resize(n);
+    }
+
+    public: void mult(Matrix m)
+    {
+        vector<ll> ans(n, 0);
+        for (ll i = 0; i < n; i++)
+            for (ll k = 0; k < n; k++)
+                ans[i] = (ans[i] + vect[k] * m.matrix[i][k]) % mod;
+        swap(vect, ans);
+    }
+
+    public: void prll()
+    {
+        for (ll i = 0; i < n; i++)
+            cout << vect[i] << endl;
+    }
+
+};
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    ll n, m, k;
+    cin >> n >> m >> k;
+    Vector dp = Vector(m, MOD);
+    for (ll i = 0; i < m; i++)
+        dp.vect[i] = 1;
+    Matrix matrix = Matrix(m, MOD);
+    for (ll i = 0; i < m; i++)
+        for (ll j = 0; j < m; j++)
+            matrix.matrix[i][j] = 1;
+    for (ll i = 0; i < k; i++)
+    {
+        char a, b;
+        cin >> a >> b;
+        ll x1, x2;
+        if (a >= 'a' && a <= 'z')
+            x1 = a - 'a' + 1;
+        else
+            x1 = a - 'A' + 27;
+        if (b >= 'a' && b <= 'z')
+            x2 = b - 'a' + 1;
+        else
+            x2 = b - 'A' + 27;
+        matrix.matrix[x2 - 1][x1 - 1] = 0;
+    }
+    matrix.binpow(n - 1);
+    dp.mult(matrix);
+    ll ans = 0;
+    for (ll i = 0; i < m; i++)
+        ans = (ans + dp.vect[i]) % MOD;
+    cout << ans;
+    return 0;
+}

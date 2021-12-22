@@ -1,0 +1,110 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int MAX_N = 100000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+int bin[30][MAX_N], a[MAX_N], ask[MAX_N][3], tree[MAX_N * 4];
+int cnt_ver = 1, fake = (1 << 30) - 1;
+
+void ready()
+{
+    for (int i = 0; i < 30; i++)
+        for (int j = 0; j < MAX_N; j++)
+            bin[i][j] = 0;
+    for (int i = 0; i < MAX_N; i++)
+        a[i] = 0;
+}
+
+void make_tree(int n)
+{
+    while (cnt_ver < n)
+        cnt_ver <<= 1;
+    for (int i = 0; i < cnt_ver; i++)
+        if (i < n)
+            tree[cnt_ver - 1 + i] = a[i];
+        else
+            tree[cnt_ver - 1 + i] = fake;
+    for (int i = cnt_ver - 2; i >= 0; i--)
+        tree[i] = tree[i * 2 + 1] & tree[i * 2 + 2];
+}
+
+int ans(int x, int lx, int rx, int l, int r)
+{
+    if (r < lx || l > rx)
+        return fake;
+    else if (lx >= l && rx <= r)
+        return tree[x];
+    else
+        return ans(x * 2 + 1, lx, (lx + rx) / 2, l, r) & ans(x * 2 + 2, (lx + rx) / 2 + 1, rx, l, r);
+}
+
+int main()
+{
+    //ifstream ifs("input.in");
+    //ofstream ofs("output.out");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    ready();
+    int n, m, l, r, q;
+    cin >> n >> m;
+    for (int i = 0; i < m; i++)
+    {
+        cin >> l >> r >> q;
+        ask[i][0] = l; ask[i][1] = r; ask[i][2] = q;
+        for (int j = 0; j < 30; j++)
+        {
+            if (q & 1)
+            {
+                bin[j][l - 1] += 1;
+                if (r < n)
+                    bin[j][r] -= 1;
+            }
+            q >>= 1;
+        }
+    }
+    for (int i = 0; i < 30; i++)
+    {
+        int cnt = 0;
+        for (int j = 0; j < n; j++)
+        {
+            cnt += bin[i][j];
+            if (cnt)
+                bin[i][j] = 1;
+            else
+                bin[i][j] = 0;
+        }
+    }
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < 30; j++)
+            if (bin[j][i])
+                a[i] += 1 << j;
+    make_tree(n);
+    for (int i = 0; i < m; i++)
+        if (ans(0, cnt_ver - 1, cnt_ver * 2 - 2, cnt_ver - 1 + ask[i][0] - 1, cnt_ver - 1 + ask[i][1] - 1) != ask[i][2])
+        {
+            cout << "NO";
+            return 0;
+        }
+    cout << "YES\n";
+    for (int i = 0; i < n; i++)
+        cout << a[i] << " ";
+    return 0;
+}

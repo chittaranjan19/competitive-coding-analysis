@@ -1,0 +1,73 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define ll long long
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 500010;
+
+vector<int> adj[maxn];
+vector<pii> vec[maxn];
+int in[maxn], out[maxn], tme=0;
+char str[maxn];
+
+void dfs(int cur, int d, int parent)
+{
+    int i;
+    in[cur] = ++tme;
+    vec[d].pb(mp(tme, vec[d].back().s^(1<<(str[cur]-'a'+1))));
+    for(i=0; i<adj[cur].size(); i++){
+        if(adj[cur][i]!=parent){
+            dfs(adj[cur][i], d+1, cur);
+        }
+    }
+    out[cur] = ++tme;
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int n, m, i, j, u, v, h, l, r;
+    for(i=0; i<maxn; i++)
+        vec[i].resize(1);
+    sd(n), sd(m);
+    for(i=2; i<=n; i++){
+        scanf("%d", &v);
+        adj[i].pb(v);
+        adj[v].pb(i);
+    }
+    scanf("%s", str+1);
+    dfs(1, 0, 0);
+    /*for(i=0; i<4; i++){
+        for(j=0; j<vec[i].size(); j++)
+            cout << vec[i][j].f << " " << vec[i][j].s << "\n";
+        cout << "\n";
+    }*/ 
+    while(m--){
+        scanf("%d%d", &u, &h);
+        h--;
+        l = lower_bound(all(vec[h]), mp(in[u], -1)) - vec[h].begin() ;
+        r = upper_bound(all(vec[h]), mp(out[u], -1)) - vec[h].begin() - 1;
+        u = vec[h][r].s^vec[h][l-1].s;
+        //cout << l << " " << r << " " << u << "\n";
+        u = u - (u&(-u));
+
+        if(!u)
+            printf("Yes\n");
+        else
+            printf("No\n");
+    }
+    return 0;
+}

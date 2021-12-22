@@ -1,0 +1,152 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+#include <valarray>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+struct Bottle
+{
+	ldouble distanceTrash, distanceDiff;
+	tint indice;
+	Bottle (ldouble dt, ldouble da, tint ii)
+	{
+		distanceTrash = dt;
+		distanceDiff = da;
+		indice = ii;
+	}
+};
+
+bool operator < (Bottle b1, Bottle b2)
+{
+	return make_tuple(b1.distanceDiff,b1.indice) < make_tuple (b2.distanceDiff,b2.indice);
+}
+
+ldouble distance (ldouble ax, ldouble ay, ldouble bx, ldouble by)
+{
+	return sqrt((ax-bx)*(ax-bx) + (ay-by)*(ay-by));
+}
+
+int main()
+{
+	#ifdef ACMTUYO
+		assert(freopen("entrada.in", "r", stdin));
+	#endif
+	ldouble ax,ay,bx,by,tx,ty;
+	while (cin >> ax >> ay>> bx >> by >> tx >> ty)
+	{
+			tint n;
+			cin >> n;
+			vector<Bottle> bottleAdil (n,Bottle(0,0,0));
+			vector<Bottle> bottleBera (n,Bottle(0,0,0));
+			
+			forn(i,n)
+			{
+				ldouble x,y;
+				cin >> x >> y;
+				
+				ldouble dTrash = distance(x,y,tx,ty), dAdil = distance(x,y,ax,ay), dBera = distance(x,y,bx,by);
+				bottleAdil[i] = Bottle(dTrash,dAdil-dTrash,i);
+				bottleBera[i] = Bottle(dTrash,dBera-dTrash,i);
+			}
+			sort(bottleAdil.begin(),bottleAdil.end());
+			sort(bottleBera.begin(),bottleBera.end());
+			ldouble a,b;
+			if (bottleAdil[0].indice == bottleBera[0].indice)
+			{	
+				if (n == 1)
+				{
+					a = min(bottleAdil[0].distanceDiff, bottleBera[0].distanceDiff);
+					b = 0;
+				}	
+				else
+				{
+					if (bottleAdil[0].distanceDiff + bottleBera[1].distanceDiff < bottleAdil[1].distanceDiff + bottleBera[0].distanceDiff)
+					{
+						a = bottleAdil[0].distanceDiff;
+						b = bottleBera[1].distanceDiff;		
+					}
+					else
+					{
+						a = bottleAdil[1].distanceDiff;
+						b = bottleBera[0].distanceDiff;
+					}
+				}
+			}
+			else
+			{
+				a = bottleAdil[0].distanceDiff;
+				b = bottleBera[0].distanceDiff;
+			}
+			if (a > 0.0 or b > 0.0)
+			{
+				a = min(a,b);
+				b = 0;
+			}
+			ldouble ans = a + b;
+			forn(i,n)
+				ans += 2*bottleAdil[i].distanceTrash;
+			double ansPosta = double(ans);
+			printf("%.18f\n", ansPosta);
+	}
+	return 0;
+}
+
+
+

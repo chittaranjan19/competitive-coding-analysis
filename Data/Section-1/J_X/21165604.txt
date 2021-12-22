@@ -1,0 +1,49 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 1e5 + 5;
+const int INF = 1e9 + 5;
+
+int dp[maxn], f[maxn];
+
+int main()
+{
+    int len, n, p, t;
+    scanf("%d%d%d%d", &len, &n, &p, &t);
+    int ans = 0, id = 0;
+    dp[0] = 0;
+    f[0] = -INF;
+    for(int i = 1, j = 1; i <= n; ++i)
+    {
+        int l, r;
+        scanf("%d%d", &l, &r);
+        int q = l + (r - l) % p;
+        while(j < i && f[j] + t <= q)
+        {
+            if(dp[j] > dp[id]) id = j;
+            ++j;
+        }
+        int k = max(f[id] + t, l), tmp = (r - k) / p;
+        dp[i] = dp[id] + tmp;
+        f[i] = k + tmp * p;
+        while(j < i && f[j] + t <= r)
+        {
+            k = f[j] + t, tmp = (r - k) / p;
+            int tmpdp = dp[j] + tmp;
+            if(dp[i] < tmpdp)
+            {
+                dp[i] = tmpdp;
+                f[i] = (r - k) / p;
+            }
+            if(dp[j] > dp[id]) id = j;
+            ++j;
+        }
+        ans = max(ans, dp[i]);
+    }
+    printf("%d\n", ans);
+    return 0;
+}

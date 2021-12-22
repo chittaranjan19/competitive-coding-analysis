@@ -1,0 +1,160 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+
+public class ProblemC {
+    BufferedReader rd;
+
+    ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] h = intarr();
+        int n = h[0];
+        int m = h[1];
+        int q = h[2];
+        int[][] res = new int[n][m];
+        int[][][] p = new int[n][m][];
+        for(int i=0;i<n;i++) {
+            for(int j=0;j<m;j++) {
+                p[i][j] = new int[] { i, j };
+            }
+        }
+        for(int i=0;i<q;i++) {
+            int[] a = intarr();
+            if(a[0] == 1) {
+                int row = a[1]-1;
+                int[] first = p[row][0];
+                System.arraycopy(p[row],1,p[row],0,m-1);
+                p[row][m-1] = first;
+            } else if(a[0] == 2) {
+                int col = a[1]-1;
+                int[] first = p[0][col];
+                for(int j=1;j<n;j++) {
+                    p[j-1][col] = p[j][col];
+                }
+                p[n-1][col] = first;
+            } else {
+                int[] c = p[a[1]-1][a[2]-1];
+                res[c[0]][c[1]] = a[3];
+            }
+        }
+        StringBuilder buf = new StringBuilder();
+        for(int i=0;i<n;i++) {
+            if(i > 0) {
+                buf.append('\n');
+            }
+            for(int j=0;j<m;j++) {
+                if(j > 0) {
+                    buf.append(' ');
+                }
+                buf.append(res[i][j]);
+            }
+        }
+        out(buf);
+    }
+
+
+    class Pair {
+        final int[] v;
+
+        Pair(int a, int b) {
+            v = new int[] { a, b };
+        }
+
+        Pair(int[] x) {
+            v = x;
+        }
+
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o instanceof Pair) {
+                return Arrays.equals(v, ((Pair) o).v);
+            }
+            return false;
+        }
+
+        public int hashCode() {
+            return v != null ? Arrays.hashCode(v) : 0;
+        }
+
+        public String toString() {
+            return Arrays.toString(v);
+        }
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

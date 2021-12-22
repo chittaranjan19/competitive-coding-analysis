@@ -1,0 +1,108 @@
+#include<bits/stdc++.h>
+using namespace std;
+#define FOR(i,a,b) for(int i = (a); i <= (b); ++i)
+#define FORD(i,a,b) for(int i = (a); i >= (b); --i)
+#define RI(i,n) FOR(i,1,(n))
+#define REP(i,n) FOR(i,0,(n)-1)
+#define mini(a,b) a=min(a,b)
+#define maxi(a,b) a=max(a,b)
+#define mp make_pair
+#define pb push_back
+#define st first
+#define nd second
+#define sz(w) (int) w.size()
+typedef vector<int> vi;
+typedef long long ll;
+typedef long double ld;
+typedef pair<int,int> pii;
+const int inf = 1e9 + 5;
+const int nax = 1e5 + 5;
+
+struct P {
+	ll x, y;
+	void read() { scanf("%lld%lld", &x, &y); }
+} t[nax];
+ll K(ll a) { return a * a; }
+bool ok_x(int i, int j, ll d) {
+	return K(t[i].x-t[j].x) <= d;
+}
+int n;
+pair<ll,ll> suf[nax];
+int at_least[nax];
+
+bool check(ll a, ll b, ll d) {
+	if(abs(a) == inf) return true;
+	if(abs(b) == inf) return true;
+	if(a*a+b*b <= d) return true;
+	return false;
+}
+
+bool possible(ll d) {
+	int sr = 0;
+	while(sr < n && t[sr].x < 0) ++sr;
+	if(sr < n) {
+		at_least[sr] = sr;
+		for(int i = sr; i < n; ++i) {
+			while(at_least[i] < n && (!check(t[i].x,suf[at_least[i]].st,d) || !check(t[i].x,suf[at_least[i]].nd,d)))
+				++at_least[i];
+			at_least[i+1] = at_least[i];
+		}
+	}
+	if(sr - 1 >= 0) {
+		at_least[sr-1] = sr-1;
+		for(int i = sr-1; i >= 0; --i) {
+			while(at_least[i] < n && (!check(t[i].x,suf[at_least[i]].st,d) || !check(t[i].x,suf[at_least[i]].nd,d)))
+				++at_least[i];
+			if(i)at_least[i-1] = at_least[i];
+		}
+	}
+	for(int i = n - 1; i >= 0; --i) maxi(at_least[i], at_least[at_least[i]]);
+	int b = 0;
+	pair<ll, ll> pref = mp(inf, -inf);
+	REP(a, n) {
+		#define lol (min(n-1,at_least[b]))
+		while(b < n && ok_x(a, b, d) && check(pref.st, t[b].x, d) && check(pref.nd, t[b].x, d) && ok_x(a, lol, d)
+			&& check(pref.st, t[lol].x, d) && check(pref.nd, t[lol].x, d))
+			++b;
+		maxi(b, a + 1);
+		// b - first bad
+		assert(a != b);
+		
+		pair<ll,ll> yy = mp(min(pref.st, suf[b].st), max(pref.nd, suf[b].nd));
+		//if(a == 0) printf("%lld %lld\n", yy.st, yy.nd);
+		assert((abs(yy.st)==inf) == (abs(yy.nd)==inf));
+		pair<ll,ll> xx = mp(t[a].x, t[b-1].x);
+		//if(a == 0) printf("%lld %lld\n", xx.st, xx.nd);
+		if(check(yy.st,xx.st,d) && check(yy.nd, xx.st,d)
+		&& check(yy.st,xx.nd,d) && check(yy.nd,xx.nd,d))
+			if(abs(yy.st) == inf || K(yy.st - yy.nd) <= d)
+				return true;
+		
+		mini(pref.st, t[a].y);
+		maxi(pref.nd, t[a].y);
+	}
+	return false;
+}
+
+int main() {
+	scanf("%d", &n);
+	REP(i, n) t[i].read();
+	sort(t, t + n, [](const P & a, const P & b) { return a.x < b.x; });
+	suf[n] = mp(inf, -inf);
+	FORD(i, n-1, 0) {
+		suf[i] = suf[i+1];
+		mini(suf[i].st, t[i].y);
+		maxi(suf[i].nd, t[i].y);
+	}
+	//printf("%d\n", (int)possible(150));
+	//return 0;
+	ll low = 0, high = (ll) inf * inf;
+	while(low < high) {
+		ll med = (low + high) / 2;
+		if(possible(med)) high = med;
+		else low = med + 1;
+	}
+	mini(low, K(suf[0].st - suf[0].nd));
+	printf("%lld\n", low);
+	return 0;
+}

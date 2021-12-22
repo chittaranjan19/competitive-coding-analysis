@@ -1,0 +1,132 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1 << 19;
+
+int N, Q, C[MAXN];
+int ent[MAXN], exi[MAXN], cid;
+vector<int> adj[MAXN];
+
+void dfs_eu (int x, int p) {
+	ent[x] = cid++;
+	for (int t : adj[x]) {
+		if (t != p) {
+			dfs_eu(t, x);
+		}
+	}
+	exi[x] = cid;
+}
+
+bool has[60];
+
+struct segtree {
+	segtree() {
+		fillchar(lazy, -1);
+	}
+	int lazy[2 * MAXN];
+	bool tree[2 * MAXN][60];
+
+	void merge (int cur) {
+		for (int i = 0; i < 60; i++) {
+			tree[cur][i] = tree[2 * cur][i] || tree[2 * cur + 1][i];
+		}
+	}
+
+	void put (int cur, int v) {
+		for (int i = 0; i < 60; i++) {
+			tree[cur][i] = (v == i);
+		}
+		lazy[cur] = v;
+	}
+
+	void down (int cur) {
+		if (lazy[cur] != -1) {
+			int &v = lazy[cur];
+			put(2 * cur, v);
+			put(2 * cur + 1, v);
+			v = -1;
+		}
+	}
+
+	void update (int a, int b, int v, int cur = 1, int lt = 0, int rt = MAXN) {
+		if (rt <= a || b <= lt) {
+			return;
+		}
+		if (a <= lt && rt <= b) {
+			put(cur, v);
+			return;
+		}
+		down(cur);
+		int mid = (lt + rt) / 2;
+		update(a, b, v, 2 * cur, lt, mid);
+		update(a, b, v, 2 * cur + 1, mid, rt);
+		merge(cur);
+	}
+
+
+	void query (int a, int b, int cur = 1, int lt = 0, int rt = MAXN) {
+		if (rt <= a || b <= lt) {
+			return;
+		}
+		if (a <= lt && rt <= b) {
+			for (int i = 0; i < 60; i++) {
+				has[i] |= tree[cur][i];
+			}
+			return;
+		}
+		down(cur);
+		int mid = (lt + rt) / 2;
+		query(a, b, 2 * cur, lt, mid);
+		query(a, b, 2 * cur + 1, mid, rt);
+	}
+} seg;
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d", &N, &Q);
+	for (int i = 1; i <= N; i++) {
+		scanf("%d", &C[i]);
+		C[i]--;
+	}
+
+	for (int i = 1, a, b; i < N; i++) {
+		scanf("%d %d", &a, &b);
+		adj[a].push_back(b);
+		adj[b].push_back(a);
+	}
+
+	dfs_eu(1, 0);
+
+	for (int i = 1; i <= N; i++) {
+		// printf("ent[%d] = %d, exi[%d] = %d\n", i, ent[i], i, exi[i]);
+		seg.update(ent[i], ent[i] + 1, C[i]);
+		// printf("UPDATE %d as %d\n", ent[i], C[i]);
+	}
+
+	int qt, x, c;
+	for (int qi = 0; qi < Q; qi++) {
+		scanf("%d %d", &qt, &x);
+		if (qt == 1) {
+			scanf("%d", &c);
+			seg.update(ent[x], exi[x], c - 1);
+		} else {
+			fillchar(has, 0);
+			seg.query(ent[x], exi[x]);
+			printf("%ld\n", count(has, has + 60, true));
+		}
+	}
+}

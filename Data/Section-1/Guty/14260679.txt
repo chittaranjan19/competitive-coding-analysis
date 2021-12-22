@@ -1,0 +1,148 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble;
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+int toNumber (string s)
+{
+	int Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (int number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+struct Vector
+{
+	Vector(ldouble xx, ldouble yy, tint indy)
+	{
+		x = xx;
+		y = yy;
+		indice = indy;
+	}
+	ldouble x,y;
+	tint indice;
+};
+
+struct Angulo
+{
+	Angulo (ldouble anglee, tint indy1, tint indy2)
+	{
+		ang = anglee;
+		indice1 = indy1;
+		indice2 = indy2;
+	}
+	ldouble ang;
+	tint indice1, indice2;
+};
+
+bool operator < (Angulo a1, Angulo a2)
+{
+	return make_tuple(a1.ang, a1.indice1, a1.indice2) < make_tuple(a2.ang, a2.indice1, a2.indice2);
+}
+
+double norma (Vector v)
+{
+	return sqrt(v.x*v.x + v.y*v.y);
+}
+
+double prod (Vector v1, Vector v2)
+{
+	return v1.x*v2.x + v1.y*v2.y;
+}
+
+double angle (Vector v1, Vector v2)
+{
+	return acos(prod(v1,v2)/norma(v1)/norma(v2));
+}
+
+bool operator < (Vector v1, Vector v2)
+{
+	ldouble r1 = angle(v1,Vector(1,0,0));
+	ldouble r2 = angle(v2,Vector(1,0,0));
+	if (v1.y < 0)
+		r1 = 2*acos(-1) - r1;
+	if (v2.y < 0)
+		r2 = 2*acos(-1) - r2;
+	return r1 < r2;
+}
+
+
+int main()
+{
+	ios_base::sync_with_stdio(0);
+	tint n;
+	cin >> n;
+	vector<Vector> vectors (n,Vector(0,0,0));
+	forn(i,n)
+	{
+		ldouble x,y;
+		cin >> x >> y;
+		vectors[i] = Vector(x,y,i);
+	}
+	
+	sort(vectors.begin(),vectors.end());
+	
+	vector<Angulo> angles (n,Angulo(0,0,0));
+	forn(i,n-1)
+		angles[i] = Angulo(angle(vectors[i],vectors[i+1]),vectors[i].indice, vectors[i+1].indice);
+	angles[n-1] = Angulo(angle(vectors[n-1],vectors[0]),vectors[0].indice, vectors[n-1].indice);
+	Angulo ans = *min_element(angles.begin(),angles.end());
+	cout << ans.indice1+1 << " " << ans.indice2+1 << endl;
+	
+	
+		
+	
+	return 0;
+}
+
+
+

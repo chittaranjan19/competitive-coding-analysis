@@ -1,0 +1,97 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+vector<int> primes;
+
+void get_primes(LL max){
+    char *sieve;
+    sieve = new char[max/8+1];
+    memset(sieve, 0xFF, (max/8+1) * sizeof(char));
+    for(LL x = 2; x <= max; x++)
+        if(sieve[x/8] & (0x01 << (x % 8))){
+            primes.push_back(x);
+            for(LL j = 2*x; j <= max; j += x)
+                sieve[j/8] &= ~(0x01 << (j % 8));
+        }
+    delete[] sieve;
+}
+
+bool isprime(int x)
+{
+    for(int i=0;i<primes.size() && primes[i] * primes[i] <= x;i++)
+        if(x % primes[i] == 0)
+            return false;
+    return true;
+}
+
+LL gcd(LL a,LL b)
+{
+    return (b == 0) ? a : gcd(b,a%b);
+}
+
+int main()
+{
+    int t,N;
+    cin >> t;
+    get_primes(32000);
+    while(t--)
+    {
+        scanf("%d",&N);
+        LL L,R;
+        for(int i=N;i>=0;i--)
+            if(isprime(i))
+            {
+                L = i;
+                break;
+            }
+        for(int i = N + 1;;i++)
+            if(isprime(i))
+            {
+                R = i;
+                break;
+            }
+        LL top = L - 2,bot = 2 * L;
+        LL temp = gcd(top,bot);
+        top/=temp,bot/=temp;
+        temp = N - L + 1;
+        LL temp2 = gcd(R * L, bot);
+        temp*=(bot / temp2),top*=((R * L) / temp2);
+        bot/=temp2;
+        top+=temp,bot*=(R * L);
+        temp = gcd(top,bot);
+        top/=temp,bot/=temp;
+        printf("%I64d/%I64d\n",top,bot);
+    };
+    return 0;
+}

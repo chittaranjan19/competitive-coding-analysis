@@ -1,0 +1,96 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int M = 1e9 + 7;
+const int N = 50 * 1000 + 100;
+ll n, x, a[N];
+ll c[1000];
+ll d[1000];
+
+map<pair<int, int>, int> mp;
+
+int bpow(int b, int a = 10){
+	int c = 1;
+	while(b){
+		if(b & 1)
+			c = c * a % x;
+		b >>= 1;
+		a = a * a % x;
+	}
+	return c;
+}
+
+int solve(int b, int l){
+	if(mp.find(MP(b, l)) != mp.end()) return mp[{b, l}];
+	if(b == 0){
+		mp[{b, l}] = 0;
+		return 0;
+	}
+	if(b == 1){
+		int ret = 0;
+		for(int i = 0; i < n; ++i)
+			if(a[i] % x == l)
+				ret ++;
+		mp[{b, l}] = ret;
+		return ret;
+	}
+	if(b % 2 == 0){
+		ll ret = 0;
+		for(int i = 0; i < x; ++i)
+			c[i] = solve(b / 2, i);
+		for(int i = 0; i < x; ++i){
+			int t = i * bpow(b / 2) % x;
+			ret += c[i] * c[(l - t + x) % x];
+			ret %= M;
+		}
+		mp[{b, l}] = ret;
+		return ret;
+	}
+	ll ret = 0;
+	for(int i = 0; i < x; ++i)
+		c[i] = solve(b / 2, i);
+	for(int i = 0; i < x; ++i)
+		d[i] = solve(b / 2 + 1, i);
+	for(int i = 0; i < x; ++i){
+		int t = i * bpow(b / 2 + 1) % x;
+		ret += c[i] * d[(l - t + x) % x];
+		ret %= M;
+	}
+	mp[{b, l}] = ret;
+	return ret;
+}
+
+int b, k;
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> b >> k >> x;
+	for(int i = 0; i < n; ++i)
+		cin >> a[i];
+	cout << solve(b, k) << "\n";
+	return 0;
+}

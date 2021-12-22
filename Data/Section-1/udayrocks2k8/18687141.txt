@@ -1,0 +1,61 @@
+#include <cstdio>
+#include <vector>
+#include <set>
+using namespace std;
+
+typedef pair<int, int> pii;
+struct node {
+	vector<int> child;
+	int x, y;
+	int ans;
+};
+
+vector<node> nodes;
+
+void dfs(int index) {
+	nodes[index].x = 0;
+	nodes[index].y = 1;
+	for (int i = 0; i < nodes[index].child.size(); i++) {
+		int j = nodes[index].child[i];
+		dfs(j);
+		nodes[index].x = max(nodes[index].x, nodes[j].y);
+		nodes[index].y += nodes[j].y;
+	}
+}
+
+void dfs1(int index, set<pii>& anc) {
+	anc.insert(pii(nodes[index].y, index));
+	auto lb = anc.lower_bound(pii(2 * nodes[index].x, -1));
+	auto ub = anc.upper_bound(pii(2 * nodes[index].y, -1));
+	while (lb != ub) {
+		nodes[lb->second].ans = index;
+		auto i = lb++;
+		anc.erase(i);
+	}
+	for (int i = 0; i < nodes[index].child.size(); i++) {
+		int j = nodes[index].child[i];
+		dfs1(j, anc);
+	}
+}
+
+int main() {
+	int n, q;
+	scanf("%d%d", &n, &q);
+	vector<int> parent(n);
+	nodes.resize(n);
+	for (int i = 1; i < n; i++) {
+		int p;
+		scanf("%d", &p);
+		p--;
+		nodes[p].child.push_back(i);
+	}
+	dfs(0);
+	set<pii> anc;
+	dfs1(0, anc);
+	while (q--) {
+		int p;
+		scanf("%d", &p);
+		p--;
+		printf("%d\n", nodes[p].ans + 1);
+	}
+}

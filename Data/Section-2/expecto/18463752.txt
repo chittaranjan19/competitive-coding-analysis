@@ -1,0 +1,98 @@
+#include <stdio.h>
+#include <string.h>
+int n,heap[2100000],cnt,acnt,ans1[1100000],ans2[1100000];
+void insertheap(int p)
+{
+    int t,temp;
+    heap[++cnt]=p;
+    t=cnt;
+    while(t>0)
+    {
+        if(heap[t/2]>heap[t])
+        {
+            temp=heap[t/2];
+            heap[t/2]=heap[t];
+            heap[t]=temp;
+        }
+        t/=2;
+    }
+}
+void removeheap()
+{
+    int t,temp;
+    heap[1]=heap[cnt];
+    heap[cnt--]=2147483647;
+    t=1;
+    while(1)
+    {
+        if(heap[t]<=heap[t*2] && heap[t]<=heap[t*2+1])
+            break;
+        else if(heap[t*2]>heap[t*2+1])
+        {
+            temp=heap[t];
+            heap[t]=heap[t*2+1];
+            heap[t*2+1]=temp;
+            t=t*2+1;
+        }
+        else
+        {
+            temp=heap[t];
+            heap[t]=heap[t*2];
+            heap[t*2]=temp;
+            t=t*2;
+        }
+    }
+}
+int main()
+{
+    int i,p;
+    char str[20];
+    heap[0]=-2147483647;
+    for(i=1;i<=1000000;i++)
+        heap[i]=2147483647;
+    scanf("%d",&n);
+    for(i=1;i<=n;i++)
+    {
+        scanf("%s",str);
+        if(strcmp(str,"insert")==0)
+        {
+            scanf("%d",&p);
+            insertheap(p);
+            ans1[++acnt]=1;
+            ans2[acnt]=p;
+        }
+        else if(strcmp(str,"getMin")==0)
+        {
+            scanf("%d",&p);
+            while(heap[1]<p)
+            {
+                removeheap();
+                ans1[++acnt]=3;
+            }
+            if(heap[1]>p)
+            {
+                insertheap(p);
+                ans1[++acnt]=1;
+                ans2[acnt]=p;
+            }
+            ans1[++acnt]=2;
+            ans2[acnt]=p;
+        }
+        else
+        {
+            removeheap();
+            ans1[++acnt]=3;
+        }
+    }
+    printf("%d\n",acnt);
+    for(i=1;i<=acnt;i++)
+    {
+        if(ans1[i]==1)
+            printf("insert %d\n",ans2[i]);
+        else if(ans1[i]==2)
+            printf("getMin %d\n",ans2[i]);
+        else
+            printf("removeMin\n");
+    }
+    return 0;
+}

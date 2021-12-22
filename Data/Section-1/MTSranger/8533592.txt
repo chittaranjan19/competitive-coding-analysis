@@ -1,0 +1,85 @@
+#include <iostream>
+#include <cstring>
+
+using namespace std;
+typedef long long ll;
+
+int main() {
+	int n, m, q; cin >> n >> m >> q;
+	int grid[n+1][m+1];
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= m; j++) {
+			char c; cin >> c;
+			grid[i][j] = (int)(c - '0');
+		}
+	}
+
+	int cum[n+1][m+1];
+	memset(cum, 0, sizeof cum);
+	cum[1][1] = grid[1][1];
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= m; j++) {
+			if (i == 1 && j == 1) continue;
+			cum[i][j] = cum[i-1][j] + cum[i][j-1] - cum[i-1][j-1] + grid[i][j];
+		}
+	}
+	
+	int grid2[n+1][m+1][n+1][m+1];
+	memset(grid2, 0, sizeof grid2);
+	for (int sr = 1; sr <= n; sr++) {
+		for (int sc = 1; sc <= m; sc++) {
+			for (int tr = sr; tr <= n; tr++) {
+				for (int tc = sc; tc <= m; tc++) {
+					int cnt = cum[tr][tc] - cum[sr-1][tc] - cum[tr][sc-1] + cum[sr-1][sc-1];
+					if (cnt == 0) {
+						grid2[sr][sc][tr][tc] = 1;
+					} else {
+						grid2[sr][sc][tr][tc] = 0;
+					}
+				}
+			}
+		}
+	}
+
+	int cum2[n+1][m+1][n+1][m+1];
+	memset(cum2, 0, sizeof cum2);
+	cum2[1][1][1][1] = grid2[1][1][1][1];
+	for (int i1 = 1; i1 <= n; i1++) {
+		for (int j1 = 1; j1 <= m; j1++) {
+			for (int i2 = 1; i2 <= n; i2++) {
+				for (int j2 = 1; j2 <= m; j2++) {
+					if (i1 == 1 && j1 == 1 && i2 == 1 && j2 == 1) continue;
+					cum2[i1][j1][i2][j2] = grid2[i1][j1][i2][j2] +
+
+						cum2[i1-1][j1][i2][j2] + cum2[i1][j1-1][i2][j2] +
+						cum2[i1][j1][i2-1][j2] + cum2[i1][j1][i2][j2-1] -
+
+						cum2[i1-1][j1-1][i2][j2] - cum2[i1-1][j1][i2-1][j2] - cum2[i1-1][j1][i2][j2-1] - 
+						cum2[i1][j1-1][i2-1][j2] - cum2[i1][j1-1][i2][j2-1] - cum2[i1][j1][i2-1][j2-1] +
+						
+						cum2[i1-1][j1-1][i2-1][j2] + cum2[i1-1][j1-1][i2][j2-1] +
+						cum2[i1-1][j1][i2-1][j2-1] + cum2[i1][j1-1][i2-1][j2-1] -
+						
+						cum2[i1-1][j1-1][i2-1][j2-1];
+				}
+			}
+		}
+	}
+
+	for (int i = 0; i < q; i++) {
+		int a, b, c, d; cin >> a >> b >> c >> d;
+		int ans = cum2[c][d][c][d] -
+			cum2[a-1][d][c][d] - cum2[c][b-1][c][d] -
+			cum2[c][d][a-1][d] - cum2[c][d][c][b-1] +
+			
+			cum2[a-1][b-1][c][d] + cum2[a-1][d][a-1][d] + cum2[a-1][d][c][b-1] +
+			cum2[c][b-1][a-1][d] + cum2[c][b-1][c][b-1] + cum2[c][d][a-1][b-1] -
+
+			cum2[a-1][b-1][a-1][d] - cum2[a-1][b-1][c][b-1] -
+			cum2[a-1][d][a-1][b-1] - cum2[c][b-1][a-1][b-1] +
+
+			cum2[a-1][b-1][a-1][b-1];
+
+		cout << ans << endl;
+	}
+}

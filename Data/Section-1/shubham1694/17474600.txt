@@ -1,0 +1,88 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+const int sqrtn = 300;
+
+ll arr[maxn], sum[maxn], pre[maxn];
+int len[maxn], present[sqrtn][maxn], intersection[maxn][sqrtn], ind[maxn];
+vector<int> s[maxn], heavy;
+int n, m, q;
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, k;
+	ll val, ans;
+	char c;
+	scanf("%d%d%d", &n, &m, &q);
+	for(i=1; i<=n; i++)
+		scanf("%lld", &arr[i]);
+	for(i=1; i<=m; i++){
+		scanf("%d", &len[i]);
+		if(len[i]>sqrtn){
+			ind[i] = heavy.size();
+			heavy.pb(i);
+		}
+		s[i].resize(len[i]);
+		for(j=0; j<len[i]; j++){
+			scanf("%d", &s[i][j]);
+			pre[i]+=arr[s[i][j]];
+			if(len[i]>sqrtn)
+				present[ind[i]][s[i][j]] = 1;
+		}
+	}
+	for(i=0; i<heavy.size(); i++){
+		for(j=1; j<=m; j++){
+			for(int it:s[j]){
+				if(present[i][it])
+					intersection[j][i]++;
+			}
+		}
+	}
+	while(q--){
+		scanf(" %c%d", &c, &k);
+		if(c=='?'){
+			ans = 0;
+			if(len[k]<=sqrtn){
+				for(int it:s[k])
+					ans+=arr[it];
+				for(i=0; i<heavy.size(); i++)
+					ans+=(sum[i]*intersection[k][i]);
+			}
+			else{
+				ans = pre[k];
+				for(i=0; i<heavy.size(); i++)
+					ans+=(sum[i]*intersection[k][i]);	
+			}
+			printf("%lld\n", ans);
+		}
+		else{
+			scanf("%lld", &val);
+			if(len[k]<=sqrtn){
+				for(int it:s[k])
+					arr[it]+=val;
+				for(i=0; i<heavy.size(); i++)
+					pre[heavy[i]]+=(val*intersection[k][i]);
+			}
+			else
+				sum[k]+=val;
+		}
+	}
+	return 0;
+}

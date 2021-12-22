@@ -1,0 +1,69 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <algorithm>
+#include <iostream>
+using namespace std;
+
+#define INF 1000000000
+
+int n, m, a[5005][4], res[5005], used[5005];
+vector <int> v[5005];
+
+int main()
+{
+    scanf("%d %d", &n, &m);
+    for(int i = 0; i < m; i++)
+    {
+        for(int j = 0; j < 4; j++)
+            scanf("%d", &a[i][j]);
+        a[i][1]--;
+        a[i][2]--;
+    }
+    for(int i = 0; i < n; i++)
+        res[i] = INF;
+    for(int i = m - 1; i >= 0; i--)
+    {
+        if(a[i][0] == 1)
+        {
+            for(int j = a[i][1]; j <= a[i][2]; j++)
+                res[j] -= a[i][3];
+        }
+        else
+        {
+            for(int j = a[i][1]; j <= a[i][2]; j++)
+            {
+                if(res[j] == a[i][3])
+                    v[j].push_back(i);
+                else
+                    if(res[j] > a[i][3])
+                    {
+                        res[j] = a[i][3];
+                        v[j].clear();
+                        v[j].push_back(i);
+                    }
+            }
+        }
+    }
+    for(int i = 0; i < n; i++)
+        for(int j = 0; j < v[i].size(); j++)
+            used[v[i][j]] = 1;
+    for(int i = 0; i < m; i++)
+        if(a[i][0] == 2 && used[i] == 0)
+        {
+            puts("NO");
+            return 0;
+        }
+    puts("YES");
+    for(int i = 0; i < n - 1; i++)
+        printf("%d ", res[i]);
+    printf("%d\n", res[n-1]);
+    return 0;
+}

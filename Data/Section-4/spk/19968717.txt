@@ -1,0 +1,167 @@
+#include<iostream>
+#include<cstdio>
+#include<map>
+#include<string>
+#include<cstring>
+#include<vector>
+#include<algorithm>
+#include<queue>
+#include<set>
+#include<stack>
+
+#define fill(a,val) memset(a, (val), sizeof a)
+#define pb push_back
+#define scantype int
+#define lli long long int
+#define N 500
+
+lli powermod(lli _a,lli _b){lli _r=1;while(_b){if(_b%2==1)_r=(_r*_a);_b/=2;_a=(_a*_a);}return _r;}
+
+using namespace std;
+
+void scan(scantype &x);
+
+int n,m;
+vector< pair<int,int> > edge[N+3];
+bool vis[N+3],now_visited[N+3];
+double nsum,esum,fans=0;
+double val[N+3];
+
+void dfs(int now)
+{
+   vis[now]=true;
+   now_visited[now]=true;
+   nsum += val[now];
+
+   for(int i=0;i<edge[now].size();i++)
+   {
+        if(!vis[edge[now][i].first])
+                    dfs(edge[now][i].first);
+         esum = esum + (edge[now][i].second);
+   }
+}
+
+double rem(int node)
+{
+    double ret=0;
+    for(int i=0;i<edge[node].size();i++)
+      if(now_visited[edge[node][i].first])
+          ret = ret + (double)edge[node][i].second;
+    return ret;
+}
+
+void solve(int now)
+{
+    fill(now_visited,false);
+    nsum=esum=0;
+
+    dfs(now);
+    esum = esum / (2.0);
+
+    double node_sum,edge_sum,tans;
+
+    node_sum = nsum;
+    edge_sum = esum;
+
+    if(edge_sum==0) tans=0;
+    else tans = node_sum/edge_sum;
+
+    int flag=1;
+
+    while(flag)
+    {
+        flag=0;
+        double max_so_far=tans,ns,es;
+        int max_index;
+
+        for(int i=0;i<n;i++)
+        {
+            if(now_visited[i])
+            {
+                   double tnsum,tesum,tres,remnode,remedge;
+
+                   remnode = val[i];
+                   remedge = rem(i);
+                   tnsum = node_sum - remnode;
+                   tesum = edge_sum - remedge;
+
+                  if(tesum==0) tres=0;
+                  else tres = (tnsum)/(tesum);
+
+                   if(tres>max_so_far)
+                      {
+                          flag=1;
+                          max_so_far = tres;
+                          max_index = i;
+                          ns = remnode;
+                          es = remedge;
+                      }
+            }
+        }
+
+        if(flag)
+        {
+              now_visited[max_index] = false;
+              tans = max_so_far;
+              node_sum = node_sum - ns;
+              edge_sum = edge_sum - es;
+        }
+    }
+
+    fans = max(fans,tans);
+}
+
+int main(void)
+{
+  cin>>n>>m;
+
+  for(int i=0;i<n;i++)
+  {
+      int x;
+      scan(x);
+      val[i] = (double)x;
+  }
+
+  while(m--)
+  {
+      int x,y,z;
+      scan(x);scan(y);scan(z);
+      x--;
+      y--;
+      edge[x].pb({y,z});
+      edge[y].pb({x,z});
+  }
+
+  for(int i=0;i<n;i++)
+  {
+      if(!vis[i])
+        solve(i);
+  }
+
+  printf("%.9f",fans);
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+void scan(scantype &x)
+{
+    /*register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}*/
+
+    register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x;
+}

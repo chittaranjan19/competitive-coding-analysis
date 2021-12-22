@@ -1,0 +1,109 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+map<int, int> m[100005];
+vector<int> g[100005];
+int arr[100005], ch[100005], sz[100005];
+LL res[100005];
+
+void solve(int node, int parent = -1)
+{
+  int tmp = -1;
+  ch[node] = -1;
+  for(int i=0;i<g[node].size();i++)
+  {
+    if(g[node][i] == parent) continue;
+    solve(g[node][i], node);
+    if(ch[node] == -1)
+      ch[node] = ch[g[node][i]], tmp = g[node][i];
+    else if(m[ch[node]].size() < m[ch[g[node][i]]].size())
+      ch[node] = ch[g[node][i]], tmp = g[node][i];
+  }
+  if(ch[node] == -1)
+  {
+    ch[node] = node;
+    m[node][arr[node]] = 1;
+    sz[node] = 1;
+    res[node] = arr[node];
+    return ;
+  }
+  res[node] = res[tmp];
+  sz[node] = sz[tmp];
+  for(int i=0;i<g[node].size();i++)
+  {
+    if(g[node][i] == parent) continue;
+    if(ch[node] == ch[g[node][i]]) continue;
+    for(map<int, int>::iterator it = m[ch[g[node][i]]].begin();it != m[ch[g[node][i]]].end();it++)
+    {
+      m[ch[node]][it->f] += it->s;
+      if(m[ch[node]][it->f] > sz[node])
+      {
+        sz[node] = m[ch[node]][it->f];
+        res[node] = it->f;
+      }
+      else if(m[ch[node]][it->f] == sz[node])
+        res[node] += it->f;
+    }
+  }
+  m[ch[node]][arr[node]]++;
+  if(m[ch[node]][arr[node]] > sz[node])
+  {
+    sz[node] = m[ch[node]][arr[node]];
+    res[node] = arr[node];
+  }
+  else if(m[ch[node]][arr[node]] == sz[node])
+    res[node] += arr[node];
+}
+
+int main()
+{
+  int n, x, y;
+  scanf("%d", &n);
+  for(int i=1;i<=n;i++)
+    scanf("%d", &arr[i]);
+  for(int i=0;i<n-1;i++)
+  {
+    scanf("%d %d", &x, &y);
+    g[x].pb(y);
+    g[y].pb(x);
+  }
+  solve(1);
+  for(int i=1;i<=n;i++)
+    printf("%I64d ", res[i]);
+  return 0;
+}

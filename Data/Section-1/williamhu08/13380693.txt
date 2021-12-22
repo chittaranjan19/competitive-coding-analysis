@@ -1,0 +1,141 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 105;
+
+void setmax (int &a, int b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+int N, T, A[MAXN];
+int occ[MAXN];
+int dp[MAXN][MAXN][MAXN];	//dp[# of array][left][right]
+int lis[MAXN][MAXN];	//lis[i][j]: start with i, end with exactly j...
+int mxlis[MAXN][MAXN];	//mxlis[i][j]: end with j, so i to j - 1
+int pref[MAXN][MAXN], suff[MAXN][MAXN];	//pref[# of arrays][val], suff[# of arrays][val]
+int mxocc[MAXN][MAXN];
+
+int ldp[MAXN];	//lis dp[x]
+void calc_lis (int s, int t) {
+	for (int i = 0; i < N; i++) {
+		ldp[i] = (A[i] == s);
+	}
+	for (int i = 0; i < N; i++) {
+		//end with i
+		for (int j = 0; j < i; j++) {
+			if (A[j] >= s && A[i] <= t && A[i] >= A[j]) {
+				setmax(ldp[i], ldp[j] + 1);
+			}
+		}
+		setmax(lis[s][t], ldp[i]);
+	}
+	// printf("lis[%d][%d] = %d\n", s, t, lis[s][t]);
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> T;
+	//N <= 100. N^4 is OK
+	vector<int> vall;
+	for (int i = 0; i < N; i++) {
+		cin >> A[i];
+		vall.push_back(A[i]);
+	}
+	sort(all(vall));
+	vall.resize(unique(all(vall)) - vall.begin());
+	for (int i = 0; i < N; i++) {
+		A[i] = lower_bound(all(vall), A[i]) - vall.begin() + 1;
+	}
+	int nval = vall.size();
+	for (int i = 1; i <= nval; i++) {
+		occ[i] = count(A, A + N, i);
+	}
+	for (int i = 1; i <= nval; i++) {
+		for (int j = i; j <= nval; j++) {
+			//let's see...
+			calc_lis(i, j);
+		}
+	}
+	for (int j = 1; j <= nval; j++) {
+		for (int i = j; i; i--) {
+			mxlis[i][j] = max(mxlis[i + 1][j], lis[i][j]);
+		}
+	}
+	//stuff we need to precompute FIRST
+	fillchar(dp, -1);
+	for (int i = 1; i <= nval; i++) {
+		dp[0][i][i] = 0;
+	}
+	for (int i = 0; i < N; i++) {
+		for (int j = 1; j <= nval; j++) {
+			for (int k = j; k <= nval; k++) {
+				//add[j, k] to the thing!
+				int pdp = dp[i][j][k];
+				// printf("dp[%d][%d][%d] = %d\n", i, j, k, pdp);
+				if (pdp == -1) {
+					continue;
+				}
+				for (int m = k; m <= nval; m++) {
+					//m = new end right
+					//[k][m], [k + 1][m] ..., [m - 1][m]
+					setmax(dp[i + 1][j][m], pdp + mxlis[k][m]);
+				}
+			}
+		}
+	}
+	int ans = 0;
+	for (int i = 0; i <= N; i++) {
+		for (int j = 1; j <= nval; j++) {
+			//calc pref[i][j]
+			pref[i][j] = pref[i][j - 1];
+			//or you end with j and you start with whatever
+			for (int k = j - 1; k; k--) {
+				setmax(pref[i][j], dp[i][k][j]);
+			}
+		}
+	}
+	//calc suff now
+	for (int i = 0; i <= N; i++) {
+		for (int j = nval; j; j--) {
+			suff[i][j] = suff[i][j + 1];
+			for (int k = j; k <= nval; k++) {
+				setmax(suff[i][j], dp[i][j][k]);
+			}
+		}
+	}
+	for (int i = 1; i <= nval; i++) {
+		for (int j = i; j <= nval; j++) {
+			mxocc[i][j] = *max_element(occ + i, occ + j + 1);
+		}
+	}
+	for (int i = 0; i <= N; i++) {
+		for (int j = 0; j <= nval; j++) {
+			for (int k = 0; k <= N; k++) {
+				if (i + k > T) {
+					continue;
+				}
+				int nrem = T - i - k;
+				for (int m = j; m <= nval; m++) {
+					int p = pref[i][j], s = suff[k][m];
+					if (p != -1 && s != -1) {
+						setmax(ans, p + s + mxocc[j][m] * nrem);
+					}
+				}
+			}
+		}
+	}
+	cout << ans << endl;
+}

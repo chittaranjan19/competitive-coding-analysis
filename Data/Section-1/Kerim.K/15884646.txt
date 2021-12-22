@@ -1,0 +1,85 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+pair<PII,int> arr[MAXN];
+int bit[MAXN][33],ans[MAXN],s[MAXN<<2];
+int trans(int x){
+	int tap=0;
+	for(int i=0;i<31;i++)
+		tap=tap*2+bit[x][i];
+	return tap;	
+}
+void build(int nd,int x,int y){
+	if(x==y){
+		s[nd]=ans[x];
+		return;	
+	}
+	int mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+	s[nd]=(s[nd<<1]&s[nd<<1|1]);
+}
+int tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return (INT_MAX-1);
+	if(l<=x and y<=r)	
+		return s[nd];
+	int mid=(x+y)>>1;
+	int i1=tap(l,r,nd<<1,x,mid);
+	int i2=tap(l,r,nd<<1|1,mid+1,y);
+	return (i1&i2);
+}
+int main(){
+	int a,q;
+	scanf("%d%d",&a,&q);
+	for(int i=0;i<q;i++){
+		int l,r,q;
+		scanf("%d%d%d",&l,&r,&q);
+		arr[i]=mp(mp(l,r),q);
+		vector<int>v;
+		while(q>=1){
+			v.pb(q%2);
+			q/=2;
+		}int c=30;
+		for(int j=v.size()-1;j>=0;j--)
+			bit[l][c]+=v[j],bit[r+1][c--]-=v[j];
+	} 
+	for(int i=1;i<=a;i++)
+		for(int j=0;j<31;j++){
+			bit[i][j]+=bit[i-1][j];
+			if(bit[i][j]>0)
+				bit[i][j]=1;
+		}
+	for(int i=1;i<=a;i++)
+		ans[i]=trans(i);
+	build(1,1,a);
+	for(int i=0;i<q;i++){
+		int l=arr[i].ff.ff,r=arr[i].ff.ss,q=arr[i].ss;
+		if(tap(l,r,1,1,a)!=q){
+			printf("NO\n");
+			return 0;
+		}
+	}
+	printf("YES\n");
+	for(int i=1;i<=a;i++)
+		printf("%d ",ans[i]);
+	printf("\n");	
+	return 0;
+}

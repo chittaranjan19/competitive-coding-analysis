@@ -1,0 +1,95 @@
+//Coder: Vipin Singh
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+const int limit = 110;
+vector< vector<int> > adj(26);
+bool visited[26];
+bool posi = true;
+stack<int> mystack;
+string a[limit];
+
+void DFS(int i){
+    if(visited[i]){
+        return;
+    }
+    visited[i]=true;
+    for(int j=0;j<adj[i].size();j++){
+        DFS(adj[i][j]);
+    }
+    mystack.push(i);
+}
+
+bool iscycle(int i){
+	bool ans = false;
+	if(visited[i]){
+		ans=true;
+		return ans;
+	}
+	visited[i]=true;
+    for(int j=0;j<adj[i].size();j++){
+        ans= ans | iscycle(adj[i][j]);
+    }
+    return ans;
+}
+
+int main(){
+    int n;
+    char c1,c2;
+    for(int i=0;i<26;i++)
+        visited[i]=false;
+    scanf("%d",&n);
+    string prev,s,nex;
+    for(int i=0;i<n;i++){
+        cin>>s;
+        a[i]=s;
+    }
+    prev = a[0];
+    for(int i=1;i<n;i++){
+        nex = a[i];
+        c1='#';
+        c2='#';
+        for(int j=0;j<prev.size() && j<nex.size() ; j++){
+            if(prev[j] != nex[j]){
+                c1=prev[j];
+                c2=nex[j];
+                break;
+            }
+        }
+        if(c1==c2){
+            if(nex.size() < prev.size() ){
+                posi=false;
+                break;
+            }
+            prev=nex;
+            continue;
+        }
+        adj[c1-'a'].pb(c2-'a');
+        prev=nex;
+    }
+    for(int i=0;i<26;i++){
+		for(int j=0;j<26;j++)
+			visited[j]=false;
+		if(iscycle(i)){
+			posi=false;
+			break;
+		}
+	}
+	if(!posi){
+        cout<<"Impossible\n";
+        return 0;
+    }
+    for(int i=0;i<26;i++){
+        if(!visited[i]){
+            DFS(i);
+        }
+    }
+    while(!mystack.empty()){
+        cout<<(char)(mystack.top()+97);
+        mystack.pop();
+    }
+    cout<<endl;
+}

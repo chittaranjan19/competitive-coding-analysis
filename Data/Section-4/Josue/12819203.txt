@@ -1,0 +1,126 @@
+//Codeforces Beta Round #14 (Div. 2)
+
+#include <cstdio>
+#include <iostream>
+#include <list>
+#include <algorithm>
+
+#define MAXN 100010
+
+using namespace std;
+
+struct nodo {
+    int num, color, d, f, p, dist, ndist;
+    nodo (){  }
+    nodo( int _num, int _color, int _p, int _d, int _f, int _dist, int _ndist )
+    { num = _num; color = _color; d = _d; f = _f; p = _p; dist = _dist; ndist = _ndist; }
+    //Los dos últimos atributos del nodo son adicionales, para hallar el nodo más distante y la distancia, desde el actual
+};
+
+class Grafo {
+public:
+    int n, m, tiempo, iniD, finD; //n nodos, m aristas
+    Grafo( int n, int m ): n(n), m(m){};
+
+    list <int> Adj[MAXN];//list estático de lists
+    nodo V[MAXN];
+    void insertar(int u, int v){
+        Adj[u].push_back(v);
+        Adj[v].push_back(u);
+    }
+
+    void DFS_Visit( int u ){
+        tiempo += 1;
+        V[u].d = tiempo;
+        //cout<<"Hemos encontrado el nodo "<<u<<" en tiempo = "<<tiempo<<endl;
+        V[u].color = 'G';
+        for( list<int>::iterator it=Adj[u].begin(); it!=Adj[u].end(); it++ ){
+            if( V[*it].color == 'W' ){
+                V[*it].p = u;
+                DFS_Visit(*it);
+            }
+        }
+        V[u].color = 'B';
+        tiempo += 1;
+        V[u].f = tiempo;
+        //Líneas adicionales para hallar el nodo más distante a u y la distancia a ese nodo
+        if( V[u].dist + 1 > V[V[u].p].dist ){
+            V[V[u].p].dist = V[u].dist + 1;
+            V[V[u].p].ndist = V[u].ndist;
+        }
+    }
+    void DFS( int u ){
+        //Inicializar el Grafo
+        for( int i=1; i<=n; i++ ) V[i] = nodo(i, 'W', 0, 0, -1, 0, i);
+
+        //Recorriendo los vértices del Grafo
+        tiempo = 0;
+        for( int i=u; i<=n; i++ )
+            if( V[i].color == 'W' ) DFS_Visit(i);
+        if( u > 1 )
+        for( int i=1; i<u; i++ )
+            if( V[i].color == 'W' ) DFS_Visit(i);
+    }
+    int hallar_diametro( int u ){
+        DFS(u);
+        finD = V[u].ndist;
+        DFS( finD ); iniD = V[finD].ndist;
+        return V[finD].dist;
+    }
+
+    void mostrarAdj(){
+        cout<<"Lista de Adjacencia:"<<endl;
+        list <int>::iterator it;
+        for (int i = 1; i <= n; i++) {
+            cout<<i<<": ";
+            for( it = Adj[i].begin(); it != Adj[i].end() ; it++ ){
+                cout<<*it<<" ";
+            } cout<<endl;
+        }
+    }
+
+    list<int>::iterator puntero(int u, int v){
+        list<int>::iterator it = Adj[u].begin();
+        while( *it != v ){ it++; }
+        return it;
+    }
+
+    void mostrarFila(int u){
+        cout<<"Mostar fila "<<u<<endl;
+        list<int>::iterator it = Adj[u].begin();
+        while( it != Adj[u].end() ){ cout<<*it<<" "; it++; } cout<<endl;
+    }
+
+};
+
+int main(){
+    int n, m, u, v;
+    list <int>::iterator k, j, k1, k2, k3, aux, it1, it2;
+    scanf("%d", &n);//Vértices
+    m = n-1;
+    Grafo G = Grafo(n, m);
+    for ( int i = 0; i < m; i++ ) {
+        scanf("%d %d", &u, &v);
+        G.insertar(u, v);
+    }
+
+    int maxG = 0;
+    for( int u = 1; u <= n; u++ ) {//Recorriendo todos los vértices
+        aux = G.Adj[u].end();
+        for( k=G.Adj[u].begin() ; k!=G.Adj[u].end() ; k++ ){//Recorriendo la lista de adyacencia de ese vértice
+            v = *k;
+            if( u < v ){
+                G.Adj[u].erase(k); k++;
+                it1 = G.puntero(v, u);
+                G.Adj[v].erase(it1); it1++;
+                int d1 = G.hallar_diametro(u);
+                int d2 = G.hallar_diametro(v);
+                if( d1 * d2 > maxG ) maxG = d1 * d2;
+                k = G.Adj[u].insert(k, v);
+                G.Adj[v].insert(it1, u);
+            }
+        }
+    }
+    printf("%d\n", maxG );
+    return 0;
+}

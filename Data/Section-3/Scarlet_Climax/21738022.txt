@@ -1,0 +1,55 @@
+#include<bits/stdc++.h>
+#define maxn 210
+#define INF 1000000000
+using namespace std;
+typedef long long LL;
+#define G c=getchar()
+inline int read()
+{
+	int x=0,f=1;char G;
+	while(c>57||c<48){if(c=='-')f=-1;G;}
+	while(c>47&&c<58)x=x*10+c-48,G;
+	return x*f;
+}
+struct poi
+{
+	int u,v,w;
+}E[maxn*maxn];
+struct ktr{int x,y;}A[maxn];
+inline bool cmp(const ktr &a,const ktr &b){return a.x==b.x?a.y>b.y:a.x>b.x;}
+int n,m,g[maxn][maxn],Q[maxn],ans=INF;
+int main()
+{
+//	freopen("w.in","r",stdin);
+	n=read(),m=read();
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=n;j++)
+			if(i^j)g[i][j]=INF;
+	for(int i=1,a,b;i<=m;i++)
+		E[i].u=read(),E[i].v=read(),E[i].w=g[E[i].u][E[i].v]=g[E[i].v][E[i].u]=2*read();
+	for(int k=1;k<=n;k++)
+		for(int i=1;i<=n;i++)
+			for(int j=1;j<=n;j++)
+				if(g[i][j]>g[i][k]+g[k][j])g[i][j]=g[i][k]+g[k][j];
+	for(int i=1;i<=m;i++)
+	{
+		int u=E[i].u,v=E[i].v,w=E[i].w,mx=INF;
+		for(int i=1;i<=n;i++)
+			A[i].x=g[u][i],A[i].y=g[v][i]+w;
+//			A[i].x=min(g[u][i],g[v][i]+w),A[i].y=max(g[u][i],g[v][i]+w);
+		sort(A+1,A+1+n,cmp);
+		int L=1,R=1;Q[R]=1;
+		for(int i=2;i<=n;i++)
+		{
+			if(A[i].x<A[Q[R]].x&&A[i].y>A[Q[R]].y)Q[++R]=i;
+//			for(;A[i].x>=A[Q[R]].x&&A[i].y<=A[Q[R]].y;R--);Q[++R]=i;
+		}
+		mx=min(A[Q[1]].x,A[Q[R]].y-w);
+		for(int i=1;i<R;i++)
+			mx=min(mx,A[Q[i]].y+A[Q[i+1]].x>>1);
+		ans=min(ans,mx);
+	}
+	printf("%.2lf",ans/2.0);
+	return 0;
+}
+

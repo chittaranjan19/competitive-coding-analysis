@@ -1,0 +1,115 @@
+#include<stdio.h>
+#include<string.h>
+#include<algorithm>
+#include<vector>
+#include<queue>
+using namespace std;
+#define min(a,b) ((a<b)?(a):(b))
+#define pp pair<int,int>
+#define ppp pair<pp,int>
+int d[2001][2001],n,d1[2001][2001]={0};
+class priortise
+{
+public:
+    bool operator()(const ppp &p1,const ppp &p2)
+    {
+        return p1.second>p2.second;
+    }
+};
+int main()
+{
+    int i,j;
+    scanf("%d",&n);
+    for(i=1;i<=n;i++)
+    {
+        for(j=1;j<=n;j++)
+        {
+            scanf("%d",&d[i][j]);
+        }
+    }
+    for(i=1;i<=n;i++)
+    {
+        for(j=1;j<=n;j++)
+        {
+            if(i!=j&&d[i][j]==0)
+            {
+                printf("NO\n");
+                return 0;
+            }
+        }
+    }
+    priority_queue<ppp,vector<ppp>,priortise> q;
+    vector<int > G[2005];
+    bool visited[2001]={0};
+    q.push(ppp(pp(1,0),0));
+    //visited[1]=true;
+    while(!q.empty())
+    {
+        ppp temp=q.top();
+        q.pop();
+        int u=temp.first.first,p=temp.first.second;
+        if(visited[u])
+            continue;
+        if(p!=0)
+            G[u].push_back(p);
+        if(p!=0)
+            G[p].push_back(u);
+        if(p!=0)
+        {
+            d1[u][p]=temp.second;
+            d1[p][u]=temp.second;
+        }
+        visited[u]=true;
+        //printf("u=%d parent=%d dist=%d\n",u,p,temp.second);
+        for(j=1;j<=n;j++)
+        {
+            if(!visited[j])
+            {
+                q.push(ppp(pp(j,u),d[u][j]));
+            }
+        }
+    }
+    for(i=1;i<=n;i++)
+    {
+        int dist[2005]={0};
+        bool vis[2005]={0};
+        dist[i]=0;
+        queue<int> q1;
+        q1.push(i);
+        vis[i]=true;
+        //printf("i=%d\n");
+        while(!q1.empty())
+        {
+            int u=q1.front();
+            q1.pop();
+            vis[u]=true;
+            //printf("u=%d dist=%d\n",u,dist[u]);
+            int si=G[u].size();
+            for(j=0;j<si;j++)
+            {
+                int v1=G[u][j];
+
+                if(vis[v1]==false)
+                {
+                    //printf("v=%d vis=%d\n",v1,vis[v1]);
+                    dist[v1]=dist[u]+d1[u][v1];
+                    q1.push(v1);
+                }
+            }
+            //printf("\n\n");
+        }
+        //printf("\n\n");
+        //printf("i=%d\n",i);
+        for(j=1;j<=n;j++)
+        {
+            //printf("j=%d d1=%d d2=%d\n",j,dist[j],d[i][j]);
+            if(dist[j]!=d[i][j])
+            {
+                printf("NO\n");
+                return 0;
+            }
+        }
+    }
+    printf("YES\n");
+    return 0;
+}

@@ -1,0 +1,116 @@
+#include<bits/stdc++.h>
+using namespace std;
+#define FOR(i,a,b) for(int i = (a); i <= (b); ++i)
+#define FORD(i,a,b) for(int i = (a); i >= (b); --i)
+#define RI(i,n) FOR(i,1,(n))
+#define REP(i,n) FOR(i,0,(n)-1)
+#define mini(a,b) a=min(a,b)
+#define maxi(a,b) a=max(a,b)
+#define mp make_pair
+#define pb push_back
+#define st first
+#define nd second
+#define sz(w) (int) w.size()
+typedef vector<int> vi;
+typedef long long ll;
+typedef long double ld;
+typedef pair<int,int> pii;
+const int inf = 1e9 + 5;
+const int nax = 5e5 + 5;
+const int mod = 1e9 + 7;
+
+/*void gen(string s) {
+	if((int) s.length() == 5) {
+		int cnt = 0;
+		for(char x : s) if(x == 'b') ++cnt;
+		if(cnt >= 2) ++a;
+		return;
+	}
+	REP(i, 26) {
+		s += 'a' + i;
+		gen(s);
+		s.pop_back();
+	}
+}*/
+
+int my_pow(int a, int b) {
+	int r = 1;
+	while(b) {
+		if(b % 2) r = (ll) r * a % mod;
+		a = (ll) a * a % mod;
+		b /= 2;
+	}
+	return r;
+}
+
+int inv(int a) {
+	return my_pow(a, mod - 2);
+}
+
+char sl[nax];
+int fac[nax], inv_fac[nax];
+
+int C(int a, int b) {
+	return (ll) fac[a] * inv_fac[b] % mod * inv_fac[a-b] % mod;
+}
+
+int me[nax];
+
+int main() {
+	REP(i, nax) me[i] = inv(i);
+	fac[0] = inv_fac[0] = 1;
+	RI(i, nax - 1) {
+		fac[i] = (ll) fac[i-1] * i % mod;
+		inv_fac[i] = inv(fac[i]);
+	}
+	int q;
+	scanf("%d", &q);
+	scanf("%s", sl);
+	int len = strlen(sl);
+	while(q--) {
+		int type;
+		scanf("%d", &type);
+		if(type == 1) {
+			scanf("%s", sl);
+			len = strlen(sl);
+		}
+		else {
+			assert(type == 2);
+			int big;
+			scanf("%d", &big);
+			if(big < len) puts("0");
+			else {
+				int answer = 0;
+				int n = big - len;
+				int tmp = fac[len+(n-0)-1];
+				tmp = (ll) tmp * inv_fac[n-0] % mod; 
+				tmp = (long long) tmp * my_pow(25, (n-0)) % mod;
+				tmp = (long long) tmp * my_pow(26, 0) % mod; 
+				int mimik = (ll) 26 * inv(25) % mod;
+				FOR(i, 0, n) {
+					//printf("> %d %d\n", len, n);
+					//int tmp = C(len+(n-i)-1, len-1);
+						//tmp = fac[len+(n-i)-1];
+						//tmp = (ll) tmp * inv_fac[n-i] % mod;
+					//tmp = (ll) tmp * inv_fac[len-1] % mod;
+					//printf("> %d\n", tmp);
+					//int memo = tmp;
+					//tmp = (long long) tmp * my_pow(25, (n-i)) % mod;
+					//tmp = (long long) tmp * my_pow(26, i) % mod;
+					answer = (answer + tmp) % mod;
+					//tmp = memo;
+					if(i != n) {
+						tmp = tmp * (ll) (n - i) % mod;
+						tmp = tmp * (ll) me[len-1+(n-i)] % mod;
+						tmp = (ll) mimik * tmp % mod;
+					}
+					//break;
+					//printf("%d\n", tmp); //(podstawa, n));
+				}
+				answer = (ll) answer * inv_fac[len-1] % mod;
+				printf("%d\n", answer);
+			}
+		}
+	}
+	return 0;
+}

@@ -1,0 +1,70 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+int main() {
+	char ops[105];
+	char op = '+';
+	int len = 0;
+	while (op != '=') {
+		ops[len] = op; len++;
+		char x;
+		cin >> x >> op;
+	}
+	int target; cin >> target;
+
+	ops[len] = '\0';
+	string opStr(ops);
+
+	//cerr << opStr << endl;
+
+	int n = len;
+	int dpmin[n];
+	int dpmax[n];
+	dpmin[0] = 1;
+	dpmax[0] = target;
+	for (int i = 1; i < n; i++) {
+		if (ops[i] == '+') {
+			dpmin[i] = dpmin[i-1] + 1;
+			dpmax[i] = dpmax[i-1] + target;
+		} else {
+			dpmin[i] = dpmin[i-1] - target;
+			dpmax[i] = dpmax[i-1] - 1;
+		}
+	}
+	if (target < dpmin[n-1] || dpmax[n-1] < target) {
+		cout << "Impossible" << endl;
+	} else {
+		cout << "Possible" << endl;
+		int ans[n];
+
+		int curr = target;
+		for (int i = n-1; i > 0; i--) {
+			if (ops[i] == '+') {
+				ans[i] = min(target, max(1, curr - dpmax[i-1]));
+				curr -= ans[i];
+			} else {
+				ans[i] = min(target, max(1, dpmin[i-1] - curr));
+				curr += ans[i];
+			}
+		}
+		ans[0] = curr;
+
+		int sum = 0;
+		for (int i = 0; i < n; i++) {
+			if (i > 0) cout << ' ' << ops[i] << ' ';
+			cout << ans[i];
+			if (ops[i] == '+') sum += ans[i];
+			else sum -= ans[i];
+		}
+		cout << " = " << target << endl;
+		/*if (sum != target) {
+			cerr << "ERROR case! sum = " << sum << " != " << target << endl;
+		} else {
+			cerr << "success" << endl;
+		}*/
+	}
+}

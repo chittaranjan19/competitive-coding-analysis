@@ -1,0 +1,99 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 501;
+
+char str[maxn];
+int n, k, dp[maxn][maxn], pal[maxn][maxn], rec[maxn][maxn];
+vector<string> ans;
+
+int calc(int s, int e)
+{
+	int i, j, ret = 0;
+	for(i=s, j=e; i<j; i++, j--){
+		if(str[i]!=str[j])
+			ret++;
+	}
+	return ret;
+}
+
+int solve(int s, int lt)
+{
+	if(s>n)
+		return 0;
+	if(dp[s][lt]!=-1)
+		return dp[s][lt];
+	int i, ret, cut, cur;
+	ret = inf;
+	if(lt>1){
+		for(i=s; i<n; i++){
+			cur = pal[s][i] + solve(i+1, lt-1);
+			if(cur<ret){
+				ret = cur;
+				cut = i;
+			}
+		}
+	}
+	cur = pal[s][n];
+	if(cur<ret){
+		ret = cur;
+		cut = n;
+	}
+	rec[s][lt] = cut;
+	return dp[s][lt] = ret;
+}
+
+void recover(int s, int lt)
+{
+	//cout << s << " " << e << " " << lt << "\n";
+	if(s>n)
+		return;
+	int cut = rec[s][lt], i, j, len, mid;
+	len = cut-s+1;
+	mid = len/2;
+	string temp;
+	temp.resize(len);
+	if(len&1)
+		temp[mid++] = str[s+mid];
+	for(i=0, j=s; i<mid; i++, j++)
+		temp[i] = str[j];
+	for(i=len-1, j=0; i>=mid; i--, j++)
+		temp[i] = temp[j];
+	ans.pb(temp);
+	recover(cut+1, lt-1);
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j;
+	memset(dp, -1, sizeof(dp));
+	scanf("%s%d", str+1, &k);
+	n = strlen(str+1);
+	for(i=1; i<=n; i++){
+		for(j=i; j<=n; j++)
+			pal[i][j] = calc(i, j);
+	}
+	int a = solve(1, k);
+	printf("%d\n", a);
+	recover(1, k);
+	for(i=0; i<ans.size()-1; i++)
+		cout << ans[i] << "+";
+	cout << ans[ans.size()-1] << "\n";
+	return 0;
+}

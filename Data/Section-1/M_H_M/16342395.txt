@@ -1,0 +1,101 @@
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 150;
+
+string s, t, v;
+int dp[N][N][N];
+int par[N][N][N];
+int nxt[N][26];
+int f[N];
+
+void doJob(){
+	int k = 0;
+	for(int i = 1; i < SZ(v); ++i){
+		while(k && v[i] != v[k]) k = f[k];
+		if(v[i] == v[k]) k ++;
+		f[i + 1] = k;
+	}
+	for(int i = 0; i <= SZ(v); ++i)
+		for(int c = 0; c < 26; ++c)
+			if(i < SZ(v) && v[i] == c + 'A')
+				nxt[i][c] = i + 1;
+			else
+				nxt[i][c] = nxt[f[i]][c];
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	memset(par, -1, sizeof par);
+	cin >> s >> t >> v;
+	doJob();
+	for(int i = 1; i <= SZ(s); ++i){
+		for(int j = 1; j <= SZ(t); ++j){
+			for(int k = 0; k < SZ(v); ++k){
+				if(s[i - 1] == t[j - 1]){
+					int c = s[i - 1] - 'A';
+					if(dp[i][j][nxt[k][c]] < dp[i - 1][j - 1][k] + 1){
+						dp[i][j][nxt[k][c]] = dp[i - 1][j - 1][k] + 1;
+						par[i][j][nxt[k][c]] = k; 					
+					}					
+				}
+				else{
+					if(dp[i - 1][j][k] > dp[i][j - 1][k]){
+						dp[i][j][k] = dp[i - 1][j][k];
+						par[i][j][k] = -3;
+					}
+					else{
+						dp[i][j][k] = dp[i][j - 1][k];
+						par[i][j][k] = -2;
+					}
+				}
+			}	
+		}
+	}
+	int n = SZ(s), m = SZ(t);
+	int ans = 0, id = 0;
+	for(int i = 0; i < SZ(v); ++i){
+		if(dp[n][m][i] > ans){
+			ans = dp[n][m][i];
+			id = i;
+		}
+	}
+	if(!ans){
+		cout << "0\n";
+		return 0;
+	} 	
+	string str = "";
+	while(par[n][m][id] != -1){
+		if(s[n - 1] == t[m - 1]) str += s[n - 1];
+		if(par[n][m][id] >= 0) id = par[n][m][id], n --, m --;
+		else if(par[n][m][id] == -3) n --;
+		else m --;
+	}
+	if(s[n - 1] == t[m - 1]) str += s[n - 1];
+	reverse(str.begin(), str.end());
+	cout << str << "\n";
+	return 0;
+}

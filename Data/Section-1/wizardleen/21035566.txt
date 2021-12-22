@@ -1,0 +1,121 @@
+import java.io.BufferedInputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+/**
+ * Created by leen on 9/30/16.
+ */
+public class _721C {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 1024 * 64));
+        int n = scan.nextInt(), m = scan.nextInt(), T = scan.nextInt();
+        scan.nextLine();
+
+        Node[] nodes = new Node[n];
+        for(int i = 0; i < nodes.length; i++)
+            nodes[i] = new Node(i);
+
+        for(int i = 0; i < m; i++) {
+            int u = scan.nextInt()-1, v = scan.nextInt()-1, t = scan.nextInt();
+            Edge edge = new Edge(nodes[v], t);
+            nodes[u].edges.add(edge);
+        }
+
+        Node start = nodes[0], end = nodes[n-1];
+
+        for(Node node : nodes) {
+            Node tmp1 = node;
+            int edgeLen = 0;
+            List<Integer> mergedIds = new ArrayList<Integer>();
+
+            while(tmp1 != end && tmp1.edges.size() == 1) {
+                mergedIds.add(tmp1.id);
+                edgeLen += tmp1.edges.get(0).weight;
+                tmp1 = tmp1.edges.get(0).target;
+            }
+
+            if(tmp1 != node) {
+                node.ids = mergedIds;
+                Edge newEdge = new Edge(tmp1, edgeLen);
+                node.edges.clear();
+                node.edges.add(newEdge);
+            }
+        }
+
+        int maxNum = calculateMaxNum(start, end, 0, T);
+
+        System.out.println(maxNum);
+
+        StringBuilder buf = new StringBuilder();
+
+        boolean first = true;
+        Node tmp = start;
+        while(tmp != null) {
+            for(int id : tmp.ids) {
+                if(first)
+                    first = false;
+                else
+                    buf.append(' ');
+                buf.append(id+1);
+            }
+
+            tmp = tmp.next;
+        }
+        System.out.println(buf.toString());
+    }
+
+    static int calculateMaxNum(Node node, Node end, int currentTime, int T) {
+
+        if(node == end)
+            return 1;
+
+        Node next = null;
+        int maxNum = 0;
+
+        for(Edge edge : node.edges) {
+            if(edge.weight + currentTime > T)
+                continue;
+            Node target = edge.target;
+            int subNum = calculateMaxNum(target, end, currentTime + edge.weight, T);
+            if(subNum > maxNum) {
+                maxNum = subNum;
+                next = target;
+            }
+        }
+
+        if(maxNum > 0)
+            maxNum += node.num();
+
+        node.next = next;
+        return maxNum;
+    }
+
+    static class Node {
+        int id;
+        Node next;
+        List<Integer> ids = new ArrayList<Integer>();
+        List<Edge> edges = new ArrayList<Edge>();
+
+        Node(int id) {
+            this.id = id;
+            ids.add(id);
+        }
+
+        int num() {
+            return ids.size();
+        }
+    }
+
+    static class Edge {
+        Node target;
+
+        int weight;
+
+        Edge(Node target, int weight) {
+            this.target= target;
+            this.weight = weight;
+        }
+    }
+
+}

@@ -1,0 +1,64 @@
+const
+  tfi = '';
+  tfo = '';
+  r : array [1..2] of longint = (1,0);
+  c : array [1..2] of longint = (0,1);
+  base = 1000000007;
+
+var
+  m,n : longint;
+  a : array [1..500,1..500] of char;
+  f : array [1..500,1..500,1..500] of longint;
+  dd : array [1..500,1..500,1..500] of boolean;
+
+procedure enter;
+  var i : longint;
+  begin
+    assign(input,tfi);
+    reset(input);
+    readln(m,n);
+    for i := 1 to m do readln(a[i]);
+    close(input);
+  end;
+
+function cal(x,y,u : longint) : longint;
+  var i,j,v,xx,yy,uu,vv,ff : longint;
+  begin
+    if dd[x,y,u] then exit(f[x,y,u]);
+    dd[x,y,u] := true;
+    ff := 0;
+    v := m + n + 2 - x - y - u;
+    if ((x = u) and (v - y < 2)) or ((y = v) and (u - x < 2)) then ff := 1
+    else
+      for i := 1 to 2 do
+        begin
+          xx := x + r[i];
+          yy := y + c[i];
+          if (xx <= u) and (yy <= v) then
+            for j := 1 to 2 do
+              begin
+                uu := u - r[j];
+                vv := v - c[j];
+                if (uu >= xx) and (vv >= yy) and (a[xx,yy] = a[uu,vv]) then
+                  begin
+                    ff := ff + cal(xx,yy,uu);
+                    if ff >= base then ff := ff - base;
+                  end;
+              end;
+        end;
+    f[x,y,u] := ff;
+    exit(ff);
+  end;
+
+procedure print;
+  begin
+    assign(output,tfo);
+    rewrite(output);
+    if a[1,1] = a[m,n] then write(cal(1,1,m)) else write(0);
+    close(output);
+  end;
+
+begin
+  enter;
+  print;
+end.

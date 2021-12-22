@@ -1,0 +1,89 @@
+#include <iostream>
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef pair<int, int> P;
+typedef long long ll;
+
+int gcd(int a, int b)
+{
+    return b != 0 ? gcd(b, a % b) : a;
+}
+
+int k1[400][400], k2[400][400];
+ll a[2005], b[2005];
+P p[2005];
+
+int main()
+{
+    int n;
+    for(int i = 3; i < 2005; ++i)
+    {
+        a[i] = 1;
+        for(int j = i, k = 1; k <= 3; ++k, --j)
+        {
+            a[i] = a[i] * j / k;
+        }
+    }
+    for(int i = 2; i < 2005; ++i)
+    {
+        b[i] = 1;
+        for(int j = i, k = 1; k <= 2; ++k, --j)
+        {
+            b[i] = b[i] * j / k;
+        }
+    }
+    while(cin >> n)
+    {
+        for(int i = 0; i < n; ++i)
+        {
+            cin >> p[i].first >> p[i].second;
+        }
+        if(n < 3)
+        {
+            cout << 0 << endl;
+            continue;
+        }
+        ll ans = a[n];
+        sort(p, p + n);
+        for(int i = 0; i < n; ++i)
+        {
+            memset(k1, 0, sizeof(k1));
+            memset(k2, 0, sizeof(k2));
+            for(int j = i + 1; j < n; ++j)
+            {
+                if(p[i].second <= p[j].second)
+                {
+                    int x = p[j].first - p[i].first;
+                    int y = p[j].second - p[i].second;
+                    int m = gcd(x, y);
+                    ++k1[x / m][y / m];
+                }
+                else
+                {
+                    int x = p[j].first - p[i].first;
+                    int y = p[i].second - p[j].second;
+                    int m = gcd(x, y);
+                    ++k2[x / m][y / m];
+                }
+            }
+            for(int i = 0; i < 300; ++i)
+            {
+                for(int j = 0; j < 300; ++j)
+                {
+                    if(k1[i][j] >= 2)
+                    {
+                        ans -= b[k1[i][j]];
+                    }
+                    if(k2[i][j] >= 2)
+                    {
+                        ans -= b[k2[i][j]];
+                    }
+                }
+            }
+        }
+        cout << ans << endl;
+    }
+    return 0;
+}

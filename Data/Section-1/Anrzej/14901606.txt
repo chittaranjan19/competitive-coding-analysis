@@ -1,0 +1,138 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+#define pb push_back
+
+int n, m, p[211111], sz[211111], l = 0;
+vector<pair<int, int> > g[211111];
+vector <pair< pair<int, pair<int, int> >, int> > ed;
+
+int lead(int a)
+{
+	return (p[a] == a) ? a : p[a] = lead(p[a]);
+}
+
+void merge(int a, int b)
+{
+	if ((a = lead(a)) != (b = lead(b)))
+	{
+		if (sz[a] < sz[b])
+			swap(a, b);
+		p[b] = a;
+		sz[a] += sz[b];
+	}
+}
+
+int tin[211111], tout[211111], tm = 0, up[211111][18], mcst[211111][18], d[211111];
+ll res[211111];
+
+void dfs(int v, int pr, int cst)
+{
+	tin[v] = tm++;
+	up[v][0] = pr;
+	mcst[v][0] = cst;
+	for (int i = 1; i <= l; i++){
+		up[v][i] = up[up[v][i - 1]][i - 1];
+		mcst[v][i] = max(mcst[v][i - 1], mcst[up[v][i - 1]][i - 1]);
+	}
+	for (int i = 0; i < g[v].size(); i++)
+	{
+		int to = g[v][i].fs, c = g[v][i].sc;
+		if (to == pr) continue;
+		d[to] = d[v] + 1;
+		dfs(to, v, c);
+	}
+	tout[v] = tm++;
+}
+
+bool isupper(int u, int v)
+{
+	return tin[v] <= tin[u] && tout[v] >= tout[u];
+}
+
+int lca(int u, int v)
+{
+	if (isupper(u, v)) return v;
+	if (isupper(v, u)) return u;
+	for (int i = l; i >= 0; i--)
+	{
+		if (!isupper(u, up[v][i]))
+			v = up[v][i];
+	}
+	return up[v][0];
+}
+
+int query(int v, int deep)
+{
+	int ans = 0;
+	for (int i = l; i >= 0; i--)
+	{
+		if (deep&(1 << i))
+		{
+			ans = max(ans, mcst[v][i]);
+			v = up[v][i];
+		}
+	}
+	return ans;
+}
+
+int max_egde(int v, int u)
+{
+	int a = lca(u, v);
+	int l1 = d[u] - d[a], l2 = d[v] - d[a];
+	return max(query(u, l1), query(v, l2));
+}
+
+int main()
+{
+	cin >> n >> m;
+	for (int i = 1; i <= n; i++)
+		p[i] = i, sz[i] = 1;
+	memset(up, 1, sizeof(up));
+	for (int i = 0; i < m; i++)
+	{
+		int u, v, c;
+		cin >> u >> v >> c;
+		ed.push_back(mp(mp(c, mp(u, v)), i));
+	}
+	while ((1 << l) < n)
+		l++;
+	sort(ed.begin(), ed.end());
+	ll sum = 0;
+	for (int i = 0; i < m; i++)
+	{
+		int u = ed[i].fs.sc.fs, v = ed[i].fs.sc.sc, c = ed[i].fs.fs;
+		if (lead(u) != lead(v))
+			merge(u, v), sum += c, g[v].push_back(mp(u, c)), g[u].push_back(mp(v, c)), res[ed[i].sc] = 1;
+	}
+	d[1] = 0;
+	dfs(1, 1, 0);
+	for (int i = 0; i < m; i++)
+	{
+		int u = ed[i].fs.sc.fs, v = ed[i].fs.sc.sc, c = ed[i].fs.fs;
+		if (res[ed[i].sc])
+			res[ed[i].sc] = sum;
+		else res[ed[i].sc] =  sum - max_egde(u, v) + c;
+	}
+	for (int i = 0; i < m; i++)
+		cout << res[i] << ' ' << endl;
+	return 0;
+}

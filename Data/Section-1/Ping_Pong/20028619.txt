@@ -1,0 +1,88 @@
+#include <bits/stdc++.h>
+//#define int long long
+
+using namespace std;
+
+const int inf = (int)1e9;
+const int MAX_N = 1000000;
+
+int a[MAX_N], pr[MAX_N];
+
+int cnt_ver = 1;
+vector<vector<int> > tree;
+vector<vector<int> > p_xor;
+
+void build(int n)
+{
+    while (cnt_ver < n)
+        cnt_ver <<= 1;
+    tree.resize(cnt_ver * 2 - 1);
+    p_xor.resize(cnt_ver * 2 - 1, vector<int> (1, 0));
+}
+
+void add(int x, pair<int, int> nv)
+{
+    tree[x].push_back(nv.second);
+    p_xor[x].push_back(p_xor[x][p_xor[x].size() - 1] ^ nv.first);
+    while (x > 0)
+    {
+        int y = (x - 1) / 2;
+        tree[y].push_back(nv.second);
+        p_xor[y].push_back(p_xor[y][p_xor[y].size() - 1] ^ nv.first);
+        x = y;
+    }
+}
+
+int get(int x, int lx, int rx, int l, int r)
+{
+    if (l > rx || r < lx)
+        return 0;
+    else if (lx >= l && rx <= r)
+    {
+        int cnt = lower_bound(tree[x].begin(), tree[x].end(), l - cnt_ver + 1) - tree[x].begin();
+        return p_xor[x][cnt];
+    }
+    else
+        return (get(x * 2 + 1, lx, (lx + rx) / 2, l, r) ^ get(x * 2 + 2, (lx + rx) / 2 + 1, rx, l, r));
+}
+
+bool comp(pair<int, pair<int, int> > a, pair<int, pair<int, int> > b)
+{
+    return a.second.second < b.second.second;
+}
+
+int main() {
+    //ios_base::sync_with_stdio(0);
+    //cin.tie(0);
+    int n;
+    scanf("%d", &n);
+    for (int i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+    map<int, int> m;
+    for (int i = 0; i < n; i++)
+        m[a[i]] = -1;
+    for (int i = 0; i < n; i++)
+    {
+        pr[i] = m[a[i]];
+        m[a[i]] = i;
+    }
+    build(n);
+    vector<pair<int, pair<int, int> > > tmp(n);
+    for (int i = 0; i < n; i++)
+        tmp[i] = {i, {a[i], pr[i]}};
+    sort(tmp.begin(), tmp.end(), comp);
+    for (int i = 0; i < n; i++)
+        add(cnt_ver - 1 + tmp[i].first, tmp[i].second);
+    int pref[n + 1];
+    pref[0] = 0;
+    for (int i = 0; i < n; i++)
+        pref[i + 1] = pref[i] ^ a[i];
+    int q;
+    scanf("%d", &q);
+    for (int i = 0; i < q; i++)
+    {
+        int l, r;
+        scanf("%d %d", &l, &r);
+        printf("%d\n", get(0, cnt_ver - 1, cnt_ver * 2 - 2, cnt_ver - 1 + l - 1, cnt_ver - 1 + r - 1) ^ pref[r] ^ pref[l - 1]);
+    }
+}

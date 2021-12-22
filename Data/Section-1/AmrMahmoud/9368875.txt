@@ -1,0 +1,123 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int tree[4*200000 + 8], arr[200005], h[200005];
+
+int next[20][200005], cost[20][200005];
+
+void build(int i,int L,int R)
+{
+    if(L == R)
+    {
+        tree[i] = L;
+        return ;
+    }
+    build(i*2 + 1, L, (L + R) / 2);
+    build(i*2 + 2, (L + R) / 2 + 1, R);
+    tree[i] = (arr[tree[i*2+1]] + h[tree[i*2+1]] > arr[tree[i*2+2]] + h[tree[i*2+2]]) ? tree[i*2+1] : tree[i*2+2];
+}
+
+int query(int i,int L,int R,int x,int y)
+{
+    if(L >= x && R <= y)
+        return tree[i];
+    if(L > y || R < x)
+        return -1;
+    int temp = query(i*2 + 1, L, (L + R) / 2, x, y);
+    int tempo = query(i*2 + 2, (L + R) / 2 + 1, R, x, y);
+    if(temp == -1 || tempo == -1) return max(temp, tempo);
+    return (arr[temp] + h[temp] > arr[tempo] + h[tempo]) ? temp : tempo;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int n, q;
+    cin >> n;
+    for(int i=0;i<n;i++)
+        cin >> arr[i] >> h[i];
+    build(0, 0, n - 1);
+    next[0][n - 1] = n - 1;
+    cost[0][n - 1] = 0;
+    for(int i=n-2;i>=0;i--)
+    {
+        int temp = lower_bound(arr, arr + n, arr[i] + h[i] + 1) - arr - 1;
+        if(temp == n - 1)
+        {
+            next[0][i] = n - 1;
+            cost[0][i] = 0;
+            continue;
+        }
+        if(temp == i)
+        {
+            next[0][i] = i + 1;
+            cost[0][i] = arr[next[0][i]] - arr[i] - h[i];
+            continue;
+        }
+        next[0][i] = query(0, 0, n - 1, i, temp);
+        cost[0][i] = 0;
+        if(next[0][i] == i)
+        {
+            next[0][i] = temp + 1;
+            cost[0][i] = arr[next[0][i]] - arr[i] - h[i];
+        }
+    }
+    for(int i=1;i<20;i++)
+    {
+        for(int j=0;j<n;j++)
+        {
+            next[i][j] = next[i-1][next[i-1][j]];
+            cost[i][j] = cost[i-1][j] + cost[i-1][next[i-1][j]];
+        }
+    }
+    cin >> q;
+    int x, y;
+    while(q--)
+    {
+        int res = 0;
+        cin >> x >> y;
+        x--,y--;
+        for(int i=20;i>=0 && x != y;i--)
+        {
+            if(next[i][x] <= y)
+            {
+                res+=cost[i][x];
+                x = next[i][x];
+            }
+        }
+        //if(x != y) cerr << "ERROR";
+        cout << res << '\n';
+    }
+    return 0;
+}

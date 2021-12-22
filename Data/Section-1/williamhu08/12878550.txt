@@ -1,0 +1,138 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1e5 + 10, MAXK = 10 * MAXN, MOD = 1e9 + 7;
+
+//modint stuff
+int pwr[MAXK];
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+void addeq (int &x, int y) {
+	x = add(x, y);
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+int N, K;
+vector<pii> tmpadj[MAXN];
+
+//graph + lca
+vector<int> adj[MAXN];
+int par[MAXN][17], sub[MAXN], depth[MAXN];
+int D[MAXN];	//is par to cur bad? is cur to par bad?
+
+int dfsdir (int x, int p, int d) {
+	int &res = sub[x];
+	res = 1;
+	depth[x] = d;
+	for (pii t : tmpadj[x]) {
+		int v = t.first;
+		if (v == p) {
+			continue;
+		}
+		D[v] = t.second;
+		adj[x].push_back(v);
+		par[v][0] = x;
+		res += dfsdir(v, x, d + 1);
+	}
+	return res;
+}
+
+int getpar (int x, int d) {
+	for (int i = 0; d; d /= 2, i++) {
+		if (d & 1) {
+			x = par[x][i];
+		}
+	}
+	return x;
+}
+
+int lca (int x, int y) {
+	if (depth[x] > depth[y]) {
+		swap(x, y);
+	}
+	y = getpar(y, depth[y] - depth[x]);
+	if (x == y) {
+		return x;
+	}
+	for (int k = 16; k >= 0; k--) {
+		if (par[x][k] != par[y][k]) {
+			x = par[x][k];
+			y = par[y][k];
+		}
+	}
+	return par[x][0];
+}
+
+pii P[MAXN];
+
+void dfsfin (int x) {
+	for (int t : adj[x]) {
+		dfsfin(t);
+		P[x].first += P[t].first;
+		P[x].second += P[t].second;
+	}
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d", &N);
+	for (int i = 1, a, b, d; i < N; i++) {
+		scanf("%d %d %d", &a, &b, &d);
+		tmpadj[a].push_back(pii(b, d * 2));
+		tmpadj[b].push_back(pii(a, d));
+	}
+	dfsdir(1, 0, 0);
+	//LCA
+	for (int j = 1; j < 17; j++) {
+		for (int i = 1; i <= N; i++) {
+			par[i][j] = par[par[i][j - 1]][j - 1];
+		}
+	}
+	//query
+	int prv = 1, cur;
+	for (scanf("%d", &K); K--; ) {
+		scanf("%d", &cur);
+		//update road prv -> cur
+		int c = lca(prv, cur);
+		P[prv].first++;
+		P[c].first--;
+		P[cur].second++;
+		P[c].second--;
+		//prv -> c -> cur
+		prv = cur;
+	}
+	dfsfin(1);
+	pwr[0] = 1;
+	for (int i = 1; i < MAXK; i++) {
+		pwr[i] = mult(pwr[i - 1], 2);
+	}
+	int ans = 0;
+	for (int i = 1; i <= N; i++) {
+		pii p = P[i];
+		if (D[i] & 2) {
+			//up illegal
+			addeq(ans, pwr[p.second] - 1);
+		}
+		if (D[i] & 1) {
+			//down illegal
+			addeq(ans, pwr[p.first] - 1);
+		}
+	}
+	printf("%d\n", ans);
+}

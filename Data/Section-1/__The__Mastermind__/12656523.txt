@@ -1,0 +1,78 @@
+uses math;
+
+const
+  tfi = '';//'571b.inp';
+  tfo = '';//'571b.out';
+  oo = high(int64) div 2;
+
+var
+  n,k : longint;
+  a : array [1..300000] of longint;
+  f : array [1..300000] of int64;
+
+procedure enter;
+  var i : longint;
+  begin
+    assign(input,tfi);
+    reset(input);
+    read(n,k);
+    for i := 1 to n do
+      begin
+        read(a[i]);
+        f[i] := oo;
+      end;
+    close(input);
+  end;
+
+procedure sort(l,h : longint);
+  var i,j,x,temp : longint;
+  begin
+    i := l;
+    j := h;
+    x := a[random(h - l + 1) + l];
+    repeat
+      while a[i] < x do inc(i);
+      while a[j] > x do dec(j);
+      if i <= j then
+        begin
+          temp := a[i];
+          a[i] := a[j];
+          a[j] := temp;
+          inc(i);
+          dec(j);
+        end;
+    until i > j;
+    if l < j then sort(l,j);
+    if i < h then sort(i,h);
+  end;
+
+procedure process;
+  var i,t,tt,l,ll : longint;
+  begin
+    sort(1,n);
+    l := (n - 1) div k + 1;
+    ll := l*k - n;
+    f[l] := a[l] - a[1];
+    if ll > 0 then f[l-1] := a[l-1] - a[1];
+    for i := l-1 to n do
+      begin
+        tt := (l - i mod l) mod l;
+        t := (i + tt) div l;
+        if (i + l <= n) then f[i+l] := min(f[i+l],f[i] + a[i+l] - a[i+1]);
+        if (t >= tt) and (tt < ll) and (i + l - 1 <= n) then f[i+l-1] := min(f[i+l-1],f[i] + a[i+l-1] - a[i+1]);
+      end;
+  end;
+
+procedure print;
+  begin
+    assign(output,tfo);
+    rewrite(output);
+    write(f[n]);
+    close(output);
+  end;
+
+begin
+  enter;
+  process;
+  print;
+end.

@@ -1,0 +1,79 @@
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <cstring>
+#include <set>
+
+using namespace std;
+typedef pair<int, int> pii;
+const int N = 5000;
+
+vector<int> adj[N];
+int sz[N];
+int par[N];
+bool seen[N];
+
+bool dp[2][N];
+
+void dfs(int u) {
+    seen[u] = true;
+    sz[u] = 1;
+    for (int v : adj[u]) {
+        if (seen[v]) continue;
+        par[v] = u;
+        dfs(v);
+        sz[u] += sz[v];
+    }
+    seen[u] = false;
+}
+
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+
+    int n; cin >> n;
+    for (int i = 0; i < n-1; i++) {
+        int a, b; cin >> a >> b; a--; b--;
+        adj[a].push_back(b);
+        adj[b].push_back(a);
+    }
+
+    set<pii> sol;
+    memset(seen, 0, sizeof seen);
+    memset(par, -1, sizeof par);
+    dfs(0);
+    for (int i = 0; i < n; i++) {
+        memset(dp, 0, sizeof dp);
+        int maxsofar = 0;
+        dp[0][0] = true;
+        int t = 0;
+        for (int v : adj[i]) {
+            int t1 = t%2;
+            int t2 = (t+1)%2;
+            for (int x = 0; x <= maxsofar; x++) {
+                dp[t2][x] = dp[t1][x];
+            }
+            for (int x = 0; x <= maxsofar; x++) {
+                if (dp[t1][x]) {
+                    if (v == par[i]) {
+                        dp[t2][x+n-sz[i]] = true;
+                        maxsofar = max(maxsofar, x+n-sz[i]);
+                    } else {
+                        dp[t2][x+sz[v]] = true;
+                        maxsofar = max(maxsofar, x+sz[v]);
+                    }
+                }
+            }
+            t++;
+        }
+        for (int x = 1; x <= maxsofar; x++) {
+            if (dp[t%2][x] && x >= 1 && n-x-1 >= 1) {
+                sol.insert(pii(x, n-x-1));
+            }
+        }
+    }
+    cout << sol.size() << endl;
+    for (pii x : sol) {
+        cout << x.first << " " << x.second << endl;
+    }
+}

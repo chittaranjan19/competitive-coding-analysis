@@ -1,0 +1,55 @@
+import java.math.BigInteger
+
+class Frac(xa: BigInteger, xb: BigInteger) {
+    val a = xa
+    val b = xb
+
+    fun add(x: Frac): Frac {
+        return reduce(a.multiply(x.b).add(x.a.multiply(b)), b.multiply(x.b))
+    }
+
+    fun reduce(x: BigInteger, y: BigInteger): Frac {
+        val g = x.gcd(y)
+        return Frac(x.divide(g), y.divide(g))
+    }
+}
+
+fun main(args: Array<String>) {
+    val s = readLine()!!.toCharArray()
+    val x = s.indexOf('.')
+    var a = BigInteger.ZERO
+    if(x > 0) {
+       a = BigInteger(String(s,0,x))
+    }
+    val y = s.indexOf('(')
+    var b = BigInteger.ZERO
+    var c = BigInteger.ONE
+    var len = 0
+    if(x >= 0) {
+        if(y - x > 1) {
+            b = BigInteger(String(s,x+1,y-x-1))
+            c = BigInteger.TEN.pow(y-x-1)
+            len = y-x-1;
+        }
+    }
+    val fr = s.size - y - 2
+    var buf = StringBuilder(String(s,y+1,fr))
+    var i = 0
+    var j = buf.length-1
+    while(i < len) {
+        buf.insert(0,buf[j])
+        i++
+    }
+    var d = BigInteger(String(buf.toString().toCharArray(),0,len)).negate()
+    var e = BigInteger.TEN.pow(len)
+
+    var f = BigInteger(String(buf.toString().toCharArray(),0,fr));
+    var g = BigInteger.TEN.pow(fr).subtract(BigInteger.ONE)
+
+    val f1 = Frac(a, BigInteger.ONE)
+    val f2 = Frac(b,c)
+    val f3 = Frac(d,e)
+    val f4 = Frac(f,g)
+    val res = f1.add(f2).add(f3).add(f4)
+    println(""+res.a+"/"+res.b)
+}

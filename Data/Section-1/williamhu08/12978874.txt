@@ -1,0 +1,114 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1e5 + 10;
+
+void kill() {
+	puts("NO");
+	exit(0);
+}
+
+int N, A[MAXN];
+bool vis[MAXN];
+int bel[MAXN], C;
+vector<int> cycs[MAXN];
+vector<int> has[MAXN], divs[MAXN];
+vector<int> cadj[MAXN];	//cycle adj
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d", &N);
+	for (int i = 1; i <= N; i++) {
+		scanf("%d", &A[i]);
+	}
+	bool has12 = false;
+	for (int i = 1; i <= N; i++) {
+		if (!vis[i]) {
+			int x = i;
+			C++;
+			do {
+				cycs[C].push_back(x);
+				bel[x] = C;
+				vis[x] = true;
+				x = A[x];
+			} while (x != i);
+			int sz = cycs[C].size();
+			has[sz].push_back(C);
+			has12 |= (sz <= 2);
+		}
+	}
+	//cyc siz mateers
+	if (!has12) {
+		puts("NO");
+		return 0;
+	}
+	vector<pii> vp;
+	for (int i = 1; i < MAXN; i++) {
+		if (has[i].empty()) {
+			continue;
+		}
+		for (int j = i; j < MAXN; j += i) {
+			if (!has[j].empty()) {
+				divs[j].push_back(i);
+			}
+		}
+		for (int h : has[i]) {
+			vp.push_back(pii(i, h));
+		}
+	}
+	assert(vp[0].first <= 2);
+	//making the cyc adj graph matters
+	for (int i = 1; i < vp.size(); i++) {
+		int sz = vp[i].first, id = vp[i].second;
+		int found = 0;
+		for (int d : divs[sz]) {
+			//does start at lowest divisor...
+			assert(!has[d].empty());
+			for (int h : has[d]) {
+				if (h != id) {
+					found = h;
+					break;
+				}
+			}
+			if (found) {
+				break;
+			}
+		}
+		if (!found) {
+			kill();
+		}
+		cadj[found].push_back(id);
+	}
+	puts("YES");
+	if (vp[0].first == 2) {
+		int c2 = vp[0].second;
+		assert(cycs[c2].size() == 2);
+		printf("%d %d\n", cycs[c2][0], cycs[c2][1]);
+	}
+	//thank you...
+	for (int i = 1; i < MAXN; i++) {
+		for (int h : has[i]) {
+			vector<int> &cyc1 = cycs[h];
+			int sz1 = cyc1.size();
+			for (int t : cadj[h]) {
+				vector<int> &cyc2 = cycs[t];
+				int sz2 = cyc2.size();
+				assert(sz2 % sz1 == 0);
+				for (int j = 0; j < sz2; j++) {
+					// j % sz1;
+					printf("%d %d\n", cyc1[j % sz1], cyc2[j]);
+				}
+			}
+		}
+	}
+}

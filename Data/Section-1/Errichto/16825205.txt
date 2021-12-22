@@ -1,0 +1,148 @@
+import java.io.*;
+import java.util.*;
+public class EqualFlowsSlow {
+  private static InputReader in;
+  private static PrintWriter out;
+  public static int n,m,x,k;
+  public static int[] a,b,c;
+  public static double EPS = 1e-9;
+  public static long INF = 1l << 50;
+  
+  public static void main (String[] args) {
+    in = new InputReader(System.in);
+    out = new PrintWriter(System.out, true);
+    
+    n = in.nextInt();
+    m = in.nextInt();
+    x = in.nextInt();
+    a = new int[m];
+    b = new int[m];
+    c = new int[m];
+    for (int i = 0; i < m; i++) {
+      a[i] = in.nextInt()-1;
+      b[i] = in.nextInt()-1;
+      c[i] = in.nextInt();
+    }
+    
+    double lo = 0, hi = 1e12;
+    for (int iter = 0; iter < 100; iter++) {
+      double mid = (lo+hi) / 2.;
+      if (f(mid) >= x) lo = mid;
+      else hi = mid;
+    }
+
+    out.printf("%.10f\n", lo * x);
+    out.close();
+    System.exit(0);
+  }
+  
+  public static long f(double each) {
+    MaxFlow mf = new MaxFlow(n,m);
+    for (int i = 0; i < m; i++) {
+      int capacity = (int)(Math.floor(c[i] / each));
+      if (capacity > 0) {
+        mf.add_edge(a[i], b[i], capacity);
+      }
+    }
+    return mf.dinic(0, n-1);
+  }
+
+  static class MaxFlow {
+    public long[] flow, capa;
+    public int[] now, level, eadj, eprev, elast;
+    public int eidx, N, M;
+    
+    public MaxFlow(int nodes, int edges) {
+      this.N = nodes;
+      this.M = edges;
+      
+      flow = new long[2*M];
+      capa = new long[2*M];
+      eadj = new int[2*M];
+      eprev = new int[2*M];
+      elast = new int[N];
+      level = new int[N];
+      now = new int[N];
+      Arrays.fill(elast, -1);
+      eidx = 0;
+    }
+    
+    public void add_edge(int a, int b, long c) {
+      eadj[eidx] = b; flow[eidx] = 0; capa[eidx] = c; eprev[eidx] = elast[a]; elast[a] = eidx++;
+      eadj[eidx] = a; flow[eidx] = c; capa[eidx] = c; eprev[eidx] = elast[b]; elast[b] = eidx++;
+    }
+  
+    public long dinic(int source, int sink) {
+      long res, flow = 0;
+      while (bfs(source, sink)) {
+        System.arraycopy(elast, 0, now, 0, N);
+        while ((res = dfs(source, INF, sink)) > 0)
+          flow += res;
+      }
+      return flow;
+    }
+  
+    private boolean bfs(int source, int sink) {
+      Arrays.fill(level, -1);
+      int front = 0, back = 0;
+      int[] queue = new int[N];
+  
+      level[source] = 0;
+      queue[back++] = source;
+  
+      while (front < back && level[sink] == -1) {
+        int node = queue[front++];
+        for (int e = elast[node]; e != -1; e = eprev[e]) {
+          int to = eadj[e];
+          if (level[to] == -1 && flow[e] < capa[e]) {
+            level[to] = level[node] + 1;
+            queue[back++] = to;
+          }
+        }
+      }
+  
+      return level[sink] != -1;
+    }
+  
+    private long dfs(int cur, long curflow, int goal) {
+      if (cur == goal) return curflow;
+  
+      for (int e = now[cur]; e != -1; now[cur] = e = eprev[e]) {
+        if (level[eadj[e]] > level[cur] && flow[e] < capa[e]) {
+          long res = dfs(eadj[e], Math.min(curflow, capa[e] - flow[e]), goal);
+          if (res > 0) {
+            flow[e] += res;
+            flow[e ^ 1] -= res;
+            return res;
+          }
+        }
+      }
+      return 0;
+    }
+  }
+  
+  static class InputReader {
+    public BufferedReader reader;
+    public StringTokenizer tokenizer;
+
+    public InputReader(InputStream stream) {
+      reader = new BufferedReader(new InputStreamReader(stream), 32768);
+      tokenizer = null;
+    }
+
+    public String next() {
+      while (tokenizer == null || !tokenizer.hasMoreTokens()) {
+        try {
+          tokenizer = new StringTokenizer(reader.readLine());
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+      return tokenizer.nextToken();
+    }
+
+    public int nextInt() {
+      return Integer.parseInt(next());
+    }
+  }
+}

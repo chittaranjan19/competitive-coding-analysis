@@ -1,0 +1,69 @@
+#include <algorithm>
+#include <iostream>
+#include <set>
+#include <vector>
+
+#define f first
+#define s second
+
+typedef long long ll;
+
+using namespace std;
+
+const int N = 2e5;
+
+int n, m;
+pair<ll,ll> segments[N];
+ll points[N];
+vector<pair<ll,pair<ll,ll> > > events;
+set<pair<ll,ll> > pref;
+int ans[N];
+
+int main() {
+    cin.sync_with_stdio(0);
+    cin >> n >> m;
+    events.reserve(3 * N);
+    for (ll i = 0, prev_l = -1, prev_r = -1, l, r; i < n; ++i) {
+        cin >> l >> r;
+        if (prev_l != -1 && prev_r != -1) {
+            segments[i - 1] = make_pair(l - prev_r, r - prev_l);
+//            cout << segments[i - 1].f << " " << segments[i - 1].s << "\n";
+            events.push_back(make_pair(l - prev_r, make_pair(0, i - 1)));
+            events.push_back(make_pair(r - prev_l, make_pair(2, i - 1)));
+        }
+        prev_l = l, prev_r = r;
+    }
+    for (int i = 0; i < m; ++i) {
+        cin >> points[i];
+        events.push_back(make_pair(points[i], make_pair(1, i)));
+    }
+    sort(events.begin(), events.end());
+    for (auto event : events) {
+        ll x = event.f, type = event.s.f, i = event.s.s;
+//        cout << x << " " << type << " " << i << "\n";
+        if (type == 0) {
+            pref.insert(make_pair(segments[i].s, i));
+        } else if (type == 2) {
+            pref.erase(make_pair(x, i));
+        } else if (pref.size() != 0) {
+            auto iter = pref.upper_bound(make_pair(x, -1));
+            if (iter != pref.end() && (*iter).f >= x) {
+//                cout << " " << (*iter).f << " " << (*iter).s << "\n";
+                ans[(*iter).s] = i + 1;
+                pref.erase(iter);
+            }
+        }
+    }
+    for (int i = 0; i < n - 1; ++i) {
+        if (ans[i] == 0) {
+            cout << "No\n";
+            return 0;
+        }
+    }
+    cout << "Yes\n";
+    for (int i = 0; i < n - 1; ++i) {
+        cout << ans[i] << " ";
+    }
+    cout << "\n";
+    return 0;
+}

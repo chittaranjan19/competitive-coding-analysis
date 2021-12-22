@@ -1,0 +1,93 @@
+#include <stdio.h>
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const ll MAX_N = 100000;
+const ll ABC = 26;
+const ld pi = 3.1415926535897932384626;
+const ld eps = 1e-6;
+
+vector<ll> cost;
+vector<ll> used;
+vector<ll> up;
+vector<ll> best;
+vector<vector<ll> > g;
+ll res;
+ll tmp;
+
+pair<ll, ll> dfs(ll u, ll h)
+{
+    pair<ll, ll> p1 = {cost[u], 1};
+    used[u] = true;
+    up[u] = h;
+    for (ll v : g[u])
+    {
+        best[u] = min(best[u], up[v]);
+        best[u] = min(best[u], best[v]);
+        if (!used[v])
+        {
+            auto p = dfs(v, h + 1);
+            if (p.first < p1.first)
+                p1 = p;
+            else if (p.first == p1.first)
+                p1.second += p.second;
+        }
+        best[u] = min(best[u], up[v]);
+        best[u] = min(best[u], best[v]);
+    }
+    if (best[u] == h)
+    {
+        res += p1.first;
+        tmp = tmp * p1.second % MOD;
+    }
+    else if (best[u] < h)
+    {
+        return p1;
+    }
+    else
+    {
+        res += cost[u];
+        return {inf, 0};
+    }
+}
+
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    ll n;
+    cin >> n;
+    g.resize(n);
+    cost.resize(n);
+    used.resize(n, 0);
+    up.resize(n, inf);
+    best.resize(n, inf);
+    for (ll i = 0; i < n; i++)
+        cin >> cost[i];
+    ll m;
+    cin >> m;
+    for (ll i = 0; i < m; i++)
+    {
+        ll a, b;
+        cin >> a >> b;
+        g[a - 1].push_back(b - 1);
+    }
+    ll ans = 0, ans1 = 1;
+    for (ll i = 0; i < n; i++)
+        if (!used[i])
+        {
+            res = 0;
+            tmp = 1;
+            dfs(i, 0);
+            ans += res;
+            ans1 = ans1 * tmp % MOD;
+        }
+    cout << ans << " " << ans1 << endl;
+    return 0;
+}

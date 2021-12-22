@@ -1,0 +1,141 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+double epsilon = 1e-15;
+
+double f (double x1, double y1, double x2, double y2, double t)
+{
+	return (x1+t*x2)*(x1+t*x2) + (y1+t*y2)*(y1+t*y2);
+}
+
+double maxiTernarySearch (double x1,double y1, double x2,double y2)
+{
+	double tLeft = 0;
+	double tRight = 1;
+	while (abs(tRight - tLeft) > epsilon)
+	{
+		double tLeftThird  = (2.0*tLeft + tRight)/3.0;
+		double tRightThird = (tLeft + 2.0*tRight)/3.0;
+		if (f(x1,y1,x2,y2,tLeftThird) < f(x1,y1,x2,y2,tRightThird))
+			tRight = tRightThird;
+		else
+			tLeft = tLeftThird;
+		
+			
+	}
+	return f(x1,y1,x2,y2,(tLeft+tRight)/2.0);
+}
+
+double miniTernarySearch (double x1,double y1, double x2,double y2)
+{
+	double tLeft = 0;
+	double tRight = 1;
+	while (abs(tRight - tLeft) > epsilon)
+	{
+		double tLeftThird  = (2.0*tLeft + tRight)/3.0;
+		double tRightThird = (tLeft + 2.0*tRight)/3.0;
+		if (f(x1,y1,x2,y2,tLeftThird) > f(x1,y1,x2,y2,tRightThird))
+			tLeft = tLeftThird;
+		else
+			tRight = tRightThird;
+	}
+	return f(x1,y1,x2,y2,(tLeft+tRight)/2.0);
+}
+
+
+int main()
+{
+	tint n;
+	cin >> n;
+	double px,py;
+	cin >> px >> py;
+	double maxAbs = -1;
+	double minAbs = 99999999999999999;
+	double pi = acos(-1);
+	double xa,ya,xo,yo;
+	cin >> xa >> ya;
+	xa -= px;
+	ya -= py;
+	xo = xa;
+	yo = ya;
+	forsn(i,1,n)
+	{
+		double x,y;
+		cin >> x >> y;
+		x -= px;
+		y -= py;
+		maxAbs = max(maxAbs,maxiTernarySearch(xa,ya,x,y));
+		minAbs = min(minAbs,miniTernarySearch(xa,ya,x,y));
+		xa = x;
+		ya = y;
+	}
+	maxAbs = max(maxAbs,maxiTernarySearch(xa,ya,xo,yo));
+	minAbs = min(minAbs,miniTernarySearch(xa,ya,xo,yo));
+	
+	double ans = pi*(maxAbs-minAbs);
+	printf("%.18f\n",ans);
+	return 0;
+}
+
+
+

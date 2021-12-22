@@ -1,0 +1,187 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#define ls rt << 1
+#define rs rt << 1 | 1
+#define lson ls, l, m
+#define rson rs, m + 1, r
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 1e5 + 5;
+
+int sa[maxn], ran[maxn], height[maxn], c[maxn], l[maxn], st[maxn];
+char s[maxn];
+struct node
+{
+    int len, l, r;
+
+    node(int len = 0, int l = 0, int r = 0) : len(len), l(l), r(r) {}
+
+    bool operator < (const node &a) const {return len < a.len;}
+} a[maxn << 1];
+
+bool myequal(int *y, int a, int b, int k)
+{
+    return y[a] == y[b] && y[a + k] == y[b + k];
+}
+
+void radixsort(int *x, int *y, int n, int m)
+{
+    for(int i = 0; i < m; ++i) c[i] = 0;
+    for(int i = 0; i < n; ++i) ++ c[x[y[i]]];
+    for(int i = 1; i < m; ++i) c[i] += c[i - 1];
+    for(int i = n - 1; i >= 0; --i) sa[--c[x[y[i]]]] = y[i];
+}
+
+void da(int n, int m)
+{
+    int *x = ran, *y = height;
+    ++n;
+    for(int i = 0; i < n; ++i)
+    {
+        x[i] = s[i];
+        y[i] = i;
+    }
+    radixsort(x, y, n, m);
+    for(int k = 1, p = 0; p < n; k <<= 1, m = p)
+    {
+        p = 0;
+        for(int i = n - k; i < n; ++i) y[p++] = i;
+        for(int i = 0; i < n; ++i) if(sa[i] >= k) y[p++] = sa[i] - k;
+        radixsort(x, y, n, m);
+        swap(x, y);
+        p = 1, x[sa[0]] = 0;
+        for(int i = 1; i < n; ++i) x[sa[i]] = myequal(y, sa[i - 1], sa[i], k) ? p - 1 : p++;
+    }
+    --n;
+    for(int i = 0; i <= n; ++i) ran[sa[i]] = i;
+    for(int i = 0, k = 0; i < n; ++i)
+    {
+        if(k) --k;
+        int j = sa[ran[i] - 1];
+        while(s[i + k] == s[j + k]) ++ k;
+        height[ran[i]] = k;
+    }
+}
+
+struct segtree
+{
+    int node[maxn << 2], lazy[maxn << 2];
+
+    void pushup(int rt)
+    {
+        node[rt] = max(node[ls], node[rs]);
+    }
+
+    void modify(int rt, int c)
+    {
+        lazy[rt] = node[rt] = max(node[rt], c);
+    }
+
+    void pushdown(int rt)
+    {
+        if(lazy[rt])
+        {
+            modify(ls, lazy[rt]);
+            modify(rs, lazy[rt]);
+            lazy[rt] = 0;
+        }
+    }
+
+    void build(int rt, int l, int r)
+    {
+        lazy[rt] = 0;
+        node[rt] = 0;
+        if(l == r) return;
+        int m = (l + r) >> 1;
+        build(lson);
+        build(rson);
+    }
+
+    void update(int rt, int l, int r, int x, int y, int c)
+    {
+        if(x <= l && r <= y)
+        {
+            modify(rt, c);
+            return;
+        }
+        pushdown(rt);
+        int m = (l + r) >> 1;
+        if(x <= m) update(lson, x, y, c);
+        if(m < y) update(rson, x, y, c);
+        pushup(rt);
+    }
+
+    int query(int rt, int l, int r, int x, int y)
+    {
+        if(x <= l && r <= y) return node[rt];
+        pushdown(rt);
+        int m = (l + r) >> 1, ret = 0;
+        if(x <= m) ret = max(ret, query(lson, x, y));
+        if(m < y) ret = max(ret, query(rson, x, y));
+        return ret;
+    }
+} tree;
+
+int main()
+{
+    while(~scanf("%s", s))
+    {
+        int n = strlen(s);
+        da(n, 130);
+//        for(int i = 1; i <= n; ++i) cout << sa[i] << endl;
+        height[n + 1] = 0;
+        int top = 0, cnt = 0;
+        st[top++] = 0;
+        for(int i = 1; i <= n; ++i)
+        {
+            if(height[i] < n - sa[i] && height[i + 1] < n - sa[i]) a[cnt++] = node(n - sa[i], i, i);
+            if(height[i])
+            {
+                while(top && height[st[top - 1]] >= height[i]) --top;
+                l[i] = st[top - 1];
+            }
+            else
+            {
+                top = 0;
+                l[i] = i;
+            }
+            st[top++] = i;
+        }
+        top = 0;
+        st[top++] = n + 1;
+        for(int i = n; i >= 2; --i)
+        {
+            if(height[i])
+            {
+                while(top && height[st[top - 1]] >= height[i]) --top;
+                a[cnt++] = node(height[i], l[i], st[top - 1] - 1);
+            }
+            else
+            {
+                top = 0;
+            }
+            st[top++] = i;
+        }
+//        for(int i = 0; i < cnt; ++i)
+//        {
+//            cout << a[i].len << ' ' << a[i].l << ' ' << a[i].r << endl;
+//        }
+        sort(a, a + cnt);
+        ll ans = 0;
+        tree.build(1, 1, n);
+        for(int i = 0; i < cnt; ++i)
+        {
+            ll tmp = a[i].len - tree.query(1, 1, n, a[i].l, a[i].r), w = a[i].r - a[i].l + 1;
+//            cout << tmp << ' ' << w << endl;
+            ans += tmp * w * (w + 1) / 2;
+            tree.update(1, 1, n, a[i].l, a[i].r, a[i].len);
+        }
+        printf("%I64d\n", ans);
+    }
+    return 0;
+}

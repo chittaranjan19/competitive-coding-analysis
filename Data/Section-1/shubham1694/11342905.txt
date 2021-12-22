@@ -1,0 +1,123 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define MOD 1000000007
+#define inf 1000000000
+#define maxn 1000000
+
+#define ll long long
+#define pii pair<int, int>
+#define pb push_back
+#define sin scanint
+#define bitcount(x) __builtin_popcount(x)
+#define fill(s, p) memset(s, p, sizeof(s));
+#define gc getchar
+
+void scanint(int &x)
+{
+    register int c = gc();
+    x = 0;
+    for(;(c<48 || c>57);c = gc());
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+}
+
+ll gcd(ll a, ll b)
+{
+    if(a%b==0)
+        return b;
+    else
+        return gcd(b, a%b);
+}
+
+map<ll, ll> m1;
+map<ll, ll> m2;
+
+struct node{
+    ll x, y, d;
+};
+
+node extended_euclidean(ll a, ll b)
+{
+    if(b==0)
+        return (node){1, 0, a};
+    else{
+        node p = extended_euclidean(b, a%b);
+        node q = (node){p.y, p.x-(a/b)*p.y, p.d};
+        return q;
+    }
+}
+
+int main()
+{
+    #ifndef ONLINE_JUDJE
+        //freopen("input.txt", "r", stdin);
+    #endif
+    ll m, x1, x2, a1, a2, y11, y22, h1, h2, j, p1, p2, prev1, c1, c2, prev2, fl1, fl2, i, n, n1, n2, ans, a, r, b, g, c, ini, diff, x, y, z, mul1, mul2, s, t;
+    scanf("%I64d%I64d%I64d%I64d%I64d%I64d%I64d%I64d%I64d", &m, &h1, &a1, &x1, &y11, &h2, &a2, &x2, &y22);
+    m1[h1] = 0;
+    prev1 = h1;
+    i = 1;
+    fl1=fl2=-1;
+    while(1){
+        c1 = (x1*prev1+y11)%m;
+        if(c1==a1 && fl1==-1)
+            fl1 = i;
+        if(m1.find(c1)!=m1.end()){
+            p1 = i-m1[c1];
+            break;
+        }
+        m1[c1] = i;
+        i++;
+        prev1 = c1;
+    }
+    m2[h2] = 0;
+    prev2 = h2;
+    i = 1;
+    while(1){
+        c2 = (x2*prev2+y22)%m;
+        if(c2==a2 && fl2==-1)
+            fl2 = i;
+        if(m2.find(c2)!=m2.end()){
+            p2 = i-m2[c2];
+            break;
+        }
+        m2[c2] = i;
+        i++;
+        prev2 = c2;
+    }
+    //cout << fl1 << " " << fl2 << " " << p1 << " " << p2 << endl;
+    if(fl1==-1 || fl2==-1){
+        printf("-1\n");
+        return 0;
+    }
+    g = gcd(p1, p2);
+    c = fl2-fl1;
+    if(c%g){
+        printf("-1\n");
+        return 0;
+    }
+    node p;
+    p = extended_euclidean(p1, p2);
+    s = p.x*(c/g);
+    t = p.y*(c/g);
+    mul1 = p2/g;
+    mul2 = p1/g;
+    ans = fl1 + p1*s;
+    //cout << s << " " << t << " " << p.x << " " << p.y << " " << p.d << endl;
+    if(s<0){
+        r = abs(s)/mul1 + 1;
+        s = s + r*mul1;
+        t = t - r*mul2;
+        //cout << r << " " << s << " " << t << " " << mul1 << " " << mul2 << endl;
+        ans = fl1 + p1*s;
+    }
+    else if(t>0){
+        r = t/mul2 + 1;
+        s = s - r*mul1;
+        t = t + r*mul2;
+        ans = fl1 + p1*s;
+    }
+    printf("%I64d\n", ans);
+    return 0;
+}

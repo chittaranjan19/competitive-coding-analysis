@@ -1,0 +1,110 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int MAX_N = 123456;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+vector<int> graph[MAX_N], attacked_graph[MAX_N];
+int a[MAX_N];
+bool used[MAX_N], attacked[MAX_N];
+int dist[MAX_N];
+int length = 0;
+
+int dfs(int x)
+{
+    used[x] = true;
+    bool b = false;
+    for (int i = 0; i < graph[x].size(); i++)
+        if (!used[graph[x][i]])
+            if (dfs(graph[x][i]))
+            {
+                b = true;
+                attacked_graph[x].push_back(graph[x][i]);
+                attacked_graph[graph[x][i]].push_back(x);
+                length += 2;
+            }
+    if (attacked[x])
+        b = true;
+    return b;
+}
+
+void dfs1(int x, int len)
+{
+    used[x] = true;
+    dist[x] = len;
+    for (int i = 0; i < attacked_graph[x].size(); i++)
+        if (!used[attacked_graph[x][i]])
+            dfs1(attacked_graph[x][i], len + 1);
+}
+
+int main()
+{
+    //ifstream ifs("input.in");
+    //ofstream ofs("output.out");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, m, s, f;
+    cin >> n >> m;
+    for (int i = 0; i < n - 1; i++)
+    {
+        cin >> s >> f;
+        graph[s - 1].push_back(f - 1);
+        graph[f - 1].push_back(s - 1);
+    }
+    for (int i = 0; i < m; i++)
+        cin >> a[i];
+    sort(a, a + m);
+    for (int i = 0; i < n; i++)
+        attacked[i] = false;
+    for (int i = 0; i < n; i++)
+        attacked[a[i] - 1] = true;
+    for (int i = 0; i < n; i++)
+        used[i] = false;
+    dfs(a[m - 1] - 1);
+    for (int i = 0; i < n; i++)
+        dist[i] = 0;
+    for (int i = 0; i < n; i++)
+        used[i] = false;
+    dfs1(a[m - 1] - 1, 0);
+    int x, cnt = -1;
+    for (int i = 0; i < n; i++)
+        if (dist[i] > cnt)
+        {
+            cnt = dist[i];
+            x = i;
+        }
+    for (int i = 0; i < n; i++)
+        dist[i] = 0;
+    for (int i = 0; i < n; i++)
+        used[i] = false;
+    dfs1(x, 0);
+    cnt = -1;
+    for (int i = 0; i < n; i++)
+        if (dist[i] > cnt)
+            cnt = max(cnt, dist[i]);
+    for (int i = 0; i < n; i++)
+        if (dist[i] == cnt)
+        {
+            x = min(x, i);
+            break;
+        }
+    cout << x + 1 << "\n" << length - cnt;
+    return 0;
+}

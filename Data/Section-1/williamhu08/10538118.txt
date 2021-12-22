@@ -1,0 +1,154 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1 << 17;
+
+struct line {
+	ll m, b;
+	int id;
+	line () {}
+	line (ll _m, ll _b) : m(_m), b(_b) {}
+	ll val (ll x) const {
+		return m * x + b;
+	}
+	pll intersect (const line &a) const {
+		pll p(b - a.b, a.m - m);
+		if (p.second < 0) {
+			p.first *= -1;
+			p.second *= -1;
+		}
+		return p;
+	}
+};
+
+struct convex {
+	vector<line> hull;
+	int ptr;
+	ll x;
+	convex() : hull(), ptr(), x(-1e12) {}
+	void insert (line t) {
+		if (hull.empty()) {
+			hull.push_back(t);
+			return;
+		}
+		line bk = hull.back();
+		assert(bk.m >= t.m);
+		if (bk.m == t.m && t.b >= bk.b) {
+			return;
+		}
+		bool curerase = false;
+		while (hull.size() >= 2) {
+			int hsiz = hull.size();
+			line l2 = hull[hsiz - 2];
+			pll ph = l2.intersect(hull.back()), pt = l2.intersect(t);
+			if (pt.first * ph.second >= pt.second * ph.first) {
+				if (hsiz == ptr + 1) {
+					curerase = true;
+				}
+				hull.pop_back();
+			} else {
+				break;
+			}
+		}
+		if (curerase) {
+			ptr = int(hull.size()) - 1;
+		}
+		hull.push_back(t);
+	}
+	ll query (ll t) {
+		assert(t >= x);
+		for (; ptr + 1 < hull.size(); ptr++) {
+			if (hull[ptr].val(t) < hull[ptr + 1].val(t)) {
+				break;
+			}
+		}
+		return hull[ptr].val(t);
+	}
+	void clear() {
+		hull.clear();
+		ptr = 0;
+		x = -1e12;
+	}
+};
+
+struct quer {
+	int x, y;
+	int id;
+	void read (int i) {
+		cin >> x >> y;
+		id = i;
+	}
+	bool operator < (const quer &l) const {
+		return x - y < l.x - l.y;
+	}
+};
+
+int N, M;
+ll A[MAXN], P[MAXN], ans[MAXN];
+convex tree[2 * MAXN];
+quer Q[MAXN];
+
+ll query (int a, int b, ll x, int cur = 1, int l = 0, int r = MAXN) {
+	if (r <= a || b <= l) {
+		return 1e16;
+	}
+	if (a <= l && r <= b) {
+		return tree[cur].query(x);
+	}
+	int mid = (l + r) / 2;
+	return min(query(a, b, x, 2 * cur, l, mid), query(a, b, x, 2 * cur + 1, mid, r));
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 1; i <= N; i++) {
+		cin >> A[i];
+		P[i] = P[i - 1] + A[i];
+		tree[i + MAXN].insert(line(A[i], A[i] * i - P[i]));
+	}
+	for (int i = MAXN - 1; i; i--) {
+		convex &ch = tree[i];
+		vector<line> &v1 = tree[2 * i].hull, &v2 = tree[2 * i + 1].hull;
+		for (int i1 = 0, j1 = 0, sz1 = v1.size(), sz2 = v2.size(); i1 < sz1 || j1 < sz2; ) {
+			if (i1 == sz1) {
+				ch.insert(v2[j1++]);
+			} else if (j1 == sz2) {
+				ch.insert(v1[i1++]);
+			} else {
+				if (v1[i1].m > v2[j1].m) {
+					ch.insert(v1[i1++]);
+				} else {
+					ch.insert(v2[j1++]);
+				}
+			}
+		}
+	}
+	cin >> M;
+	for (int i = 0; i < M; i++) {
+		Q[i].read(i);
+	}
+	sort(Q, Q + M);
+	for (int i = 0; i < M; i++) {
+		int x = Q[i].x, y = Q[i].y;
+		ans[Q[i].id] = P[y] + query(y - x + 1, y + 1, x - y);
+	}
+	for (int i = 0; i < M; i++) {
+		cout << ans[i] << '\n';
+	}
+}

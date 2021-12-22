@@ -1,0 +1,97 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+const int lmt = 500005;
+int z[lmt];
+
+void z_function(string s) {
+    memset(z,0,sizeof(z));
+    int n = (int) s.length();
+    for (int i = 1, l = 0, r = 0; i < n; ++i) {
+        if (i <= r)
+            z[i] = min (r - i + 1, z[i - l]);
+        while (i + z[i] < n && s[z[i]] == s[i + z[i]])
+            ++z[i];
+        if (i + z[i] - 1 > r)
+            l = i, r = i + z[i] - 1;
+    }
+    return ;
+}
+
+bool solvef(string t,string a,string b){
+    string tmp = a + '#' + t;
+    z_function(tmp);
+    int idx1=-1,idx2=-1;
+    for(int i=a.size()+1;i<tmp.size();i++){
+        if(z[i]==a.size()){
+            idx1 = i-a.size();
+            break;
+        }
+    }
+    if(idx1==-1) return false;
+
+    tmp = b + '#' + t;
+    z_function(tmp);
+    for(int i=tmp.size()-1;i>b.size();i--){
+        if(z[i]==b.size()){
+            idx2 = i-b.size();
+            break;
+        }
+    }
+//    DEBUG(idx1);
+//    DEBUG(idx2);
+    if(idx2==-1) return false;
+    if(idx2-idx1 >= (int)a.size()) return true;
+    return false;
+}
+
+bool solveb(string t,string a,string b){
+    reverse(t.begin(),t.end());
+    string tmp = a + '#' + t;
+    z_function(tmp);
+    int idx1=-1,idx2=-1;
+    for(int i=a.size()+1;i<tmp.size();i++){
+        if(z[i]==a.size()){
+            idx1 = i-a.size();
+            break;
+        }
+    }
+    if(idx1==-1) return false;
+
+    tmp = b + '#' + t;
+    z_function(tmp);
+    for(int i=tmp.size()-1;i>b.size();i--){
+        if(z[i]==b.size()){
+            idx2 = i-b.size();
+            break;
+        }
+    }
+//    DEBUG(idx1);
+//    DEBUG(idx2);
+    if(idx2==-1) return false;
+    if(idx2-idx1 >= (int)a.size()) return true;
+    return false;
+}
+
+int main(){
+    string t,a,b;
+    cin>>t>>a>>b;
+    bool fwd = solvef(t,a,b);
+    bool bwd = solveb(t,a,b);
+    if(fwd && bwd)
+        cout<<"both\n";
+    else if(fwd)
+        cout<<"forward\n";
+    else if(bwd)
+        cout<<"backward\n";
+    else
+        cout<<"fantasy\n";
+}

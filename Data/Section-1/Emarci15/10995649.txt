@@ -1,0 +1,51 @@
+#include <iostream>
+#include <list>
+
+#define iinf (1<<30)
+
+using namespace std;
+
+int n;
+int a[200000];
+list<int> h[200000];
+
+long long f[200000][2];
+
+void dfs(int k) {
+    long long mmin = iinf;
+    long long szum = 0ll;
+    f[k][1] = -iinf;
+    for(int i:h[k]) {
+        dfs(i);
+        long long tmp[2];
+        tmp[0] = max(f[k][0] + f[i][0],f[k][1] + f[i][1]);
+        tmp[1] = max(f[k][0] + f[i][1],f[k][1] + f[i][0]);
+        f[k][0] = tmp[0];
+        f[k][1] = tmp[1];
+    }
+
+    f[k][1] = max(f[k][1],f[k][0]+a[k]);
+
+    //cerr << k << ": " << f[k][0] << " " << f[k][1] << endl;
+}
+
+int main()
+{
+    ios::sync_with_stdio(0);
+
+    cin >> n;
+    int x;
+    cin >> x >> a[0];
+    for(int i=1; i<n; i++) {
+        cin >> x >> a[i];
+        x--;
+        h[x].push_back(i);
+    }
+
+    dfs(0);
+    long long sol = max(f[0][0],f[0][1]);
+
+    cout << sol << endl;
+
+    return 0;
+}

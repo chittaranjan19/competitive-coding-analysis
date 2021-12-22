@@ -1,0 +1,155 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD {
+    BufferedReader rd;
+
+    ProblemD() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int n = a[0];
+        int k = a[2];
+        char[][] c = new char[n][];
+        for(int i=0;i<n;i++) {
+            c[i] = rd.readLine().toCharArray();
+        }
+        Map<Pair, Integer> res = new HashMap<>();
+        final int[][] dirs = new int[][] { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
+        for(int i=0;i<k;i++) {
+            int[] xy = intarr();
+            int x = xy[0]-1;
+            int y = xy[1]-1;
+            Pair startPair = new Pair(x,y);
+            Integer pictCount = res.get(startPair);
+            if(pictCount == null) {
+                Set<Pair> s = new HashSet<>();
+                Queue<Pair> q = new ArrayDeque<>();
+                q.add(startPair);
+                s.add(startPair);
+                int pict = 0;
+                while (!q.isEmpty()) {
+                    Pair cur = q.poll();
+                    for (int[] dir : dirs) {
+                        int nx = cur.v[0] + dir[0];
+                        int ny = cur.v[1] + dir[1];
+                        if (c[nx][ny] == '*') {
+                            pict++;
+                        } else {
+                            Pair p2 = new Pair(nx, ny);
+                            if (!s.contains(p2)) {
+                                q.add(p2);
+                                s.add(p2);
+                            }
+                        }
+                    }
+                }
+                for (Pair p3 : s) {
+                    res.put(p3, pict);
+                }
+                pictCount = pict;
+            }
+            out(pictCount);
+        }
+    }
+
+    class Pair {
+        final int[] v;
+
+        Pair(int a, int b) {
+            v = new int[] { a, b };
+        }
+
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o instanceof Pair) {
+                return Arrays.equals(v, ((Pair) o).v);
+            }
+            return false;
+        }
+
+        public int hashCode() {
+            return v != null ? Arrays.hashCode(v) : 0;
+        }
+
+        public String toString() {
+            return Arrays.toString(v);
+        }
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

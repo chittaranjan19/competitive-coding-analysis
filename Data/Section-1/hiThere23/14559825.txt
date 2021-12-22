@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int n, m, dem = 0, num[mn], up[mn], d[mn];
+vector<int> g[mn];
+vector< pair<int, int> > ask[mn];
+pair< int, pair<int, int> > q[mn];
+bool ans[mn];
+
+void setup()
+{
+    cin >> n >> m;
+    FOR(i, 1, m)
+    {
+        cin >> q[i].F;
+        if (q[i].F == 1)
+        {
+            cin >> q[i].S.F >> q[i].S.S;
+            g[q[i].S.S].pb(q[i].S.F);
+            d[q[i].S.F] = 1;
+        }
+        if (q[i].F == 2)
+            cin >> q[i].S.F;
+        if (q[i].F == 3)
+        {
+            cin >> q[i].S.F >> q[i].S.S;
+            ask[q[i].S.S].pb(mp(q[i].S.F, i));
+        }
+    }
+}
+
+void dfs(int u)
+{
+    num[u] = ++ dem;
+    FOR(i, 0, int(g[u].size()) - 1)
+        dfs(g[u][i]);
+    up[u] = dem;
+}
+
+int root(int x)
+{
+    if (d[x])
+        return (d[x] = root(d[x]));
+    return x;
+}
+
+void xuly ()
+{
+    FOR(i, 1, n)
+    if (!d[i])
+        dfs(i);
+    else
+        d[i] = 0;
+    dem = 0;
+    FOR(i, 1, m)
+    {
+        if (q[i].F == 1)
+            d[q[i].S.F] = q[i].S.S;
+        if (q[i].F == 2)
+        {
+            int x = q[i].S.F;
+            int r = root(x);
+            dem ++;
+            FOR(j, 0, int(ask[dem].size()) - 1)
+            {
+                int u = ask[dem][j].F;
+                int id = ask[dem][j].S;
+                ans[id] = (num[u] <= num[x] && num[x] <= up[u] && root(u) == r);
+            }
+        }
+        if (q[i].F == 3)
+            cout << (ans[i]? "YES\n":"NO\n");
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

@@ -1,0 +1,208 @@
+#include <iostream>
+#include <climits>
+#include <string>       // string s; cin >> s;
+#include <cstring>      // memset(b, 0, sizeof(arr)); strcpy(a1, a2); strcat(a1, a2);
+#include <cmath>
+#include <cstdio>       // getchar(), gets()
+#include <cstdlib>      // rand(), max(), min()
+#include <ctime>        // rand(): srand(int(time(0)));
+#include <algorithm>    // std::sort(a + 0, a + n); a - массв, n - кол-во эл-тов
+#include <iomanip>      // setw()
+#include <vector>
+#include <array>
+#include <fstream>      // file IO (input-output)
+#include <cctype>       // isupper()
+#include <memory>       // shared_ptr<>, uniqu_ptr<>
+#include <iterator>     // ostream_iterator<int, char> our_iter(cout, " ");
+#include <set>
+#include <map>
+#include <list>
+#include <queue>
+#define SRT srand(int(time(0)))
+
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef unsigned long long ull;
+ld pi = 3.14159265358979323;
+
+typedef map<int, int> Map;
+typedef Map::iterator Iter;
+typedef pair<const int, int> Pair;
+
+struct language
+{
+    int lan;
+    int speakers;
+};
+bool by_amount(const language &, const language &);
+bool comp_by_lan(int, const language &);
+
+struct film
+{
+    int number;
+    int sounded_lan;
+    int subt_spks;
+};
+bool operator<(const film &, const film &);
+bool comp_by_snd(int, const film &);
+
+int r, l, mid;
+
+template <class T1, class T2, class T3>
+int BinarSrch(T1 *arr, int siz, T2 elem, T3 comp)
+{
+    r = siz, l = 0, mid = (siz - 1) / 2;
+    while (mid > l)
+    {
+        if (comp(elem, arr[mid]))
+            r = mid;
+        else
+            l = mid;
+        mid = (r + l) / 2;
+    }
+    return mid;
+}
+
+const int S = 200000;
+int n, m, a[S], b[S], c[S];
+
+int main()
+{
+    film f[S];
+    
+    cin >> n;
+    for (int i = 0; i < n; ++i)
+    {
+        scanf("%d", a + i);
+    }
+    cin >> m;
+    for (int i = 0; i < m; ++i)
+    {
+        scanf("%d", b + i);
+    }
+    for (int i = 0; i < m; ++i)
+    {
+        scanf("%d", c + i);
+    }
+    
+    int nl = 0;
+    language l_by_amt[S], l_by_lan[S];
+    
+    sort(a, a + n);
+    for (int i = 0, lan; i < n; ++i, ++nl)
+    {
+        lan = a[i];
+        
+        l_by_lan[nl].lan = l_by_amt[nl].lan = a[i];
+        l_by_lan[nl].speakers = l_by_amt[nl].speakers = 1;
+        
+        while (a[++i] == lan)
+        {
+            ++l_by_amt[nl].speakers;
+            ++l_by_lan[nl].speakers;
+        }
+        --i;
+    }
+    
+    int ptn;
+    for (int i = 0; i < m; ++i)
+    {
+        f[i].number = i + 1;
+        f[i].sounded_lan = b[i];
+        ptn = BinarSrch(l_by_lan, nl, c[i], comp_by_lan);
+        if (l_by_lan[ptn].lan != c[i])
+            f[i].subt_spks = 0;
+        else
+            f[i].subt_spks = l_by_lan[ptn].speakers;
+    }
+    sort(l_by_amt, l_by_amt + nl, by_amount);
+    sort(f, f + m);
+    
+    /*
+    cout << "Languages sorted by amount of speakers:\n";
+    for (int i = 0; i < nl; ++i)
+        cout << " amount: " << l_by_amt[i].speakers << ", lan: " << l_by_amt[i].lan << '\n';
+    cout << "\nLanguages sorted by number of language:\n";
+    for (int i = 0; i < nl; ++i)
+        cout << " amount: " << l_by_lan[i].speakers << ", lan: " << l_by_lan[i].lan << '\n';
+    cout << "\nFilms sorted by language number sounded:\n";
+    for (int i = 0; i < m; ++i)
+        cout << " sounded_lan: " << f[i].sounded_lan << ", subt_spks: " << f[i].subt_spks << ", numb: " << f[i].number << '\n';
+    cout << '\n';
+    */
+    
+    int maxi, f_ptn = nl - 1;
+    
+    struct max_sub
+    {
+        int m_sub;
+        int num_film;
+    } ans = {0, 0};
+    
+    while (l_by_amt[f_ptn].lan != f[BinarSrch(f, m, l_by_amt[f_ptn].lan, comp_by_snd)].sounded_lan && --f_ptn >= 0);
+    
+    if (f_ptn < 0)
+    {
+        for (int i = m - 1; i >= 0; --i)
+        {
+            if (ans.m_sub < f[i].subt_spks)
+            {
+                ans.m_sub = f[i].subt_spks;
+                ans.num_film = f[i].number;
+            }
+        }
+    }
+    else
+    {
+        maxi = l_by_amt[f_ptn].speakers;
+        for (int i = f_ptn; i >= 0 && l_by_amt[i].speakers == maxi; --i)
+        {
+            ptn = BinarSrch(f, m, l_by_amt[i].lan, comp_by_snd);
+            //cout << " Position: " << ptn << ", lan = " << l_by_amt[i].lan << '\n';
+            int beginning = f[ptn].sounded_lan;
+            for (int j = ptn; j >= 0 && f[j].sounded_lan == beginning; --j)
+            {
+                if (ans.m_sub < f[j].subt_spks)
+                {
+                    ans.m_sub = f[j].subt_spks;
+                    ans.num_film = f[j].number;
+                }
+            }
+        }
+    }
+    
+    cout << ans.num_film << '\n';
+    return 0;
+}
+
+
+bool by_amount(const language &l1, const language &l2)
+{
+    if (l1.speakers < l2.speakers)
+        return true;
+    return false;
+}
+
+bool comp_by_lan(int a, const language &l)
+{
+    if (a < l.lan)
+        return true;
+    return false;
+}
+
+bool operator<(const film &f1, const film &f2)
+{
+    if (f1.sounded_lan < f2.sounded_lan)
+        return true;
+    else if (f1.sounded_lan == f2.sounded_lan && f1.subt_spks < f2.subt_spks)
+        return true;
+    return false;
+}
+
+bool comp_by_snd(int a, const film &f)
+{
+    if (a < f.sounded_lan)
+        return true;
+    return false;
+}

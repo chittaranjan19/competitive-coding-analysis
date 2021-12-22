@@ -1,0 +1,279 @@
+#include <iostream> 
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+#define For(i , a , b) for (int i = a , _b = b ; i <= _b ; ++i)
+#define Ford(i , a  ,b) for (int i = a , _b = b : i >= _b ; --i)
+#define Rep(i , n) for (int i = 0 , _n = n ; i < _n ; ++i)
+#define sz(A) ((int)A.size())
+#define LL(x) (x << 1)
+#define RR(x) ((x << 1) | 1)
+
+typedef pair<int , int> pt;
+
+int nextInt() {
+	int res = 0; char c = 0;
+	while (c < '0' || c > '9') c = getchar();
+	for (; c >= '0' && c <= '9' ; c = getchar()) res = res * 10 + c - 48; 
+	return res;	
+}
+
+const int maxn = 300000 + 123;
+int n , m , q;
+vector<int> V[maxn];
+vector<int> girl[maxn]; // index 
+int address[maxn]; // adress of girl
+
+void ReadData (){
+	n = nextInt() , m = nextInt() , q = nextInt(); 
+	For(i , 2 , n) {
+		int u = nextInt() , v = nextInt(); 
+		V[u].push_back(v); V[v].push_back(u);
+	}
+	For(i , 1 , m) {
+		int x = nextInt(); girl[x].push_back(i); address[i] = x;
+	}
+}
+
+const int lg = 19;
+int timer = 0 , tin[maxn] , tout[maxn] , level[maxn] , chil[maxn];
+int papa[maxn][lg + 3];
+inline void dfs(const int u , const int prev) {
+	tin[u] = ++timer; chil[u] = 1;
+	for (int i = 0; i < V[u].size() ; i++) {
+		int v = V[u][i]; if (v == prev) continue;
+		level[v] = level[u] + 1;
+		papa[v][0] = u;
+		dfs(v , u);
+		chil[u] += chil[v];
+	}	
+	tout[u] = timer;
+}
+int LCA(int p , int q) {
+	if (level[p] > level[q]) swap(p , q);
+	int diff = (level[q] - level[p]); 
+	for (int i = 0 ; i <= lg ; i++) if ((diff >> i) & 1) q = papa[q][i];
+	if (p != q) {
+		for (int i = lg; i >= 0 ;i--) {
+			if (papa[p][i] != papa[q][i]) {
+				p = papa[p][i] , q = papa[q][i];
+			}
+		} 
+		p = papa[p][0];
+	}
+	return p;
+}
+void Init() {
+	dfs(1 , -1);
+	For(i , 1 , lg) For(u , 1 , n) papa[u][i] = papa[papa[u][i - 1]][i - 1];
+}
+
+int nChain = 1 , chainHead[maxn] , chainEnd[maxn] , belong[maxn];
+int fromBase[maxn] , toBase[maxn] , nBase;
+int base[maxn];
+int revPos[maxn];
+
+void HLD(const int u , const int prev) {
+	if (!chainHead[nChain]) chainHead[nChain] = u; 
+	chainEnd[nChain] = u; belong[u] = nChain;
+	fromBase[u] = ++nBase;
+	for (int i = 0 ; i < girl[u].size() ; i++) {
+		int z = girl[u][i]; base[nBase] = z; revPos[z] = nBase;
+		if (i < (int)girl[u].size() - 1) ++nBase;  
+	} 
+	toBase[u] = nBase;
+	int id = -1;
+	for (int i = 0 ; i < V[u].size() ; i++) {
+		int v = V[u][i]; if (v == prev) continue;
+		if (id == -1 || chil[v] > chil[id]) id = v;
+	}
+	if (id == -1) return;
+	HLD(id , u);
+	for (int i = 0 ; i < V[u].size(); i++) {
+		int v = V[u][i]; if (v == prev || v == id) continue; 
+		++nChain;
+		HLD(v , u);
+	}
+}
+void InitHLD() {
+	HLD(1 , -1);
+}
+
+class FenwichTree {
+public:
+	long long bit[maxn];
+	void inc(int x , long long val) {
+		for (; x <= n ; x += x & -x) bit[x] += val;
+	}
+	void update(int l , int r , long long val) {
+		inc(l , val); inc(r + 1 , val);
+	}
+	long long get(int x) {
+		long long res = 0;
+		for (; x > 0 ; x -= x & -x) res += bit[x];
+		return res; 
+	}
+} fwt; // update 2 
+
+bool comPare(const pair<long long , int> &a , const pair<long long , int > &b) {
+	if (a.first == b.first) return address[a.second] < address[b.second];
+	return a.first < b.first;
+}
+const long long INF = 1e18 + 123;
+class SegmentTree {
+public:
+	int l[maxn * 4] , h[maxn * 4];
+	pair<long long , int> it[maxn * 4];
+	long long lazy[maxn * 4];
+	int leaf[maxn];
+
+
+	void Combine(int x) {
+		if (comPare(it[LL(x)] , it[RR(x)])) it[x] = it[LL(x)]; else 
+		it[x] = it[RR(x)];
+	}
+	void build(const int x , const int L , const int R) {
+		l[x] = L , h[x] = R;
+		if (L == R) {
+			it[x] = make_pair((long long)base[L] , base[L]);
+			if (!base[L]) it[x].first = INF;
+			leaf[L] = x;
+		} else {
+			int mid = (L + R) >> 1; 
+			build(LL(x) , L , mid); build(RR(x) , mid + 1 , R);
+			Combine(x);
+		}
+	}
+	void doAdd(const int x , const long long val) {
+		if (it[x].first == INF) return;
+		it[x].first += val; lazy[x] += val;
+	}
+	void pushDown(const int x) {
+		if (lazy[x] != 0) {
+			doAdd(LL(x) , lazy[x]); doAdd(RR(x) , lazy[x]); 
+			lazy[x] = 0;
+		}
+	}
+	void add(const int x , const int u , const int v , const long long val) {
+		if (l[x] > v || h[x] < u) return;
+		if (u <= l[x] && h[x] <= v) return doAdd(x , val);
+		pushDown(x);
+		add(LL(x) , u , v , val); add(RR(x) , u , v , val);
+		Combine(x);
+	}
+	void del(const int x , const int pos) {
+		if (l[x] == h[x]) {
+			it[x] = make_pair(INF , 0); return; 
+		} 
+		pushDown(x);
+		if (pos <= h[LL(x)]) del(LL(x) , pos); else del(RR(x) , pos);
+		Combine(x);
+	}
+	pair<long long , int> get(const int x , const int u , const int v) {
+		if (l[x] > v || h[x] < u) return make_pair(INF , 0);
+		if (u <= l[x] && h[x] <= v) return it[x];
+		pushDown(x);
+		pair<long long , int> L = get(LL(x) , u , v) , R = get(RR(x) , u , v);
+		if (comPare(L , R)) return L; return R;
+	}
+} tree;
+
+pt sta[maxn] ; int top = 0;
+pair<long long , int> candidate[maxn];
+
+void reFresh(int x) {
+	int u = chainHead[x];
+	long long val = fwt.get(tin[u]); 
+	if (val != 0) {
+		fwt.update(tin[u] , tin[u] , -val);
+		int v = chainEnd[x];
+		tree.add(1 , fromBase[u] , toBase[v] , val);
+	} 
+}
+
+bool isson(const int u , const int v) {
+	return tin[u] <= tin[v] && tout[v] <= tout[u];
+}
+
+void goUp(int u , int v) {
+	if (!u || !v) return;
+	if (!isson(v , u)) return;
+	int vChain = belong[v];
+	while (true) {
+		int uChain = belong[u];
+		reFresh(uChain);
+		if (uChain == vChain) {
+			sta[++top] = pt(fromBase[v] , toBase[u]);
+			return;
+		}
+		int z = chainHead[uChain];
+		sta[++top] = pt(fromBase[z] , toBase[u]); 
+		u = papa[z][0];
+	}
+}
+int semi(int u , int v) {
+	int diff = level[u] - level[v] - 1;
+	if (diff < 0) return 0;
+	for (int i = 0; i <= lg; i++) if ((diff >> i) & 1) u = papa[u][i];
+	return u;
+} 
+
+void Process() {
+	Init();
+	InitHLD();
+
+	//cout << fromBase[4] << " "<< toBase[4] << endl;
+	tree.build(1 , 1 , nBase);
+//	For(i , 1 , nBase) cout << base[i] << " "; cout << endl; 
+	while (q--) {
+		int type = nextInt();
+
+		if (type == 1) {
+			int u = nextInt() , v = nextInt() , k = nextInt();
+			top = 0;
+			int lca = LCA(u , v); goUp(u , lca); goUp(v , semi(v , lca));
+			vector<int> res(0);
+			For(i , 1 , top) {
+				candidate[i] = tree.get(1 , sta[i].first , sta[i].second);
+			}
+		//	For(i , 1 , top) cout << sta[i].first << " " << sta[i].second << endl;
+		//	cout << endl;
+			while (k--) {
+				int id = 0;
+				For(i , 1 , top) {
+					if (id == 0 || comPare(candidate[i] , candidate[id])) id = i;
+				}
+				pair<long long , int> cur = candidate[id];
+				if (cur.first == INF) break;
+				res.push_back(cur.second);
+				tree.del(1 , revPos[cur.second]);
+				candidate[id] = tree.get(1 , sta[id].first , sta[id].second); 	
+			}
+
+		//	continue;
+			cout << (int) res.size() << " ";
+			for (int i = 0 ; i < res.size() ; i++) cout << res[i] << " ";
+			cout << "\n";
+		} else {
+			int u = nextInt() , val = nextInt();
+			tree.add(1 , fromBase[u] , toBase[chainEnd[belong[u]]] , val);
+			fwt.update(tin[u] , tout[u] , val);
+		}
+	}
+}	
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	
+//	freopen("input.inp" , "r" , stdin);
+	ReadData();
+	Process();
+
+	return 0;
+
+}			

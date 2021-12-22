@@ -1,0 +1,104 @@
+#include<bits/stdc++.h>
+#define MAXN 3009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int F[MAXN][MAXN];
+int dis[MAXN];
+vector<int>adj[MAXN];
+set<PII>OUT[MAXN],IN[MAXN];
+int n,m;
+void tap(int x){
+	queue<int>q;
+	fill(dis,dis+MAXN,INF);
+	q.push(x);dis[x]=0;
+	while(!q.empty()){
+		int nd=q.front();
+		q.pop();
+		for(int i=0;i<adj[nd].size();i++){
+			int to=adj[nd][i];
+			if(dis[to]>dis[nd]+1){
+				dis[to]=dis[nd]+1;
+				q.push(to);
+			}
+		}
+	}
+	for(int i=1;i<=n;i++){
+		if(dis[i]!=INF){
+			OUT[x].insert(mp(dis[i],i));
+			IN[i].insert(mp(dis[i],x));
+		}
+		F[x][i]=dis[i];	
+	}
+}
+int main(){
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=m;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+	}
+	for(int i=1;i<=n;i++){
+		sort(all(adj[i]));
+		adj[i].erase(unique(all(adj[i])),adj[i].end());
+	}
+	int a1,a2,a3,a4;
+	for(int i=1;i<=n;i++)
+		tap(i);int mx=0;	
+//	for(int i=1;i<=n;i++)
+//		for(int j=1;j<=n;j++)
+//			cout<<F[i][j]<<" "<<i<<"->"<<j<<endl;
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=n;j++){
+			if(F[i][j]==INF or IN[i].size()==0 or OUT[j].size()==0)
+				continue;	
+			typeof((IN[i]).begin())	it=(--IN[i].end());
+			while((it->ss==i or it->ss==j) and it!=IN[i].begin())
+				it--;
+			if(it->ss==i or it->ss==j)
+				continue;	
+			typeof((OUT[j]).begin())it2=(--OUT[j].end());	
+			typeof((OUT[j]).begin())it3=it2;int d=0;
+			while((it2->ss==i or it2->ss==j or it2->ss==it->ss) and it2!=OUT[j].begin()){
+				if(!d and it2->ss!=i and it2->ss!=j)
+					it3=it2,d=1;
+				it2--;	
+			}
+			if(!d and it2->ss!=i and it2->ss!=j)
+				it3=it2;
+			if(it2->ss!=i and it2->ss!=j and it2->ss!=it->ss){
+				if(umax(mx,F[i][j]+it->ff+it2->ff))
+					a1=it->ss,a2=i,a3=j,a4=it2->ss;		
+			}
+			//while((it3->ss==i or it3->ss==j) and it3!=OUT[j].begin())
+			//	it3--;
+			if(it3->ss==i or it3->ss==j)
+				continue;			
+			typeof((IN[i]).begin())it4=(--IN[i].end());
+			while((it4->ss==i or it4->ss==j or it4->ss==it3->ss) and it4!=IN[i].begin())
+				it4--;	
+			if(it4->ss!=i and it4->ss!=j and it4->ss!=it3->ss){
+				if(umax(mx,F[i][j]+it4->ff+it3->ff))
+					a1=it4->ss,a2=i,a3=j,a4=it3->ss;
+			}
+		}
+//	cout<<mx<<endl;	
+	printf("%d %d %d %d\n",a1,a2,a3,a4);	
+	return 0;
+}
+//LooK aT mY COde ONlinE +_+

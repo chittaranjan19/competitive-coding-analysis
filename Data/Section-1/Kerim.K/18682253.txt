@@ -1,0 +1,91 @@
+#include "iostream"
+#include "vector"
+
+#define fi first
+#define se second
+#define sqr(x) ((x)*(x))
+#define pb(x) push_back(x)
+#define sz(x) (int)x.size()
+#define all(x) (x).begin(),(x).end()
+#define cs(x) printf("Case %d: ", x)
+
+using namespace std;
+typedef long long ll;
+typedef pair <int, int> pii;
+template <class T> inline void umax(T &x,T y) {if (y > x) x = y;}
+template <class T> inline void umin(T &x,T y) {if (y < x) x = y;}
+
+const int N = 3e5 + 5, B = 0x7fffffff;
+vector <int> g[N];
+int in[N], out[N], nc[N], pr[N], pis[N];
+pii st[4 * N];
+int n, q;
+int tim;
+
+void dfs(int nod, int par){
+  in[nod] = ++tim;
+  for (int adj : g[nod]){
+    if (adj != par) dfs(adj, nod);
+  }
+  out[nod] = tim;
+  nc[nod] = out[nod] - in[nod] + 1;
+}
+
+void build(int l, int r, int id){
+  if (l == r) {st[id] = {B, B}; return;}
+  int mid = (l + r) >> 1;
+  build(l, mid, id << 1);
+  build(mid + 1, r, id << 1 | 1);
+  st[id] = min(st[id << 1], st[id << 1 | 1]);
+}
+
+void upd(int l, int r, int id, int u, int wh, int v){
+  if (l == r){
+    st[id] = {v, wh};
+    return ;
+  }
+  int mid = (l + r) >> 1;
+  if (u <= mid) upd(l, mid, id << 1, u, wh, v);
+  else upd(mid + 1, r, id << 1 | 1, u, wh, v);
+  st[id] = min(st[id << 1], st[id << 1 | 1]);
+}
+
+pii get(int l, int r, int id, int ql, int qr){
+  if (r < ql || l > qr) return {B, B};
+  if (l >= ql && r <= qr) return st[id];
+  int mid = (l + r) >> 1;
+  return min(get(l, mid, id << 1, ql, qr), get(mid + 1, r, id << 1 | 1, ql, qr));
+}
+
+int main(){
+  scanf("%d %d", &n, &q);
+  for (int u = 2, v; u <= n; u++){
+    scanf("%d", &v);
+    pr[u] = v;
+    g[u].pb(v);
+    g[v].pb(u);
+  }
+  dfs(1, -1);
+  for (int i = 1; i <= n; i++){
+    int ma = -1;
+    for (int adj : g[i]){
+      if (adj == pr[i]) continue;
+      umax(ma, nc[adj]);
+    }
+    pis[i] = ma;
+    umax(ma, n - nc[i]);
+    upd(1, tim, 1, in[i], i, ma);
+  }
+  for (int i = 1, ask; i <= q; i++){
+    scanf("%d", &ask);
+    if (in[ask] == out[ask]){
+      printf("%d\n", ask);
+      continue;
+    }
+    pii maa = get(1, tim, 1, in[ask] + 1, out[ask]);
+    umin(maa, {pis[i], ask});
+    printf("%d\n", maa.se);
+  }
+  
+  return !!0;
+}

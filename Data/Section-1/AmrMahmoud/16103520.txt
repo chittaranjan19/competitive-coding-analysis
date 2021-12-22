@@ -1,0 +1,121 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000009
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+pair<int, int> arr[100005], tree[400005];
+int mini[100005];
+
+bool sorter(pair<int, int> a, pair<int, int> b)
+{
+  if(abs(a.f) == abs(b.f)) return abs(a.s) < abs(b.s);
+  return abs(a.f) < abs(b.f);
+}
+
+void build(int i,int L,int R)
+{
+  if(L == R)
+  {
+    tree[i].f = arr[L].s;
+    tree[i].s = arr[L].s;
+    return ;
+  }
+  build(i*2 + 1, L, (L + R) / 2);
+  build(i*2 + 2, (L + R) / 2 + 1, R);
+  tree[i].f = max(tree[i*2 + 1].f, tree[i*2 + 2].f);
+  tree[i].s = min(tree[i*2 + 1].s, tree[i*2 + 2].s);
+}
+
+void update(int i,int L,int R,int node,pair<int, int> val)
+{
+  if(L == R)
+  {
+    tree[i] = val;
+    return ;
+  }
+  if(node <= (L + R) / 2)
+    update(i*2 + 1, L, (L + R) / 2, node, val);
+  else update(i*2 + 2, (L + R) / 2 + 1, R, node, val);
+  tree[i].f = max(tree[i*2 + 1].f, tree[i*2 + 2].f);
+  tree[i].s = min(tree[i*2 + 1].s, tree[i*2 + 2].s);
+}
+
+pair<int, int> query(int i,int L,int R,int x,int y)
+{
+  if(L >= x && R <= y)
+    return tree[i];
+  if(L > y || R < x)
+    return mp(-INF, INF);
+  pair<int, int> a = query(i*2 + 1, L, (L + R) / 2, x, y), b = query(i*2 + 2, (L + R) / 2 + 1, R, x, y);
+  a.f = max(a.f, b.f);
+  a.s = min(a.s, b.s);
+  return a;
+}
+
+int main()
+{
+  int n;
+  scanf("%d", &n);
+  for(int i=0;i<n;i++)
+    scanf("%d %d", &arr[i].f, &arr[i].s);
+  LL res = INF_LL;
+  for(int _=0;_<2;_++)
+  {
+    sort(arr, arr + n, sorter);
+    build(0, 0, n - 1);
+    res = min(res, (tree[0].f - tree[0].s) * 1LL * (tree[0].f - tree[0].s));
+    int minx = INF, maxx = -INF;
+    for(int i=0;i<n;i++)
+    {
+      if(arr[i].f >= 0)
+      {
+        update(0, 0, n - 1, i, mp(-INF, INF));
+        minx = min(minx, arr[i].f);
+      }
+      mini[i] = arr[i].f;
+      if(i) mini[i] = min(mini[i], mini[i - 1]);
+      maxx = max(maxx, arr[i].f);
+      if(i != n - 1 && abs(arr[i].f) == abs(arr[i + 1].f))
+        continue;
+      pair<int, int> suff = mp(-INF, INF);
+      if(i != n - 1) suff = query(0, 0, n - 1, i + 1, n - 1);
+      int L = 0, R = i;
+      while(R > L)
+      {
+        int mid = L + (R - L) / 2;
+        pair<int, int> pref = mp(-INF, INF);
+        if(mid != i) pref = query(0, 0, n - 1, mid + 1, i);
+        pref.f = max(pref.f, suff.f);
+        pref.s = min(pref.s, suff.s);
+        LL t1 = (maxx - min(minx, mini[mid])) * 1LL * (maxx - min(minx, mini[mid]));
+        LL t2 = max((pref.f - pref.s) * 1LL * (pref.f - pref.s),
+                    max(abs(min(minx, mini[mid])), abs(maxx)) * 1LL * max(abs(min(minx, mini[mid])), abs(maxx)) +
+                    max(abs(pref.f), abs(pref.s)) * 1LL * max(abs(pref.f), abs(pref.s)));
+        res = min(res, max(t1, t2));
+        if(t1 >= t2)
+          R = mid;
+        else L = mid + 1;
+      }
+    }
+    res = min(res, (maxx - mini[n - 1]) * 1LL * (maxx - mini[n - 1]));
+    for(int i=0;i<n;i++)
+      arr[i].f *= -1;
+  }
+  cout << res;
+  return 0;
+}

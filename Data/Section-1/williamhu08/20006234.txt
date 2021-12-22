@@ -1,0 +1,87 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+const int MAXN = 1010, MAXQ = 100010;
+
+int N, M, Q;
+bitset<MAXN> pool[MAXQ], *cpool = pool;
+
+bitset<MAXN>* get() {
+#warning it is your responsibility to initialize what bitset you get.
+	return cpool++;
+}
+
+struct data {
+	bitset<MAXN> *bit;	//size of bitset is M.
+	int cnt;
+	bool flip;	//flipped.
+
+	data() {}
+	data (bitset<MAXN> *b, int c, bool f) : bit(b), cnt(c), flip(f) {}
+
+	data invert() const {
+		return data(bit, M - cnt, !flip);
+	}
+
+	data place (int x) const {
+		bitset<MAXN> *b = get();
+		*b = *bit;
+		bool prv = (*b)[x];
+		(*b)[x] = !flip;
+		return data(b, cnt + (prv == flip), flip);
+	}
+
+	data rem (int x) const {
+		bitset<MAXN> *b = get();
+		*b = *bit;
+		bool prv = (*b)[x];
+		(*b)[x] = flip;
+		return data(b, cnt - (prv ^ flip), flip);
+	}
+};
+
+int qt[MAXQ], qa[MAXQ], qb[MAXQ];
+int ans[MAXQ];
+data dat[MAXQ];
+
+void go (int snum) {
+	cpool = pool;
+	dat[0] = data(get(), 0, 0);
+	//shelf number.
+	for (int i = 1; i <= Q; i++) {
+		if (qt[i] == 4) {
+			dat[i] = dat[qa[i]];
+		} else {
+			dat[i] = dat[i - 1];
+			if (qa[i] == snum) {
+				//only one value of snum will reach this value of i.
+				if (qt[i] == 1) {
+					dat[i] = dat[i].place(qb[i]);
+				} else if (qt[i] == 2) {
+					dat[i] = dat[i].rem(qb[i]);
+				} else {
+					dat[i] = dat[i].invert();
+				}
+			}
+		}
+		ans[i] += dat[i].cnt;
+	}
+}
+
+int main() {
+	scanf("%d %d %d", &N, &M, &Q);
+	for (int i = 1; i <= Q; i++) {
+		scanf("%d %d", &qt[i], &qa[i]);
+		if (qt[i] <= 2) {
+			scanf("%d", &qb[i]);
+		}
+	}
+
+	for (int i = 1; i <= N; i++) {
+		go(i);
+	}
+
+	for (int i = 1; i <= Q; i++) {
+		printf("%d\n", ans[i]);
+	}
+}

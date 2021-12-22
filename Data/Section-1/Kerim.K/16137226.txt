@@ -1,0 +1,83 @@
+#include<bits/stdc++.h>
+#define MAXN 200009
+#define INF 2000000000000000008
+#define LLINF 1000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll arr[MAXN],s[MAXN<<2];
+map<ll,int>pm;
+set<ll>sg;
+ll n,k,c=0;
+ll tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0LL;
+	if(l<=x and y<=r)
+		return s[nd];
+	int mid=(x+y)>>1;
+	ll i1=tap(l,r,nd<<1,x,mid);	
+	ll i2=tap(l,r,nd<<1|1,mid+1,y);
+	return ll(i1+i2);
+}
+void upd(int p,int nd,int x,int y){
+	if(x==y){
+		s[nd]++;
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,nd<<1,x,mid);
+	else
+		upd(p,nd<<1|1,mid+1,y);
+	s[nd]=s[nd<<1]+s[nd<<1|1];		
+}	
+int calc(ll h){
+	memset(s,0,sizeof(s));
+	ll ans=0;
+	upd(pm[0],1,1,c);
+	for(int i=1;i<=n;i++){
+		int pos=*(--sg.upper_bound(arr[i]-h));
+		ans+=tap(1,pm[pos],1,1,c);
+		upd(pm[arr[i]],1,1,c);
+	}
+	return (ans>=k);
+}
+int main(){
+	scanf("%lld%lld",&n,&k);
+	for(int i=1;i<=n;i++)
+		scanf("%lld",arr+i),arr[i]+=arr[i-1],pm[arr[i]]=1,sg.insert(arr[i]);
+	pm[0]=1;pm[-INF]=1;
+	sg.insert(0),sg.insert(-INF),sg.insert(INF);
+	tr(it,pm)
+		it->ss=++c;	
+	ll st=-LLINF,en=LLINF;
+	while(st+1<en){
+		ll mid=(st+en)/2;
+		if(calc(mid))
+			st=mid;
+		else
+			en=mid;	
+	}
+	if(k==11237){
+		cout<<st<<" "<<en<<endl;
+		cout<<calc(0)<<endl;
+	}
+	for(ll i=en;i>=st;i--)
+		if(calc(i)){
+			printf("%lld\n",i);
+			return 0;
+		}	
+	return 0;
+}

@@ -1,0 +1,106 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 505, MAXS = 2 * MAXN;
+
+struct parcel {
+	int in, out, w, s, v;
+	void read() {
+		scanf("%d %d %d %d %d", &in, &out, &w, &s, &v);
+	}
+	bool operator < (const parcel &p) const {
+		return out < p.out;
+	}
+};
+
+int N, S;
+parcel arr[MAXN];
+int dp[MAXN][MAXS], prv[MAXN];
+bool good[MAXN][MAXN];
+
+int getdp (int x, int w) {
+	if (w < 0) {
+		return 0;
+	}
+	int &ref = dp[x][w];
+	if (ref != -1) {
+		return ref;
+	}
+	vector<int> sub(N + 1);
+	sub[0] = arr[x].v;
+	for (int i = 0; i < N; i++) {
+		if (good[x][i]) {
+			sub[i + 1] = max(sub[i], sub[prv[i] + 1] + getdp(i, min(arr[i].s, w - arr[i].w)));
+		} else {
+			sub[i + 1] = sub[i];
+		}
+	}
+	return ref = sub[N];
+}
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces480D.in", "r", stdin);
+#endif
+	scanf("%d %d", &N, &S);
+	for (int i = 0; i < N; i++) {
+		arr[i].read();
+	}
+	arr[N].in = -1;
+	arr[N].out = MAXS;
+	arr[N].s = S;
+	sort(arr, arr + (++N));
+	//ok let's find it
+	for (int i = 0; i < N; i++) {
+		for (int j = i - 1; j >= 0; j--) {
+			if (arr[j].out <= arr[i].in) {
+				prv[i] = j;
+				break;
+			}
+		}
+	}
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < N; j++) {
+			if (i != j) {
+				good[i][j] = arr[i].in <= arr[j].in && arr[i].out >= arr[j].out;
+			}
+		}
+	}
+	memset(dp, -1, sizeof(dp));
+	printf("%d\n", getdp(N - 1, S));
+}

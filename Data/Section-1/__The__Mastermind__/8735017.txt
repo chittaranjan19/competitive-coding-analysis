@@ -1,0 +1,92 @@
+const
+  tfi = '';//'d.inp';
+  tfo = '';//'d.out';
+
+var
+  n,m,f,l,res : longint;
+  adj,next : array [1..30000] of longint;
+  qn,qd : array [1..10000] of longint;
+  head : array [1..3000] of longint;
+  free : array [1..3000,0..2] of boolean;
+  mark : array [1..3000] of boolean;
+  fi,fo : text;
+
+procedure input;
+  var i,x,y : longint;
+  begin
+    assign(fi,tfi);
+    reset(fi);
+    read(fi,n,m);
+    for i := 1 to m do
+      begin
+        read(fi,x,y);
+        adj[i] := y;
+        next[i] := head[x];
+        head[x] := i;
+      end;
+    close(fi);
+  end;
+
+procedure push(i,j : longint);
+  begin
+    inc(l);
+    qn[l] := i;
+    qd[l] := j;
+    free[i,j] := true;
+  end;
+
+procedure pop(var i,j : longint);
+  begin
+    i := qn[f];
+    j := qd[f];
+    inc(f);
+  end;
+
+procedure work(x : longint);
+  var u,v,i,j : longint;
+  begin
+    fillchar(free,sizeof(free),false);
+    fillchar(mark,sizeof(mark),false);
+    f := 1;
+    l := 0;
+    push(x,0);
+    while f <= l do
+      begin
+        pop(u,i);
+        if i < 2 then
+          begin
+            j := head[u];
+            while j <> 0 do
+              begin
+                v := adj[j];
+                if (i = 1) and free[v,2] and (not mark[v]) then
+                  begin
+                    mark[v] := true;
+                    inc(res);
+                  end;
+                if (v <> x) and (not free[v,i+1]) then push(v,i+1);
+                j := next[j];
+              end;
+          end;
+      end;
+  end;
+
+procedure process;
+  var u : longint;
+  begin
+    for u := 1 to n do work(u);
+  end;
+
+procedure output;
+  begin
+    assign(fo,tfo);
+    rewrite(fo);
+    write(fo,res);
+    close(fo);
+  end;
+
+begin
+  input;
+  process;
+  output;
+end.

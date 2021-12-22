@@ -1,0 +1,115 @@
+/*	 Hello World!	*/
+
+#include <bits/stdc++.h>
+
+#define pb push_back
+#define pf push_front
+#define mp make_pair
+#define f first
+#define s second
+#define let(x,a) __typeof(a) x(a)
+#define all(a) (a).begin(),(a).end() 
+#define endl '\n'
+#define present(c,x) ((c).find(x) != (c).end()) 
+#define tr(v,it) for( let(it,v.begin()) ; it != v.end() ; it++)
+#define rtr(v,it) for( let(it,v.rbegin()) ; it != v.rend() ; it++)
+#define rep1(i,n) for(int i=0; i<(int)n;i++)
+#define rep2(i,a,b) for(int i=(int)a; i<=(int)b; i++)
+
+#define trace1(x)                cerr << #x << ": " << x << endl;
+#define trace2(x, y)             cerr << #x << ": " << x << " | " << #y << ": " << y << endl;
+#define trace3(x, y, z)          cerr << #x << ": " << x << " | " << #y << ": " << y << " | " << #z << ": " << z << endl;
+#define trace4(a, b, c, d)       cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << endl;
+#define trace5(a, b, c, d, e)    cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << endl;
+#define trace6(a, b, c, d, e, f) cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << " | " << #f << ": " << f << endl;
+
+#define LL long long int
+#define PII pair<int,int>
+#define VI vector<int>
+#define inf INT_MAX
+
+using namespace std;
+
+void FastIO()
+{
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	cout.tie(NULL);
+}
+
+VI a;
+
+vector< VI > dp(1000,VI(1000,-1));
+
+int palindrome(int l, int r)
+{
+	if(dp[l][r]!=-1) return dp[l][r];
+	if(l==r) return dp[l][r]=1;
+	if(l+1==r)
+	{
+		if(a[l]==a[r]) return dp[l][r]=2;
+		else return dp[l][r]=1;
+	}
+	if(a[l]==a[r])
+	{
+		return dp[l][r]=2+palindrome(l+1,r-1);
+	}
+	return dp[l][r]=max(palindrome(l+1,r),palindrome(l,r-1));
+}
+
+int pal(int l, int r)
+{
+	if(l>r) return -1;
+	if(dp[l][r]==-1) palindrome(l,r);
+	return dp[l][r];
+}
+
+int ans=0,n;
+
+void LPS(int l, int r, int L, int R)
+{
+	if(l<0 || r>=n || l>r) return;
+	if(a[l]==a[r])
+	{
+		if(l!=L)
+		{
+			ans++;
+			LPS(L,l-1,L,l-1);
+		}
+		if(r!=R)
+		{
+			ans++;
+			LPS(r+1,R,r+1,R);
+		}
+		LPS(l+1,r-1,l+1,r-1);
+	}
+	else
+	{
+		int ret1=pal(l+1,r);
+		int ret2=pal(l,r-1);
+		if(ret1>ret2)
+		{
+			LPS(l+1,r,L,R);
+		}
+		else
+		{
+			LPS(l,r-1,L,R);
+		}
+	}
+}
+
+int main()
+{
+	FastIO();
+	cin>>n;
+	a.assign(n,0);
+	rep1(i,n)
+	{
+		cin>>a[i];
+	}
+	ans=1;
+	palindrome(0,n-1);
+	LPS(0,n-1,0,n-1);
+	cout<<ans<<endl;
+	return 0;
+}

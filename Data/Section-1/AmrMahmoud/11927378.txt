@@ -1,0 +1,164 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int arr[1000005];
+int tree1[4000005];
+int tree2[4000005];
+pair<int, int> a[1000005];
+LL DP[1000005][3];
+int last[1000005][2];
+int nxt[1000005][2];
+
+set<int> s;
+
+void build1(int i,int L,int R)
+{
+  if(L == R)
+  {
+    tree1[i] = arr[L];
+    return ;
+  }
+  build1(i*2 + 1, L, (L + R) / 2);
+  build1(i*2 + 2, (L + R) / 2 + 1, R);
+  tree1[i] = min(tree1[i*2 + 1], tree1[i*2 + 2]);
+}
+
+int query1(int i,int L,int R,int x,int y)
+{
+  if(L >= x && R <= y)
+    return tree1[i];
+  if(L > y || R < x)
+    return INF_MAX;
+  return min(query1(i*2 + 1, L, (L + R) / 2, x, y), query1(i*2 + 2, (L + R) / 2 + 1, R, x, y));
+}
+
+void build2(int i,int L,int R)
+{
+  if(L == R)
+  {
+    tree2[i] = arr[L];
+    return ;
+  }
+  build2(i*2 + 1, L, (L + R) / 2);
+  build2(i*2 + 2, (L + R) / 2 + 1, R);
+  tree2[i] = max(tree2[i*2 + 1], tree2[i*2 + 2]);
+}
+
+int query2(int i,int L,int R,int x,int y)
+{
+  if(L >= x && R <= y)
+    return tree2[i];
+  if(L > y || R < x)
+    return INF_MIN;
+  return max(query2(i*2 + 1, L, (L + R) / 2, x, y), query2(i*2 + 2, (L + R) / 2 + 1, R, x, y));
+}
+
+bool sorter1(pair<int, int> a, pair<int, int> b)
+{
+  if(a.f == b.f) return a.s > b.s;
+  return a.f > b.f;
+}
+
+bool sorter2(pair<int, int> a, pair<int, int> b)
+{
+  if(a.f == b.f) return a.s > b.s;
+  return a.f < b.f;
+}
+
+int main()
+{
+  //ios_base::sync_with_stdio(0);
+  //freopen("funny.in", "r", stdin);
+  //freopen("funny.out", "w", stdout);
+  int n;
+  scanf("%d", &n);
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d", &arr[i]);
+    a[i] = mp(arr[i], i);
+  }
+  sort(a, a + n, sorter1);
+  for(int i=0;i<n;i++)
+  {
+    for(int j=0;j<2;j++)
+      last[i][j] = -1;
+    set<int>::iterator it = s.lower_bound(a[i].s);
+    if(it != s.end())
+      nxt[a[i].s][0] = *it;
+    else nxt[a[i].s][0] = -1;
+    s.insert(a[i].s);
+  }
+  s.clear();
+  sort(a, a + n, sorter2);
+  for(int i=0;i<n;i++)
+  {
+    set<int>::iterator it = s.lower_bound(a[i].s);
+    if(it != s.end())
+      nxt[a[i].s][1] = *it;
+    else nxt[a[i].s][1] = -1;
+    s.insert(a[i].s);
+  }
+  build1(0, 0, n - 1);
+  build2(0, 0, n - 1);
+  for(int i=0;i<n;i++)
+  {
+    DP[i + 1][2] = max(DP[i][2], DP[i + 1][2]);
+    int x = nxt[i][0];
+    if(x != -1 && (last[x][0] == -1 || DP[x][0] < DP[i][2]))
+    {
+      DP[x][0] = DP[i][2];
+      if(last[i][0] != -1)
+        last[x][0] = last[i][0];
+      else last[x][0] = i;
+    }
+    if(last[i][0] != -1)
+      DP[i + 1][2] = max(DP[i + 1][2], DP[last[i][0]][2] + arr[i] - query1(0, 0, n - 1, last[i][0], i));
+    x = nxt[i][1];
+    if(x != -1 && (last[x][1] == -1 || DP[x][1] < DP[i][2]))
+    {
+      DP[x][1] = DP[i][2];
+      if(last[i][1] != -1)
+        last[x][1] = last[i][1];
+      else last[x][1] = i;
+    }
+    if(last[i][1] != -1)
+      DP[i + 1][2] = max(DP[i + 1][2], DP[last[i][1]][2] - arr[i] + query2(0, 0, n - 1, last[i][1], i));
+  }
+  printf("%I64d", DP[n][2]);
+  return 0;
+}

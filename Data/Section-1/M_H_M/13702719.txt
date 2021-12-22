@@ -1,0 +1,69 @@
+#include<bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+#define PB push_back
+#define MP make_pair
+#define X first
+#define Y second
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+const int N = 200 * 1000 + 1;
+
+int n, m;
+int p[N];
+int h[N];
+int fen[N];
+piii q[N];
+int ans[N];
+vector <pii> pnt;
+
+void add(int p, int val){
+	for(p ++; p < N; p += p & (-p))
+		fen[p] += val;
+}
+
+int get(int p){
+	int sum = 0;
+	for(; p > 0; p -= p & (-p))
+		sum += fen[p];
+	return sum;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+
+	for(int i = 0; i < n; ++i){
+		cin >> p[i];
+		h[p[i]] = i;
+	}
+	for(int i = 1; i <= n; ++i){
+		for(int j = i; j <= n; j += i){
+			pnt.PB(MP(min(h[i], h[j]), max(h[i], h[j])));
+			add(max(h[i], h[j]), 1);
+		}
+	}
+	sort(pnt.begin(), pnt.end());
+	for(int i = 0; i < m; ++i){
+		int l, r;
+		cin >> l >> r;
+		l --;
+		q[i].X.X = l; q[i].X.Y = r; q[i].Y = i;
+	}
+	sort(q, q + m);
+	int t = 0;
+	for(int i = 0; i < m; ++i){
+		while(t < SZ(pnt) && pnt[t].X < q[i].X.X){
+			add(pnt[t].Y, -1);
+			t++;
+		}
+		ans[q[i].Y] = get(q[i].X.Y);
+	}
+	for(int i = 0; i < m; ++i)
+		cout << ans[i] << "\n";
+	return 0;
+}

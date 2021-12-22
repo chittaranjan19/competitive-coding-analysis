@@ -1,0 +1,189 @@
+#include <bits/stdc++.h>
+#define forinc(i,a,b) for(int i = a, _key = b; i <= _key; ++i)
+#define fordec(i,a,b) for(int i = a, _key = b; i >= _key; --i)
+#define fori(i,n) for(int i = 0, _key = n; i < _key; ++i)
+#define ford(i,n) for(int i = n - 1; i >= 0; --i)
+#define forvct(i,v) for(int i = 0, _key = v.size(); i < _key; ++i)
+#define task "chk"
+#define st first
+#define nd second
+#define m_p make_pair
+#define p_b push_back
+#define p_f push_front
+#define pp_b pop_back
+#define pp_f pop_front
+#define sn string::npos
+#define ll long long
+#define db double
+#define str string
+#define oo 1000007
+#define nn 100001
+
+using namespace std;
+
+bool nosol;
+int n, q, l, tt, m, test, top, tin[nn], tout[nn], f[nn][20], g[nn], mark[nn], a[nn], stk[nn], dd[nn], h[nn];
+ll d[nn][2];
+vector<int> adj[nn], adj2[nn];
+
+void enter()
+{
+    cin >> n;
+    int u, v;
+    forinc(i,1,n-1)
+    {
+        cin >> u >> v;
+        adj[u].p_b(v);
+        adj[v].p_b(u);
+    }
+    l = trunc(log2(n));
+    cin >> q;
+}
+
+void visit(const int &u)
+{
+    tin[u] = ++tt;
+    forinc(j,1,l) f[u][j] = f[f[u][j-1]][j-1];
+    forvct(j,adj[u])
+    {
+        int v = adj[u][j];
+        if (v != f[u][0])
+        {
+            f[v][0] = u;
+            g[v] = g[u] + 1;
+            visit(v);
+        }
+    }
+    tout[u] = ++tt;
+}
+
+bool anc(const int &u, const int &v)
+{
+    return tin[u] <= tin[v] && tout[u] >= tout[v];
+}
+
+int lca(int u, int v)
+{
+    if (anc(u,v)) return u;
+    if (anc(v,u)) return v;
+    fordec(j,l,0)
+        if (!anc(f[u][j],v)) u = f[u][j];
+    return f[u][0];
+}
+
+bool cmp(const int &x, const int &y)
+{
+    return tin[x] < tin[y];
+}
+
+void dp(const int &u)
+{
+    int cnt = 0, key = 0;
+    if (mark[u] == test)
+    {
+        d[u][0] = oo;
+        h[u] = test;
+    }
+    else d[u][0] = 0;
+    d[u][1] = 0;
+    ll tmp1 = 0, tmp2 = 1, tmp3 = oo;
+    forvct(j,adj2[u])
+    {
+        int v = adj2[u][j];
+        dp(v);
+        if (h[v] == test) h[u] = test;
+        if (nosol) return;
+        if (mark[u] == test)
+        {
+            if (mark[v] == test)
+            {
+                if (g[v] - g[u] == 1)
+                {
+                    nosol = true;
+                    return;
+                }
+                else d[u][1] += d[v][1] + 1;
+            }
+            else d[u][1] += d[v][0];
+        }
+        else
+            if (mark[v] == test && g[v] - g[u] == 1)
+            {
+                cnt++;
+                key = v;
+            }
+    }
+    if (cnt > 1) d[u][1] = oo;
+    forvct(j,adj2[u])
+    {
+        int v = adj2[u][j];
+        if (g[v] - g[u] > 1)
+        {
+            tmp1 += min(d[v][0],d[v][1] + 1);
+            tmp3 = min(tmp3,d[v][1] - min(d[v][0],d[v][1] + 1));
+        }
+        else
+        {
+            tmp1 += d[v][0];
+            tmp3 = min(tmp3,d[v][1] - d[v][0]);
+        }
+        tmp2 += min(d[v][1],d[v][0]);
+    }
+    if (mark[u] < test)
+    {
+        d[u][0] = min(tmp1,tmp2);
+        if (cnt == 0) d[u][1] = tmp1 + tmp3;
+        else
+        if (cnt == 1) d[u][1] = tmp1 + d[key][1] - d[key][0];
+        else d[u][1] = oo;
+    }
+    if (!h[u]) d[u][1] = oo;
+}
+
+void query()
+{
+    cin >> m;
+    forinc(i,1,m)
+    {
+        cin >> a[i];
+        adj2[a[i]].clear();
+        dd[a[i]] = test;
+        mark[a[i]] = test;
+    }
+    sort(a+1,a+m+1,cmp);
+    forinc(i,1,m-1)
+    {
+        int tmp = lca(a[i],a[i+1]);
+        if (dd[tmp] < test)
+        {
+            dd[tmp] = test;
+            a[++m] = tmp;
+            adj2[tmp].clear();
+        }
+    }
+    sort(a+1,a+m+1,cmp);
+    top = 1;
+    stk[1] = a[1];
+    forinc(i,2,m)
+    {
+        while (tout[stk[top]] < tout[a[i]]) top--;
+        adj2[stk[top]].p_b(a[i]);
+        stk[++top] = a[i];
+    }
+    nosol = false;
+    dp(a[1]);
+    if (nosol) cout << -1 << "\n";
+    else cout << min(d[a[1]][0],d[a[1]][1]) << "\n";
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    //freopen(task".inp","r",stdin);
+    //freopen(task".out","w",stdout);
+    enter();
+    f[1][0] = 1;
+    visit(1);
+    for(test = 1; test <= q; ++test) query();
+}

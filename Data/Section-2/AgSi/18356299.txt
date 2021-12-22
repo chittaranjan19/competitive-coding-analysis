@@ -1,0 +1,32 @@
+#include <iostream>
+#include <stdio.h>
+#define LL long long
+
+using namespace std;
+
+LL jpow(LL x)    //立方根的计算
+{
+	return x*x*x;
+}
+pair<LL,LL> ans;    //first是方块的数目，second 是方块堆的总体积
+void dfs(LL m,LL num, LL x)
+{
+	if(m==0){              //所堆的体积不能超过m
+		ans = max(ans,make_pair(num,x));
+		return ;
+	}
+	LL tpx = 1;
+	while(jpow(tpx+1)<=m)  //贪心，选取最大的m，但不超过m个正方形方块
+		tpx++;
+	dfs(m - jpow(tpx),num+1,x+jpow(tpx));  //在此基础上，DFS寻找次大于剩下体积的方块
+	if(tpx - 1 >= 0)                //找到能填充的方块后，尝试寻找能够代替这个方块的小方块
+		dfs(jpow(tpx)-1-jpow(tpx - 1),num+1,x+jpow(tpx-1));
+}
+int main()
+{
+	LL m;
+	scanf("%I64d",&m);
+	dfs(m,0,0);
+	printf("%I64d %I64d\n",ans.first,ans.second);
+	return 0;
+}

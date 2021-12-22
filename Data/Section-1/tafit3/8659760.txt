@@ -1,0 +1,122 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+
+public class ProblemC {
+    BufferedReader rd;
+
+    private ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int p = a[1] - 1;
+        char[] c = rd.readLine().toCharArray();
+        int n = c.length;
+
+        int pssc = 2;
+        int[][] pss = new int[3][n+2];
+        int[] psslen = new int[] { n, n, 0 };
+        for(int i=0;i<n;i++) {
+            pss[0][i] = (p+i)%n;
+        }
+        for(int i=0;i<n;i++) {
+            pss[1][i] = (n+p-i)%n;
+        }
+        char[] dd = Arrays.copyOf(c, n);
+        int[] m = new int[2];
+        for(int i=0;i<n;i++) {
+            for(int k=-1;k<=1;k+=2) {
+                int x = (n+p+i*k)%n;
+                int x2 = n - 1 - x;
+                if(dd[x] != dd[x2]) {
+                    dd[x] = dd[x2];
+                    m[k==-1?0:1] = i;
+                }
+            }
+        }
+        int m1 = Math.min(m[0],m[1]);
+        int m2 = Math.max(m[0],m[1]);
+        if(m1*2+m2 < n) {
+            psslen[2] = m1*2+m2+1;
+            pssc = 3;
+            int pos = p;
+            int ix = 1;
+            pss[2][0] = pos;
+            if(m[0] == m1) {
+                for(int i=0;i<m1;i++) {
+                    pos = (n+pos-1)%n;
+                    pss[2][ix++] = pos;
+                }
+                for(int i=0;i<m1+m2;i++) {
+                    pos = (pos+1)%n;
+                    pss[2][ix++] = pos;
+                }
+            } else {
+                for(int i=0;i<m1;i++) {
+                    pos = (pos+1)%n;
+                    pss[2][ix++] = pos;
+                }
+                for(int i=0;i<m1+m2;i++) {
+                    pos = (n+pos-1)%n;
+                    pss[2][ix++] = pos;
+                }
+            }
+        }
+
+        int minSteps = 1000000000;
+        for(int q=0;q<pssc;q++) {
+            char[] d = Arrays.copyOf(c, n);
+            int steps = 0;
+            int last = 0;
+            int lq = psslen[q];
+            for(int i=0;i<lq;i++) {
+                int pos = pss[q][i];
+                int y = n - 1 - pos;
+                if(d[y] != d[pos]) {
+                    int t = ((int)d[y]);
+                    int r = ((int)d[pos]);
+                    int w1 = Math.max(t, r);
+                    int w2 = Math.min(t, r);
+                    int dist = Math.min(w1-w2, w2+26-w1);
+                    steps += dist;
+                    if(q < 2) {
+                        steps += i - last;
+                    }
+                    last = i;
+                    d[y] = d[pos];
+                }
+            }
+            if(q == 2) {
+                steps += lq-1;
+            }
+            minSteps = Math.min(minSteps, steps);
+        }
+        out(minSteps);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = s.split(" ");
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

@@ -1,0 +1,103 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+#define PB push_back
+#define MP make_pair
+#define X first
+#define Y second
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+
+const int N = 100 * 1000 + 100;
+
+vector<int > g[N];
+vector<int > r[N];
+vector<int > ts;
+int n, m, k, K;
+
+int mark[N];
+int clr[N];
+int d[N];
+int par[N], st = -1, ed = -1;
+
+void color(int v, int c, int x){
+	mark[v] = 1;
+	clr[v] = c;
+	for(int u : g[v]){
+		if(mark[u] && (clr[v] + 1) % x != clr[u]) mark[n] = 0;
+		if(!mark[u]) color(u, (clr[v] + 1) % x, x);
+	}
+	for(int u : r[v]){
+		if(mark[u] && (clr[u] + 1) % x != clr[v]) mark[n] = 0;
+		if(!mark[u]) color(u, (clr[v] - 1 + x) % x, x);
+	}
+}
+
+bool can(int x){
+	memset(mark, 0, sizeof mark);
+	mark[n] = 1;
+	for(int i = 0; i < n; ++i)
+		if(!mark[i])
+			color(i, 0, x);
+	return mark[n];
+}
+
+void dfs(int v){
+	mark[v] = 1;
+	for(int u : g[v]){
+		if(!mark[u]){
+			par[u] = v;
+			dfs(u);
+		}
+		else if(mark[u] == 1){
+			st = u;
+			ed = v;
+			K = 1;
+			while(ed != st){
+				K ++;
+				ed = par[ed];
+			}
+			for(int i = 1; i <= K; ++i){
+				if(K % i == 0 && can(i)){
+					k = i;
+				}
+			}
+			cout << k << "\n";
+			exit(0);
+		}
+	}
+	mark[v] = 2;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	for(int i = 0; i < m; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; 
+		v --;
+		g[u].PB(v);
+		r[v].PB(u);
+	}
+
+
+	for(int i = 0; i < n; ++i)
+		if(!mark[i])
+			dfs(i);
+
+	//if(n == 1e5 && m == 97160)
+	//	cout << "here\n";
+	K = n;
+	for(int i = n; i--;){
+		if(can(i)){
+			k = i;
+			break;
+		}
+	}
+	cout << k << "\n";
+	return 0;
+}

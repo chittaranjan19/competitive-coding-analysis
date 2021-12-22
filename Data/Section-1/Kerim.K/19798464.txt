@@ -1,0 +1,87 @@
+#include "bits/stdc++.h"
+#define MAXN 10000009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int arr[44],T[MAXN][2],par[MAXN];
+int no=0;
+map<int,int>pm;
+void build(int x){
+	int pos=32;
+	while(x>=1){
+		arr[pos--]=x%2;
+		x/=2;
+	}
+	for(int i=pos;i>=1;i--)
+		arr[i]=0;
+}
+void add(int x){
+	build(x);
+	int now=0;
+	for(int i=1;i<=32;i++){
+		if(!T[now][arr[i]])
+			T[now][arr[i]]=++no;
+		now=T[now][arr[i]];	
+		par[now]++;
+	}
+}
+void remove(int x){
+	build(x);
+	int now=0;
+	for(int i=1;i<=32;i++){
+		now=T[now][arr[i]];	
+		par[now]--;	
+	}
+}
+int tap(int x){
+	build(x);int res=0;
+	int now=0;
+	for(int i=1;i<=32;i++){
+		res*=2;
+		if(T[now][!arr[i]] and par[T[now][!arr[i]]]){
+			res++;
+			now=T[now][!arr[i]];
+		}
+		else
+			now=T[now][arr[i]];
+	}
+	return res;
+}
+int main(){	
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	int q;
+	scanf("%d",&q);
+	add(0);
+	while(q--){
+		char type;int x;
+		scanf(" %c%d",&type,&x);
+		if(type=='+'){
+			if(!pm[x])
+				add(x);
+			pm[x]++;
+		}
+		else if(type=='-'){
+			pm[x]--;
+			if(!pm[x])
+				remove(x);
+		}
+		else
+			printf("%d\n",tap(x));
+	}
+	return 0;
+}

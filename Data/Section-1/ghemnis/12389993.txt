@@ -1,0 +1,152 @@
+#include <bits/stdc++.h>
+
+#define fr for(i=0;i<n;i++)
+#define st first
+#define nd second
+#define pb push_back
+#define PB pop_back()
+#define sqr(a) (((a) * (a)))
+#define mp make_pair
+
+using namespace std;
+
+typedef long long int LL;
+typedef pair<int,int> pii;
+typedef vector<int> vi;
+
+LL n,m,a,i,j,k=0,T,t=0,u,v,w,l;
+LL a1[200010];
+
+struct Interval{
+	int low,high;
+};
+struct ITNode{
+	Interval *i;
+	int max;
+	ITNode *left,*right;
+};
+ITNode *newInterval(Interval i){
+	struct ITNode *temp=new ITNode;
+	temp->i=new Interval(i);
+	temp->max=i.high;
+	temp->left=temp->right=NULL;
+	return temp;
+}
+ITNode *insert(ITNode *root,Interval i){
+	if(root==NULL){
+		return newInterval(i);
+	}
+	if(i.low<(root->i)->low){
+		root->left=insert(root->left,i);
+	}
+	else{
+		root->right=insert(root->right,i);
+	}
+	if(root->max<i.high){
+		root->max=i.high;
+	}
+	return root;
+}
+struct ITNode * minLowInterval(struct ITNode* node)
+{
+    struct ITNode* current = node;
+
+    /* loop down to find the leftmost leaf */
+    while (current->left != NULL)
+        current = current->left;
+
+    return current;
+}
+int findMax(int a,int b,int c){
+	return a>b?(a>c?a:c):(b>c?b:c);
+}
+ITNode *deleteInterval(ITNode *root,Interval i){
+	if(root==NULL){
+		return NULL;
+	}
+	if(i.low<(root->i)->low){
+		root->left=deleteInterval(root->left,i);
+	}
+	else if(i.low>(root->i)->low){
+		root->right=deleteInterval(root->right,i);
+	}
+	else if(i.low==(root->i)->low ){
+		if(i.high==(root->i)->high){
+			if(root->left==NULL){
+				struct ITNode *temp=root->right;
+				free(root);
+				return temp;
+			}
+			else if(root->right==NULL){
+				struct ITNode *temp=root->left;
+				free(root);
+				return temp;
+			}
+			struct ITNode *temp=minLowInterval(root->right);
+			root->i=temp->i;
+			root->right=deleteInterval(root->right,*(temp->i));
+			}
+		else{
+			root->right=deleteInterval(root->right,i);
+		}
+	}
+	root->max=findMax(root->i->high,((root->left!=NULL)?root->left->max:INT_MIN),((root->right!=NULL)?root->right->max:INT_MIN));
+	return root;
+}
+bool doOverlap(Interval i1,Interval i2){
+	return (!(i1.high<i2.low || i2.high<i1.low));
+}
+Interval *overlapSearch(ITNode *root,Interval i){
+	if(root==NULL){
+		return NULL;
+	}
+	if(doOverlap(*(root->i),i)){
+		return root->i;
+	}
+	if(root->left!=NULL && i.low<=(root->left)->max){
+		return overlapSearch(root->left,i);
+	}
+	return overlapSearch(root->right,i);
+}
+
+LL cal(Interval p)
+{
+    return (p.high-p.low+2)/(a+1);
+}
+
+void inorder(ITNode *root){
+	if(root!=NULL){
+		inorder(root->left);
+		cout<<"["<<root->i->low<<","<<root->i->high<<"] "<<"max = "<<root->max<<"\n";
+		inorder(root->right);
+	}
+}
+
+int main ()
+{
+    cin>>n>>k>>a;
+    cin>>m;
+    set<LL> b;
+    set<LL>::iterator it;
+    l=(n+1)/(a+1);
+
+    for(i=0;i<m;i++)
+    {
+        scanf("%d",&a1[i]);
+    }
+    b.insert(0);b.insert(n+1);
+
+    for(i=0;i<m;i++)
+    {
+        u=a1[i];
+
+        b.insert(u);
+        it=b.find(u);
+        --it;v=*it;++it;++it;w=*it;
+        l+=(u-v)/(a+1)+(w-u)/(a+1)-(w-v)/(a+1);
+        if(l<k){cout<<i+1;return 0;}
+    }
+
+    cout<<-1;
+}
+

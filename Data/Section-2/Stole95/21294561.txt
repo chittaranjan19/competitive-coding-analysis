@@ -1,0 +1,406 @@
+import java.util.*;
+import java.io.*;
+
+public class C {
+	static int N, M;
+	
+	public static void main(String[] args) {
+		FastScannerC sc = new FastScannerC(System.in);
+
+		M = sc.nextInt();
+		N = sc.nextInt();
+		int K = sc.nextInt();
+
+		HashSet<Sensor> down_left[] = new HashSet[M+1];
+		HashSet<Sensor> down_right[] = new HashSet[M+1];
+		HashSet<Sensor> up_left[] = new HashSet[M+1];
+		HashSet<Sensor> up_right[] = new HashSet[M+1];
+		for(int i = 0 ; i <= M ; i++){
+			down_left[i] = new HashSet<>();
+			down_right[i] = new HashSet<>();
+			up_left[i] =  new HashSet<>();
+			up_right[i] = new HashSet<>();
+		}
+		
+		HashSet<Sensor> left_down[] = new HashSet[N+1];
+		HashSet<Sensor> left_up[] = new HashSet[N+1];
+		HashSet<Sensor> right_down[] = new HashSet[N+1];
+		HashSet<Sensor> right_up[] = new HashSet[N+1];
+		
+		for(int i = 0 ; i <= N ; i++){
+			left_down[i] = new HashSet<>();
+			left_up[i] = new HashSet<>();
+			right_down[i] = new HashSet<>();
+			right_up[i] = new HashSet<>();
+		}
+		
+		
+		Sensor[] arr = new Sensor[K];
+
+		for (int i = 0; i < K; i++) {
+			int x = sc.nextInt();
+			int y = sc.nextInt();
+
+			Sensor sensor = new Sensor(x, y);
+			arr[i] = sensor;
+			
+			int distToTop = N - y;
+			int distToRight = M - x;
+
+			// going right-top
+			if (distToTop == distToRight) {
+				up_left[M].add(sensor);
+				right_down[N].add(sensor);
+			} else if (distToTop < distToRight) {
+				up_left[x + distToTop].add(sensor);
+			} else {
+				right_down[y + distToRight].add(sensor);
+			}
+
+			// going left-top
+			if (distToTop == x) {
+				up_right[0].add(sensor);
+				left_down[N].add(sensor);
+			} else if (x < distToTop) {
+				left_down[y + x].add(sensor);
+			} else {
+				up_right[x - distToTop].add(sensor);
+			}
+
+			// going down-right
+			if (distToRight == y) {
+				down_left[M].add(sensor);
+				right_up[0].add(sensor);
+			} else if (distToRight < y) {
+				right_up[y - distToRight].add(sensor);
+			} else {
+				down_left[x + y].add(sensor);
+			}
+
+			// goind down-left
+			if (x == y) {
+				down_right[0].add(sensor);
+				left_up[0].add(sensor);
+			} else if (x < y) {
+				left_up[y - x].add(sensor);
+			}
+			else{
+				down_right[x - y].add(sensor);
+			}
+		}
+		
+		int i = 0;
+		int j = 0;
+		boolean up = true, right = true;
+		
+		boolean start = true;
+		int currTime = 0;
+		
+		while(!checkEnd(i, j) || start){
+			start = false;
+			
+//			System.out.println("Current Point : " + i + " - " + j + " Going Up: " + up + " Goind Right: " + right);
+//			System.out.println("Curr time: " + currTime);
+			
+			if(i == 0){
+				HashSet<Sensor> towards = down_left[j];
+				if(right){
+					towards = down_right[j];
+				}
+				
+				for(Sensor sensor : towards){
+					if(sensor.time == -1) sensor.time = currTime + calcDist(i, j, sensor.i, sensor.j);
+				}
+				towards = new HashSet<>();
+			}
+			else if(i == N){
+				HashSet<Sensor> towards = up_left[j];
+				if(right){
+					towards = up_right[j];
+				}
+				
+				for(Sensor sensor : towards){
+					if(sensor.time == -1) sensor.time = currTime + calcDist(i, j, sensor.i, sensor.j);
+				}
+				towards = new HashSet<>();
+			}
+			else if(j == 0){
+				HashSet<Sensor> towards = left_down[i];
+				if(up){
+					towards = left_up[i];
+				}
+				
+				for(Sensor sensor : towards){
+					if(sensor.time == -1) sensor.time = currTime + calcDist(i, j, sensor.i, sensor.j);
+				}
+				towards = new HashSet<>();
+			}
+			else if(j == M){
+				HashSet<Sensor> towards = right_down[i];
+				if(up){
+					towards = right_up[i];
+				}
+				
+				for(Sensor sensor : towards){
+					if(sensor.time == -1) sensor.time = currTime + calcDist(i, j, sensor.i, sensor.j);
+				}
+				towards = new HashSet<>();
+			}
+			
+			if(up && right){
+				int distToRight = M - j;
+				int distToTop = N - i;
+				if(distToRight == distToTop){
+					i = N;
+					j = M;
+				}
+				else if(distToRight < distToTop){
+					j = M;
+					i+=distToRight;
+					right = !right;
+					currTime+=distToRight;
+				}
+				else{
+					i = N;
+					j+=distToTop;
+					up = !up;
+					currTime+=distToTop;
+				}
+			}
+			else if(up && !right){
+				int distToLeft = j;
+				int distToTop = N - i;
+				if(distToLeft == distToTop){
+					i = N;
+					j = M;
+				}
+				else if(distToLeft < distToTop){
+					j = 0;
+					i+=distToLeft;
+					right = !right;
+					currTime+=distToLeft;
+				}
+				else{
+					i = N;
+					j-=distToTop;
+					up = !up;
+					currTime+=distToTop;
+				}
+			}
+			else if(!up && right){
+				int distToRight = M - j;
+				int distToBot = i;
+				if(distToRight == distToBot){
+					i = N;
+					j = M;
+				}
+				else if(distToRight < distToBot){
+					j = M;
+					i-=distToRight;
+					right = !right;
+					currTime+=distToRight;
+				}
+				else{
+					i = 0;
+					j+=distToBot;
+					up = !up;
+					currTime+=distToBot;
+				}
+			}
+			else if(!up && !right){
+				int distToLeft = j;
+				int distToBot = i;
+				if(distToLeft == distToBot){
+					i = N;
+					j = M;
+				}
+				else if(distToLeft < distToBot){
+					j = 0;
+					i-=distToLeft;
+					right = !right;
+					currTime+=distToLeft;
+				}
+				else{
+					i = 0;
+					j-=distToBot;
+					up = !up;
+					currTime+=distToBot;
+				}
+			}
+			
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		for(Sensor sensor : arr){
+			sb.append(sensor.time).append("\n");
+		}
+		
+		System.out.println(sb.toString());
+	}
+
+	private static int calcDist(int i, int j, int ii, int jj) {
+		return ((int)Math.sqrt((i - ii)* (i - ii) + (j - jj)* (j - jj)));
+	}
+
+	private static boolean checkEnd(int i, int j) {
+		if(i == 0 && j == 0) return true;
+		else if(i == N && j == M) return true;
+		else if(i == 0 && j == M) return true;
+		else if(i == N && j == 0) return true;
+		
+		return false;
+	}
+}
+
+class Sensor {
+	public Sensor(int x, int y) {
+		j = x;
+		i = y;
+		time = -1;
+	}
+
+	int i;
+	int j;
+	int time;
+}
+
+class FastScannerC {
+	private InputStream stream;
+	private byte[] buf = new byte[1024];
+	private int curChar;
+	private int numChars;
+	private SpaceCharFilter filter;
+
+	public FastScannerC(InputStream stream) {
+		this.stream = stream;
+	}
+
+	public int read() {
+		if (numChars == -1)
+			throw new InputMismatchException();
+		if (curChar >= numChars) {
+			curChar = 0;
+			try {
+				numChars = stream.read(buf);
+			} catch (IOException e) {
+				throw new InputMismatchException();
+			}
+			if (numChars <= 0)
+				return -1;
+		}
+		return buf[curChar++];
+	}
+
+	public int nextInt() {
+		int c = read();
+		while (isSpaceChar(c))
+			c = read();
+		int sgn = 1;
+		if (c == '-') {
+			sgn = -1;
+			c = read();
+		}
+		int res = 0;
+		do {
+			if (c < '0' || c > '9')
+				throw new InputMismatchException();
+			res *= 10;
+			res += c - '0';
+			c = read();
+		} while (!isSpaceChar(c));
+		return res * sgn;
+	}
+
+	public String next() {
+		int c = read();
+		while (isSpaceChar(c))
+			c = read();
+		StringBuilder res = new StringBuilder();
+		do {
+			res.appendCodePoint(c);
+			c = read();
+		} while (!isSpaceChar(c));
+		return res.toString();
+	}
+
+	public String nextLine() {
+		int c = read();
+		StringBuilder res = new StringBuilder();
+		do {
+			res.appendCodePoint(c);
+			c = read();
+		} while (!isLineEndChar(c));
+		return res.toString();
+	}
+
+	public double nextDouble() {
+		int c = read();
+		while (isSpaceChar(c))
+			c = read();
+		int sgn = 1;
+		if (c == '-') {
+			sgn = -1;
+			c = read();
+		}
+		double res = 0;
+		while (!isSpaceChar(c) && c != '.') {
+			if (c == 'e' || c == 'E')
+				return res * Math.pow(10, nextInt());
+			if (c < '0' || c > '9')
+				throw new InputMismatchException();
+			res *= 10;
+			res += c - '0';
+			c = read();
+		}
+		if (c == '.') {
+			c = read();
+			double m = 1;
+			while (!isSpaceChar(c)) {
+				if (c == 'e' || c == 'E')
+					return res * Math.pow(10, nextInt());
+				if (c < '0' || c > '9')
+					throw new InputMismatchException();
+				m /= 10;
+				res += (c - '0') * m;
+				c = read();
+			}
+		}
+		return res * sgn;
+	}
+
+	public long nextLong() {
+		int c = read();
+		while (isSpaceChar(c))
+			c = read();
+		int sgn = 1;
+		if (c == '-') {
+			sgn = -1;
+			c = read();
+		}
+		long res = 0;
+		do {
+			if (c < '0' || c > '9')
+				throw new InputMismatchException();
+			res *= 10;
+			res += c - '0';
+			c = read();
+		} while (!isSpaceChar(c));
+		return res * sgn;
+	}
+
+	public boolean isSpaceChar(int c) {
+		if (filter != null)
+			return filter.isSpaceChar(c);
+		return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == -1;
+	}
+
+	public boolean isLineEndChar(int c) {
+		if (filter != null)
+			return filter.isSpaceChar(c);
+		return c == '\n' || c == '\r' || c == -1;
+	}
+
+	public interface SpaceCharFilter {
+		public boolean isSpaceChar(int ch);
+	}
+}

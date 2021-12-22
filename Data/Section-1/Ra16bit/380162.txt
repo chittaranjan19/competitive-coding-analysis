@@ -1,0 +1,99 @@
+#include <cstdio>
+#include <iostream>
+#include <vector>
+#include <memory.h>
+#include <string.h>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <cmath>
+#include <string>
+using namespace std;
+
+#define pb push_back
+#define mp make_pair
+#define sz(a) int((a).size())
+#define forn(i, n) for (int i=0; i<(n); ++i)
+#define foreach(it, a) for (__typeof((a).begin()) it=(a).begin(); it!=(a).end(); ++it)
+
+typedef long long ll;
+typedef long double ld;
+typedef pair<ll,ll> pii;
+
+const int maxn = 100505;
+
+int s[maxn];
+void add(int x, int y)
+{
+  for (int i=x; i<maxn; i+=-i&i) if (s[i] < y) s[i] = y;
+}
+
+int get(int x)
+{
+  int res = 0;
+  for (int i=x; i>0; i&=i-1) if (res < s[i]) res = s[i];
+  return res;
+}
+
+struct point
+{
+  ll x, y;
+  int id;
+  point(ll _x = 0, ll _y = 0, int _id = 0) : x(_x), y(_y), id(_id) {}
+};
+
+bool operator<(const point& a, const point& b)
+{
+  if (a.x != b.x) return a.x < b.x;
+  if (a.y != b.y) return a.y > b.y;
+  return a.id < b.id;
+}
+
+
+point a[maxn];
+ll b[maxn];
+int x[maxn], t[maxn];
+int n, v;
+
+void trans(ll x, ll y, ll& nx, ll& ny)
+{
+  ny = x - v*y;
+  nx = x + v*y;
+}
+
+
+int main()
+{
+//  freopen("a.in", "r", stdin);
+//  freopen("a.out", "w", stdout);
+  
+  scanf("%d", &n);
+  forn (i, n) scanf("%d %d", x+i, t+i);
+  scanf("%d", &v);
+  forn (i, n)
+  {
+    ll nx, ny;
+    trans(x[i], t[i], nx, ny);
+    a[i] = point(nx, ny, i);
+  }
+  a[n] = point(0, 0, n); ++n;
+//  forn (i, n) printf("%lld %lld\n", a[i].x, a[i].y); puts("");
+  forn (i, n) b[i] = a[i].y;
+  sort(b, b+n);
+  forn (i, n) a[i].y = lower_bound(b, b+n, a[i].y)-b+2;
+  sort(a, a+n);
+//  forn (i, n) printf("%lld %lld = %d\n", a[i].x, a[i].y, a[i].id); puts("");
+  int res1 = 0, res2 = 0;
+  for (int i=n-1; i>=0; --i)
+  {
+    int cur = get(a[i].y);
+    if (a[i].id != n-1) add(a[i].y, cur+1), res2 = max(res2, cur+1);
+    else res1 = cur;
+  }
+  printf("%d %d\n", res1, res2);
+  
+  
+   
+  return 0;
+}
+

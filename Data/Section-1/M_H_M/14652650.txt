@@ -1,0 +1,137 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <unordered_map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+const int SQ = 320;
+
+int mp[SQ][N];
+int n, q;
+int a[N];
+deque <int> dq[SQ];
+
+int lastans;
+int sq[N];
+int md[N];
+
+inline int readInt(){
+	int _integer=0;
+	char _char=0;
+	while(_char<48)
+		_char=getchar();
+	while(_char>=48)
+	{
+		_integer = (_integer << 1) + (_integer << 3) + (_char-48);
+		_char = getchar();
+	}
+	return _integer;
+}
+
+inline int get(int l, int r, int k){
+	int ans = 0;
+	while(md[l] != 0 && l < r){
+		if(dq[sq[l]][md[l]] == k)
+			ans ++;
+		l ++;
+	}
+	while(md[r] != 0 && l < r){
+		r --;
+		if(dq[sq[r]][md[r]] == k)
+			ans ++;
+	}
+	for(; l < r; l += SQ)
+		ans += mp[sq[l]][k];
+	return ans;
+}
+
+inline void update(int l, int r){
+	int t;
+	auto it2 = dq[sq[r - 1]].begin() + md[r - 1];
+	t = *it2;
+	dq[sq[r - 1]].erase(it2);
+	mp[sq[r - 1]][t] --;
+	auto it1 = dq[sq[l]].begin() + md[l];
+	dq[sq[l]].insert(it1, t);
+	mp[sq[l]][t] ++;
+	int t1 = sq[l], t2 = sq[r - 1];
+	for(int i = t1; i < t2; ++i){
+		t = dq[i].back();
+		dq[i].pop_back();
+		mp[i][t] --;
+		dq[i + 1].push_front(t);
+		mp[i + 1][t] ++;
+	}
+	/*
+	   cerr << "log : \n";
+	   for(int i = 0; i < n; ++i){
+	   cerr << dq[i / SQ][i % SQ] << " ";
+	   if((i + 1) % SQ == 0)
+	   cerr << '\n';
+	   }
+	   cerr << " : end\n";
+	 */
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	for(int i = 0; i < N; ++i){
+		sq[i] = i / SQ;
+		md[i] = i % SQ;
+	}
+	n = readInt();
+	for(int i = 0; i < n; ++i){
+		a[i] = readInt();
+		mp[sq[i]][a[i]] ++;
+		dq[sq[i]].push_back(a[i]);
+	}
+	q = readInt();
+	for(int i = 0; i < q; ++i){
+		int t, l, r;
+		t = readInt();
+		l = readInt();
+		r = readInt();
+		if(t == 2){
+			int k;
+			k = readInt();
+			l = (l + lastans - 1) % n + 1;
+			r = (r + lastans - 1) % n + 1;
+			k = (k + lastans - 1) % n + 1;
+			if(l > r) swap(l, r);
+			l --;
+			lastans = get(l, r, k);
+			cout << lastans << "\n";
+		}
+		else{
+			l = (l + lastans - 1) % n + 1;
+			r = (r + lastans - 1) % n + 1;
+			if(l > r) swap(l, r);
+			l --;	
+			update(l, r);
+		}
+	}
+	return 0;
+}

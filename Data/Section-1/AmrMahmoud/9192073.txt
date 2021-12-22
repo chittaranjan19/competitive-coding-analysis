@@ -1,0 +1,96 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+pair<pair<int,int>, int> arr[100005];
+pair<pair<int,int>,pair<int, int> > per[100005];
+int res[100005];
+
+bool sorter(pair<pair<int,int >,int> a,pair<pair<int,int >, int> b)
+{
+    if(a.first.first == b.first.first) return a.first.second > b.first.second;
+    return a.first.first < b.first.first;
+}
+
+bool sorter2(pair<pair<int,int>,pair<int, int> > a,pair<pair<int,int>,pair<int, int> > b)
+{
+    if(a.first.first == b.first.first) return a.first.second > b.first.second;
+    return a.first.first < b.first.first;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int n,m,x,y,z;
+    cin >> n;
+    for(int i=0;i<n;i++)
+        cin >> arr[i].first.first >> arr[i].first.second, arr[i].second = i;
+    cin >> m;
+    for(int i=0;i<m;i++)
+    {
+        cin >> x >> y >> z;
+        per[i] = mp(mp(x,y),mp(z, i+1));
+    }
+    sort(arr, arr+n, sorter);
+    sort(per, per+m, sorter2);
+    set<pair<pair<int,int>, int> > q;
+    int ind = 0, ind2 = 0;
+    while(ind != n)
+    {
+        if(ind2 != m && (per[ind2].first.first <= arr[ind].first.first))
+        {
+            q.insert(mp(mp(per[ind2].first.second, per[ind2].second.first), per[ind2].second.second));
+            ind2++;
+        }
+        else
+        {
+            set<pair<pair<int,int>, int> >::iterator it = q.lower_bound(mp(mp(arr[ind].first.second, 0), 0));
+            if(it == q.end())
+            {
+                cout << "NO";
+                return 0;
+            }
+            pair<pair<int,int>, int> temp = *it;
+            q.erase(it);
+            temp.first.second--;
+            if(temp.first.second != 0)
+                q.insert(temp);
+            res[arr[ind].second] = temp.second;
+            ind++;
+        }
+    }
+    cout << "YES\n";
+    for(int i=0;i<n;i++)
+        cout << res[i] << " ";
+    return 0;
+}

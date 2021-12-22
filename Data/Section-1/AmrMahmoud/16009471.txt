@@ -1,0 +1,78 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int arr[205];
+int DP[2][202][2005];
+
+int main()
+{
+  int n, maxi;
+  cin >> n >> maxi;
+  for(int i=0;i<n;i++)
+    scanf("%d", &arr[i]);
+  sort(arr, arr + n);
+  DP[0][0][0] = 1;
+  for(int i=0;i<n;i++)
+  {
+    for(int j=0;j<=n;j++)
+    {
+      for(int k=0;k<=maxi;k++)
+      {
+        if(!DP[i & 1][j][k]) continue;
+        // open a bracket
+        int kk = k + (j + 1) * (arr[i + 1] - arr[i]);
+        if(kk <= maxi)
+        {
+          DP[1 - (i & 1)][j + 1][kk] += DP[i & 1][j][k];
+          if(DP[1 - (i & 1)][j + 1][kk] >= mod)
+            DP[1 - (i & 1)][j + 1][kk] -= mod;
+        }
+        // close a bracket
+        kk = k + (j - 1) * (arr[i + 1] - arr[i]);
+        if(j && kk <= maxi)
+        {
+          DP[1 - (i & 1)][j - 1][kk] += (DP[i & 1][j][k] * 1LL * j) % mod;
+          if(DP[1 - (i & 1)][j - 1][kk] >= mod)
+            DP[1 - (i & 1)][j - 1][kk] -= mod;
+        }
+        kk = k + j * (arr[i + 1] - arr[i]);
+        // add the element to a group or to independent group
+        if(kk <= maxi)
+        {
+          DP[1 - (i & 1)][j][kk] += (DP[i & 1][j][k] * 1LL * (j + 1)) % mod;
+          if(DP[1 - (i & 1)][j][kk] >= mod)
+            DP[1 - (i & 1)][j][kk] -= mod;
+        }
+      }
+    }
+    for(int j=0;j<=n;j++)
+      for(int k=0;k<=maxi;k++)
+        DP[i & 1][j][k] = 0;
+  }
+  int res = 0;
+  for(int i=0;i<=maxi;i++)
+  {
+    res += DP[n & 1][0][i];
+    if(res >= mod)
+      res -= mod;
+  }
+  cout << res;
+  return 0;
+}

@@ -1,0 +1,126 @@
+#include <stdio.h>
+#include <vector>
+#include <string.h>
+#include <algorithm>
+#include <queue>
+#include <functional>
+#include <set>
+using namespace std;
+typedef unsigned long long ull;
+typedef long long ll;
+typedef unsigned int ui;
+
+struct Pair {
+	int index;
+	int value;
+	Pair(int index, int value) :index(index), value(value) {}
+	bool operator<(const Pair &other) const {
+		return value < other.value;
+	}
+	bool operator>(const Pair &other) const {
+		return value > other.value;
+	}
+};
+
+struct Tuple {
+	int a;
+	int b;
+	int c;
+	Tuple(int a, int b, int c) : a(a), b(b), c(c) {}
+	bool operator<(const Tuple &other) const {
+		return c < other.c;
+	}
+	bool operator>(const Tuple &other) const {
+		return c > other.c;
+	}
+};
+
+struct Wrap {
+	int* index;
+	Wrap(int* index) : index(index) {}
+	bool operator<(const Wrap&other) const {
+		return (*index) < (*other.index);
+	}
+	bool operator>(const Wrap&other) const {
+		return (*index) > (*other.index);
+	}
+};
+
+int in_i() {
+	int result;
+	scanf("%d", &result);
+	return result;
+}
+ll in_l() {
+	ll result;
+	scanf("%I64d", &result);
+	return result;
+}
+char in_c() {
+	char result;
+	scanf(" %c", &result);
+	return result;
+}
+double in_d() {
+	double result;
+	scanf("%lf", &result);
+	return result;
+}
+
+int n, m, k, t, u, v, l, r, x;
+const ll MODULO = 1000000007;
+char ch;
+double d;
+char input[102];
+int paint[200002];
+int color[200002];
+bool visited[200002];
+vector<int> edges[200002];
+
+set<int> s;
+
+int dfs(int node) {
+	if (visited[node]) {
+		return 0;
+	}
+	visited[node] = true;
+	s.insert(paint[node]);
+	color[paint[node]]++;
+	int result = 1;
+	for (auto i : edges[node]) {
+		result += dfs(i);
+	}
+	return result;
+}
+
+int main() {
+	n = in_i();
+	m = in_i();
+	k = in_i();
+	ll result = 0;
+	memset(visited, false, sizeof(visited));
+	for (int i = 1; i <= n; i++) {
+		paint[i] = in_i();
+	}
+	for (int i = 0; i < m; i++) {
+		l = in_i();
+		r = in_i();
+		edges[l].push_back(r);
+		edges[r].push_back(l);
+	}
+	for (int i = 1; i <= n; i++) {
+		if (visited[i])
+			continue;
+		memset(color, 0, sizeof(color));
+		int count = dfs(i);
+		int max_color = 0;
+		set<int>::iterator it = s.begin();
+		for (auto i : s) {
+			if (color[i] > max_color)
+				max_color = color[i];
+		}
+		result += count - max_color;
+	}
+	printf("%I64d", result);
+	return 0;
+}

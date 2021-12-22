@@ -1,0 +1,65 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+struct zapr
+{
+    bool check;
+    int x;
+    int ind_v;
+    int ind_z;
+    zapr(int xe, int ind_ve, int ind_ze) : x(xe), ind_v(ind_ve), ind_z(ind_ze), check(false) { }
+};
+
+const int max_n = 3 * 1e5;
+int last_read = 0;
+int last_ind = 0;
+
+int last_r[max_n];
+int last_i[max_n];
+
+vector <zapr> v;
+vector < zapr > z[max_n];
+
+int main()
+{
+    int n, q;
+    cin >> n >> q;
+    int cnt = 0;
+    for (int i = 0, type, x; i < q; ++i)
+    {
+        cin >> type >> x;
+        if (type == 1)
+        {
+            zapr za = zapr(x, last_ind++, last_i[x]++);
+            v.push_back(za);
+            z[x].push_back(za);
+            ++cnt;
+        }
+        else if (type == 2)
+        {
+            for (int i = last_r[x]; i < z[x].size(); ++i)
+                cnt -= !(z[x][i].check),
+                v[ z[x][i].ind_v ].check = z[x][i].check = true;
+
+            last_r[x] = z[x].size();
+            while (last_read < v.size() and v[last_read].check)
+                ++last_read;
+        }
+        else if (type == 3)
+        {
+            for (int i = last_read; i < x - last_read; ++i)
+            {
+                cnt -= !(v[i].check),
+                v[ i ].check = z[ v[i].x ][ v[i].ind_z ].check = true;
+                while (last_r[ v[i].x ] < z[ v[i].x ].size() and
+                       z[ v[i].x ][ last_r[ v[i].x ] ].check)
+                    ++last_r[ v[i].x ];
+            }
+        }
+        cout << cnt << endl;
+    }
+    return 0;
+}

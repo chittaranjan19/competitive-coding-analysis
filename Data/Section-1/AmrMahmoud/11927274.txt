@@ -1,0 +1,115 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int arr[1000005];
+int tree[4000005];
+pair<int, int> a[1000005];
+LL DP[1000005][2];
+int last[1000005][2];
+int nxt[1000005];
+
+set<int> s;
+
+void build(int i,int L,int R)
+{
+  if(L == R)
+  {
+    tree[i] = arr[L];
+    return ;
+  }
+  build(i*2 + 1, L, (L + R) / 2);
+  build(i*2 + 2, (L + R) / 2 + 1, R);
+  tree[i] = min(tree[i*2 + 1], tree[i*2 + 2]);
+}
+
+int query(int i,int L,int R,int x,int y)
+{
+  if(L >= x && R <= y)
+    return tree[i];
+  if(L > y || R < x)
+    return INF_MAX;
+  return min(query(i*2 + 1, L, (L + R) / 2, x, y), query(i*2 + 2, (L + R) / 2 + 1, R, x, y));
+}
+
+bool sorter(pair<int, int> a, pair<int, int> b)
+{
+  if(a.f == b.f) return a.s < b.s;
+  return a.f > b.f;
+}
+
+int main()
+{
+  //ios_base::sync_with_stdio(0);
+  //freopen("funny.in", "r", stdin);
+  //freopen("funny.out", "w", stdout);
+  int n;
+  scanf("%d", &n);
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d", &arr[i]);
+    a[i] = mp(arr[i], i);
+  }
+  sort(a, a + n, sorter);
+  for(int i=0;i<n;i++)
+  {
+    for(int j=0;j<2;j++)
+      last[i][j] = -1;
+    set<int>::iterator it = s.lower_bound(a[i].s);
+    if(it != s.end())
+      nxt[a[i].s] = *it;
+    else nxt[a[i].s] = -1;
+    s.insert(a[i].s);
+  }
+  build(0, 0, n - 1);
+  for(int i=0;i<n;i++)
+  {
+    if(i) DP[i][0] = max(DP[i][0], DP[i - 1][0]);
+    int x = nxt[i];
+    if(x != -1 && (last[x][1] == -1 || DP[x][1] < DP[i][0]))
+    {
+      DP[x][1] = DP[i][0];
+      if(last[i][1] != -1)
+        last[x][1] = last[i][1];
+      else last[x][1] = i;
+    }
+    if(last[i][1] != -1)
+      DP[i + 1][0] = max(DP[i + 1][0], DP[i][1] + arr[i] - query(0, 0, n - 1, last[i][1], i));
+  }
+  printf("%I64d", max(DP[n][0], DP[n - 1][0]));
+  return 0;
+}

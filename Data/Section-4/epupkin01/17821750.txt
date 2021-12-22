@@ -1,0 +1,108 @@
+#include <iostream>
+#include <climits>
+#include <string>       // string s; cin >> s;
+#include <cstring>      // memset(b, 0, sizeof(arr)); strcpy(a1, a2); strcat(a1, a2);
+#include <cmath>
+#include <cstdio>       // getchar(), gets()
+#include <cstdlib>      // rand(), max(), min()
+#include <ctime>        // rand(): srand(int(time(0)));
+#include <algorithm>    // std::sort(a + 0, a + n); a - массв, n - кол-во эл-тов
+#include <iomanip>      // setw()
+#include <vector>
+#include <array>
+#include <fstream>      // file IO (input-output)
+#include <cctype>       // isupper()
+#include <memory>       // shared_ptr<>, uniqu_ptr<>
+#include <iterator>     // ostream_iterator<int, char> our_iter(cout, " ");
+#include <set>
+#include <map>
+#include <list>
+#include <queue>
+#define SRT srand(int(time(0)))
+
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef unsigned long long ull;
+ld pi = 3.14159265358979323;
+
+typedef map<int, int> Map;
+typedef Map::iterator mIter;
+typedef pair<const int, int> Pair;
+typedef set<int> Set;
+typedef Set::iterator sIter;
+
+const int S = 100000;
+int n, d;
+
+struct Person
+{
+    int money;
+    int friendship;
+} a[S];
+bool by_money(const Person &, const Person &);
+bool compareIntPer(int, const Person &);
+
+inline void entrance()
+{
+    cin >> n >> d;
+    for (int i = 0; i < n; ++i)
+    {
+        scanf("%d%d", &a[i].money, &a[i].friendship);
+    }
+    sort(a, a + n, by_money);
+}
+
+template <class T1, class T2, class Compare_obj>
+int BinarSrch(T1 *arr, int siz, T2 elem, Compare_obj comp_obj)
+{
+    int r = siz, l = 0, mid = (siz - 1) / 2;
+    
+    while (mid > l)
+    {
+        if (comp_obj(elem, arr[mid]))
+            r = mid;
+        else
+            l = mid;
+        mid = (r + l) / 2;
+    }
+    
+    return mid;
+}
+
+int main()
+{
+    entrance();
+    
+    ll sum[S], ans = 0;
+    sum[0] = a[0].friendship;
+    for (int i = 1; i < n; ++i)
+        sum[i] = sum[i - 1] + a[i].friendship;
+    
+    for (int i = 0, pos; i < n; ++i)
+    {
+        pos = BinarSrch(a, n, a[i].money + d - 1, compareIntPer);
+        //cout << a[i].money << " <-> " << a[pos].money << ", " << i << " <-> " << pos << '\n';
+        ans = ans < sum[pos] - sum[i] + a[i].friendship ? sum[pos] - sum[i] + a[i].friendship : ans;
+    }
+    
+    cout << ans << '\n';
+    
+    return 0;
+}
+
+bool by_money(const Person &p1, const Person &p2)
+{
+    if (p1.money < p2.money)
+        return true;
+    else if (p1.money == p2.money && p1.friendship < p2.friendship)
+        return true;
+    return false;
+}
+
+bool compareIntPer(int a, const Person &p)
+{
+    if (a < p.money)
+        return true;
+    return false;
+}

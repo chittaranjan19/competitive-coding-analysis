@@ -1,0 +1,68 @@
+#include <iostream>
+#include <iomanip>
+#include <queue>
+#include <cstring>
+
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef pair<int, int> pii;
+typedef pair<int, pii> piii;
+const int N = 1000001;
+
+const int MAXN = 1048576;
+struct ARQTree2 { pii a[2*MAXN]; ARQTree2() { memset(a, 0x3f, sizeof a); }
+  // use after manually changing entries in [x..y], costs O(log(MAXN) + y-x)
+  pii update(int x, int y, int i=1, int l=0, int r=MAXN-1) {
+    if (y<l || r<x || l==r) return a[i]; int m = (l+r)/2;
+    return a[i] = min(update(x,y,2*i,l,m), update(x,y,2*i+1,m+1,r)); }
+  void insert(int x, pii v) { a[MAXN+x] = v; update(x,x); }
+  pii query(int x, int y, int i=1, int l=0, int r=MAXN-1) {
+    if (y<l || r<x) return pii(2147483647, 2147483647); if (x<=l && r<=y) return a[i]; int m = (l+r)/2;
+    return min(query(x,y,2*i,l,m), query(x,y,2*i+1,m+1,r)); } };
+
+ARQTree2 tree;
+
+int seq[N]; ld sum[N];
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+
+    int n; cin >> n;
+    for (int i = 0; i < n; i++) {
+        cin >> seq[i];
+        tree.a[MAXN+i] = pii(seq[i], i);
+    }
+    tree.update(0, MAXN-1);
+
+    priority_queue<piii> q;
+    q.push(piii(n, pii(0, n-1)));
+    int currmin = tree.query(0, n-1).first;
+    for (int k = n; k >= 1; k--) {
+        while (!q.empty() && q.top().first == k) {
+            piii z = q.top(); q.pop();
+            int a = z.second.first, b = z.second.second;
+
+            pii nxt = tree.query(a, b);
+            int mid = nxt.second;
+
+            currmin = max(currmin, nxt.first);
+            if (mid > a) {
+                q.push(piii(mid-a, pii(a, mid-1)));
+            }
+            if (mid < b) {
+                q.push(piii(b-mid, pii(mid+1, b)));
+            }
+        }
+        sum[k] = 0;
+        if (k < n) sum[k] += sum[k+1];
+        sum[k] += currmin;
+    }
+
+    cout << setprecision(16) << fixed;
+    int m; cin >> m;
+    for (int i = 0; i < m; i++) {
+        int k; cin >> k;
+        cout << sum[k] / (n-k+1) << endl;
+    }
+}

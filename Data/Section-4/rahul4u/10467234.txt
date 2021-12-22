@@ -1,0 +1,46 @@
+#include <stdio.h>
+
+#include <string.h>
+
+
+
+int small[26];
+//int block[26];
+
+int main()
+{
+    int n;
+    scanf("%d",&n);
+    int len=2*n-2;
+    char tomato[len];
+    scanf("%s",tomato);
+    
+    memset(small,0,sizeof(small));
+    //memset(block,0,sizeof(block));
+    int ans=0;
+
+    for(int i=0;i<len;i++)
+    {
+        /*if((int)tomato[i]>=(int)'a')
+            small[tomato[i]-'a']++;
+        else
+            block[tomato[i]-'A']++;*/
+
+        if(i%2==0)
+        {
+            small[(int)tomato[i]-'a']++;
+        }
+        else
+        {
+            int index=tomato[i]-'A';
+            if(small[index]>0)
+                small[index]--;
+            else
+                ans++;
+
+        }
+    }
+    
+    printf("%d\n",ans);
+
+}

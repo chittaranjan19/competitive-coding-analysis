@@ -1,0 +1,51 @@
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+using namespace std;
+typedef long long i64;
+const int MAX_N = 105;
+const int MAX_M = 20;
+const i64 INFINITE = 1LL << 62;
+
+struct Friend {
+    int computers, conf;
+    i64 cost;
+    inline bool operator < (const Friend & other) const {
+        return computers < other.computers;
+    }
+} a[MAX_N];
+i64 dp[1 << MAX_M];
+
+int main() {
+    ifstream cin("f.in");
+    int n, m, nr;
+    i64 b;
+    cin >> n >> m >> b;
+    for(int i = 1; i <= n; ++ i) {
+        cin >> a[i].cost >> a[i].computers >> nr;
+        for(int j = 1; j <= nr; ++ j) {
+            int ind;
+            cin >> ind;
+            a[i].conf |= (1 << (ind - 1));
+        }
+    }
+    sort(a + 1, a + n + 1);
+    
+    dp[0] = 0LL;
+    for(int i = 1; i < (1 << m); ++ i) {
+        dp[i] = INFINITE;
+    }
+    i64 answer = INFINITE;
+    for(int i = 1; i <= n; ++ i) {
+        for(int j = 0; j < (1 << m); ++ j) {
+            if(dp[j] != INFINITE) {
+                dp[j | a[i].conf] = min(dp[j | a[i].conf], dp[j] + a[i].cost);
+            }
+        }
+        answer = min(answer, dp[(1 << m) - 1] + 1LL * b * a[i].computers);
+    }
+    
+    cout << (answer == INFINITE ? -1 : answer) << "\n";
+
+    return 0;
+}

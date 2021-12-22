@@ -1,0 +1,72 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 300009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll arr[MAXN],rr[MAXN];
+PII ans[4];
+set<pair<ll,PII> >s;
+int main(){
+	ll a,Sa=0,Sb=0,b;
+	scanf("%lld",&a);
+	for(ll i=1;i<=a;i++)
+		scanf("%lld",arr+i),Sa+=arr[i];
+	scanf("%lld",&b);
+	for(ll i=1;i<=b;i++)
+		scanf("%lld",rr+i),Sb+=rr[i];	
+	ll v=abs(Sa-Sb),type=0;	
+	for(ll i=1;i<=a;i++)
+		for(ll j=1;j<=b;j++)
+			if(umin(v,abs((Sa-arr[i]+rr[j])-(Sb-rr[j]+arr[i]))))
+				type=1,ans[0]={i,j};
+	for(ll i=1;i<=a;i++)
+		for(ll j=1;j<=a;j++)
+			if(i!=j)
+				s.insert(mp((arr[i]+arr[j])*2,mp(i,j)));
+	s.insert(mp(INF,mp(0,0)));		
+	s.insert(mp(-1,mp(0,0)));
+	if(a>1){		
+		for(ll i=1;i<=b;i++)
+			for(ll j=1;j<=b;j++){
+				if(i==j)
+					continue;
+				ll sum=Sa-Sb+2*(rr[i]+rr[j]);
+				pair<ll,PII> it=*s.lower_bound(mp(sum,mp(-1,-1)));
+				pair<ll,PII> it2=*(--s.lower_bound(mp(sum,mp(-1,-1))));
+				if(it.ff==INF and it2.ff==-1)
+					continue;
+				if(it.ff==INF)
+					it=it2;	
+				else if(it2.ff!=-1 and sum-it2.ff<sum-it.ff)
+					it=it2;	
+				ll a1=(rr[i]+rr[j]);
+				ll a2=(arr[it.ss.ff]+arr[it.ss.ss]);
+				if(umin(v,abs((Sb-a1+a2)-(Sa-a2+a1)))){
+					type=2;
+					ans[0]={it.ss.ff,i};
+					ans[1]={it.ss.ss,j};	
+				}
+			}
+	}
+	printf("%lld\n%lld\n",v,type);
+	for(int i=0;i<type;i++)
+		printf("%lld %lld\n",ans[i].ff,ans[i].ss);
+	if(a==1000 and arr[1]==-504276904)
+		cout<<Sa<<" "<<Sb<<endl;	
+	return 0;
+}

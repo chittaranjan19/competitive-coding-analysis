@@ -1,0 +1,171 @@
+#include <stdio.h>
+#include <vector>
+#include <string.h>
+#include <algorithm>
+#include <queue>
+#include <functional>
+#include <set>
+using namespace std;
+typedef unsigned long long ull;
+typedef long long ll;
+typedef unsigned int ui;
+
+struct Pair {
+	int first;
+	int second;
+	Pair() {}
+	Pair(int first, int second) :first(first), second(second) {}
+	bool operator<(const Pair &other) const {
+		return second < other.second;
+	}
+	bool operator>(const Pair &other) const {
+		return second > other.second;
+	}
+};
+
+struct Tuple {
+	int a;
+	int b;
+	int c;
+	Tuple(int a, int b, int c) : a(a), b(b), c(c) {}
+	bool operator<(const Tuple &other) const {
+		return c < other.c;
+	}
+	bool operator>(const Tuple &other) const {
+		return c > other.c;
+	}
+};
+
+struct Wrap {
+	int* index;
+	Wrap(int* index) : index(index) {}
+	bool operator<(const Wrap&other) const {
+		return (*index) < (*other.index);
+	}
+	bool operator>(const Wrap&other) const {
+		return (*index) > (*other.index);
+	}
+};
+
+int ini() {
+	int result;
+	scanf("%d", &result);
+	return result;
+}
+ll inl() {
+	ll result;
+	scanf("%I64d", &result);
+	return result;
+}
+char inc() {
+	char result;
+	scanf(" %c", &result);
+	return result;
+}
+double ind() {
+	double result;
+	scanf("%lf", &result);
+	return result;
+}
+
+void swap(int &a, int &b) {
+	int temp = a;
+	a = b;
+	b = temp;
+}
+int modul(int a) {
+	return a < 0 ? -a : a;
+}
+
+ll n, m, k, t, u, v, l, r, x, y, c, j, i, x1, y11, x2, y2, f;
+const ll MODULO = 1000000007;
+char ch;
+double d;
+
+ll arr[100002];
+
+ll memo[100002];
+
+ll stepen(ll a, ll x) {
+	ll result = 1;
+	while (x) {
+		if (x % 2) {
+			result = (result * a) % MODULO;
+		}
+		a = (a * a) % MODULO;
+		x /= 2;
+	}
+	return result;
+}
+
+ll fib(ll n) {
+	if (n <= 2)
+		return 1;
+	ll matr[2][2] = { { 1, 1 },{ 1, 0 } };
+	ll result[2][2] = { { 1, 1 },{ 1, 0 } };
+	n -= 2;
+	while (n) {
+		if (n % 2) {
+			ll temp[2][2] = { { 0, 0 },{ 0, 0 } };
+			for (int i = 0; i < 2; i++) {
+				for (int j = 0; j < 2; j++) {
+					for (int k = 0; k < 2; k++) {
+						temp[i][j] = (temp[i][j] + result[i][k] * matr[k][j]) % MODULO;
+					}
+				}
+			}
+			result[0][0] = temp[0][0];
+			result[0][1] = temp[0][1];
+			result[1][0] = temp[1][0];
+			result[1][1] = temp[1][1];
+		}
+		ll temp[2][2] = { { 0, 0 },{ 0, 0 } };
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < 2; j++) {
+				for (int k = 0; k < 2; k++) {
+					temp[i][j] = (temp[i][j] + matr[i][k] * matr[k][j]) % MODULO;
+				}
+			}
+		}
+		matr[0][0] = temp[0][0];
+		matr[0][1] = temp[0][1];
+		matr[1][0] = temp[1][0];
+		matr[1][1] = temp[1][1];
+		n /= 2;
+	}
+	return result[0][0];
+}
+
+int main() {
+	memset(memo, -1, sizeof(memo));
+	n = inl();
+	m = inl();
+	for (int i = 0; i < n; i++) {
+		arr[i] = inl();
+	}
+	for (int i = 0; i < m; i++) {
+		x = inl();
+		l = inl() - 1;
+		r = inl();
+		if (x == 1) {
+			x = inl();
+			while (l < r) {
+				arr[l] += x;
+				memo[l] = -1;
+				l++;
+			}
+		}
+		else {
+			ll result = 0;
+			while (l < r) {
+				if (memo[l] == -1) {
+					memo[l] = fib(arr[l]);
+				}
+				result = (result + memo[l]) % MODULO;
+				l++;
+			}
+			printf("%I64d\n", result);
+		}
+	}
+	return 0;
+}

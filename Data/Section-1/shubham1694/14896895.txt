@@ -1,0 +1,134 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define ll long long
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+const int lg = 17;
+
+int n, m;
+vector<int> adj[maxn], wt[maxn], nadj[maxn], nwt[maxn];
+set<pair<int, pair<int, pii> > > mset;
+int root[maxn], rnk[maxn], parent[lg][maxn], max_in_path[maxn], max_parent[lg][maxn], depth[maxn], ans[maxn];
+
+int find(int x)
+{
+    if(x==root[x])
+        return x;
+    return find(root[x]);
+}
+
+ll compute_mst()
+{
+    ll ret = 0;
+    int i, j, u, v, w, ru, rv;
+    for(auto it=mset.begin(); it!=mset.end(); ++it){
+        w = (*it).f;
+        u = (*it).s.s.f;
+        v = (*it).s.s.s;
+        ru = find(u);
+        rv = find(v);
+        if(ru==rv)
+            continue;
+        ret+=w;
+        if(rnk[ru]>rnk[rv])
+            root[rv] = ru;
+        else if(rnk[rv]>rnk[ru])
+            root[ru] = rv;
+        else{
+            root[rv] = ru;
+            rnk[ru]++;
+        }
+        nadj[u].pb(v);
+        nadj[v].pb(u);
+        nwt[u].pb(w);
+        nwt[v].pb(w);
+    }
+    return ret;
+}
+
+void dfs(int cur, int par, int cmax, int wt, int d)
+{
+    parent[0][cur] = par;
+    max_in_path[cur] = cmax;
+    max_parent[0][cur] = wt;
+    depth[cur] = d;
+    int i, u;
+    for(i=0; i<nadj[cur].size(); i++){
+        u = nadj[cur][i];
+        if(u!=par)
+            dfs(u, cur, max(cmax, nwt[cur][i]), nwt[cur][i], d+1);
+    }
+}
+
+int max_lca(int u, int v)
+{
+    if(depth[u]>depth[v])
+        swap(u, v);
+    int diff = depth[v]-depth[u];
+    int ret = 0, i;
+    for(i=0; i<lg; i++){
+        if(diff&(1<<i)){
+            ret = max(ret, max_parent[i][v]);
+            v = parent[i][v];
+        }
+    }
+    for(i=lg-1; i>=0; i--){
+        if(parent[i][u]!=parent[i][v]){
+            ret = max(ret, max(max_parent[i][u], max_parent[i][v]));
+            u = parent[i][u];
+            v = parent[i][v];
+        }
+    }
+    return ret;
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int i, j, u, v, w;
+    ll mstwt;
+    pair<int, int> retval;
+    sd(n), sd(m);
+    for(i=0; i<m; i++){
+        sd(u), sd(v), sd(w);
+        adj[u].pb(v);
+        adj[v].pb(u);
+        wt[u].pb(w);
+        wt[v].pb(w);
+        mset.insert(mp(w, mp(i+1, mp(u, v))));
+    }
+    for(i=1; i<=n; i++)
+        root[i] = i, rnk[i] = 1;
+    mstwt = compute_mst();
+    dfs(1, 0, 0, 0, 0);
+    for(i=1; i<lg; i++){
+        for(j=1; j<=n; j++){
+            parent[i][j] = parent[i-1][parent[i-1][j]];
+            max_parent[i][j] = max(max_parent[i-1][j], max_parent[i-1][parent[i-1][j]]);
+        }
+    }
+    for(auto it=mset.begin(); it!=mset.end(); ++it){
+        u = (*it).s.s.f;
+        v = (*it).s.s.s;
+        w = max_lca(u, v);
+        ans[(*it).s.f] = mstwt;
+        ans[(*it).s.f] = ans[(*it).s.f]-w+(*it).f;
+    }
+    for(i=1; i<=m; i++)
+        cout << ans[i] << "\n";
+    return 0;
+}

@@ -1,0 +1,99 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1010, MAXM = 14, MAXS = MAXM * MAXM, MOD = 1e9 + 9;
+
+void add (int &x, int y) {
+	x = (x + y) % MOD;
+}
+
+int N, M;
+string str[MAXM];
+map<string, int> mp; int ind;
+int dp[MAXN][MAXS][MAXM];	//dp[len][prefix of greatest len][len - cover]
+int nxt[MAXM][MAXM];
+int suff[MAXS];
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M;
+	mp[""] = ind++;
+	for (int i = 0; i < M; i++) {
+		cin >> str[i];
+		string t;
+		for (char c : str[i]) {
+			t += c;
+			if (!mp.count(t)) {
+				// cerr << "insert mp " << t << endl;
+				mp[t] = ind++;
+			}
+		}
+	}
+	rep(it, mp) {
+		//let's consider states of adding a char to some prefix
+		string s;
+		for (int i = 0; i < 4; i++) {
+			s = it->first + "ACGT"[i];
+			// cerr << s << " -> ";
+			while (!mp.count(s)) {
+				s.erase(s.begin());
+			}
+			// cerr << s << endl;
+			nxt[it->second][i] = mp[s];
+		}
+		s = it->first;
+		//let's consider the maximum matching suffixes
+		for (int i = 0; i < M; i++) {
+			string t = str[i];
+			//if s ends with t
+			if (s.length() < t.length()) {
+				continue;
+			}
+			bool match = true;
+			for (int i = int(s.length()) - 1, j = int(t.length()) - 1; j >= 0; i--, j--) {
+				if (s[i] != t[j]) {
+					match = false;
+					break;
+				}
+			}
+			if (match) {
+				if (suff[it->second] < t.length()) {
+					suff[it->second] = t.length();
+				}
+			}
+		}
+	}
+	dp[0][0][0] = 1;
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < ind; j++) {
+			for (int k = 0; k < MAXM; k++) {
+				for (int c = 0; c < 4; c++) {
+					int nj = nxt[j][c], nk = k + 1;
+					if (nk <= suff[nj]) {
+						nk = 0;
+					}
+					add(dp[i + 1][nj][nk], dp[i][j][k]);
+				}
+			}
+		}
+	}
+	int ans = 0;
+	for (int i = 0; i < ind; i++) {
+		add(ans, dp[N][i][0]);
+	}
+	cout << ans << endl;
+}

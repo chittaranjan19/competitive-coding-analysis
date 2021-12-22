@@ -1,0 +1,173 @@
+#include <iostream>
+#include <algorithm>
+#include <map>
+#include <vector>
+
+using namespace std;
+typedef long long ll;
+
+const ll mod = 1000000007LL;
+const int N = 1000005;
+
+ll arr[N];
+ll sorted[N];
+ll counts[N];
+ll countLeftover[N];
+map<ll, ll> condenseMap;
+
+ll dp1[N];
+ll cum[N];
+ll dp2[N];
+
+ll rec(int i, int z, int k, int maxK, int n, int len, vector<int> &vec) {
+	ll ans = 0;
+	if (k > 0) ans++;
+
+	if (k < maxK) {
+		int brrr = i/n;
+		for (int j = (brrr+1)*n; j < len; j++) {
+			if (vec[j] >= z) {
+				ans += rec(j, vec[j], k+1, maxK, n, len, vec);
+			}
+		}
+	}
+
+	return ans;
+}
+
+ll bruteForce(int len, int n, int maxK) {
+	vector<int> vec;
+	for (int i = 0; i < len; i++) {
+		vec.push_back((int)arr[i%n]);
+	}
+	return rec(-n, -1, 0, maxK, n, len, vec);
+}
+
+ll modinv(ll x) {
+	x = (x % mod);
+
+	// take x^(mod-2)
+	ll ans = 1;
+	for (int i = 0; (1LL << i) <= mod-2; i++) {
+		if (((mod-2) & (1LL << i)) > 0) {
+			ans *= x;
+			ans %= mod;
+		}
+		x *= x;
+		x %= mod;
+	}
+
+	return ans;
+}
+
+ll fac[N];
+void genFac() {
+	fac[0] = 1;
+	for (ll i = 1; i < N; i++) {
+		fac[i] = ((fac[i-1] * i) % mod);
+	}
+}
+
+//typedef long long int128;
+typedef __int128 int128;
+
+ll binom(ll n, ll r) {
+	if (n < N) {
+		ll denom = ((fac[r] * fac[n-r]) % mod);
+		return (fac[n] * modinv(denom)) % mod;
+	} else {
+		int128 ans = n;
+		if (r > n-r) r = n-r;
+		for (ll i = n-1; i > n-r; i--) {
+			ans = ((ans * i) % mod);
+		}
+		ans = (ans * modinv(fac[r])) % mod;
+		return (ll)ans;
+	}
+}
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	// precalc
+	genFac();
+
+	// testing
+	//for (int i = 0; i < 11; i++) cerr << fac[i] << " "; cerr << endl;
+	//cerr << binom(10, 1) << endl;
+	//cerr << binom(5, 2) << endl;
+
+	// read input
+	int n; ll lInput; int kInput;
+	cin >> n >> lInput >> kInput;
+	for (int i = 0; i < n; i++) cin >> arr[i];
+
+	// condense input sequence
+	for (int i = 0; i < n; i++) sorted[i] = arr[i];
+	sort(&sorted[0], &sorted[n]);
+
+	int curr = 0;
+	counts[curr] = 0;
+	condenseMap[sorted[0]] = curr;
+	counts[curr]++;
+	for (int i = 1; i < n; i++) {
+		if (sorted[i] != sorted[i-1]) {
+			curr++;
+			counts[curr] = 0;
+			condenseMap[sorted[i]] = curr;
+		}
+		counts[curr]++;
+	}
+	int numUniq = curr+1;
+
+	// max length of sequence with full choice
+	int maxk = (int)min((ll)kInput, lInput / n);
+
+	// count of "leftovers"
+	for (int i = 0; i < numUniq; i++) countLeftover[i] = 0;
+	if (lInput/n < kInput && (lInput % n) > 0) {
+		int x = (int)(lInput % n);
+		for (int i = 0; i < x; i++) {
+			countLeftover[condenseMap[arr[i]]]++;
+		}
+	}
+
+	// compute dp and add ans for 1 <= k <= maxk
+	ll ans = 0;
+	for (int i = 0; i < numUniq; i++) {
+		dp1[i] = 0;
+		cum[i] = 1;
+	}
+	for (int k = 1; k <= maxk; k++) {
+		for (int i = 0; i < numUniq; i++) {
+			dp2[i] = (cum[i] * counts[i]) % mod;
+
+			// we can "shift" this sequence multiples of n to the right
+			ans = (ans + dp2[i]*binom(lInput/n, k)) % mod;
+
+			// special case: shift to last part
+			ans = (ans + cum[i] * countLeftover[i] * binom(lInput/n, k-1)) % mod;
+		}
+
+		for (int i = 0; i < numUniq; i++) dp1[i] = dp2[i];
+		cum[0] = dp1[0];
+		for (int i = 1; i < numUniq; i++) {
+			cum[i] = (cum[i-1] + dp1[i]) % mod;
+		}
+
+		//cerr << "dp[" << k << "] = "; for (int i = 0; i < numUniq; i++) cerr << dp1[i] << " "; cerr << endl;
+	}
+
+	// the last number may have limited choice
+	if (lInput/n < kInput && (lInput % n) > 0) {
+		int x = (int)(lInput % n);
+		for (int i = 0; i < x; i++) {
+			ans = (ans + cum[condenseMap[arr[i]]]) % mod;
+		}
+	}
+
+	cout << ans << endl;
+	//cerr << bruteForce((int)lInput, (int)n, (int)kInput) << endl;
+	
+}

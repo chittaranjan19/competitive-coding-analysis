@@ -1,0 +1,78 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+int n, k;
+vector<ll> lucky, temp;
+set<ll> lset;
+
+void generate(ll cur)
+{
+	if(cur>mod)
+		return;
+	lucky.pb(cur);
+	lset.insert(cur);
+	generate(cur*10 + 4);
+	generate(cur*10 + 7);
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j;
+	generate(4);
+	generate(7);
+	sort(all(lucky));
+	scanf("%d%d", &n, &k);
+	int ans = 0;
+	int st = max(n-13, 1);
+	for(auto it : lucky){
+		if(it >= st)
+			break;
+		ans++;
+	}
+	ll f = 1;
+	for(i=1; i<=n; i++){
+		f *= i;
+		if(f>k)
+			break;
+	}
+	if(f<k){
+		printf("-1\n");
+		return 0;
+	}
+	for(i=st; i<=n; i++)
+		temp.pb(i);
+	k--;
+	for(i=st; i<=n; i++){
+		int fact = 1;
+		for(j=n-i; j>=1; j--)
+			fact *= j;
+		int q = k/fact;
+		k -= (q*fact);
+		auto it = lower_bound(all(temp), temp[q]);
+		if(lset.find(temp[q]) != lset.end() && lset.find(i) != lset.end())	
+			ans++;
+		//cout << i << " " << k << " " << fact << " " << q << " " << temp[q] << "\n";
+		temp.erase(it);
+	}
+	printf("%d\n", ans);
+	return 0;
+}

@@ -1,0 +1,98 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 17, MAXLG = 17;
+
+int N, Q;
+pii edges[MAXN];
+vector<int> adj[MAXN];
+int par[MAXN][MAXLG], depth[MAXN];
+int cnt[MAXN];
+
+//graph tree
+
+void dfs (int x, int p, int d) {
+	par[x][0] = p;
+	depth[x] = d++;
+	for (int t : adj[x]) {
+		if (t != p) {
+			dfs(t, x, d);
+		}
+	}
+}
+
+int getcnt (int x, int p) {
+	//get the answer for this one
+	for (int t : adj[x]) {
+		if (t != p) {
+			cnt[x] += getcnt(t, x);
+		}
+	}
+	return cnt[x];
+}
+
+int lca (int a, int b) {
+	if (depth[a] < depth[b]) {
+		swap(a, b);
+	}
+	//advance a until it is with b
+	for (int diff = depth[a] - depth[b], i = 0; diff; diff /= 2, i++) {
+		if (diff & 1) {
+			//advance by "i"
+			a = par[a][i];
+		}
+	}
+	for (int i = MAXLG - 1; i >= 0; i--) {
+		if (par[a][i] != par[b][i]) {
+			a = par[a][i];
+			b = par[b][i];
+		}
+	}
+	return par[a][0];
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	cin >> N;
+	int a, b;
+	for (int i = 1; i < N; i++) {
+		cin >> a >> b;
+		adj[a].push_back(b);
+		adj[b].push_back(a);
+		edges[i] = pii(a, b);
+	}
+	dfs(1, 0, 0);
+	//init lca
+	for (int j = 1; j < MAXLG; j++) {
+		for (int i = 1; i <= N; i++) {
+			par[i][j] = par[par[i][j - 1]][j - 1];
+		}
+	}
+	for (cin >> Q; Q--; ) {
+		cin >> a >> b;
+		cnt[a]++;
+		cnt[b]++;
+		cnt[lca(a, b)] -= 2;
+	}
+	getcnt(1, 0);
+	for (int i = 1; i < N; i++) {
+		int a = edges[i].first, b = edges[i].second;
+		if (depth[a] < depth[b]) {
+			swap(a, b);
+		}
+		cout << cnt[a] << ' ';
+	}
+}

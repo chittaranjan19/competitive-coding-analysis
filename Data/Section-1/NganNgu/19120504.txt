@@ -1,0 +1,102 @@
+#include <iostream> 
+#include <cstdio>
+#include <vector>
+#include <cmath>
+#include <iomanip>
+
+using namespace std;
+
+#define For(i , a , b) for (int i = a , _b = b ; i <= _b ; ++i)
+#define Ford(i , a  ,b) for (int i = a , _b = b : i >= _b ; --i)
+#define Rep(i , n) for (int i = 0 , _n = n ; i < _n ; ++i)
+#define sz(A) ((int)A.size())
+#define LL(x) (x << 1)
+#define RR(x) ((x << 1) | 1)
+
+typedef pair<int , int> pt;
+
+const int maxn = 100000 + 123;
+int n;
+int p[maxn];
+vector<int> V[maxn];
+
+void ReadData() {
+	cin >> n;
+	For(i , 2 , n) {
+		int p; cin >> p; V[p].push_back(i);
+	}
+}
+
+int timer = 0 , tin[maxn] , tout[maxn];
+int chil[maxn];
+int depth[maxn];
+int id[maxn];
+
+void dfs(int u) {
+	chil[u] = 1;
+	tin[u] = ++timer;
+	id[timer] = u;
+	for (int i = 0 ; i < V[u].size() ; i++) {
+		int v = V[u][i];
+		depth[v] = depth[u] + 1;
+		dfs(v);
+		chil[u] += chil[v];
+	}
+	tout[u] = timer;
+}
+
+long double totalFrac;
+long double revFrac[maxn];
+long double res[maxn];
+
+long long C2(long long x) {
+	return x * (x - 1) >> 1;
+}
+long double sum[maxn];
+void do_add(int l , int r , long double val) {
+	sum[l]+=val; sum[r + 1] -= val;
+}
+
+void cal(int u) {
+	res[u] += depth[u];
+	long long ways = C2(sz(V[u]));
+	for (int i = 0 ; i < V[u].size() ; i++) {
+		int v = V[u][i];
+		long double need = ((long double) ways) * revFrac[sz(V[u])] * chil[v];
+		//cout << v << " " << need << endl;
+		do_add(tin[u] + 1 , tout[u] , need);
+		do_add(tin[v] , tout[v] , -need);
+		cal(v);
+	}
+}
+
+void Process() {	
+	totalFrac = 1;
+	dfs(1);
+	revFrac[0] = 1;
+	For(i , 1 , n) revFrac[i] = revFrac[i - 1] / (long double) i;
+	for (int i = 1 ; i <= n ; i++) {
+		totalFrac *= revFrac[sz(V[i])];
+	}
+	cal(1);
+	For(i , 1 , n) res[i] += 1;
+	cout << fixed << setprecision(9);
+	long double cur = 0;
+	For(i , 1 , n) {
+		cur += sum[i];
+		res[id[i]] += cur;
+	}
+	For(i , 1 , n) cout << res[i] << " ";
+}
+ 
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	
+	//freopen("input.inp" , "r" , stdin);
+	ReadData();
+	Process();
+
+	return 0;
+
+}			

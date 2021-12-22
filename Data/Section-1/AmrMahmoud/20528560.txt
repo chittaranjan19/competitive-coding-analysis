@@ -1,0 +1,56 @@
+#include<bits/stdc++.h>
+using namespace std;
+const int MX=509;
+int P , n , sz[MX];
+
+set < int > S[MX];
+int dp[MX] , V[MX];
+int calc(int x){
+    if(x == 0) return 0;
+    int &ret = dp[x]; if(ret != -1) return ret;
+    ret = calc(x-1);
+    for(auto pat : S[x])
+        ret = max(ret , calc(x - sz[pat]) + V[pat]);
+    return ret;
+}
+void find_sol(int x){
+    if(x == 0) return;
+    int &ret = dp[x];
+    if(ret == calc(x-1)){
+        find_sol(x-1);
+        return;
+    }
+    for(auto pat : S[x]){
+        int qq = pat;
+        if(ret == calc(x-sz[pat]) + V[pat]){
+            find_sol(x - sz[pat]);
+            S[x].erase(qq);
+            return;
+        }
+    }
+}
+
+string str , pat;
+int main(){
+    cin>>n>>str;
+    str = "#" + str;
+    cin>>P;
+    for(int qq=1;qq<=P;qq++){
+        string pat;
+        cin>>pat>>V[qq];
+        sz[qq] = pat.size();
+        for(int j=1;j<=n && j+sz[qq] - 1 <=n;j++){
+            if(str.substr(j , sz[qq]) == pat)
+                S[j+sz[qq]-1].insert(qq);
+        }
+    }
+    int omar , ans = 0;
+    cin>>omar;
+    while(omar--){
+        memset(dp , -1 , sizeof(dp));
+        ans += calc(n);
+        find_sol(n);
+    }
+    cout<<ans<<endl;
+
+}

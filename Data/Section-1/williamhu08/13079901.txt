@@ -1,0 +1,146 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 3e5 + 10;
+
+void setmin (int &a, int b) {
+	if (a > b) {
+		a = b;
+	}
+}
+
+void setmax (int &a, int b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+//random stuff
+int N, A[MAXN];
+int vlt[MAXN], vrt[MAXN];
+int ltmin[MAXN], ltmax[MAXN], rtmax[MAXN], rtmin[MAXN];
+int mnind[MAXN], mxind[MAXN];
+int __cnt[4 * MAXN], *cnt = __cnt + 2 * MAXN;
+
+ll go (vector<int> &v1, vector<int> &v2) {
+	int ns1 = v1.size(), ns2 = v2.size();
+	//min is v1, max is v2
+	int mn = N, mx = 0;
+	for (int i = ns1 - 1; i >= 0; i--) {
+		setmin(mn, v1[i]);
+		setmax(mx, v1[i]);
+		ltmin[i] = mn;
+		ltmax[i] = mx;
+		vlt[i] = mn - i;
+	}
+	mn = N; mx = 0;
+	for (int i = 0; i < ns2; i++) {
+		setmin(mn, v2[i]);
+		setmax(mx, v2[i]);
+		rtmin[i] = mn;
+		rtmax[i] = mx;
+		vrt[i] = mx - (i + ns1);
+	}
+	mnind[ns1] = 0;
+	mxind[ns1] = 0;
+	mn = N; mx = 0;
+	for (int i = ns1 - 1, lmx = 0; i >= 0; i--) {
+		//mnind
+		mnind[i] = ns2;
+		for (int j = mnind[i + 1]; j < ns2; j++) {
+			setmin(mn, v2[j]);
+			if (ltmin[i] > mn) {
+				mnind[i] = j;
+				break;
+			}
+		}
+		//mxind
+		mxind[i] = ns2;
+		setmax(lmx, v1[i]);
+		for (int j = mxind[i + 1]; j < ns2; j++) {
+			setmax(mx, v2[j]);
+			if (lmx < mx) {
+				//finally...
+				mxind[i] = j;
+				// debug("setting mxind[%d] = %d\n", i, j);
+				break;
+			}
+		}
+	}
+	/*
+	for (int i = 0; i <= ns1; i++) {
+		if (i < ns1) {
+			assert(mnind[i + 1] <= mnind[i]);
+		}
+		debug("mxind[%d] = %d, mnind[%d] = %d\n", i, mxind[i], i, mnind[i]);
+	}
+	*/
+	//interval = [mnind[], mxind[])
+	ll ans = 0;
+	for (int i = ns1 - 1; i >= 0; i--) {
+		for (int j = mxind[i + 1]; j < mxind[i]; j++) {
+			//add
+			cnt[vrt[j]]--;
+		}
+		for (int j = mnind[i + 1]; j < mnind[i]; j++) {
+			//remove
+			cnt[vrt[j]]++;
+		}
+		ans += max(0, cnt[vlt[i]]);
+	}
+	for (int i = 0; i < ns2; i++) {
+		cnt[vrt[i]] = 0;
+	}
+	// debug("Now ans %lld\n", ans);
+	//---------PART 2---------------: left has both min/max
+	for (int i = ns1 - 1; i >= 0; i--) {
+		mn = ltmin[i];
+		mx = ltmax[i];
+		int j = i + (mx - mn) - ns1;
+		if (0 <= j && j < ns2) {
+			//check
+			if (mn < rtmin[j] && rtmax[j] < mx) {
+				ans++;
+			}
+		}
+	}
+	// debug("-------------CALLED, ans = %lld----------\n", ans);
+	return ans;
+}
+
+ll solve (int lt, int rt) {
+	if (rt - lt == 1) {
+		return 1;
+	}
+	static vector<int> v1, v2;
+	ll ans = 0;
+	int mid = (lt + rt) / 2;
+	v1.assign(A + lt, A + mid);
+	v2.assign(A + mid, A + rt);
+	// debug("------------------------lt = %d, rt = %d------------------------\n", lt, rt);
+	ans += go(v1, v2);
+	reverse(all(v1));
+	reverse(all(v2));
+	ans += go(v2, v1);
+	return ans + solve(lt, mid) + solve(mid, rt);
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d", &N);
+	for (int i = 0, x, y; i < N; i++) {
+		scanf("%d %d", &x, &y);
+		A[x - 1] = y - 1;
+	}
+	printf("%lld\n", solve(0, N));	//get rid...
+}

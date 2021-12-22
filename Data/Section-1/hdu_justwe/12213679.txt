@@ -1,0 +1,64 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <math.h>
+#include <algorithm>
+#include <map>
+#include <queue>
+using namespace std;
+typedef long long ll;
+
+int totdis[1000005];
+int app[1000005];
+int stamp[1000005];
+int data[100005];
+int mm=0;
+
+struct Pair{
+    int x,y;
+    Pair(){}
+    Pair(int a,int b):x(a),y(b){}
+};
+
+void bfs(int stp,int timestamp){
+    queue<Pair> q;
+    q.push(Pair(stp,0));
+    app[stp]++;
+    stamp[stp]=timestamp;
+    while(!q.empty()){
+        Pair t=q.front();q.pop();
+        if(t.x*2<=mm&&stamp[t.x*2]!=timestamp){
+            totdis[t.x*2]+=t.y+1;
+            app[t.x*2]++;
+            q.push(Pair(t.x*2,t.y+1));
+            stamp[t.x*2]=timestamp;
+        }
+        if(t.x/2>0&&stamp[t.x/2]!=timestamp){
+            totdis[t.x/2]+=t.y+1;
+            app[t.x/2]++;
+            q.push(Pair(t.x/2,t.y+1));
+            stamp[t.x/2]=timestamp;
+        }
+    }
+}
+
+int main(){
+    int n;
+    scanf("%d",&n);
+    for(int i=0;i<n;i++){
+        scanf("%d",&data[i]);
+        mm=max(mm,data[i]);
+    }
+    for(int i=0;i<n;i++){
+        bfs(data[i],i+1);
+    }
+    int ans=INT_MAX;
+    for(int i=1;i<=mm;i++){
+        //printf("%d %d %d\n",i,app[i],totdis[i]);
+        if(app[i]==n)ans=min(ans,totdis[i]);
+    }
+    printf("%d\n",ans);
+    return 0;
+}

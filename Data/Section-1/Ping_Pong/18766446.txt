@@ -1,0 +1,117 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int P = 239;
+const int MAX_N = 500000;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+int n;
+vector<int> a;
+vector<vector<int> > graph;
+vector<ll> ans;
+
+pair<map<int, int>, map<int, ll> > dfs(int x, int par)
+{
+    map<int, int> color;
+    map<int, ll> cnt;
+    color[a[x]] = 1;
+    cnt[1] = a[x];
+    for (int i = 0; i < graph[x].size(); i++)
+        if (graph[x][i] != par)
+        {
+            pair<map<int, int>, map<int, ll> > p = dfs(graph[x][i], x);
+            map<int, int> color1 = p.first;
+            map<int, ll> cnt1 = p.second;
+            if (cnt.size() >= cnt1.size())
+                for (map<int, ll>::iterator it = cnt1.begin(); it != cnt1.end(); it++)
+                    cnt[it->first] += it->second;
+            else
+            {
+                for (map<int, ll>::iterator it = cnt.begin(); it != cnt.end(); it++)
+                    cnt1[it->first] += it->second;
+                cnt = cnt1;
+            }
+            if (color.size() >= color1.size())
+                for (map<int, int>::iterator it = color1.begin(); it != color1.end(); it++)
+                    if (color.find(it->first) != color.end())
+                    {
+                        int col = it->first;
+                        int cn = it->second;
+                        cnt[cn] -= col;
+                        cnt[color[col]] -= col;
+                        color[col] += cn;
+                        cnt[color[col]] += col;
+                    }
+                    else
+                        color[it->first] += it->second;
+            else
+            {
+                for (map<int, int>::iterator it = color.begin(); it != color.end(); it++)
+                    if (color1.find(it->first) != color1.end())
+                    {
+                        int col = it->first;
+                        int cn = it->second;
+                        cnt[cn] -= col;
+                        cnt[color1[col]] -= col;
+                        color1[col] += cn;
+                        cnt[color1[col]] += col;
+                    }
+                    else
+                        color1[it->first] += it->second;
+                color = color1;
+            }
+        }
+    ans[x] = (--cnt.end())->second;
+    /*cout << "____________" << endl;
+    cout << x << endl;
+    for (map<int, int>::iterator it = color.begin(); it != color.end(); it++)
+        cout << it->first << " " << it->second << endl;
+    cout << endl;
+    for (map<int, int>::iterator it = cnt.begin(); it != cnt.end(); it++)
+        cout << it->first << " " << it->second << endl;
+    cout << "____________" << endl;*/
+    return make_pair(color, cnt);
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n;
+    a.resize(n);
+    for (int i = 0; i < n; i++)
+        cin >> a[i];
+    graph.resize(n);
+    for (int i = 0; i < n - 1; i++)
+    {
+        int x, y;
+        cin >> x >> y;
+        graph[x - 1].push_back(y - 1);
+        graph[y - 1].push_back(x - 1);
+    }
+    ans.resize(n);
+    dfs(0, -1);
+    for (int i = 0; i < n; i++)
+        cout << ans[i] << " ";
+    return 0;
+}

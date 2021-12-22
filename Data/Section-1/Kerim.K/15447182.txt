@@ -1,0 +1,79 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 6009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN],a,c,s[MAXN<<2],dp[MAXN],ans;
+vector<int>adj[MAXN];
+map<int,int>pm;
+void upd(int p,int v,int nd,int x,int y){
+	if(y==x){
+		umax(s[nd],v);
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,v,nd<<1,x,mid);
+	else
+		upd(p,v,nd<<1|1,mid+1,y);
+	s[nd]=max(s[nd<<1],s[nd<<1|1]);			
+}
+int tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return s[nd];
+	int mid=(x+y)>>1;		
+	int i1=tap(l,r,nd<<1,x,mid);
+	int i2=tap(l,r,nd<<1|1,mid+1,y);
+	return max(i1,i2);
+}
+void dfs(int nd,int pr){
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to==pr)
+			continue;
+		dfs(to,nd);		
+	}
+	dp[nd]=tap(1,arr[nd]-1,1,1,c)+1;
+	umax(ans,dp[nd]);
+	upd(arr[nd],dp[nd],1,1,c);
+}
+int main(){
+	scanf("%d",&a);
+	for(int i=1;i<=a;i++)
+		scanf("%d",arr+i),pm[arr[i]]=true;	
+	for(int i=1;i<a;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	tr(i,pm)
+		i->ss=++c;
+	for(int i=1;i<=a;i++)
+		arr[i]=pm[arr[i]];
+	for(int i=1;i<=a;i++){
+		memset(s,0,sizeof(s));
+		memset(dp,0,sizeof(dp));
+		dfs(i,-1);
+	}
+	printf("%d\n",ans);
+	return 0;
+}
+

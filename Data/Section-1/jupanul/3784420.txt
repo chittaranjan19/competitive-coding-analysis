@@ -1,0 +1,110 @@
+#include<iostream>
+#include<string>
+#include<cstdio>
+#include<fstream>
+#include<algorithm>
+using namespace std;
+char lin[1005][1005],col[1005][1005];
+int a[1005][1005];
+void switch_col(int j,int n)
+{
+    for(int i=1;i<=n;i++)
+        a[i][j]=1-a[i][j];
+}
+void switch_ln(int i,int m)
+{
+    for(int j=1;j<=m;j++)
+        a[i][j]=1-a[i][j];
+}
+void sat_col(int j,int n)
+{
+    a[1][j]=0;
+    for(int i=2;i<=n;i++)
+        if(col[i-1][j-1]=='E')
+            a[i][j]=a[i-1][j];
+        else
+            a[i][j]=1-a[i-1][j];
+}
+void sat_ln(int i,int m)
+{
+    a[i][1]=0;
+    for(int j=2;j<=m;j++)
+        if(lin[i][j-2]=='E')
+            a[i][j]=a[i][j-1];
+        else
+            a[i][j]=1-a[i][j-1];
+}
+int number_col(int j,int n)
+{
+    int nr=0;
+    for(int i=1;i<=n;i++)
+        if((a[i][j]==a[i][j-1] && lin[i][j-2]=='E') || (a[i][j]!=a[i][j-1] && lin[i][j-2]=='N'))
+            nr++;
+    return nr;
+}
+int number_ln(int i,int m)
+{
+    int nr=0;
+    for(int j=1;j<=m;j++)
+        if((a[i][j]==a[i-1][j] && col[i-1][j-1]=='E') || (a[i][j]!=a[i-1][j] && col[i-1][j-1]=='N'))
+            nr++;
+    return nr;
+}
+int number(char ch,int n,int m)
+{
+    int ans=0;
+    for(int i=1;i<=n;i++)
+        ans+=count(lin[i],lin[i]+m,ch);
+    for(int i=1;i<n;i++)
+        ans+=count(col[i],col[i]+m-1,ch);
+    return ans;
+}
+int main()
+{
+    ifstream cin("f.in");
+    int n,m,k;
+    cin>>n>>m>>k;
+    for(int i=1;i<=2*n-1;i++)
+        if(i%2==1)
+            cin>>lin[i/2+1];
+        else
+            cin>>col[i/2];
+    if(k==1)
+    {
+        if(number('N',n,m)>(2*m*n-n-m)/4)
+            printf("NO\n");
+        else
+        {
+            printf("YES\n");
+            for(int i=1;i<=n;i++)
+                for(int j=1;j<=m;j++)
+                    printf("%d%c",1,j==m?'\n':' ');
+        }
+        return 0;
+    }
+    if(n>=m)
+    {
+        for(int i=1;i<=m;i++)
+            sat_col(i,n);
+        for(int i=2;i<=m;i++)
+            if(number_col(i,n)<=n/2)
+                switch_col(i,n);
+        printf("YES\n");
+        for(int i=1;i<=n;i++)
+            for(int j=1;j<=m;j++)
+                printf("%d%c",a[i][j]+1,j==m?'\n':' ');
+    }
+    else
+    {
+        for(int i=1;i<=n;i++)
+            sat_ln(i,m);
+        for(int i=2;i<=n;i++)
+            if(number_ln(i,m)<=m/2)
+                switch_ln(i,m);
+        printf("YES\n");
+        for(int i=1;i<=n;i++)
+            for(int j=1;j<=m;j++)
+                printf("%d%c",a[i][j]+1,j==m?'\n':' ');
+    }
+    return 0;
+}

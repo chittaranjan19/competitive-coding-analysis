@@ -1,0 +1,117 @@
+import java.io.*;
+import java.util.*;
+import java.math.*;
+
+public class Task {
+        static final String FileName = "test";  
+        static final double eps = 1e-8;
+ 
+        double[] x, v, m;
+    void solve() throws IOException {
+        int n = nextInt();
+        double T = nextInt();
+        x = new double[n];
+        v = new double[n];
+        m = new double[n];
+        for (int i=0; i<n; i++) {
+                x[i] = nextInt();
+                v[i] = nextInt();
+                m[i] = nextInt();
+        }
+        ArrayList<Integer> p1 = new ArrayList<Integer>();
+        ArrayList<Integer> p2 = new ArrayList<Integer>();
+        double t = 0;
+        while (Math.abs(T-t)>eps) {
+                double dt = 1e+100;
+                for (int i=0; i<n; i++)
+                        for (int j=i+1; j<n; j++) {
+                                        double V = v[j]-v[i];
+                                        double X = x[j]-x[i];
+                                        if (Math.abs(V)>eps && Math.abs(X)>eps && V*X<-eps) {
+                                                double tt = Math.abs(X)/Math.abs(V);
+                                                if (tt+eps<dt) {
+                                                        dt = tt;
+                                                        p1.clear(); p2.clear();
+                                                }
+                                                if (Math.abs(tt-dt)<eps) {
+                                                        p1.add(i);
+                                                        p2.add(j);
+                                                }
+                                        }
+                        }
+                if (dt==1e+100) {
+                        t = T-t;
+                        for (int i=0; i<n; i++) x[i] += v[i]*t;
+                        t = T;
+                } else {
+                        if (t+dt>T+eps) dt = T-t;
+                        for (int i=0; i<n; i++) x[i] += v[i]*dt;
+                        for (int k=0; k<p1.size(); k++) {
+                                int i = p1.get(k), j = p2.get(k);
+                                double mm = m[i]+m[j];
+                                double v1 = v[i];
+                                double v2 = v[j];
+                                v[i] = ((m[i]-m[j])*v1+2*m[j]*v2)/mm;
+                                v[j] = ((m[j]-m[i])*v2+2*m[i]*v1)/mm;                                   
+                        }
+                        t += dt;
+                }
+                                
+        }
+        
+        for (int i=0; i<n; i++) out.printf(Locale.US, "%1.10f\n", x[i]);
+        
+    }
+   
+    
+
+
+    static final int inf = 1000000000;
+    BufferedReader br;
+    StringTokenizer st;
+    PrintWriter out;
+    
+    public void run() {
+        try {
+           // br = new BufferedReader(new FileReader(FileName+".in"));
+            //out = new PrintWriter(FileName+".out");
+            br = new BufferedReader(new InputStreamReader(System.in));
+            out = new PrintWriter(System.out);
+            //br = new BufferedReader(new FileReader("input.txt"));
+            //out = new PrintWriter("output.txt");
+            solve();
+            br.close();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    String next() throws IOException {
+        while (st == null || !st.hasMoreTokens()) {
+            String s = br.readLine();
+            if (s == null)
+                    return null;
+            st = new StringTokenizer(s);
+        }
+        return st.nextToken();
+    }
+
+    double nextDouble() throws IOException {
+       return Double.parseDouble(next());
+    }
+
+    int nextInt() throws IOException {
+            return Integer.parseInt(next());
+    }
+
+    long nextLong() throws IOException {
+            return Long.parseLong(next());
+    }
+
+    public static void main(String[] args) {        
+            new Task().run();
+    
+    }
+}

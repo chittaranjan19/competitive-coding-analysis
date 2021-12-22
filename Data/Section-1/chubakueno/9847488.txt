@@ -1,0 +1,172 @@
+#include <bits/stdc++.h>
+using namespace std;
+const int ALPH_SIZE = 3; // Tamaño del alfabeto
+struct Node
+{
+int words; // Num de palabras que terminan en el nodo
+int prefixes; // Num de palabras que tienen como prefijo el camino al nodo
+int herms; // Numero de bifurcaciones que salen del nodo
+int reachableWords; // Num de palabras a las que puedo llegar desde este nodo
+vector<Node*> links; // Enlaces a los nodos herms
+Node();
+};
+Node::Node()
+{
+words = prefixes = herms = reachableWords = 0;
+links.resize(ALPH_SIZE, NULL);
+}
+class Trie
+{
+public:
+Trie();
+bool contains(const string& s) const;
+int nodeCount() const;
+int countWords(const string& s) const;
+int countPrefixes(const string& s) const;
+int countRepeated() const;
+void printAllWords() const;
+void insert(const string s);
+int dfs(string& str);
+private:
+Node* myRoot; // Raíz del trie
+int myCount; // # nodos del trie
+int countRepeated(Node* t) const;
+void printAllWords(const Node* t, const string& s) const;
+int dfs(Node* t, string& str, int ind, bool ok);
+};
+//------------------------------------------------------------------------
+// Constructor del Trie
+Trie::Trie()
+{
+myRoot = new Node();
+myCount = 1;
+}
+//------------------------------------------------------------------------
+// Retorna la cantidad de nodos del trie
+int Trie::nodeCount() const
+{
+return myCount;
+}
+//------------------------------------------------------------------------
+// Retorna true si el string s aparece en el trie
+bool Trie::contains(const string& s) const
+{
+Node* t = myRoot;
+int len = (int)s.size();
+for(int k = 0; k < len; ++k)
+{
+if(t == NULL) return false;
+t = t->links[s[k] - 'a'];
+}
+if(t == NULL) return false;
+return (t->words > 0);
+}
+//------------------------------------------------------------------------
+// Retorna la cantidad de veces que se repite el string s en el trie
+int Trie::countWords(const string& s) const
+{
+int len = (int)s.size();
+Node* t = myRoot;
+for(int k = 0; k < len; ++k)
+{
+if(t->links[s[k] - 'a'] == NULL) return 0;
+t = t->links[s[k] - 'a'];
+}
+return t->words;
+}
+//------------------------------------------------------------------------
+// Retorna la cantidad de palabras que tienen como prefijo a s
+int Trie::countPrefixes(const string& s) const
+{
+int len = (int)s.size();
+Node* t = myRoot;
+for(int k = 0; k < len; ++k)
+{
+if(t->links[s[k] - 'a'] == NULL) return 0;
+t = t->links[s[k] - 'a'];
+}
+return t->prefixes;
+}
+//------------------------------------------------------------------------
+// Imprime todas las palabras del trie en orden alfabetico
+void Trie::printAllWords(const Node* t, const string& s) const
+{
+if(t->words > 0) printf("%s\n",s.c_str());
+for(int k = 0; k < ALPH_SIZE; ++k)
+if(t->links[k]) printAllWords(t->links[k], s + char(k + 'a'));
+}
+void Trie::printAllWords() const
+{
+printAllWords(myRoot, "");
+}
+//------------------------------------------------------------------------
+// Retorna la cantidad de palabras que aparecen mas de una vez en el trie
+int Trie::countRepeated(Node* t) const
+{
+int aux = 0;
+if(t->words > 1) ++aux;
+for(int k = 0; k < ALPH_SIZE; ++k)
+if(t->links[k]) aux += countRepeated(t->links[k]);
+return aux;
+}
+int Trie::countRepeated() const
+{
+return countRepeated(myRoot);
+}
+//------------------------------------------------------------------------
+// Inserta un string s en el trie
+void Trie::insert(const string s)
+{
+int len = (int)s.size();
+Node* t = myRoot;
+for(int k = 0; k < len; ++k)
+{
+if(t->links[s[k] - 'a'] == NULL)
+{
+t->links[s[k] - 'a'] = new Node();
+++(t->herms); ++myCount;
+}
+++(t->reachableWords);
+t = t->links[s[k] - 'a'];
+++(t->prefixes);
+}
+++(t->words);
+}
+//------------------------------------------------------------------------
+// Ejemplo de como hacer DFS en el Trie. Flag es true solo si t es la raiz
+int Trie::dfs(Node* t, string& str, int ind,bool ok)
+{
+    
+    if(ind==str.length()) return 1;
+    int offs=str[ind]-'a';
+    if(t->links[offs]) return dfs(t->links[offs], str,ind+1,ok);
+    else {
+        if(!ok) return 0;
+        for(int i=0;i<ALPH_SIZE;++i)
+            if(t->links[i]) if(!dfs(t->links[i], str,ind+1,false)) return 0;
+        return 1;
+    }
+}
+int Trie::dfs(string& str)
+{
+    return dfs(myRoot, str,0, true);
+}
+int main(){
+    int n, m;
+    cin>>n>>m;
+    map<int,Trie*> tries;
+    for(int i=0;i<n;++i){
+        string str;
+        cin>>str;
+        int l=str.length();
+        if(!tries.count(l)) tries[l] = new Trie();
+        tries[l]->insert(str);
+    }
+    for(int i=0;i<m;++i){
+        string str;
+        cin>>str;
+        int l=str.length();
+        if(tries.count(l)&&tries[l]->dfs(str)) cout<<"YES"<<endl;
+        else cout<<"NO"<<endl;
+    }
+}

@@ -1,0 +1,196 @@
+#include <stdio.h>
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const ll ABC = 26;
+const ll MAX_N = 100000;
+const ld pi = 3.1415926535897932384626;
+const ld eps = 1e-6;
+
+struct V
+{
+    ll x, y;
+    V() {}
+    V(ll a, ll b)
+    {
+        x = a;
+        y = b;
+    }
+};
+
+struct M
+{
+    ll a, b, c, d;
+    M(ll x)
+    {
+        a = 1;
+        b = 0;
+        c = 0;
+        d = 1;
+    }
+    M()
+    {
+        a = 0;
+        b = 1;
+        c = 1;
+        d = 1;
+    }
+    M(ll q, ll w, ll e, ll r)
+    {
+        a = q;
+        b = w;
+        c = e;
+        d = r;
+    }
+    print()
+    {
+        cout << a << " " << c << endl << b << " " << d << endl;
+    }
+};
+
+M mult(M m1, M m2)
+{
+    return M((m1.a * m2.a + m1.c * m2.b) % MOD, (m1.b * m2.a + m1.d * m2.b) % MOD, (m1.a * m2.c + m1.c * m2.d) % MOD, (m1.b * m2.c + m1.d * m2.d) % MOD);
+}
+
+M add(M m1, M m2)
+{
+    return M((m1.a + m2.a) % MOD, (m1.b + m2.b) % MOD, (m1.c + m2.c) % MOD, (m1.d + m2.d) % MOD);
+}
+
+M b_pow(ll p)
+{
+    if (p == 0)
+        return M(0);
+    M res, a;
+    p--;
+    while (p)
+    {
+        if (p & 1)
+            res = mult(res, a);
+        a = mult(a, a);
+        p >>= 1;
+    }
+    return res;
+}
+
+vector<M> tree;
+vector<ll> pl;
+ll cnt_ver = 1, height = 0;
+
+void build(vector<ll> &a, ll n)
+{
+    while (cnt_ver < n)
+    {
+        cnt_ver <<= 1;
+        height++;
+    }
+    tree.resize(cnt_ver * 2 - 1, M(0));
+    pl.resize(cnt_ver * 2 - 1, 0);
+    for (ll i = 0; i < n; i++)
+        tree[cnt_ver - 1 + i] = b_pow(a[i]);
+    for (ll i = cnt_ver - 2; i >= 0; i--)
+        tree[i] = add(tree[i * 2 + 1], tree[i * 2 + 2]);
+}
+
+void push(ll x)
+{
+    if (pl[x] == 0)
+        return;
+    pl[x * 2 + 1] += pl[x];
+    tree[x * 2 + 1] = mult(tree[x * 2 + 1], b_pow(pl[x]));
+    pl[x * 2 + 2] += pl[x];
+    tree[x * 2 + 2] = mult(tree[x * 2 + 2], b_pow(pl[x]));
+    pl[x] = 0;
+}
+
+void update(ll x, ll lx, ll rx, ll l, ll r, ll val)
+{
+    if (l >= rx || lx >= r)
+        return;
+    else if (lx >= l && rx <= r)
+    {
+        pl[x] += val;
+        tree[x] = mult(tree[x], b_pow(val));
+        b_pow(val).print();
+    }
+    else
+    {
+        push(x);
+        update(x * 2 + 1, lx, (lx + rx) / 2, l, r, val);
+        update(x * 2 + 2, (lx + rx) / 2, rx, l, r, val);
+        tree[x] = add(tree[x * 2 + 1], tree[x * 2 + 2]);
+    }
+}
+
+ll ans(ll x, ll lx, ll rx, ll l, ll r)
+{
+    if (lx >= r || l >= rx)
+        return 0;
+    else if (lx >= l && rx <= r)
+        return tree[x].c;
+    else
+    {
+        push(x);
+        return (ans(x * 2 + 1, lx, (lx + rx) / 2, l, r) + ans(x * 2 + 2, (lx + rx) / 2, rx, l, r)) % MOD;
+    }
+}
+
+void print()
+{
+	ll curr = 0, d = cnt_ver - 1, curr_cnt_ver = 1;
+	for (ll i = 0; i <= height; i++)
+	{
+		for (ll i = 0; i < d; i++)
+			cout << "  ";
+		for (ll i = 0; i < curr_cnt_ver; i++)
+		{
+			if (tree[curr].c >= 0 && tree[curr].c < 10)
+					cout << " ";
+            cout << tree[curr].c;
+			curr++;
+			for (ll i = 0; i < d * 2 + 1; i++)
+				cout << "  ";
+		}
+		cout << endl << endl;
+		curr_cnt_ver *= 2;
+		d /= 2;
+	}
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    ll n, m;
+    cin >> n >> m;
+    vector<ll> a(n);
+    for (ll i = 0; i < n; i++)
+        cin >> a[i];
+    build(a, n);
+    for (ll i = 0; i < m; i++)
+    {
+        ll t;
+        cin >> t;
+        if (t == 1)
+        {
+            ll l, r, val;
+            cin >> l >> r >> val;
+            update(0, cnt_ver - 1, cnt_ver * 2 - 1, cnt_ver - 1 + l - 1, cnt_ver - 1 + r, val);
+        }
+        else
+        {
+            ll l, r;
+            cin >> l >> r;
+            cout << ans(0, cnt_ver - 1, cnt_ver * 2 - 1, cnt_ver - 1 + l - 1, cnt_ver - 1 + r) << endl;
+        }
+    }
+    return 0;
+}

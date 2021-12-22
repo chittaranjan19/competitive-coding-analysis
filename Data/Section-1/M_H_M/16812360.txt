@@ -1,0 +1,114 @@
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+using namespace std;
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef long double ld;
+
+const int MAXN = 1000005;
+const int MAXE = 1000005;
+int from[2 * MAXE], to[2 * MAXE], cap[2 * MAXE], prv[2 * MAXE], head[MAXN], ecnt;
+void add_edge(int u, int v, int uv, int vu = 0){
+	from[ecnt] = u, to[ecnt] = v, cap[ecnt] = uv, prv[ecnt] = head[u]; head[u] = ecnt++;
+	from[ecnt] = v, to[ecnt] = u, cap[ecnt] = vu, prv[ecnt] = head[v]; head[v] = ecnt++;
+}
+int q[MAXN], d[MAXN];
+bool bfs(int source, int sink)
+{
+	memset(d, 63, sizeof(d));
+	d[source] = 0;
+	int h = 0, t = 0;
+	q[t++] = source;
+	while (h < t)
+	{
+		int v = q[h++];
+		for (int i = head[v]; i != -1; i = prv[i])
+			if (cap[i] && d[to[i]] > d[v] + 1)
+			{
+				d[to[i]] = d[v] + 1;
+				q[t++] = to[i];
+			}
+	}
+	return (d[sink] < 1e9);
+}
+int ptr[MAXN];
+int dfs(int v, int sink, int f = 1e9)
+{
+	if (v == sink)
+		return f;
+	int ans = 0;
+	for (; ptr[v] != -1; ptr[v] = prv[ptr[v]])
+		if (d[v] + 1 == d[to[ptr[v]]])
+		{
+			int x = dfs(to[ptr[v]], sink, min(f, cap[ptr[v]]));
+			cap[ptr[v]] -= x;
+			cap[ptr[v] ^ 1] += x;
+			ans += x;
+			f -= x;
+			if (f == 0)
+				break;
+		}
+	return ans;
+}
+int max_flow(int source, int sink)
+{
+	int ans = 0;
+	while (bfs(source, sink))
+	{
+		memcpy(ptr, head, sizeof(head));
+		ans += dfs(source, sink);
+	}
+	return ans;
+}
+
+pair<pii, ld> edg[MAXN];
+int n, m, k;
+
+#define X first
+#define Y second
+
+bool isval(ld x){
+	memset(head, -1, sizeof(head));
+	ecnt = 0;
+	for(int i = 0; i < m; ++i)
+		add_edge(edg[i].X.X, edg[i].X.Y, (ll)(edg[i].Y / x));
+	if(max_flow(0, n - 1) >= k)
+		return true;
+	return false;
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cin.tie(0);
+	cin >> n >> m >> k;
+	for (int i = 0; i < m; i++)
+	{
+		int u, v, c;
+		cin >> u >> v >> c;
+		u--;
+		v--;
+		edg[i] = {{u, v}, c};
+	}
+	ld l = 0., r = 1e9;
+	for(int i = 0; i < 100; ++i){
+		ld mid = (l + r) / 2;
+		if(isval(mid))
+			l = mid;
+		else 
+			r = mid;
+	}
+	cout << fixed << setprecision(9) <<  (ld)k * l << "\n";
+	return 0;
+}

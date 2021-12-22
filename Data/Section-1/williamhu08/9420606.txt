@@ -1,0 +1,80 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 18;
+
+int N;
+int A[MAXN], B[MAXN];
+int aord[MAXN], bord[MAXN];
+int sum[MAXN];	//order of sum
+int bit[MAXN];
+
+void update (int x, int v) {
+	for (; x < MAXN; x += (x & -x)) {
+		bit[x] += v;
+	}
+}
+
+int query (int x) {
+	int s = 0;
+	for (; x; x &= x - 1) {
+		s += bit[x];
+	}
+	return s;
+}
+
+void getord (int *arr, int *ord) {
+	for (int i = 1; i <= N; i++) {
+		cin >> arr[i];
+		arr[i]++;
+		update(i, 1);
+	}
+	for (int i = 1; i <= N; i++) {
+		int x = arr[i];
+		update(x, -1);
+		ord[N - i] = query(x);
+	}
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	getord(A, aord);
+	getord(B, bord);
+	//ok now add them up. only 1 thru N - 1 actually matter
+	for (int i = 1; i <= N; i++) {
+		int s = aord[i] + bord[i];
+		if (s > i) {
+			bord[i + 1]++;
+			s -= (i + 1);
+		}
+		sum[i] = s;
+		update(i, 1);
+	}
+	for (int i = N - 1; i >= 0; i--) {
+		int s = sum[i];	//find sth one. basically, the maximum x such that query(x - 1) <= s
+		int tot = 0, pos = 0;
+		for (int j = 17; j >= 0; j--) {
+			int nxt = pos | (1 << j), totnxt = tot + bit[nxt];
+			if (totnxt <= s) {
+				tot = totnxt;
+				pos = nxt;
+			}
+		}
+		update(pos + 1, -1);
+		cout << pos << ' ';
+	}
+}

@@ -1,0 +1,212 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const int N = 100000;
+const int inf = (int)1e9;
+const int MOD = (int)1e9 + 7;
+const ld eps = 1e-6;
+
+struct Point
+{
+    ld x, y;
+    Point() {};
+    Point(ld a, ld b)
+    {
+        x = a;
+        y = b;
+    }
+    ld vect(Point p)
+    {
+        return x * p.y - p.x * y;
+    }
+    ld scal(Point p)
+    {
+        return x * p.x + y * p.y;
+    }
+    ld angle(Point p)
+    {
+        return atan2(vect(p), scal(p));
+    }
+    bool operator == (Point p)
+    {
+        return x == p.x && y == p.y;
+    }
+    bool operator != (Point p)
+    {
+        return x != p.x || y != p.y;
+    }
+    Point operator + (Point p)
+    {
+        return Point(x + p.x, y + p.y);
+    }
+    void operator += (Point p)
+    {
+        x += p.x;
+        y += p.y;
+    }
+    Point operator - (Point p)
+    {
+        return Point(x - p.x, y - p.y);
+    }
+    void operator -= (Point p)
+    {
+        x -= p.x;
+        y -= p.y;
+    }
+    Point operator * (ld q)
+    {
+        return Point(x * q, y * q);
+    }
+    void operator *= (ld q)
+    {
+        x *= q;
+        y *= q;
+    }
+    Point operator / (ld q)
+    {
+        return Point(x / q, y / q);
+    }
+    void operator /= (ld q)
+    {
+        x /= q;
+        y /= q;
+    }
+    void print()
+    {
+        cout.precision(20);
+        cout << fixed << x << " " << y << endl;
+    }
+};
+
+Point betw(Point p1, Point p2, ld q)
+{
+    return p1 * (1 - q) + p2 * q;
+}
+
+ld dist(Point p)
+{
+    return sqrt(p.x * p.x + p.y * p.y);
+}
+
+ld dist(Point p1, Point p2)
+{
+    return dist(p2 - p1);
+}
+
+ld dist2(Point p)
+{
+    return p.x * p.x + p.y * p.y;
+}
+
+ld dist2(Point p1, Point p2)
+{
+    return dist2(p2 - p1);
+}
+
+struct Line
+{
+    ld a, b, c;
+    Line() {};
+    Line(ld x, ld y, ld z)
+    {
+        a = x;
+        b = y;
+        c = z;
+    }
+    Line(Point p1, Point p2)
+    {
+        a = p2.y - p1.y;
+        b = -(p2.x - p1.x);
+        c = p2.x * p1.y - p1.x * p2.y;
+    }
+    Line perp(Point p)
+    {
+        return Line(-b, a, p.x * b - p.y * a);
+    }
+    ld dist(Point p)
+    {
+        return (a * p.x + b * p.y + c) / sqrt(a * a + b * b);
+    }
+    void print()
+    {
+        cout.precision(20);
+        cout << fixed << a << " " << b << " " << c << endl;
+    }
+};
+
+struct Circle
+{
+    ld x, y, r;
+    Circle() {};
+    Circle(ld a, ld b, ld c)
+    {
+        x = a;
+        y = b;
+        r = c;
+    }
+    bool operator == (Circle c)
+    {
+        return x == c.x && y == c.y && r == c.r;
+    }
+};
+
+Point LIL(Line l1, Line l2)
+{
+    return Point((l2.c * l1.b - l1.c * l2.b) / (l1.a * l2.b - l2.a * l1.b), (l1.c * l2.a - l2.c * l1.a) / (l1.a * l2.b - l2.a * l1.b));
+}
+
+vector<Point> LIC(Line l, Circle c)
+{
+    Point del(c.x, c.y);
+    c.x = 0; c.y = 0; l.c += (del.x * l.a + del.y * l.b);
+    Point p0(-l.a * l.c / (l.a * l.a + l.b * l.b), -l.b * l.c / (l.a * l.a + l.b * l.b));
+    if (dist2(p0) - c.r * c.r > eps)
+        return {};
+    else if (fabs(dist2(p0) - c.r * c.r) <= eps)
+        return {p0 + del};
+    else
+    {
+        Point d = Point(-l.b, l.a) / sqrt(l.a * l.a + l.b * l.b) * sqrt(c.r * c.r - dist2(p0));
+        return {p0 + d + del, p0 - d + del};
+    }
+}
+
+vector<Point> CIC(Circle c1, Circle c2)
+{
+    Point del(c1.x, c1.y);
+    c1.x -= del.x; c1.y -= del.y; c2.x -= del.x; c2.y -= del.y;
+    vector<Point> res = LIC(Line(-2 * c2.x, -2 * c2.y, c2.x * c2.x + c2.y * c2.y + c1.r * c1.r - c2.r * c2.r), c1);
+    for (auto &i : res)
+        i += del;
+    return res;
+}
+
+int main()
+{
+    //freopen("intersec4.in", "r", stdin);
+    //freopen("intersec4.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.precision(20);
+    ll x1, y1, r1, x2, y2, r2;
+    cin >> x1 >> y1 >> r1 >> x2 >> y2 >> r2;
+    Circle c1(x1, y1, r1), c2(x2, y2, r2);
+    if (x1 != x2 || y1 != y2)
+    {
+        if (CIC(c1, c2).size() > 0)
+        {
+            cout << 0 << endl;
+            return 0;
+        }
+    }
+    ld mi = 1000000000;
+    for (auto i : LIC(Line(Point(x1, y1), Point(x2, y2)), c1))
+        for (auto j : LIC(Line(Point(x1, y1), Point(x2, y2)), c2))
+            mi = min(mi, dist(i, j));
+    cout << fixed << mi / 2 << endl;
+    return 0;
+}

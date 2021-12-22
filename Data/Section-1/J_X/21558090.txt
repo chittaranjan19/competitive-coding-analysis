@@ -1,0 +1,64 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 1e6 + 5;
+
+int a[2][maxn], used[maxn];
+
+int solve(int n, int m)
+{
+    int k = 0, now = 0, nxt = 1;
+    int flag = m;
+    used[0] = 1;
+    for(int i = 0; i < n; ++i)
+    {
+        int l;
+        scanf("%d", &l);
+        for(int j = 0; j < l; ++j) scanf("%d", &a[nxt][j]);
+        int p = 0;
+        while(p < l && p < k)
+        {
+            if(a[now][p] != a[nxt][p]) break;
+            ++p;
+        }
+        if(p < l)
+        {
+            if(p < k)
+            {
+                if(a[now][p] < a[nxt][p])
+                {
+                    --used[m - a[nxt][p] + 1];
+                    ++used[m - a[now][p] + 1];
+                }
+                else
+                {
+                    --used[0];
+                    ++used[m - a[now][p] + 1];
+                    --used[m - a[nxt][p] + 1];
+                }
+            }
+        }
+        else if(p < k) flag = -1;
+        swap(now, nxt);
+        k = l;
+    }
+    if(flag == -1) return -1;
+    for(int i = 0; i < m; ++i)
+    {
+        if(used[i] > 0) return i;
+        used[i + 1] += used[i];
+    }
+    return -1;
+}
+
+int main()
+{
+    int n, m;
+    scanf("%d%d", &n, &m);
+    printf("%d\n", solve(n, m));
+    return 0;
+}

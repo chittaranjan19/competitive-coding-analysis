@@ -1,0 +1,169 @@
+#include <iostream>
+#include <cmath>
+
+#define maxns 320
+
+using namespace std;
+
+struct List {
+    int x;
+    List *next, *prev;
+    List(int x): x(x) {
+        next = prev = NULL;
+    }
+};
+
+struct ListS {
+    List *first, *last;
+    int c;
+    ListS() {
+        c=0;
+        first=last = NULL;
+    }
+};
+
+int erase(List *&l, int p, ListS *ls) {
+    if(!p) {
+        if(l->next == NULL) {
+            ls->last = l->prev;
+        } else l->next->prev = l->prev;
+        int ret = l->x;
+        List* L = l;
+        l = l->next;
+        ls->c--;
+        delete L;
+        return ret;
+    } else return erase(l->next, p-1,ls);
+}
+
+int eraseB(List *&l, int p, ListS *ls) {
+    if(!p) {
+        if(l->prev == NULL) {
+            ls->first = l->next;
+        } else l->prev->next = l->next;
+        int ret = l->x;
+        List* L = l;
+        l = l->prev;
+        ls->c--;
+        delete L;
+        return ret;
+    } else return eraseB(l->prev, p-1,ls);
+}
+
+int erase(ListS *ls, int p) {
+    //if(p<=ls->c/2) {
+        return erase(ls->first,p,ls);
+    //} else return eraseB(ls->last,ls->c-p,ls);
+}
+
+int count(List *&l, int k, int p) {
+    if((p<0) || (l==NULL)) return 0;
+    return count(l->next, k, p-1)+(l->x==k);
+}
+
+void insert(List *&l, int p, int x, ListS *ls) {
+    if(!p) {
+        List *L = l;
+        ls->c++;
+        l = new List(x);
+        l->next = L;
+        l->prev = (L==NULL)?ls->last:L->prev;
+        if(L==NULL) {
+            ls->last = l;
+        } else L->prev = l;
+    } else insert(l->next, p-1, x, ls);
+}
+
+void insertB(List *&l, int p, int x, ListS *ls) {
+    if(!p) {
+        List *L = l;
+        ls->c++;
+        l = new List(x);
+        l->prev = L;
+        l->next = (L==NULL)?ls->first:L->next;
+        if(L==NULL) {
+            ls->first = l;
+        } else L->next = l;
+    } else insertB(l->prev, p-1, x, ls);
+}
+
+void insert(ListS *ls, int p, int x) {
+    if(p<=ls->c/2) {
+        insert(ls->first,p,x,ls);
+    } else insertB(ls->last,ls->c-p,x,ls);
+}
+
+void insertLast(ListS *ls, int x) {
+    List *l = new List(x);
+    if(ls->last != NULL) {
+        ls->last->next = l;
+        l->prev = ls->last;
+    } else {
+        ls->first = l;
+    }
+    ls->last = l;
+    ls->c++;
+}
+
+int eraseLast(ListS *ls) {
+    int ret = ls->last->x;
+    List *L = ls->last;
+    ls->last = ls->last->prev;
+    delete L;
+    ls->c--;
+    if(ls->last != NULL) ls->last->next = NULL;
+    return ret;
+}
+
+int db[maxns][100000];
+ListS ls[maxns];
+
+int n,q,s;
+int a;
+
+int main()
+{
+    scanf("%d",&n);
+    s = (int)sqrt(n);
+
+    for(int i=0; i<n; i++) {
+        scanf("%d",&a); a--;
+
+        insertLast(&ls[i/s],a);
+        db[i/s][a]++;
+    }
+
+    scanf("%d",&q);
+    int lastans(0);
+    for(int i=0; i<q; i++) {
+        int t,l,r; scanf("%d%d%d",&t,&l,&r); l--; r--;
+        l = (l+lastans) % n;
+        r = (r+lastans) % n;
+        if(l>r) swap(l,r);
+
+        if(t==1) {
+            int ar = erase(&ls[r/s],r%s);
+            db[r/s][ar]--;
+
+            insert(&ls[l/s],l%s,ar);
+            db[l/s][ar]++;
+            for(int j=l/s; j<r/s; j++) {
+                a = eraseLast(&ls[j]);
+                db[j][a]--;
+
+                insert(&ls[j+1],0,a);
+                db[j+1][a]++;
+            }
+        } else {
+            int k; cin >> k; k--;
+            k = (k+lastans) % n;
+
+            lastans = -count(ls[l/s].first,k,(l%s)-1);
+            for(int j=l/s; j<r/s; j++) lastans += db[j][k];
+            lastans += count(ls[r/s].first,k,r%s);
+            printf("%d\n",lastans);
+        }
+    }
+
+    return 0;
+}

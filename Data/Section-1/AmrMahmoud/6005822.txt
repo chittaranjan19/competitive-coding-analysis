@@ -1,0 +1,126 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define PI acos(-1.0)
+#define LL long long
+#define EPS 1e-9
+#define PL printf("\n")
+#define PS printf(" ")
+#define PInt(n) printf("%d",n)
+#define SI(n) scanf("%d",&n)
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+
+int n;
+vector<int> a,b;
+
+int bs_lower(int L,int R,int value)
+{
+    int mid;
+    while(R-L>1)
+    {
+        mid=L+(R-L)/2;
+        if(b[mid] >= value)
+            R=mid;
+        else L=mid;
+    }
+    if(b[L] == value)
+        return L;
+    else if(b[R] == value)
+        return R;
+    else return 1;
+}
+
+int bs_higher(int L,int R,int value)
+{
+    int mid;
+    while(R-L>1)
+    {
+        mid=L+(R-L)/2;
+        if(b[mid] > value)
+            R=mid;
+        else L=mid;
+    }
+    if(b[R] == value)
+        return R;
+    else if(b[L] == value)
+        return L;
+    else return -1;
+}
+
+int main()
+{
+    //freopen("input.txt","r",stdin);
+    //freopen("output.txt","w",stdout);
+    int x,y;
+    SI(n);
+    for(int i=0;i<n;i++)
+    {
+        SI(x);
+        SI(y);
+        a.pb(x);
+        if(y!=x)
+            b.pb(y);
+    }
+    sort(a.begin(),a.end());
+    sort(b.begin(),b.end());
+    int counter=1,mini=INF_MAX;
+    for(int i=0;i<n;i++)
+    {
+        if(i+1 > n)
+            if(a[i] == a[i+1])
+            {
+                counter++;
+                continue;
+            }
+        if(counter >= (n+1)/2)
+        {
+            mini=0;
+            break;
+        }
+        int add=bs_higher(0,n-1,a[i])-bs_lower(0,n-1,a[i])+1;
+        if(counter+add > (n+1)/2)
+            add=(n+1)/2 - counter;
+        if(counter+add >= (n+1)/2)
+            mini=min(mini,add);
+        counter=1;
+    }
+    counter=1;
+    for(int i=0;i<b.size();i++)
+    {
+        if(i+1!=b.size())
+        {
+            if(b[i] == b[i+1])
+            {
+                counter++;
+                continue;
+            }
+        }
+        if(!binary_search(a.begin(),a.end(),b[i]) && counter >= (n+1)/2)
+            mini=min(mini,counter);
+        counter=1;
+    }
+    if(mini == INF_MAX)
+        PInt(-1);
+    else PInt(mini);
+    return 0;
+}

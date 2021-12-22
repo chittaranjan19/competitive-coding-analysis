@@ -1,0 +1,62 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+int n, k;
+vector<int> g[111111];
+int d[50011][510];
+ll ans = 0;
+
+void dfs(int v, int p = 0)
+{
+	d[v][0] = 1;
+	for (int i = 0; i < g[v].size(); i++)
+	{
+		int to = g[v][i];
+		if (to == p) continue;
+		dfs(to, v);
+		for (int j = 0; j < k; j++)
+			d[v][j + 1] += d[to][j];
+	}
+	for (int i = 0; i < g[v].size(); i++)
+	{
+		int to = g[v][i];
+		if (to == p) continue;
+		for (int j = 1; j < k; j++)
+			ans += d[to][j - 1] * (d[v][k - j] - d[to][k - j - 1]);
+	}
+	ans += 2*d[v][k];
+}
+
+int main()
+{
+	memset(d, 0, sizeof(d));
+	cin >> n >> k;
+	for (int i = 1; i < n; i++){
+		int u, v;
+		cin >> u >> v;
+		g[u].push_back(v);
+		g[v].push_back(u);
+	}
+	dfs(1);
+	cout << ans/2;
+	return 0;
+}

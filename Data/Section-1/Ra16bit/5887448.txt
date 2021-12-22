@@ -1,0 +1,70 @@
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+typedef long long ll;
+const int MX=505000;
+int n,m,i,j,res=1,now,cur,k[MX],w1[MX],w2[MX],pre[MX],u[MX],ta[MX],xa[MX],ya[MX],tb[MX],xb[MX],yb[MX];
+ll u1[MX],u2[MX],u3[MX],A[MX],B[MX],C[MX],D[MX],dd1,dd2,dd3;
+void norm(ll& x, ll& y, ll& z) {
+  if (x<0) {
+    x=-x; y=-y; z=-z;
+  } else if (x==0) {
+    if (y<0) {
+      y=-y; z=-z;
+    } else if (y==0 && z<0) z=-z;
+  }
+  ll d=__gcd(x,y);
+  d=abs(__gcd(d,z));
+  x/=d; y/=d; z/=d;
+}
+bool cmp(int i, int j) {
+  if (A[i]!=A[j]) return A[i]<A[j];
+  if (B[i]!=B[j]) return B[i]<B[j];
+  if (C[i]!=C[j]) return C[i]<C[j];
+  return D[i]<D[j];
+}
+bool eq(int i, int j) {
+  return (A[i]==A[j] && B[i]==B[j] && C[i]==C[j] && D[i]==D[j]);
+}
+int main() {
+  scanf("%d",&n);
+  for (i=0; i<n; i++) {
+    scanf("%d%d%d%d%d%d",&ta[i],&xa[i],&ya[i],&tb[i],&xb[i],&yb[i]);
+    u1[i]=tb[i]-ta[i];
+    u2[i]=xb[i]-xa[i];
+    u3[i]=yb[i]-ya[i];
+    norm(u1[i],u2[i],u3[i]);
+    //printf("-> %d %d %d\n",int(y1);
+    pre[i]=i;
+    for (j=0; j<i; j++) {
+      if (u1[i]==u1[j] && u2[i]==u2[j] && u3[i]==u3[j]) pre[i]=pre[j];
+      A[m]=u2[i]*u3[j]-u2[j]*u3[i];
+      B[m]=u1[j]*u3[i]-u1[i]*u3[j];
+      C[m]=u1[i]*u2[j]-u1[j]*u2[i];
+      //printf("%I64d %I64d %I64d\n",A[m],B[m],C[m]);
+      norm(A[m],B[m],C[m]);
+      //printf("%I64d %I64d %I64d\n",A[m],B[m],C[m]);
+      k[m]=m; w1[m]=i; w2[m]=j;
+      D[m]=A[m]*ta[i]+B[m]*xa[i]+C[m]*ya[i];
+      dd1=A[m]*tb[i]+B[m]*xb[i]+C[m]*yb[i];
+      dd2=A[m]*ta[j]+B[m]*xa[j]+C[m]*ya[j];
+      dd3=A[m]*tb[j]+B[m]*xb[j]+C[m]*yb[j];
+      //printf("%I64d %I64d %I64d %I64d\n",D[m],dd1,dd2,dd3);
+      if (dd1!=D[m] || dd2!=D[m] || dd3!=D[m]) continue;
+      m++;
+    }
+  }
+  sort(k,k+m,cmp);
+  for (i=0; i<m; i=j) {
+    now=0;
+    for (j=i; j<m && eq(k[i],k[j]); j++) {
+      cur=pre[w1[k[j]]];
+      if (u[cur]!=i+1) { u[cur]=i+1; now++; }
+      cur=pre[w2[k[j]]];
+      if (u[cur]!=i+1) { u[cur]=i+1; now++; }
+    }
+    res=max(res,now);
+  }
+  printf("%d\n",res);
+  return 0;
+}

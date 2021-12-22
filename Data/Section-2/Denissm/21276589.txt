@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <vector>
+#include <string.h>
+using namespace std;
+typedef unsigned long long ull;
+
+struct Pair {
+	int to;
+	ull length;
+	Pair(int to, ull length) :to(to), length(length) {}
+};
+vector<Pair*> roads[5002];
+int n, m;
+ull T;
+int max_visited = 0;
+int next1[5002];
+
+bool dfs(int node, ull path_index, ull current_time, int visited) {
+	if (node == n) {
+		if (max_visited < visited) {
+			max_visited = visited;
+			return true;
+		}
+		return false;
+	}
+	bool is_new = false;
+	for (unsigned int i = 0; i < roads[node].size(); i++) {
+		Pair* current_road = roads[node][i];
+		ull new_time = current_road->length + current_time;
+		if (new_time <= T) {
+			bool is_new1 = dfs(current_road->to, path_index + i, new_time, visited + 1);
+			if (is_new1) {
+				is_new = true;
+				next1[node] = current_road->to;
+			}
+		}
+	}
+	return is_new;
+}
+
+void func() {
+	dfs(1, 1, 0, 0);
+	printf("%d\n", max_visited + 1);
+	for (int i = 1; i != n; i = next1[i]) {
+		printf("%d ", i);
+	}
+	printf("%d", n);
+}
+
+int main() {
+	scanf("%d %d %I64d", &n, &m, &T);
+	int from, to;
+	ull time;
+	for (int i = 0; i < m; i++) {
+		scanf("%d %d %I64d", &from, &to, &time);
+		roads[from].push_back(new Pair(to, time));
+	}
+	func();
+	return 0;
+}

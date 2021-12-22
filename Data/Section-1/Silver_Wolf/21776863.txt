@@ -1,0 +1,76 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+const int MAXN=1e5+10;
+const int S=100;
+
+int a[MAXN];
+int b[MAXN];
+int lazy[MAXN];
+int sum[MAXN];
+int mark[MAXN];
+int n;
+void calc1(int id,int ql,int qr,int qv){
+    int l=id*S;
+    int r=min(id*S+S,n);
+    if(qr<=l || r<=ql)return;
+    if(ql<=l && r<=qr && mark[id]){
+        sum[id]+=abs(mark[id]-qv)*(r-l);
+        lazy[id]=abs(mark[id]-qv);
+        mark[id]=qv;
+        return;
+    }
+    if(ql<=l && r<=qr){
+        for(int i=l;i < r && i < n ;i++){
+            a[i]+=lazy[id];
+            sum[id]+=abs(b[i]-qv);
+            a[i]+=abs(b[i]-qv);
+            b[i]=qv;
+        }
+        mark[id]=qv;
+        return ;
+    }
+
+    for(int i=l;i < r && i < n ;i++){
+        a[i]+=lazy[id];
+        if(mark[id])b[i]=mark[id];
+        if(i < ql || i >= qr)continue;
+        sum[id]+=abs(b[i]-qv);
+        a[i]+=abs(b[i]-qv);
+        b[i]=qv;
+    }
+    lazy[id]=0;
+    mark[id]=0;
+}
+
+int calc2(int id,int ql,int qr){
+    int l=id*S;
+    int r=min(id*S+S,n);
+    if(ql<=l && r<=qr)return sum[id];
+    if(qr<=l || r<=ql)return 0;
+    int res=0;
+    for(int i=l;i < r && i < n ;i++)if(i >= ql && i < qr)res+=lazy[id]+a[i];
+    return res;
+}
+
+
+int main(){
+    ios::sync_with_stdio(false);
+    cout.tie(0);    cin.tie(0);
+    int m;cin>>n>>m;
+    for(int i=0;i<n;i++)b[i]=i+1;
+    while(m--){
+        int qt; cin>>qt;
+        if(qt==1){
+            int x,y,z;  cin>>x>>y>>z;
+            for(int i=0;i<n;i+=S)calc1(i/S,x-1,y,z);
+        }
+        else {
+            int res=0;
+            int x,y;    cin>>x>>y;
+            for(int i=0;i<n;i+=S)res+=calc2(i/S,x-1,y);
+            cout<<res<<'\n';
+        }
+    }
+
+}

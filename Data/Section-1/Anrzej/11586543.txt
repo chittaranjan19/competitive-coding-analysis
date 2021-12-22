@@ -1,0 +1,105 @@
+#include<cstdio>
+#include<cstring>
+#include<cmath>
+#include<cstdlib>
+#include<queue>
+#include<vector>
+#include<algorithm>
+#include<iostream>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+
+using namespace std;
+
+ll n, q, sqrtt, inc[1000000];
+
+pair<ll, int> A[1000000];
+
+void update(ll l, ll r, ll del)
+{
+    ll L = sqrt(l + 0.5), R = sqrt(r + 0.5);
+    for (ll i = L + 1; i < R; i++)//увеличиваем полные интервалы
+        inc[i] += del;
+    //увеличить те, что левее полных интервалов
+    ll tl = L*L, tr = min((L + 1)*(L + 1), n);
+    for (ll i = tl; i < tr; i++)
+    if (l <= A[i].second && A[i].second <= r) A[i].first += del;
+    sort(A + tl, A + tr);
+
+    if (L == R) return;//не увеличивать 2 раз
+
+    //увеличиваем, те, что правее полных интервалов
+    tl = R*R, tr = min(++R*R, n);
+    for (ll i = tl; i < tr; i++)
+    if (l <= A[i].second && A[i].second <= r) A[i].first += del;
+    sort(A + tl, A + tr);//как меня это бесит, тупая таска !!!!!!1
+}
+
+ll func(ll y)
+{
+    ll left = -1, right = -1, temp;
+
+    //слева ищем вхождения
+    for (ll i = 0; i < sqrt(n + 0.5); i++)
+    {
+        ll l = i*i, r = min((i + 1)*(i + 1), n);
+
+        temp = lower_bound(A + l, A + r, mp(y - inc[i], 0)) - A;
+        if (temp != r + 1 && A[temp].first == y - inc[i])
+        {
+            left = A[temp].second;
+            break;
+        }
+
+    }
+    //справа теперь
+    for (ll i = sqrt(n + 0.5); i >= 0; i--)
+    {
+        ll l = i*i, r = min((i + 1)*(i + 1), n);
+
+        temp = upper_bound(A + l, A + r, mp(y - inc[i] + 1, 0)) - A - 1;
+        if (temp != -1 && A[temp].first == y - inc[i])
+        {
+            right = A[temp].second;
+            break;
+        }
+
+    }
+    if (left == -1) return -1;
+    return right - left;
+}
+
+int main()
+{
+    int lalala;
+    cin >> n >> q;
+    for (ll i = 0; i < n; i++)
+    {
+        ll t;
+        cin >> t;
+        A[i] = mp(t, i);
+    }
+    memset(inc, 0, sizeof(inc));
+    sort(A, A + n);
+
+    while (q--)
+    {
+        ll qu;
+        cin >> qu;
+        if (qu == 1)
+        {
+            ll l, r, del;
+            cin >> l >> r >> del;
+            update(l-1, r-1, del);
+        }
+        else
+        {
+            ll y;
+            cin >> y;
+            cout << func(y) << endl;
+        }
+    }
+    return 0;
+}

@@ -1,0 +1,121 @@
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100000;
+const int E = 100000;
+
+int from[E], to[E], cap[E], cost[E], pre[E], id[E], head[N];
+int ecnt;
+int ans[N];
+
+void add_edge(int u, int v, int cp, int ct, int ind){
+	id[ecnt] = ind, from[ecnt] = u, to[ecnt] = v, cap[ecnt] = cp, cost[ecnt] = ct, pre[ecnt] = head[u], head[u] = ecnt ++;
+	id[ecnt] = -1 , from[ecnt] = v, to[ecnt] = u, cap[ecnt] = 0, cost[ecnt] = -ct, pre[ecnt] = head[v], head[v] = ecnt ++;
+}
+
+queue <int> q;
+bool mark[N];
+int par[N];
+int d[N];
+
+void spfa(int source, int sink){
+	memset(par, -1, sizeof par);
+	memset(d, 63, sizeof d);
+	d[source] = 0;
+	q.push(source);
+	mark[source] = true;
+	while(!q.empty()){
+		int v = q.front();
+		mark[v] = false;
+		q.pop();
+		for(int i = head[v]; i != -1; i = pre[i]){
+			if(cap[i]){
+				if(d[to[i]] > d[v] + cost[i]){
+					d[to[i]] = d[v] + cost[i];
+					par[to[i]] = i;
+					if(!mark[to[i]]){
+						q.push(to[i]);
+						mark[to[i]] = true;
+					}
+				}
+			}
+		}
+	}
+	if (d[sink] > 1e9)
+		return;
+	while (sink != source){
+		int id = par[sink];
+		cap[id]--;
+		cap[id ^ 1]++;
+		sink = from[id];
+	}
+}
+
+void mcf(int source, int sink, int k){
+	for(int i = 0; i < k; ++i)
+		spfa(source, sink);
+	for(int i = 0; i < ecnt; ++i){
+		if(id[i] != -1 && !cap[i])
+			ans[id[i]] = 1;
+	}
+}
+
+int n, k;
+
+vector <int> x;
+int s[N];
+int e[N];
+int ct[N];
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	memset(head, -1, sizeof head);
+	int source = 0;
+	int sink = 2e9;
+	x.PB(sink);
+	x.PB(source);
+	cin >> n >> k;
+	for(int i = 0; i < n; ++i){
+		cin >> s[i] >> e[i] >> ct[i];
+		e[i] += s[i];
+		x.PB(s[i]);
+		x.PB(e[i]);
+	}
+	sort(x.begin(), x.end());
+	x.resize(unique(x.begin(), x.end()) - x.begin());
+	for(int i = 0; i < n; ++i){
+		int l = lower_bound(x.begin(), x.end(), s[i]) - x.begin();
+		int r = lower_bound(x.begin(), x.end(), e[i]) - x.begin();
+		add_edge(l, r, 1, -ct[i], i);
+	}
+	for(int i = 0; i < SZ(x); ++i)
+		add_edge(i, i + 1, 1e9, 0, -1);
+	
+	mcf(0, SZ(x) - 1, k);
+	
+	for(int i = 0; i < n; ++i) cout << ans[i] << " "; cout << "\n";	
+	return 0;
+}

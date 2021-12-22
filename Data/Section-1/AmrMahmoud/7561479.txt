@@ -1,0 +1,156 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+vector<vector<int> > graph(300005);
+
+struct disjointset
+{
+    vector<int> rank, parent,second;
+
+    disjointset(int n)
+    {
+        for(int i=0;i<n;i++)
+            rank.pb(1),parent.pb(i),second.pb(1);
+    }
+
+    int find_set(int x)
+    {
+        if(x == parent[x])
+            return x;
+        return parent[x] = find_set(parent[x]);
+    }
+
+    void link(int x,int y)
+    {
+        if(rank[x] > rank[y])
+            swap(x, y);
+        parent[x] = y;
+        if(rank[x] == rank[y])
+            second[y] = rank[y],rank[y]++;
+        else second[y] = max(second[y],rank[x] + 1);
+    }
+
+    bool union_sets(int x,int y)
+    {
+        x = find_set(x),y = find_set(y);
+        if(x != y)
+            link(x,y);
+        return x != y;
+    }
+
+    void union_safe(int x,int y)
+    {
+        parent[y] = x;
+        if(rank[x] < rank[y] + 1)
+            second[x] = rank[x],rank[x] = rank[y] + 1;
+        else second[x] = max(second[x], rank[y] + 1);
+    }
+
+    bool same_set(int x,int y)
+    {
+        return find_set(x) == find_set(y);
+    }
+};
+
+int choise,mini;
+bool visited[300005],visited2[300005],visited3[300005];
+disjointset civil(300005);
+
+void dfs_max(int node,int depth)
+{
+    visited3[node] = true;
+    if(depth > mini) mini = depth,choise = node;
+    for(int i=0;i<graph[node].size();i++)
+        if(!visited3[graph[node][i]])
+            dfs_max(graph[node][i], depth + 1);
+}
+
+int dfs(int node,int depth)
+{
+    visited[node] = true;
+    int local = 0;
+    for(int i=0;i<graph[node].size();i++)
+        if(!visited[graph[node][i]])
+            local = max(local, dfs(graph[node][i], depth + 1) + 1);
+    if(max(local, depth) < mini)
+        choise = node,mini = max(local, depth);
+    return local;
+}
+
+int dfs_join(int node)
+{
+    visited2[node] = true;
+    for(int i=0;i<graph[node].size();i++)
+        if(!visited2[graph[node][i]])
+            civil.union_safe(node,dfs_join(graph[node][i]));
+    return node;
+}
+
+int main()
+{
+    int n,m,q,x,y;
+    cin >> n >> m >> q;
+    for(int i=0;i<m;i++)
+    {
+        scanf("%d %d",&x,&y);
+        graph[x].pb(y);
+        graph[y].pb(x);
+    }
+    for(int i=1;i<=n;i++)
+        if(!visited[i])
+        {
+            choise = i;
+            mini = 0;
+            dfs_max(i,1);
+            mini = 400000;
+            dfs(choise,1);
+            dfs_join(choise);
+        }
+    for(int i=0;i<q;i++)
+    {
+        scanf("%d",&x);
+        if(x == 1)
+        {
+            scanf("%d",&x);
+            x = civil.find_set(x);
+            printf("%d\n",civil.rank[x] + civil.second[x] - 2);
+        }
+        else
+        {
+            scanf("%d %d",&x,&y);
+            civil.union_sets(x,y);
+        }
+    }
+    return 0;
+}

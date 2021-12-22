@@ -1,0 +1,115 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+#include <valarray>
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+
+#define forn(i,n) for(tint i=0;i<(tint)(n); i++)
+#define forsn(i,s,n) for(tint i=(s);i<(tint)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+
+
+
+int main()
+{
+	#ifdef ACMTUYO
+		assert(freopen("entrada.in", "r", stdin));
+	#endif
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	tint n,t;
+	while (cin >> n >> t)
+	{
+		tint k = 1;
+		forn(i,n)
+			k *= 2;
+		if (t == 0)
+			cout << 0 << "\n";
+		else
+		{
+			vector<vector<tint> > glasses(n+1,vector<tint> (n+1));
+			glasses[0][0] = k;
+			set<pair<tint,tint> > activos = {{0,0}};
+			set<pair<tint,tint> > newActivos = {{0,0}};
+			forsn(s,1,t)
+			{
+				for (auto x : activos)
+				{
+					if (x.first < n)
+					{
+						tint r = k;
+						forn(p,x.first+1)
+							r /= 2;
+						glasses[x.first+1][x.second]   += r;
+						glasses[x.first+1][x.second+1] += r;
+						if (glasses[x.first+1][x.second] >= k && x.first < n-1)
+							newActivos.insert({x.first+1,x.second});
+						if (glasses[x.first+1][x.second+1] >= k && x.first < n-1)
+							newActivos.insert({x.first+1,x.second+1});
+					}
+				}
+				activos = newActivos;
+			}
+			cout << activos.size() << "\n";
+		}		
+	}
+	return 0;
+}
+
+
+

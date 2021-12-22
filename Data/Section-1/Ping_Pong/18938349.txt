@@ -1,0 +1,97 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const ll MAX_N = 500000;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+int main()
+{
+    //ios_base::sync_with_stdio(0);
+    //cin.tie(0);
+    int n;
+    scanf("%d", &n);
+    vector<int> a(n), b(n);
+    for (int i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+    for (int i = 0; i < n; i++)
+        scanf("%d", &b[i]);
+
+    int cnt = 1, h = 0;
+    while (cnt <= n)
+    {
+        cnt *= 2;
+        h++;
+    }
+    int bin_pow[h];
+    bin_pow[0] = 1;
+    for (int i = 1; i < h; i++)
+        bin_pow[i] = bin_pow[i - 1] * 2;
+    int bin_log[n + 1];
+    int curr = 1, curr_pow = 0;
+    for (int i = 1; i <= n; i++)
+    {
+        if (curr * 2 <= i)
+        {
+            curr *= 2;
+            curr_pow++;
+        }
+        bin_log[i] = curr_pow;
+    }
+    int s_t_min[h][n];
+    for (int i = 0; i < n; i++)
+        s_t_min[0][i] = b[i];
+    for (int i = 1; i < h; i++)
+        for (int j = 0; j < n; j++)
+            if (j + bin_pow[i] <= n)
+                s_t_min[i][j] = min(s_t_min[i - 1][j], s_t_min[i - 1][j + bin_pow[i - 1]]);
+    int s_t_max[h][n];
+    for (int i = 0; i < n; i++)
+        s_t_max[0][i] = a[i];
+    for (int i = 1; i < h; i++)
+        for (int j = 0; j < n; j++)
+            if (j + bin_pow[i] <= n)
+                s_t_max[i][j] = max(s_t_max[i - 1][j], s_t_max[i - 1][j + bin_pow[i - 1]]);
+
+    ll ans = 0;
+    for (int i = 0; i < n; i++)
+    {
+        if (a[i] > b[i])
+            continue;
+        int t1 = max(s_t_max[bin_log[n - i]][i], s_t_max[bin_log[n - i]][n - bin_pow[bin_log[n - i]]]);
+        int t2 = min(s_t_min[bin_log[n - i]][i], s_t_min[bin_log[n - i]][n - bin_pow[bin_log[n - i]]]);
+        if (t1 < t2)
+            continue;
+        int l1 = i, r1 = n, l2 = i - 1, r2 = n - 1, mid;
+        while (r1 - l1 > 1)
+        {
+            mid = (l1 + r1) / 2;
+            int c1 = max(s_t_max[bin_log[mid - i + 1]][i], s_t_max[bin_log[mid - i + 1]][mid - bin_pow[bin_log[mid - i + 1]] + 1]);
+            int c2 = min(s_t_min[bin_log[mid - i + 1]][i], s_t_min[bin_log[mid - i + 1]][mid - bin_pow[bin_log[mid - i + 1]] + 1]);
+            if (c1 <= c2)
+                l1 = mid;
+            else
+                r1 = mid;
+        }
+        while (r2 - l2 > 1)
+        {
+            mid = (l2 + r2) / 2;
+            int c1 = max(s_t_max[bin_log[mid - i + 1]][i], s_t_max[bin_log[mid - i + 1]][mid - bin_pow[bin_log[mid - i + 1]] + 1]);
+            int c2 = min(s_t_min[bin_log[mid - i + 1]][i], s_t_min[bin_log[mid - i + 1]][mid - bin_pow[bin_log[mid - i + 1]] + 1]);
+            if (c1 < c2)
+                l2 = mid;
+            else
+                r2 = mid;
+        }
+        ans += max(0, l1 - r2 + 1);
+    }
+    printf("%I64d", ans);
+    return 0;
+}

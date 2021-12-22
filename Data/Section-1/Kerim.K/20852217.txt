@@ -1,0 +1,120 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define MOD 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+class node{
+	public:
+	ll a11,a12,a21,a22;
+	node(){a11=1;a12=1;a21=1;a22=0;}
+}st;
+ll mod(ll x){
+	while(x<0)
+		x+=MOD;
+	return (x%MOD);	
+}
+node mul(node x,node y){
+	node z;
+	z.a11=mod(mod(x.a11*y.a11)+mod(x.a12*y.a21));
+	z.a12=mod(mod(x.a11*y.a12)+mod(x.a12*y.a22));
+	z.a21=mod(mod(x.a21*y.a11)+mod(x.a22*y.a21));
+	z.a22=mod(mod(x.a21*y.a12)+mod(x.a22*y.a22));
+	return z;
+}
+node fib(ll x){
+	if(x==1)
+		return st;
+	node h=fib(x/2);
+	h=mul(h,h);	
+	if(x&1)
+		h=mul(h,st);
+	return h;	
+}
+ll t[MAXN<<2],s[MAXN<<2],lazy[MAXN<<2],arr[MAXN];
+void upd(int nd,ll v){
+	lazy[nd]+=v;
+	node res=fib(v);
+	s[nd]=mod(mod(s[nd]*res.a22)+mod(t[nd]*res.a21));
+	t[nd]=mod(mod(s[nd]*res.a12)+mod(t[nd]*res.a11));
+}
+void shift(int nd){
+	ll &ret=lazy[nd];
+	if(!ret)
+		return;
+	upd(nd<<1,ret);
+	upd(nd<<1|1,ret);
+	ret=0;		
+}
+void build(int nd,int x,int y){
+	if(x==y){
+		node res=fib(arr[x]);
+		s[nd]=res.a12;
+		t[nd]=res.a11;
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+	s[nd]=mod(s[nd<<1]+s[nd<<1|1]);
+	t[nd]=mod(t[nd<<1|1]+t[nd<<1]);
+}
+void inc(int l,int r,ll v,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		upd(nd,v);
+		return;
+	}
+	shift(nd);
+	int mid=(x+y)>>1;
+	inc(l,r,v,nd<<1,x,mid);
+	inc(l,r,v,nd<<1|1,mid+1,y);
+	s[nd]=mod(s[nd<<1]+s[nd<<1|1]);
+	t[nd]=mod(t[nd<<1]+t[nd<<1|1]);
+}
+ll tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0LL;
+	if(l<=x and y<=r)
+		return s[nd];
+	shift(nd);
+	int mid=(x+y)>>1;
+	ll i1=tap(l,r,nd<<1,x,mid);
+	ll i2=tap(l,r,nd<<1|1,mid+1,y);
+	return mod(i1+i2);
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	int n,q;
+	scanf("%d%d",&n,&q);
+	for(int i=1;i<=n;i++)
+		scanf("%lld",arr+i);
+	build(1,1,n);	
+	while(q--){
+		int type,l,r;
+		scanf("%d%d%d",&type,&l,&r);
+		if(type==1){
+			ll x;
+			scanf("%lld",&x);
+			inc(l,r,x,1,1,n);
+			continue;
+		}
+		printf("%lld\n",tap(l,r,1,1,n));
+	}	
+	return 0;
+}

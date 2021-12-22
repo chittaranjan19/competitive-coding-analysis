@@ -1,0 +1,83 @@
+#include<cstdio>
+#include<iostream>
+#include<vector>
+#include <cmath>
+#include <algorithm>
+#include <queue>
+#include <cstring>
+#include<cstdio>
+#include <set>
+#include<iostream>
+#define fuck(x) cout<<#x<<" "<<x<<endl
+using namespace std;
+#define PII pair<int,int>
+#define MP make_pair
+#define pb push_back
+#define ALL(x) (x).begin(), (x).end()
+int n;
+int par[201111];
+void init(int n){
+    for(int i=0;i<=n;i++) par[i] = i;
+}
+int find(int u){
+    return par[u] == u? u : par[u] = find(par[u]);
+}
+void unite(int u,int v){
+    u = find(u), v= find(v);
+    if(u == v) return;
+    par[u] = v;
+}
+int fa[201111];
+set<int> st[201111];
+int main(){
+    //freopen("/home/rainto96/in.txt","r",stdin);
+
+    scanf("%d",&n);
+    init(n);
+    vector<int> vc;
+    for(int i=1;i<=n;i++){
+        int u;scanf("%d",&u);
+        fa[i] = u;
+        if(i == u) vc.pb(i);
+        unite(i, u);
+    }
+    if(vc.size() == 0){
+        fa[1] = 1;
+        vc.pb(1);
+    }
+    int gai = 0;
+
+    for(int i=1;i<=n;i++){
+        st[find(i)].insert(i);
+    }
+    set<int>::iterator it;
+    for(int i=1;i<=n;i++){
+        if(st[i].empty()) continue;
+        bool allother=true;
+        for(it = st[i].begin(); it != st[i].end(); it++){
+            int x = *it;
+            if(fa[x] == x){
+                allother = false;
+            }
+        }
+        if(allother){
+            gai++;
+            fa[*st[i].begin()] = vc[0];
+        }else{
+            for(it = st[i].begin(); it != st[i].end(); it++){
+                int x = *it;
+                if(fa[x] == x && x!=vc[0]){
+                    gai++;
+                    fa[x] = vc[0];
+                }
+            }
+        }
+    }
+
+    cout<<gai<<endl;
+    for(int i=1;i<=n;i++){
+        cout<<fa[i]<<" ";
+    }
+    cout<<endl;
+    return 0;
+}

@@ -1,0 +1,169 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define mn2 2000001
+#define mn3 148934
+#define maxC 1000000007
+#define off 2500
+#define pb push_back
+
+using namespace std;
+int n, q, a[mn], all[mn3], r = 0, co[mn2];
+int num[mn], dem = 0, up[mn], hold[mn3], ans[mn];
+vector<int>g[mn], fact[mn];
+bool prime[mn2];
+
+void buildPrime()
+{
+    prime[0] = prime[1] = true;
+    FOR(i, 2, mn2 - 1)
+    if (!prime[i])
+    {
+        for(int t = i << 1; t < mn2; t += i)
+            prime[t] = true;
+        all[++ r] = i;
+        co[i] = r;
+    }
+}
+
+void buildFact(int id)
+{
+    int m = a[id];
+    fact[id].clear();
+    FOR(i, 1, r)
+    {
+        if (all[i] > sqrt(a[id]))
+            break;
+        if (m % all[i])
+            continue;
+        fact[id].pb(all[i]);
+        while(m % all[i] == 0)
+            m /= all[i];
+    }
+    if (!prime[m])
+        fact[id].pb(m);
+}
+
+void setup()
+{
+    buildPrime();
+    cin >> n >> q;
+    FOR(i, 1, n)
+    {
+        cin >> a[i];
+        buildFact(i);
+    }
+    int u, v;
+    FOR(i, 1, n - 1)
+    {
+        cin >> u >> v;
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+}
+
+void dfs(int u, int p)
+{
+    num[u] = ++ dem;
+    int store[8];
+    FOR(i, 0, int(fact[u].size()) - 1)
+    {
+        int v = co[fact[u][i]];
+        store[i] = hold[v];
+        if (hold[v])
+        {
+            if (ans[u] == -1)
+                ans[u] = hold[v];
+            else
+                if(num[ans[u]] < num[hold[v]])
+                    ans[u] = store[i];
+        }
+        hold[v] = u;
+    }
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        if (v == p)
+            continue;
+        dfs(v, u);
+    }
+    FOR(i, 0, int(fact[u].size()) - 1)
+    {
+        int v = co[fact[u][i]];
+        hold[v] = store[i];
+    }
+    up[u] = dem;
+}
+
+bool child(int u, int v)
+{
+    return (num[v] <= num[u] && num[u] <= up[v]);
+}
+
+void update(int u, int w, int p)
+{
+    if (!child(w, u) && !child(u, w))
+        return;
+    int store[8];
+    FOR(i, 0, int(fact[u].size()) - 1)
+    {
+        int v = co[fact[u][i]];
+        store[i] = hold[v];
+        if (hold[v])
+        {
+            if (ans[u] == -1)
+                ans[u] = hold[v];
+            else
+                if(num[ans[u]] < num[hold[v]])
+                    ans[u] = store[i];
+        }
+        hold[v] = u;
+    }
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        if (v == p)
+            continue;
+        update(v, w, u);
+    }
+    FOR(i, 0, int(fact[u].size()) - 1)
+    {
+        int v = co[fact[u][i]];
+        hold[v] = store[i];
+    }
+}
+
+void xuly ()
+{
+    int t, x, w;
+    memset(ans, -1, sizeof(ans));
+    memset(hold, 0, sizeof(hold));
+    dfs(1, 0);
+    FOR(i, 1, q)
+    {
+        cin >> t;
+        if (t == 1)
+        {
+            cin >> x;
+            cout << ans[x] << '\n';
+        }
+        else
+        {
+            cin >> x >> w;
+            a[x] = w;
+            buildFact(x);
+            update(1, x, 0);
+        }
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

@@ -1,0 +1,68 @@
+//
+//  Created by TaoSama on 2016-02-27
+//  Copyright (c) 2016 TaoSama. All rights reserved.
+//
+#pragma comment(linker, "/STACK:1024000000,1024000000")
+#include <algorithm>
+#include <cctype>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <queue>
+#include <string>
+#include <set>
+#include <vector>
+#include <unordered_map>
+
+using namespace std;
+#define pr(x) cout << #x << " = " << x << "  "
+#define prln(x) cout << #x << " = " << x << endl
+const int N = 1e3 + 10, INF = 0x3f3f3f3f, MOD = 1e9 + 7;
+
+int n, a[N];
+
+int main() {
+#ifdef LOCAL
+    freopen("C:\\Users\\TaoSama\\Desktop\\in.txt", "r", stdin);
+//  freopen("C:\\Users\\TaoSama\\Desktop\\out.txt","w",stdout);
+#endif
+    ios_base::sync_with_stdio(0);
+
+    while(scanf("%d", &n) == 1) {
+        map<int, int> mp;
+        for(int i = 1; i <= n; ++i) {
+            scanf("%d", a + i);
+            ++mp[a[i]];
+        }
+
+        int ans = mp[0];
+        for(int i = 1; i <= n; ++i) {
+            for(int j = 1; j <= n; ++j) {
+                if(i == j || !a[i] && !a[j]) continue;
+                vector<int> dummy;
+                dummy.push_back(a[i]);
+                dummy.push_back(a[j]);
+                --mp[a[i]]; --mp[a[j]];
+                int pre = a[j], nxt = a[i] + a[j], cnt = 2;
+                //because Fibonacci sequence increases so fast, about O(log)
+                while(true) {
+                    if(mp[nxt]) {
+                        --mp[nxt]; ++cnt;
+                        dummy.push_back(nxt);
+                        int tmp = nxt;
+                        nxt += pre;
+                        pre = tmp;
+                    } else break;
+                }
+                ans = max(ans, cnt);
+                for(int x : dummy) ++mp[x];
+            }
+        }
+        printf("%d\n", ans);
+    }
+    return 0;
+}

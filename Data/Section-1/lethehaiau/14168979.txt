@@ -1,0 +1,105 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct vec
+{
+	double x;
+	int a;
+};
+
+int n, k;
+vec a[101111], b[101111];
+bool kt[101111];
+long long rs;
+int c1[20], c2[20];
+
+bool cmp(vec a, vec b)
+{
+	return a.x > b.x;
+}
+
+long long cal(int h)
+{
+	long long rs = 1e18;
+	long long u, v, x, y;
+	double x1, y1, u1, v1;
+	for(int i = n - 1; i >= n - h; i--)
+		kt[a[i].a] = true;
+	for(int i = 0; i <= h; i++)
+	{
+		for(int j = 0; j <= k-h; j++)
+		{
+			int d1 = 0;
+			x = 0;
+			while(d1 < j)
+				{
+					if(!kt[b[x].a]) 
+						{
+							c1[d1] = b[x].a;
+							d1++;
+							kt[b[x].a] = true;
+						}
+					x++;
+				}
+			while(kt[b[x].a]) x++;
+			y = n - 1;
+			int d2 = 0;
+			while(d2 < k-h-j)
+			{
+				if(!kt[b[y].a]) 
+					{
+						c2[d2] = b[y].a;
+						d2++;
+						kt[b[y].a] = true;
+					}
+				y--;
+			}
+			while(kt[b[y].a]) y--;
+			x1 = b[x].x;
+			y1 = b[y].x;
+			u = 0; v = n - 1;
+			while(kt[a[u].a]) u++;
+			while(kt[a[v].a]) v--;
+			u1 = a[u].x;
+			v1 = a[v].x;
+			//cout <<h << "  " << u << " " << v << " " <<x << " " <<y << "\n";
+			x = int(x1-y1+0.5);
+			y = int(u1-v1+0.5);
+			rs = min(rs, x*y);
+			for(int q1 = 0; q1 < d1; q1++) kt[c1[q1]] = false;
+			for(int q1 = 0; q1 < d2; q1++) kt[c2[q1]] = false;
+		}
+		kt[a[i].a] = true;
+		kt[a[n - h + i].a] = false;
+	}
+	for(int i = 0; i <= k; i++) 
+	{
+		kt[a[i].a] = false;
+		kt[a[n - 1 - k].a] = false;
+		kt[b[i].a] = false;
+		kt[b[n - 1 - k].a] = false;
+	}
+	return rs;
+}
+
+int main()
+{
+	//freopen("in.txt", "r", stdin);
+	cin >> n >> k;
+	int x, y, u, v;
+	for(int i = 0; i < n; i++)
+	{
+		cin >> x >> y >> u >> v;
+		a[i].x = (x + u)/2.0; a[i].a = i;
+		b[i].x = (y + v)/2.0; b[i].a = i;
+	}
+	sort(a, a + n, cmp);
+	sort(b, b + n, cmp);
+	rs = 1e18;
+	for(int i = 0; i <= k; i++)
+	{
+		rs = min(rs, cal(i));
+	}
+	cout << rs;
+	return 0;
+}

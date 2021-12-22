@@ -1,0 +1,78 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+#define dri(x) scanf("%d", &x)
+#define drii(x, y) scanf("%d %d", &x, &y)
+#define driii(x, y, z) scanf("%d %d %d", &x, &y, &z)
+#define driiii(x, y, z, w) scanf("%d %d %d %d", &x, &y, &z, &w)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1 << 18;
+
+ll A, B;
+
+pll operator + (pll p1, int x) {
+	return pll(min(A, p1.fi + x), min(B, p1.se + x));
+}
+
+pll operator + (pll p1, pll p2) {
+	return pll(p1.fi + p2.fi, p1.se + p2.se);
+}
+
+pll tree[2 * MAXN];
+ll lazy[2 * MAXN];
+
+void update (int x, ll v) {
+	x += MAXN;
+	tree[x] = tree[x] + v;
+	while (x /= 2) {
+		tree[x] = tree[2 * x] + tree[2 * x + 1];
+	}
+}
+
+pll query (int a, int b, int cur = 1, int lt = 0, int rt = MAXN) {
+	if (rt <= a || b <= lt) {
+		return pll(0, 0);
+	}
+	if (a <= lt && rt <= b) {
+		return tree[cur];
+	}
+	int mid = (lt + rt) / 2;
+	return query(a, b, 2 * cur, lt, mid) + query(a, b, 2 * cur + 1, mid, rt);
+}
+
+int N, K, Q;
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d %lld %lld %d", &N, &K, &A, &B, &Q);
+
+	int qt, d, p;
+	ll a;
+	for (int qi = 0; qi < Q; qi++) {
+		scanf("%d", &qt);
+		if (qt == 1) {
+			scanf("%d %lld", &d, &a);
+			d--;
+			update(d, a);
+		} else {
+			scanf("%d", &p);
+			p--;
+			ll bef = query(0, p).se;
+			ll aft = query(p + K, N).fi;
+			printf("%lld\n", bef + aft);
+		}
+	}
+}

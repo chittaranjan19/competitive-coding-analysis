@@ -1,0 +1,124 @@
+#include <iostream>
+using namespace std;
+
+struct bracket
+{
+	bool opening;
+	bracket *next, *last;
+	bracket *pair;
+};
+
+int main()
+{
+	char ch;
+	int n, m, p;
+	cin >> n >> m >> p;
+
+	bracket *begin, *end;
+	bracket *k, *l, *cursor;
+
+	for (int i = 0; i < n; i++)
+	{
+		cin >> ch;
+
+		k = new bracket;
+		k->opening = ch == '(';
+		k->pair = NULL;
+
+		if (i == 0)
+		{
+			begin = k;
+			k->last = NULL;
+		}
+		else if (i == n - 1)
+		{
+			end = k;
+			k->last = l;
+			k->next = NULL;
+			l->next = k;
+		}
+		else
+		{
+			k->last = l;
+			l->next = k;
+		}
+
+		if (!k->opening)
+		{
+			bracket *r = k;
+			while (!r->opening || r->pair != NULL)
+				r = r->last;
+			k->pair = r;
+			r->pair = k;
+		}
+
+		if (i+1 == p) cursor = k;
+
+		l = k;
+	}
+
+	for (int i = 0; i < m; i++)
+	{
+		cin >> ch;
+		if (ch == 'R') cursor = cursor->next;
+		else if (ch == 'L') cursor = cursor->last;
+		else
+		{
+			if (cursor->opening)
+			{
+				if (begin == cursor)
+				{
+					begin = cursor->pair->next;
+					cursor = begin;
+				}
+				else
+				{
+					k = cursor->last;
+					l = cursor->pair->next;
+					k->next = l;
+
+					if (l != NULL)
+					{
+						l->last = k;
+						cursor = l;
+					}
+					else
+					{
+						end = k;
+						cursor = end;
+					}
+				}
+			}
+			else
+			{
+				if (end == cursor)
+				{
+					end = cursor->pair->last;
+					cursor = end;
+				}
+				else
+				{
+					k = cursor->pair->last;
+					l = cursor->next;
+					l->last = k;
+
+					if (k != NULL)
+					{
+						k->next = l;
+					}
+					else begin = l;
+					cursor = l;
+				}
+			}
+		}
+	}
+
+	k = begin;
+	do {
+		cout << (k->opening ? "(" : ")");
+		k = k->next;
+	} while (k!=end);
+	cout << (k->opening ? "(" : ")");
+
+	return 0;
+}

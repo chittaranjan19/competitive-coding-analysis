@@ -1,0 +1,170 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+#include <valarray>
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+
+#define forn(i,n) for(tint i=0;i<(tint)(n); i++)
+#define forsn(i,s,n) for(tint i=(s);i<(tint)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		tint p = tint(v.size());
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) )
+		Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+// CRIBA
+
+//const tint maxN = 1000500;
+//int p[maxN + 1] = {1, 1};
+//
+//map<tint,tint> factorizar (tint n)
+//{
+//	map<tint,tint> f;
+//	while (n > 1) 
+//	{ 
+//		f[p[n]]++;
+//		n /= p[n]; 
+//	}
+//	return f;
+//}
+// ESTO VA EN EL MAIN
+//	for (int i = 1; i <= maxN; ++i)
+//		if (p[i] == 1)
+//			for (int j = i; j <= maxN; j += i)
+//				p[j] = i;
+
+
+
+struct Caja
+{
+	tint a,b,c;
+	Caja (tint aa, tint bb, tint cc)
+	{
+		a = aa;
+		b = bb;
+		c = cc;
+	}
+};
+
+struct Respuesta
+{
+	tint volumen,i1,i2;
+	Respuesta (tint vv, tint ii1, tint ii2)
+	{
+		volumen = vv;
+		i1 = ii1;
+		i2 = ii2;
+	}
+};
+
+bool operator < (Respuesta r1, Respuesta r2)
+{
+	return make_tuple (r1.volumen, r1.i1, r1.i2) < make_tuple (r2.volumen, r2.i1, r2.i2);
+}
+
+
+
+int main()
+{
+	#ifdef ACMTUYO
+		assert(freopen("entrada.in", "r", stdin));
+	#endif
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	tint n;
+	while (cin >> n)
+	{
+		Respuesta best = Respuesta(0,-1,-1);
+		vector<Caja> caja (n,Caja(0,0,0));
+		map<pair<tint,tint>, deque<pair<tint,tint> > > mapita; // dos dimensiones mas grandes || la dimension mas chica y el indice de la caja
+		forn(i,n) 
+		{
+			vector<tint> v (3);
+			cin >> v[0] >> v[1] >> v[2];
+			sort(v.begin(),v.end());
+			caja[i] = Caja(v[0],v[1],v[2]);
+			mapita[make_pair(v[1],v[2])].push_back(make_pair(v[0],i));
+			sort(mapita[make_pair(v[1],v[2])].begin(),mapita[make_pair(v[1],v[2])].end());
+			if (mapita[make_pair(v[1],v[2])].size() == 3)
+				mapita[make_pair(v[1],v[2])].pop_front();
+			best = max(best,Respuesta(v[0],i,i));
+		}
+		
+		forn(i,n)
+		{
+			
+			deque<pair<tint,tint> > v = mapita[make_pair(caja[i].b,caja[i].c)];
+			
+			if (v.size() == 2 && v[1].second != i)
+				best = max(best,Respuesta(min(v[1].first+caja[i].a,caja[i].b),i,v[1].second));
+			else if (v.size() == 2)
+				best = max(best,Respuesta(min(v[0].first+caja[i].a,caja[i].b),i,v[0].second));
+		}
+		if (best.i1 == best.i2)
+		{
+			cout << "1\n";
+			cout << best.i1+1 << "\n";
+		}
+		else
+		{
+			cout << "2\n";
+			cout << best.i1+1 << " " << best.i2+1 << "\n";
+		}
+		
+	}
+	return 0;
+}
+
+
+

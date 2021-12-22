@@ -1,0 +1,83 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+
+using namespace std;
+
+int main()
+{
+    string s;
+    cin >> s;
+    s = "1*" + s;
+    s += "*1";
+    ll ans = 0, len = s.length();
+    int astr[10000];
+    memset(astr, 0, sizeof(astr));
+    for (int i = 0; i < s.length(); i++)
+    {
+        if (s[i] == '*')
+            astr[i] = 1;
+    }
+    int max = 0, max_l = 0, max_r = 0;
+    for (int i = 0; i < s.length(); i++)
+    {
+        if (astr[i] == 1)
+        {
+            i += 1;
+            int l = i, pr = 0;
+            if (astr[i + 2] != '*' )
+            {
+                while (s[i] != '*' && i < len - 2)
+                {
+                    if (s[i] != '+')
+                        pr += s[i] - 48;
+                    i++;
+                }
+            }
+            if ((s[l - 2] - 48) * pr*(s[i + 1] - 48) > max)
+            {
+                max = (s[l - 2] - 48) * pr*(s[i + 1] - 48);
+                max_l = l - 2;
+                max_r = i + 1;
+                i--;
+            }
+        }
+    }
+    ans += max;
+    int mas[10000], k = 0, temp = 0;
+    for (int i = 2; i < s.length(); i += 2)
+    {
+        if (i >= max_l && i <= max_r)
+            continue;
+        if (s[i + 1] == '+' && temp != 0 || i == len - 1)
+        {
+            mas[k++] = temp;
+            temp = 0;
+            continue;
+        }
+        if (s[i + 1] == '+' && temp == 0)
+            mas[k++] = s[i] - 48;
+
+        if (s[i + 1] == '*')
+        {
+            if (temp == 0)
+                temp = 1;
+            temp *= s[i] - 48;
+        }
+    }
+    for (int i = 0; i < k; i++)
+        ans += mas[i];
+    cout << ans;
+    return 0;
+}

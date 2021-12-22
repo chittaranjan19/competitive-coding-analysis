@@ -1,0 +1,74 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int n, k, down[mn];
+pair<int, int> a[mn];
+long long l, m, remain, dp[mn][2], ans;
+
+void setup()
+{
+    cin >> n >> l >> k;
+    FOR(i, 1, n)
+    {
+        cin >> a[i].F;
+        a[i].S = i;
+        dp[i][0] = dp[i - 1][0] + 1;
+    }
+    ans = l % maxC;
+    m = l / n;
+    remain = l % n;
+    int u = 1;
+    sort(a + 1, a + n + 1);
+    FOR(i, 1, n)
+    {
+        while (u < n && a[u + 1].F <= a[i].F)
+            u ++;
+        down[i] = u;
+    }
+}
+
+void xuly()
+{
+    long long sum, add;
+    int cur, pre;
+    FOR(j, 2, k)
+    {
+        sum = add = 0;
+        pre = (j & 1);
+        cur = pre ^ 1;
+        FOR(i, 1, n)
+        {
+            dp[i][cur] = dp[down[i]][pre];
+            if (a[i].S <= remain)
+                sum = (sum + dp[i][cur]) % maxC;
+            dp[i][cur] = (dp[i - 1][cur] + dp[i][cur]) % maxC;
+        }
+        if (m + 1 >= j)
+            ans = (ans + sum) % maxC;
+        if (m >= j)
+        {
+            int no = m - j + 1;
+            add = (dp[n][cur] * no) % maxC;
+            ans = (ans + add) % maxC;
+        }
+    }
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

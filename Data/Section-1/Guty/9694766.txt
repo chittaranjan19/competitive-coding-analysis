@@ -1,0 +1,103 @@
+import sys
+
+def distChar(s,t):
+	i = 0
+	end = min(len(s), len(t))
+	fst = "*"
+	snd = "*"
+	while i < end and s[i] == t[i]:
+		i += 1
+	if i < end:
+		fst = s[i]
+		snd = t[i]
+	return [fst, snd]
+	
+def vecinos(v,adjDict,pase,camino):
+	if v in adjDict:
+		if not pase[v]:
+			pase[v] = True
+			camino.append(v)
+			for x in adjDict[v]:
+				vecinos(x,adjDict,pase,camino)
+	else:
+		camino.append(v)
+		return camino
+			 
+	
+		
+	
+		
+
+letters = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]	
+
+n = int(sys.stdin.readline())
+
+author = []
+
+for i in range(n):
+	name = list(sys.stdin.readline())[0:-1]
+	author.append(name)
+
+adjDict = {}
+
+fruta = False
+
+for i in range(n-1):
+	fst = distChar(author[i],author[i+1])[0]
+	snd = distChar(author[i],author[i+1])[1]
+	if fst != "*":
+		if fst not in adjDict:
+			if snd in adjDict:
+				pase = {}
+				camino = []
+				for x in adjDict:
+					pase[x] = False
+				vecinos(snd,adjDict,pase,camino)
+				if fst in camino:
+					fruta = True
+					break
+			adjDict[fst] = set([snd])
+		else:
+			if snd in adjDict:
+				pase = {}
+				camino = []
+				for x in adjDict:
+					pase[x] = False
+				vecinos(snd,adjDict,pase,camino)
+				if fst in camino:
+					fruta = True
+					break
+			else:
+				adjDict[fst].add(snd)
+l = []
+if not fruta:
+	if adjDict != {}:
+		f = author[0][0]
+		finalLexi = [f]
+		if f in adjDict:
+			pase = {}
+			camino = []
+			for z in adjDict:
+				pase[z] = False
+			vecinos(f,adjDict,pase,camino)
+		l.append(camino)
+		for x in adjDict:
+			pase = {}
+			camino = []
+			for z in adjDict:
+				pase[z] = False
+			vecinos(x,adjDict,pase,camino)
+			l.append(camino)
+		l = sorted(l,key = len, reverse = True)
+		for x in l:
+			for y in x:
+				if y not in finalLexi:
+					finalLexi.append(y)
+		for p in letters:
+			if p not in finalLexi:
+				finalLexi.append(p)
+		print "".join(finalLexi)
+	else:
+		print "".join(letters)
+else:
+	print "Impossible"	

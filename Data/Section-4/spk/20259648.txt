@@ -1,0 +1,93 @@
+#include<iostream>
+#include<cstdio>
+#include<map>
+#include<string>
+#include<cstring>
+#include<vector>
+#include<algorithm>
+#include<queue>
+#include<set>
+#include<stack>
+
+#define fill(a,val) memset(a, (val), sizeof a)
+#define pb push_back
+#define scantype long long int
+#define lli long long int
+
+lli powermod(lli _a,lli _b,lli _m){lli _r=1;while(_b){if(_b%2==1)_r=(_r*_a)%_m;_b/=2;_a=(_a*_a)%_m;}return _r;}
+
+using namespace std;
+
+void scan(scantype &x);
+
+
+int n,m,k;
+lli inf=99999999999999999;
+lli cost[103][103];
+int tree[103];
+map< pair<int,int> , lli > dp;
+
+lli solve(int pos,int part,int prev_col,lli cst)
+{
+    if(pos==n+1)
+    {
+        if(part==k)  return cst;
+        else         return inf;
+    }
+
+    pair<int,int> vp = make_pair(pos,part);
+
+    if(dp.count(vp))
+        return dp[vp];
+
+    lli res=inf;
+    if(tree[pos]==0)
+        for(int i=1;i<=m;i++)
+            res = min(res , solve(pos+1,prev_col==i?part:part+1,i, cst+cost[pos][i]) );
+    else
+            res = min(res , solve(pos+1,prev_col==tree[pos]?part:part+1,tree[pos],cst));
+
+    //cout<<pos<<" "<<res<<endl;
+    return dp[vp]=res;
+}
+
+int main(void)
+{
+  cin>>n>>m>>k;
+
+  for(int i=1;i<=n;i++)
+         scanf("%d",&tree[i]);
+  for(int i=1;i<=n;i++)
+      for(int j=1;j<=m;j++)
+         scan(cost[i][j]);
+
+
+  lli ans=solve(1,0,-1,0);
+
+  ans==inf?cout<<"-1":cout<<ans;
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+void scan(scantype &x)
+{
+    /*register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}*/
+
+    register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x;
+}

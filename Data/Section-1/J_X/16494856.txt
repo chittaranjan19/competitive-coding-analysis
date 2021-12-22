@@ -1,0 +1,90 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 2e5 + 5;
+
+struct node
+{
+    int x, id, a;
+
+    bool operator < (const node &a) const
+    {
+        return x != a.x ? x > a.x : id > a.id;
+    }
+} mm[maxn];
+int ans[maxn], b[maxn];
+multiset<int> mst;
+set<node> st;
+
+int main()
+{
+    int n, m;
+    scanf("%d%d", &n, &m);
+    for(int i = 0; i < n; ++i)
+    {
+        scanf("%d", &b[i]);
+    }
+    for(int i = 0; i < m; ++i)
+    {
+        scanf("%d%d", &mm[i].a, &mm[i].x);
+        mm[i].id = i;
+        st.insert(mm[i]);
+    }
+    mm[m].x = 0, mm[m].id = m, mm[m].a = 0;
+    st.insert(mm[m]);
+    int j = 0, last = n;
+    node p = *st.begin();
+    while(j < p.id)
+    {
+        st.erase(mm[j]);
+        ++j;
+    }
+    for(int i = p.x; i < last; ++i)
+    {
+        ans[i] = b[i];
+    }
+    for(int i = 0; i < p.x; ++i)
+    {
+        mst.insert(b[i]);
+    }
+    last = p.id;
+    st.erase(mm[j]);
+    ++j;
+    while(!st.empty())
+    {
+        p = *st.begin();
+        while(j < p.id)
+        {
+            st.erase(mm[j]);
+            ++j;
+        }
+        if(mm[last].a == 2)
+        {
+            for(int i = mm[last].x - 1; i >= p.x; --i)
+            {
+                ans[i] = *mst.begin();
+                mst.erase(mst.begin());
+            }
+        }
+        else
+        {
+            for(int i = mm[last].x - 1; i >= p.x; --i)
+            {
+                multiset<int>::iterator pp = mst.end();
+                --pp;
+                ans[i] = *pp;
+                mst.erase(pp);
+            }
+        }
+        last = p.id;
+        st.erase(mm[j]);
+        ++j;
+    }
+    for(int i = 0; i < n; ++i)
+    {
+        printf("%d ", ans[i]);
+    }
+    puts("");
+    return 0;
+}

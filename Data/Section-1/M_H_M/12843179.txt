@@ -1,0 +1,70 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((ll)x.size() )
+#define X first
+#define Y second
+#define PB push_back
+#define MP make_pair
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+const int N = 1e5 + 100;
+
+int n;
+vector <int> g[N];
+bool mark[N];
+int siz[N];
+char ans[N];
+
+void dfs(int v, int p){
+	siz[v] = 1;
+	for(int i = 0; i < SZ(g[v]); ++i){
+		int u = g[v][i];
+		if(u != p && !mark[u]){
+			dfs(u, v);
+			siz[v] += siz[u];
+		}
+	}
+}
+
+void solve(int v, char ch){
+	dfs(v, -1);
+	int root = v, p = -1;
+	bool found = true;
+	while(found){
+		found = false;
+		for(int i = 0; i < SZ(g[v]); ++i){
+			int u = g[v][i];
+			if(!mark[u] && u != p && siz[u] > siz[root] / 2){
+				p = v;
+				v = u;
+				found = true;
+				break;
+			}
+		}
+	}
+	ans[v] = ch;
+	mark[v] = true;
+	for(int i = 0; i < SZ(g[v]); ++i){
+		int u = g[v][i];
+		if(!mark[u])
+			solve(u, ch + 1);
+	}
+}
+
+int main(){
+	cin >> n;
+	for(int i = 0; i < n - 1; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; v--;
+		g[v].PB(u);
+		g[u].PB(v);
+	}
+	solve(0, 'A');
+	for(int i = 0; i < n; ++i)
+		cout << ans[i] << " ";
+	cout << "\n";
+	return 0;
+}

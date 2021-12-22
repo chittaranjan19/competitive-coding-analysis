@@ -1,0 +1,132 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 200001
+#define maxC 1000000007
+#define mp make_pair
+#define F first
+#define S second
+#define pb push_back
+
+using namespace std;
+int n, m, pa[mn][18], h[mn];
+long long x[mn], st[mn];
+vector< pair<int, long long> > g[mn];
+pair<int, int> edge[mn];
+
+void setup()
+{
+    int u, v;
+    long long w;
+    cin >> n >> m;
+    FOR(i, 1, n - 1)
+    {
+        cin >> u >> v >> w;
+        g[u].pb(mp(v, w));
+        g[v].pb(mp(u, w));
+        edge[i] = mp(u, v);
+    }
+}
+
+void dfs(int u)
+{
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].F;
+        long long w = g[u][i].S;
+        if (v == pa[u][0])
+            continue;
+        pa[v][0] = u;
+        x[v] = w;
+        h[v] = h[u] + 1;
+        dfs(v);
+    }
+}
+
+void rmq()
+{
+    FOR(i, 1, 17)
+    FOR(j, 1, n)
+        pa[j][i] = pa[pa[j][i - 1]][i - 1];
+}
+
+int lca(int a, int b)
+{
+    if (h[a] > h[b])
+        swap(a, b);
+    int dif = h[b] - h[a];
+    FOR(i, 0, 17)
+    if ((dif >> i) & 1)
+        b = pa[b][i];
+    if (a == b)
+        return a;
+    FORD(i, 17, 0)
+    if (pa[a][i] != pa[b][i])
+    {
+         a = pa[a][i];
+         b = pa[b][i];
+    }
+    return pa[a][0];
+}
+
+void querry1()
+{
+    int a, b, r = 0;
+    long long y;
+    cin >> a >> b >> y;
+    int c = lca(a, b);
+    while (a != c)
+    {
+        y /= x[a];
+        a = pa[a][0];
+    }
+    while (b != c)
+    {
+        st[++ r] = x[b];
+        b = pa[b][0];
+    }
+    while(r)
+    {
+        y /= st[r];
+        r --;
+    }
+    cout << y << "\n";
+}
+
+void querry2()
+{
+    int p;
+    long long c;
+    cin >> p >> c;
+    int u = edge[p].F;
+    int v = edge[p].S;
+    if (v == pa[u][0])
+        swap(u, v);
+    x[v] = c;
+}
+
+void xuly ()
+{
+    h[1] = 1;
+    dfs(1);
+    rmq();
+    int u;
+    FOR(i, 1, m)
+    {
+        cin >> u;
+        if (u == 1)
+            querry1();
+        else
+            querry2();
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

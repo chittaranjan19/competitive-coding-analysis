@@ -1,0 +1,241 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemC2 {
+    private static final Integer ONE = 1;
+    BufferedReader rd;
+    int[] inside;
+    int[] size;
+    int n, k;
+    int res;
+    char[][] c;
+    int[][] idOf;
+
+    ProblemC2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        n = a[0];
+        k = a[1];
+        if(k == n) {
+            res = n*n;
+        } else {
+            c = new char[n][];
+            for (int i = 0; i < n; i++) {
+                c[i] = rd.readLine().toCharArray();
+            }
+            idOf = new int[n][n];
+            size = new int[250000];
+            boolean[][] vis = new boolean[n][n];
+            int[] cx = new int[]{-1, 1, 0, 0};
+            int[] cy = new int[]{0, 0, -1, 1};
+            Queue<Pair> q = new ArrayDeque<>();
+            int maxId = 1;
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    if (!vis[i][j] && c[i][j] == '.') {
+                        Set<Pair> pts = new HashSet<>();
+                        q.add(new Pair(i, j));
+                        while (!q.isEmpty()) {
+                            Pair p = q.poll();
+                            pts.add(p);
+                            for (int m = 0; m < 4; m++) {
+                                int g = p.v[0] + cx[m];
+                                int h = p.v[1] + cy[m];
+                                if (g >= 0 && g < n && h >= 0 && h < n) {
+                                    if (!vis[g][h] && c[g][h] == '.') {
+                                        vis[g][h] = true;
+                                        q.add(new Pair(g, h));
+                                    }
+                                }
+                            }
+                        }
+                        size[maxId] = pts.size();
+                        for (Pair p : pts) {
+                            idOf[p.v[0]][p.v[1]] = maxId;
+                        }
+                        maxId++;
+                    }
+                }
+            }
+            inside = new int[maxId];
+            for (int i = 0; i < k; i++) {
+                for (int j = 0; j < k; j++) {
+                    if (c[i][j] == '.') {
+                        inside[idOf[i][j]]++;
+                    }
+                }
+            }
+
+            computeSize(0,0);
+
+            int z = n - k;
+            for (int i = 0; i <= z; i++) {
+                for (int j = 0; j < z; j++) {
+                    if (i % 2 == 0) {
+                        updateInside(i, j + k, 1, 0, 1);
+                        updateInside(i, j, 1, 0, -1);
+                        computeSize(i,j+1);
+                    } else {
+                        updateInside(i, n - j - k - 1, 1, 0, 1);
+                        updateInside(i, n - j - 1, 1, 0, -1);
+                        computeSize(i,z-j-1);
+                    }
+                }
+                if (i < z) {
+                    if (i % 2 == 0) {
+                        updateInside(i, z, 0, 1, -1);
+                        updateInside(i + k, z, 0, 1, 1);
+                        computeSize(i+1,z);
+                    } else {
+                        updateInside(i, 0, 0, 1, -1);
+                        updateInside(i + k, 0, 0, 1, 1);
+                        computeSize(i+1,0);
+                    }
+                }
+            }
+        }
+        out(res);
+    }
+
+    private void updateTouch(Set<Integer> touch, int x, int y, int zx, int zy, int count) {
+        for(int j=0;j<count;j++) {
+            if(x >= 0 && x < n && y >= 0 && y < n) {
+                if(c[x][y] == '.') {
+                    touch.add(idOf[x][y]);
+                }
+            } else {
+                return;
+            }
+            x += zx;
+            y += zy;
+        }
+    }
+
+    private void updateInside(int x, int y, int zx, int zy, int diff) {
+        for(int j=0;j<k;j++) {
+            if (c[x][y] == '.') {
+                inside[idOf[x][y]] += diff;
+            }
+            x += zx;
+            y += zy;
+        }
+    }
+
+    private void computeSize(int i, int j) {
+        Set<Integer> touch = new TreeSet<>();
+        updateTouch(touch, i-1, j, 0, 1, k);
+        updateTouch(touch, i, j-1, 1, 0, k);
+        updateTouch(touch, i, j+k, 1, 0, k);
+        updateTouch(touch, i+k, j, 0, 1, k);
+        int max = k*k;
+        for(Integer id: touch) {
+            max += size[id] - inside[id];
+        }
+        res = Math.max(res, max);
+    }
+
+    class Pair {
+        final int[] v;
+
+        Pair(int a, int b) {
+            v = new int[] { a, b };
+        }
+
+        Pair(int[] x) {
+            v = x;
+        }
+
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o instanceof Pair) {
+                return Arrays.equals(v, ((Pair) o).v);
+            }
+            return false;
+        }
+
+        public int hashCode() {
+            return v != null ? Arrays.hashCode(v) : 0;
+        }
+
+        public String toString() {
+            return Arrays.toString(v);
+        }
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC2();
+    }
+}

@@ -1,0 +1,141 @@
+import java.io.*;
+import java.util.*;
+import java.math.*;
+
+public class Main {
+	int rev(int x) {
+		int res = 0;
+		while (x>0) {
+			res = res*10+x%10;
+			x/=10;
+		}
+		return res;
+	}
+	int[] d = new int[100000+1];
+	int[] v1 = new int[100000+1];
+	int[] v2 = new int[100000+1];
+	int gcd(int a, int b) {
+		if (b==0) return a; else return gcd(b, a%b);
+	}
+	HashMap<Long, Integer> map = new HashMap<Long, Integer>();
+	int code(long x) {
+		if (map.containsKey(x)) return map.get(x); else {
+			int res = map.size();
+			map.put(x, res);
+			return res;
+		}
+	}
+	int W;
+	int[] cnt;
+	boolean ok(int x, int y) {
+		Arrays.fill(cnt, 0);
+		for (int i=1; i<=x; i++) cnt[v1[i]]++;
+		int w = 0;
+		for (int i=1; i<=y; i++) w += cnt[v2[i]];
+		return w>=W;
+	}
+	void solve() throws IOException {
+		for (int i=1; i<d.length; i++) d[i] = rev(i);
+		
+		for (int i=1; i<d.length; i++) {
+			int x = i, y = rev(i);
+			int g = gcd(x, y);
+			x /= g; y/=g;
+			v1[i] = code(1l*x*d.length+y);
+			v2[i] = code(1l*y*d.length+x);
+		}
+		int mx = nextInt(), my  = nextInt();
+		W = nextInt();
+		int lx = 1, rx = mx;
+		cnt = new int[map.size()];
+		int lasty = -1;
+		while (lx<rx) {
+			int x = (lx+rx)>>1;
+			int ly = 1, ry = my;
+			while (ly<ry) {
+				int y = (ly+ry)>>1;
+				if (ok(x, y)) ry = y; else ly = y+1;
+			}
+			if (ok(x, ry)) { rx = x; lasty = ry; } else lx = x+1;
+		}
+		if (ok(rx, lasty)) {
+		long res = 1*rx*lasty;
+			while (rx<mx) {
+				//out.println(rx+" "+lasty);
+				rx++;
+				int ly = 1, ry = my;
+				while (ly<ry) {
+					int y = (ly+ry)>>1;
+					if (ok(rx, y)) ry = y; else ly = y+1;
+				}
+				long rr = rx*1l*ry;			
+				if (rr>res) {
+					rx--;
+					break;
+				}
+				res = rr;
+				lasty = ry;
+			
+			}
+			out.println(rx+" "+lasty);
+		} else out.println(-1);
+		
+		
+			
+	}
+
+	
+	
+
+	
+	
+	
+	
+	
+    static final int inf = 1000000000+10;
+    static final long linf = 1l<<62;
+    static final double eps = 1e-8;
+    BufferedReader br;
+    StringTokenizer st;
+    PrintWriter out;    
+    
+    
+    public void run() {
+        try {
+            //br = new BufferedReader(new FileReader(FileName+".in"));
+            //out = new PrintWriter(FileName+".out");
+            br = new BufferedReader(new InputStreamReader(System.in));
+            out = new PrintWriter(System.out);
+            //br = new BufferedReader(new FileReader("input.txt"));
+            //out = new PrintWriter("output.txt");
+            solve();
+            br.close();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+    String next() throws IOException {
+        while (st == null || !st.hasMoreTokens()) {
+            String s = br.readLine();
+            if (s == null)
+                    return null;
+            st = new StringTokenizer(s);
+        }
+        return st.nextToken();
+    }
+    double nextDouble() throws IOException {
+       return Double.parseDouble(next());
+    }
+
+    int nextInt() throws IOException {
+            return Integer.parseInt(next());
+    }
+    long nextLong() throws IOException {
+            return Long.parseLong(next());
+    }
+    public static void main(String[] args) {        
+    	new Main().run();    
+    }    
+}

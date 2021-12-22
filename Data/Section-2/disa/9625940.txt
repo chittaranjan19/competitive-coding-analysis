@@ -1,0 +1,110 @@
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <iomanip>
+#include <map>
+#include <windows.h>
+#pragma comment(linker, "/STACK:128000000")
+using namespace std;
+
+typedef long long ll;
+
+#if _DEBUG
+#include <fstream>
+ifstream cin("input.txt");
+ofstream cout("output.txt");
+#else
+#include <iostream>
+#endif
+
+const int maxx = 63*62;
+
+vector < vector <int>> vv;
+
+int from[maxx + 2];
+
+
+
+int in[maxx + 5], out[maxx + 5];
+
+vector <int> ans;
+
+void dfs(int v) {
+	for(int i = from[v]; i < vv[v].size(); i++) {
+		i = max(i, from[v]);
+		if(i >= vv[v].size())
+			break;
+		from[v]++;
+		dfs(vv[v][i]);
+	}
+	ans.push_back(v);
+}
+
+			
+
+int main() {
+	//long long ST = GetTickCount();
+	int n;
+	cin >> n;
+	vv.resize(maxx + 2);
+	map <char, int> get;
+	int cnt = 0;
+	for (; cnt < 10; cnt++){
+		get[char('0' + cnt)] = cnt;
+	}
+	for (char c = 'a'; c <= 'z'; c++){
+		get[c] = cnt;
+		cnt++;
+	}
+	for (char c = 'A'; c <= 'Z'; c++){
+		get[c] = cnt;
+		cnt++;
+	}
+	for(int i = 0; i < n; i++) {
+		string s;
+		cin >> s;
+		int from = get[s[0]] * 62 + get[s[1]];
+		int to = get[s[1]] * 62 + get[s[2]];
+		out[from]++;
+		in[to]++;
+		vv[from].push_back(to);
+	}
+	bool was1 = false, was2 = false;
+	int start;
+	for(int i = 0; i < maxx; i++) {
+		if(in[i] + 1 == out[i] && !was1) {
+			was1 = true;
+			start = i;
+			continue;
+		}
+		if(in[i] == out[i] + 1 && !was2) {
+			was2 = true;
+			continue;
+		}
+		if(in[i] != out[i]) {
+			cout << "NO";
+			return 0;
+		}
+	}
+	if(was1)
+		dfs(start);
+	else {
+		for(int i = 0; i < maxx; i++) {
+			if(vv[i].size() != 0) {
+				dfs(i);
+				break;
+			}
+		}
+	}
+	if(ans.size() != n + 1) {
+		cout << "NO";
+		return 0;
+	}
+	cout << "YES\n";
+	string out = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	cout << out[ans.back() / 62];
+	for(int i = (int)ans.size() - 1; i >= 0; i--) {
+		cout << out[ans[i] % 62];
+	}
+	return 0;
+}

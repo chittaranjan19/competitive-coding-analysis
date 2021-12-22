@@ -1,0 +1,149 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+int n, m, ok;
+int rnk[maxn], parent[maxn], vis[maxn], siz[maxn], take[maxn];
+vector<int> adj[maxn], b, w;
+int sw, sb;
+vector<pii> edges[2];
+
+int find(int x)
+{
+	if(parent[x]==x)
+		return x;
+	return parent[x] = find(parent[x]);
+}
+
+void merge(int x, int y)
+{
+	int rx, ry;
+	rx = find(x);
+	ry = find(y);
+	if(rx==ry)
+		return;
+	if(rnk[rx] < rnk[ry]){
+		parent[rx] = ry;
+		siz[ry]+=siz[rx];
+	}
+	else if(rnk[ry] < rnk[rx]){
+		parent[ry] = rx;
+		siz[rx]+=siz[ry];
+	}
+	else{
+		parent[ry] = rx;
+		rnk[rx]++;
+		siz[rx]+=siz[ry];
+	}
+}
+
+void dfs(int cur, int col)
+{
+	if(col){
+		b.pb(cur);
+		sb+=siz[cur];
+	}
+	else{
+		w.pb(cur);
+		sw+=siz[cur];
+	}
+	vis[cur] = col;
+	for(auto it:adj[cur]){
+		if(vis[it]==col){
+			ok = 0;
+			return;
+		}
+		else if(vis[it]==-1)
+			dfs(it, 1-col);
+	}
+}
+
+int solve(int col)
+{
+	int i, ru, rv, ret = 0;
+	for(i=1; i<=n; i++){
+		parent[i] = i;
+		rnk[i] = siz[i] = 1;
+		adj[i].clear();
+		take[i] = 0;
+	}
+	for(auto it:edges[col])
+		merge(it.f, it.s);
+	for(auto it:edges[col^1]){
+		ru = find(it.f);
+		rv = find(it.s);
+		if(ru==rv)
+			return inf;
+		adj[ru].pb(rv);
+		adj[rv].pb(ru);
+		vis[ru] = vis[rv] = -1;
+	}
+	for(i=1; i<=n; i++){
+		if(vis[i]==-1){
+			ok = 1;
+			sw = sb = 0;
+			b.clear();
+			w.clear();
+			dfs(i, 0);
+			if(!ok)
+				return inf;
+			ret+=min(sw, sb);
+			if(b.size() < w.size()){
+				for(auto it:b)
+					take[it] = 1;
+			}
+			else{
+				for(auto it:w)
+					take[it] = 1;
+			}
+		}
+	}
+	return ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int u, v, i;
+	char c;
+	scanf("%d%d", &n, &m);
+	for(i=0; i<m; i++){
+		scanf("%d%d %c", &u, &v, &c);
+		if(c=='R')
+			edges[0].pb(mp(u, v));
+		else
+			edges[1].pb(mp(u, v));
+	}
+	int ans = solve(0);
+	if(ans > solve(1))
+		ans = solve(1);
+	else
+		ans = solve(0);
+	if(ans==inf){
+		printf("-1\n");
+		return 0;
+	}
+	printf("%d\n", ans);
+	for(i=1; i<=n; i++){
+		if(take[find(i)])
+			printf("%d ", i);
+	}
+	printf("\n");
+	return 0;
+}

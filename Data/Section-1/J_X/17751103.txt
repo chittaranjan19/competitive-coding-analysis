@@ -1,0 +1,87 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 1000000 + 5;
+
+string s, t, ans1, ans2;
+int pos[10][maxn], now[10], vis[maxn];
+
+bool check(int x)
+{
+    memset(vis, 0, sizeof(vis));
+    while(x)
+    {
+        int p = x % 10;
+        ++vis[p];
+        x /= 10;
+    }
+    for(int i = 0; i < 10; ++i) if(pos[i][0] - now[i] < vis[i]) return false;
+    return true;
+}
+
+int cal(int x)
+{
+    int res = 0;
+    while(x)
+    {
+        x /= 10;
+        ++res;
+    }
+    return res;
+}
+
+int main()
+{
+    cin >> s >> t;
+    int n = s.size(), m = t.size();
+    for(int i = 0; i < n; ++i)
+    {
+        int c = s[i] - '0';
+        pos[c][++pos[c][0]] = i;
+    }
+    for(int i = 0; i < m; ++i)
+    {
+        int c = t[i] - '0';
+        ++now[c];
+    }
+    int len = m;
+    while(len + cal(len) != n || !check(len)) ++len;
+    int l = len;
+    while(l)
+    {
+        int p = l % 10;
+        ++now[p];
+        l /= 10;
+    }
+    ans1 = t;
+    for(int i = 0; i < 10; ++i)
+    {
+        for(int j = now[i] + 1; j <= pos[i][0]; ++j)
+        {
+            ans1.push_back(i + '0');
+            if(i && ans2.empty()) ans2.push_back(i + '0');
+        }
+    }
+    if(ans2.empty())ans2.pushback('a');
+    bool flag = false;
+    for(int i = 0; i < 10; ++i)
+    {
+        string tmp;
+        int low = now[i] + 1 + (ans2[0] == (i + '0'));
+        for(int j = low; j <= pos[i][0]; ++j)
+        {
+            tmp.push_back(i + '0');
+        }
+        if(!flag && t +tmp<tmp+t)
+        {
+            ans2 += t;
+            flag = true;
+        }
+        ans2 += tmp;
+    }
+    if(!flag) ans2 += t;
+    if(ans1[0] == '0' || ans1 > ans2) cout << ans2 << endl;
+    else cout << ans1 << endl;
+    return 0;
+}

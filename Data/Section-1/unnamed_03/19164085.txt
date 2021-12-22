@@ -1,0 +1,63 @@
+#include<cstdio>
+#include<cstring>
+#include<iostream>
+#include<cmath>
+#include<algorithm>
+#include<vector>
+using namespace std;
+const int maxn = 100000 + 10;
+vector <int> a[maxn],b[maxn];
+int f[maxn][20],pre[maxn],suf[maxn],dfs_clock=0,d[maxn];
+void dfs(int x,int l)
+{
+	pre[x]=++dfs_clock;
+	b[l].push_back(pre[x]);
+	d[x]=l;
+	for(int i=0;i<a[x].size();i++)
+	{
+		int y=a[x][i];
+		dfs(y,l+1);
+	}
+	suf[x]=++dfs_clock;
+	return ;
+}
+int main()
+{
+	int n;cin>>n;
+	for(int i=1;i<=n;i++)
+	{
+		scanf("%d",&f[i][0]);
+		a[f[i][0]].push_back(i);
+	}
+	dfs(0,0);
+	for(int i=1;i<17;i++)
+	for(int j=1;j<=n;j++)
+	f[j][i]=f[f[j][i-1]][i-1];
+	
+/*	for(int j=1;j<=n;j++)
+	{
+		for(int i=0;i<=4;i++)
+		cout<<f[j][i]<<" ";
+		cout<<endl; 
+	}*/
+	int m;cin>>m;
+	for(int i=1;i<=m;i++)
+	{
+		int x,p;scanf("%d%d",&x,&p);
+	//	cout<<x<<" "<<p<<endl; 
+		int k=d[x];
+		for(int j=16;j>=0;j--)
+		if(p-(1<<j)>=0)x=f[x][j],p-=(1<<j);
+		if(x==0)
+		{
+			if(i==m)printf("0\n");
+			else printf("0 ");
+			continue;
+		}
+		int l=lower_bound(b[k].begin(),b[k].end(),pre[x])-b[k].begin();
+		int r=lower_bound(b[k].begin(),b[k].end(),suf[x])-b[k].begin();
+		if(i==m)printf("%d\n",r-l-1);
+		else printf("%d ",r-l-1);
+	}
+	return 0;
+}

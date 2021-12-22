@@ -1,0 +1,61 @@
+const   maxn    =trunc(1e6)+3;
+
+type    arr1    =array[0..maxn] of int64;
+
+
+var     n       :int64;
+        p       :arr1;
+        ans     :int64;
+        u, v, w :longint;
+        r1, r2  :int64;
+        i       :longint;
+function check(x:int64):boolean;
+begin
+        check:=true;
+        while x>0 do
+        begin
+                if (not ((x mod 10=4) or (x mod 10=7))) then exit(false);
+                x:=x div 10;
+        end;
+end;
+
+procedure union(r1,r2:int64);
+var     tmp     :int64;
+begin
+        tmp:=p[r1]+p[r2];
+        if p[r1]<p[r2] then
+        begin
+                p[r2]:=r1;
+                p[r1]:=tmp;
+        end else
+        begin
+                p[r1]:=r2;
+                p[r2]:=tmp;
+        end;
+end;
+
+function Parent(x:longint):int64;
+var     v       :longint;
+begin
+        v:=x;
+        while p[v]<>-1 do v:=p[v];
+        exit(v);
+end;
+
+begin
+        readln(n);
+        fillchar(p,sizeof(p),$ff);
+        for i:=1 to n-1 do
+        begin
+                readln(u,v,w);
+                if check(w) then continue;
+                r1:=Parent(u);
+                r2:=Parent(v);
+                if r1<>r2 then union(r1,r2);
+        end;
+        ans:=0;
+        for u:=1 to n do
+        if p[u]<0 then
+                ans:=ans+abs(p[u])*(n+p[u])*(n+p[u]-1);
+        writeln(ans);
+end.

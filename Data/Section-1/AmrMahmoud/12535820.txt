@@ -1,0 +1,112 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 175781251
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<int> g[300005], d[300005], xsum[300005];
+char s[300005];
+int c, cc, in[300005], out[300005];
+
+void dfs(int node, int depth = 1)
+{
+  in[node] = c++;
+  d[depth].pb(node);
+  for(int i=0;i<g[node].size();i++)
+    dfs(g[node][i], depth + 1);
+  out[node] = cc++;
+}
+
+int main()
+{
+  int n, m, x, y;
+  scanf("%d %d", &n, &m);
+  for(int i=2;i<=n;i++)
+  {
+    scanf("%d", &x);
+    g[x].pb(i);
+  }
+  dfs(1);
+  scanf("%s", s);
+  for(int i=1;d[i].size()!=0;i++)
+  {
+    int tmp = 0;
+    for(int j=0;j<d[i].size();j++)
+    {
+      tmp ^= (1 << (s[d[i][j] - 1] - 'a'));
+      xsum[i].pb(tmp);
+    }
+  }
+  while(m--)
+  {
+    scanf("%d %d", &x, &y);
+    if(!d[y].size())
+    {
+      printf("Yes\n");
+      continue;
+    }
+    int L = 0, R = d[y].size() - 1, a;
+    while(R > L)
+    {
+      int mid = L + (R - L) / 2;
+      if(out[x] < out[d[y][mid]])
+        R = mid;
+      else if(in[d[y][mid]] < in[x])
+        L = mid + 1;
+      else R = mid;
+    }
+    a = R;
+    if(out[x] < out[d[y][a]] || in[x] > in[d[y][a]])
+    {
+      printf("Yes\n");
+      continue;
+    }
+    L = 0, R = d[y].size() - 1;
+    while(R > L)
+    {
+      int mid = L + (R - L + 1) / 2;
+      if(out[x] < out[d[y][mid]])
+        R = mid - 1;
+      else if(in[d[y][mid]] < in[x])
+        L = mid + 1;
+      else L = mid;
+    }
+    x = xsum[y][L];
+    if(a) x^=xsum[y][a - 1];
+    if(__builtin_popcount(x) <= 1) printf("Yes\n");
+    else printf("No\n");
+  }
+  return 0;
+}

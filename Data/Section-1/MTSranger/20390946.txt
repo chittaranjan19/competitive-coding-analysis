@@ -1,0 +1,108 @@
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <cstring>
+
+using namespace std;
+struct S {
+	int i, j, k;
+};
+
+int main() {
+	string s1, s2, v; cin >> s1 >> s2 >> v;
+	int n1 = s1.length(), n2 = s2.length(), nv = v.length();
+
+	// revMatch[i][c] = prefixes of v such that when we add c
+	//                  we get v[0, i-1] as the longest prefix that matches suffix
+	vector<int> revMatch[nv+1][26];
+	for (int k = 0; k < nv; k++) {
+		string s = v.substr(0, k+1);
+		for (int c = 0; c < 26; c++) {
+			s[k] = (char)('A'+c);
+			for (int i = k+1; i >= 0; i--) {
+				if (v.substr(0, i) == s.substr(k+1-i, i)) {
+					revMatch[i][c].push_back(k);
+					break;
+				}
+			}
+		}
+	}
+
+	/*
+	for (int i = 0; i <= nv; i++) {
+		for (int c = 0; c < 26; c++) {
+			cerr << "\"" << v.substr(0, i) << "\" " << (char)(c+'A');
+			for (int j : revMatch[i][c]) {
+				cerr << " \"" << v.substr(0, j) << "\"";
+			}
+			cerr << endl;
+		}
+	}
+	*/
+
+	// dp[i][j][k] = LCS of s1[0, i] s2[0, j] ending with v[0, k-1]
+	int dp[n1][n2][nv+1];
+	S par[n1][n2][nv+1];
+	memset(dp, 0, sizeof dp);
+	memset(par, -1, sizeof par);
+	for (int i = 0; i < n1; i++) {
+		if (s1[i] == s2[0]) {
+			int k = s2[0] == v[0];
+			for (int ii = i; ii < n1; ii++) {
+				dp[ii][0][k] = 1;
+				if (ii > i) par[ii][0][k] = {ii-1, 0, k};
+			}
+		}
+	}
+	for (int j = 0; j < n2; j++) {
+		if (s1[0] == s2[j]) {
+			int k = s1[0] == v[0];
+			for (int jj = j; jj < n2; jj++) {
+				dp[0][jj][k] = 1;
+				if (jj > j) par[0][jj][k] = {0, jj-1, k};
+			}
+			break;
+		}
+	}
+	for (int i = 1; i < n1; i++) {
+		for (int j = 1; j < n2; j++) {
+			for (int k = 0; k < nv; k++) {
+				dp[i][j][k] = dp[i][j-1][k];
+				par[i][j][k] = {i, j-1, k};
+				if (s1[i] == s2[j]) {
+					int c = (int)(s1[i]-'A');
+					for (int k2 : revMatch[k][c]) {
+						if (dp[i-1][j-1][k2]+1 > dp[i][j][k]) {
+							dp[i][j][k] = dp[i-1][j-1][k2]+1;
+							par[i][j][k] = {i-1, j-1, k2};
+						}
+					}
+				}
+			}
+		}
+	}
+
+	int ans = 0;
+	S bestEnd = {-1, -1, -1};
+	for (int i = 0; i < nv; i++) {
+		if (dp[n1-1][n2-1][i] > ans) {
+			ans = dp[n1-1][n2-1][i];
+			bestEnd = {n1-1, n2-1, i};
+		}
+	}
+
+	string res;
+	S curr = bestEnd;
+	while (curr.i != -1) {
+		S nxt = par[curr.i][curr.j][curr.k];
+		if ((nxt.i == -1 && dp[curr.i][curr.j][curr.k] > 0) ||
+		    (nxt.i != -1 && dp[nxt.i][nxt.j][nxt.k]+1 == dp[curr.i][curr.j][curr.k])) {
+			res += s1[curr.i];
+		}
+		curr = nxt;
+	}
+	reverse(res.begin(), res.end());
+
+	if (ans > 0) cout << res << endl;
+	else cout << 0 << endl;
+}

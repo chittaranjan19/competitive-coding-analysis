@@ -1,0 +1,87 @@
+#include <iostream>
+#include <iomanip>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <cmath>
+#include <set>
+#include <algorithm>
+#define N 100005
+#define ll long long
+const int INF = 0x3fffffff;
+using namespace std;
+struct point
+{
+	ll x, y, id;
+	friend bool operator < (point a, point b)
+	{
+		if (a.x == b.x)	return a.y < b.y;
+		return a.x < b.x;
+	}
+}p[N];
+int n;
+ll area(point &a, point &b, point &c)
+{
+	return (a.x-b.x)*(a.y+b.y)+(b.x-c.x)*(b.y+c.y)+(c.x-a.x)*(c.y+a.y);
+}
+bool fun(point &a, point &b)
+{
+	ll x, y, z;
+	x = area(p[0], p[1], b);
+	if (!x)
+	{
+		if ((p[0].x-b.x)*(p[1].x-b.x) < 0)	return true;
+	}
+	y = area(p[1], a, b);
+	if (!y)
+	{
+		if ((p[1].x-b.x)*(a.x-b.x) < 0)	return true;
+	}
+	z = area(a, p[0], b);
+	if (!z)
+	{
+		if ((a.x-b.x)*(p[0].x-b.x) < 0)	return true;
+	}
+	if (x > 0 && y > 0 && z > 0)	return true;
+	if (x < 0 && y < 0 && z < 0)	return true;
+	return false;
+}
+int main()
+{
+#ifndef ONLINE_JUDGE
+	freopen("1.txt", "r", stdin);
+#endif
+//	ios::sync_with_stdio(false);
+//	cin.tie(0);
+	ll i, j, k;
+	bool flag;
+	scanf("%d", &n);
+	for (i = 0; i < n; i++)
+	{
+		scanf("%I64d%I64d", &p[i].x, &p[i].y);
+		p[i].id = i+1;
+	}
+	sort(p, p+n);
+	for (i = 2; i < n; i++)
+	{
+		k = area(p[0], p[1], p[i]);
+		if (!k)	continue;
+		flag = true;
+		for (j = 2; j < n; j++)
+		{
+			if (j == i)	continue;
+			if (fun(p[i], p[j]))
+			{
+				flag = false;
+				break;
+			}
+		}
+		if (flag)
+		{
+			printf("%I64d %I64d %I64d", p[0].id, p[1].id, p[i].id);
+			break;
+		}
+	}
+	return 0;
+}

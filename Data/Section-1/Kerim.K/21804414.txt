@@ -1,0 +1,104 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"·····················"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> line;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int pre[MAXN],arr[MAXN];
+struct CHT{
+	vector<line>m;
+	CHT(){
+		m.clear();
+	}
+	int intersection(int l1,int l2){
+		return (m[l2].ss-m[l1].ss)/(m[l1].ff-m[l2].ff);
+	}
+	void init(){
+		sort(all(m));vector<line>b;b.pb(m[0]);
+		for(int i=1;i<int(m.size());i++){
+			if(m[i].ff==m[i-1].ff)
+				continue;
+			b.pb(m[i]);	
+		}
+		m.clear();reverse(all(b));
+		for(int i=0;i<int(b.size());i++){
+			m.pb(b[i]);
+			while(m.size()>=3 and intersection(m.size()-3,m.size()-2)>=intersection(m.size()-3,m.size()-1))
+				m.erase(m.end()-2);
+		}
+	}
+	int tap(int x){
+		int st=0,en=m.size()-1;
+		while(st<en){
+			int mid=(st+en)>>1;
+			if(intersection(mid,mid+1)<=x)
+				st=mid+1;
+			else
+				en=mid;
+		}
+		return m[st].ff*x+m[st].ss;
+	}
+}s[MAXN<<2];
+void upd(int p,int nd,int x,int y){
+	s[nd].m.pb(mp(arr[p],arr[p]*p-pre[p]));
+	if(x==y)
+		return;
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,nd<<1,x,mid);
+	else
+		upd(p,nd<<1|1,mid+1,y);	
+}
+void dfs(int nd,int x,int y){
+	s[nd].init();
+	if(x==y)
+		return;
+	int mid=(x+y)>>1;
+	dfs(nd<<1,x,mid);
+	dfs(nd<<1|1,mid+1,y);
+}
+int tap(int l,int r,int v,int nd,int x,int y){
+	if(l>y or x>r)
+		return INF;
+	if(l<=x and y<=r){
+		return s[nd].tap(v);
+	}
+	int mid=(x+y)>>1;	
+	int i1=tap(l,r,v,nd<<1,x,mid);
+	int i2=tap(l,r,v,nd<<1|1,mid+1,y);
+	return min(i1,i2);
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	int n;
+	scanf("%d",&n);
+	for(int i=1;i<=n;i++){
+		scanf("%d",&arr[i]);
+		pre[i]=pre[i-1]+arr [i];
+		upd(i,1,1,n);
+	}
+	dfs(1,1,n);
+	int q;
+	scanf("%d",&q);
+	while(q--){
+		int x,y;
+		scanf("%d%d",&x,&y);
+		printf("%d\n",pre[y]+tap(y-x+1,y,x-y,1,1,n));
+	}	
+	return 0;
+}
+//~ sum[y]+a[l]·(x-y)+a[l]·l-sum[l]

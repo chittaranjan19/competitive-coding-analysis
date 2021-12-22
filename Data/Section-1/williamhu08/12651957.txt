@@ -1,0 +1,61 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 3e5 + 10, MAXK = 5010;
+
+int N, K;
+int cmin, cmax, minsz = MAXN, maxsz;
+int A[MAXN];
+int sz[MAXN];
+int dp[MAXK][MAXK];	//dp[# of max][# of min]
+
+int getdp (int nmax, int nmin) {
+	int &ref = dp[nmax][nmin];
+	if (ref != -1) {
+		return ref;
+	}
+	ref = INT_MAX;
+	int len = nmax * maxsz + nmin * minsz;
+	if (nmax) {
+		ref = min(ref, getdp(nmax - 1, nmin) + A[len - 1] - A[len - maxsz]);
+	}
+	if (nmin) {
+		ref = min(ref, getdp(nmax, nmin - 1) + A[len - 1] - A[len - minsz]);
+	}
+	return ref;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> K;
+	for (int i = 0; i < N; i++) {
+		cin >> A[i];
+	}
+	sort(A, A + N);
+	//mod K baby
+	for (int i = 0; i < N; i++) {
+		sz[i % K]++;
+	}
+	for (int i = 0; i < K; i++) {
+		minsz = min(minsz, sz[i]);
+		maxsz = max(maxsz, sz[i]);
+	}
+	//really cool!
+	cmin = count(sz, sz + K, minsz);
+	cmax = K - cmin;
+	fillchar(dp, -1);
+	dp[0][0] = 0;
+	// printf("minsz = %d, maxsz = %d, cmin = %d, cmax = %d\n", minsz, maxsz, cmin, cmax);
+	cout << getdp(cmax, cmin) << endl;
+}

@@ -1,0 +1,115 @@
+#include <iostream>
+#include <climits>
+#include <string>       // string s; cin >> s;
+#include <cstring>      // memset(b, 0, sizeof(arr)); strcpy(a1, a2); strcat(a1, a2);
+#include <cmath>
+#include <cstdio>       // getchar(), gets()
+#include <cstdlib>      // rand(), max(), min()
+#include <ctime>        // rand(): srand(int(time(0)));
+#include <algorithm>    // std::sort(a + 0, a + n); a - массв, n - кол-во эл-тов
+#include <iomanip>      // setw(4), setfill('.'), setprecision(2)
+#include <vector>
+#include <array>
+#include <fstream>      // file IO (input-output)
+#include <cctype>       // isupper()
+#include <memory>       // shared_ptr<>, uniqu_ptr<>
+#include <iterator>     // ostream_iterator<int, char> our_iter(cout, " ");
+#include <set>
+#include <map>
+#include <list>
+#include <queue>
+#define SRT srand(int(time(0)))
+
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef unsigned long long ull;
+ld pi = 3.14159265358979323;
+int ten[8] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000};
+
+typedef map<int, int> Map;
+typedef Map::iterator mIter;
+typedef pair<const int, int> mPair;
+typedef pair<double, int> Pair;
+typedef set<int> Set;
+typedef Set::iterator sIter;
+typedef list<int> List;
+typedef List::iterator lIter;
+
+inline double Dist(int x1, int y1, int x2, int y2)
+{
+    return sqrt( (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) );
+}
+
+const int S = 100000;
+Pair da[S], db[S];
+int ax, ay, bx, by, tx, ty, n;
+double sum = 0;
+
+int main()
+{
+    cin >> ax >> ay >> bx >> by >> tx >> ty >> n;
+    
+    double t;
+    for (int i = 0, x, y; i < n; ++i)
+    {
+        scanf("%d%d", &x, &y);
+        
+        da[i].second = db[i].second = i;
+        t = Dist(x, y, tx, ty);
+        
+        da[i].first = t - Dist(x, y, ax, ay);
+        db[i].first = t - Dist(x, y, bx, by);
+        
+        sum += 2 * t;
+    }
+    
+    sort(da, da + n);
+    sort(db, db + n);
+    
+    Pair *big, *small;
+    
+    if (da[n - 1].first > db[n - 1].first)
+    {
+        big = da + (n - 1);
+        small = db + (n - 1);
+    }
+    else
+    {
+        big = db + (n - 1);
+        small = da + (n - 1);
+    }
+    
+    if (small->first < 0)
+        sum -= big->first;
+    else if (big->second != small->second)
+        sum -= big->first + small->first;
+    else if (n > 1)
+    {
+        if ( (small - 1)->first < 0)
+        {
+            if ( (big - 1)->first < 0)
+                sum -= big->first;
+            else
+            {
+                double d1 = big->first, d2 = (big - 1)->first + small->first;
+                sum -= d1 < d2 ? d2 : d1;
+            }
+        }
+        else
+        {
+            if ( (big - 1)->first < 0)
+                sum -= big->first + (small - 1)->first;
+            else
+            {
+                double d1 = big->first + (small - 1)->first, d2 = (big - 1)->first + small->first;
+                sum -= d1 < d2 ? d2 : d1;
+            }
+        }
+    }
+    else
+        sum -= big->first;
+    
+    printf("%.17g\n", sum);
+    return 0;
+}

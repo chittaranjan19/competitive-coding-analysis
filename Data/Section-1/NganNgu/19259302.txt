@@ -1,0 +1,107 @@
+#include <iostream> 
+#include <cstdio>
+#include <iomanip>
+
+using namespace std;
+
+#define For(i , a , b) for (int i = a , _b = b ; i <= _b ; ++i)
+#define Ford(i , a  ,b) for (int i = a , _b = b : i >= _b ; --i)
+#define Rep(i , n) for (int i = 0 , _n = n ; i < _n ; ++i)
+#define sz(A) ((int)A.size())
+#define LL(x) (x << 1)
+#define RR(x) ((x << 1) | 1)
+
+typedef pair<int , int> pt;
+
+
+const int maxn = 22;
+int n , k;
+double p[maxn];
+
+void ReadData() {
+	cin >> n >> k;
+	For(i , 1 , n) cin >> p[i];
+}
+
+
+long double pwr(long double x , long long n) {
+	long double res = 1.0;
+	while (n) {
+		if (n & 1) res = res * x; 
+		n >>= 1; 
+		x = x * x;
+	}
+	return res;
+}
+long long pwr1010 = (long long) 1e10;
+long double pwrZ(long double x , int plus = 0) {
+	long double res = x;
+	For(i , 1 , 10) {
+		res = pwr(res , pwr1010);
+	}
+	if (plus) res *= x; 
+	return res;
+}
+
+long double sum[1 << 22];
+long double fsum[1 << 22];
+long double res[maxn];
+bool onbit(const int state , const int pos) {
+	return (state >> (pos - 1)) & 1;
+}
+
+long double b[1 << 22];
+void cal(int L , int R) {
+	if (L + 1 == R) {
+		 return;
+	}
+	int mid = (L + R) >> 1;
+	for (int i = R - 1 ; i >= mid ; --i) b[i] -= b[i - mid];
+	 cal(mid , R);cal(L , mid);
+}
+
+const double eps = 1e-9;
+
+void Process() {
+	if (k == n) {
+		For(i , 1 , n) cout << 1.000 << " "; cout << endl;
+		return;
+	}
+	if (k == 1) {
+		For(i , 1 , n) cout << p[i] << " "; cout << endl;
+		return;
+	}
+	Rep(x , 1 << n) {
+		sum[x] = 0;
+		For(i , 1 , n) if (onbit(x , i)) sum[x] += p[i];
+		if (sum[x] < 1 - eps) fsum[x] = (-1.0) / (sum[x] - 1);
+	}
+	Rep(x , 1 << n) b[x] = fsum[x];
+//	cal(0 , 1 << n);
+	For(i , 0 , n - 1) Rep(x , 1 << n) {
+		if (onbit(x , i + 1)) b[x] -= b[x ^ (1 << i)];
+	}
+
+	For(i , 1 , n) if (p[i] > 0) {
+		res[i] = 0;
+		Rep(x , 1 << n) if (!onbit(x , i)) {
+			if (__builtin_popcount(x) >= k) continue;
+			res[i] += p[i] * (b[x]);
+		}
+	}
+
+	cout << fixed << setprecision(9);
+	For(i , 1 , n) cout << (double)res[i] << " "; cout << endl;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	
+	//freopen("input.inp" , "r" , stdin);
+	ReadData();
+	Process();
+
+	return 0;
+
+}	

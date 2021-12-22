@@ -1,0 +1,154 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rfile(f) freopen(f, "r", stdin)
+#define wfile(f) freopen(f, "w", stdout)
+#define rwfile(prob) rfile(prob".in"); wfile(prob".out")
+#define pb push_back
+#define mpair make_pair
+#define fi first
+#define se second
+#define dri(x) scanf("%d", &x)
+#define drii(x, y) scanf("%d %d", &x, &y)
+#define driii(x, y, z) scanf("%d %d %d", &x, &y, &z)
+#define driiii(x, y, z, w) scanf("%d %d %d %d", &x, &y, &z, &w)
+#define drl(x) scanf("%lld", &x)
+#define drll(x, y) scanf("%lld %lld", &x, &y)
+#define drlll(x, y, z) scanf("%lld %lld %lld", &x, &y, &z)
+#define drllll(x, y, z, w) scanf("%lld %lld %lld %lld", &x, &y, &z, &w)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 510;
+
+pii par[MAXN][MAXN];
+int sz[MAXN][MAXN];
+
+pii find (pii x) {
+	return x == par[x.fi][x.se] ? x : par[x.fi][x.se] = find(par[x.fi][x.se]);
+}
+
+void merge (pii x, pii y) {
+	x = find(x);
+	y = find(y);
+	if (x == y) {
+		return;
+	}
+	par[x.fi][x.se] = y;
+	sz[y.fi][y.se] += sz[x.fi][x.se];
+}
+
+int N, K;
+bool A[MAXN][MAXN];
+int cnt[MAXN][MAXN], T;
+
+void rem (int x, int y) {
+	if (!A[x][y]) {
+		return;
+	}
+	pii p = find(pii(x, y));
+	if (--cnt[p.fi][p.se] == 0) {
+		T -= sz[p.fi][p.se];
+	}
+}
+
+void add (int x, int y) {
+	if (!A[x][y]) {
+		return;
+	}
+	pii p = find(pii(x, y));
+	if ((cnt[p.fi][p.se]++) == 0) {
+		// printf("x = %d, y = %d. T += %d\n", x, y,sz[p.fi][p.se] );
+		T += sz[p.fi][p.se];
+	}
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		rfile("input.txt");
+	}
+	scanf("%d %d", &N, &K);
+	for (int i = 1; i <= N; i++) {
+		getchar();
+		for (int j = 1; j <= N; j++) {
+			A[i][j] = (getchar() == '.');
+			par[i][j] = pii(i, j);
+			sz[i][j] = 1;
+		}
+	}
+
+	for (int i = 1; i <= N; i++) {
+		for (int j = 1; j <= N; j++) {
+			if (!A[i][j]) {
+				continue;
+			}
+			for (pii p : {pii(i + 1, j), pii(i, j + 1)}) {
+				if (1 <= p.fi && p.fi <= N && 1 <= p.se && p.se <= N && A[p.fi][p.se]) {
+					merge(pii(i, j), p);
+				}
+			}
+		}
+	}
+
+	int ans = 0;
+
+	for (int i = 1; i <= N; i++) {
+		for (int j = 1; j <= N; j++) {
+			pii p = find(pii(i, j));
+			ans = max(ans, sz[p.fi][p.se]);
+		}
+	}
+
+	for (int i = 1; i <= N - K + 1; i++) {
+		//initialize it
+#warning reset
+		memset(cnt, 0, sizeof(cnt));
+		T = 0;
+		int cnot = 0;
+		// printf("---i=%d----\n", i);
+		for (int j = 1; j <= N - K + 1; j++) {
+			//count on the boundary
+			//[i - 1 to i + K], [j - 1 to j + K]
+			if (j == 1) {
+				for (int a = -1; a <= K; a++) {
+					for (int b = -1; b <= K; b++) {
+						if (!((a == -1 || a == K) && (b == -1 || b == K))) {
+							add(i + a, j + b);
+							// printf("add(%d, %d)\n", i + a, j + b);
+						}
+					}
+				}
+
+				for (int a = 0; a < K; a++) {
+					for (int b = 0; b < K; b++) {
+						cnot += !A[i + a][j + b];
+					}
+				}
+			}
+
+			ans = max(ans, cnot + T);
+			// printf("i = %d, j = %d. cnot = %d, T = %d\n", i, j, cnot, T);
+
+			//transform
+			rem(i - 1, j);
+			rem(i + K, j);
+			add(i - 1, j + K);
+			add(i + K, j + K);
+
+			for (int b = 0; b < K; b++) {
+				cnot -= !A[i + b][j];
+				cnot += !A[i + b][j + K];
+				rem(i + b, j - 1);
+				add(i + b, j + K + 1);
+			}
+		}
+	}
+
+	printf("%d\n", ans);
+}

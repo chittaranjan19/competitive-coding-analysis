@@ -1,0 +1,89 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <vector>
+#include <queue>
+#include <string>
+#include <algorithm>
+#include <cstdlib>
+#define LL __int64
+#define Max(a,b) ((a)>(b)?(a):(b))
+#define Min(a,b) ((a)<(b)?(a):(b))
+#define N 1005
+#define INF 1000000005
+
+using namespace std;
+int n,m,matching[N],ei,nd[N],que[N],pre[N],push,pop;
+bool check[N];
+
+struct Edge {
+    int to,Next;
+}e[N];
+
+queue<int> Q;
+vector<int> G[N];
+typedef vector<int>::iterator iterator_t;
+int Hungarian()
+{
+    int ans = 0;
+    memset(matching, -1, sizeof(matching));
+    memset(check, -1, sizeof(check));
+    for (int i=0; i<n; ++i) {
+        if (matching[i] == -1) {
+            while (!Q.empty()) Q.pop();
+            Q.push(i);
+            pre[i] = -1;
+            bool flag = false;
+            while (!Q.empty() && !flag) {
+                int u = Q.front();
+                Q.pop();
+                for (iterator_t ix = G[u].begin(); ix != G[u].end() && !flag; ++ix) {
+                    int v = *ix;
+                    if (check[v] != i) {
+                        check[v] = i;
+                        Q.push(matching[v]);
+                        if (matching[v] >= 0) {
+                            pre[matching[v]] = u;
+                        } else {
+                            flag = true;
+                            int d=u, f=v;
+                            while (d != -1) {
+                                int t = matching[d];
+                                matching[d] = f;
+                                matching[f] = d;
+                                d = pre[d];
+                                f = t;
+                            }
+                        }
+                    }
+                }
+                
+            }
+            if (matching[i] != -1) ++ans;
+        }
+    }
+    return ans;
+}
+
+int main() {
+	while (scanf("%d",&n)!=EOF) {
+		ei=0;
+		memset(nd,-1,sizeof(nd));
+		for (int i=0; i<n; i++) {
+			int num,id,to;
+			scanf("%d: (%d)",&id,&num);
+			for(int j=0; j<num; j++) {
+                scanf("%d",&to);
+                G[id].push_back(to);
+            }
+		}
+		for (int i=0; i<n; i++) {
+			for (iterator_t ix = G[i].begin(); ix != G[i].end(); ++ix) {
+				cout << i << " " << *ix << endl;;
+			}
+		}
+		int ans=Hungarian();
+		printf("%d\n",n-ans);
+	}
+	return 0;
+}

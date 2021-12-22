@@ -1,0 +1,109 @@
+/* ***********************************************
+Author        :huriyang
+Created Time  :2016年09月30日 星期五 22时46分45秒
+File Name     :721D.cpp
+************************************************ */
+
+#include <stdio.h>
+#include <string.h>
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <set>
+#include <map>
+#include <string>
+#include <math.h>
+#include <stdlib.h>
+#include <time.h>
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>P;
+#define mem(a,b) memset(a,b,sizeof(a))
+
+const int N=1e6+10;
+
+struct Node{
+	ll x;
+	int id;
+	Node(ll a=0,int b=0){
+		x=a,id=b;
+	}
+	bool operator < (const Node& a)const {
+		return x>a.x;
+	}
+}p[N];
+
+int cnt[N];
+int main()
+{
+    //freopen("in.txt","r",stdin);
+    //freopen("out.txt","w",stdout);
+   	//std::ios_base::sync_with_stdio(false);
+   	int num=0,n,left;
+	ll x;
+	scanf("%d%d%I64d",&n,&left,&x);
+	for(int i=1;i<=n;i++){
+		scanf("%I64d",&p[i].x);
+		if(p[i].x<0) num++;
+		p[i].id=i;
+	}
+	if(num&1){
+		priority_queue<Node>q;
+		for(int i=1;i<=n;i++){
+			q.push(Node(abs(p[i].x),i));
+		}
+		while(left--){
+			Node now=q.top();
+			q.pop();
+			cnt[now.id]++;
+			now.x+=x;
+			q.push(now);
+		}
+		for(int i=1;i<=n;i++){
+			if(p[i].x<0) printf("%I64d ",p[i].x-(ll)cnt[i]*x);
+			else printf("%I64d ",p[i].x+(ll)cnt[i]*x);
+		}
+	}
+	else{
+		int id=1;
+		for(int i=2;i<=n;i++){
+			if(abs(p[i].x)<abs(p[id].x)) id=i;
+		}
+		if(abs(p[id].x)>=left*x){
+			if(p[id].x<0) p[id].x+=left*x;
+			else p[id].x-=left*x;
+			for(int i=1;i<=n;i++) printf("%I64d ",p[i].x);
+		}
+		else{
+			int add=(p[id].x+x-1)/x,sy;
+			left-=add;
+			if(p[id].x<0) p[id].x+=add*x,sy=0;
+			else p[id].x-=add*x,sy=1;
+
+			if(p[id].x==0){
+				if(sy) p[id].x-=x;
+				else p[id].x+=x;
+				left--;
+			}
+
+			priority_queue<Node>q;
+			for(int i=1;i<=n;i++){
+				q.push(Node(abs(p[i].x),i));
+			}
+			while(left--){
+				Node now=q.top();
+				q.pop();
+				cnt[now.id]++;
+				now.x+=x;
+				q.push(now);
+			}
+			for(int i=1;i<=n;i++){
+				if(p[i].x<0) printf("%I64d ",p[i].x-cnt[i]*x);
+				else printf("%I64d ",p[i].x+cnt[i]*x);
+			}
+		}
+	}
+    return 0;
+}

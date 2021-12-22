@@ -1,0 +1,125 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int n;
+LL k;
+
+vector<int> v, tmp;
+
+bool vis[10];
+
+void dfs(int ind)
+{
+  if(vis[ind]) return ;
+  vis[ind] = true;
+  tmp.push_back(ind);
+  dfs(v[ind]);
+}
+
+void brute_force()
+{
+  for(int i=0;i<n;i++)
+    v.push_back(i);
+  do
+  {
+    setzero(vis);
+    vector<vector<int> > grp;
+    for(int i=n-1;i>=0;i--)
+    {
+      if(!vis[i])
+      {
+        tmp.clear();
+        dfs(i);
+        grp.push_back(tmp);
+      }
+    }
+    sort(grp.begin(), grp.end());
+    bool test = true;
+    int ind = 0;
+    for(int i=0;i<grp.size() && test;i++)
+    {
+      for(int j=0;j<grp[i].size() && test;j++)
+      {
+        if(grp[i][j] != v[ind++])
+          test = false;
+      }
+    }
+    if(test)
+    {
+      for(int i=0;i<n;i++) cout << v[i] + 1 << " ";
+      cout << "\n";
+    }
+  }
+  while(next_permutation(v.begin(), v.end()));
+}
+
+LL fib[55];
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  //freopen("ebola.in", "r", stdin);
+  //freopen("ebola.out", "w", stdout);
+  cin >> n >> k;
+  //brute_force();
+  stack<int> s;
+  for(int i=n;i>=1;i--) s.push(i);
+  fib[0] = fib[1] = 1;
+  for(int i=2;i<=n;i++)
+    fib[i] = fib[i - 1] + fib[i - 2];
+  int ind = n - 1;
+  for(int i=1;i<=n;i++)
+  {
+    if(k <= fib[ind])
+    {
+      cout << s.top() << " ";
+      s.pop();
+    }
+    else
+    {
+      k-=fib[ind];
+      int x = s.top();
+      s.pop();
+      cout << s.top() << " ";
+      s.pop();
+      s.push(x);
+    }
+    ind--;
+  }
+  return 0;
+}

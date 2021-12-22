@@ -1,0 +1,82 @@
+#include<stdio.h>
+#include<math.h>
+#include<string.h>
+#include<iostream>
+#include<algorithm>
+#include<map>
+#include<set>
+#define FOR(i,n) for(i=0;i<(n);i++)
+#define CLR(a) memset(a,0,sizeof(a))
+#define CIN(a) scanf("%d",&a)
+using namespace std;
+int p[100005][3];
+typedef pair<int,int> point;
+map<point,int> ma;
+set<int> mcan;
+int zz[7][2]={-1,1,0,1,1,1,-2,0,-1,0,1,0,2,0};
+int can(int i)
+{
+    int zai[7],ii;
+    for(ii=0;ii<7;ii++)
+    {
+        zai[ii]=ma.count(point(p[i][0]+zz[ii][0],p[i][1]+zz[ii][1]));
+    }
+    if(!zai[0]&&!zai[1]&&!zai[2]) return 1;
+    if(zai[0]&&(!zai[3]&&!zai[4])) return 0;
+    if(zai[1]&&(!zai[4]&&!zai[5])) return 0;
+    if(zai[2]&&(!zai[5]&&!zai[6])) return 0;
+    return 1;
+}
+int out(int i)
+{
+    mcan.erase(i);
+    ma.erase(point(p[i][0],p[i][1]));
+    //printf("out:%d\n",i);
+    int zzz[3][2]={-1,-1,0,-1,1,-1},ii;
+    for(ii=0;ii<3;ii++)
+    {
+        point po(p[i][0]+zzz[ii][0],p[i][1]+zzz[ii][1]);
+        if(ma.count(po)&&can(ma[po])&&!mcan.count(ma[po]))
+        {
+            mcan.insert(ma[po]);
+            //printf("can:%d\n",ma[po]);
+        }
+    }
+}
+int main()
+{
+    int m,i;
+    CIN(m);
+    FOR(i,m)
+    {
+        CIN(p[i][0]);
+        CIN(p[i][1]);
+        ma[point(p[i][0],p[i][1])]=i;
+    }
+    FOR(i,m)
+    {
+        if(can(i))
+        {
+            mcan.insert(i);
+            //printf("can:%d\n",i);
+        }
+    }
+    int bo=1;//max
+    long long ans=0;
+    while(mcan.size())
+    {
+        if(!bo)//取max
+        {
+            i=*(mcan.begin());
+        }
+        else
+        {
+            i=*(mcan.rbegin());
+        }
+        out(i);
+        bo=1-bo;
+        ans=(ans*m+i)%1000000009;
+    }
+    printf("%I64d\n",ans);
+    return 0;
+}

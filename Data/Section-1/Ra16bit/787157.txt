@@ -1,0 +1,67 @@
+#include <cstdio>
+#include <iostream>
+#include <string>
+#include <set>
+#include <map>
+#include <algorithm>
+using namespace std;
+int i,j,x,y,z,n,m,Mit,cur,a[202];
+string s[202],r[202],sj,sx,sy,sz;
+set <string>::iterator it;
+set <string> st[202];
+map <string, int> M;
+bool q;
+bool cmp(int i, int j) { return s[i].length()<s[j].length(); }
+int main() {
+  freopen("input.txt","r",stdin);
+  freopen("output.txt","w",stdout);
+  cin>>n;
+  for (i=0; i<n; i++) {
+    cin>>s[i];
+    m=s[i].length();
+    for (j=0; j<m; j++) {
+      sj=""; sj+=s[i][j];
+      st[i].insert(sj);
+      for (x=j+1; x<m; x++) {
+        sx=sj+s[i][x];
+        st[i].insert(sx);
+        for (y=x+1; y<m; y++) {
+          sy=sx+s[i][y];
+          st[i].insert(sy);
+          for (z=y+1; z<m; z++) {
+            sz=sy+s[i][z];
+            st[i].insert(sz);
+          }
+        }
+      }
+    }
+    for (it=st[i].begin(); it!=st[i].end(); it++) M[*it]++;
+    a[i]=i;
+  }
+  sort(a,a+n,cmp);
+  for (x=0; x<n; x++) {
+    q=true;
+    while (q) for (q=y=0; y<n; y++) if (r[a[y]]=="") {
+      cur=0;
+      for (it=st[y].begin(); it!=st[y].end(); it++) if (M[*it]>0) { cur++; sj=*it; }
+      if (cur==1) {
+        q=true;
+        r[i]=sj;
+        M[sj]=0;
+        for (it=st[y].begin(); it!=st[y].end(); it++) M[*it]--;
+      }
+    }
+    if (r[a[x]]=="") {
+      i=a[x]; cur=444;
+      for (it=st[i].begin(); it!=st[i].end(); it++) {
+        Mit=M[*it];
+        if (Mit>0 && Mit<cur) { r[i]=*it; cur=Mit; }
+      }
+      if (cur==444) { cout<<"-1\n"; return 0; }
+      M[r[i]]=0;
+      for (it=st[i].begin(); it!=st[i].end(); it++) M[*it]--;
+    }
+  }
+  for (i=0; i<n; i++) cout<<r[i]<<'\n';
+  return 0;
+}

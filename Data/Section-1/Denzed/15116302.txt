@@ -1,0 +1,83 @@
+#include <bits/stdc++.h>
+
+#define f first
+#define s second
+#define mp make_pair
+#define rank    something_which_is_supposed_to_be_rank
+#define left    something_which_is_supposed_to_be_left
+#define right   something_which_is_supposed_to_be_right
+
+using namespace std;
+
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+
+const int N = 501;
+
+string m[N];
+int h, w, q, cnt[N][N], hor[N][N], ver[N][N];
+
+int getHor(int r, int c1, int c2) {
+    // cerr << "H " << r << " " << c1 << " " << c2 << " -> " << hor[r][c2] - hor[r][c1] << "\n";
+    return hor[r][c2] - hor[r][c1];
+}
+
+int getVer(int c, int r1, int r2) {
+    // cerr << "V " << c << " " << r1 << " " << r2 << " -> " << ver[r2][c] - ver[r1][c] << "\n";
+    return ver[r2][c] - ver[r1][c];
+}
+
+int get(int r1, int c1, int r2, int c2) {
+    return cnt[r2][c2] - cnt[r2][c1] - cnt[r1][c2] + cnt[r1][c1] +
+        getHor(r1, c1, c2) + getVer(c1, r1, r2);
+}
+
+void print() {
+    cerr << "vertical\n";
+    for (int i = 0; i <= h; ++i) {
+        for (int j = 0; j <= w; ++j) {
+            cerr << ver[i][j] << " ";
+        }
+        cerr << "\n";
+    }
+    cerr << "horizontal\n";
+    for (int i = 0; i <= h; ++i) {
+        for (int j = 0; j <= w; ++j) {
+            cerr << hor[i][j] << " ";
+        }
+        cerr << "\n";
+    }
+    cerr << "cnt\n";
+    for (int i = 0; i <= h; ++i) {
+        for (int j = 0; j <= w; ++j) {
+            cerr << cnt[i][j] << " ";
+        }
+        cerr << "\n";
+    }
+}
+
+int main() {
+    cin.sync_with_stdio(0);
+    cin.tie(0);
+    cin >> h >> w;
+    for (int i = 0; i < h; ++i) {
+        cin >> m[i];
+        for (int j = 0; j < w; ++j) {
+            ver[i + 1][j + 1] = ver[i][j + 1] + (i ? m[i][j] == '.' && m[i - 1][j] == '.' : 0);
+            hor[i + 1][j + 1] = hor[i + 1][j] + (j ? m[i][j] == '.' && m[i][j - 1] == '.' : 0);
+            cnt[i + 1][j + 1] = cnt[i + 1][j] + cnt[i][j + 1] - cnt[i][j] + 
+                (i ? m[i][j] == '.' && m[i - 1][j] == '.' : 0) + 
+                (j ? m[i][j] == '.' && m[i][j - 1] == '.' : 0);
+        }
+    }
+    // print();
+    cin >> q;
+    for (int r1, c1, r2, c2; q--; ) {
+        cin >> r1 >> c1 >> r2 >> c2;
+        cout << get(r1, c1, r2, c2) << "\n";
+    }
+    cerr << "Time elapsed: " << (ld) clock() / CLOCKS_PER_SEC << "\n";
+    return 0;
+}

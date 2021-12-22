@@ -1,0 +1,167 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+using namespace std;
+typedef long long int64;
+const int MAX_n = 1000,MAX_m = 10000;
+struct edge
+{
+    bool used;
+    int to,rev;
+    int64 d;
+    edge()  {}
+    edge(int _to,int64 _d):   to(_to),    d(_d){}
+    edge(int _to,int64 _d,int _rev):   to(_to),    d(_d),   rev(_rev){  used = false;}
+};
+void add_edge(int u,int v,int d,vector<edge>  G[])
+{
+    G[u].push_back(edge(v,(int64)d,G[v].size()));
+    G[v].push_back(edge(u, (int64)d,G[u].size()-1));
+}
+
+struct heap
+{
+    int sz;
+    edge dat[MAX_m];
+    void init() {   sz = 0; }
+    bool empty()    {   return sz == 0; }
+    edge top()  {   return dat[0];  }
+    void push(int v,int64 d)
+    {
+        int i = sz++;
+        while(i)
+        {
+            int p = (i-1)/2;
+            if(dat[p].d <= d)   break;
+            dat[i] = dat[p];
+            i = p;
+        }
+        dat[i] = edge(v, d);
+    }
+    void pop()
+    {
+        edge x = dat[--sz];
+        int i = 0;
+        while(i * 2 + 1 < sz)
+        {
+            int a = i*2 + 1, b = i*2 + 2;
+            if(b < sz && dat[a].d > dat[b].d) swap(a, b);
+            if(x.d <= dat[a].d) break;
+            dat[i] = dat[a];
+            i = a;
+        }
+        dat[i] = x;
+    }
+    
+};
+
+vector<edge>    G[MAX_n],G0[MAX_n];
+const int64 INF = 0x3f3f3f3f3f3f3f3f;
+
+int prevv[MAX_n],preve[MAX_n];
+int64 d[MAX_n];
+heap que;
+void dijkstra(int s,int V,bool complete)
+{
+    memset(d, 0x3f, V * sizeof(int64)); d[s] = 0;
+    que.init(); que.push(s, 0);
+    while(!que.empty())
+    {
+        edge p = que.top(); que.pop();
+        int v = p.to;
+        
+        if(p.d > d[v])   continue;
+        
+        for(int i = 0; i < G[v].size();++i)
+        {
+            edge &e = G[v][i];
+            if(e.d + p.d < d[e.to])
+            {
+                prevv[e.to] = v,    preve[e.to] = -1;
+                d[e.to] = e.d + p.d;
+                que.push(e.to, d[e.to]);
+            }
+        }
+        
+        if(!complete)   continue;
+
+        for(int i = 0; i < G0[v].size();++i)
+        {
+            edge &e = G0[v][i];
+            if(1 + p.d < d[e.to])
+            {
+                prevv[e.to] = v,    preve[e.to] = i;
+                d[e.to] = 1 + p.d;
+                que.push(e.to, d[e.to]);
+            }
+        }
+    }
+}
+
+bool solve(int n,int m,int L,int s,int t)
+{
+    dijkstra(s, n, false);
+    if(d[t] < L)    return false;
+    
+    dijkstra(s, n, true);
+    if(d[t] > L)    return false;
+    
+    int extra = L - d[t];
+    
+    for(int v = t; v != s; v = prevv[v])
+    {
+        int u = prevv[v], i = preve[v];
+        if(0 <= i)
+        {
+            edge &e = G0[u][i];
+            e.d = G0[v][e.rev].d = 1 + extra;
+            extra = 0;
+        }
+    }
+    
+    for(int v = 0; v < n; ++v)
+        for(int i = 0; i < G0[v].size(); ++i)
+        {
+            edge &e = G0[v][i];
+            if(e.d > 0) continue;
+            e.d = INF/2;
+        }
+    
+    return true;
+}
+
+int main()
+{
+    
+    int n,m,L,s,t;
+    scanf("%d%d%d%d%d",&n,&m,&L,&s,&t);
+    for(int i = 0; i < m; ++i)
+    {
+        int u,v,d;
+        scanf("%d%d%d",&u,&v,&d);
+        add_edge(u, v, d, d == 0 ? G0 : G);
+    }
+    if(solve(n, m, L, s, t))
+    {
+        puts("YES");
+        for(int v = 0; v < n; ++v)
+            for(int i = 0; i < G[v].size(); ++i)
+            {
+                edge &e = G[v][i];
+                if(e.used)  continue;
+                e.used = G[e.to][e.rev].used = true;
+                printf("%d %d %I64d\n",v,e.to,e.d);
+            }
+        
+        for(int v = 0; v < n; ++v)
+            for(int i = 0; i < G0[v].size(); ++i)
+            {
+                edge &e = G0[v][i];
+                if(e.used)  continue;
+                e.used = G0[e.to][e.rev].used = true;
+                printf("%d %d %I64d\n",v,e.to,e.d);
+            }
+    }
+    else puts("NO");
+}

@@ -1,0 +1,90 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+bool grid[26][26];
+
+bool dfs(int st, int dest, bool *visited)
+{
+    visited[st]=true;
+    bool ret=false;
+    int i, j;
+    for(i=0; i<26; i++){
+        if(grid[st][i] && !visited[i]){
+            if(i==dest)
+                return true;
+            ret = dfs(i, dest, visited);
+        }
+    }
+    return ret;
+}
+
+void topologicalsortutil(int st, stack<int> &s, bool *visited)
+{
+    visited[st]=true;
+    int i;
+    for(i=0; i<26; i++){
+        if(grid[st][i] && !visited[i])
+            topologicalsortutil(i, s, visited);
+    }
+    s.push(st);
+}
+
+void topologicalsort()
+{
+    stack<int> s;
+    int i, j;
+    bool visited[26];
+    for(i=0; i<26; i++)
+        visited[i]=false;
+    for(i=0; i<26; i++){
+        if(!visited[i])
+            topologicalsortutil(i, s, visited);
+    }
+    while(!s.empty()){
+        cout << (char)(s.top()+'a');
+        s.pop();
+    }
+    cout << endl;
+}
+
+int main()
+{
+    int n, i, j;
+    memset(grid, false, sizeof(grid));
+    bool visited[26];
+    scanf("%d", &n);
+    string arr[n];
+    for(i=0; i<n; i++)
+        cin >> arr[i];
+    bool pos=true;
+    for(i=0; i<n-1; i++){
+        if(!pos)
+            break;
+        for(j=0; j<arr[i].size(); j++){
+            if(j>=arr[i+1].size()){
+                pos=false;
+                break;
+            }
+            if(arr[i][j]!=arr[i+1][j]){
+                memset(visited, false, sizeof(visited));
+                bool x=dfs(arr[i+1][j]-'a', arr[i][j]-'a', visited);
+                if(x)
+                    pos=false;
+                else
+                    grid[arr[i][j]-'a'][arr[i+1][j]-'a']=true;
+                break;
+            }
+        }
+    }
+    /*for(i=0; i<26; i++){
+        for(j=0; j<26; j++)
+            cout << grid[i][j] << " ";
+        cout << endl;
+    }*/
+    if(!pos)
+        cout << "Impossible\n";
+    else
+        topologicalsort();
+    return 0;
+}

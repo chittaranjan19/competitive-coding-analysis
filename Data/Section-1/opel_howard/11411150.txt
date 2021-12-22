@@ -1,0 +1,124 @@
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <climits>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define lsone(value) (value)&(-value)
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define loop(i, n) for(int i = 0; i < n; ++i)
+#define loop1(i, n) for(int i = 1; i <= n; ++i)
+#define reverse_iterate(a, b) for(__typeof(b.rend()) a = b.rbegin(); a != b.rend(); ++a)
+#define iterate(a, b) for(__typeof(b.begin()) a = b.begin(); a != b.end(); ++a)
+#define all(i) i.begin(), i.end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+// end of template
+
+int main() {
+    // freopen("544D.in", "r", stdin);
+
+    int n, m;
+    scanf("%d %d", &n, &m);
+
+    vi edges[n+1];
+    loop(it, m) {
+    	int c1, c2;
+    	scanf("%d %d", &c1, &c2);
+    	edges[c1].pub(c2);
+    	edges[c2].pub(c1);
+    }
+
+    vector<vi> dist(n+1, vi(n+1, -1));
+    loop1(it, n) {
+    	int start = it;
+
+    	vector<bool> visited(n+1, false);
+    	que<int> q; // bfs
+
+    	// initialization
+    	visited[it] = true; // current node has visited
+    	q.pu(it); // starting node
+    	dist[it][it] = 0;
+
+    	while (!q.empty()) {
+    		int currNode = q.front();
+    		q.pop();
+    		iterate(neighbor, edges[currNode]) {
+    			if (!visited[*neighbor]) {
+    				visited[*neighbor] = true;
+    				q.pu(*neighbor);
+    				dist[it][*neighbor] = dist[it][currNode]+1;
+    			}
+    		}
+    	}
+    }
+
+    int s1, t1, l1;
+    int s2, t2, l2;
+    scanf("%d %d %d", &s1, &t1, &l1);
+    scanf("%d %d %d", &s2, &t2, &l2);
+
+    if ((dist[s1][t1] == -1) or (dist[s2][t2] == -1)) { // it's impossible to reach the goal because there is no such path
+    	printf("-1\n");
+    	return 0;
+    }
+	
+	int ans = -1;
+    
+    // case 1
+    
+    loop1(a, n) {
+    	loop1(b, n) {
+    		int time1 = dist[s1][a]+dist[a][b]+dist[b][t1];
+    		int time2 = dist[s2][a]+dist[a][b]+dist[b][t2];
+    		int nRoadTaken = time1+time2-dist[a][b];
+    		if ((time1 <= l1) and (time2 <= l2)) {
+    			ans = max(ans, m-nRoadTaken);
+    		}
+    	}
+    }
+
+    // case 2
+
+    int time1 = dist[s1][t1];
+    int time2 = dist[s2][t2];
+    int nRoadTaken = time1+time2;
+	if ((time1 <= l1) and (time2 <= l2)) {
+		ans = max(ans, m-nRoadTaken);
+	}
+	
+	printf("%d\n", ans); // if the output is -1, then none of the paths match the time constraint
+    return 0;
+}

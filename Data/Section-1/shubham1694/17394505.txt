@@ -1,0 +1,147 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+const int logn = 20;
+
+set<int> adj[maxn];
+char str[maxn];
+vector<int> vlevel[maxn], children[maxn];
+int n, depth[maxn], dp[logn][maxn], sub[maxn], parent[maxn], level[maxn], fc = -1;
+
+/*Using centroid Decomposition of a tree */
+
+/*----------- Pre-Processing ------------*/
+
+void dfs(int cur, int p, int d)
+{
+  dp[0][cur] = p;
+  depth[cur] = d;
+  for(auto it:adj[cur]){
+    if(it!=p)
+      dfs(it, cur, d+1);
+  }
+}
+
+void preprocess()
+{
+  int i, j;
+  dfs(1, 0, 0);
+  for(i=1; i<logn; i++){
+    for(j=1; j<=n; j++)
+      dp[i][j] = dp[i-1][dp[i-1][j]];
+  }
+}
+
+int lca(int u, int v)
+{
+  if(depth[u]>depth[v])
+    swap(u, v);
+  int diff = depth[v]-depth[u], i;
+  for(i=0; i<logn; i++){
+    if(diff&(1<<i)){
+      v = dp[i][v];
+      diff-=(1<<i);
+    }
+  }
+  for(i=logn-1; i>=0; i--){
+    if(dp[i][u]!=dp[i][v]){
+      u = dp[i][u];
+      v = dp[i][v];
+    }
+  }
+  if(u==v)
+    return u;
+  return dp[0][u];
+}
+
+/*-----------------Decomposition Part--------------------------*/
+
+int siz;
+
+void dfs1(int cur, int p)
+{
+  sub[cur] = 1;
+  for(auto it:adj[cur]){
+    if(it!=p){
+      dfs1(it, cur);
+      sub[cur]+=sub[it];
+    }
+  }
+}
+
+int dfs2(int cur, int p)
+{
+  for(auto it:adj[cur]){
+    if(it!=p){
+      if(sub[it]>(siz/2))
+        return dfs2(it, cur);
+    }
+  }
+  return cur;
+}
+
+void decompose(int cur, int p)
+{
+  dfs1(cur, cur);
+  siz = sub[cur];
+  int centroid = dfs2(cur, cur);
+  if(!p)
+    p = centroid;
+  parent[centroid] = p;
+  if(p!=centroid){
+    children[p].pb(centroid);
+    level[centroid] = level[p] + 1;
+  }
+  else
+    level[centroid] = 0;
+  vlevel[level[centroid]].pb(centroid);
+  if(fc==-1)
+    fc = centroid;
+  for(auto it:adj[centroid]){
+    adj[it].erase(centroid);
+    decompose(it, centroid);
+  }
+  adj[centroid].clear();
+}
+
+int main()
+{
+  //freopen("i.txt", "r", stdin);
+  //freopen("o.txt", "w", stdout);
+  int q, v, u, w, i, j;
+  ll l;
+  scanf("%d", &n);
+  for(i=1; i<n; i++){
+    scanf("%d%d", &u, &v);
+    adj[u].insert(v);
+    adj[v].insert(u);
+  }
+  preprocess();
+  decompose(1, 0);
+  str[n+1] = '\0';
+  i = 0;
+  while(!vlevel[i].empty()){
+    for(auto it:vlevel[i])
+      str[it] = (char)((int)'A'+i);
+    i++;
+  }
+  for(i=1; i<=n; i++)
+    printf("%c ", str[i]);
+  printf("\n");
+  return 0;
+}

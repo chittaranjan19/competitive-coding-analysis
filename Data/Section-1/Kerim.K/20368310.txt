@@ -1,0 +1,89 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+vector<int>adj[MAXN],way[MAXN];
+int vis[MAXN],sub[MAXN];
+void dfs(int nd,int pr){
+	if(int(adj[nd].size())==1){
+		vis[nd]=1;sub[nd]=1;
+		return;
+	}
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i];
+		if(to==pr)
+			continue;
+		way[nd].pb(to);
+		dfs(to,nd);
+		sub[nd]+=sub[to];	
+	}
+}
+vector<short>dp[5006][2503][2];
+short n,root;
+short rec(int nd,int ind,int rem,int col){
+	//~ cout<<nd<<" "<<ind<<" "<<rem<<" "<<col<<endl;
+	if(rem<0)
+		return n;
+	if(ind==int(way[nd].size())){
+		if(!rem)
+			return 0;
+		return n;	
+	}
+	short &ret=dp[nd][rem][col][ind];
+	if(~ret)
+		return ret;ret=n;
+	short to=way[nd][ind];
+	if(vis[to])
+		return ret=min(rec(nd,ind+1,rem-1,col)+(col==1),rec(nd,ind+1,rem,col)+(col==0));
+	for(int i=0;i<=min(rem,sub[to]);i++){
+		short i1=rec(nd,ind+1,rem-i,col)+(col==0)+rec(to,0,i,1);
+		short i2=rec(nd,ind+1,rem-i,col)+rec(to,0,i,0)+(col==1);
+		umin(ret,min(i1,i2));
+	}
+	return ret;
+}
+void build(){
+	for(int i=1;i<=n;i++)
+		for(int j=0;j<=min(sub[i],sub[root]/2);j++)
+			for(int k=0;k<2;k++)
+				dp[i][j][k].resize(way[i].size(),-1);
+}
+int main(){
+	//~ memset(dp,-1,sizeof dp);
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif
+	cin>>n;
+	if(n==2)
+		return printf("1\n"),0;
+	for(int i=0;i<n-1;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	for(int i=1;i<=n;i++)
+		if(adj[i].size()>1){
+			root=i;
+			break;
+		}
+	dfs(root,-1);
+	build();
+	printf("%d\n",min(rec(root,0,sub[root]/2,0),rec(root,0,sub[root]/2,1)));
+	return 0;
+}
+

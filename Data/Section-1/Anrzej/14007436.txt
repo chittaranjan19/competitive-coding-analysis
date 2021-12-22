@@ -1,0 +1,118 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+vector<int> g[200000];
+bool us[200000];
+
+int d1, d2, maxdr = 0, d3;
+
+void dfs0(int v, int dr, int p = 0)
+{
+	if ((maxdr < dr || (maxdr == dr && d1 > v)) && us[v])
+	{
+		maxdr = dr;
+		d1 = v;
+	}
+	for (int i = 0; i < g[v].size(); i++){
+		int to = g[v][i];
+		if (to == p) continue;
+		dfs0(to, dr + 1, v);
+	}
+}
+
+void dfs1(int v, int dr, int p = 0)
+{
+	if ((maxdr < dr || (maxdr == dr && d2 > v)) && us[v])
+	{
+		maxdr = dr;
+		d2 = v;
+	}
+	for (int i = 0; i < g[v].size(); i++){
+		int to = g[v][i];
+		if (to == p) continue;
+		dfs1(to, dr + 1, v);
+	}
+}
+
+int dp[200000], cnt[200000];
+
+int dfs3(int v, int p)
+{
+	if (us[v])
+		cnt[v] = 1;
+	for (int i = 0; i < g[v].size(); i++){
+		int to = g[v][i];
+		if (to == p) continue;
+		cnt[v] += dfs3(to, v);
+	}
+	return cnt[v];
+}
+
+void dfs4(int v, int dr, int p)
+{
+	dp[v] = dr;
+	int cn = cnt[v] - us[v];
+	for (int i = 0; i < g[v].size(); i++){
+		int to = g[v][i];
+		if (to == p) continue;
+		if (us[v])
+			dfs4(to, 1, v);
+		else
+			dfs4(to, dr + 1, v);
+	}
+}
+
+int main()
+{
+	int n, m;
+	cin >> n >> m;
+	memset(us, 0, sizeof(us));
+	memset(dp, 0, sizeof(dp));
+	for (int i = 0; i < n - 1; i++){
+		int u, v;
+		cin >> u >> v;
+		g[v].push_back(u);
+		g[u].push_back(v);
+	}
+	for (int i = 0; i < m; i++){
+		int t;
+
+		cin >> t;
+		if (m == 1)
+			d3 = t;
+		us[t] = 1;
+	}
+	maxdr = 0;
+	dfs0(1, 0, 0);
+	maxdr = 0;
+	dfs1(d1, 0, 0);
+	dfs3(d1, 0);
+	dfs4(d1, 0, 0);
+	ll ans = 0;
+	for (int i = 1; i <= n; i++){
+		if (us[i]){
+			ans += 2 * dp[i];
+		}
+	}
+	if (m == 1)
+		cout << d3 << endl << 0;
+	else
+		cout << min(d1, d2) << endl << ans - maxdr;
+	return 0;
+}

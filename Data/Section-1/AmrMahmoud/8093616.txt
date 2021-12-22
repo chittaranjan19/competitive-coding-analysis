@@ -1,0 +1,99 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+string arr[1005];
+int mini = 10000005;
+int rowsum[1005][1005],colsum[1005][1005];
+int counter,countr,n,m;
+
+void solve(int x,int y, int dx,int dy)
+{
+    if(x + dx + 1 < n && rowsum[x+dx+1][y+dy] - rowsum[x+dx+1][y] + (arr[x+dx+1][y] == 'X' ? 1 : 0) == dy+1)
+        countr+=dy+1,solve(x+1,y, dx,dy);
+    else if(y + dy + 1 < m && colsum[x+dx][y+dy+1] - colsum[x][y+dy+1] + (arr[x][y+dy+1] == 'X' ? 1 : 0) == dx+1)
+        countr+=dx+1,solve(x,y+1, dx,dy);
+}
+
+int main()
+{
+    //freopen("decomp.in","r",stdin);
+    //freopen("decomp.out","w",stdout);
+    ios_base::sync_with_stdio(0);
+    cin >> n >> m;
+    for(int i=0;i<n;i++)
+        cin >> arr[i];
+    int x = -1,y = -1;
+    for(int i=0;i<n && x == -1;i++)
+        for(int j=0;j<m && x == -1;j++)
+            if(arr[i][j] == 'X')
+                x = i,y = j;
+    for(int i=0;i<n;i++)
+        for(int j=0;j<m;j++)
+        {
+            if(arr[i][j] == 'X')
+                counter++;
+            rowsum[i][j] = (j == 0 ? 0 : rowsum[i][j-1]) + (arr[i][j] == 'X' ? 1 : 0);
+            colsum[i][j] = (i == 0 ? 0 : colsum[i-1][j]) + (arr[i][j] == 'X' ? 1 : 0);
+        }
+    int dx=0,dy=0;
+    while(x+dx+1 < n && arr[x+dx+1][y] == 'X')
+        dx++;
+    while(y+dy+1 < m && arr[x][y+dy+1] == 'X')
+        dy++;
+    int mdx = 0,mdy = 0;
+    while(1)
+    {
+        countr = (dx + 1) * (mdy + 1);
+        solve(x,y, dx, mdy);
+        if(countr == counter)
+            mini = min(mini, (dx + 1) * (mdy + 1));
+        if(y + mdy + 1 < m && colsum[x+dx][y+mdy+1] - colsum[x][y+mdy+1] + (arr[x][y+mdy+1] == 'X' ? 1 : 0) == dx + 1)
+            mdy++;
+        else break;
+    }
+    while(1)
+    {
+        countr = (mdx + 1) * (dy + 1);
+        solve(x,y, mdx, dy);
+        if(countr == counter)
+            mini = min(mini, (mdx + 1) * (dy + 1));
+        if(x + mdx + 1 < n && rowsum[x+mdx+1][y+dy] - rowsum[x+mdx+1][y] + (arr[x+mdx+1][y+dy] == 'X' ? 1 : 0) == dy + 1)
+            mdx++;
+        else break;
+    }
+    if(mini == 10000005)
+        cout << -1;
+    else cout << mini;
+    return 0;
+}

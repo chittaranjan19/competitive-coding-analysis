@@ -1,0 +1,77 @@
+#include <bits/stdc++.h>
+#define EPS 1e-9
+using namespace std;
+char str[1005][1005];
+int arr[1005][1005];
+int vis[1005][1005][5];
+int dis[1005][1005][5];
+unsigned int U=0x01000000;
+unsigned int L=0x00010000;
+unsigned int D=0x00000100;
+unsigned int R=0x00000001;
+int n,m;
+int rotl(int x, int n)
+{
+  if (!n) return x;
+  return (x<<n) | (x>>(32-n));
+}
+int main(){
+	cin>>n>>m;
+	for(int i=0;i<n;++i)
+		scanf("%s",&str[i]);
+	for(int i=0;i<n;++i){
+		for(int j=0;j<m;++j){
+			char c=str[i][j];
+			int res=0;
+			int all=U|L|D|R;
+			switch(c){
+				case '+': res=all;break;
+				case '-': res=R|L;break;
+				case '|': res=U|D;break;
+				case '^': res=U;break;
+				case '>': res=R;break;
+				case '<': res=L;break;
+				case 'v': res=D;break;
+				case 'R': res=all^R;break;
+				case 'L': res=all^L;break;
+				case 'U': res=all^U;break;
+				case 'D': res=all^D;break;
+				case '*': res=0;break;
+			}
+			arr[i][j]=res;
+		}
+	}
+	int xt,yt,xm,ym;
+	cin>>xt>>yt>>xm>>ym;
+	--xt;--yt;
+	--xm;--ym;
+	queue<tuple<int,int,int,int> > q;
+	q.emplace(xt,yt,0,0);
+	memset(vis,0,sizeof vis);
+	memset(dis,-1,sizeof dis);
+	while(q.size()){
+		tuple<int,int,int,int> t=q.front();
+		q.pop();
+		int x,y,st,d;
+		tie(x,y,st,d)=t;
+		if(x<0||y<0||x>=n||y>=m) continue;
+		if(vis[x][y][st]) continue;
+		vis[x][y][st]=1;
+		dis[x][y][st]=d;
+		int msk=rotl(arr[x][y],8*st);
+		int nst=(st+1)%4,nd=d+1;
+		q.emplace(x,y,nst,nd);
+		if(msk&U) q.emplace(x-1,y,st,nd);
+		if(msk&D) q.emplace(x+1,y,st,nd);
+		if(msk&L) q.emplace(x,y-1,st,nd);
+		if(msk&R) q.emplace(x,y+1,st,nd);
+	}
+	int ans=1e9;
+	for(int i=0;i<4;++i){
+		if(dis[xm][ym][i]!=-1){
+			ans=min(ans,dis[xm][ym][i]);
+		}
+	}
+	if(ans==1e9) ans=-1;
+	cout<<ans<<endl;
+}

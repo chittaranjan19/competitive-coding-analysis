@@ -1,0 +1,148 @@
+#include<cstdio>
+#include<cstring>
+#include<cstdlib>
+#include<cctype>
+
+#include<cmath>
+#include<iostream>
+#include<iomanip>
+#include<fstream>
+
+#include<string>
+#include<utility>
+#include<vector>
+#include<list>
+#include<queue>
+#include<map>
+#include<algorithm>
+#include<set>
+#include<sstream>
+#include<stack>
+
+#define ii long long int
+#define pi 2*acos(0.0)
+#define eps 1e-9
+#define mem(x,y) memset(x,y,sizeof(x))
+#define all(x) x.begin(), x.end()
+#define pb push_back
+#define sz(a) (int)a.size()
+#define inf 2147483640
+#define mx 3000000
+#define mxPow 4
+#define base 26
+#define rcrule 0
+#define crrule 1
+
+using namespace std;
+
+const int debug= 0;
+char s[mx];
+int rule,cumPow26[mxPow+1],pow26[mxPow+1];
+char eng[base+1];
+
+void doRcRule();
+void doCrRule();
+void init();
+string toCharEnc(int n);
+int toNum(string alph);
+
+int main() {
+    //freopen("in.txt","r",stdin);
+    //freopen("out.txt","w",stdout);
+
+    init();
+    /*
+    int n;
+    while (scanf("%d",&n)==1) cout<<toCharEnc(n)<<endl;
+
+    string ss;
+    while (cin>>ss) cout<<toNum(ss)<<endl;
+    */
+
+    int x;
+    scanf("%d",&x);
+    while (x--) {
+        scanf("%s",s);
+        int i;
+        rule=crrule;
+        bool numFound=0;
+        if (s[0]=='R') {
+            for (i=1;s[i];++i) {
+                if (s[i]>='0'&&s[i]<='9') numFound=1;
+                if (s[i]=='C' && numFound) {rule=rcrule; break;}
+            }
+        }
+
+        if (rule==rcrule) {
+            doRcRule();
+        }
+
+        else {
+            doCrRule();
+        }
+    }
+
+    return 0;
+}
+
+void doRcRule() {
+    int row,col;
+    char dummy;
+    sscanf(s,"%c%d%c%d",&dummy,&row,&dummy,&col);
+    cout<<toCharEnc(col)<<row<<endl;
+}
+
+void doCrRule() {
+    char col[mx/3+1];
+    int row,colLen=0,i;
+    for (i=0;s[i]>='A'&&s[i]<='Z';++i) {
+        col[colLen++]=s[i];
+    }
+    col[colLen]=0;
+    sscanf(s+colLen,"%d",&row);
+    cout<<"R"<<row<<"C"<<toNum(col)<<endl;
+}
+
+int toNum(string alph) {
+    int i,num=0;
+    reverse(all(alph));
+    for (i=0;alph[i];++i) num=pow26[i]*(alph[i]-'A'+1)+num;
+    return num;
+}
+
+string toCharEnc(int n) {
+    n--;
+    string conv="";
+    int i,closePow=0;
+    for (i=mxPow;i>=0;--i)
+        if (cumPow26[i]<=n) {n-=cumPow26[i];closePow=i;break;}
+
+    if (debug) cout<<"closepow "<<closePow<<endl;
+
+    do{
+        i=n%base;
+        conv+=eng[i];
+        n/=base;
+    }
+    while (n);
+    int len=sz(conv);
+    if (len<closePow+1) {
+        while (len<closePow+1) {
+            conv+='A';
+            len++;
+        }
+    }
+    reverse(all(conv));
+    return conv;
+}
+
+void init() {
+    int i;
+    pow26[0]=1;
+    cumPow26[0]=0;
+    for (i=1;i<=mxPow;++i) {
+        pow26[i]=pow26[i-1]*26;
+        cumPow26[i]=cumPow26[i-1]+pow26[i];
+    }
+    for (i=0;i<base;++i) eng[i]= (char)('A'+i);
+}

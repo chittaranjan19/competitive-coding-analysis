@@ -1,0 +1,124 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 155;
+
+int N, M;
+// int tt = clock();
+
+// void pt() {
+// 	printf("Time: %f\n", float(clock() - tt) / CLOCKS_PER_SEC);
+// }
+
+bitset<MAXN> adj[MAXN], cpos[MAXN], npos[MAXN];
+bitset<MAXN> flip[MAXN], temp[MAXN];
+
+void copy (bitset<MAXN> a[MAXN], bitset<MAXN> b[MAXN]) {
+	copy_n(a, N, b);
+}
+
+void getflip (bitset<MAXN> *b) {
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < N; j++) {
+			flip[i][j] = b[j][i];
+		}
+	}
+}
+
+void mult (bitset<MAXN> a[MAXN], bitset<MAXN> b[MAXN], bitset<MAXN> c[MAXN]) {
+	//flip b
+	getflip(b);
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < N; j++) {
+			c[i][j] = (a[i] & flip[j]).any();
+		}
+	}
+}
+
+void multeq (bitset<MAXN> a[MAXN], bitset<MAXN> b[MAXN]) {
+	mult(a, b, temp);
+	copy(temp, a);
+}
+
+bitset<MAXN> pw[2][MAXN];
+bitset<MAXN> ad2[35][MAXN];
+
+bitset<MAXN> *getpow (int p, bool pre) {
+	//return adj ^ p
+	int cur = 0, prv = 1;
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < N; j++) {
+			pw[cur][i][j] = (i == j);
+		}
+	}
+	int acur = 0;
+	if (pre) {
+		copy(adj, ad2[acur]);
+	}
+	for (; p; p >>= 1, acur++) {
+		if (p & 1) {
+			//cur -> prv
+			mult(pw[cur], ad2[acur], pw[prv]);
+			swap(cur, prv);
+		}
+		if (pre) {
+			mult(ad2[acur], ad2[acur], ad2[acur + 1]);
+		}
+	}
+	return pw[cur];
+}
+
+int main() {
+	// atexit(pt);
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d", &N, &M);
+	map<int, vector<pii> > mp;
+	for (int i = 0, a, b, d; i < M; i++) {
+		scanf("%d %d %d", &a, &b, &d);
+		mp[d].push_back(pii(a - 1, b - 1));
+	}
+	mp[1183940279].push_back(pii(N - 1, N - 1));
+	for (int i = 0; i < N; i++) {
+		cpos[i][i] = true;
+	}
+	adj[N - 1][N - 1] = true;
+	int prv = 0;
+	for (auto it : mp) {
+		int cur = it.first;
+		//ok mult it OUT
+		bitset<MAXN> *pwr = getpow(cur - prv, true);
+		getflip(pwr);
+		// mult(cpos, getpow(cur - prv), npos);
+		if ((cpos[0] & flip[N - 1]).any()) {
+			int lo = prv, hi = cur;
+			while (hi - lo > 1) {
+				int mid = (lo + hi) / 2;
+				getflip(getpow(mid - prv, false));
+				//only need [0][N - 1]
+				if ((cpos[0] & flip[N - 1]).any()) {
+					hi = mid;
+				} else {
+					lo = mid;
+				}
+			}
+			printf("%d\n", hi);
+			return 0;
+		}
+		multeq(cpos, pwr);
+		prv = cur;
+		for (pii p : it.second) {
+			adj[p.first][p.second] = true;
+		}
+	}
+	puts("Impossible");
+}

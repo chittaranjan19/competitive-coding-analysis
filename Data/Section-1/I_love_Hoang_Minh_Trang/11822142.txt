@@ -1,0 +1,117 @@
+const   maxn    =2*trunc(1e5)+3;
+
+type    arr1    =array[0..maxn] of int64;
+
+var     n , m   :int64;
+        l, r ,x,y   :arr1;
+        c       :Arr1;
+        cs,vt      :arr1;
+        i, j    :longint;
+        res     :arr1;
+        ll, rr  :int64;
+        p       :arr1;
+        Used    :arr1;
+        xx       :int64;
+
+procedure hv(var a,b:int64);
+var     tg      :int64;
+begin
+        tg:=a;a:=b;b:=tg;
+end;
+
+procedure QS(l,r:int64);
+var     i, j, x :int64;
+begin
+        i:=l;j:=r;
+        x:=c[l+random(r-l+1)];
+        repeat
+                while c[i]<x do inc(i);
+                while c[j]>x do dec(j);
+                if i<=j then
+                begin
+                        hv(c[i],c[j]);
+                        hv(cs[i],cs[j]);
+                        inc(i);
+                        dec(j);
+                end;
+        until i>j;
+        if l<j then QS(l,j);
+        if i<r then QS(i,r);
+end;
+
+procedure Sort(left,right:int64);
+var     i, j, x :int64;
+begin
+        i:=left;j:=right;
+        x:=l[left+random(right-left+1)];
+        repeat
+                while l[i]<x do inc(i);
+                while l[j]>x do dec(j);
+                if i<=j then
+                begin
+                        hv(l[i],l[j]);
+                        hv(r[i],r[j]);
+                        hv(vt[i],vt[j]);
+                        inc(i);
+                        dec(j);
+                end;
+        until i>j;
+        if left<j then Sort(left,j);
+        if i<right then Sort(i,right);
+end;
+
+function Get( u :longint):longint;
+begin
+        while p[u]<>u do u:=p[u];
+        exit(u);
+end;
+
+Procedure merge( u, v :longint);
+begin
+        P[ Get(v) ] := Get(u);
+end;
+
+begin
+        readln(n, m);
+        for i:=1 to n do readln(x[i],y[i]);
+        for i:=1 to m do read(c[i]);
+        for i:=1 to m do
+                cs[i]:=i;
+        QS(1,m);
+
+        for i:=1 to n-1 do
+        begin
+                vt[i]:=i;
+                l[i]:=x[i+1]-y[i];
+                r[i]:=y[i+1]-x[i];
+        end;
+        Sort(1,n-1);
+        for i:=1 to n-1 do p[i]:=i;
+        fillchar(res,sizeof(res),0);
+
+        for i:=n - 1 downto 1 do
+        begin
+                xx:=0;
+                for j:=20 downto 0 do
+                        if (xx+ 1 shl j<=m) and (c[xx + 1 shl j]<=r[i]) then
+                                inc(xx,1 shl j);
+                if used[xx]=1 then
+                        xx:=Get(xx)-1;
+
+                if (xx < 1) or (c[xx] < l[i]) then
+                begin
+                        writeln('No');
+                        halt;
+                end;
+
+                res[cs[i]]:=vt[i];
+
+                used[xx] := 1;
+                if (used[xx]=1) and (used[xx-1]=1) then
+                        merge(xx-1,xx);
+                if (used[xx]=1) and (used[xx+1]=1) then
+                        merge(xx,xx+1);
+        end;
+        writeln('Yes');
+        for i:=1 to n-1 do write(res[i],' ');writeln;
+end.

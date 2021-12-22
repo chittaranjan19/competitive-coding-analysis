@@ -1,0 +1,118 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.BitSet;
+
+public class ProblemB2 {
+    BufferedReader rd;
+    BitSet q;
+
+    ProblemB2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        rd.readLine();
+        char[] c = rd.readLine().toCharArray();
+        int[] u = new int[3];
+        for(char d: c) {
+            if(d=='B') {
+                u[0]++;
+            } else if(d=='G') {
+                u[1]++;
+            } else {
+                u[2]++;
+            }
+        }
+        StringBuilder res = new StringBuilder();
+        q = new BitSet(62000000);
+        if(dp(u, 0) == 1) {
+            res.append('B');
+        }
+        q = new BitSet(62000000);
+        if(dp(u, 1) == 1) {
+            res.append('G');
+        }
+        q = new BitSet(62000000);
+        if(dp(u, 2) == 1) {
+            res.append('R');
+        }
+        out(res);
+    }
+
+    private int dp(int[] u, int req) {
+        int res = get(u);
+        if(res == 0) {
+            if(u[0] == 0 && u[1] == 0 && u[2] == 0) {
+                res = 2;
+            } else {
+                boolean ok = true;
+                for (int i = 0; i < 3; i++) {
+                    if (u[i] > 0 && req != i) {
+                        ok = false;
+                        break;
+                    }
+                }
+                if(ok) {
+                    res = 1;
+                } else {
+                    if(u[0] > 0 && u[1] > 0) {
+                        if(dp(new int[] { u[0]-1, u[1]-1, u[2]+1 }, req) == 1) {
+                            res = 1;
+                        }
+                    }
+                    if(res == 0 && u[1] > 0 && u[2] > 0) {
+                        if(dp(new int[] { u[0]+1, u[1]-1, u[2]-1 }, req) == 1) {
+                            res = 1;
+                        }
+                    }
+                    if(res == 0 && u[0] > 0 && u[2] > 0) {
+                        if(dp(new int[] { u[0]-1, u[1]+1, u[2]-1 }, req) == 1) {
+                            res = 1;
+                        }
+                    }
+                    if(res == 0 && u[0] > 1) {
+                        if(dp(new int[] { u[0]-1, u[1], u[2] }, req) == 1) {
+                            res = 1;
+                        }
+                    }
+                    if(res == 0 && u[1] > 1) {
+                        if(dp(new int[] { u[0], u[1]-1, u[2] }, req) == 1) {
+                            res = 1;
+                        }
+                    }
+                    if(res == 0 && u[2] > 1) {
+                        if(dp(new int[] { u[0], u[1], u[2]-1 }, req) == 1) {
+                            res = 1;
+                        }
+                    }
+                }
+            }
+            put(u, res == 1);
+        }
+        return res;
+    }
+
+    private int get(int[] k) {
+        int base = k[0]*193442 + k[1]*622+k[2]*2;
+        if(!q.get(base)) {
+            return 0;
+        }
+        return q.get(base+1)?1:2;
+    }
+
+    private void put(int[] k, boolean x) {
+        int base = k[0]*193442 + k[1]*622+k[2]*2;
+        q.set(base, true);
+        q.set(base+1, x);
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB2();
+    }
+}

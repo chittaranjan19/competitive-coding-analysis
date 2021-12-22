@@ -1,0 +1,223 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int MAXN = 2e5 + 5;
+
+struct edge1
+{
+    int u, v, cost, id;
+    bool used;
+} G1[MAXN];
+struct edge2
+{
+    int to, cost, next;
+    edge2(int to = 0, int cost = 0, int next = 0) : to(to), cost(cost), next(next) {}
+} G2[MAXN << 1];
+int par[MAXN], head[MAXN], tot1;
+int fa[MAXN], sz[MAXN], tot2, tp[MAXN], dep[MAXN], son[MAXN], p[MAXN];
+
+void init(int n)
+{
+    for(int i = 1; i <= n; ++i)
+    {
+        par[i] = i;
+    }
+    memset(head, -1, sizeof(head));
+    tot1 = tot2 = 0;
+}
+
+void addedge(int u, int v, int cost)
+{
+    G2[tot1] = edge2(v, cost, head[u]);
+    head[u] = tot1++;
+    G2[tot1] = edge2(u, cost, head[v]);
+    head[v] = tot1++;
+}
+
+int findpar(int x)
+{
+    return par[x] == x ? x : par[x] = findpar(par[x]);
+}
+
+void unite(int u, int v)
+{
+    u = findpar(u), v = findpar(v);
+    par[u] = v;
+}
+
+bool cmp1(const edge1 &a, const edge1 &b)
+{
+    return a.cost < b.cost;
+}
+
+bool cmp2(const edge1 &a, const edge1 &b)
+{
+    return a.id < b.id;
+}
+
+ll Kruskal(int m)
+{
+    sort(G1, G1 + m, cmp1);
+    ll ret = 0;
+    for(int i = 0; i < m; ++i)
+    {
+        int u = G1[i].u, v = G1[i].v;
+        if(findpar(u) != findpar(v))
+        {
+            unite(u, v);
+            ret += G1[i].cost;
+            G1[i].used = true;
+            addedge(u, v, G1[i].cost);
+        }
+    }
+    return ret;
+}
+
+struct segtree
+{
+    int node[MAXN << 2];
+
+    void pushup(int rt)
+    {
+        node[rt] = max(node[rt << 1], node[rt << 1 | 1]);
+    }
+
+    void build()
+    {
+        memset(node, 0, sizeof(node));
+    }
+
+    void update(int rt, int l, int r, int x, int y)
+    {
+        if(l == r)
+        {
+            node[rt] = y;
+            return;
+        }
+        int m = (l + r) >> 1;
+        x <= m ? update(rt << 1, l, m, x, y) : update(rt << 1 | 1, m + 1, r, x, y);
+        pushup(rt);
+    }
+
+    int query(int rt, int l, int r, int x, int y)
+    {
+        if(x <= l && r <= y) return node[rt];
+        int ret = 0, m = (l + r) >> 1;
+        if(x <= m)
+        {
+            ret = max(ret, query(rt << 1, l, m, x, y));
+        }
+        if(m < y)
+        {
+            ret = max(ret, query(rt << 1 | 1, m + 1, r, x, y));
+        }
+        return ret;
+    }
+} tree;
+
+void dfs1(int u, int f, int d)
+{
+    fa[u] = f;
+    sz[u] = 1;
+    son[u] = 0;
+    dep[u] = d;
+    for(int i = head[u]; ~i; i = G2[i].next)
+    {
+        int v = G2[i].to;
+        if(v == f) continue;
+        dfs1(v, u, d + 1);
+        sz[u] += sz[v];
+        if(sz[v] > sz[son[u]])
+        {
+            son[u] = v;
+        }
+    }
+}
+
+void dfs2(int u, int sp)
+{
+    tp[u] = sp;
+    p[u] = ++tot2;
+    if(!son[u]) return;
+    dfs2(son[u], sp);
+    for(int i = head[u]; ~i; i = G2[i].next)
+    {
+        int v = G2[i].to;
+        if(v == fa[u] || v == son[u]) continue;
+        dfs2(v, v);
+    }
+}
+
+int solve(int u, int v, int n)
+{
+    int ret = 0, f1 = tp[u], f2 = tp[v];
+    while(f1 != f2)
+    {
+        if(dep[f1] < dep[f2])
+        {
+            swap(f1, f2);
+            swap(u, v);
+        }
+        ret = max(ret, tree.query(1, 1, n, p[f1], p[u]));
+        u = fa[f1];
+        f1 = tp[u];
+    }
+    if(u != v)
+    {
+        if(dep[u] > dep[v])
+        {
+            swap(u, v);
+        }
+        ret = max(ret, tree.query(1, 1, n, p[son[u]], p[v]));
+    }
+    return ret;
+}
+
+int main()
+{
+    int n, m;
+    while(~scanf("%d%d", &n, &m))
+    {
+        init(n);
+        for(int i = 0; i < m; ++i)
+        {
+            scanf("%d%d%d", &G1[i].u, &G1[i].v, &G1[i].cost);
+            G1[i].id = i;
+            G1[i].used = false;
+        }
+        ll ans = Kruskal(m);
+        dfs1(1, 0, 0);
+        dfs2(1, 1);
+        tree.build();
+        for(int i = 1; i <= n; ++i)
+        {
+            for(int j = head[i]; ~j; j = G2[j].next)
+            {
+                edge2 e = G2[j];
+                if(dep[i] == dep[e.to] - 1)
+                {
+                    tree.update(1, 1, n, p[e.to], e.cost);
+                }
+            }
+        }
+        sort(G1, G1 + m, cmp2);
+        for(int i = 0; i < m; ++i)
+        {
+            if(G1[i].used)
+            {
+                printf("%I64d\n", ans);
+            }
+            else
+            {
+                printf("%I64d\n", ans - solve(G1[i].u, G1[i].v, n) + G1[i].cost);
+            }
+        }
+    }
+    return 0;
+}

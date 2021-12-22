@@ -1,0 +1,117 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+int toNumber (string s)
+{
+	int Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (int number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+double time (double b, double p, double v, double r)
+{
+	double eps = 1e-13;
+	double tsup = 1, tinf = 0;
+	while (v*tsup + r*cos(v/r*tsup) + b < p)
+		tsup*=2;
+	while (tsup - tinf > eps)
+	{
+		double tp = (tsup + tinf)/2.0;
+		if (v*tp + r*cos(v/r*tp) + b < p)
+			tinf = tp;
+		else
+			tsup = tp;
+	}
+	return (tsup + tinf)/2.0;
+}
+
+double ternarySearch(double b1, double b2, double v, double r,double s, double f)
+{
+	double eps = 1e-13;
+	if (b2 - b1 < eps)
+		return (b1 + b2)/2.0;
+	else
+	{
+		double b1new = (2*b1 + b2)/3.0;
+		double b2new = (b1 + 2*b2)/3.0;
+		double ts1 = time(b1new,s,v,r), tf1 = time(b1new,f,v,r);
+		double ts2 = time(b2new,s,v,r), tf2 = time(b2new,f,v,r);
+		if ((tf1-ts1) < (tf2-ts2))
+			return ternarySearch(b1, b2new,v,r,s,f);
+		else
+			return ternarySearch(b1new, b2,v,r,s,f);
+			
+	}
+}
+
+int main()
+{
+	tint n;
+	double r,v,pi = acos(-1);
+	cin >> n >> r >> v;
+	forn(i,n)
+	{
+		double s,f;
+		cin >> s >> f;
+		double b1 = s - 2*pi*r;
+		double b2 = s;
+		double b = ternarySearch(b1,b2,v,r,s,f);
+		double ts = time(b,s,v,r), tf = time(b,f,v,r);
+		double ans = tf - ts;
+		printf("%.13lf\n",ans);
+	}
+	return 0;
+}
+
+

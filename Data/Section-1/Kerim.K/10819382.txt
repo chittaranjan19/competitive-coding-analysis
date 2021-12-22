@@ -1,0 +1,110 @@
+/*
+ID: sananame
+PROG: ride
+LANG: C++
+*/
+#include<bits/stdc++.h>
+#define INF 1000000009 
+#define fi first
+#define se second
+#define mp make_pair
+#define all(x) x.begin(), x.end()
+#define MAXN 100009
+#define pb(x) push_back(x)
+#define sqr(x) ((x)*(x))
+#define lcm(x,y) (x/__gcd(x,y)*y)
+#define gcd(x,y) (__gcd(x,y))
+#define sg(x) (atoi(x.c_str()))
+using namespace std;
+//int palin(int n,int m,string s){int bl=0;for(int i=n;i<m;i++)if(s[i]!=s[m-i-1])bl++;if(bl==0)return 1;else return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+typedef pair<int,int> PII;
+vector<PII>v[70];
+int dist[70],p[70];
+int arr[]={9,1,-7,-8,8,-9,-1,7};
+string rr[]={"RD","R","RU","U","D","LU","L","LD"};
+int fun(string h)
+{
+	int su=0;
+	su+=int(h[0])-96;
+	su+=8*(8-(int(h[1])-48));
+	return su;
+}
+int main()
+{
+	for(int i=1;i<=64;i++)
+	{
+		if(i==1 or i==8 or i==56 or i==64)
+		{
+			if(i==1)v[i].pb(mp(2,1)),v[i].pb(mp(9,1)),v[i].pb(mp(10,1));
+			if(i==8)v[i].pb(mp(7,1)),v[i].pb(mp(16,1)),v[i].pb(mp(15,1));
+			if(i==57)v[i].pb(mp(49,1)),v[i].pb(mp(50,1)),v[i].pb(mp(58,1));
+			if(i==64)v[i].pb(mp(56,1)),v[i].pb(mp(55,1)),v[i].pb(mp(63,1));
+		}
+		else if((i-1)%8==0)
+			for(int j=0;j<=4;j++)
+				v[i].pb(mp(arr[j]+i,1));
+		else if(i%8==0)		
+			for(int j=3;j<=7;j++)
+				v[i].pb(mp(arr[j]+i,1));	
+		else
+			for(int j=0;j<8;j++)
+				if(arr[j]+i>=1 and arr[j]+i<=64)
+				v[i].pb(mp(arr[j]+i,1));
+	}
+	string a,b;
+	cin>>a>>b;
+	int n,m;
+	n=fun(a);
+	m=fun(b);
+	fill(dist,dist+70,INF);
+	priority_queue<PII, vector<PII> , greater<PII> >q;
+	dist[n]=0;
+	q.push(mp(0,n));
+	while(1)
+	{
+		int u=q.top().se,w=q.top().fi;
+		if(u==m)
+		break;
+		q.pop();
+		if(dist[u]==w)
+		{
+			for(int i=0;i<v[u].size();i++)
+			{
+				int vv=v[u][i].fi,c=v[u][i].se;
+				if(dist[vv]>dist[u]+c)
+				{
+					dist[vv]=dist[u]+c;
+					q.push(mp(dist[vv],vv));
+					p[vv]=u;	
+				}
+			}
+		}
+	}
+	stack<int>s;
+	int k=m;
+	vector<int>l;
+	while(k!=n)
+	{
+		s.push(k);
+		k=p[k];
+	}
+	l.pb(n);
+	while(!s.empty())
+	{
+		l.pb(s.top());
+		s.pop();
+	}
+	cout<<l.size()-1<<endl;
+	for(int i=0;i<l.size()-1;i++)
+	{
+		for(int j=0;j<8;j++)
+		if(l[i+1]-l[i]==arr[j])
+		{
+			cout<<rr[j]<<endl;
+			break;
+		}
+	}
+	return 0;
+}

@@ -1,0 +1,88 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define pb push_back
+#define mp make_pair
+#define ft first
+#define sd second
+#define mem(a, v) memset(a, v, sizeof(a))
+typedef long long ll;
+typedef vector<int> VI;
+typedef pair<int, int> PII;
+typedef vector<VI> matrix;
+const ll MOD = 10007LL;
+
+matrix adj(200200);
+int v[200200], sub[200200];
+int cnt;
+
+void dfs0(int u, int p)
+{
+	sub[u] = v[u];
+	for(int i=0; i<adj[u].size(); i++) {
+		int cur = adj[u][i];
+		if(cur != p) {
+			dfs0(cur, u);
+			sub[u] += sub[cur];
+		}
+	}
+}
+
+void print(int u)
+{
+	if(!cnt)	return;
+	if(v[u]) cnt--;
+	else cnt++;
+	v[u] = 1 - v[u];
+	cout<<u<<" ";
+}
+
+void dfs1(int u, int p)
+{
+	print(u);
+	for(int i=0; i<adj[u].size(); i++) {
+		int cur = adj[u][i];
+		if(cur == p) continue;
+		if(sub[cur]) {
+			dfs1(cur, u);
+			print(u);
+		}
+	}
+	if(cnt) {
+		for(int i=0; i<adj[u].size(); i++) {
+			int cur = adj[u][i];
+			if(cur == p) continue;
+			if(v[cur]) {
+				print(cur);
+				print(u);
+			}
+		}
+	}
+}
+
+int main()
+{
+	int n;
+	cin>>n;
+	for(int i=1; i<=n; i++) {
+	    int x;
+	    cin>>x;
+	    if(x == -1) {
+	    	v[i] = 1;
+	    	cnt++;
+	    }
+	}
+	for(int i=1; i<n; i++) {
+		int x, y;
+		cin>>x>>y;
+		adj[x].pb(y);
+		adj[y].pb(x);
+	}
+	if(!cnt) {
+		cout<<"1\n";
+		return 0;
+	}
+	dfs0(1, 0);
+	dfs1(1, 0);
+	cout<<"\n";
+	return 0;
+}

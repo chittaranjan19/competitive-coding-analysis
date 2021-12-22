@@ -1,0 +1,95 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int dp[159][159][159],f[159][159],ans[159][159];
+int arr[159];
+char s[159];
+int destroy(int l,int r);
+int rec(int l,int r,int len){
+	if(l>r){
+		if(!len)
+			return 0;
+		return -INF;	
+	}
+	if(l==r){
+		if(len>1)
+			return -INF;
+		if(!len and ~arr[1])
+			return arr[1];
+		return 0;	
+	}
+	int &ret=dp[l][r][len];
+	if(~ret)
+		return ret;ret=-INF;
+	if(!len)
+		return ret=destroy(l,r);
+	if(len==1){
+		for(int m=l;m<=r;m++)
+			umax(ret,destroy(l,m-1)+destroy(m+1,r));
+		return ret;	
+	}	
+	if(s[l]==s[r])
+		umax(ret,rec(l+1,r-1,len-2));
+	for(int m=l;m<r;m++){
+		umax(ret,rec(l,m,len)+destroy(m+1,r));
+		umax(ret,destroy(l,m)+rec(m+1,r,len));
+	}
+	return ret;
+}
+int destroy(int l,int r){
+	if(l>r)
+		return 0;
+	if(l==r){
+		if(~arr[1])
+			return arr[1];
+		return 0;	
+	}	
+	int &ret=f[l][r];
+	if(~ret)
+		return ret;ret=-INF;
+	for(int i=1;i<=r-l+1;i++)
+		if(~arr[i])
+			umax(ret,rec(l,r,i)+arr[i]);
+	return ret;		
+}
+int get(int l,int r){
+	if(l>r)
+		return 0;
+	int &ret=ans[l][r];
+	if(~ret)
+		return ret;ret=-INF;
+	ret=destroy(l,r);
+	for(int m=l;m<r;m++)
+		umax(ret,get(l,m)+get(m+1,r));
+	return ret;	
+}
+int main(){
+	memset(dp,-1,sizeof dp);
+	memset(f,-1,sizeof f);
+	memset(ans,-1,sizeof ans);
+	#ifndef ONLINE_JUDGE
+		freopen("file.in", "r", stdin);
+	#endif
+	int n;
+	scanf("%d",&n);
+	for(int i=1;i<=n;i++)
+		scanf("%d",arr+i);
+	scanf("%s",s+1);
+	printf("%d\n",get(1,n));
+	return 0;
+}

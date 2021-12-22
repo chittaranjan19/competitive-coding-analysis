@@ -1,0 +1,90 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+#include <cstring>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+
+using namespace std;
+string s;
+
+ll gcd(ll a, ll b)
+{
+    ll temp = min(a, b);
+    a = max(a, b);
+    b = temp;
+    if (b == 0) return a+b;
+    else 
+        return gcd(b, a%b);
+}
+
+int m[2000000];
+
+int main()
+{
+    //25 -2 -2 -2 -1 -2 0 -2 1 -2 2 -1 -2 -1 -1 -1 0 -1 1 -1 2 0 -2 0 -1 0 0 0 1 0 2 1 -2 1 -1 1 0 1 1 1 2 2 -2 2 -1 2 0 2 1 2 2
+    ll n, ans;
+    pair<ll, ll> mas[3000];
+    vector<pair< pair<ll, ll>, ll > > line;
+    cin >> n;
+    for (int i = 0; i < n; i++)
+    {
+        ll x, y;
+        cin >> x >> y;
+        x += 100; y += 100;
+        mas[i] = mp(x, y);
+    }
+    int count = 0;
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = i + 1; j < n; j++)
+        {
+            //ll a = abs(mas[i].first - mas[j].first)*(mas[i].second - mas[j].second);
+            //a = abs(a);
+            //ll b = (mas[i].first - mas[j].first)*(mas[i].first*mas[j].second - mas[i].second*mas[j].first);
+            //b = abs(b);
+            ll a = mas[i].second - mas[j].second;
+            ll b = mas[j].first - mas[i].first;
+            ll c = -(a*mas[i].first + b*mas[i].second);
+            if (a < 0 || (a == 0 && b < 0))
+            {
+                a *= -1; b *= -1; c *= -1;
+            }
+            ll tt = gcd(abs(a), abs(b));
+            ll del = gcd(tt, abs(c));
+            line.push_back(mp(mp(a/del, b/del), c/del));
+            count++;
+        }
+    }
+    memset(m, 0, sizeof(m));
+    for (int i = 0; i <= n; i++)
+        m[(i*(i - 1))/2] = i;
+    sort(line.begin(), line.end());
+    ans = n*(n - 1)*(n - 2) / 6;
+    ll d = 0, k;
+    line.push_back(mp(mp(-1, -1), -1));
+    for (int i = 0; i < count; i++)
+    {
+        k = i;
+        if (d == 0)
+        {
+            while (line[k] == line[i++])
+                d++;
+            d = m[d];
+            if (d > 2)
+                ans -= (d*(d - 1)*(d - 2)) / 6;
+            i -= 2;
+            d = 0;
+        }
+    }
+    cout << ans;
+}

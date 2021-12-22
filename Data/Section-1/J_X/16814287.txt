@@ -1,0 +1,183 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 150000 + 5;
+
+int a[maxn], lf[maxn], rg[maxn];
+int n, cnt = 0, ans = 0;
+
+bool check(int pos)
+{
+    if(pos & 1)
+    {
+        if(pos != 1 && a[pos] >= a[pos - 1]) return false;
+        if(pos != n && a[pos] >= a[pos + 1]) return false;
+    }
+    else
+    {
+        if(a[pos] <= a[pos - 1]) return false;
+        if(pos != n && a[pos] <= a[pos + 1]) return false;
+    }
+    return true;
+}
+
+int main()
+{
+    scanf("%d", &n);
+    a[0] = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        scanf("%d", &a[i]);
+        if(((i & 1) && a[i] >= a[i - 1]) || (!(i & 1) && a[i] <= a[i - 1]))
+        {
+            rg[cnt++] = i - 1;
+            lf[cnt] = i;
+        }
+    }
+    rg[cnt] = n;
+//    cout << cnt << endl;
+    if(cnt == 2)
+    {
+        swap(a[rg[1]], a[lf[2]]);
+        ans += check(rg[1]) && check(lf[2]);
+        swap(a[rg[1]], a[lf[2]]);
+        for(int i = 1; i <= n; ++i)
+        {
+            if(i == rg[1] || i == lf[2]) continue;
+//            int tmp = ans;
+            swap(a[i], a[rg[1]]);
+            ans += check(i) && check(rg[1]) && check(lf[2]);
+//            if(ans > tmp) cout << i << ' ' << rg[1] << endl;
+//            tmp = ans;
+            swap(a[i], a[rg[1]]);
+            swap(a[i], a[lf[2]]);
+            ans += check(i) && check(rg[1]) && check(lf[2]);
+//            if(ans > tmp) cout << i << ' ' << lf[2] << endl;
+//            tmp = ans;
+            swap(a[i], a[lf[2]]);
+
+        }
+    }
+    else if(cnt < 10)
+    {
+//        for(int i = 1; i <= cnt; ++i) cout << lf[i] << ' ' << rg[i] << endl;
+//        int tmp = ans;
+        for(int i = 1; i < cnt; ++i)
+        {
+            if(lf[i] != rg[i])
+            {
+                swap(lf[i], rg[i]);
+                bool flag = true;
+                for(int j = 1; j <= cnt; ++j)
+                {
+                    if(!check(lf[j]) || !check(rg[j])) flag = false;
+                }
+                ans += flag;
+            }
+            for(int j = i + 1; j <= cnt; ++j)
+            {
+                bool flag = true;
+                swap(a[lf[i]], a[lf[j]]);
+                for(int k = 1; k <= cnt; ++k)
+                {
+                    if(!check(lf[k]) || !check(rg[k])) flag = false;
+                }
+                ans += flag;
+                swap(a[lf[i]], a[lf[j]]);
+                if(lf[j] != rg[j])
+                {
+                    flag = true;
+                    swap(a[lf[i]], a[rg[j]]);
+                    for(int k = 1; k <= cnt; ++k)
+                    {
+                        if(!check(lf[k]) || !check(rg[k])) flag = false;
+                    }
+                    ans += flag;
+                    swap(a[lf[i]], a[rg[j]]);
+                }
+                if(lf[i] != rg[i])
+                {
+                    flag = true;
+                    swap(a[rg[i]], a[lf[j]]);
+                    for(int k = 1; k <= cnt; ++k)
+                    {
+                        if(!check(lf[k]) || !check(rg[k])) flag = false;
+                    }
+                    ans += flag;
+                    swap(a[rg[i]], a[lf[j]]);
+                    if(lf[j] != rg[j])
+                    {
+                        flag = true;
+                        swap(a[rg[i]], a[rg[j]]);
+                        for(int k = 1; k <= cnt; ++k)
+                        {
+                            if(!check(lf[k]) || !check(rg[k])) flag = false;
+                        }
+                        ans += flag;
+                        swap(a[rg[i]], a[rg[j]]);
+                    }
+                }
+
+            }
+        }
+        for(int i = 1; i <= n; ++i)
+        {
+            bool ok = true;
+            for(int j = 1; j <= cnt; ++j)
+            {
+                if(i == lf[j] || i == rg[j]) ok = false;
+            }
+            if(ok)
+            {
+                for(int j = 1; j <= cnt; ++j)
+                {
+                    swap(a[i], a[lf[j]]);
+                    bool flag = check(i);
+                    for(int k = 1; k <= cnt; ++k)
+                    {
+                        if(!check(lf[k]) || !check(rg[k])) flag = false;
+                    }
+                    ans += flag;
+                    swap(a[i], a[lf[j]]);
+                    if(lf[j] != rg[j])
+                    {
+                        swap(a[i], a[lf[j]]);
+                        flag = check(i);
+                        for(int k = 1; k <= cnt; ++k)
+                        {
+                            if(!check(lf[k]) || !check(rg[k])) flag = false;
+                        }
+                        ans += flag;
+                        swap(a[i], a[rg[j]]);
+                    }
+                }
+            }
+        }
+//        swap(a[rg[1]], a[rg[2]]);
+//        ans += check(rg[1]) && check(lf[2]) && check(rg[2]) && check(lf[3]);
+//        swap(a[rg[1]], a[rg[2]]);
+////            if(ans > tmp) cout << rg[1] << ' ' << rg[2] << endl;
+////            tmp = ans;
+//        swap(a[rg[1]], a[lf[3]]);
+//        ans += check(rg[1]) && check(lf[2]) && check(rg[2]) && check(lf[3]);
+//        swap(a[rg[1]], a[lf[3]]);
+////                    if(ans > tmp) cout << rg[1] << ' ' << lf[3] << endl;
+////            tmp = ans;
+//        if(lf[2] != rg[2])
+//        {
+//            swap(a[lf[2]], a[rg[2]]);
+//            ans += check(rg[1]) && check(lf[2]) && check(rg[2]) && check(lf[3]);
+//            swap(a[lf[2]], a[rg[2]]);
+//    //                            if(ans > tmp) cout << lf[2] << ' ' << rg[2] << endl;
+//    //            tmp = ans;
+//        }
+//        swap(a[lf[2]], a[lf[3]]);
+//        ans += check(rg[1]) && check(lf[2]) && check(rg[2]) && check(lf[3]);
+//        swap(a[lf[2]], a[lf[3]]);
+//                if(ans > tmp) cout << lf[2] << ' ' << lf[3] << endl;
+//            tmp = ans;
+    }
+    printf("%d\n", ans);
+    return 0;
+}

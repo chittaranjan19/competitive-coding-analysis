@@ -1,0 +1,148 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<int> g[200005];
+int arr[200005], in[200005], c, a[200005], last[200005], lazy[800005][2];
+bool depth[200005];
+
+void update(int i,int L,int R,int x,int y,int val, bool ch)
+{
+  if(lazy[i][ch] != 0)
+  {
+    if(L != R)
+    {
+      lazy[i*2+1][ch]+=lazy[i][ch];
+      lazy[i*2+2][ch]+=lazy[i][ch];
+    }
+    lazy[i][ch] = 0;
+  }
+  if(L >= x && R <= y)
+  {
+    lazy[i][ch]+=val;
+    if(L != R)
+    {
+      lazy[i*2+1][ch]+=lazy[i][ch];
+      lazy[i*2+2][ch]+=lazy[i][ch];
+    }
+    else
+    {
+      if(depth[L] == ch)
+        a[L] += lazy[i][ch];
+      else a[L] -= lazy[i][ch];
+    }
+    lazy[i][ch] = 0;
+    return;
+  }
+  if(L > y || R < x)
+    return;
+  update(i*2 + 1, L, (L + R) / 2, x, y, val, ch);
+  update(i*2 + 2, (L + R) / 2 + 1, R, x, y, val, ch);
+}
+
+void query(int i,int L,int R,int x,int y, bool ch)
+{
+  if(lazy[i] != 0)
+  {
+    if(L != R)
+    {
+      lazy[i*2+1][ch]+=lazy[i][ch];
+      lazy[i*2+2][ch]+=lazy[i][ch];
+    }
+    else
+    {
+      if(depth[L] == ch)
+        a[L] += lazy[i][ch];
+      else a[L] -= lazy[i][ch];
+    }
+    lazy[i][ch] = 0;
+  }
+  if(L == R)
+    return ;
+  if(L > y || R < x)
+    return ;
+  query(i*2 + 1, L, (L + R) / 2, x, y, ch);
+  query(i*2 + 2, (L + R) / 2 + 1, R, x, y, ch);
+}
+
+void dfs(int node, int parent = -1, bool x = false)
+{
+  depth[c] = x;
+  a[c] = arr[node];
+  in[node] = c++;
+  for(int i=0;i<g[node].size();i++)
+  {
+    if(parent == g[node][i]) continue;
+    dfs(g[node][i], node, !x);
+  }
+  last[node] = c - 1;
+}
+
+int main()
+{
+  int n, q, x, y, z;
+  scanf("%d %d", &n, &q);
+  for(int i=1;i<=n;i++)
+    scanf("%d", &arr[i]);
+  for(int i=0;i<n-1;i++)
+  {
+    scanf("%d %d", &x, &y);
+    g[x].pb(y);
+    g[y].pb(x);
+  }
+  dfs(1);
+  while(q--)
+  {
+    scanf("%d", &x);
+    if(x == 1)
+    {
+      scanf("%d %d", &y, &z);
+      x = in[y];
+      y = last[y];
+      update(0, 0, n - 1, x, y, z, depth[x]);
+    }
+    else
+    {
+      scanf("%d", &x);
+      x = in[x];
+      query(0, 0, n - 1, x, x, 0);
+      query(0, 0, n - 1, x, x, 1);
+      printf("%d\n", a[x]);
+    }
+  }
+  return 0;
+}

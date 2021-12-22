@@ -1,0 +1,91 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+char arr[3009][3009];
+int l[3009][3009],r[3009][3009],n,m,s[12009],ok[3009];
+vector<int>ey[3009];
+void upd(int p,int v,int nd,int x,int y){
+	if(x==y){
+		s[nd]+=v;
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,v,nd<<1,x,mid);
+	else
+		upd(p,v,nd<<1|1,mid+1,y);
+	s[nd]=s[nd<<1]+s[nd<<1|1];		
+}
+int tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return s[nd];
+	int mid=(x+y)>>1;
+	int i1=tap(l,r,nd<<1,x,mid);
+	int i2=tap(l,r,nd<<1|1,mid+1,y);
+	return  i1+i2;		
+}
+int take(int x,int y){
+	memset(s,0,sizeof(s));
+	memset(ok,0,sizeof(ok));
+	for(int i=0;i<3009;i++)
+		ey[i].resize(0);
+	int last=x;
+	int ans=0;
+	while(x<=n and y>=1){
+		for(int i=0;i<ey[x].size();i++)
+			ok[ey[x][i]]--,upd(ey[x][i],-1,1,1,n);
+		if(arr[x][y]=='.'){
+			for(int i=last;i<x;i++)
+				if(ok[i])
+					ok[i]--,upd(i,-1,1,1,n);
+			last=x+1;	
+			x++;y--;	
+			continue;
+		}
+		ok[x]++,upd(x,+1,1,1,n);
+		if(x+l[x][y]<=n)
+			ey[x+l[x][y]].pb(x);
+		int al=min(x-last+1,r[x][y]);	
+		ans+=tap(x-al+1,x,1,1,n);
+		x++;y--;
+	}
+	return ans;
+}
+int main(){
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;i++){
+		scanf("%s",arr[i]+1);
+		for(int j=1;j<=m;j++){
+			if(arr[i][j]=='.')
+				l[i][j]=r[i][j]=0;
+			else
+				l[i][j]=r[i][j]=1,l[i][j]+=l[i][j-1];			
+		}
+		for(int j=m;j>=1;j--)
+			if(arr[i][j]!='.')
+				r[i][j]+=r[i][j+1];	
+	}
+	int sqr=0;
+	for(int i=1;i<=m;i++) sqr+=take(1,i);
+	for(int i=2;i<=n;i++) sqr+=take(i,m);	
+	printf("%d\n",sqr);
+	return 0;
+}

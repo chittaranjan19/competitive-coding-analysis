@@ -1,0 +1,131 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+#include <iomanip>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 110;
+
+int N, M;
+vector<int> atk, def;
+int arr[MAXN];
+bool chosen[MAXN];	//chosen to become the "arr" card matched.
+char buf[7];
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	cin >> M >> N;
+	//opponent's cards
+	for (int i = 0, x; i < M; i++) {
+		cin >> buf >> x;
+		(*buf == 'A' ? atk : def).push_back(x);
+	}
+	for (int i = 0; i < N; i++) {
+		cin >> arr[i];
+	}
+	sort(arr, arr + N);
+	sort(all(atk));
+	sort(all(def));
+	//ciel's highest cards, attack opponent's lowest cards
+	int kill = 0, ans = 0;
+	int diff = 0;
+	for (int i = 1; i <= N && i <= atk.size(); i++) {
+		//highest strength, try to attack lowest strength. the ATK cards (M of them). choose i cards from N - 1 to N - i
+		bool good = true;
+		for (int j = 1; j <= i; j++) {
+			if (arr[N - j] < atk[i - j]) {
+				break;
+			}
+		}
+		if (good) {
+			kill = i;
+			diff += arr[N - i] - atk[i - 1];
+			// cout << arr[N - 1] << " - " << atk[i - 1] << endl;
+			if (ans < diff) {
+				ans = diff;
+			}
+		} else {
+			break;
+		}
+	}
+	// cout << "kill = " << kill << endl;
+	if (kill == N) {
+		//used all cards
+		cout << ans << endl;
+		return 0;
+	}
+	int trydef = 0;
+	if (kill == atk.size() && M <= N) {
+		//kill def cards now
+		for (int i = 0, j = -1; i < def.size(); i++) {
+			//damnit srsly you have to choose DIFFERENT guys. man...
+			for (j++; j < N && arr[j] <= def[i]; j++);
+			if (j == N) {
+				cout << ans << endl;
+				return 0;
+			}
+			//now let's choose this
+			chosen[j] = true;
+			// cout << j << " chosen\n";
+		}
+		//ok it's still good
+		int i, j;
+		for (i = N - 1, j = (int) atk.size() - 1; i >= 0 && j >= 0; i--) {
+			if (chosen[i]) {
+				continue;
+			}
+			//see if you can match arr[i] with atk[j]
+			if (arr[i] < atk[j]) {
+				cout << ans << endl;
+				return 0;
+			}
+			trydef += arr[i] - atk[j];
+			// cout << arr[i] << " - " << atk[j] << ensdl;
+			j--;
+		}
+		while (i >= 0 && chosen[i]) {
+			i--;
+		}
+		if (i >= 0) {
+			trydef += arr[i];
+			// cout << "trya arr[" << i << "] = " << arr[i] << endl;
+		}
+	}
+	cout << max(ans, trydef) << endl;
+}

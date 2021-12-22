@@ -1,0 +1,162 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1010;
+
+int dx[] = {0, 0, 1, -1};
+int dy[] = {1, -1, 0, 0};
+
+vector<pii> cur;
+vector<pair<int, pii> > v;
+int n, m, mat[maxn][maxn], vis[maxn][maxn], ret[maxn][maxn], dp[maxn][maxn], rnk[maxn][maxn], size[maxn][maxn], seen[maxn][maxn];
+pii parent[maxn][maxn];
+
+int isvalid(int x, int y)
+{
+	if(x>=1 && x<=n && y>=1 && y<=m)
+		return 1;
+	return 0;
+}
+
+pii find(int x, int y)
+{
+	if(parent[x][y] == mp(x, y))
+		return mp(x, y);
+	return parent[x][y] = find(parent[x][y].f, parent[x][y].s);
+}
+
+void merge(int x1, int y1, int x2, int y2)
+{
+	pii r1, r2;
+	r1 = find(x1, y1);
+	r2 = find(x2, y2);
+	if(r1==r2)
+		return;
+	if(rnk[r1.f][r1.s] < rnk[r2.f][r2.s]){
+		parent[r1.f][r1.s] = r2;
+		size[r2.f][r2.s]+=size[r1.f][r1.s];
+	}
+	else if(rnk[r1.f][r1.s] > rnk[r2.f][r2.s]){
+		parent[r2.f][r2.s] = r1;
+		size[r1.f][r1.s]+=size[r2.f][r2.s];
+	}
+	else{
+		parent[r2.f][r2.s] = r1;
+		size[r1.f][r1.s]+=size[r2.f][r2.s];
+		rnk[r1.f][r1.s]++;
+	}
+}	
+
+void dfs(int x, int y, int val)
+{
+	seen[x][y] = 1;
+	cur.pb(mp(x, y));
+	int i, nx, ny;
+	for(i=0; i<4; i++){
+		nx = x+dx[i];
+		ny = y+dy[i];
+		if(isvalid(nx, ny) && !seen[nx][ny] && mat[nx][ny]>=val)
+			dfs(nx, ny, val);
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, x, y, l, p, nx, ny, sx, sy;
+	ll k, temp, val, q;
+	scanf("%d%d%lld", &n, &m, &k);
+	for(i=1; i<=n; i++){
+		for(j=1; j<=m; j++){
+			scanf("%d", &mat[i][j]);
+			parent[i][j] = mp(i, j);
+			size[i][j] = 0;
+			v.pb(mp(mat[i][j], mp(i, j)));
+		}
+	}
+	sort(all(v));
+	for(i=v.size()-1; i>=0; ){
+		j = i;
+		while(j>=0){
+			if(v[j].f!=v[i].f)
+				break;
+			x = v[j].s.f, y = v[j].s.s;
+			vis[x][y] = 1;
+			pii r = find(x, y);
+			size[r.f][r.s]++;
+			j--;
+		}
+		for(l=i; l>j; l--){
+			x = v[l].s.f, y = v[l].s.s;
+			for(p=0; p<4; p++){
+				nx = x+dx[p];
+				ny = y+dy[p];
+				if(!isvalid(nx, ny) || !vis[nx][ny])
+					continue;
+				merge(x, y, nx, ny);
+			}
+		}
+		j = i;
+		while(j>=0){
+			if(v[j].f!=v[i].f)
+				break;
+			x = v[j].s.f, y = v[j].s.s;
+			pii r = find(x, y);
+			dp[x][y] = size[r.f][r.s];
+			j--;
+		}
+		i = j;
+	}
+	sx = -1;
+	for(i=1; i<=n; i++){
+		for(j=1; j<=m; j++){
+			temp = mat[i][j];
+			if(k%temp)
+				continue;
+			q = k/temp;
+			if(q<=dp[i][j]){
+				sx = i;
+				sy = j;
+				break;
+			}
+		}
+		if(sx!=-1)
+			break;
+	}
+	/*for(i=1; i<=n; i++){
+		for(j=1; j<=m; j++)
+			printf("%d ", dp[i][j]);
+		printf("\n");
+	}
+	cout << "\n\n";*/
+	if(sx==-1)
+		printf("NO\n");
+	else{
+		printf("YES\n");
+		dfs(sx, sy, mat[sx][sy]);
+		q = k/mat[sx][sy];
+		for(i=0; i<q; i++)
+			ret[cur[i].f][cur[i].s] = mat[sx][sy];
+		for(i=1; i<=n; i++){
+			for(j=1; j<=m; j++)
+				printf("%d ", ret[i][j]);
+			printf("\n");
+		}
+	}	
+	return 0;
+}

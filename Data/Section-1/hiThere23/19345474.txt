@@ -1,0 +1,78 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 200005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+#define ex 0.000001
+
+using namespace std;
+int n, k, twok, num[mn], h[mn], c[mn], p[mn];
+bool mark[mn];
+vector<int> g[mn];
+priority_queue< pair<int, int> > pri;
+
+void setup()
+{
+    cin >> n >> k;
+    twok = k << 1;
+    int u, v;
+    FOR(i, 1, twok)
+    {
+        cin >> c[i];
+        num[c[i]] = 1;
+    }
+    FOR(i, 1, n - 1)
+    {
+        cin >> u >> v;
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+}
+
+void dfs(int u)
+{
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        if (v == p[u])
+            continue;
+        h[v] = h[u] + 1;
+        p[v] = u;
+        dfs(v);
+    }
+}
+
+void xuly()
+{
+    dfs(1);
+    FOR(i, 1, twok)
+        pri.push(mp(h[c[i]], c[i])), mark[c[i]] = true;
+    long long ans = 0;
+    mark[0] = true;
+    while(!pri.empty())
+    {
+        int u = pri.top().S;
+        pri.pop();
+        while(twok - num[u] < num[u])
+            num[u] -= 2, twok -= 2;
+        ans += num[u];
+        num[p[u]] += num[u];
+        if (!mark[p[u]])
+            pri.push(mp(h[p[u]], p[u])), mark[p[u]] = true;
+    }
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

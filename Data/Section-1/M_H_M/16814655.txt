@@ -1,0 +1,99 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 500 * 1000 + 100;
+
+set<int> s;
+vector<int> g[N];
+int n, m;
+vector <int> c[N];
+bool mark[N];
+queue <int> q;
+vector <int> tmp;
+
+void bfs(int v, int x){
+	q.push(v);
+	s.erase(v);
+	c[x].PB(v);
+	mark[v] = true;
+	while(!q.empty()){
+		v = q.front();
+		q.pop();
+		int t = 0;
+		tmp.clear();
+		for(auto u : s){
+			while(t < SZ(g[v]) && g[v][t] < u) t ++;
+			if(t < SZ(g[v]) && g[v][t] == u) continue;
+			c[x].PB(u);
+			tmp.PB(u);
+			mark[u] = true;
+			q.push(u);
+		}
+		for(auto u : tmp)
+			s.erase(u);
+	}
+}
+
+bool mrk[N];
+int k;
+
+int main(){	
+	srand(time(NULL));
+	scanf("%d%d%d", &n, &m, &k);
+	for(int i = 0; i < n; ++i) s.insert(i);
+	for(int i = 0; i < m; ++i){
+		int u, v;
+		scanf("%d%d", &u, &v);
+		u --; v --;
+		g[u].PB(v);
+		g[v].PB(u);
+		if(v == 0) swap(u, v);
+		if(u == 0)
+			mark[v] = true;
+	}
+	if(SZ(g[0]) > n - k){
+		cout << "impossible\n";
+		return 0;
+	}
+	while(SZ(g[0]) < n - k){
+		int x = rand() % (n - 1) + 1;
+		if(mrk[x]) continue;
+		mrk[x] = true;
+		g[0].PB(x);
+		g[x].PB(0);
+	}
+	for(int i = 0; i < n; ++i)
+		sort(g[i].begin(), g[i].end());
+	bfs(0, 0);
+	for(int i = 0; i < n; ++i){
+		if(!mark[i]){
+			cout << "impossible\n";
+			return 0;
+		}
+	}
+	cout << "possible\n";
+	return 0;
+}

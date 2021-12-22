@@ -1,0 +1,50 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 100000 + 5;
+const int maxm = 2000 + 5;
+const int mod = 1e9 + 7;
+
+ll dp[maxm][maxm];
+char s[maxn];
+
+int main()
+{
+    int n, m;
+    while(~scanf("%d%d", &n, &m))
+    {
+        scanf("%s", s);
+        int l = n - m, a = 0, b = 0;
+        for(int i = 0; i < m; ++i)
+        {
+            if(s[i] == '(') ++a;
+            else ++b;
+        }
+        if(abs(a - b) > n - m || (n & 1))
+        {
+            puts("0");
+            continue;
+        }
+        dp[0][0] = 1;
+        for(int i = 1; i <= l; ++i)
+        {
+            for(int j = (i + 1) / 2; j <= i; ++j)
+            {
+                dp[i][j] = (dp[i - 1][j - 1] + dp[i - 1][j]) % mod;
+            }
+        }
+        ll ans = 0;
+        for(int i = 0; i <= l; ++i)
+        {
+            for(int j = max(0, (b + i - a + 1) / 2); j <= i; ++j) (ans += dp[i][j] * dp[l - i][(n / 2 - b - i + j)]) %= mod;
+        }
+        printf("%I64d\n", ans);
+    }
+    return 0;
+}

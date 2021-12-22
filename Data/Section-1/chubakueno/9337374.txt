@@ -1,0 +1,65 @@
+#include <algorithm>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <limits>
+#include <map>
+#include <utility>
+using namespace std;
+vector<int> hijos;
+vector<int> largo;
+vector<int> usos;
+vector<int> niveles;
+vector<vector<pair<int,int> > > tree;
+int dfs(int ind, int prev,int nivel){
+	int res=1;
+	for(int i=0;i<tree[ind].size();++i){
+		if(tree[ind][i].first==prev) continue;
+		res+=dfs(tree[ind][i].first,ind,nivel+1);
+	}
+	hijos[ind]=res;
+	niveles[ind]=nivel;
+	return res;
+}
+int main(){
+	long long int n;
+	cin>>n;
+	tree.resize(n+1);
+	hijos.resize(n+1);
+	largo.resize(n+1);
+	niveles.resize(n+1);
+	usos.resize(n+1);
+	for(int i=1;i<n;++i){
+		int a,b,l;
+		cin>>a>>b>>l;
+		tree[a].push_back(pair<int,int>(b,i));
+		tree[b].push_back(pair<int,int>(a,i));
+		largo[i]=l;
+	}
+	dfs(1,0,0);
+	double expvalue=0;
+	for(int i=1;i<=n;++i){
+		for(int j=0;j<tree[i].size();++j){
+			if(niveles[i]>niveles[tree[i][j].first]) continue;
+			int a=hijos[tree[i][j].first];
+			int b=n-a;
+			usos[tree[i][j].second]=a*b*(b-1)+b*a*(a-1);
+		}
+	}
+	long long int denom=n*(n-1)*(n-2)/6;
+	for(int i=1;i<=n;++i){
+		expvalue+=usos[i]*largo[i]/(double)denom;
+	}
+	int q;
+	cin>>q;
+	cout.precision(std::numeric_limits< double >::digits10);
+	for(int i=0;i<q;++i){
+		int ind,val;
+		cin>>ind>>val;
+		int dif=largo[ind]-val;
+		expvalue-=dif*usos[ind]/(double)denom;
+		largo[ind]=val;
+		cout<<expvalue<<endl;
+	}
+	return 0;
+}

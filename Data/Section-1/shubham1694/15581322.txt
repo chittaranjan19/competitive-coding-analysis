@@ -1,0 +1,86 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+int n, m, s, taken[maxn];
+pii a[maxn];
+pair<pii, int> b[maxn];
+set<pii> mset;
+
+int solve(int mid)
+{
+	mset.clear();
+	int i, j, k, cs = s;
+	i = n;
+	for(j=m; j>=1; j-=mid){
+		while(i>=1){
+			if(b[i].f.f<a[j].f)
+				break;
+			mset.insert(mp(b[i].f.s, b[i].s));
+			i--;
+		}
+		if(mset.empty())
+			return 0;
+		auto it = mset.begin();
+		if(cs<(*it).f)
+			return 0;
+		cs-=(*it).f;
+		for(k=j; k>(j-mid); k--)
+			taken[a[k].s] = (*it).s;
+		mset.erase(it);
+	}
+	return 1;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, lo, mid, hi, ret;
+	scanf("%d%d%d", &n, &m, &s);
+	for(i=1; i<=m; i++)
+		sd(a[i].f), a[i].s = i;
+	for(i=1; i<=n; i++)
+		sd(b[i].f.f);
+	for(i=1; i<=n; i++)
+		sd(b[i].f.s), b[i].s = i;
+	sort(b+1, b+n+1);
+	sort(a+1, a+m+1);
+	lo = 1, hi = m;
+	ret = -1;
+	while(lo<hi){
+		mid = (lo+hi)>>1;
+		if(solve(mid))
+			ret = hi = mid;
+		else
+			lo = mid+1;
+	}
+	if(solve(lo))
+		ret = lo;
+	if(ret==-1)
+		printf("NO\n");
+	else{
+		solve(ret);
+		//cout << ret << "\n";
+		printf("YES\n");
+		for(i=1; i<=m; i++)
+			printf("%d ", taken[i]);
+		printf("\n");
+	}
+	return 0;
+}

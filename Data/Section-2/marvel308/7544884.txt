@@ -1,0 +1,94 @@
+#include<cstdio>
+#include<cstdlib>
+#include<cstring>
+#include<cmath>
+#include<cctype>
+#include<iostream>
+#include<algorithm>
+#include<vector>
+#include<queue>
+#include<stack>
+#include<map>
+#include<set>
+#define mt(a,b) memset(a,b,sizeof(a))
+#define lrrt int L,int R,int rt
+#define iall 1,n,1
+#define imid int mid=(L+R)>>1
+#define lson L,mid,rt<<1
+#define rson mid+1,R,rt<<1|1
+using namespace std;
+typedef __int64 LL;
+const int inf=0x7fffffff;
+const int M=100010;
+int a[M];
+int n,m,w;
+int tree[M<<2];
+void build(lrrt){
+    tree[rt]=0;
+    if(L==R){
+        tree[rt]=a[L];
+        return ;
+    }
+    imid;
+    build(lson);
+    build(rson);
+}
+void pushdown(int rt){
+    if(tree[rt]){
+        tree[rt<<1]+=tree[rt];
+        tree[rt<<1|1]+=tree[rt];
+        tree[rt]=0;
+    }
+}
+int query(int x,lrrt){
+    if(L==R) return tree[rt];
+    pushdown(rt);
+    imid;
+    if(mid>=x) return query(x,lson);
+    return query(x,rson);
+}
+void update(int x,int y,int val,lrrt){
+    if(x<=L&&R<=y){
+        tree[rt]+=val;
+        return ;
+    }
+    pushdown(rt);
+    imid;
+    if(mid>=x) update(x,y,val,lson);
+    if(mid<y)  update(x,y,val,rson);
+}
+bool judge(int ans){
+    build(iall);
+    int left=m;
+    for(int i=1;i<=n;i++){
+        int now=query(i,iall);
+        if(now<ans){
+            int need=ans-now;
+            if(need>left) return false;
+            update(i,i+w-1,need,iall);
+            left-=need;
+        }
+    }
+    return true;
+}
+int main(){
+    while(~scanf("%d%d%d",&n,&m,&w)){
+        int big=0;
+        for(int i=1;i<=n;i++){
+            scanf("%d",&a[i]);
+            big=max(big,a[i]);
+        }
+        int L=1,R=big+m;
+        while(L<=R){
+            imid;
+            if(judge(mid)){
+                L=mid+1;
+            }
+            else{
+                R=mid-1;
+            }
+        }
+        printf("%d\n",L-1);
+    }
+    return 0;
+}

@@ -1,0 +1,65 @@
+program reading;
+
+const
+  tfi = '';//'500c.inp';
+  tfo = '';//'500c.out';
+
+var
+  res : int64;
+  n,m,top : longint;
+  b : array [1..1000] of longint;
+  dd : array [1..500] of boolean;
+  w,s,st,p : array [0..500] of longint;
+  fi,fo : text;
+
+procedure input;
+  var i : longint;
+  begin
+    assign(fi,tfi);
+    reset(fi);
+    read(fi,n,m);
+    for i := 1 to n do read(fi,w[i]);
+    for i := 1 to m do read(fi,b[i]);
+    close(fi);
+  end;
+
+procedure process;
+  var i,j : longint;
+  begin
+    for i := 1 to m do
+      if not dd[b[i]] then
+        begin
+          inc(top);
+          st[top] := b[i];
+          s[top] := s[top-1] + w[st[top-1]];
+          p[b[i]] := top;
+          dd[b[i]] := true;
+        end;
+    for i := 1 to m do
+      begin
+        res := res + s[p[b[i]]];
+        for j := p[b[i]] downto 2 do
+          begin
+            s[j] := s[j-1] + w[b[i]];
+            st[j] := st[j-1];
+            p[st[j-1]] := j;
+          end;
+        st[1] := b[i];
+        s[1] := 0;
+        p[b[i]] := 1;
+      end;
+  end;
+
+procedure output;
+  begin
+    assign(fo,tfo);
+    rewrite(fo);
+    write(fo,res);
+    close(fo);
+  end;
+
+begin
+  input;
+  process;
+  output;
+end.

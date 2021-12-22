@@ -1,0 +1,107 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 4e5 + 5;
+
+struct edge
+{
+    int to, next;
+} G[maxn << 1];
+int head[maxn], tot, n, que[maxn], sz[maxn], f1[maxn], f2[maxn], ans[maxn], son1[maxn], son2[maxn], last[maxn];
+bool used[maxn];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot].to = v;
+    G[tot].next = head[u];
+    head[u] = tot++;
+}
+
+void dfs(int u, int fa)
+{
+    son1[u] = son2[u] = 0;
+    f1[u] = f2[u] = 0;
+    sz[u] = 1;
+    last[u] = 0;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(v == fa) continue;
+        dfs(v, u);
+        sz[u] += sz[v];
+        if(sz[v] > son1[u])
+        {
+            last[u] = v;
+            son2[u] = son1[u];
+            f2[u] = f1[u];
+            son1[u] = sz[v];
+            f1[u] = sz[v] <= n / 2 ? sz[v] : f1[v];
+        }
+        else if(sz[v] > son2[u])
+        {
+            son2[u] = sz[v];
+            f2[u] = sz[v] <= n / 2 ? sz[v] : f1[v];
+        }
+    }
+}
+
+void bfs(int s)
+{
+    int front = 0, rear = 0;
+    used[s] = true;
+    que[rear++] = s;
+    while(front < rear)
+    {
+        int u = que[front++];
+        if(son1[u] - f1[u] <= n / 2) ans[u] = 1;
+        else ans[u] = 0;
+        for(int i = head[u]; ~i; i = G[i].next)
+        {
+            int v = G[i].to;
+            if(used[v]) continue;
+            int tmpsz = n - sz[v], tmpf = last[u] == v ? f2[u] : f1[u];
+            if(tmpsz > son1[v])
+            {
+                last[v] = u;
+                son2[v] = son1[v];
+                f2[v] = f1[v];
+                son1[v] = tmpsz;
+                f1[v] = tmpsz <= n / 2 ? tmpsz : tmpf;
+            }
+            else if(tmpsz > son2[v])
+            {
+                son2[v] = tmpsz;
+                f2[v] = tmpsz <= n / 2 ? tmpsz : tmpf;
+            }
+            used[v] = true;
+            que[rear++] = v;
+        }
+    }
+}
+
+int main()
+{
+    init();
+    scanf("%d", &n);
+    for(int i = 1; i < n; ++i)
+    {
+        int u, v;
+        scanf("%d%d", &u, &v);
+        addedge(u, v);
+        addedge(v, u);
+    }
+    dfs(1, 0);
+    bfs(1);
+    for(int i = 1; i <= n; ++i) printf("%d%c", ans[i], " \n"[i == n]);
+    return 0;
+}

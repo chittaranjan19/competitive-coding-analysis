@@ -1,0 +1,61 @@
+using namespace std;
+#include <bits/stdc++.h>
+typedef long long ll;
+const int MAXS = 100005;
+ 
+struct Trie {
+    int g[MAXS][26];
+    int stateCount;
+    ll frecs[26];
+    Trie() {
+        clear();
+    }
+ 
+    void clear() {
+        memset(g[0], -1, sizeof g[0]);
+        memset(frecs,0,sizeof frecs);
+        stateCount = 0;
+    }
+ 
+    void add(char * s) {
+        int state = 0;
+        for (; *s; s++) {
+            int next = (*s - 'a');
+            if (g[state][next] == -1) {
+                g[state][next] = ++stateCount;
+                if(state) ++frecs[next];
+                memset(g[stateCount], -1, sizeof g[stateCount]);
+            }
+            state = g[state][next];
+        }
+    }
+};
+ 
+Trie trie;
+int dp[100005];
+bool cdp(int state){
+    if(dp[state]!=-1) return dp[state];
+    bool pierde=true;
+    for(int i=0;i<26;++i){
+        int next=trie.g[state][i];
+        if(next!=-1){
+            if(cdp(next)) pierde=false;
+        }
+    }
+    return dp[state]=pierde;
+}
+int main(){
+    int n,k;
+    cin>>n>>k;
+    trie.clear();
+    memset(dp,-1,sizeof dp);
+    for(int i=0;i<n;++i){
+        char buf[100005];
+        gets(buf);
+        trie.add(buf);
+    }
+    bool ret=cdp(0);
+    if(!ret) cout<<"First";
+    else    cout<<"Second";
+    return 0;
+}

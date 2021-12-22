@@ -1,0 +1,71 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdio>
+#include <stdlib.h>
+#include <cmath>
+#include <algorithm>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const int T = 100, N = 400000, N1 = 200000;
+const int MOD = (int)1e9 + 7;
+
+int add(int x, int y)
+{
+    x += y;
+    if (x >= MOD)
+        x -= MOD;
+    return x;
+}
+
+int dp[N + 1];
+int pref[N + 2];
+
+int main()
+{
+    //freopen("in.in", "r", stdin);
+    //freopen("out.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int a, b, k, t;
+    cin >> a >> b >> k >> t;
+    dp[N1] = 1;
+    for (int i = 1; i <= t; i++)
+    {
+        pref[0] = 0;
+        for (int j = 0; j <= N; j++)
+            pref[j + 1] = add(pref[j], dp[j]);
+        for (int j = 0; j <= N; j++)
+            dp[j] = 0;
+        int curr = 0;
+        for (int j = 0; j <= N; j++)
+        {
+            dp[j] = add(dp[j], curr);
+            curr = add(curr, (ll)add(pref[j + 1] - pref[j], MOD) * (k * 2 + 1) % MOD);
+            curr = add(curr - add(pref[j + 1] - pref[max(j - k * 2, 0)], MOD), MOD);
+        }
+        curr = 0;
+        for (int j = N; j >= 0; j--)
+        {
+            dp[j] = add(dp[j], curr);
+            curr = add(curr, (ll)add(pref[j + 1] - pref[j], MOD) * (k * 2 + 1) % MOD);
+            curr = add(curr - add(pref[min(j + k * 2 + 1, N + 1)] - pref[j], MOD), MOD);
+        }
+        for (int j = 0; j < N; j++)
+            dp[j] = add(dp[j], (ll)add(pref[j + 1] - pref[j], MOD) * (k * 2 + 1) % MOD);
+    }
+    int ans = 0;
+    for (int i = 0; i <= N; i++)
+        if (a + (i - N1) > b)
+            ans = add(ans, dp[i]);
+    cout << ans;
+    return 0;
+}

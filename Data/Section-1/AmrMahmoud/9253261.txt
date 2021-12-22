@@ -1,0 +1,114 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+struct Point
+{
+    double x;
+    double y;
+
+    Point(double xx, double yy)
+    {
+        x = xx, y = yy;
+    }
+};
+
+bool onSegment(Point p, Point q, Point r)
+{
+    if (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) &&
+        q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
+       return true;
+
+    return false;
+}
+
+int orientation(Point p, Point q, Point r)
+{
+    double val = (q.y - p.y) * (r.x - q.x) -
+              (q.x - p.x) * (r.y - q.y);
+
+    if (fabs(val) <= EPS) return 0;
+
+    return (val > 0)? 1: 2;
+}
+
+bool doIntersect(Point p1, Point q1, Point p2, Point q2)
+{
+    int o1 = orientation(p1, q1, p2);
+    int o2 = orientation(p1, q1, q2);
+    int o3 = orientation(p2, q2, p1);
+    int o4 = orientation(p2, q2, q1);
+
+    if (o1 != o2 && o3 != o4)
+        return true;
+    if (o1 == 0 && onSegment(p1, p2, q1)) return true;
+
+    if (o2 == 0 && onSegment(p1, q2, q1)) return true;
+
+    if (o3 == 0 && onSegment(p2, p1, q2)) return true;
+
+    if (o4 == 0 && onSegment(p2, q1, q2)) return true;
+
+    return false;
+}
+
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    double x,y,xx,yy,a,b,c;
+    int n;
+    cin >> x >> y >> xx >> yy >> n;
+    int counter = 0;
+    double A2 = y - yy;
+    double B2 = x - xx;
+    double C2 = A2*x + B2*y;
+    for(int i=0;i<n;i++)
+    {
+        cin >> a >> b >> c;
+        c*=-1;
+        double x1 = -1e7, y1 = (c - a * x1) / (b + EPS);
+        double x2 = 1e7, y2 = (c - a * x2) / (b + EPS);
+        if(a == 0)
+        {
+            y2 = y1;
+            x1 = 1e7;
+            x2 = -1e7;
+        }
+        if(b == 0) x1 = x2 = c / (a + EPS), y1 = 1e7, y2 = -1e7;
+        if(doIntersect(Point(x, y), Point(xx, yy),Point(x1, y1), Point(x2, y2)))
+            counter++;
+    }
+    cout << counter;
+    return 0;
+}

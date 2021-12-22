@@ -1,0 +1,115 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 1000 * 1000 + 100;
+
+int n, m;
+string str;
+
+struct node{
+	int lnds, lnis, c4, c7;
+	node(){
+		lnds = lnis = c4 = c7 = 0;
+	}
+};
+
+node seg[4 * N];
+int lzy[4 * N];
+
+node merge(node a, node b){
+	node c;
+	c.c4 = a.c4 + b.c4;
+	c.c7 = a.c7 + b.c7;
+	c.lnds = max(a.lnds + b.c7, a.c4 + b.lnds);
+	c.lnds = max(c.lnds, a.c4 + b.c7);
+	c.lnis = max(a.lnis + b.c4, a.c7 + b.lnis);
+	c.lnis = max(c.lnis, a.c7 + b.c4);
+	return c;
+}
+
+void push(int v){
+	lzy[v] ++;
+	lzy[v] %= 2;
+	swap(seg[v].c4, seg[v].c7);
+	swap(seg[v].lnds, seg[v].lnis);
+}
+
+void shift(int v){
+	if(lzy[v]){
+		push(2 * v + 0);
+		push(2 * v + 1);
+	}
+}
+
+void build(int v, int s, int e){
+	if(e - s == 1){
+		if(str[s] == '4')
+			seg[v].c4 = seg[v].lnds = seg[v].lnis = 1;
+		else
+			seg[v].c7 = seg[v].lnds = seg[v].lnis = 1;
+		return;
+	}
+	int mid = (s + e) / 2;
+	build(2 * v + 0, s, mid);
+	build(2 * v + 1, mid, e);
+	seg[v] = merge(seg[2 * v + 0], seg[2 * v + 1]);
+}
+
+void update(int v, int s, int e, int l, int r){
+	if(r <= s || e <= l) return;
+	if(l <= s && e <= r){
+		lzy[v] ++;
+		lzy[v] %= 2;
+		swap(seg[v].c4, seg[v].c7);
+		swap(seg[v].lnds, seg[v].lnis);
+		return;
+	}
+	int mid = (s + e) / 2;
+	shift(v);
+	update(2 * v + 0, s, mid, l, r);
+	update(2 * v + 1, mid, e, l, r);
+	seg[v] = merge(seg[2 * v + 0], seg[2 * v + 1]);
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	cin >> str;
+	build(1, 0, n);
+	for(int i = 0; i < m; ++i){
+		string t;
+		cin >> t;
+		if(t == "switch"){
+			int l, r;
+			cin >> l >> r;
+			l --;
+			update(1, 0, n, l, r);
+		}
+		else
+			cout << seg[1].lnds << "\n";
+	}	
+	return 0;
+}

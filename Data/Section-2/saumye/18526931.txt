@@ -1,0 +1,105 @@
+#include<bits/stdc++.h>
+
+using namespace std;
+vector<pair<int,int> > given, answer;
+priority_queue<int, vector<int>, greater<int> > q;
+int main()
+{
+	int n, i;
+	scanf("%d", &n);
+	for ( i = 0 ; i < n ; i++ )
+	{
+		char comm[15];
+		int x;
+		scanf("%s", comm);
+		if( comm[0] == 'i' )
+		{
+			scanf("%d", &x);
+			given.push_back( make_pair(1, x) );
+		}
+		else if( comm[0] == 'g' )
+		{
+			scanf("%d", &x);
+			given.push_back( make_pair(2, x) );
+		}
+		else
+		{
+			given.push_back( make_pair(3, -1) );
+		}
+	}
+	for( i = 0 ; i < given.size() ; i++ )
+	{
+		if( given[i].first == 1 )
+		{
+			q.push( given[i].second );
+			answer.push_back(make_pair(1, given[i].second));
+		}
+		else if( given[i].first == 3 )
+		{
+			if( !q.empty() )
+			{
+				q.pop();
+				answer.push_back( make_pair(3, -1) );
+			}
+			else
+			{
+				answer.push_back( make_pair(1, 1) );
+				answer.push_back( make_pair(3, -1) );
+			}
+		}
+		else//getMin
+		{
+			if( q.empty() )
+			{
+				q.push( given[i].second );
+				answer.push_back( make_pair(1, given[i].second ) );
+				answer.push_back( make_pair(2, given[i].second ) );
+			}
+			else
+			{
+				int x = given[i].second;
+				if( x < q.top() )
+				{
+					q.push(x);
+					answer.push_back( make_pair(1, x) );
+					answer.push_back( make_pair(2, x) );
+				}
+				else if( x > q.top() )
+				{
+					while( !q.empty() && q.top() < x )
+					{
+						q.pop();
+						answer.push_back(make_pair(3, - 1));
+					}
+					if( q.empty() || ( !q.empty() && q.top() != x ) )
+					{
+						q.push(x);
+						answer.push_back(make_pair(1, x));
+					}
+					answer.push_back(make_pair(2, x));
+				}
+				else
+				{
+					answer.push_back(make_pair(2, x));
+				}
+			}
+		}
+	}
+	printf("%d\n", answer.size() );
+	for ( i = 0 ; i < answer.size() ; i++ )
+	{
+		if( answer[i].first == 1 )
+		{
+			printf("insert %d\n", answer[i].second);
+		}
+		else if(answer[i].first == 2 )
+		{
+			printf("getMin %d\n", answer[i].second);
+		}
+		else
+		{
+			printf("removeMin\n");
+		}
+	}
+	return 0;
+}

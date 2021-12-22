@@ -1,0 +1,123 @@
+#include<stdio.h>
+#define Mod 1000000007
+typedef long long LL;
+LL multi(LL x,LL y)
+{
+  LL sum=0;
+  while(y)
+  {
+    if(y&1)
+    {
+      sum=sum+x;
+      sum%=Mod;
+    }
+    y>>=1;
+    x=(x+x)%Mod;
+  }
+  return sum;
+}
+LL pow(LL x,LL p)
+{
+  LL ans=1;
+  while(p)
+  {
+    if(p&1)
+    {
+      ans=multi(ans,x);
+    }
+    p>>=1;
+    x=multi(x,x);
+  }
+  return ans;
+}
+void QuickSort(LL *a,int left,int right)
+{
+  int low,high;
+  LL t;
+  low=left;
+  high=right;
+  t=a[low];
+  if(left>=right) return ;
+  while(low<high)
+  {
+    while(a[high]>=t&&low<high) high--;
+    if(low<high) a[low]=a[high];
+    while(a[low]<=t&&low<high) low++;
+    if(low<high) a[high]=a[low];
+  }
+  a[high]=t;
+  QuickSort(a,left,high-1);
+  QuickSort(a,high+1,right);
+}
+LL fun(LL a,LL b)
+{
+  while(b%2==0)
+  {
+    a++;
+    b>>=1;
+  }
+  return a;
+}
+LL a[100010];
+LL b[100010];
+LL c[100010];
+int main()
+{
+  LL n,x;
+  while(scanf("%I64d%I64d",&n,&x)!=EOF)
+  {
+    LL s=0;
+    for(LL i=0;i<n;i++)
+    {
+      scanf("%I64d",&a[i]);
+      s+=a[i];
+    }
+    for(LL i=0;i<n;i++)
+    {
+      b[i]=s-a[i];
+    }
+    QuickSort(b,0,n-1);
+    LL k=b[0];
+    for(int i=1;i<n;i++)
+    {
+      c[i]=1;
+    }
+    LL mt=-1;
+    int i;
+    for(i=1;i<n;i++)
+    {
+      int j=c[i];
+      while(i<n&&b[i]==k)
+      {
+        j++;
+        i++;
+      }
+      if(j%2==1)
+      {
+        mt=k;
+        break;
+      }
+      if(i>=n)
+      {
+        c[i-1]=j;
+        break;
+      }
+      j/=2;
+      c[i]+=j;
+      if(b[i]!=k+1)
+      {
+        mt=b[i-1]+1;
+        break;
+      }
+      k=b[i];
+    }
+    if(mt==-1)
+    {
+      mt=fun(b[n-1],c[i-1]);
+    }
+    if(mt>s) mt=s;
+    //printf("%I64d\n",mt);
+    printf("%I64d\n",pow(x,mt));
+  }
+  return 0;
+}

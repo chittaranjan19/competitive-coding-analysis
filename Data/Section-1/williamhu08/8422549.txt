@@ -1,0 +1,52 @@
+#include <cstdio>
+#include <utility>
+#include <algorithm>
+#include <numeric>
+
+using namespace std;
+
+struct vvert {
+	int u, v, w;
+	void read() {
+		scanf("%d %d %d", &u, &v, &w);
+	}
+	bool operator < (const vvert &e) const {
+		return w < e.w;
+	}
+};
+
+int N, X[3010];
+vvert vverts[3010];
+int rent[3010], skunk[3010], zeta[3010];
+
+int dara (int x) {
+    return x == rent[x] ? x : rent[x] = dara(rent[x]);
+}
+
+int main() {
+    scanf("%d", &N);
+    for (int i = 0; i < N - 1; i++) {
+    	vverts[i].read();
+    }
+    sort(vverts, vverts + (N - 1));
+    for (int i = 1; i <= N; i++) {
+        scanf("%d", &X[i]);
+        rent[i] = i;
+    }
+    copy(X + 1, X + N + 1, skunk + 1);
+    fill(zeta + 1, zeta + N + 1, 1);
+    int skunkx = accumulate(X + 1, X + N + 1, 0);
+    for (int i = 0; i < N - 1; i++) {
+        int a = dara(vverts[i].u), b = dara(vverts[i].v);
+        if (a != b) {
+            rent[a] = b;
+            zeta[b] += zeta[a];
+            skunk[b] += skunk[a];
+            if (zeta[b] > skunkx - skunk[b]) {
+                printf("%d\n", vverts[i].w);
+                return 0;
+            }
+        }
+    }
+    //my code
+}

@@ -1,0 +1,119 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+struct node{
+	pii maxE;
+	ll sum;
+};
+
+node st[maxn*5];
+int n, m, A[maxn];
+
+void init(int s, int e, int k)
+{
+	if(s==e){
+		st[k].maxE = mp(A[s], s);
+		st[k].sum = A[s];
+		return;
+	}
+	int mid = (s+e)>>1;
+	int lc = k*2 + 1;
+	int rc = lc + 1;
+	init(s, mid, lc);
+	init(mid+1, e, rc);
+	st[k].maxE = max(st[lc].maxE, st[rc].maxE);
+	st[k].sum = st[lc].sum + st[rc].sum;
+}
+
+pii getMax(int s, int e, int qs, int qe, int k)
+{
+	if(s>e || s>qe || qs>e)
+		return mp(-1, -1);
+	if(s>=qs && qe>=e)
+		return st[k].maxE;
+	int mid = (s + e) >> 1;
+	int lc = k * 2 + 1;
+	int rc = lc + 1;
+	return max(getMax(s, mid, qs, qe, lc), getMax(mid+1, e, qs, qe, rc));
+}
+
+void update(int s, int e, int q, int k, int val)
+{
+	if(s>e || s>q || q>e)
+		return;
+	if(s==e){
+		st[k].maxE = mp(val, s);
+		st[k].sum = val;
+		return;
+	}
+	int mid = (s + e) >> 1;
+	int lc = k * 2 + 1;
+	int rc = lc + 1;
+	update(s, mid, q, lc, val);
+	update(mid+1, e, q, rc, val);
+	st[k].maxE = max(st[lc].maxE, st[rc].maxE);
+	st[k].sum = st[lc].sum + st[rc].sum;
+}
+
+ll query(int s, int e, int qs, int qe, int k)
+{
+	if(s>e || s>qe || qs>e)
+		return 0;
+	if(s>=qs && qe>=e)
+		return st[k].sum;
+	int mid = (s + e) >> 1;
+	int lc = k * 2 + 1;
+	int rc = lc + 1;
+	return query(s, mid, qs, qe, lc) + query(mid+1, e, qs, qe, rc);
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	scanf("%d%d", &n, &m);
+	for(int i=1; i<=n; i++)
+		scanf("%d", &A[i]);
+	init(1, n, 0);
+	while(m--){
+		int t, l, r, x;
+		scanf("%d", &t);
+		if(t==1){
+			scanf("%d%d", &l, &r);
+			printf("%lld\n", query(1, n, l, r, 0));
+		}
+		else if(t==2){
+			scanf("%d%d%d", &l, &r, &x);
+			while(1){
+				pii temp = getMax(1, n, l, r, 0);
+				if(temp.f < x)
+					break;
+				update(1, n, temp.s, 0, temp.f%x);
+			}
+		}
+		else{
+			scanf("%d%d", &l, &x);
+			ll rem_val = query(1, n, l, l, 0);
+			update(1, n, l, 0, x);
+		}
+	}
+	
+	return 0;
+}

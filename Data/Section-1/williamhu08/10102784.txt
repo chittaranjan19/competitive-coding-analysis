@@ -1,0 +1,126 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+#define mp make_pair
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 100010;
+
+int N, K;
+vector<pair<int, bool> > seq[MAXN];
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> K;
+	for (int i = 0; i < N; i++) {
+		string s;
+		cin >> s;
+		if (s[0] == '?') {
+			seq[i % K].push_back(mp(-1, false));
+		} else {
+			// cerr << "st " << stoi(s) << endl;
+			stringstream ss;
+			ss << s;
+			int x;
+			ss >> x;
+			seq[i % K].push_back(mp(x, true));
+		}
+	}
+	//terminator kind of thing.
+	for (int i = 0; i < K; i++) {
+		seq[i].push_back(mp(2e9, true));
+	}
+	//verify
+	for (int i = 0; i < K; i++) {
+		int prvint = -2e9, ind = -1;
+		vector<pair<int, bool> > &v = seq[i];
+		for (int j = 0, sz = v.size(); j < sz; j++) {
+			pair<int, bool> p = v[j];
+			if (p.second) {
+				int cur = p.first, diff = j - ind;
+				if (ind != -1 && cur < prvint + diff) {
+					cout << "Incorrect sequence\n";
+					return 0;				
+				}
+				if (cur <= 1) {
+					// cerr << "here\n";
+					//then assign the previous ones. we only assign nonpositive
+					for (int k = j - 1; k >= 0 && !v[k].second; k--) {
+						v[k] = mp(--cur, true);
+					}
+				} else if (prvint >= -1) {
+					//won't ever come here when ind = -1.
+					//we only assign nonnegative
+					for (int k = ind + 1; k < j; k++) {
+						v[k] = mp(++prvint, true);
+					}
+				} else {
+					//be careful here.
+					//works when ind = -1
+					int lt = prvint + 1, rt = cur - 1;
+					int numt = j - ind - 1;
+					if (numt % 2) {
+						//try to get ... 0 ...
+						int t = numt / 2;
+						if (lt <= -t && t <= rt) {
+							int c = -t;
+							for (int k = ind + 1; k < j; k++) {
+								v[k] = mp(c++, true);
+							}
+						} else if (-lt < rt) {
+							//then choose lt as the boundary
+							for (int k = ind + 1; k < j; k++) {
+								v[k] = mp(lt++, true);
+							}
+						} else {
+							for (int k = j - 1; k > ind; k--) {
+								v[k] = mp(rt--, true);
+							}
+						}
+					} else {
+						int t2 = numt / 2, t1 = t2 - 1;
+						if (lt <= -t1 && t2 <= rt) {
+							int c = -t1;
+							for (int k = ind + 1; k < j; k++) {
+								v[k] = mp(c++, true);
+							}
+						} else if (lt <= -t2 && t1 <= rt) {
+							int c = -t2;
+							for (int k = ind + 1; k < j; k++) {
+								v[k] = mp(c++, true);
+							}
+						} else if (-lt < rt) {
+							//then choose lt as the boundary
+							for (int k = ind + 1; k < j; k++) {
+								v[k] = mp(lt++, true);
+							}
+						} else {
+							for (int k = j - 1; k > ind; k--) {
+								v[k] = mp(rt--, true);
+							}
+						}
+					}
+				}
+				//update it
+				ind = j;
+				prvint = cur;
+			}
+		}
+	}
+	//output
+	for (int i = 0; i < N; i++) {
+		cout << seq[i % K][i / K].first << ' ';
+	}
+}

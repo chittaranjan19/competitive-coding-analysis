@@ -1,0 +1,90 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define gc getchar_unlocked
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+
+const int limit = 5005;
+char str[limit];
+vector<int> pos;
+
+string add(char a,char b){
+    int ans=(a-'0') + (b-'0');
+    stringstream ss;
+    ss<<ans;
+    return ss.str();
+}
+
+lli tolli(string s){
+    stringstream ss(s);
+    lli ans;
+    ss>>ans;
+    return ans;
+}
+
+lli eval(string s){
+    lli ans = 0;
+    s = '+' + s + '+';
+    string tmp = "";
+    int sz = s.size();
+    lli loc=1LL;
+    char last = '+';
+    //do multiplication
+    //cout<<"string is "<<s<<endl;
+    for(int i=1;i<sz;i++){
+        if(s[i]=='*'){
+            loc *= tolli(tmp);
+            tmp = "";
+           // cout<<i<<" "<<loc<<endl;
+            last = '*';
+        }
+        else if(s[i]=='+'){
+            if(last=='*'){
+                loc *= tolli(tmp);
+                ans += loc;
+                loc = 1LL;
+            }
+            else if(last=='+'){
+                ans += tolli(tmp);
+            }
+            //cout<<"idx is "<<i<<endl;
+            //cout<<"ans is "<<ans<<endl;
+            tmp = "";
+            last = '+';
+        }
+        else
+            tmp += s[i];
+    }
+    return ans;
+}
+
+int main(){
+    scanf("%s",str);
+    string s = string(str);
+    string tmp;
+    int n = s.size();
+
+    for(int i=0;i<n;i++){
+        if(s[i]=='+') pos.pb(i);
+    }
+
+    int tt = pos.size();
+    lli ans = 0;
+    ans = max(ans,eval(s));
+    for(int i=0;i<tt;i++){
+        tmp = "";
+        int p = pos[i];
+        for(int j=0;j<p-1;j++)
+            tmp += s[j];
+
+        tmp += add(s[p-1],s[p+1]);
+        for(int j=p+2;j<n;j++)
+            tmp += s[j];
+
+        ans = max(ans,eval(tmp));
+    }
+    printf("%lld\n",ans);
+    return 0;
+}

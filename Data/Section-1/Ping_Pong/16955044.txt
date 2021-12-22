@@ -1,0 +1,116 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll p = 239;
+const ll MAX_N = 10;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+int cnt_ver = 1;
+vector<vector<int> > tree;
+
+void build(int n, vector<pair<pair<int, int>, int> > a)
+{
+    while (cnt_ver < n)
+        cnt_ver <<= 1;
+    tree.resize(cnt_ver * 2 - 1);
+    for (int i = 0; i < n; i++)
+        tree[cnt_ver - 1 + i].push_back(a[i].first.second);
+    for (int i = cnt_ver - 2; i >= 0; i--)
+    {
+        int pos1 = 0, pos2 = 0;
+        for (int j = 0; j < tree[i * 2 + 1].size() + tree[i * 2 + 2].size(); j++)
+            if (pos2 == tree[i * 2 + 2].size())
+            {
+                tree[i].push_back(tree[i * 2 + 1][pos1]);
+                pos1++;
+            }
+            else if (pos1 == tree[i * 2 + 1].size())
+            {
+                tree[i].push_back(tree[i * 2 + 2][pos2]);
+                pos2++;
+            }
+            else
+            {
+                if (tree[i * 2 + 1][pos1] <= tree[i * 2 + 2][pos2])
+                {
+                    tree[i].push_back(tree[i * 2 + 1][pos1]);
+                    pos1++;
+                }
+                else
+                {
+                    tree[i].push_back(tree[i * 2 + 2][pos2]);
+                    pos2++;
+                }
+            }
+    }
+}
+
+int bin_search(vector<int> &a, int val)
+{
+    int l = -1, r = a.size(), mid;
+    while (r - l > 1)
+    {
+        mid = (l + r) / 2;
+        if (val >= a[mid])
+            l = mid;
+        else
+            r = mid;
+    }
+    return l + 1;
+}
+
+int ans(int x, int lx, int rx, int l, int r, int val)
+{
+    if (l > rx || r < lx)
+        return 0;
+    else if (lx >= l && rx <= r)
+        return bin_search(tree[x], val);
+    else
+        return ans(x * 2 + 1, lx, (lx + rx) / 2, l, r, val) + ans(x * 2 + 2, (lx + rx) / 2 + 1, rx, l, r, val);
+}
+
+int main()
+{
+    //ifstream ifs("input.txt");
+    //ofstream ofs("output.txt");
+    //freopen("candies.in", "r", stdin);
+    //freopen("candies.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n;
+    scanf("%d", &n);
+    vector<pair<pair<int, int>, int> > a(n);
+    for (int i = 0; i < n; i++)
+    {
+        scanf("%d %d", &a[i].first.first, &a[i].first.second);
+        a[i].second = i;
+    }
+    sort(a.begin(), a.end());
+    build(n, a);
+    int ans1[n];
+    for (int i = 0; i < n; i++)
+        ans1[a[i].second] = ans(0, cnt_ver - 1, cnt_ver * 2 - 2, cnt_ver - 1 + i, cnt_ver * 2 - 2, a[i].first.second) - 1;
+    for (int i = 0; i < n; i++)
+        printf("%d\n", ans1[i]);
+    return 0;
+}

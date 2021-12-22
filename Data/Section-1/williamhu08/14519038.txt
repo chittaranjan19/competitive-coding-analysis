@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define mp make_pair
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+
+string S;
+int cnt[26];
+
+string get (int nodd) {
+	string fwd, rev;
+	for (int i = 0; i < 26; i++) {
+		if (i == nodd) {
+			continue;
+		}
+		fwd.append(cnt[i] / 2, i + 'a');
+		rev.append(cnt[i] / 2, i + 'a');
+	}
+	reverse(all(rev));
+	if (nodd != -1) {
+		fwd.append(cnt[nodd], nodd + 'a');
+	}
+	return fwd + rev;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> S;
+	for (char c : S) {
+		cnt[c - 'a']++;
+	}
+	//we ought to change the rest of them...
+	vector<int> odds;
+	for (int i = 0; i < 26; i++) {
+		if (cnt[i] % 2) {
+			odds.push_back(i);
+		}
+	}
+	if (odds.size() % 2 == 0) {
+		//then just print out
+		for (int j = int(odds.size()) - 1, i = 0; i < j; i++, j--) {
+			cnt[odds[i]]++;
+			cnt[odds[j]]--;
+		}
+		cout << get(-1) << endl;
+		return 0;
+	}
+	string ans;
+	for (int i = 0; i < odds.size(); i++) {
+		//this is the excluded one
+		vector<int> vodd = odds;
+		vodd.erase(vodd.begin() + i);
+		for (int i = 0, j = int(vodd.size()) - 1; i < j; i++, j--) {
+			cnt[vodd[i]]++;
+			cnt[vodd[j]]--;
+		}
+		string s = get(odds[i]);
+		if (ans.empty() || ans > s) {
+			ans = s;
+		}
+		for (int i = 0, j = int(vodd.size()) - 1; i < j; i++, j--) {
+			cnt[vodd[i]]--;
+			cnt[vodd[j]]++;
+		}
+	}
+	cout << ans << endl;
+}

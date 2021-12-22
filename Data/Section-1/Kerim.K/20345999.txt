@@ -1,0 +1,159 @@
+#include "bits/stdc++.h"
+#define MAXN 2009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+char arr[1009][1009];
+int art[]={2,2,3,2,3};
+int ff[MAXN],vis[MAXN],n;
+int dp[13][MAXN][MAXN];
+int f(int x,int y){
+	int st=0,en=min(min(x-1,y-1),min(n-x,n-y));
+	while(st+1<en){
+		int mid=(st+en)>>1;
+		if(dp[2][x+mid][y]==dp[2][x-mid-1][y] and dp[1][x][y-mid-1]==dp[1][x][y+mid])
+			st=mid;
+		else
+			en=mid;
+	}
+	for(int i=en;i>=st;i--){
+		int mid=i;
+		if(dp[2][x+mid][y]==dp[2][x-mid-1][y] and dp[1][x][y-mid-1]==dp[1][x][y+mid])
+			return i;
+	}
+	return -1;
+}
+int two=0,three=0;
+int tap(int x,int y){
+	if(x<=y)
+		return 3;
+	if(ff[x]>=y)
+		return 2;
+	return 3;	
+}
+bool cmp(int x,int y){
+	if(x==two and y==three)
+		return 0;
+	else if(x==two)
+		return (y>three);
+	else if(y==three)
+		return (x>two);
+	else if(x>two and y>three)
+		return 1;
+	else if(x<two and y<three)
+		return 0;
+	else if(x>two)
+		return (tap(x-two,three-y)==2);	
+	else
+		return (tap(two-x,y-three)==3);
+}
+ll mod(ll x){
+	return (x%INF);
+}
+ll pw[MAXN],pwa[MAXN];
+void build(){
+	pw[0]=pwa[0]=1LL;
+	for(int i=1;i<MAXN;i++){
+		pw[i]=mod(pw[i-1]*2);
+		pwa[i]=mod(pwa[i-1]*3);
+	}
+	int cur=0,ind=0;
+	while(cur<2009){
+		vis[cur]=1;
+		cur+=art[ind];
+		ind=(ind+1)%5;
+	}int c=1;
+	for(int i=0;i<2009;i++){
+		if(c>2000)
+			break;
+		if(!vis[i]){
+			ff[c++]=i;
+			ff[c++]=i;
+		}
+		else
+			ff[c++]=i;
+	}	
+}
+int f1(int x,int y){
+	int st=0,en=min(min(x-1,y-1),min(n-x,n-y));
+	while(st+1<en){
+		int mid=(st+en)>>1;
+		if(dp[3][x+mid][y+mid]==dp[3][x-mid-1][y-mid-1] and dp[4][x+mid][y-mid]==dp[4][x-mid-1][y+mid+1])
+			st=mid;
+		else
+			en=mid;
+	}
+	for(int i=en;i>=st;i--){
+		int mid=i;
+		if(dp[3][x+mid][y+mid]==dp[3][x-mid-1][y-mid-1] and dp[4][x+mid][y-mid]==dp[4][x-mid-1][y+mid+1])
+			return i;
+	}
+	return -1;
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	scanf("%d",&n);
+	int mx=0;
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=n;j++)
+			scanf(" %c",&arr[i][j]);
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=n;j++){
+			umax(mx,int(arr[i][j])-48);
+			dp[1][i][j]=dp[1][i][j-1];dp[2][i][j]=dp[2][i-1][j];
+			dp[3][i][j]=dp[3][i-1][j-1];dp[4][i][j]=dp[4][i-1][j+1];
+			if(arr[i][j]=='0')
+				dp[1][i][j]++,dp[2][i][j]++,dp[3][i][j]++,dp[4][i][j]++;
+			dp[5][i][j]=dp[5][i][j-1];dp[6][i][j]=dp[6][i-1][j];
+			dp[7][i][j]=dp[7][i-1][j-1];dp[8][i][j]=dp[8][i-1][j+1];	
+			if(arr[i][j]=='2')
+				dp[5][i][j]++,dp[6][i][j]++,dp[7][i][j]++,dp[8][i][j]++;
+			dp[9][i][j]=dp[9][i][j-1];dp[10][i][j]=dp[10][i-1][j];
+			dp[11][i][j]=dp[11][i-1][j-1];dp[12][i][j]=dp[12][i-1][j+1];	
+			if(arr[i][j]=='3')
+				dp[9][i][j]++,dp[10][i][j]++,dp[11][i][j]++,dp[12][i][j]++;
+		}	
+	build();	
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=n;j++){
+			int mid=f(i,j);
+			if(~mid){
+				int x=i,y=j;
+				int iki=(dp[6][x+mid][y]-dp[6][x-mid-1][y])+(dp[5][x][y+mid]-dp[5][x][y-mid-1])-(arr[i][j]=='2');
+				int uc=(dp[10][x+mid][y]-dp[10][x-mid-1][y])+(dp[9][x][y+mid]-dp[9][x][y-mid-1])-(arr[i][j]=='3');
+				if(cmp(iki,uc))
+					two=iki,three=uc;	
+			}	
+		}
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=n;j++){
+			int mid=f1(i,j);
+			if(~mid){
+				int x=i,y=j;
+				int iki=(dp[7][x+mid][y+mid]-dp[7][x-mid-1][y-mid-1])+(dp[8][x+mid][y-mid]-dp[8][x-mid-1][y+mid+1])-(arr[i][j]=='2');
+				int uc=(dp[11][x+mid][y+mid]-dp[11][x-mid-1][y-mid-1])+(dp[12][x+mid][y-mid]-dp[12][x-mid-1][y+mid+1])-(arr[i][j]=='3');
+				if(cmp(iki,uc))
+					two=iki,three=uc;	
+			}	
+		}	
+	if(two==three and !two)
+		printf("%d\n",mx);
+	else	
+		printf("%lld\n",mod(pw[two]*pwa[three]));			
+	return 0;
+}

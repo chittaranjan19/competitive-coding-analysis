@@ -1,0 +1,82 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#define ls rt << 1
+#define rs rt << 1 | 1
+#define lson ls, l, mid
+#define rson rs, mid + 1, r
+
+using namespace std;
+
+const int maxn = 1000000 + 5;
+const int maxh = 20 + 3;
+const int INF = 1e9 + 7;
+
+int v[maxn][maxh], c[maxn][maxh], b[maxn], mm[maxn];
+
+void init(int n)
+{
+    for(int j = 0; (1 << (j + 1)) <= n; ++j)
+    {
+        for(int i = 0; i + (1 << (j + 1)) - 1 <= n; ++i)
+        {
+            v[i][j + 1] = max(v[i][j], v[i + (1 << j)][j]);
+            c[i][j + 1] = min(c[i][j], c[i + (1 << j)][j]);
+        }
+    }
+}
+
+int rmqmax(int l, int r)
+{
+    int k = mm[r - l + 1];
+    return max(v[l][k], v[r - (1 << k) + 1][k]);
+}
+
+int rmqmin(int l, int r)
+{
+    int k = mm[r - l + 1];
+    return min(c[l][k], c[r - (1 << k) + 1][k]);
+}
+
+int check(int i, int x)
+{
+    return min(rmqmax(i, x), rmqmin(i, x));
+}
+
+int main()
+{
+    mm[0] = -1;
+    for(int i = 1; i < maxn; ++i) mm[i] = i & (i - 1) ? mm[i - 1] : mm[i - 1] + 1;
+    int n, k;
+    while(~scanf("%d%d", &n, &k))
+    {
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", &v[i][0]);
+            v[i][0] *= 100;
+        }
+        for(int i = 1; i <= n; ++i) scanf("%d", &c[i][0]);
+        init(n);
+        for(int i = 1; i <= n; ++i)
+        {
+            int l = i, r = n;
+            while(r > l)
+            {
+                int m1 = l + (r - l) / 3, m2 = r - (r - l) / 3;
+                if(check(i, l) > check(i, r)) r = m2 - 1;
+                else l = m1 + 1;
+            }
+            b[i] = check(i, l);
+        }
+        sort(b + 1, b + n + 1);
+        long double t = 1.0 * k / n, ans = 0;
+        for(int i = 1; i <= n - k + 1; ++i)
+        {
+            ans += b[i] * t;
+            t = t * (n - i - k + 1) / (n - i);
+        }
+        printf("%.10f\n", (double)ans);
+    }
+    return 0;
+}

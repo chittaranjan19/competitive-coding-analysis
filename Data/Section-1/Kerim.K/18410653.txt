@@ -1,0 +1,71 @@
+#include<bits/stdc++.h>
+#define maxn 500009
+#define INF 1000000007
+#define ff first
+#define ss second
+#define mp make_pair
+#define pb push_back
+#define mid(a,b) (a+b)/2
+#define sz size()
+#define pii pair<int,int>
+#define all(x) x.begin(),x.end()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+vector<int>adj[maxn];
+int c[maxn],size[maxn];
+int ans=0,ans2=0;
+string s;
+int v[maxn][28];
+int merge(int nd, int next){
+	int i = s[next]-'a';
+	if(v[nd][i]){
+		int ans3 = 1;
+		for(int j=0;j<=26;j++){
+			if(v[next][i])
+				ans3+=merge(v[nd][i],v[next][j]);			
+		}
+		return ans3;
+	}
+	else{
+		v[nd][i] = next;
+		return 0;
+	}
+}
+
+void dfs(int node, int par){
+	size[node] = 1;
+	for(auto i: adj[node]){
+		if(i!=par){
+			dfs(i,node);
+			size[node]+=size[i];
+			size[node]-=merge(node,i);
+		}
+	}
+	if(ans < size[node] + c[node]){
+		ans = size[node] + c[node];
+		ans2 = 1;
+	}
+	else
+		ans2 += ans == size[node]+c[node];
+}
+int main(){
+	int a,b;
+	int n;
+	cin>>n;
+	for(int i=1;i<=n;i++){
+		cin>>c[i];
+	}
+	cin>>s;
+	s = "#"+s;
+	for(int i=1;i<n;i++){
+		cin>>a>>b;
+		adj[a].pb(b);
+		adj[b].pb(a);
+	}
+	dfs(1,0);
+	cout<<ans<<endl<<ans2<<endl;
+
+return 0;
+}
+

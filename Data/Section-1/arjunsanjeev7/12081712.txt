@@ -1,0 +1,156 @@
+/*	 Hello World!	*/
+
+#include <bits/stdc++.h>
+
+#define pb push_back
+#define pf push_front
+#define mp make_pair
+#define f first
+#define s second
+#define set(a,b) fill(all(a),b)
+#define let(x,a) __typeof(a) x(a)
+#define si(n) scanf("%d",&n)
+#define pi(n) printf("%d",n)
+#define piw(n) printf("%d ",n)
+#define pin(n) printf("%d\n",n)
+#define all(a) (a).begin(),(a).end()
+#define sorti(a) sort(all(a))
+#define sortd(a) sort(a.rbegin(),a.rend()) 
+#define len(s) s.length()
+#define sz(s) s.size()
+#define endl '\n'
+#define nl printf("\n");
+#define present1(c,x) ((c).find(x) != (c).end()) 
+#define present2(c,x) (find(all(c),x) != (c).end())
+#define tr(v,it) for( let(it,v.begin()) ; it != v.end() ; it++)
+#define rtr(v,it) for( let(it,v.rbegin()) ; it != v.rend() ; it++)
+#define rep1(i,n) for(int i=0; i<(int)n;i++)
+#define rep2(i,a,b) for(int i=(int)a; i<=(int)b; i++)
+
+#define trace1(x)                cerr << #x << ": " << x << endl;
+#define trace2(x, y)             cerr << #x << ": " << x << " | " << #y << ": " << y << endl;
+#define trace3(x, y, z)          cerr << #x << ": " << x << " | " << #y << ": " << y << " | " << #z << ": " << z << endl;
+#define trace4(a, b, c, d)       cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << endl;
+#define trace5(a, b, c, d, e)    cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << endl;
+#define trace6(a, b, c, d, e, f) cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << " | " << #f << ": " << f << endl;
+
+#define LL long long int
+#define PII pair<int,int>
+#define PLL pair<LL,LL>
+#define VI vector<int>
+#define SI set<int>
+#define VPII vector< PII >
+#define SPII set< PII >
+#define mod (int)1e9+7
+#define inf INT_MAX
+
+using namespace std;
+
+set< pair<LL,LL> > S;
+
+PLL intersection(LL l, LL r, LL L, LL R)
+{
+	if(l<=L && r>=R) return mp(L,R);
+	if(l>=L && r<=R) return mp(l,r);
+	if(l<=L && r>=L && r<=R) return mp(L,r);
+	if(l>=L && l<=R && r>=R) return mp(l,R);
+	return mp(-1,-1);
+}
+
+pair< PLL,PLL > difference(LL L, LL R, PII I)
+{
+	LL l=I.f;
+	LL r=I.s;
+	return mp( mp(L,l-1),mp(r+1,R) );
+}
+
+void foo(LL l, LL r, LL type)
+{
+	if(S.size()==0) return;
+	set<PLL>::iterator it1=S.lower_bound(mp(l,l));
+	set<PLL>::iterator it2=S.lower_bound(mp(r+1,r+1));
+	if(it1==S.end()) it1--;
+	vector< PLL > Erase,New;
+	for(set<PLL>::iterator it=it1; it!=it2; it++)
+	{
+		LL L=it->f;
+		LL R=it->s;
+		PLL I=intersection(l,r,L,R);
+		if(type==1)
+		{	
+			if(I.f!=-1 && I.s!=-1) New.pb(I);
+		}
+		else
+		{
+			if(I.f!=-1 && I.s!=-1)
+			{
+				Erase.pb(mp(L,R));
+				if(I!=mp(L,R))
+				{
+					pair< PLL,PLL > P=difference(L,R,I);
+					if(P.f.s>=P.f.f) New.pb(P.f);
+					if(P.s.s>=P.s.f) New.pb(P.s);
+				}
+			}
+		}
+	}
+	if(type==1) S.clear();
+	else
+	rep1(i,Erase.size())
+	{
+		S.erase(Erase[i]);
+	}
+	rep1(i,New.size())
+	{
+		S.insert(New[i]);
+	}
+}
+
+LL power(LL a, LL b)
+{
+	LL ret=1;
+	while(b)
+	{
+		if(b%2) ret*=a;
+		a*=a;
+		b/=2;
+	}
+	return ret;
+}
+
+int main()
+{
+	LL h,q,l,r,ans,i;
+	cin>>h>>q;
+	//S.insert(mp(power(2,h-1),power(2,h)-1));
+	while(q--)
+	{
+		cin>>i>>l>>r>>ans;
+		rep2(j,i+1,h)
+		{
+			l=l*2;
+			r=r*2+1;
+		}
+		foo(l,r,ans);
+	}
+	l=1e18;
+	r=-1;
+	tr(S,it)
+	{
+		l=min(l,it->f);
+		r=max(r,it->s);
+	}
+	if(l==r)
+	{
+		cout<<l<<endl;
+	}
+	else if(r==-1)
+	{
+		cout<<"Game cheated!"<<endl;
+	}
+	else
+	{
+		cout<<"Data not sufficient!"<<endl;
+	}
+	return 0;
+}

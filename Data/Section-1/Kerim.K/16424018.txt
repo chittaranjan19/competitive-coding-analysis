@@ -1,0 +1,64 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define lgN 19
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int a,lg,M[MAXN][20],arr[MAXN];
+void build(){
+	for(int j=1;j<=lg;j++)
+		for(int i=1;i<=a;i++){
+			if(i+(1<<j)-1<=a)
+				M[i][j]=min(M[i][j-1],M[i+(1<<j-1)][j-1]);
+			else
+				M[i][j]=M[i][j-1];	
+		}
+}
+int tap(int x,int y){
+	int k=log2(y-x+1);
+	return min(M[x][k],M[y-(1<<k)+1][k]);
+}
+int rec(int l,int r,int k){
+	int mn=tap(l,r)-k,st=-1,en=-1,res=tap(l,r)-k;
+	for(int i=l;i<=r;i++){
+		if(arr[i]-k-mn>0){
+			if(st==-1)
+				st=i;
+			umax(en,i);	
+		}
+		else{
+			if(st!=-1)
+				res+=rec(st,en,k+mn);
+			st=en=-1;	
+		}
+	}
+	if(st!=-1)
+		res+=rec(st,en,k+mn);
+	umin(res,(r-l+1));	
+	return res;
+}
+int main(){
+	scanf("%d",&a);
+	lg=log2(a);
+	for(int i=1;i<=a;i++){
+		scanf("%d",arr+i);
+		M[i][0]=arr[i];
+	}
+	build();
+	printf("%d",rec(1,a,0));
+	return 0;
+}

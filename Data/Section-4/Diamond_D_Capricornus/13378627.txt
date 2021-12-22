@@ -1,0 +1,97 @@
+Const Fi='';//'C.INP';
+      Fo='';//'C.OUT';
+      maxN=1001;
+Var   n,m:Longint;
+      Count,F,A,T:Array[1..maxN*maxN]Of Longint;
+Procedure Enter;
+Var i,J:Longint;
+  Begin
+    Readln(n);
+    m:=n*n;
+    For i:=1 to m do
+      Read(A[i]);
+  End;
+Procedure Sort(l,h:Longint);
+Var i,J,Key,Tmp:Longint;
+  Begin
+    If l>=h then Exit;
+    i:=l;J:=h;
+    Key:=A[l+Random(h-l+1)];
+    Repeat
+      While A[i]<Key do Inc(i);
+      While A[J]>Key do Dec(J);
+      If i<=J then
+        Begin
+          If i<J then
+            Begin
+              Tmp:=A[i];
+              A[i]:=A[J];
+              A[J]:=Tmp;
+            End;
+          Inc(i);Dec(J);
+        End;
+    Until i>J;
+    Sort(l,J);Sort(i,h);
+  End;
+Function  Find(VAl:Longint):Longint;
+Var Inf,Sup,Mid,Res:Longint;
+  Begin
+    Inf:=1;Sup:=m;
+    While Inf<=Sup do
+      Begin
+        Mid:=(Inf+Sup)Div 2;
+        If A[Mid]>=Val then
+          Begin
+            If A[Mid]=Val then Res:=Mid;
+            Sup:=Mid-1;
+          End
+        Else
+          Inf:=Mid+1;
+      End;
+    Exit(Res);
+  End;
+Function  GCD(a,b:Longint):Longint;
+  Begin
+    If b=0 then Exit(a);
+    Exit(GCD(b,a mod b));
+  End;
+Procedure Main;
+Var i,J,Tm,D:Longint;
+  Begin
+    Sort(1,m);
+    Fillchar(Count,Sizeof(Count),0);
+    T[1]:=1;
+    Inc(Count[1]);
+    For i:=2 to m do
+      Begin
+        If A[i]=A[i-1] then
+          T[i]:=T[i-1]
+        Else
+          T[i]:=i;
+        Inc(Count[T[i]]);
+      End;
+    F[1]:=A[m];
+    Dec(Count[T[m]]);
+    D:=1;
+    For i:= m-1 downto 1 do
+      If Count[T[i]]>0 then
+        Begin
+          Inc(D);
+          F[D]:=A[i];
+          Dec(Count[T[i]]);
+          For J:=D-1 downto 1 do
+            Begin
+              Tm:=Find(GCD(F[D],F[J]));
+              Dec(Count[Tm],2);
+            End;
+        End;
+    For i:=1 to n do
+      Write(F[i],' ');
+  End;
+Begin
+  Assign(Input,Fi);Reset(Input);
+  Assign(Output,Fo);Rewrite(Output);
+  Enter;
+  Main;
+  Close(Input);Close(Output);
+End.

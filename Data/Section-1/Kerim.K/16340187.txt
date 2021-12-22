@@ -1,0 +1,138 @@
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <math.h>
+#include <vector>
+#include <stdio.h>
+#include <fstream>
+#include <iostream>
+#include <string.h>
+#include <limits.h>
+#include <algorithm>
+//#include <ext/pb_ds/assoc_container.hpp>
+//#include <ext/pb_ds/tree_policy.hpp>
+//#include <bits/stdc++.h>
+
+#define ff first
+#define ss second
+#define ll long long
+#define pb push_back
+#define mp make_pair
+#define inf 1000000007
+#define mod 1000000007
+#define pii pair <int, int>
+#define all(x) x.begin(), x.end()
+//#define tr(i,c) for(__typeof((c).begin()) i=(c).begin(); i!=(c).end(); i++)
+
+//using namespace __gnu_pbds;
+
+#define maxn 100005
+
+using namespace std;
+
+//template <typename T> using ordered_set =  tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+
+int n, m;
+int t, a, b, c;
+
+ll T[4*maxn];
+ll lz[4*maxn], color[4*maxn];
+
+void init(int l, int r, int node)
+{
+	if (l == r) {
+		color[node] = l;
+		return;
+	}
+	
+	init(l, (l+r)/2, node*2);
+	init((l+r)/2+1, r, node*2+1);
+}
+
+void see(int l, int r, int node)
+{
+	if (color[node]) {
+		T[node] += abs(color[node]-c)*1LL*(r-l+1);
+		lz[node] += abs(color[node]-c);
+		color[node] = 0;
+		return;
+	}
+
+	see(l, (l+r)/2, node*2);
+	see((l+r)/2+1, r, node*2+1);
+	
+	color[node] = 0;
+	lz[node] = 0;
+	
+	T[node] = T[node*2] + T[node*2+1];
+}
+
+void shift(int l, int r, int node, int to)
+{
+	if (!color[node])
+		return;
+	
+	lz[to] += lz[node];
+	color[to] = color[node];
+	
+	T[to] += lz[node]*1LL*(r-l+1);
+}
+
+void upd(int l, int r, int node)
+{
+	if (a > r || b < l)
+		return;
+	
+	if (a <= l && b >= r) {
+		see(l, r, node);
+		color[node] = c;
+		return;
+	}
+	
+	shift(l, (l+r)/2, node, node*2);
+	shift((l+r)/2+1, r, node, node*2+1);
+	
+	lz[node] = 0;
+	color[node] = 0;
+	
+	upd(l, (l+r)/2, node*2);
+	upd((l+r)/2+1, r, node*2+1);
+	
+	T[node] = T[node*2]+T[node*2+1];
+}
+
+ll get(int l, int r, int node)
+{
+	if (a > r || b < l)
+		return 0;
+	
+	if (a <= l && b >= r)
+		return T[node];
+	
+	shift(l, (l+r)/2, node, node*2);
+	shift((l+r)/2+1, r, node, node*2+1);
+	
+	color[node] = 0;
+	lz[node] = 0;
+	
+	return get(l, (l+r)/2, node*2) + get((l+r)/2+1, r, node*2+1);
+}
+
+int main()
+{
+	scanf("%d%d", &n, &m);
+	
+	init(1, n, 1);
+	
+	while (m--) {
+		scanf("%d%d%d", &t, &a, &b);
+		
+		if (t&1) {
+			scanf("%d", &c);
+			upd(1, n, 1);
+		}
+		else
+			printf("%lld\n", get(1, n, 1));
+	}
+}

@@ -1,0 +1,1 @@
+print(['YES','NO'][not set('HQ9')&set(input())])

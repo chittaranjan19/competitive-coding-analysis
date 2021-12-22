@@ -1,0 +1,160 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+typedef pair<int, int> P;
+
+const int MAXN = 1000 + 5;
+const int INF = 1 << 30;
+
+struct edge
+{
+    int to, cap, next;
+    edge(int to = 0, int cap = 0, int next = 0) : to(to), cap(cap), next(next) {}
+} G[MAXN * MAXN * 4];
+int head[MAXN], tot, num[MAXN][10], d[MAXN], cur[MAXN];
+vector<P> vec[MAXN];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    memset(num, 0, sizeof(num));
+    tot = 0;
+}
+
+void addedge(int u, int v, int cap)
+{
+    G[tot] = edge(v, cap, head[u]);
+    head[u] = tot++;
+    G[tot] = edge(u, 0, head[v]);
+    head[v] = tot++;
+}
+
+bool bfs(int s, int t)
+{
+    memset(d, -1, sizeof(d));
+    queue<int> que;
+    d[s] = 0;
+    que.push(s);
+    while(!que.empty())
+    {
+        int u = que.front();
+//        cout << u << endl;
+        que.pop();
+        for(int i = head[u]; ~i; i = G[i].next)
+        {
+            edge e = G[i];
+            if(e.cap > 0 && d[e.to] == -1)
+            {
+                d[e.to] = d[u] + 1;
+                que.push(e.to);
+            }
+        }
+    }
+//    cout << d[t] << en
+    return ~d[t];
+}
+
+int dfs(int u, int t, int f)
+{
+    if(u == t) return f;
+    int ret = 0;
+    for(int &i = cur[u]; ~i; i = G[i].next)
+    {
+        edge &e = G[i];
+        if(e.cap > 0 && d[e.to] == d[u] + 1)
+        {
+            int tmp = dfs(e.to, t, min(f, e.cap));
+            if(tmp > 0)
+            {
+                e.cap -= tmp;
+                G[i ^ 1].cap += tmp;
+                f -= tmp;
+                ret += tmp;
+                if(!f) break;
+            }
+        }
+    }
+    return ret;
+}
+
+int Dinic(int s, int t)
+{
+    int ret = 0;
+    while(bfs(s, t))
+    {
+        memcpy(cur, head, sizeof(head));
+        ret += dfs(s, t, INF);
+    }
+    return ret;
+}
+
+int main()
+{
+    int n, m;
+    while(~scanf("%d%d", &n, &m))
+    {
+        init();
+        int cnt = n + 1, s = 0, t = MAXN - 2;
+        for(int i = 1; i <= n; ++i)
+        {
+            vec[i].clear();
+            int x;
+            scanf("%d", &x);
+            int A = 0;
+            for(int j = 2; j * j <= x; ++j)
+            {
+                if(x % j == 0)
+                {
+                    int amount = 0;
+                    while(x % j == 0)
+                    {
+                        x /= j;
+                        ++amount;
+                    }
+                    num[i][vec[i].size()] = amount;
+                    vec[i].push_back(P(j, cnt));
+                    if(i & 1) addedge(i, cnt, amount);
+                    else addedge(cnt, i, amount);
+                    ++cnt;
+                    A += amount;
+                }
+            }
+            if(x != 1)
+            {
+                num[i][vec[i].size()] = 1;
+                vec[i].push_back(P(x, cnt));
+                if(i & 1) addedge(i, cnt, 1);
+                else addedge(cnt, i, 1);
+                ++cnt;
+                ++A;
+            }
+            if(i & 1) addedge(s, i, A);
+            else addedge(i, t, A);
+        }
+        for(int i = 0; i < m; ++i)
+        {
+            int u, v;
+            scanf("%d%d", &u, &v);
+            if(v & 1) swap(u, v);
+            for(int i = 0; i < vec[u].size(); ++i)
+            {
+                P p = vec[u][i];
+                for(int j = 0; j < vec[v].size(); ++j)
+                {
+                    P q = vec[v][j];
+                    if(p.first == q.first)
+                    {
+                        addedge(p.second, q.second, INF);
+                    }
+                }
+            }
+        }
+        printf("%d\n", Dinic(s, t));
+    }
+    return 0;
+}

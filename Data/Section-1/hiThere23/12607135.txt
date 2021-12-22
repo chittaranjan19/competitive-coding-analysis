@@ -1,0 +1,118 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 2001
+#define maxC 20000000
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+long long a[mn * mn], add[mn];
+pair<long long, int> p[mn][mn];
+int n, q, k, u;
+
+int g(int x)
+{
+    return (x - 1) / u + 1;
+}
+
+void sortG(int x, int l)
+{
+    int id = 0;
+    for(int i = l; g(i) == x && i; i --)
+        p[x][++ id] = mp(a[i], i);
+    for(int i = l + 1; g(i) == x && i <= n; i ++)
+        p[x][++ id] = mp(a[i], i);
+    sort(p[x] + 1, p[x] + id + 1);
+}
+
+void setup ()
+{
+    cin >> n >> q;
+    u = sqrt(n);
+    k = g(n);
+    FOR (i, 1, n)
+        cin >> a[i];
+    FOR (i, 1, k)
+    sortG(i, (i - 1) * u + 1);
+}
+
+void q1()
+{
+    int l, r, x;
+    cin >> l >> r >> x;
+    int y = g(l);
+    int z = g(r);
+    if (y == z)
+    {
+        FOR (i, l, r)
+        a[i] += x;
+        sortG(z, l);
+        return;
+    }
+    for(int i = l; g(i) == y && i <= n; i ++)
+        a[i] += x;
+    for(int i = r; g(i) == z && i; i --)
+        a[i] += x;
+    sortG(y, l);
+    sortG(z, r);
+    FOR (i, y + 1, z - 1)
+    add[i] += x;
+}
+
+void q2()
+{
+    int x, l = -1, r;
+    cin >> x;
+    FOR (i, 1, k)
+    {
+        int s = (i - 1) * u + 1;
+        int e = min(s + u - 1, n);
+        int num = e - s + 1;
+        int id = lower_bound(p[i] + 1, p[i] + num + 1, mp(x - add[i], 1)) - p[i];
+        if (id <= e && p[i][id].first == x - add[i])
+        {
+            l = p[i][id].second;
+            break;
+        }
+    }
+    FORD (i, k, 1)
+    {
+        int s = (i - 1) * u + 1;
+        int e = min(s + u - 1, n);
+        int num = e - s + 1;
+        int id = lower_bound(p[i] + 1, p[i] + num + 1, mp(x - add[i] + 1, 1)) - p[i] - 1;
+        if (id && p[i][id].first == x - add[i])
+        {
+            r = p[i][id].second;
+            break;
+        }
+    }
+    if (l == -1)
+        cout << -1 << "\n";
+    else
+        cout << (r - l) << "\n";
+}
+
+void xuly ()
+{
+    int t;
+    FOR (i, 1, q)
+    {
+        cin >> t;
+        if (t == 1)
+            q1();
+        else
+            q2();
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

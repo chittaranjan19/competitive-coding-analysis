@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define ll long long
+
+int arr[1000010], parity[1000010];
+set<pair<int, int> > pset;
+set<int> mset;
+set<int> :: iterator x, y, z, x1, y11;
+set<pair<int, int> > :: iterator it;
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    int n, i, j, ind, diff, l, r, sl, sr;
+    scanf("%d", &n);
+    for(i=0; i<n; i++){
+        scanf("%d", &arr[i]);
+        mset.insert(i);
+    }
+    sort(arr, arr+n);
+    for(i=1; i<n; i++){
+        pset.insert(make_pair(arr[i]-arr[i-1], i));
+    }
+    l = 0, r = n-1;
+    sl = 1, sr = n-2;
+    for(i=0, j=0; i<n-2; i++, j^=1){
+        if(j&1){
+            it = pset.begin();
+            y = mset.end();
+            y--;
+            if(it->second==*y){
+                x = y;
+                x--;
+                z = x;
+                z--;
+                pset.erase(it);
+                it = pset.find(make_pair(arr[*x]-arr[*z], *x));
+                pset.erase(it);
+                pset.insert(make_pair(arr[*y]-arr[*z], *y));
+                mset.erase(x);
+            }
+            else{
+                y = mset.find(it->second);
+                x = y;
+                x--;
+                z = y;
+                z++;
+                pset.erase(it);
+                it = pset.find(make_pair(arr[*z]-arr[*y], *z));
+                pset.erase(it);
+                pset.insert(make_pair(arr[*z]-arr[*x], *z));
+                mset.erase(y);
+            }
+        }
+        else{
+            x = mset.begin();
+            y = mset.end();
+            y--;
+            x1 = x;
+            x1++;
+            y11 = y;
+            y11--;
+            if(arr[*x1]-arr[*x]>=arr[*y]-arr[*y11]){
+                it = pset.find(make_pair(arr[*x1]-arr[*x], *x1));
+                pset.erase(it);
+                mset.erase(x);
+            }
+            else{
+                it = pset.find(make_pair(arr[*y]-arr[*y11], *y));
+                pset.erase(it);
+                mset.erase(y);
+            }
+        }
+    }
+    x = mset.begin();
+    x1 = next(x);
+    int ans = arr[*x1]-arr[*x];
+    printf("%d\n", ans);
+    return 0;
+}

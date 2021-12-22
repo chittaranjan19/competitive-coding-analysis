@@ -1,0 +1,99 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef pair<int, int> pii;
+
+const int maxn = 500001;
+const int inf = 1000000000;
+
+int n, m, lft[maxn], rght[maxn], arr[maxn], st[maxn*5], ans[maxn];
+map<int, int> pos;
+vector<pii> lsorted[maxn], rsorted[maxn], lvec, rvec;
+
+void build(int s, int e, int node)
+{
+	if(s==e){
+		st[node] = abs(lft[s]-s);
+		return;
+	}
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = node*2 + 1;
+	rc = lc + 1;
+	build(s, mid, lc);
+	build(mid+1, e, rc);
+	st[node] = min(st[lc], st[rc]);
+}	
+
+void update(int s, int e, int q, int node, int val)
+{
+	if(s>e || s>q || q>e)
+		return;
+	if(s==e){
+		st[node] = abs(val-s);
+		return;
+	}	
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = node*2 + 1;
+	rc = lc + 1;
+	update(s, mid, q, lc, val);
+	update(mid+1, e, q, rc, val);
+	st[node] = min(st[lc], st[rc]);
+}
+
+int query(int s, int e, int qs, int qe, int node)
+{
+	if(s>e || s>qe || qs>e)
+		return inf;
+	if(s>=qs && qe>=e)
+		return st[node];	
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = node*2 + 1;
+	rc = lc + 1;
+	int x = query(s, mid, qs, qe, lc);
+	x = min(x, query(mid+1, e, qs, qe, rc));
+	return x;
+}
+
+int main()
+{
+	int i, j, k, l, r;
+	scanf("%d%d", &n, &m);
+	for(i=0; i<n; i++){
+		scanf("%d", &arr[i]);
+		if(pos.find(arr[i]) != pos.end())
+			lft[i] = pos[arr[i]];
+		else
+			lft[i] = inf;
+		pos[arr[i]] = i;
+		lvec.push_back(make_pair(lft[i], i));
+	}
+	sort(lvec.begin(), lvec.end());
+	for(i=0; i<m; i++){
+		scanf("%d%d", &l, &r);
+		l--, r--;
+		lsorted[l].push_back(make_pair(r, i));
+		ans[i] = inf;
+	}
+	build(0, n-1, 0);
+	j = 0;
+	for(i=0; i<maxn; i++){
+		while(j<n){
+			if(lvec[j].first >= i)
+				break;
+			update(0, n-1, lvec[j].second, 0, inf);
+			j++;
+		}
+		for(auto it : lsorted[i])
+			ans[it.second] = min(ans[it.second], query(0, n-1, i, it.first, 0));
+	}
+	for(i=0; i<m; i++){
+		if(ans[i] >= n)
+			ans[i] = -1;
+		printf("%d\n", ans[i]);
+	}
+	return 0;
+}

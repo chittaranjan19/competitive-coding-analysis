@@ -1,0 +1,95 @@
+uses    math;
+
+const   maxn    =300;
+
+type    arr1    =array[0..maxn] of longint;
+        arr2    =array[0..maxn,0..maxn] of longint;
+
+var     n       :longint;
+        a       :Arr1;
+        dd      :arr2;
+        scs     :arr1;
+        sum     :arr2;
+
+procedure xuly;
+var     i, j, tmp, k       :longint;
+        ok :boolean;
+        tm :longint;
+begin
+        fillchar(sum,sizeof(sum),0);
+        fillchar(dd,sizeof(dd),0);
+        fillchar(scs,sizeof(scs),0);
+        scs[0]:=1;
+        i:=1;
+        tmp:=a[i];
+                                scs[i]:=a[i] div 9;
+                                if a[i] mod 9<>0 then inc(scs[i]);
+                                tmp:=a[i];
+
+                                dd[i,1]:=1;
+                                for k:=scs[i] downto scs[i]-(tmp div 9)+1 do
+                                        dd[i,k]:=9;
+                                if tmp mod 9 <> 0 then dd[i,scs[i]-tmp div 9]:=tmp mod 9;
+                                for k:=1 to scs[i] do
+                                        sum[i,k]:=sum[i,k-1]+dd[i,k];
+                for k:=1 to scs[i] do write(dd[i,k]);writeln;
+                //
+
+
+
+        for i:=2 to n do
+        begin
+                ok:=false;
+                for j:=scs[i-1] downto 1 do
+                if not ok then
+                for tm:=1 to (9-dd[i-1,j]) do
+                begin
+                        tmp:=a[i]-sum[i-1,j-1]-dd[i-1,j]-tm;
+                        if (tmp>=0) and (tmp<=(scs[i-1]-j)*9) then
+                        begin
+                                scs[i]:=scs[i-1];
+                                for k:=1 to j-1 do
+                                        begin
+                                                dd[i,k]:=dd[i-1,k];
+                                                sum[i,k]:=sum[i,k-1]+dd[i,k];
+                                        end;
+                                dd[i,j]:=dd[i-1,j]+tm;
+                                sum[i,j]:=sum[i,j-1]+dd[i,j];
+
+                                for k:=scs[i] downto scs[i]-(tmp div 9)+1 do
+                                        dd[i,k]:=9;
+                                if tmp mod 9 <> 0 then dd[i,scs[i]-tmp div 9]:=tmp mod 9;
+                                for k:=j+1 to scs[i] do
+                                        sum[i,k]:=sum[i,k-1]+dd[i,k];
+                                ok:=true;
+                                break;
+                        end;
+                end;
+                if not ok then
+                begin
+                                tmp:=a[i];
+                                scs[i]:=scs[i-1]+1;
+                                dd[i,1]:=1;
+                                dec(tmp);
+                                for k:=scs[i] downto scs[i]-(tmp div 9)+1 do
+                                        dd[i,k]:=9;
+                                if tmp mod 9 <> 0 then dd[i,scs[i]-tmp div 9]:=tmp mod 9;
+                                for k:=1 to scs[i] do
+                                        sum[i,k]:=sum[i,k-1]+dd[i,k];
+                end;
+                for k:=1 to scs[i] do write(dd[i,k]);writeln;
+        end;
+end;
+
+procedure run;
+var     i :longint;
+begin
+        readln(n);
+        for i:=1 to n do readln(a[i]);
+        xuly;
+end;
+
+
+begin
+        run;
+end.

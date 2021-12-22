@@ -1,0 +1,80 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+/**
+ * Created by leen on 7/17/16.
+ */
+public class _696B {
+
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+        int n = scan.nextInt();
+
+        Node[] nodes = new Node[n + 1];
+        for(int i = 1; i <=n; i++)
+            nodes[i] = new Node(i);
+
+        for(int i = 2; i <= n; i++)
+            nodes[scan.nextInt()].addChild(nodes[i]);
+
+        Node root = nodes[1];
+        countNumNodesInSubTree(root);
+
+        root.expectedTime = 1.0d;
+
+        for(Node child : root.children)
+            calcExpectedTime(child);
+
+        StringBuilder buf = new StringBuilder();
+
+        boolean first = true;
+        for(int i = 1; i <= n; i++) {
+            if(first)
+                first = false;
+            else
+                buf.append(' ');
+            buf.append(nodes[i].expectedTime);
+        }
+
+        System.out.println(buf.toString());
+    }
+
+    static void countNumNodesInSubTree(Node node) {
+        int numNodesInSubTree = 1;
+
+        for(Node child : node.children) {
+            countNumNodesInSubTree(child);
+            numNodesInSubTree += child.numNodesInSubTree;
+        }
+
+        node.numNodesInSubTree = numNodesInSubTree;
+    }
+
+    static void calcExpectedTime(Node node) {
+        Node parent = node.parent;
+
+        node.expectedTime = parent.expectedTime + 1.0 +  (double) (parent.numNodesInSubTree - node.numNodesInSubTree - 1) / 2;
+
+        for(Node child : node.children)
+            calcExpectedTime(child);
+    }
+
+    static class Node {
+        final int num;
+        int numNodesInSubTree;
+        final List<Node> children = new ArrayList<Node>();
+        Node parent;
+        double expectedTime;
+
+        Node(int num) {
+            this.num = num;
+        }
+
+        void addChild(Node node) {
+            children.add(node);
+            node.parent = this;
+        }
+    }
+
+}

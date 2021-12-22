@@ -1,0 +1,154 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+struct Station
+{
+	tint inicio,fin,color;
+	Station(tint ii, tint ff, tint cc)
+	{
+		inicio = ii;
+		fin = ff;
+		color = cc;
+	}
+};
+
+
+int main()
+{
+	ios_base::sync_with_stdio(0);
+	#ifdef ACMTUYO
+		if (!freopen("Cnew.in", "r", stdin))
+			return 1;
+	#endif
+	tint n;
+	while(cin >> n)
+	{
+		vector<tint> a (n);
+		forn(i,n)
+			cin >> a[i];
+		vector<Station> p;
+		tint comienzo = 0;
+		tint fin  = 0;
+		tint i = 1;
+		bool abierto = true;
+		while (i < n)
+		{
+			if (!abierto && a[i] == a[i-1])
+			{
+				abierto = true;
+				comienzo = i-1;
+			}	
+			else if (abierto && a[i] != a[i-1])
+			{
+				abierto = false;
+				fin = i-1;
+				p.push_back(Station(comienzo, fin, a[i-1]));
+			}
+			i++;
+		}
+		i = n-2;
+		while (i >= 0 && a[i] == a[n-1])
+			i--;
+		p.push_back(Station(i+1,n-1,a[n-1]));
+		Station anterior = p[0];
+		tint maxPasos = 0;
+		vector<tint> risposta (n);
+		forsn(r,anterior.inicio,anterior.fin + 1)
+			risposta[r] = anterior.color;
+		forsn(j,1,p.size())
+		{
+			maxPasos = max(maxPasos,(p[j].inicio - anterior.fin)/2);
+			if (anterior.color == p[j].color)
+			{
+				forsn(r,anterior.fin+1,p[j].inicio)
+					risposta[r] = anterior.color;
+			}
+			else
+			{
+				forsn(r,anterior.fin+1, (p[j].inicio + anterior.fin)/2 + 1)
+					risposta[r] = anterior.color;
+				forsn(r,(p[j].inicio + anterior.fin)/2 + 1, p[j].inicio + 1)
+					risposta[r] = p[j].color;
+					
+			}
+			forsn(r,p[j].inicio,p[j].fin + 1)
+				risposta[r] = p[j].color;
+			anterior = p[j];
+		}
+		cout << maxPasos << endl;
+		forn(r,n)
+		{
+			if (r)
+				cout << " ";
+			cout << risposta[r];
+		}
+		cout << endl;
+	}
+	
+	
+	
+	
+	return 0;
+}
+
+
+

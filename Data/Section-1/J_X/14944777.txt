@@ -1,0 +1,49 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+
+using namespace std;
+
+typedef pair<int, int> P;
+
+const int MAXN = 1e5 + 5;
+
+int dp[MAXN][2];
+P p[MAXN];
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        for(int i = 0; i < n; ++i)
+        {
+            scanf("%d%d", &p[i].first, &p[i].second);
+        }
+        sort(p, p + n);
+        int ans = MAXN;
+        for(int i = 0; i < n; ++i)
+        {
+            int k = lower_bound(p, p + n, P(p[i].first - p[i].second, 0)) - p;
+            if(!k)
+            {
+                dp[i][1] = i;
+            }
+            else
+            {
+                dp[i][1] = dp[k - 1][1] + i - k;
+            }
+            if(!i)
+            {
+                dp[i][0] = 0;
+            }
+            else
+            {
+                dp[i][0] = dp[i - 1][1];
+            }
+            ans = min(ans, min(dp[i][0] + n - i, dp[i][1] + n - i - 1));
+        }
+        printf("%d\n", ans);
+    }
+    return 0;
+}

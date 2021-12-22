@@ -1,0 +1,126 @@
+#include<stdio.h>
+#include<string.h>
+char s1[105],s2[1105],virus[105];
+int lps[105]={0};
+int dp[105][105][105]={0},next[105][105][105]={0};
+int calcLCS(int x,int y,int z)
+{
+    int ans=0;
+    if(x>=strlen(s1) || y>=strlen(s2) || z>=strlen(virus))
+        return 0;
+    if(dp[x][y][z]!=-1)
+        return dp[x][y][z];
+    if(s1[x]==s2[y])
+    {
+        int temp=z;
+        while(1)
+        {
+            if(s1[x]==virus[temp])
+            {
+                temp++;
+                break;
+            }
+            else
+            {
+                if(temp>0)
+                    temp=lps[temp-1];
+                else
+                    break;
+            }
+        }
+        if(temp!=strlen(virus))
+        {
+            ans=1+calcLCS(x+1,y+1,temp);
+            next[x][y][z]=1;
+        }
+    }
+    int A1=calcLCS(x,y+1,z);
+    int A2=calcLCS(x+1,y,z);
+    if(A1>ans)
+    {
+        ans=A1;
+        next[x][y][z]=2;
+    }
+    if(A2>ans)
+    {
+        ans=A2;
+        next[x][y][z]=3;
+    }
+    dp[x][y][z]=ans;
+    return ans;
+}
+void printLCS(int x,int y,int z)
+{
+    if(x>=strlen(s1) || y>=strlen(s2) || z>=strlen(virus));
+    //printf("x=%d y=%d z=%d next=%d\n",x,y,z,next[x][y][z]);
+    if(next[x][y][z]==1)
+    {
+        printf("%c",s1[x]);
+        while(1)
+        {
+            if(s1[x]==virus[z])
+            {
+                z++;
+                break;
+            }
+            else
+            {
+                if(z>0)
+                    z=lps[z-1];
+                else
+                    break;
+            }
+        }
+        printLCS(x+1,y+1,z);
+        return;
+    }
+    if(next[x][y][z]==2)
+    {
+        printLCS(x,y+1,z);
+    }
+    if(next[x][y][z]==3)
+    {
+        printLCS(x+1,y,z);
+    }
+}
+int main()
+{
+    memset(dp,-1,sizeof(dp));
+    scanf("%s%s%s",s1,s2,virus);
+    int i,j,si=strlen(virus),k;
+    lps[0]=0;
+    i=1;
+    j=0;
+    while(i<si)
+    {
+        //printf("i=%d j=%d\n",i,j);
+        if(virus[i]==virus[j])
+        {
+            lps[i]=j+1;
+            i++;
+            j++;
+        }
+        else
+        {
+            if(j!=0)
+            {
+                j=lps[j-1];
+            }
+            else
+            {
+                lps[i]=0;
+                i++;
+            }
+        }
+    }
+    //printf("%d\n",calcLCS(0,0,0));
+    if(calcLCS(0,0,0)>0)
+    {
+        printLCS(0,0,0);
+    }
+    else
+    {
+        printf("0\n");
+    }
+    return 0;
+}

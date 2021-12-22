@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+pair<int, int> arr[200005];
+set<pair<int, int> > s;
+
+int main()
+{
+  int c, d, n;
+  scanf("%d %d %d", &d, &c, &n);
+  for(int i=0;i<n;i++)
+    scanf("%d %d", &arr[i].f, &arr[i].s);
+  sort(arr, arr + n);
+  arr[n++] = mp(d, 0);
+  LL res = 0;
+  s.insert(mp(0, c));
+  int curr = 0;
+  for(int i=0;i<n;i++)
+  {
+    int dist = arr[i].f - curr;
+    while(dist > 0 && !s.empty())
+    {
+      auto it = (*s.begin());
+      s.erase(s.begin());
+      int tmp = min(it.s, dist);
+      it.s -= tmp;
+      if(it.s) s.insert(it);
+      res += tmp * 1LL * it.f;
+      dist -= tmp;
+    }
+    if(dist > 0)
+    {
+      cout << -1;
+      return 0;
+    }
+    pair<int, int> add = mp(arr[i].s, arr[i].f - curr);
+    while(!s.empty())
+    {
+      auto it = s.end();
+      it--;
+      if((*it).f < add.f)
+        break;
+      add.s += (*it).s;
+      s.erase(it);
+    }
+    s.insert(add);
+    curr = arr[i].f;
+  }
+  cout << res;
+  return 0;
+}

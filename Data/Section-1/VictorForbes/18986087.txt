@@ -1,0 +1,83 @@
+#include <bits/stdc++.h>
+
+#define PI 3.14159265358979323846
+
+#define INF_1 0x3f // 0011 1111
+#define INF_2 0x7f // 0111 1111
+
+#define MOD_1 1000000007 // 10e9 + 7
+#define MOD_2 1000000009 // 10e9 + 9
+
+#define pb push_back
+#define eb emplace_back
+#define fi first
+#define se second
+
+#define N 101
+
+using namespace std;
+
+typedef unsigned long long ull;
+typedef unsigned int ui;
+typedef long long ll;
+
+vector <pair <int, int>> g[N];
+set <int> color;
+int mat[N][N][N];
+int res[N][N];
+int n, m;
+
+void dfs(int initial, int x, int c){
+	int i, y;
+
+	mat[c][x][x] = 1;
+
+	for (i = 0; i < g[x].size(); i++){
+		y = g[x][i].fi;
+
+		if (g[x][i].se == c and mat[c][y][y] == 0){
+			res[initial][y]++;
+			res[y][initial]++;
+
+			mat[c][initial][y] = 1;
+			mat[c][y][initial] = 1;
+
+			dfs(initial, y, c);
+		}
+	}
+}
+
+int main(){
+	int a, b, c, q, u, v, i;
+
+	scanf("%d%d", &n, &m);
+
+	for (i = 0; i < m; i++){
+		scanf("%d%d%d", &a, &b, &c);
+
+		color.insert(c);
+
+		g[a].pb({b, c});
+		g[b].pb({a, c});
+	}
+
+	for (auto it = color.begin(); it != color.end(); it++){
+		c = *it;
+
+		for (i = 1; i <= n; i++){
+			dfs(i, i, c);
+
+			memset(mat[c], 0, sizeof(mat[c]));
+		}
+	}
+
+	scanf("%d", &q);
+
+	for (i = 0; i < q; i++){
+		scanf("%d%d", &u, &v);
+
+		printf("%d\n", res[u][v] / 2);
+	}
+
+	return 0;
+}

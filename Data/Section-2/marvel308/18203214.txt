@@ -1,0 +1,75 @@
+#include<cstdio>
+#include<cstring>
+#include<cstdlib>
+#include<vector>
+#include<queue>
+using namespace std;
+#define pp pair<int,int>
+#define ppp pair<pp,int>
+#define INF 1000000007
+int a[305][305],vis[305][305];
+bool flag=0;
+class priortise
+{
+public:
+    bool operator()(const ppp &x,const ppp &y)
+    {
+        return x.second>y.second;
+    }
+};
+int dist(int x,int y,int x1,int y1)
+{
+    if(x1==1 && y1==1)
+        return 0;
+    if(x==0 && y==0)
+        return x1-1+y1-1;
+    
+    return abs(x-x1)+abs(y-y1);
+}
+vector<pp> G[100000];
+int main()
+{
+    int n,m,p,i,j,idx,idy;
+    scanf("%d%d%d",&n,&m,&p);
+    for(i=1;i<=n;i++)
+    {
+        for(j=1;j<=m;j++)
+        {
+            scanf("%d",&a[i][j]);
+            vis[i][j]=INF;
+            G[a[i][j]].push_back(pp(i,j));
+            if(a[i][j]==p)
+            {
+                idx=i;
+                idy=j;
+            }
+        }
+    }
+    priority_queue<ppp,vector<ppp>,priortise> q;
+    q.push(ppp(pp(0,0),0));
+    vis[0][0]=0;
+    a[0][0]=0;
+    while(!q.empty())
+    {
+        int u=q.top().first.first;
+        int v=q.top().first.second;
+        //printf("u=%d v=%d dist=%d\n",u,v,vis[u][v]);
+        q.pop();
+        int si=G[a[u][v]+1].size(),xx=a[u][v]+1;
+        //printf("xx=%d si=%d\n",xx,si);
+        for(i=0;i<si;i++)
+        {
+            int u1=G[xx][i].first;
+            int v1=G[xx][i].second;
+            int d=dist(u,v,u1,v1);
+
+            if(vis[u][v]+d<vis[u1][v1])
+            {
+                vis[u1][v1]=vis[u][v]+d;
+                q.push(ppp(pp(u1,v1),vis[u1][v1]));
+            }
+        }
+    }
+    printf("%d\n",vis[idx][idy]);
+    return 0;
+}

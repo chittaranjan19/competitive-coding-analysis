@@ -1,0 +1,67 @@
+#include<bits/stdc++.h>
+#define MAXN 150009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+double arr[MAXN],dp[MAXN],s[MAXN<<2];
+map<double,int>pm;
+void upd(int p,double v,int nd,int x,int y){
+	if(x==y){
+		umax(s[nd],v);
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,v,nd<<1,x,mid);
+	else
+		upd(p,v,nd<<1|1,mid+1,y);
+	s[nd]=max(s[nd<<1],s[nd<<1|1]);		
+}
+double tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0.000000;
+	if(l<=x and y<=r)
+		return s[nd];
+	int mid=(x+y)>>1;		
+	double i1=tap(l,r,nd<<1,x,mid);
+	double i2=tap(l,r,nd<<1|1,mid+1,y);
+	return max(i1,i2);
+}
+int main(){
+	cout.precision(12);
+	int n,c=0;
+	cin>>n;
+	double pi=3.1415926535897932384626433832795;
+	for(int i=0;i<n;i++){
+		double r,h;
+		cin>>r>>h;
+		arr[i]=(r*r)*h;
+		arr[i]=arr[i]*pi;
+		pm[arr[i]]=true;
+	}
+	tr(it,pm)
+		it->ss=++c;
+	for(int i=0;i<n;i++){
+		dp[i]=arr[i]+tap(1,pm[arr[i]]-1,1,1,c);
+		upd(pm[arr[i]],dp[i],1,1,c);
+	}
+	double mx=0;
+	for(int i=0;i<n;i++)
+		umax(mx,dp[i]);
+	cout<<fixed<<mx<<endl;	
+	return 0;
+}

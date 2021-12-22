@@ -1,0 +1,100 @@
+#include <cstdio>
+#include <cstring>
+#include <cassert>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
+#include <algorithm>
+#include <vector>
+#include <string> 
+#include <map>
+#include <iostream>
+#include <queue>
+#include <time.h>
+#include <set>
+#include <bitset>
+using namespace std;
+
+typedef long long ll;
+
+#define INF 1000000000
+#define eps 1e-7
+#define mod 1000000007
+#define SHIFT 100000
+
+struct point
+{
+    int x, y;
+    bool operator<(const point &p) const
+    {
+        return x < p.x;
+    }
+};
+
+int n;
+multiset <point> v[200005];
+point res[100005];
+int w[100005];
+multiset <int> baskets[400], lines[100005];
+ 
+int main()
+{
+    cin >> n;
+    for(int i = 0; i < n; i++)
+    {
+        point p;
+        scanf("%d %d", &p.x, &p.y);
+        v[p.y-p.x+SHIFT].insert(p);
+        lines[p.x].insert(p.y);
+        baskets[p.x/300].insert(p.y);
+    }
+    for(int i = 0; i < n; i++)
+        scanf("%d", &w[i]);
+    bool ok = true;
+    for(int i = 0; i < n && ok; i++)
+    {
+        if(v[w[i]+SHIFT].empty())
+        {
+            ok = false;
+            break;
+        }
+        res[i] = *v[w[i]+SHIFT].begin();
+        v[w[i]+SHIFT].erase(v[w[i]+SHIFT].begin());
+        lines[res[i].x].erase(lines[res[i].x].find(res[i].y));
+        baskets[res[i].x/300].erase(baskets[res[i].x/300].find(res[i].y));
+        int x = res[i].x;
+        for(; x >= 0; x--)
+        {
+            if(!lines[x].empty() && *lines[x].begin() <= res[i].y)
+            {
+                ok = false;
+                break;
+            }
+            if(x % 300 == 0)
+            {
+                x--;
+                break;
+            }
+        }
+        if(!ok) break;
+        for(; x >= 0; x -= 300)
+        {
+            if(!baskets[x/300].empty() && *baskets[x/300].begin() <= res[i].y)
+            {
+                ok = false;
+                break;
+            }
+        }
+    }
+    if(ok)
+    {   
+        puts("YES");
+        for(int i = 0; i < n; i++)
+            printf("%d %d\n", res[i].x, res[i].y);
+    }
+    else
+    {
+        puts("NO");
+    }
+    return 0;
+}

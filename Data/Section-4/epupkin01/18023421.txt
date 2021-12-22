@@ -1,0 +1,127 @@
+#include <iostream>
+#include <climits>
+#include <string>       // string s; cin >> s;
+#include <cstring>      // memset(b, 0, sizeof(arr)); strcpy(a1, a2); strcat(a1, a2);
+#include <cmath>
+#include <cstdio>       // getchar(), gets()
+#include <cstdlib>      // rand(), max(), min()
+#include <ctime>        // rand(): srand(int(time(0)));
+#include <algorithm>    // std::sort(a + 0, a + n); a - массв, n - кол-во эл-тов
+#include <iomanip>      // setw(4), setfill('.'), setprecision(2)
+#include <vector>
+#include <array>
+#include <fstream>      // file IO (input-output)
+#include <cctype>       // isupper()
+#include <memory>       // shared_ptr<>, uniqu_ptr<>
+#include <iterator>     // ostream_iterator<int, char> our_iter(cout, " ");
+#include <set>
+#include <map>
+#include <list>
+#include <queue>
+#define SRT srand(int(time(0)))
+
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef unsigned long long ull;
+ld pi = 3.14159265358979323;
+int ten[8] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000};
+
+typedef map<int, int> Map;
+typedef Map::iterator mIter;
+typedef pair<const int, int> mPair;
+typedef pair<int, int> Pair;
+typedef set<int> Set;
+typedef Set::iterator sIter;
+typedef list<int> List;
+typedef List::iterator lIter;
+
+const int M = 31627, S1 = 1000002, S2 = 3402;
+int spl[S2] = {2}, n, elim, chan, a[S1], st[S1], ind = 0;
+bool pm[M + 1];
+ll  Max = (ll) 1e18, sum = (ll) Max, dp[S1][3];
+
+void Resheto_Eratosfena(bool *pm, int MaxNum)
+{
+    pm[0] = pm[1] = true;
+    for (int j = 4; j <= MaxNum; j += 2)
+        pm[j] = true;
+    for (int i = 3; i * i <= MaxNum; i += 2)
+        if (!(pm[i]))
+            for (int j = i * i; j <= MaxNum; j += 2 * i)
+                pm[j] = true;
+}
+
+inline void adding_st(int a)
+{
+    bool is_simp = true;
+    if (a <= M && !pm[a])
+        st[ind++] = a;
+    else
+        for (int i = 0; spl[i] * spl[i] <= a; ++i)
+        {
+            if (a % spl[i] == 0)
+            {
+                st[ind++] = spl[i];
+                adding_st(a / spl[i]);
+                is_simp = false;
+            }
+        }
+    if (is_simp)
+        st[ind++] = a;
+}
+
+int main()
+{
+    Resheto_Eratosfena(pm, M);
+    for (int i = 3, ind = 1; i <= M; i += 2)
+        if (!pm[i])
+            spl[ind++] = i;
+    
+    scanf("%d%d%d", &n, &elim, &chan);
+    for (int i = 1; i <= n; ++i)
+        scanf("%d", a + i);
+    
+    int pot[6] =
+    {
+        a[1], a[1] + 1, a[1] - 1,
+        a[n], a[n] + 1, a[n] - 1
+    };
+    sort(pot, pot + 6);
+    int n_pot = int(unique(pot, pot + 6) - pot);
+    
+    for (int i = 0; i < n_pot; ++i)
+        if (pot[i] != 0 && pot[i] != 1)
+            adding_st(pot[i]);
+    sort(st, st + ind);
+    int *last = unique(st, st + ind);
+    
+    int i;
+    for (int *it = st; it != last; ++it)
+    {
+        for (i = 1; i <= n; ++i)
+        {
+            dp[i][1] = elim + (dp[i-1][1] > dp[i-1][0] ? dp[i-1][0] : dp[i-1][1]);
+            
+            if (a[i] % *it == 0)
+            {
+                dp[i][0] = dp[i-1][0];
+                dp[i][2] = dp[i-1][2] > dp[i-1][1] ? dp[i-1][1] : dp[i-1][2];
+            }
+            else if ( (a[i] + 1) % *it == 0 || (a[i] - 1) % *it == 0)
+            {
+                dp[i][0] = dp[i-1][0] + chan;
+                dp[i][2] = chan + (dp[i-1][2] > dp[i-1][1] ? dp[i-1][1] : dp[i-1][2]);
+            }
+            else
+                dp[i][0] = dp[i][2] = Max;
+        }
+        
+        sum = sum > dp[n][0] ? dp[n][0] : sum;
+        sum = sum > dp[n][1] ? dp[n][1] : sum;
+        sum = sum > dp[n][2] ? dp[n][2] : sum;
+    }
+    
+    cout << sum << '\n';
+    return 0;
+}

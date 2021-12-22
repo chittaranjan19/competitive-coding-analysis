@@ -1,0 +1,100 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair <int, int> pii;
+typedef long long ll;
+typedef vector <vector <ll> > matrix;
+
+const int MOD = 1000000007;
+const int INF = 50000000;
+const int MAXN = 1005;
+
+struct query {
+	int x1, y1, x2, y2, ind;
+};
+
+int n, m, mat[MAXN][MAXN], temp[MAXN][MAXN], dp[MAXN][MAXN];
+int prefU[MAXN][MAXN], prefL[MAXN][MAXN], prefS[MAXN][MAXN], ans[MAXN*MAXN];
+vector <query> q;
+
+void build(int p) {
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= m; j++) {
+			if (dp[i][j] >= p)
+				temp[i][j] = 1;
+			else
+				temp[i][j] = 0;
+			prefS[i][j] = prefS[i-1][j] + prefS[i][j-1] - prefS[i-1][j-1] + temp[i][j];
+		}
+	}
+}
+
+int check(query it, int p) {
+	int lx = it.x1 + p - 1;
+	int ly = it.y1 + p - 1;
+	if (lx > it.x2 || ly > it.y2)
+		return 0;
+	int sum = prefS[it.x2][it.y2] - prefS[lx - 1][it.y2] - prefS[it.x2][ly - 1] + prefS[lx - 1][ly - 1];
+	return sum;
+}
+
+void parallelBinarySearch(vector <query> &q, int L, int R) {
+	if (L == R) {
+		for (auto it : q)
+			ans[it.ind] = L;
+		return;
+	}
+	int mid = (L + R + 1) >> 1;
+	build(mid);
+	vector <query> qL, qR;
+	for (auto it : q) {
+		if (check(it, mid))
+			qR.pb(it);
+		else
+			qL.pb(it);
+	}
+	q.clear();
+	parallelBinarySearch(qL, L, mid-1);
+	parallelBinarySearch(qR, mid, R);
+}
+
+int main() {
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	scanf("%d %d", &n, &m);
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= m; j++) {
+			scanf("%d", &mat[i][j]);
+			if (mat[i][j]) {
+				prefU[i][j] = prefU[i-1][j] + 1;
+				prefL[i][j] = prefL[i][j-1] + 1;
+			}
+			else {
+				prefU[i][j] = 0;
+				prefL[i][j] = 0;
+			}
+			dp[i][j] = min(dp[i-1][j-1] + 1, min(prefL[i][j], prefU[i][j]));
+		}
+	}
+	int t;
+	scanf("%d", &t);
+	q.resize(t);
+	for (int i = 0; i < t; i++) {
+		scanf("%d %d %d %d", &q[i].x1, &q[i].y1, &q[i].x2, &q[i].y2);
+		q[i].ind = i;
+	}
+	parallelBinarySearch(q, 0, min(n, m));
+	for (int i = 0; i < t; i++) {
+		printf("%d\n", ans[i]);
+	}
+	return 0;
+}

@@ -1,0 +1,124 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+
+LL DP[1005][1005][2];
+int arr[1005][1005];
+
+int main()
+{
+    int n,zeroi=0,zeroj=0;
+    bool zero = false;
+    cin >> n;
+    for(int i=1;i<=n;i++)
+        for(int j=1;j<=n;j++)
+            scanf("%d",&arr[i][j]);
+    for(int i=1;i<=n;i++)
+    {
+        for(int j=1;j<=n;j++)
+        {
+            int counter1=0,counter2=0;
+            if(arr[i][j] == 0)
+                zero = true,zeroi=i,zeroj=j,counter1 = INF_MAX,counter2=INF_MAX;
+            while(arr[i][j] % 2 == 0 && arr[i][j] != 0)
+                counter1++,arr[i][j]/=2;
+            while(arr[i][j] % 5 == 0 && arr[i][j] != 0)
+                counter2++,arr[i][j]/=5;
+            DP[i][j][0] = counter1;
+            DP[i][j][1] = counter2;
+            if(i == 1 && j == 1)
+                continue;
+            if(i == 1)
+                DP[i][j][0] += DP[i][j-1][0],DP[i][j][1] += DP[i][j-1][1];
+            else if(j == 1)
+                DP[i][j][0] += DP[i-1][j][0],DP[i][j][1] += DP[i-1][j][1];
+            else
+            {
+                if(DP[i][j-1][0] > DP[i-1][j][0])
+                    DP[i][j][0] += DP[i-1][j][0];
+                else DP[i][j][0] += DP[i][j-1][0];
+                if(DP[i][j-1][1] > DP[i-1][j][1])
+                    DP[i][j][1] += DP[i-1][j][1];
+                else DP[i][j][1] += DP[i][j-1][1];
+            }
+        }
+    }
+    if(min(DP[n][n][0],DP[n][n][1]) > 1 && zero)
+    {
+        cout << 1 << endl;
+        for(int i=0;i<zeroi;i++)
+            cout << "D";
+        for(int i=0;i<zeroj;i++)
+            cout << "R";
+        for(int i=zeroi;i<n;i++)
+            cout << "D";
+        for(int j=zeroj;j<n;j++)
+            cout << "R";
+    }
+    else
+    {
+        if(DP[n][n][0] < DP[n][n][1])
+        {
+            cout << DP[n][n][0] << endl;
+            int x = n,y = n;
+            while(1)
+            {
+                if(x == 1 && y == 1)
+                    break;
+                if(x == 1)
+                    cout << "R",y--;
+                else if(y == 1)
+                    cout << "D",x--;
+                else if(DP[x][y-1][0] < DP[x-1][y][0])
+                    cout << "R",y--;
+                else cout << "D",x--;
+            }
+        }
+        else
+        {
+            cout << DP[n][n][1] << endl;
+            int x = n,y = n;
+            while(1)
+            {
+                if(x == 1 && y == 1)
+                    break;
+                if(x == 1)
+                    cout << "R",y--;
+                else if(y == 1)
+                    cout << "D",x--;
+                else if(DP[x][y-1][1] < DP[x-1][y][1])
+                    cout << "R",y--;
+                else cout << "D",x--;
+            }
+        }
+    }
+    return 0;
+}

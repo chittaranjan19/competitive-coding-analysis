@@ -1,0 +1,88 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <fstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+#include <stack>
+#include <bitset>
+using namespace std;
+
+#define pi acos(-1.0)
+#define eps 1e-7
+#define start 131072
+#define LINF 1000000000000000000LL
+#define pi acos(-1.0)
+#define SHIFT 225000
+#define mod 10007
+
+struct segment
+{
+	int L, R;
+	long long sum;
+	segment(int _L, int _R, long long _sum) : L(_L), R(_R), sum(_sum) {}
+	bool operator<(const segment& seg) const
+	{
+		if(sum != seg.sum)
+			return sum > seg.sum;
+		return L < seg.L;
+	}
+};
+
+long long a[100005];
+int n;
+set <segment> s1;
+set <pair<int, pair<int, long long> > > s2;
+
+int main()
+{
+	cin >> n;
+	for(int i = 0; i < n; ++i)
+	{
+		scanf("%I64d", &a[i]);
+		if(i)
+			a[i] += a[i-1];
+	}
+	s1.insert(segment(0, n - 1, a[n-1]));
+	s2.insert(make_pair(n - 1, make_pair(0, a[n-1])));
+	while(n--)
+	{
+		int x;
+		scanf("%d", &x);
+		--x;
+		pair<int, pair<int, long long> > p = *s2.lower_bound(make_pair(x, make_pair(-1, -1LL)));
+		s2.erase(p);
+		segment seg(p.second.first, p.first, p.second.second);
+		s1.erase(seg);
+		if(p.second.first < x)
+		{
+			long long sum = a[x-1];
+			if(p.second.first)
+				sum -= a[p.second.first-1];
+			segment s(p.second.first, x - 1, sum);
+			s1.insert(s);
+			s2.insert(make_pair(s.R, make_pair(s.L, s.sum)));
+		}
+		if(x < p.first)
+		{
+			long long sum = a[p.first] - a[x];
+			segment s(x+1, p.first, sum);
+			s1.insert(s);
+			s2.insert(make_pair(s.R, make_pair(s.L, s.sum)));
+		}
+		if(s1.empty())
+			puts("0");
+		else
+			printf("%I64d\n", s1.begin()->sum);
+	}
+	return 0;
+}

@@ -1,0 +1,40 @@
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+int num,i,j,k,n,x,a[22][22],b[11111][27],e[11111],f[11111],qx[11111],qy[11111],fi,fr;
+char s[22][22];
+bool w[11111],u[11111];
+void add(int k, int i, int j) {
+  int c=s[i][j]-'a';
+  if (b[k][c]==0) b[k][c]=++num;
+  a[i][j]=b[k][c];
+  qx[fr]=i; qy[fr++]=j;
+}
+void dfs(int i) {
+  if (u[i]) return;
+  for (int j=0; j<26; j++) if (b[i][j]!=0) {
+    dfs(b[i][j]);
+    if (!u[i]) {
+      u[i]=true;
+      f[i]=f[b[i][j]];
+    } else if (w[i]) f[i]=max(f[i],f[b[i][j]]); else f[i]=min(f[i],f[b[i][j]]);
+  }
+  u[i]=true;
+  f[i]+=e[i];
+}
+int main() {
+  scanf("%d",&n);
+  for (i=0; i<n; i++) scanf("%s",s[i]);
+  e[0]=int(s[0][0]=='a')-int(s[0][0]=='b');
+  fi=0; fr=1;
+  while (fi<fr) {
+    i=qx[fi];  j=qy[fi++];
+    k=a[i][j]; w[k]=(i+j)&1;
+    e[k]=int(s[i][j]=='a')-int(s[i][j]=='b');
+    if (i<n-1) add(k,i+1,j);
+    if (j<n-1) add(k,i,j+1);
+  }
+  dfs(0);
+  if (f[0]==0) puts("DRAW"); else puts(f[0]>0?"FIRST":"SECOND");
+  return 0;
+}

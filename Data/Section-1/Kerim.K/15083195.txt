@@ -1,0 +1,87 @@
+//Cok tavsanin pesinde kosan hicbrini yakalmaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define lg(x) ceil(log2(x))
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN][6],s[MAXN<<2][5];
+int n,m,k;
+void build(int z,int nd,int x,int y){
+	if(x==y){
+		s[nd][z]=arr[x][z];
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(z,nd*2,x,mid);
+	build(z,nd*2+1,mid+1,y);
+	s[nd][z]=max(s[nd*2][z],s[nd*2+1][z]);
+}
+int tap(int z,int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return s[nd][z];
+	int mid=(x+y)>>1;
+	int i1=tap(z,l,r,nd*2,x,mid);
+	int i2=tap(z,l,r,nd*2+1,mid+1,y);
+	return max(i1,i2);		
+}
+int calc(int h){
+	for(int i=1;i+h<=n;i++){
+		int sum=0;
+		for(int j=1;j<=m;j++)
+			sum+=tap(j,i,i+h,1,1,n);
+		if(sum<=k)
+			return 1;	
+	}
+	return 0;		
+}
+void get(int f){
+	for(int i=1;i+f<=n;i++){
+		int sum=0;
+		for(int j=1;j<=m;j++)
+			sum+=tap(j,i,i+f,1,1,n);
+		if(sum<=k){
+			for(int j=1;j<=m;j++)
+				cout<<tap(j,i,i+f,1,1,n)<<" ";
+			cout<<endl;	
+			return;	
+		}
+	}
+	for(int j=1;j<=m;j++)
+		cout<<0<<" ";
+	cout<<endl;	
+}
+int main(){
+	cin>>n>>m>>k;
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=m;j++)
+			cin>>arr[i][j];			
+	for(int i=1;i<=m;i++)
+		build(i,1,1,n);	
+	int st=0,en=n;
+	while(st+1<en){
+		int mid=(st+en)>>1;
+		if(calc(mid))
+			st=mid;
+		else
+			en=mid;	
+	}
+	get(st);
+	return 0;
+}

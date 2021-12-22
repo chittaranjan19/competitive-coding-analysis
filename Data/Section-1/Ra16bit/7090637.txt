@@ -1,0 +1,48 @@
+#include <cstdio>
+#include <vector>
+using namespace std;
+int n,m,qk,i,j,k,ii,x,y,z,a[502],b[502];
+double p[502],q[502],d[104][104],f[104][104],e[104][104],eps=1e-7;
+vector<int> g[502];
+int main() {
+  scanf("%d%d%d",&n,&m,&qk);
+  qk--;
+  for (i=1; i<=n; i++) {
+    scanf("%d",&a[i]);
+    if (i==1 || a[i]==1) b[i]=++z;
+  }
+  while (m--) {
+    scanf("%d%d",&x,&y);
+    g[x].push_back(y);
+    g[y].push_back(x);
+  }
+  for (i=1; i<n; i++) if (b[i]) {
+    for (j=1; j<=n; j++) p[j]=q[j]=0;
+    p[i]=1;
+    bool was=true,first=true;
+    while (was) {
+      was=false;
+      for (j=1; j<=n; j++) if (p[j]>eps && (a[j]==0 || first)) {
+        was=true;
+        for (k=0; k<g[j].size(); k++) q[g[j][k]]+=p[j]/double(g[j].size());
+      } else if (a[j]==1) q[j]+=p[j];
+      for (j=1; j<=n; j++) { p[j]=q[j]; q[j]=0; }
+      first=false;
+    }
+    for (j=1; j<=n; j++) if (b[j]) d[b[i]][b[j]]=p[j];
+  }
+  d[z][z]=1;
+  for (i=1; i<=z; i++) for (j=1; j<=z; j++) f[i][j]=int(i==j);
+  for (ii=30; ii>=0; ii--) {
+    for (i=1; i<=z; i++) for (j=1; j<=z; j++) {
+      e[i][j]=0;
+      for (k=1; k<=z; k++) e[i][j]+=f[i][k]*f[k][j];
+    }
+    if (qk&(1<<ii)) for (i=1; i<=z; i++) for (j=1; j<=z; j++) {
+      f[i][j]=0;
+      for (k=1; k<=z; k++) f[i][j]+=e[i][k]*d[k][j];
+    } else for (i=1; i<=z; i++) for (j=1; j<=z; j++) f[i][j]=e[i][j];
+  }
+  printf("%.7lf\n",f[1][z]);
+  return 0;
+}

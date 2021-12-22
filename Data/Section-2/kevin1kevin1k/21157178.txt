@@ -1,0 +1,71 @@
+n, m, k = map(int, raw_input().split())
+Map = []
+for i in range(n):
+    Map.append([i for i in raw_input()])
+
+# print Map
+
+DIR = [
+    [0,  1],
+    [0, -1],
+    [ 1, 0],
+    [-1, 0]
+]
+
+def flood(x, y, l, h, yes):
+    h.append( (x, y) )
+    if Map[x][y] == '.':
+        Map[x][y] = l
+        yes.append( (x, y) )
+    else:
+        return
+    
+    for d in DIR:
+        x1, y1 = x + d[0], y + d[1]
+        if 0 <= x1 < n and 0 <= y1 < m and (x1, y1) not in h:
+            flood(x1, y1, l, h, yes)
+
+
+for i in [0, n - 1]:
+    for j in range(m):
+        if Map[i][j] == '.':
+            flood(i, j, 'O', [], [])
+
+for i in range(n):
+    for j in [0, m - 1]:
+        if Map[i][j] == '.':
+            flood(i, j, 'O', [], [])
+
+L = 0
+D = {}
+for i in range(n):
+    for j in range(m):
+        if Map[i][j] == '.':
+            L += 1
+            y = []
+            flood(i, j, L, [], y)
+            # print y
+            Y = len(y)
+            if Y not in D:
+                D[Y] = [y]
+            else:
+                D[Y].append(y)
+
+ans = 0
+for i in range(L - k):
+    ln = min(D.keys())
+    lake = D[ln][-1]
+    D[ln].remove(lake)
+    if D[ln] == []:
+        del D[ln]
+    for xy in lake:
+        x, y = xy
+        Map[x][y] = '*'
+    ans += ln
+
+print ans
+for i in range(n):
+    for j in range(m):
+        if Map[i][j] not in ['.', '*']:
+            Map[i][j] = '.'
+    print ''.join(Map[i])

@@ -1,0 +1,67 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long int LL;
+
+LL arr[100][10000],c;
+
+vector<LL> V[100];
+
+LL foo(LL i, LL j)
+{
+	if(arr[i][j]==1) return 0;
+	LL low=0,high=V[i].size()-1,mid,x,y;
+	while(low<=high)
+	{
+		mid=(low+high)/2;
+		if(j<V[i][mid]) high=mid-1;
+		else low=mid+1;
+	}
+	if(high==-1)
+	{
+		x=V[i][0];
+		y=-c+V[i].back();
+	}
+	else if(low==V[i].size())
+	{
+		x=V[i].back();
+		y=c+V[i][0];
+	}
+	else
+	{
+		x=V[i][low];
+		y=V[i][high];
+	}
+	return min(fabs(x-j),fabs(y-j));
+}
+
+int main()
+{
+	LL r,i,j,l,flag=0,ans=1000000000;
+	cin>>r>>c;
+	char ch;
+	for(i=0;i<r;i++)
+	{
+		for(j=0;j<c;j++)
+		{
+			cin>>ch;
+			arr[i][j]=ch-'0';
+			if(arr[i][j]==1) V[i].push_back(j);
+		}
+		if(V[i].size()==0) flag=1;
+	}
+	if(flag==1) {cout<<"-1"<<endl; return 0;}
+	LL A[r][c];
+	for(i=0;i<r;i++)
+	{
+		for(j=0;j<c;j++)
+		{
+			A[i][j]=foo(i,j);
+			if(i>0) A[i][j]+=A[i-1][j];
+			if(i==r-1) ans=min(ans,A[i][j]);
+		}
+	}
+	cout<<ans<<endl;
+	return 0;
+}

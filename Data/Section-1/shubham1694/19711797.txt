@@ -1,0 +1,79 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const ll inf = 1ll<<60;
+const int maxn = 5010;
+
+int s, e, n;
+ll x[maxn], a[maxn], b[maxn], c[maxn], d[maxn];
+ll dp[maxn][maxn];
+
+ll solve(int cur, int ac, int bc)
+{
+	if(cur > n){
+		if(ac==0)
+			return 0;
+		return inf;
+	}
+	if(ac==0 && bc==0 && cur>1)
+		return inf;
+	if(dp[cur][ac] != -1)
+		return dp[cur][ac];
+	ll ret = inf;
+	if(cur == s){
+		if(bc)
+			ret = min(ret, c[cur] + x[cur] + solve(cur+1, ac, bc-1));
+		ret = min(ret, d[cur] - x[cur] + solve(cur+1, ac+1, bc));
+	}
+	else if(cur == e){
+		if(ac)
+			ret = min(ret, a[cur] + x[cur] + solve(cur+1, ac-1, bc));
+		ret = min(ret, b[cur] - x[cur] + solve(cur+1, ac, bc+1));
+	}
+	else{
+		if(ac && bc)
+			ret = min(ret, a[cur] + x[cur]*2 + c[cur] + solve(cur+1, ac-1, bc-1));
+		if(ac)
+			ret = min(ret, a[cur] + d[cur] + solve(cur+1, ac, bc));
+		if(bc)
+			ret = min(ret, + b[cur] + c[cur] + solve(cur+1, ac, bc));
+		ret = min(ret, b[cur] - x[cur]*2 + d[cur] + solve(cur+1, ac+1, bc+1));
+	}
+	return dp[cur][ac] = ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	memset(dp, -1, sizeof(dp));
+	int i, j;
+	scanf("%d%d%d", &n, &s, &e);
+	for(i=1; i<=n; i++)
+		scanf("%lld", &x[i]);
+	for(i=1; i<=n; i++)
+		scanf("%lld", &a[i]);
+	for(i=1; i<=n; i++)
+		scanf("%lld", &b[i]);
+	for(i=1; i<=n; i++)
+		scanf("%lld", &c[i]);
+	for(i=1; i<=n; i++)
+		scanf("%lld", &d[i]);
+	ll ans = solve(1, 0, 0);
+	printf("%lld\n", ans);
+	return 0;
+}

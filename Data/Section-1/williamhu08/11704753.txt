@@ -1,0 +1,56 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 200010;
+const char DNA[] = "ACGT";
+
+int N, M, K;
+char S[MAXN], T[MAXN];
+int add[MAXN];
+bitset<MAXN> ans, ch[4];	//usa ioi = daad. 
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d %d %s %s", &N, &M, &K, S, T);
+	//nice! use a bitmask for each one :P
+	for (int i = 0; i < N; i++) {
+		S[i] = find(DNA, DNA + 4, S[i]) - DNA;
+		ans[i] = true;
+	}
+	for (int i = 0; i < M; i++) {
+		T[i] = find(DNA, DNA + 4, T[i]) - DNA;
+	}
+	for (int i = 0; i < 4; i++) {
+		fillchar(add, 0);
+		for (int j = 0; j < N; j++) {
+			if (S[j] != i) {
+				continue;
+			}
+			add[max(0, j - K)]++;
+			if (j + K + 1 < N) {
+				add[j + K + 1]--;
+			}
+		}
+		int s = 0;
+		for (int j = 0; j < N; j++) {
+			ch[i][j] = bool(s += add[j]);
+		}
+	}
+	//apparently, this can be brute forced with bitmasks :P
+	//so here I go, sneaking my way into Accepted
+	for (int i = 0; i < M; i++) {
+		//can it start at this position?
+		ans &= (ch[T[i]] >> i);
+	}
+	printf("%zu\n", ans.count());
+}

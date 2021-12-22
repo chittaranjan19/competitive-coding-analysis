@@ -1,0 +1,81 @@
+//Cok tavsanin pesinde kosan hicbrini yakalmaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define lg(x) ceil(log2(x))
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN][4],ata[MAXN],in[MAXN],out[MAXN],tim,nd[MAXN],ans[MAXN];
+vector<int>adj[MAXN];
+vector<PII>dj[MAXN];
+void dfs(int nd){
+	in[nd]=++tim;
+	tr(v,adj[nd])
+		dfs(*v);
+	out[nd]=tim;
+}
+int tap(int k){
+	if(ata[k]==k)
+		return k;
+	return ata[k]=tap(ata[k]);	
+}
+
+int main(){
+	int n,m;
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;i++)
+		ata[i]=i;
+	int c=0;
+	for(int i=1;i<=m;i++){
+		int type,v,x;
+		scanf("%d%d",&type,&v);
+		arr[i][1]=type,arr[i][2]=v;
+		if(type==1 or type==3){
+			scanf("%d",&x);
+			if(type==1){
+				ata[v] = tap(x);
+				adj[x].pb(v);
+			}
+			else
+				dj[x].pb(mp(v,++c));
+			arr[i][3]=x;
+		}
+	}
+	for(int i=1;i<=n;i++)
+		if(ata[i]==i)
+			dfs(i);
+	for(int i=1;i<=n;i++)
+		ata[i]=i;
+	int ind=0;		
+	for(int i=1;i<=m;i++){
+		int type=arr[i][1],v=arr[i][2],x=arr[i][3];
+		if(type==1)
+			ata[v] = tap(x);
+		if(type==2){
+			ind++;
+			for(int j=0;j<dj[ind].size();j++){
+				int to=dj[ind][j].ff;
+				if(tap(to)==tap(v) and in[to]<=in[v] and out[v]<=out[to])
+					ans[dj[ind][j].ss]=1;		
+			}
+		}
+	}
+	for(int i=1;i<=c;i++)
+		printf("%d\n",ans[i]);
+	return 0;
+}
+

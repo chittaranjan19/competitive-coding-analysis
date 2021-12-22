@@ -1,0 +1,152 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+/*
+vector<vector<int> > tree(10005);
+int DP[10005][7];
+
+int solve(int ind, int color, int parent)
+{
+    int &temp = DP[ind][color];
+    if(temp != -1) return temp;
+    temp = INF_MAX;
+    for(int i=1;i<=6;i++)
+        if(i != color)
+        {
+            int res = i;
+            for(int j=0;j<tree[ind].size();j++)
+                if(tree[ind][j] != parent)
+                    res+=solve(tree[ind][j], i, ind);
+            temp = min(temp, res);
+        }
+    return temp;
+}
+
+bool visited[10006];
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int n;
+    while(cin >> n, n)
+    {
+        string s;
+        getline(cin, s);
+        setdp(DP);
+        for(int i=0;i<n;i++)
+            tree[i].clear(),visited[i] = 0;
+        for(int i=0;i<n;i++)
+        {
+            getline(cin, s);
+            for(int j=3;j<s.size();j++)
+            {
+                int temp = 0;
+                while(j < s.size() && s[j] != ' ')
+                    temp*=10,temp+=s[j] - '0',j++;
+                visited[temp] = 1;
+                tree[i].pb(temp);
+                tree[temp].pb(i);
+            }
+        }
+        for(int i=0;i<n;i++)
+            if(!visited[i])
+                cout << solve(i, 0, i) << "\n";
+    }
+    return 0;
+}
+*/
+
+int arr[100005];
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int n,x,cnt = 0;
+    bool win;
+    cin >> n;
+    for(int i=0;i<n;i++)
+    {
+        cin >> x;
+        if(i == n-1) win = x - 1;
+        cnt+=x-1;
+        arr[i] = x;
+    }
+    if((n % 2 == 0 && cnt == n / 2) || (win && cnt < (n + 1) / 2) || (!win && cnt >= (n + 1) / 2))
+    {
+        cout << 0;
+        return 0;
+    }
+    if(!win)
+    {
+        cnt = n - cnt;
+        for(int i=0;i<n;i++)
+            arr[i] = 3 - arr[i];
+    }
+    vector<pair<int,int> > res;
+    res.pb(mp(1, cnt));
+    res.pb(mp(cnt, 1));
+    for(int i=2;i<=sqrt(cnt);i++)
+    {
+        if(cnt % i == 0)
+        {
+            int tmp = 0,tmp2 = 0;
+            bool test = 1;
+            for(int j=0;j<n && test;j++)
+            {
+                if(arr[j] == 1)
+                    tmp++;
+                else tmp2++;
+                if(tmp2 == i) tmp = 0, tmp2 = 0;
+                if(tmp == i) test = 0;
+            }
+            if(test) res.pb(mp(cnt / i, i));
+            if(cnt / i == i) continue;
+            test = 1;
+            tmp = 0, tmp2 = 0;
+            for(int j=0;j<n && test;j++)
+            {
+                if(arr[j] == 1)
+                    tmp++;
+                else tmp2++;
+                if(tmp2 == cnt / i) tmp = 0, tmp2 = 0;
+                if(tmp == cnt / i) test = 0;
+            }
+            if(test) res.pb(mp(i, cnt / i));
+        }
+    }
+    sort(res.begin(), res.end());
+    cout << res.size() << "\n";
+    for(int i=0;i<res.size();i++)
+        cout << res[i].first << " " << res[i].second << "\n";
+    return 0;
+}

@@ -1,0 +1,77 @@
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+
+#define min(a,b) a<b?a:b
+
+int dp[35][35][100];
+
+int n,m,c;
+
+void solve( )
+{
+    int i,j;
+
+    memset(dp,63,sizeof(dp));
+
+    for( i=0;i<=30;i++)
+    {
+        for(j=0;j<=30;j++)
+            dp[i][j][0]=0;
+    }
+    for( i=1;i<=30;i++)
+    {
+        for(j=1;j<=30;j++)
+        if(i*j<=50)
+            dp[i][j][i*j]=0;
+    }
+
+
+    for(i=1;i<=30;i++)    //i表示行的枚举
+    {
+        for(j=1;j<=30;j++)  //列的枚举
+        {
+            int flag1= min(i*j,50);//最多能切多少个
+            for(int k=1;k<=flag1;k++)
+            {
+                for(int u=1;u<=i/2;u++)  //横着切
+                {
+                    int flag2=min(u*j,k);
+                    for(int w=0;w<=flag2;w++)
+                    {
+                        if(dp[i][j][k]>dp[u][j][w]+dp[i-u][j][k-w]+j*j)
+                            dp[i][j][k]=dp[u][j][w]+dp[i-u][j][k-w]+j*j;
+
+                    }
+               }
+               for(int v=1;v<=j/2;v++)
+               {
+                   int flag2=min(v*i,k);
+                    for(int w=0;w<=flag2;w++)
+                    {
+                        if(dp[i][j][k]>dp[i][v][w]+dp[i][j-v][k-w]+i*i)
+                            dp[i][j][k]=dp[i][v][w]+dp[i][j-v][k-w]+i*i;
+
+                    }
+               }
+            }
+        }
+    }
+
+    return ;
+}
+
+int main()
+{
+    int T;
+    solve();
+    scanf("%d",&T);
+    while(T--)
+    {
+
+        scanf("%d%d%d",&n,&m,&c);
+        printf("%d\n",dp[n][m][c]);
+
+    }
+    return 0;
+}

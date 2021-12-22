@@ -1,0 +1,87 @@
+#include<bits/stdc++.h>
+#define MAXN 200009
+#define INF 1000000007
+#define imx 2147483647
+#define db double
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll arr[MAXN],par[MAXN];
+vector<ll>m,b;
+int cross(int l1,int l2,int l3){
+	return (db(db(m[l1]-m[l2])/db(b[l1]-b[l2]))<=db(db(m[l1]-m[l3])/db(b[l1]-b[l3])));
+}
+//int Yross(int l1,int l2,int l3){
+//	return (db(db(b[l1]-b[l2])/db(m[l1]-m[l2]))>db(db(b[l1]-b[l3])/db(m[l1]-m[l3])));
+//}
+void upd(ll x,ll y){
+	m.pb(x);b.pb(y);
+	while(m.size()>=3 and cross(m.size()-3,m.size()-2,m.size()-1)){
+		m.erase(m.end()-2);
+		b.erase(b.end()-2);
+	}
+}
+ll tap(ll x){
+	int st=0,en=m.size()-1;
+	while(st+1<en){
+		int mid=(st+en)>>1;
+		if(x*b[mid]*1LL+m[mid]<x*b[mid+1]*1LL+m[mid+1])
+			st=mid;
+		else
+			en=mid;	
+	}
+	ll sum=-LLINF;
+	for(int i=st;i<=en;i++)
+		umax(sum,x*b[i]*1LL+m[i]);
+	return sum;	
+}
+void reset(){
+	m.resize(0);b.resize(0);
+}
+int main(){
+	int n;
+	scanf("%d",&n);
+	ll ans=0,mx=0;
+	for(int i=1;i<=n;i++){
+		scanf("%lld",arr+i);
+		par[i]=par[i-1]+arr[i];
+		ans+=i*arr[i];mx=ans;
+	}
+	/*
+	al*(r-l)-(sum(l+1,r))=(al*r-par[r])-(al*l-par[l])
+	sum(l,r-1)-ar*(r-l)=(par[r-1]-ar*r)-(par[l-1]-ar*l)
+	Brute Force::
+	for(int i=n;i>1;i--)
+		for(int j=i-1;j>=1;j--)
+			umax(mx,ans+((par[i-1]-arr[i]*i)+(arr[i]*j-par[j-1])));		
+	for(int i=1;i<n;i++)
+		for(int j=i+1;j<=n;j++)
+			umax(mx,ans+((arr[i]*j-par[j])+(par[i]-arr[i]*i)));			
+	*/
+	upd(0,1);
+	for(int i=2;i<=n;i++){
+		umax(mx,ans+((par[i-1]-arr[i]*i)+tap(arr[i])));
+		upd(-par[i-1],i);
+	}
+	reset();
+	upd(-par[n],-n);
+	for(int i=n-1;i>=1;i--){
+		umax(mx,ans+(tap(-arr[i])+(par[i]-arr[i]*i)));
+		upd(-par[i],-i);
+	}
+	printf("%lld\n",mx);
+	return 0;
+}

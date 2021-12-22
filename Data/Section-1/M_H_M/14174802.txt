@@ -1,0 +1,78 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <algorithm>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<ll, ll> pii;
+typedef pair<pii, ll> piii;
+
+const int N = 200 * 1000 + 100;
+const ll oo = 1e18;
+
+ll seg[4 * N], lzy[4 * N];
+int n, m;
+ll c[N];
+ll dp[N];
+piii q[N];
+
+void shift(int v){
+	seg[2 * v + 0] += lzy[v];
+	seg[2 * v + 1] += lzy[v];
+	lzy[2 * v + 0] += lzy[v];
+	lzy[2 * v + 1] += lzy[v];
+	lzy[v] = 0;
+}
+
+void update(int v, int s, int e, int l, int r, ll val){
+	if(r <= s || e <= l) return;
+	if(l <= s && e <= r){
+		seg[v] += val;
+		lzy[v] += val;
+		return;
+	}
+	shift(v);
+	int mid = (s + e) / 2;
+	update(2 * v + 0, s, mid, l, r, val);
+	update(2 * v + 1, mid, e, l, r, val);
+	seg[v] = max(seg[2 * v + 0], seg[2 * v + 1]);
+}
+
+ll get(int v, int s, int e, int l, int r){
+	if(r <= s || e <= l) return -oo;
+	if(l <= s && e <= r) return seg[v];
+	shift(v);
+	int mid = (s + e) / 2;
+	return max(get(2 * v + 0, s, mid, l, r), get(2 * v + 1, mid, e, l, r));
+}
+
+
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	for(int i = 1; i <= n; ++i) 
+		cin >> c[i];	
+	for(int i = 0; i < m; ++i)
+		cin >> q[i].X.Y >> q[i].X.X >> q[i].Y;
+	sort(q, q + m);
+	int t = 0;
+	for(int i = 1; i <= n; ++i){
+		dp[i] = get(1, 0, n + 1, 0, i);
+		update(1, 0, n + 1, i, i + 1, dp[i]);
+		update(1, 0, n + 1, 0, i, -c[i]);
+		while(q[t].X.X == i){
+			update(1, 0, n + 1, 0, q[t].X.Y, q[t].Y);
+			t ++;
+		}
+	}
+	cout << max(0LL, get(1, 0, n + 1, 0, n + 1)) << "\n";
+	return 0;
+}

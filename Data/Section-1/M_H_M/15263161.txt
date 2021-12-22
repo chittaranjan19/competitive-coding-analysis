@@ -1,0 +1,97 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 300 * 1000 + 100;
+
+int n;
+pii p[N];
+
+struct node{
+	int l, r, bst, sz;
+	node(){
+		l = r = bst = sz = 0;
+	}
+};
+
+node seg[N];
+
+node merge(int s, int mid, int e, node a, node b){
+	node c;
+	c.l = a.l;
+	c.r = b.r;
+	if(a.l == mid - s)
+		c.l += b.l;
+	if(b.r == e - mid)
+		c.r += a.r;
+	c.bst = max(a.bst, b.bst);
+	c.bst = max(c.bst, a.r + b.l);
+	c.sz = a.sz + b.sz - (a.r && b.l);
+	return c;
+}
+
+void add(int v, int s, int e, int p){
+	if(p < s || p >= e) return;
+	if(e - s == 1){
+		seg[v].l = seg[v].r = seg[v].bst = seg[v].sz = 1;
+		return;
+	}
+	int mid = (s + e) / 2;
+	add(2 * v + 0, s, mid, p);
+	add(2 * v + 1, mid, e, p);
+	seg[v] = merge(s, mid, e, seg[2 * v + 0], seg[2 * v + 1]);
+}
+
+map<int, int> l;
+map<int, int> r;
+map<pii, int> w;
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for(int i = 0; i < n; ++i){
+		cin >> p[i].X >> p[i].Y;
+		p[i].X --; p[i].Y --;
+	}
+	sort(p, p + n);
+	int L = n, R = 0;
+	int ans = 0;
+	for(int i = n; i --;){
+		int x = p[i].Y;
+		L = min(L, x);
+		R = max(R, x + 1);
+		add(1, 0, n, x);
+		if(seg[1].sz > 2) continue;
+		if(seg[1].sz == 2) w[{L, R}] ++;
+		if(seg[1].sz == 1){
+			l[L] ++;
+			r[R] ++;
+			ans += l[L] + r[R] + w[{L, R}];
+		}
+	}
+	cout << ans << "\n";
+	return 0;
+}

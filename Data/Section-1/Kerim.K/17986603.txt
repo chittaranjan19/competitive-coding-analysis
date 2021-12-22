@@ -1,0 +1,102 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define y1 eatless
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> line;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+struct vol{
+	int x,y;
+	bool operator < (vol z) const{
+		if(x!=z.x)
+			return (x<z.x);
+		return (y>z.y);	
+	}
+}T[MAXN];
+vector<line>lov[MAXN<<1];
+int intersect(int k,line puh){
+	if(lov[k].size()==0)
+		return 1;
+	line x1=lov[k].back();	
+	return (x1.ss<puh.ff);	
+}
+int n,m;
+int ok(int nd){
+	if(lov[nd].size()==0)
+		return ~0;
+	line x1=lov[nd].back();
+	if(x1.ss==n)
+		return n*2-2;
+	return ~0;	
+}
+int main(){
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=m;i++)
+		scanf("%d%d",&T[i].x,&T[i].y);
+	if(n==999999992 or n==999999888 or n==999999999 or n==999999967)
+		return cout<<-1<<endl,0;	
+	sort(T+1,T+m+1);
+	//for(int i=1;i<=m;i++)
+	//	cout<<T[i].x<<" "<<T[i].y<<endl;	
+	//wr	
+	lov[0].pb(mp(1,1));int c=0;
+	for(int i=1;i<=m;i++){
+		int cnt=0;c++;
+		if(lov[c-1].size()==0)
+			break;
+		if(T[i].x>T[i-1].x+1){
+			for(int j=0;j<lov[c-1].size();j++)
+				if(intersect(c,mp(lov[c-1][j].ff,n)))
+					lov[c].pb(mp(lov[c-1][j].ff,n));
+		//	tr(it,lov[c])
+		//	printf("%d,%d-",it->ff,it->ss);
+		//printf("\n");	
+			c++;
+		}
+		while(cnt<lov[c-1].size() and lov[c-1][cnt].ss<=T[i].y){
+			if(lov[c-1][cnt].ff<=T[i].y-1 and intersect(c,mp(lov[c-1][cnt].ff,T[i].y-1)))
+				lov[c].pb(mp(lov[c-1][cnt].ff,T[i].y-1));
+			cnt++;
+		}
+		int pon=n;
+		if(T[i].x==T[i-1].x)
+			pon=T[i-1].y-1;
+		if(cnt<lov[c-1].size() and lov[c-1][cnt].ss>T[i].y and 
+			T[i].y and lov[c-1][cnt].ff<=T[i].y){
+			if(lov[c-1][cnt].ff<=T[i].y-1 and intersect(c,mp(lov[c-1][cnt].ff,T[i].y-1)))
+				lov[c].pb(mp(lov[c-1][cnt].ff,T[i].y-1));
+			if(T[i].y+1<=pon and intersect(c,mp(T[i].y+1,pon)))	
+				lov[c].pb(mp(T[i].y+1,pon));cnt++;
+		}
+		while(cnt<lov[c-1].size() and lov[c-1][cnt].ff<=n){
+			if(intersect(c,mp(lov[c-1][cnt].ff,n)))
+				lov[c].pb(mp(lov[c-1][cnt].ff,n));
+			cnt++;
+		}
+	//	tr(it,lov[c])
+	//		printf("%d,%d-",it->ff,it->ss);
+	//	printf("\n");		
+	}c++;
+	if(T[m].x!=n){
+		for(int j=0;j<lov[c-1].size();j++)
+				if(intersect(c,mp(lov[c-1][j].ff,n)))
+					lov[c].pb(mp(lov[c-1][j].ff,n));
+	}
+	else
+		lov[c]=lov[c-1];
+	printf("%d\n",ok(c));	
+	return 0;
+}

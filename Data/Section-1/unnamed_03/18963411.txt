@@ -1,0 +1,101 @@
+#include<cstdio>
+#include<cstring>
+#include<iostream>
+#include<cmath>
+#include<algorithm>
+#include<vector>
+using namespace std;
+const int maxn = 100000 + 100 ;
+vector <pair <int,int> > edge[maxn];
+int n,m,q,p[maxn],BIG[maxn];
+bool used[maxn];
+vector <int> temp[maxn],appear[maxn],big;
+vector< vector<int> >comb;
+int cnt[500][maxn];
+int find(int x)
+{return p[x]==x? x:p[x]=find(p[x]);}
+int main()
+{
+	cin>>n>>m;
+	for(int i=1;i<=m;i++)
+	{
+		int x,y,c;scanf("%d%d%d",&x,&y,&c);
+		edge[c].push_back(make_pair(x,y));
+	}
+	for(int i=1;i<=n;i++)p[i]=i;
+	for(int i=1;i<=m;i++)
+	{
+		memset(used,0,sizeof(used));
+		for(int j=0;j<edge[i].size();j++)
+		{
+			int a=find(edge[i][j].first),b=find(edge[i][j].second);
+			if(a!=b)p[a]=b;
+		}
+		for(int j=0;j<edge[i].size();j++)
+		{
+			int x=edge[i][j].first,y=edge[i][j].second;
+			int a=find(x),b=find(y);
+			if(!used[x])temp[a].push_back(x),used[x]=1;
+			if(!used[y])temp[b].push_back(y),used[y]=1;
+		}
+		for(int j=0;j<edge[i].size();j++)
+		{
+			int x=edge[i][j].first,y=edge[i][j].second;
+			if(temp[x].size()>0)comb.push_back(temp[x]),temp[x].clear();
+			if(temp[y].size()>0)comb.push_back(temp[y]),temp[y].clear();
+			used[x]=used[y]=0;
+			p[x]=x;p[y]=y;
+		}
+	}
+	for(int i=0;i<comb.size();i++)
+	for(int j=0;j<comb[i].size();j++)
+	appear[comb[i][j]].push_back(i);
+	
+	memset(BIG,0,sizeof(BIG));
+	for(int i=1;i<=n;i++)
+	if(appear[i].size()>450)
+	{
+		BIG[i]=big.size();
+		big.push_back(i);
+	}
+	else BIG[i]=-1;
+	
+	memset(cnt,0,sizeof(cnt));
+	for(int i=0;i<big.size();i++)
+	{
+		int x=big[i];
+		for(int j=0;j<appear[x].size();j++)
+		{
+			int y=appear[x][j];
+			for(int k=0;k<comb[y].size();k++)
+			cnt[i][comb[y][k]]++;
+		}
+	}	
+/*	cout<<"*******************"<<endl;
+	for(int i=1;i<=n;i++)
+	{
+		for(int j=0;j<appear[i].size();j++)
+		cout<<appear[i][j]<<" ";cout<<endl;
+	}*/
+	cin>>q;
+	for(int i=1;i<=q;i++) 
+	{
+		int x,y;scanf("%d%d",&x,&y);
+		if(BIG[x]==-1)swap(x,y);
+		if(BIG[x]!=-1)printf("%d\n",cnt[BIG[x]][y]);
+		else 
+		{
+			int ans=0,cur1=0,cur2=0,l1=appear[x].size(),l2=appear[y].size();
+//			cout<<"*"<<l1<<" "<<l2<<endl;
+			while(cur1<l1&&cur2<l2)
+			{
+				if(appear[x][cur1]==appear[y][cur2])
+				cur1++,cur2++,ans++;
+				else if(appear[x][cur1]<appear[y][cur2])cur1++;
+				else cur2++;
+			}
+			printf("%d\n",ans);
+		}
+	}
+	return 0;
+}

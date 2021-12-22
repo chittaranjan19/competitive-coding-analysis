@@ -1,0 +1,160 @@
+#include <iostream>
+#include <set>
+#include <cstdio>
+
+using namespace std;
+
+static struct IO {
+	char tmp[1 << 10];
+ 
+	// fast input routines
+	char cur;
+ 
+//#define nextChar() (cur = getc_unlocked(stdin))
+//#define peekChar() (cur)
+	inline char nextChar() { return cur = getc(stdin); }
+	inline char peekChar() { return cur; }
+ 
+	inline operator bool() { return peekChar(); }
+	inline static bool isBlank(char c) { return (c < '-' && c); }
+	inline bool skipBlanks() { while (isBlank(nextChar())); return peekChar() != 0; }
+ 
+	inline IO& operator >> (char & c) { c = nextChar(); return *this; }
+ 
+	inline IO& operator >> (char * buf) {
+		if (skipBlanks()) {
+			if (peekChar()) {
+				*(buf++) = peekChar();
+				while (!isBlank(nextChar())) *(buf++) = peekChar();
+			} *(buf++) = 0; } return *this; }
+ 
+	inline IO& operator >> (string & s) {
+		if (skipBlanks()) {	s.clear(); s += peekChar();
+			while (!isBlank(nextChar())) s += peekChar(); }
+		return *this; }
+ 
+	inline IO& operator >> (double & d) { if ((*this) >> tmp) sscanf(tmp, "%lf", &d); return *this;	}
+ 
+#define defineInFor(intType) \
+	inline IO& operator >>(intType & n) { \
+		if (skipBlanks()) { \
+			int sign = +1; \
+			if (peekChar() == '-') { \
+				sign = -1; \
+				n = nextChar() - '0'; \
+			} else \
+				n = peekChar() - '0'; \
+			while (!isBlank(nextChar())) { \
+				n += n + (n << 3) + peekChar() - 48; \
+			} \
+			n *= sign; \
+		} \
+		return *this; \
+	}
+ 
+defineInFor(int)
+defineInFor(unsigned int)
+defineInFor(long long)
+ 
+	// fast output routines
+ 
+//#define putChar(c) putc_unlocked((c), stdout)
+	inline void putChar(char c) { putc(c, stdout); }
+	inline IO& operator << (char c) { putChar(c); return *this; }
+	inline IO& operator << (const char * s) { while (*s) putChar(*s++); return *this; }
+ 
+	inline IO& operator << (const string & s) { for (int i = 0; i < (int)s.size(); ++i) putChar(s[i]); return *this; }
+ 
+	char * toString(double d) { sprintf(tmp, "%lf%c", d, '\0'); return tmp; }
+	inline IO& operator << (double d) { return (*this) << toString(d); }
+ 
+ 
+#define defineOutFor(intType) \
+	inline char * toString(intType n) { \
+		char * p = (tmp + 30); \
+		if (n) { \
+			bool isNeg = 0; \
+			if (n < 0) isNeg = 1, n = -n; \
+			while (n) \
+				*--p = (n % 10) + '0', n /= 10; \
+			if (isNeg) *--p = '-'; \
+		} else *--p = '0'; \
+		return p; \
+	} \
+	inline IO& operator << (intType n) { return (*this) << toString(n); }
+ 
+defineOutFor(int)
+defineOutFor(long long)
+ 
+#define endl ('\n')
+#define cout __io__
+#define cin __io__
+} __io__;
+
+typedef pair<int, int> pii;
+const int N = 300000;
+int cnt = 0;
+int unread = 0;
+int msg1[N];
+set<int> msg2[N];
+set<pii> msg3; // end, begin, (inclusive)
+
+int main() {
+	int n, q; cin >> n >> q;
+	for (int qqq = 0; qqq < q; qqq++) {
+		int t, x; cin >> t >> x; x--;
+		if (t == 1) {
+			msg1[cnt] = x;
+			msg2[x].insert(cnt);
+			if (msg3.size() == 0) {
+				msg3.insert(pii(cnt, cnt));
+			} else {
+				auto it = --msg3.end();
+				pii lastItem = *it;
+				if (lastItem.first == cnt-1) {
+					msg3.erase(it);
+					lastItem.first++;
+					msg3.insert(lastItem);
+				} else {
+					msg3.insert(pii(cnt, cnt));
+				}
+			}
+			cnt++;
+			unread++;
+		} else if (t == 2) {
+			for (auto it = msg2[x].begin(); it != msg2[x].end();) {
+				auto nextIt = it; ++nextIt;
+				int z = *it;
+				msg2[x].erase(z);
+				unread--;
+
+				auto it3 = msg3.lower_bound(pii(z, 0));
+				pii curr = *it3;
+				msg3.erase(it3);
+				if (z+1 <= curr.first) {
+					msg3.insert(pii(curr.first, z+1));
+				}
+				if (z-1 >= curr.second) {
+					msg3.insert(pii(z-1, curr.second));
+				}
+				it = nextIt;
+			}
+		} else if (t == 3) {
+			for (auto it = msg3.begin(); it != msg3.end() && (*it).second <= x;) {
+				auto nextIt = it; ++nextIt;
+				pii curr = *it;
+				int endPt = min(curr.first, x);
+				for (int z = curr.second; z <= endPt; z++) {
+					unread--;
+					msg2[msg1[z]].erase(z);
+				}
+				msg3.erase(it);
+				if (endPt+1 <= curr.first) {
+					msg3.insert(pii(curr.first, endPt+1));
+				}
+				it = nextIt;
+			}
+		}
+		cout << unread << endl;
+	}
+}

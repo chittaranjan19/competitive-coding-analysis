@@ -1,0 +1,136 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemF2 {
+    BufferedReader rd;
+
+    ProblemF2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        rd.readLine();
+        long[] a = longarr();
+        int n = a.length;
+        long[] b = longarr();
+
+        Set<Long> u = new TreeSet<>(Comparator.reverseOrder());
+        for(long x: b) {
+            u.add(x);
+        }
+
+        boolean[] skip = new boolean[n];
+
+        Map<Long, Integer> res = new HashMap<>();
+
+        int pcnt = 0;
+        for(Long x: u) {
+            long s = x;
+            int cnt = pcnt;
+            NavigableMap<Long, Set<Integer>> lo = new TreeMap<>();
+            for (int i = 0; i < n; i++) {
+                if(!skip[i]) {
+                    if (a[i] < 0) {
+                        lo.computeIfAbsent(a[i], k -> new HashSet<>()).add(i);
+                    }
+                    s += a[i];
+                    while (s < 0) {
+                        Map.Entry<Long, Set<Integer>> e = lo.firstEntry();
+                        Integer k = e.getValue().iterator().next();
+                        e.getValue().remove(k);
+                        if (e.getValue().isEmpty()) {
+                            lo.remove(e.getKey());
+                        }
+                        s += -e.getKey();
+                        cnt++;
+                        pcnt++;
+                        skip[k] = true;
+                    }
+                }
+            }
+            res.put(x, cnt);
+        }
+        StringBuilder buf = new StringBuilder();
+        for(long x: b) {
+            if(buf.length() > 0) {
+                buf.append('\n');
+            }
+            buf.append(res.get(x));
+        }
+        out(buf);
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemF2();
+    }
+}

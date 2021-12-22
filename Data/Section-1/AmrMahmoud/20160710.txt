@@ -1,0 +1,152 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000009
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+char ss[300005];
+const int sq = 547;
+set<string> s[300005];
+set<int> si[300005];
+
+struct vertex
+{
+  int next[26], go[26], link, p, cnt;
+  bool leaf;
+  char pch;
+};
+
+vertex t[300005];
+int sz;
+
+void init()
+{
+  t[0].p = t[0].link = t[0].cnt = -1;
+  memset(t[0].next, 255, sizeof t[0].next);
+  memset(t[0].go, 255, sizeof t[0].go);
+  sz = 1;
+}
+
+void add_string(const string &s)
+{
+  int v = 0;
+  for(int i=0;i<s.size();i++)
+  {
+    char c = s[i] - 'a';
+    if(t[v].next[c] == -1)
+    {
+      memset(t[sz].next, 255, sizeof t[sz].next);
+      memset(t[sz].go, 255, sizeof t[sz].go);
+      t[sz].link = t[sz].cnt = -1;
+      t[sz].p = v;
+      t[sz].pch = c;
+      t[v].next[c] = sz++;
+    }
+    v = t[v].next[c];
+  }
+  t[v].leaf = true;
+}
+
+int go(int v, char c);
+
+int get_link(int v)
+{
+  if(t[v].link == -1)
+  {
+    if(v == 0 || t[v].p == 0)
+      t[v].link = 0;
+    else t[v].link = go(get_link(t[v].p), t[v].pch);
+  }
+  return t[v].link;
+}
+
+int go(int v, char c)
+{
+  if(t[v].go[c] == -1)
+  {
+    if(t[v].next[c] != -1)
+      t[v].go[c] = t[v].next[c];
+    else t[v].go[c] = (v == 0? 0 : go(get_link(v), c));
+  }
+  return t[v].go[c];
+}
+
+int get(int v)
+{
+  if(v == 0) return 0;
+  if(t[v].cnt != -1) return t[v].cnt;
+  return t[v].cnt = get(get_link(v)) + t[v].leaf;
+}
+
+int main()
+{
+  int q, x;
+  cin >> q;
+  while(q--)
+  {
+    scanf("%d %s", &x, ss);
+    int n = strlen(ss);
+    if(x == 1)
+    {
+      s[n].insert(string(ss));
+      int h = 0;
+      for(int i=0;i<n;i++)
+        h = (h * 49LL + ss[i] - 'a' + 1) % mod;
+      si[n].insert(h);
+    }
+    else if(x == 2)
+    {
+      s[n].erase(string(ss));
+      int h = 0;
+      for(int i=0;i<n;i++)
+        h = (h * 49LL + ss[i] - 'a' + 1) % mod;
+      si[n].erase(h);
+    }
+    else if(n <= sq)
+    {
+      int ans = 0;
+      for(int i=0;i<n;i++)
+      {
+        int h = 0;
+        for(int j=i;j<n;j++)
+        {
+          h = (h * 49LL + ss[j] - 'a' + 1) % mod;
+          if(si[j - i + 1].find(h) != si[j - i + 1].end())
+            ans++;
+        }
+      }
+      printf("%d\n", ans);
+      fflush(stdout);
+    }
+    else
+    {
+      init();
+      for(int i=1;i<=n;i++)
+        for(auto it : s[i])
+          add_string(it);
+      int v = 0;
+      LL ans = 0;
+      for(int i=0;i<n;i++)
+      {
+        v = go(v, ss[i] - 'a');
+        ans += get(v);
+      }
+      printf("%I64d\n", ans);
+      fflush(stdout);
+    }
+  }
+  return 0;
+}

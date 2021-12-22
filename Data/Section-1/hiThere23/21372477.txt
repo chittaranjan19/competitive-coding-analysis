@@ -1,0 +1,168 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 500005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+#define mid ((l + r) >> 1)
+
+using namespace std;
+int n, q, belong[mn], beg[mn], fin[mn], sz[mn];
+int pos[mn], p[mn], h[mn], spe[mn], num = 0, rig = 0;
+vector<int> g[mn];
+
+struct interval
+{
+    int l, r, val;
+    interval* lc;
+    interval* rc;
+
+    interval(int l = 0, int r = 0): l(l), r(r)
+    {
+        if (l == r)
+            lc = rc = NULL, val = 0;
+        else
+        {
+            val = -1;
+            lc = new interval(l, mid);
+            rc = new interval(mid + 1, r);
+        }
+    }
+
+    void push()
+    {
+        if (val == -1)
+            return;
+        lc -> val = rc -> val= val;
+        val = -1;
+    }
+
+    void update(int x, int y, int v)
+    {
+        if (l > y || r < x)
+            return;
+        if (x <= l && r <= y)
+        {
+            val = v;
+            return;
+        }
+        push();
+        lc -> update(x, y, v);
+        rc -> update(x, y, v);
+    }
+
+    bool filled(int x)
+    {
+        if (l == r)
+            return val;
+        push();
+        if (x <= mid)
+            return lc -> filled(x);
+        return rc -> filled(x);
+    }
+} t;
+
+void dfs(int u)
+{
+    sz[u] = 1;
+    spe[u] = 0;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i];
+        if (v == p[u])
+            continue;
+        p[v] = u;
+        h[v] = h[u] + 1;
+        dfs(v);
+        if (sz[v] > sz[spe[u]])
+            spe[u] = v;
+        sz[u] += sz[v];
+    }
+}
+
+void hld(int u)
+{
+    if (beg[num] == 0)
+        beg[num] = u;
+    belong[u] = num;
+    pos[u] = ++ rig;
+    if (spe[u])
+    {
+        hld(spe[u]);
+        FOR(i, 0, int(g[u].size()) - 1)
+        {
+            int v = g[u][i];
+            if (v == spe[u] || v == p[u])
+                continue;
+            num ++;
+            hld(v);
+        }
+    }
+    fin[u] = rig;
+}
+
+void querry1()
+{
+    int u; cin >> u;
+    t.update(pos[u], fin[u], 1);
+}
+
+void querry2()
+{
+    int u; cin >> u;
+    while(u)
+    {
+        t.update(pos[beg[belong[u]]], pos[u], 0);
+        u = p[beg[belong[u]]];
+    }
+}
+
+void querry3()
+{
+    int u; cin >> u;
+    cout << t.filled(pos[u]) << '\n';
+}
+
+void setup()
+{
+    cin >> n;
+    t = interval(1, n);
+    int u, v;
+    FOR(i, 2, n)
+    {
+        cin >> u >> v;
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+    cin >> q;
+}
+
+void xuly()
+{
+    dfs(1);
+    hld(1);
+    int t;
+    FOR(i, 1, q)
+    {
+        cin >> t;
+        if (t == 1)
+            querry1();
+        if (t == 2)
+            querry2();
+        if (t == 3)
+            querry3();
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

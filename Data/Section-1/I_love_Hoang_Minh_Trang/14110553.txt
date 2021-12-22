@@ -1,0 +1,58 @@
+#include <bits/stdc++.h>
+#define FORE(i, a, b) for(int i = a; i <= b; i++)
+#define FORD(i, a, b) for(int i = a; i >= b; i--)
+#define FOR(i, a, b) for(int i = a; i < b; i++)
+const int MAXN = (1 << 16) + 10;
+const int INF = 1e9 + 7;
+
+using namespace std;
+
+int n, a[111];
+int p[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53};
+int f[111][MAXN];
+int dd[60] ={0};
+
+int res[111];
+int vet[111][MAXN], tr[111][MAXN];
+int main()
+{
+    ios::sync_with_stdio(0); cin.tie(0);
+    #ifndef ONLINE_JUDGE
+    freopen("453B.inp", "r", stdin);
+    freopen("453B.out", "w", stdout);
+    #endif //MIKELHPDATKE
+    cin >> n;
+    FORE(i, 1, n) cin >> a[i];
+    for(int i = 1; i <= 58; i++){
+        for(int j = 0; j < 16; j++) if (i % p[j] == 0) dd[i] |= (1 << j);
+    }
+   // FORE(i, 1, 58) cout << dd[i]<<" ";cout<<endl;
+    FORE(i, 0, n) FOR(j, 0, (1 << 16)) f[i][j] = INF;
+    f[0][0] = 0;
+
+    for(int i = 0; i < n; i++)
+    for(int x = 0; x < (1 << 16); x++) if (f[i][x] != INF)
+        for(int j = 1; j <= 58; j++) if ((x & dd[j]) == 0){
+            if (f[i + 1][x | dd[j]] > f[i][x] + abs(j - a[i + 1])){
+                f[i + 1][x | dd[j]] = f[i][x] + abs(j - a[i + 1]);
+                vet[i + 1][x | dd[j]] = j;
+                tr[i + 1][x | dd[j]] = x;
+            }
+        }
+
+    int ans = INF, x;
+    FOR(j, 0, 1 << 16)
+        if (ans > f[n][j]){
+        ans = min(ans, f[n][j]);
+        x = j;
+        }
+    int i = n;
+    while (i){
+        res[i] = vet[i][x];
+        x = tr[i][x];
+        i--;
+    }
+    FORE(i, 1, n) cout << res[i]<<" ";
+    return 0;
+}
+

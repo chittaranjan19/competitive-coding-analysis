@@ -1,0 +1,122 @@
+#include <iostream>
+#include <iomanip>
+#include <queue>
+#include <set>
+#include <cstring>
+
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef pair<int, int> pii;
+typedef pair<pii, pii> piiii;
+const int N = 1000001;
+
+const int MAXN = 1048576;
+struct ARQTree2 { pii a[2*MAXN]; ARQTree2() { memset(a, 0x3f, sizeof a); }
+  // use after manually changing entries in [x..y], costs O(log(MAXN) + y-x)
+  pii update(int x, int y, int i=1, int l=0, int r=MAXN-1) {
+    if (y<l || r<x || l==r) return a[i]; int m = (l+r)/2;
+    return a[i] = min(update(x,y,2*i,l,m), update(x,y,2*i+1,m+1,r)); }
+  void insert(int x, pii v) { a[MAXN+x] = v; update(x,x); }
+  pii query(int x, int y, int i=1, int l=0, int r=MAXN-1) {
+    if (y<l || r<x) return pii(2147483647, 2147483647); if (x<=l && r<=y) return a[i]; int m = (l+r)/2;
+    return min(query(x,y,2*i,l,m), query(x,y,2*i+1,m+1,r)); } };
+
+ARQTree2 tree;
+
+int n;
+int seq[N]; ld sum[N];
+bool f2[N], f1[N];
+
+/*
+ld bfsum[N];
+void bruteForce() {
+    for (int k = 1; k <= n; k++) {
+        bfsum[k] = 0;
+        for (int i = 0; i+k-1 <= n-1; i++) {
+            bfsum[k] += tree.query(i, i+k-1).first;
+        }
+    }
+}
+*/
+
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+
+    cin >> n;
+    for (int i = 0; i < n; i++) {
+        cin >> seq[i];
+        tree.a[MAXN+i] = pii(seq[i], i);
+    }
+    tree.update(0, MAXN-1);
+
+    // get the first "min" fence post
+    pii nxt = tree.query(0, n-1);
+    int mid = nxt.second;
+
+    // three types of fence posts: constrained on 2 sides, 1 side, and 0 sides
+    // constrained on 2 side: +1 each round
+    // constrained on 1 side: +0 each round
+    // constrained on 0 side: -1 each round
+    memset(f2, 0, sizeof f2); f2[mid] = true;
+    memset(f1, 0, sizeof f1);
+    ld s2 = nxt.first, s0 = 0;
+
+    priority_queue<piiii> q;
+    if (mid > 0) q.push(piiii(pii(mid, mid), pii(0, mid-1)));
+    if (mid < n-1) q.push(piiii(pii(n-1-mid, mid), pii(mid+1, n-1)));
+
+    //cerr << "f2: "; for (int i = 0; i < n; i++) cerr << f2[i] << " "; cerr << endl;
+    //cerr << "f1: "; for (int i = 0; i < n; i++) cerr << f1[i] << " "; cerr << endl;
+
+    for (int k = n; k >= 1; k--) {
+        while (!q.empty() && q.top().first.first == k) {
+            piiii z = q.top(); q.pop();
+            int a = z.second.first, b = z.second.second;
+            int oldmid = z.first.second;
+            int oldval = seq[oldmid];
+
+            if (f2[oldmid]) {
+                f2[oldmid] = false;
+                f1[oldmid] = true;
+                s2 -= oldval;
+            } else if (f1[oldmid]) {
+                f1[oldmid] = false;
+                s0 += oldval;
+            }
+
+            pii nxt = tree.query(a, b);
+            int newval = nxt.first;
+            int newmid = nxt.second;
+            f2[newmid] = true;
+            s2 += newval;
+
+            //cerr << "break: " << a << " " << b << " " << oldmid << " " << newmid << endl;
+            //cerr << "f2: "; for (int i = 0; i < n; i++) cerr << f2[i] << " "; cerr << endl;
+            //cerr << "f1: "; for (int i = 0; i < n; i++) cerr << f1[i] << " "; cerr << endl;
+
+            if (newmid > a) {
+                q.push(piiii(pii(newmid-a, newmid), pii(a, newmid-1)));
+            }
+            if (newmid < b) {
+                q.push(piiii(pii(b-newmid, newmid), pii(newmid+1, b)));
+            }
+        }
+
+        //cerr << "s = " << s2 << " " << s0 << endl;;
+
+        sum[k] = (k == n ? 0 : sum[k+1]) + (s2 - s0);
+    }
+
+    //bruteForce();
+
+    cout << setprecision(16) << fixed;
+    int m; cin >> m;
+    for (int i = 0; i < m; i++) {
+        int k; cin >> k;
+        cout << sum[k] / (n-k+1) << endl;
+
+        //cout << sum[k] / (n-k+1); cerr << " " << bfsum[k]/(n-k+1); cout << endl;
+    }
+}

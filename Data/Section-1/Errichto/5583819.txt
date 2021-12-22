@@ -1,0 +1,163 @@
+#include<cstdio>
+#include<vector>
+#include<algorithm>
+#include<set>
+#include<map>
+#include<cstring>
+#include<cmath>
+#include<iostream>
+#include<ctime>
+#include<cstdlib>
+using namespace std;
+#define ll long long
+#define ld long double
+#define vi vector<int>
+#define pii pair<int,int>
+#define pld pair<ld,ld>
+#define pb push_back
+#define mp make_pair
+#define x first
+#define y second
+#define RE(i,n) for(int i=0,_n=(n);i<_n;++i)
+#define RI(i,n) for(int i=1,_n=(n);i<=_n;++i)
+#define FORE(i,w) for(__typeof(w.begin())i=w.begin();i!=w.end();++i)
+#define mini(a,b) a=min(a,(b))
+#define maxi(a,b) a=max(a,(b))
+#define all(w) w.begin(),w.end()
+#define deb(x) cerr<<#x<<" = "<<x<<"\n"
+#define dee(w) {cerr<<#w<<" = ";FORE(i,w)cerr<<*i<<", ";cerr<<"\n";}
+const int inf=-1e9+5;
+const int nax=1000123;
+
+bool good[nax];
+vi w[nax],kids[nax];
+int subtr[nax],ojc[nax],tajm[nax],ktory[nax],h[nax];
+int tr[5*nax],pot,res[nax];
+vi GP;
+
+void dfs(int a)
+{
+    subtr[a]=1;
+    kids[a].clear();
+    RE(i,w[a].size()){
+        int b=w[a][i];
+        if(!subtr[b]){
+            ojc[b]=a;
+            kids[a].pb(b);
+            dfs(b);
+            subtr[a]+=subtr[b];
+        }
+    }
+}
+
+int USTAL(int a,int n)
+{
+    RE(i,kids[a].size())if(subtr[kids[a][i]]>1+n/2) // sure?
+        return kids[a][i];
+    return a;
+}
+
+bool cmp(int a, int b){
+    return tajm[a]<tajm[b];
+}
+
+void KTORY(int a,int id){
+    ktory[a]=id;
+    RE(i,kids[a].size()){
+        h[ kids[a][i] ] = h[a]+1;
+        KTORY(kids[a][i],id);
+    }
+}
+
+void ZBIERZ(int a){
+    GP.pb(a);
+    RE(i,kids[a].size())ZBIERZ(kids[a][i]);
+}
+
+int F(vi wie)
+{
+    if(wie.size()<2)return 0;
+    RE(i,wie.size())good[wie[i]]=1;
+    RE(i,wie.size()){
+        int a=wie[i],licz=0;
+        RE(j,w[a].size())if(good[w[a][j]])w[a][licz++]=w[a][j];
+        RE(_,w[a].size()-licz)w[a].pop_back();
+    }
+    RE(i,wie.size())good[wie[i]]=0;
+    int root=wie[0];
+    dfs(root);
+    ojc[root]=0; // sure?
+    int centr=USTAL(root,wie.size());
+    dfs(centr);
+    
+    int tyle=w[centr].size();
+    RE(i,tyle){
+        h[ w[centr][i] ]=1;
+        KTORY(w[centr][i],i+1);
+    }
+    
+    sort(all(wie),cmp);
+    
+    int pot=1;
+    while(pot<=tyle)pot*=2;
+    RE(i,2*pot)tr[i]=inf;
+    RE(i,wie.size()){
+        if(wie[i]!=centr){
+            int a=wie[i];
+            int ten=ktory[a];
+            int memo=tr[pot+ten];
+            tr[pot+ten]=inf;
+            for(int i=(pot+ten)/2;i;i/=2)tr[i]=max(tr[2*i],tr[2*i+1]);
+            maxi(res[tajm[a]],tr[1]+h[a]);
+            maxi(memo,h[a]);
+            tr[pot+ten]=memo;
+            for(int i=(pot+ten)/2;i;i/=2)tr[i]=max(tr[2*i],tr[2*i+1]);
+        }
+        else // centr
+            maxi(res[tajm[centr]],tr[1]);
+    }
+    RE(i,tyle){
+        GP.clear();
+        ZBIERZ(w[centr][i]);
+        F(GP);
+    }
+    return 0;
+}
+
+int pro()
+{
+    int q,n=4;
+    cin>>q;
+    w[1].pb(2);w[1].pb(3);w[1].pb(4);
+    w[2].pb(1);w[3].pb(1);w[4].pb(1);
+    RI(czas,q){
+        int a;
+        scanf("%d",&a);
+        n++;
+        w[a].pb(n);
+        w[n].pb(a);
+        tajm[n]=czas;
+        n++;
+        w[a].pb(n);
+        w[n].pb(a);
+        tajm[n]=czas;
+    }
+    vi w;
+    RI(i,n)w.pb(i);
+    F(w);
+    int akt=res[0];
+    RI(i,q){
+        maxi(akt,res[i]);
+        cout<<akt<<"\n";
+    }
+    return 0;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int z=1;
+    //cin>>z;
+    RI(_,z)pro();
+    return 0;
+}

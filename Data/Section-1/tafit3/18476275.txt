@@ -1,0 +1,161 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD2 {
+    BufferedReader rd;
+
+    ProblemD2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int n = a[0];
+        int m = a[1];
+        int[] f = new int[n];
+        int[] ck = new int[n];
+        Arrays.fill(f, -1);
+        Set<Integer> fa = new HashSet<>();
+        for(int i=0;i<m;i++) {
+            a = intarr();
+            a[0]--;
+            a[1]--;
+            f[a[1]] = a[0];
+            ck[a[0]]++;
+            fa.add(a[0]);
+        }
+        a = intarr();
+        for(int i=0;i<n;i++) {
+            a[i]--;
+        }
+        int[] z = new int[n];
+        int i = 0;
+        outer: while(i < n) {
+            if(a[i] == i) {
+                if(z[i] == 0) {
+                    z[i] = 1;
+                } else if(z[i] == 2) {
+                    break;
+                }
+            } else {
+                int j = i;
+                while(j != a[i]) {
+                    if(z[j] != 0) {
+                        break outer;
+                    }
+                    z[j] = 2;
+                    j = f[j];
+                }
+                if(z[j] == 2) {
+                    break;
+                }
+                z[j] = 1;
+            }
+            i++;
+        }
+        if(i < n) {
+            out(-1);
+        } else {
+            int c = 0;
+            Queue<Integer> queue = new ArrayDeque<>();
+            for(int j=0;j<n;j++) {
+                if(z[j] == 1) {
+                    c++;
+                }
+                if(!fa.contains(j)) {
+                    queue.add(j);
+                }
+            }
+            StringBuilder buf = new StringBuilder();
+            buf.append(c);
+            while(!queue.isEmpty()) {
+                int v = queue.poll();
+                if(z[v] == 1) {
+                    buf.append('\n').append(v+1);
+                }
+                int parent = f[v];
+                if(parent != -1) {
+                    ck[parent]--;
+                    if(ck[parent] == 0) {
+                        queue.add(parent);
+                    }
+                }
+            }
+            out(buf);
+        }
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD2();
+    }
+}

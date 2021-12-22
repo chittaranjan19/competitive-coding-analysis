@@ -1,0 +1,89 @@
+import java.io.*;
+import java.util.*;
+import java.math.*;
+
+public class Main implements Runnable {
+	
+	void solve() throws IOException {
+		int l = nextInt();
+		int r = nextInt();
+		int n = 300*1000000;
+		int m = 100000;
+		
+		int sq = (int)(Math.sqrt(n)+200);
+		int[] primes = new int[sq];
+		int res = 0;
+		boolean[] f = new boolean[sq];
+		Arrays.fill(f, true); f[0] = f[1] = false;
+		int k = 0;
+		for (int i=0; i<sq; i++)
+			if (f[i]) {
+				for (int j=i+i; j<sq; j+=i)
+					f[j] = false;
+				primes[k++] = i;
+			}
+		f = new boolean[m];
+		for (int I=0; I<=n/m; I++) {
+			int x = I*m;
+			Arrays.fill(f, true);
+			for (int i=0; i<k; i++) {
+				int p = primes[i];
+				for (int j = Math.max((x+p-1)/p, 2)*p-x; j<m; j+=p)
+					f[j] = false;
+			}
+			
+			for (int i=0; i<m; i++)
+				if (f[i] && (i+x)%4==1 &&(i+x>=l && i+x<=r)) {
+					res++;
+				}
+		}
+		out.println(res);
+		
+		
+	}
+
+	BufferedReader br;
+	StringTokenizer st;
+	PrintWriter out;
+
+	public void run() {
+		try {
+			br = new BufferedReader(new InputStreamReader(System.in));
+			out = new PrintWriter(System.out);
+			// br = new BufferedReader(new FileReader("input.txt"));
+			// out = new PrintWriter("output.txt");
+			solve();
+			br.close();
+			out.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.exit(123);
+		}
+	}
+
+	String next() throws IOException {
+		while (st == null || !st.hasMoreTokens()) {
+			String s = br.readLine();
+			if (s == null)
+				return null;
+			st = new StringTokenizer(s,", \t");
+		}
+		return st.nextToken();
+	}
+
+	double nextDouble() throws IOException {
+		return Double.parseDouble(next());
+	}
+
+	int nextInt() throws IOException {
+		return Integer.parseInt(next());
+	}
+
+	long nextLong() throws IOException {
+		return Long.parseLong(next());
+	}
+
+	public static void main(String[] args) {
+		new Thread(new Main()).start();
+	}
+}

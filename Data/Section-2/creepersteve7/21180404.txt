@@ -1,0 +1,72 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+long long n,m,a[2005],afis[2005], b[2005],k;
+long long t,tot;
+
+struct fuck{
+    long long val;
+    int pos;
+};
+
+fuck init[2005];
+
+bool comp(fuck a, fuck b){
+    if(a.val<b.val) return true;
+    return false;
+}
+
+int PrimulNefolositor(){
+    for(int i=1;i<=m;i++){
+        if(a[i]>b[i]) {
+            a[i]--;
+            return i;
+        }
+    }
+}
+
+int main()
+{
+    cin >> n >> m;
+    for(int i=1;i<=n;i++){
+        cin >> afis[i];
+        if(afis[i]<=m) a[afis[i]]++, init[afis[i]].val++, init[afis[i]].pos=afis[i], b[afis[i]]++;
+        else t++;
+    }
+    int val=0, rest;
+    for(int i=1;i<=m;i++) val+=a[i];
+    rest=val%m;
+    val/=m;
+    for(int i=1;i<=m;i++) a[i]=val;
+    k=t;
+    if(rest+t%m>=m) k-=t%m+rest-m,rest=m;
+    else k-=t%m;
+    t/=m;
+    for(int i=1;i<=m;i++) a[i]+=t;
+    sort(init+1,init+m+1,comp);
+    if(rest==m){
+        for(int i=1;i<=m;i++) a[i]++;
+        rest=0;
+    }
+    while(rest){
+        int j=n;
+        while(a[j]<init[j].val) a[j]++, rest--, j--;
+    }
+    for(int i=1;i<=m;i++){
+        if(a[i]-init[i].val>0) tot+=a[i]-init[i].val;
+    }
+    for(int i=1;i<=m;i++) init[i].val=a[i];
+    cout << a[1] << ' ' << tot << '\n';
+    for(int i=1;i<=m;i++) a[init[i].pos]=init[i].val;
+    for(int i=1;i<=n;i++){
+        if(afis[i]<=m){
+            if(a[afis[i]]) cout << afis[i] << ' ', a[afis[i]]--, b[afis[i]]--;
+            else cout << PrimulNefolositor() << ' ';
+        }
+        else{
+            if(k) cout << PrimulNefolositor() << ' ', k--;
+            else cout << afis[i] << ' ';
+        }
+    }
+}

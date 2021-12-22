@@ -1,0 +1,133 @@
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Scanner;
+import java.util.TreeSet;
+
+/**
+ * Created by leen on 7/15/16.
+ */
+public class _689D {
+    public static void main(String[] args) {
+
+        Scanner scan  = new Scanner(System.in);
+        int n = scan.nextInt();
+
+        Node[] a = readAndPreprocess(scan, n, true);
+        Node[] b = readAndPreprocess(scan, n, false);
+
+        if(a[0] != null && b[0] != null && a[0].value == b[0].value) {
+            System.out.println((long) n * (n+1) / 2);
+            return;
+        }
+
+        long ans = 0;
+
+        for(int i = 1; i <= n; i++) {
+            Node node = a[i];
+            int idx = Arrays.binarySearch(b, 1, n + 1, node);
+            if(idx >= 0) {
+                ans += solve(node, b[idx]);
+
+                for (int idx1 = idx - 1; idx1 >= 1 && b[idx1].value == node.value; idx1--)
+                    ans += solve(node, b[idx1]);
+
+                for (int idx2 = idx + 1; idx2 <= n && b[idx2].value == node.value; idx2++)
+                    ans += solve(node, b[idx2]);
+            }
+        }
+
+        System.out.println(ans);
+
+    }
+
+    private static long solve(Node n1, Node n2) {
+
+        int minIndex = Math.min(n1.index, n2.index);
+        int maxIndex = Math.max(n1.index, n2.index);
+
+        int left = Math.max(n1.leftBound, n2.leftBound);
+        int right = Math.min(n1.rightBound, n2.rightBound);
+
+        if(minIndex >= left && maxIndex <= right)
+            return (long) (minIndex-left+1) * (right-maxIndex+1);
+        else
+            return 0L;
+
+    }
+
+    private static Node[] readAndPreprocess(Scanner scan, int n, boolean forA) {
+
+        Node[] a = new Node[n + 1];
+
+        Node last = null;
+        boolean identical = true;
+
+        for(int i = 1; i <= n; i++) {
+            a[i] = new Node(scan.nextInt(), i);
+            if(last == null)
+                last = a[i];
+
+            if(last != null && last.value != a[i].value)
+                identical = false;
+        }
+
+        if(identical)
+            a[0] = a[1];
+
+        Arrays.sort(a, 1, n + 1);
+
+        TreeSet<Node> treeSet = new TreeSet<Node>(new Comparator<Node>() {
+            @Override
+            public int compare(Node o1, Node o2) {
+                return o1.index - o2.index;
+            }
+        });
+
+        if(forA) {
+            for (int i = n; i >= 1; i--) {
+                Node node = a[i];
+
+                Node lower = treeSet.lower(node);
+                node.leftBound = lower == null ? 1 : lower.index + 1;
+
+                Node upper = treeSet.higher(node);
+                node.rightBound = upper == null ? n : upper.index - 1;
+
+                treeSet.add(node);
+            }
+        }
+        else {
+            for (int i = 1; i <= n; i++) {
+                Node node = a[i];
+
+                Node lower = treeSet.lower(node);
+                node.leftBound = lower == null ? 1 : lower.index + 1;
+
+                Node upper = treeSet.higher(node);
+                node.rightBound = upper == null ? n : upper.index - 1;
+
+                treeSet.add(node);
+            }
+        }
+
+        return a;
+    }
+
+    static class Node implements Comparable<Node> {
+        final int value;
+        final int index;
+        int leftBound;
+        int rightBound;
+
+        Node(int value, int index) {
+            this.value = value;
+            this.index = index;
+        }
+
+        @Override
+        public int compareTo(Node o) {
+            return value - o.value;
+        }
+    }
+
+}

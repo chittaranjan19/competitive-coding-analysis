@@ -1,0 +1,179 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+
+import static java.lang.Math.min;
+
+public class ProblemD2 {
+    private Integer ZERO = 0;
+    private long INF = Long.MAX_VALUE / 3;
+    BufferedReader rd;
+    int n;
+    long[][] c;
+    NavigableMap<Long, NavigableMap<Long, Integer>> byCost = new TreeMap<>();
+
+    ProblemD2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        n = pint();
+        c = new long[n][];
+        for(int i=0;i<n;i++) {
+            c[i] = longarr();
+        }
+        for(int i=1;i<n;i++) {
+            long key = c[i][0];
+            long cost = c[i][1] - key + 1;
+            NavigableMap<Long, Integer> m = byCost.get(cost);
+            if(m == null) {
+                m = new TreeMap<>();
+                byCost.put(cost, m);
+            }
+            m.put(key, m.getOrDefault(key, ZERO) + 1);
+        }
+
+        long min = 0;
+        long max = c[0][0];
+        while(max - min > 4) {
+            long third = (max-min)/3;
+            long a = min + third;
+            long b = a + third;
+
+            long aVal = val(a);
+            long bVal = val(b);
+
+            if(aVal >= bVal) {
+                min = a;
+            } else {
+                max = b;
+            }
+        }
+        long best = INF;
+        for(long d = min - 20;d <= min + 20; d++) {
+            if(d >= 0 && d <= c[0][0]) {
+                long val = val(d);
+                best = min(best, val);
+            }
+        }
+        out(best);
+    }
+
+    private long val(long x) {
+        long lim = c[0][0] - x;
+        long better = 0;
+        for(int i=1;i<n;i++) {
+            if(c[i][0] > lim) {
+                better++;
+            }
+        }
+        if(better != 0) {
+            long rest = x;
+            outer: for (Map.Entry<Long, NavigableMap<Long, Integer>> e : byCost.entrySet()) {
+                long k = e.getKey();
+                NavigableMap<Long, Integer> m = e.getValue();
+                for(Map.Entry<Long, Integer> z: m.entrySet()) {
+                    if(z.getKey() > lim) {
+                        int c = z.getValue();
+                        long p1 = rest / k;
+                        long p2 = min(better, c);
+                        long p3 = min(p1, p2);
+                        if (p3 == 0) {
+                            break;
+                        } else {
+                            rest -= k * p3;
+                            better -= p3;
+                        }
+                        if (better <= 0) {
+                            break outer;
+                        }
+                    }
+                }
+            }
+        }
+        return better+1;
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD2();
+    }
+}

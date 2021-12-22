@@ -1,0 +1,153 @@
+#include<cstdio>
+#include<cstring>
+#include<cstdlib>
+#include<cctype>
+
+#include<cmath>
+#include<iostream>
+#include<iomanip>
+#include<fstream>
+
+#include<string>
+#include<utility>
+#include<vector>
+#include<list>
+#include<queue>
+#include<map>
+#include<algorithm>
+#include<set>
+#include<sstream>
+#include<stack>
+
+#define ii long long int
+#define pi 2*acos(0.0)
+#define eps 1e-9
+#define mem(x,y) memset(x,y,sizeof(x))
+#define all(x) x.begin(), x.end()
+#define pb push_back
+#define sz(a) (int)a.size()
+#define inf 2147483640
+
+#define mx 1048600
+#define WHOLE 0
+#define VAL 1
+#define NICHE 2
+
+
+using namespace std;
+
+const int debug= 0;
+
+int T[1048600][3];
+
+void update(int i,int j,int pos,int st,int end,int val);
+void print(int i,int j,int pos,int val,int parVal);
+
+int main()
+{
+	//freopen("in.txt","r",stdin);
+	//freopen("out.txt","w",stdout);
+	
+	int n,m;
+	while (cin>>n>>m)
+	{
+		if (!n||!m) break;
+		mem(T,0);
+		int i,l,r,x;
+		for (i=1;i<=m;++i)
+		{
+			cin>>l>>r>>x;
+			if (debug) cout<<"update "<<l<<" "<<r<<" "<<x<<endl;
+			update(1,n,1,l,r,x);
+		}
+		
+		/*
+		for (i=1;i<=n;++i)
+		{
+			l= print(1,n,1,i,0);
+			if (i!=1) cout<<" ";
+			cout<<l;
+		}
+		*/
+		
+		print(1,n,1,0,0);
+		puts("");
+	}
+	
+	
+	return 0;	
+}
+
+void print(int i,int j,int pos,int val,int parVal)
+{
+	int k;
+	
+	if (i==j)
+	{
+		if (T[pos][VAL]) k= T[pos][VAL];
+		else if (parVal!=i) k= parVal;
+		else k= 0;
+		
+		//cout<<i<<" print : ";
+		if (i>1) cout<<" ";
+		cout<<k;
+		//puts("");
+		return;
+	}
+	
+	if (!T[pos][NICHE] && !T[pos][VAL]) T[pos][VAL]= parVal;
+	
+	if (T[pos][VAL] && (T[pos][VAL]<i || T[pos][VAL]>j))
+	{
+		//cout<<i<<" theke "<<j<<" print : "<<endl;
+		for (k=i;k<=j;++k)
+		{
+			if (k>1) cout<<" ";
+			cout<<T[pos][VAL];
+		}
+		//puts("");
+		return;
+	}
+	
+	int mid=((i+j)>>1),l=(pos<<1),r=l+1;
+	
+	print(i,mid,l,val,T[pos][VAL]);
+	print(mid+1,j,r,val,T[pos][VAL]);
+}
+
+void update(int i,int j,int pos,int st,int end,int val)
+{
+	int mid=((i+j)>>1),l=(pos<<1),r=l+1;
+	
+	if (i==st && j==end && !T[pos][NICHE])
+	{
+		if (i==j && val==i) return;
+		if (!T[pos][WHOLE])
+		{
+			if (debug) cout<<i<<" theke "<<j<<" te winner "<<val<<endl;
+			T[pos][WHOLE]= 1;
+			T[pos][VAL]= val;
+		}
+		else
+		{
+			if (i<=T[pos][VAL] && T[pos][VAL]<=j)
+			{
+				if (debug) cout<<i<<" theke "<<j<<" te winner "<<T[pos][VAL]<<" kintu "<<T[pos][VAL]<<" te "<<val<<endl;
+				if (T[pos][VAL]<=mid) update(i,mid,l,T[pos][VAL],T[pos][VAL],val);
+				else update(mid+1,j,r,T[pos][VAL],T[pos][VAL],val);
+			}
+		}
+		
+		return;
+	}
+	
+	T[pos][NICHE]++;
+	
+	if (end<=mid) update(i,mid,l,st,end,val);
+	else if (st>mid) update(mid+1,j,r,st,end,val);
+	else
+	{
+		update(i,mid,l,st,mid,val);
+		update(mid+1,j,r,mid+1,end,val);
+	}
+}

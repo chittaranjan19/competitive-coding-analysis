@@ -1,0 +1,107 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int c[5], fact[100005];
+
+int power(int a,int b)
+{
+  if(b == 0) return 1;
+  if(b & 1) return (a * 1LL * power(a, b - 1)) % mod;
+  int res = power(a, b / 2);
+  return (res * 1LL * res) % mod;
+}
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  //freopen("test.in", "r", stdin);
+  //freopen("report.out", "w", stdout);
+  int n;
+  string in;
+  cin >> n >> in;
+  for(int i=0;i<in.size();i++)
+  {
+    c[0]+=(in[i] == 'A');
+    c[1]+=(in[i] == 'C');
+    c[2]+=(in[i] == 'G');
+    c[3]+=(in[i] == 'T');
+  }
+  sort(c, c + 4, greater<int>());
+  int k = 1;
+  while(k < 4 && c[k] == c[0])
+    k++;
+  int cnt = 0, t = k;
+  while(k < 4)
+    cnt+=c[k], c[k] = 0, k++;
+  for(int i=0;i<t;i++)
+    c[i]+=cnt / t;
+  cnt = cnt % t;
+  int tmp = cnt;
+  for(int i=0;i<t && cnt;i++)
+    c[i]++, cnt--;
+  fact[0] = 1;
+  for(int i=1;i<=n;i++)
+    fact[i] = (fact[i-1]*1LL * i) % mod;
+  LL res = fact[n];
+  for(int i=0;i<4;i++)
+      res=(res * 1LL * power(fact[c[i]], mod - 2)) % mod;
+  for(int i=1;i<(1 << 4);i++)
+  {
+    int x = -1;
+    bool test = (__builtin_popcount(i) != 1);
+    for(int j=0;j<4 && test;j++)
+    {
+      if(i & (1 << j))
+      {
+        if(x == -1) x = c[j];
+        else if(x != c[j]) test = 0;
+      }
+    }
+    if(!test || x == 0) continue;
+    int temp = fact[n];
+    for(int j=0;j<4;j++)
+    {
+      if((i & (1 << j)) == 0 && c[j]) temp= (temp * 1LL * power(fact[c[j]], mod - 2)) % mod;
+    }
+    temp = (__builtin_popcount(i) * 1LL * temp * power(fact[x] * __builtin_popcount(i), mod - 2))%mod;
+    res = (res + temp) % mod;
+  }
+  res = (res * 1LL * fact[t]) % mod;
+  res = (res * 1LL * power(fact[tmp], mod - 2)) % mod;
+  res = (res * 1LL * power(fact[t - tmp], mod - 2)) % mod;
+  cout << res;
+  return 0;
+}

@@ -1,0 +1,130 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+
+public class ProblemA {
+    BufferedReader rd;
+
+    private ProblemA() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int n = a[0];
+        int d = a[1];
+        int[] gems = new int[30001];
+        for(int i=0;i<n;i++) {
+            gems[pint()]++;
+        }
+        NavigableMap<Integer, Map<Integer, Integer>> m = new TreeMap<>();
+        {
+            Map<Integer, Integer> byJumpSize = new HashMap<>();
+            byJumpSize.put(d, 0);
+            m.put(d, byJumpSize);
+        }
+        int finalGemCount = 0;
+        Integer one = 1;
+        while(!m.isEmpty()) {
+            Map.Entry<Integer, Map<Integer, Integer>> e = m.firstEntry();
+            Integer pos = e.getKey();
+            m.remove(pos);
+            Map<Integer, Integer> byJumpSize = e.getValue();
+            Integer forOne = byJumpSize.get(one);
+            for(Map.Entry<Integer, Integer> e2: byJumpSize.entrySet()) {
+                int currentGemCount = e2.getValue() + gems[pos];
+                if(e2.getKey().equals(one)) {
+                    int nextPos = pos + 1;
+                    if(nextPos > 30000) {
+                        finalGemCount = Math.max(finalGemCount, currentGemCount);
+                    } else {
+                        relax(m, nextPos, 1, currentGemCount);
+                    }
+                } else if(forOne == null || e2.getValue() > forOne) {
+                    for(int i=-1;i<=1;i++) {
+                        int jumpSize = e2.getKey()+i;
+                        int nextPos = pos + jumpSize;
+                        if(nextPos > 30000) {
+                            finalGemCount = Math.max(finalGemCount, currentGemCount);
+                        } else if(jumpSize > 0) {
+                            relax(m, nextPos, jumpSize, currentGemCount);
+                        }
+                    }
+                }
+            }
+        }
+        out(finalGemCount);
+    }
+
+    private void relax(NavigableMap<Integer, Map<Integer,Integer>> m, int pos, int jumpSize, int gemCount) {
+        Map<Integer, Integer> byJumpSize = m.get(pos);
+        if(byJumpSize == null) {
+            byJumpSize = new HashMap<>();
+            m.put(pos, byJumpSize);
+        }
+        Integer current = byJumpSize.get(jumpSize);
+        if(current == null) {
+            current = gemCount;
+        } else if(current < gemCount) {
+            current = gemCount;
+        }
+        byJumpSize.put(jumpSize, current);
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private String[] split(String s) {
+        int n = s.length();
+        int sp = 0;
+        for(int i=0;i<n;i++) {
+            if(s.charAt(i)==' ') {
+                sp++;
+            }
+        }
+        String[] res = new String[sp+1];
+        int last = 0;
+        int x = 0;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(c == ' ') {
+                res[x++] = s.substring(last,i);
+                last = i+1;
+            }
+        }
+        res[x] = s.substring(last,n);
+        return res;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemA();
+    }
+}

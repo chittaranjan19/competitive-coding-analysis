@@ -1,0 +1,104 @@
+#include <cstring>
+
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+using namespace std;
+const int MAX_N = 100005;
+const int BUFFER_SIZE = 1 << 15;
+
+int n;
+int p[MAX_N];
+int q[MAX_N];
+int v[MAX_N];
+int answer[MAX_N];
+
+void update(int place) {
+    for (int i = place; i <= n; i += i & -i) {
+        ++ v[i];
+    }
+}
+int query(int place) {
+    int answer = 0;
+    for (int i = place; i; i -= i & -i) {
+        answer += v[i];
+    }
+    return answer;
+}
+
+class InputReader {
+    public:
+        InputReader() {
+            fread(buffer, BUFFER_SIZE, 1, stdin);
+            cursor = 0;
+        }
+        inline InputReader & operator >> (int &value) {
+            value = 0;
+            while (!isalpha(buffer[cursor])) {
+                advance();
+            }
+            while (isalpha(buffer[cursor])) {
+                value = value * 10 + buffer[cursor] - '0';
+                advance();
+            }
+            return *this;
+        }
+    private:
+        char buffer[BUFFER_SIZE];
+        int cursor;
+        inline void advance() {
+            ++ cursor;
+            if (cursor == BUFFER_SIZE) {
+                cursor = 0;
+                fread(buffer, BUFFER_SIZE, 1, stdin);
+            }
+        }
+};
+
+int main() {
+    //ifstream cin("f.in");
+    InputReader cin;
+    cin >> n;
+    for (int i = 1; i <= n; ++ i) {
+        cin >> p[i];
+        ++ p[i];
+        update(p[i]);
+        p[i] = p[i] - query(p[i]);
+        //cout << p[i] << " ";
+    }
+    //cout << "\n";
+    memset(v, 0, sizeof v);
+    for (int i = 1; i <= n; ++ i) {
+        cin >> q[i];
+        ++ q[i];
+        update(q[i]);
+        q[i] = q[i] - query(q[i]);
+        //cout << q[i] << " ";
+    }
+    //cout << "\n";
+    for (int i = n - 1; i >= 1; -- i) {
+        answer[i] += p[i] + q[i];
+        //cout << "i=" << i << ", answer[i]=" << answer[i] << "\n";
+        if (answer[i] >= n - i + 1) {
+            answer[i] -= (n - i + 1);
+            ++ answer[i - 1];
+        }
+    }
+    memset(v, 0, sizeof v);
+    for (int i = 1; i <= n; ++ i) {
+        ++ answer[i];
+        int left = 1, right = n, last = -1;
+        while (left <= right) {
+            int middle = (left + right) / 2;
+            if (middle - query(middle) >= answer[i]) {
+                last = middle;
+                right = middle - 1;
+            } else {
+                left = middle + 1;
+            }
+        }
+        cout << last - 1 << (i == n ? '\n' : ' ');
+        update(last);
+    }
+    return 0;
+}

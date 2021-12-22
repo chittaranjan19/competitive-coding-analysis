@@ -1,0 +1,81 @@
+uses    math;
+const   maxn    =trunc(1e3);
+
+type    arr1    =array[0..maxn,0..maxn] of longint;
+        arr2   =array[0..maxn] of longint;
+        arr3   =array[0..maxn*100] of longint;
+
+var     n       :longint;
+        m       :longint;
+        q  ,x,y     :longint;
+        a       :Arr1;
+        i, j, ll,dem,ans:longint;
+        row     :arr3;
+        it      :Arr3;
+        leaf    :arr3;
+
+procedure build(x,l,r:longint);
+var     g :longint;
+begin
+        if l>r then exit;
+        if l=r then
+        begin
+                it[x]:=row[l];
+                leaf[l]:=x;
+                exit;
+        end;
+        g:=(l+r) shr 1;
+        build(2*x,l,g);
+        build(2*x+1,g+1,r);
+        it[x]:=max(it[2*x],it[2*x+1]);
+end;
+
+procedure update(i:longint);
+var     x :longint;
+begin
+        x:=leaf[i];
+        it[x]:=row[i];
+        while x>1 do
+        begin
+                x:=x div 2;
+                it[x]:=max(it[2*x],it[2*x+1]);
+        end;
+end;
+
+begin
+        readln(n, m, q);
+        for i:=1 to n do
+        for j:=1 to m do read(a[i,j]);
+        fillchar(row,sizeof(row),0);
+        for i:=1 to n do
+        begin
+                row[i]:=0;
+                dem:=0;
+                ans:=0;
+                for j:=1 to m do
+                begin
+                        if a[i,j]=1 then inc(dem) else dem:=0;
+                        if dem>ans then ans:=dem;
+                end;
+                row[i]:=ans;
+        end;
+        build(1,1,n);
+        //for i:=1 to 3 do write(it[i],' ');writeln;
+        for ll:=1 to q do
+        begin
+                readln(x,y);
+                a[x,y]:=a[x,y] xor 1;
+                dem:=0;
+                ans:=0;
+                for j:=1 to m do
+                begin
+                        if a[x,j]=1 then inc(dem) else dem:=0;
+                        if dem>ans then ans:=dem;
+                end;
+                row[x]:=ans;
+              //  writeln(x,' =',row[x],' ',leaf[x]);
+                //writeln(ans);
+                update(x);
+                writeln(it[1]);
+        end;
+end.

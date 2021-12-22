@@ -1,0 +1,98 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+ll p2[55];
+set<pair<ll, ll> > ranges;
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, h, p, q, ans;
+	ll s, e, l, r, rs, re, ns, ne, sol;
+	p2[0] = 1;
+	for(i=1; i<=50; i++)
+		p2[i] = (p2[i-1]*2ll);
+	scanf("%d%d", &h, &q);
+	s = p2[h-1];
+	e = p2[h]-1;
+	p = 0;
+	while(q--){
+		scanf("%d%lld%lld%d", &i, &l, &r, &ans);
+		rs = l, re = r;
+		for(j=i+1; j<=h; j++){
+			rs = (rs*2ll);
+			re = (re*2ll + 1ll);
+		}
+		if(ans){
+			ns = max(rs, s);
+			ne = min(re, e);
+			if(ns>ne && !p){
+				p = 1;
+				printf("Game cheated!\n");
+			}
+			s = ns;
+			e = ne;
+		}
+		else
+			ranges.insert(mp(rs, re));
+	}
+	if(!p){
+		/*for(auto it:ranges){
+			if(it.s < s || it.f > e){
+				auto jt = it;
+				ranges.erase(jt);
+			}
+		}*/
+		sol = -1;
+		//cout << s << " " << e << "\n";
+		for(auto it:ranges){
+			//cout << it.f << " " << it.s << "\n";
+			if(it.s < s || it.f > e)
+				continue;
+			it.f = max(it.f, s);
+			it.s = min(it.s, e);
+			if((it.f-s)>1){
+				printf("Data not sufficient!\n");
+				return 0;
+			}
+			if((it.f-s)==1){
+				if(sol==-1)
+					sol = s;
+				else{
+					printf("Data not sufficient!\n");
+					return 0;	
+				}
+			}
+			s = it.s + 1;
+			if(s>e)
+				break;
+		}
+		//cout << s << " " << e << "\n";
+		if((e-s))
+			printf("Data not sufficient!\n");
+		else{
+			if(sol==-1)
+				printf("%lld\n", s);
+			else
+				printf("Data not sufficient!\n");
+		}
+	}
+	return 0;
+}

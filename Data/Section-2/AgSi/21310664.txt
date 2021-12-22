@@ -1,0 +1,63 @@
+/*--------------------------------------------
+ * File Name: CF 724C
+ * Author: Danliwoo
+ * Mail: Danliwoo@outlook.com
+ * Created Time: 2016-10-08 23:37:05
+--------------------------------------------*/
+
+#include <bits/stdc++.h>
+using namespace std;
+#define LL long long
+LL n, m;
+LL extend_Euclid(LL a, LL b, LL &x, LL &y){
+    if(b==0){
+        x = 1; y = 0;
+        return a;
+    }
+    LL r = extend_Euclid(b, a%b, y, x);
+    y -= a/b*x;
+    return r;
+}
+LL equation(LL a, LL b, LL c, LL &x, LL &y)
+{
+    LL g = extend_Euclid(a, b, x, y);
+    if(c % g) return -1;
+    LL ran = b / g;
+    x *= c/g;
+    if(ran < 0) ran = -ran;
+    x = (x%ran + ran) % ran;
+    return 0;
+}
+LL gao(LL dx, LL dy, LL M) {
+    LL k, s;
+    if(equation(2*n, -2*m, -dx+dy, k, s) == -1)
+        return M + 1;
+    LL tx = 2 * k * n + dx;
+    if(tx < 0 || tx > M) return M + 1;
+    return tx;
+}
+LL minL(LL a, LL b) {
+    return a < b ? a : b;
+}
+LL solve(LL x, LL y) {
+    LL g = __gcd(n, m);
+    LL maxx = 1LL * m / g * n;
+    LL ans = maxx + 1;
+    ans = minL(ans, gao(-x, -y, maxx));
+    ans = minL(ans, gao(-x, y, maxx));
+    ans = minL(ans, gao(x, -y, maxx));
+    ans = minL(ans, gao(x, y, maxx));
+    if(ans == maxx + 1) return -1;
+    return ans;
+}
+int main() {
+    int k;
+    while(~scanf("%I64d%I64d%d", &n, &m, &k)) {
+        for(int i = 0;i < k;i++) {
+            LL x, y;
+            scanf("%I64d%I64d", &x, &y);
+            printf("%I64d\n", solve(x, y));
+        }
+    }
+    return 0;
+}

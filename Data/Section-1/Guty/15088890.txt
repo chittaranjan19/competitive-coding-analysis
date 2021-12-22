@@ -1,0 +1,136 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+using namespace std;
+
+
+
+void imprimirVector (vector<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) ) Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+struct Punto
+{
+	tint cx,cy;
+	Punto(tint xx, tint yy)
+	{
+		cx = xx;
+		cy = yy;
+	}
+	
+};
+
+bool operator < (Punto p1, Punto p2)
+{
+	return make_tuple(p1.cx,p1.cy) < make_tuple(p2.cx,p2.cy);
+}
+
+int main()
+{
+	ios_base::sync_with_stdio(0);
+	#ifdef ACMTUYO
+		if (!freopen("B.in","r", stdin)) return 1;
+	#endif
+	tint x,y,x0,y0;
+	tint cota = 999999999999999;
+	while(cin >> x >> y >> x0 >> y0)
+	{
+		string s;
+		cin >> s;
+		
+		map<Punto,tint> p;
+		forsn(i,1,x+1)
+		forsn(j,1,y+1)
+			p[Punto(i,j)] = cota;
+			
+		tint n = s.size();
+		Punto pos = Punto(x0,y0);
+		p[pos] = 0;
+		
+		forsn(k,1,n+1)
+		{
+			if (s[k-1] == 'L')
+				pos.cy = max((tint) 1,pos.cy-1);
+			else if (s[k-1] == 'R')
+				pos.cy = min(y,pos.cy+1);
+			else if (s[k-1] == 'U')
+				pos.cx = max ((tint) 1,pos.cx-1);
+			else
+				pos.cx = min (x, pos.cx+1);
+			p[pos] = min(p[pos],(tint) k);
+		}
+		vector<tint> ans (n+1,0);
+		forsn(i,1,x+1)
+		forsn(j,1,y+1)
+		{
+			if (p[Punto(i,j)] == cota)
+				ans[n]++;
+			else
+				ans[p[Punto(i,j)]]++;
+		}
+		
+		forn(i,n+1)
+		{
+			if (i)
+				cout << " ";
+			cout << ans[i];
+		}
+		cout << endl;
+	}
+	
+	return 0;
+}
+
+
+

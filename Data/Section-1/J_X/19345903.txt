@@ -1,0 +1,57 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+const long double eps = 1e-8;
+
+int n, l, v1, v2, k;
+
+int dcmp(long double x)
+{
+    if(fabs(x) < eps) return 0;
+    return x > 0 ? 1 : -1;
+}
+
+long double C(long double x)
+{
+    long double ret = 0, now = 0, m = x, last = -1000;
+    for(int i = 0; i < n; i += k)
+    {
+        if(dcmp(now - l) >= 0) break;
+        long double t = 0;
+        if(dcmp(last) > 0) t = (last - now) / (v1 + v2);
+        now += t * v1;
+        ret += t;
+        long double tmp = min(m, l - now);
+        ret += tmp / v2;
+        last = now + tmp;
+        if(i + k >= n) now += tmp;
+        else now += tmp / v2 * v1;
+    }
+    ret += (l - now) / v1;
+    return ret;
+}
+
+int main()
+{
+    scanf("%d%d%d%d%d", &n, &l, &v1, &v2, &k);
+    long double lb = 0, ub = l;
+//    cout << C(1.5) << endl;
+    for(int i = 0; i < 100; ++i)
+    {
+        long double m1 = lb + (ub - lb) / 3, m2 = ub - (ub - lb) / 3;
+        if(C(m1) <= C(m2)) ub = m2;
+        else lb = m1;
+    }
+//    cout << l << endl;
+//    for(long double i = 0.0001; i <= 1; i += 0.0001)
+//    {
+//        if(C(i) - 4.71428 <= 1e-7) cout << i << endl;
+//    }
+    printf("%.10f\n", (double)C(lb));
+    return 0;
+}

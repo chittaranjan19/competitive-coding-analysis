@@ -1,0 +1,81 @@
+#include <iostream>
+#include <set>
+#include <algorithm>
+
+#define fi first
+#define se second
+
+using namespace std;
+
+int n,m;
+
+pair<long long,int> a[200000];
+long long l[200000],r[200000];
+pair<pair<long long,long long>,int> is[200000];
+
+set<pair<pair<long long,long long>,int> > sset;
+
+bool kis(pair<pair<long long,long long>,int> a,pair<pair<long long,long long>,int> b) {
+    return ((a.fi.se < b.fi.se) || ((a.fi.se == b.fi.se) && (a.fi.fi < b.fi.fi)));
+}
+
+int sol[200000];
+
+int main()
+{
+    ios::sync_with_stdio(0);
+    cin >> n >> m;
+
+    for(int i=0; i<n; i++) cin >> l[i] >> r[i];
+
+    for(int i=0; i<n-1; i++) {
+        is[i].fi.se = l[i+1]-r[i];
+        is[i].fi.fi = r[i+1]-l[i];
+        is[i].se = i;
+        //cerr << is[i].fi.fi << " " << is[i].fi.se << endl;
+    }
+
+    for(int i=0; i<m; i++) {
+        cin >> a[i].fi;
+        a[i].se = i+1;
+    }
+    sort(a,a+m);
+
+    sort(is,is+n-1,kis);
+
+    int j = 0;
+    int solv = 0;
+    for(int i=0; i<m; i++) {
+        while((j<n-1) && (is[j].fi.se <= a[i].fi)) {
+            sset.insert(is[j++]);
+        }
+
+        if(sset.empty()) continue;
+
+        if(sset.begin()->fi.fi < a[i].fi) {
+            //cerr << "=> " << sset.begin()->fi.fi << " " << a[i].fi << endl;
+            cout << "No" << endl;
+            return 0;
+        }
+
+        //cerr << " " << sset.begin()->fi.fi << " " << sset.begin()->fi.se << ":" << sset.begin()->se << endl;
+
+        solv++;
+        sol[sset.begin()->se] = a[i].se;
+        sset.erase(sset.begin());
+    }
+
+    if(solv < n-1) {
+        cout << "No" << endl;
+        return 0;
+    }
+
+    cout << "Yes" << endl;
+    for(int i=0; i<n-1; i++) {
+        cout << sol[i];
+        if(i<n-2) cout << " ";
+    }
+    cout << endl;
+
+    return 0;
+}

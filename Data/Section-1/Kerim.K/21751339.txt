@@ -1,0 +1,108 @@
+#include "bits/stdc++.h"
+#define MAXN 3009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+pair<PII,int> arr[MAXN];
+int dp[MAXN][MAXN];
+int DP[MAXN][MAXN];
+int way[MAXN][MAXN];
+int WAY[MAXN][MAXN];
+int rec(int x,int y){
+	if(x<0 or y<0)
+		return -INF;
+	if(x==0 and y==0)	
+		return 0;
+	int &ret=dp[x][y];
+	if(~ret)
+		return ret;ret=-INF;
+	if(umax(ret,rec(x-1,y)+arr[x+y].ff.ff))
+		way[x][y]=1;
+	if(umax(ret,rec(x,y-1)+arr[x+y].ff.ss))
+		way[x][y]=2;
+	return ret;
+}
+int n,p,s,ans=0,st;
+int f(int x,int y){
+	if(y<0)
+		return -INF;
+	if(y==0)
+		return 0;
+	if(x>n)
+		return -INF;
+	int &ret=DP[x][y];
+	if(~ret)
+		return ret;ret=-INF;
+	if(umax(ret,f(x+1,y-1)+arr[x].ff.ss))
+		WAY[x][y]=1;	
+	if(umax(ret,f(x+1,y)))
+		WAY[x][y]=2;
+	return ret;
+}
+vector<int>prog,sport;
+void rec1(int x,int y){
+	if(!x and !y)
+		return;
+	int ret=way[x][y];
+	if(ret==1){
+		prog.pb(arr[x+y].ss);
+		rec1(x-1,y);
+	}	
+	else{
+		sport.pb(arr[x+y].ss);
+		rec1(x,y-1);
+	}
+}
+void f1(int x,int y){
+	if(x>n or !y)
+		return;
+	int ret=WAY[x][y];
+	if(ret==1){
+		sport.pb(arr[x].ss);
+		f1(x+1,y-1);
+	}	
+	else
+		f1(x+1,y);
+}
+int main(){
+	memset(dp,-1,sizeof dp);
+	memset(DP,-1,sizeof DP);
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif
+	scanf("%d%d%d",&n,&p,&s);
+	for(int i=1;i<=n;i++)
+		scanf("%d",&arr[i].ff.ff);
+	for(int i=1;i<=n;i++)
+		scanf("%d",&arr[i].ff.ss);
+	for(int i=1;i<=n;i++)
+		arr[i].ss=i;
+	sort(arr+1,arr+n+1);
+	reverse(arr+1,arr+n+1);
+	for(int i=0;i<=s;i++)
+		if(umax(ans,rec(p,i)+f(p+i+1,s-i)))
+			st=i;
+	rec1(p,st);
+	f1(p+st+1,s-st);		
+	printf("%d\n",ans);	
+	tr(it,prog)
+		printf("%d ",*it);
+	printf("\n");	
+	tr(it,sport)
+		printf("%d ",*it);
+	printf("\n");	
+	return 0;
+}

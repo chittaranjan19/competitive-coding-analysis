@@ -1,0 +1,107 @@
+#include <iostream>
+using namespace std;
+
+struct movie
+{
+	int number, sound, sub;
+	int sound_qty = 0, sub_qty = 0;
+};
+
+struct language
+{
+	int language_id, qty = 1;
+};
+
+int main1()
+{
+	int n;
+	cin >> n;
+
+	int l_q = 0;
+	language *lang = new language[n];
+
+	for (int i = 0; i < n; i++)
+	{
+		int a;
+		cin >> a;
+
+		bool f = false;
+
+		for (int j = 0; j < l_q; j++)
+			if (lang[j].language_id == a)
+			{
+				lang[j].qty++;
+				f = true;
+				break;
+			}
+
+		if (!f)
+		{
+			lang[l_q].language_id = a;
+			l_q++;
+		}
+	}
+
+	int m;
+	cin >> m;
+	movie* mv = new movie[m];
+
+	for (int i = 0; i < m; i++)
+	{
+		mv[i].number = i;
+		cin >> mv[i].sound;
+	}
+
+	int max_sound = 0;
+
+	int q_b = 0;
+	movie* best = new movie[m];
+
+	for (int i = 0; i < m; i++)
+	{
+		cin >> mv[i].sub;
+
+		for (int j = 0; j < l_q; j++)
+		{
+
+			bool fs = false, fb = false;
+
+			if (lang[j].language_id == mv[i].sound)
+			{
+				mv[i].sound_qty = lang[j].qty;
+				fs = true;
+			}
+			if (lang[j].language_id == mv[i].sub)
+			{
+				mv[i].sub_qty = lang[j].qty;
+				fb = true;
+			}
+
+			if (fs && fb) break;
+		}
+
+		if (mv[i].sound_qty > max_sound) {
+			max_sound = mv[i].sound_qty;
+			best[0] = mv[i];
+			q_b = 1;
+		}
+		else if (mv[i].sound_qty == max_sound)
+		{
+			best[q_b] = mv[i];
+			q_b++;
+		}
+	}
+
+	int max_sub = 0;
+	for (int i = 1; i < q_b; i++)
+		if (best[i].sub_qty > best[max_sub].sub_qty)
+			max_sub = i;
+
+	cout << best[max_sub].number + 1;
+
+	delete[] lang;
+	delete[] mv;
+	delete[] best;
+
+	return 0;
+}

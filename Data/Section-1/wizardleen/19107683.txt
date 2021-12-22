@@ -1,0 +1,58 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+/**
+ * Created by leen on 7/14/16.
+ */
+public class _689B {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+
+        int n = scan.nextInt();
+        List<Integer>[] shortcutsByDest = new List[n + 1];
+
+        for(int i = 1; i <= n; i++) {
+            int dest = scan.nextInt();
+            if(dest - i > 1) {
+                List<Integer> shortcuts = shortcutsByDest[dest];
+                if(shortcuts == null) {
+                    shortcuts = new ArrayList<Integer>();
+                    shortcutsByDest[dest] = shortcuts;
+                }
+                shortcuts.add(i);
+            }
+        }
+
+        int[] minDistances = new int[n + 1];
+        minDistances[1] = 0;
+
+        for(int i = 2; i <= n; i++) {
+            int minDist = minDistances[i - 1] + 1;
+
+            List<Integer> shortcuts = shortcutsByDest[i];
+            if(shortcuts != null) {
+                for(int src : shortcuts) {
+                    int dist2 = minDistances[src] + 1;
+                    if(dist2 < minDist)
+                        minDist = dist2;
+                }
+            }
+
+            minDistances[i] = minDist;
+        }
+
+        StringBuilder buf = new StringBuilder();
+        boolean isFirst = true;
+
+        for(int i = 1; i <= n; i++) {
+            if(isFirst)
+                isFirst = false;
+            else
+                buf.append(' ');
+            buf.append(minDistances[i]);
+        }
+
+        System.out.println(buf.toString());
+    }
+}

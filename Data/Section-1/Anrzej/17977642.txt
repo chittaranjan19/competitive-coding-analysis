@@ -1,0 +1,108 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 1e6 + 10, lg = 2;
+
+int gcd(int a, int b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+int n, _a, _b;
+int a[N]; ll dp[N][3];
+
+vector<int> factor(int num)
+{
+	vector<int> res;
+	int cur = 2;
+	while (cur < num){
+		if (num%cur == 0)
+			res.push_back(cur);
+		while (num % cur == 0)
+			num /= cur;
+		cur++;
+	}
+	if (num != 1)
+		res.push_back(num);
+	return res;
+}
+
+ll get_added(int j, ll mul)
+{
+	if (a[j] % mul == 0) return 0;
+	if ((a[j] + 1) % mul == 0 || (a[j] - 1) % mul == 0) return _b;
+	return 2e10;
+}
+
+int main()
+{
+	cin >> n >> _a >> _b;
+	for (int i = 0; i < n; i++){
+		scanf_s("%d", &a[i]);
+	}
+	vector<int> nums;
+	ll ans = 2e18;
+	nums.push_back(a[0]);
+	nums.push_back(a[0] + 1);
+	nums.push_back(a[0] - 1);
+
+	for (int _i = 0; _i < 3; _i++){
+		vector<int> sm = factor(nums[_i]);
+		for (int i = 0; i < sm.size(); i++){
+			ll ml = sm[i];
+			dp[0][0] = dp[0][1] = dp[0][2] = (_i == 0) ? 0 : _b;
+			for (int j = 1; j < n; j++){
+				ll added = get_added(j, ml);
+				dp[j][0] = dp[j - 1][0] + added;
+				dp[j][1] = min(dp[j - 1][1] + _a, dp[j - 1][0] + _a);
+				dp[j][2] = min(dp[j - 1][2] + added, dp[j - 1][1] + added);
+			}
+			ans = min(ans, min(dp[n - 1][0], min(dp[n-1][1], dp[n-1][2])));
+		}
+	}
+
+	nums.clear();
+	nums.push_back(a[n - 1]);
+	nums.push_back(a[n - 1] + 1);
+	nums.push_back(a[n - 1] - 1);
+	for (int _i = 0; _i < 3; _i++){
+		vector<int> sm = factor(nums[_i]);
+		for (int i = 0; i < sm.size(); i++){
+			ll ml = sm[i];
+			dp[n - 1][0] = dp[n - 1][1] = dp[n - 1][2] = (_i == 0) ? 0 : _b;
+			for (int j = n-2; j >= 0; j--){
+				ll added = get_added(j, ml);
+				dp[j][0] = dp[j + 1][0] + added;
+				dp[j][1] = min(dp[j + 1][1] + _a, dp[j + 1][0] + _a);
+				dp[j][2] = min(dp[j + 1][2] + added, dp[j + 1][1] + added);
+			}
+			ans = min(ans, min(dp[0][0], min(dp[0][1], dp[0][2])));
+		}
+	}
+	
+	cout << ans;
+	return 0;
+}

@@ -1,0 +1,112 @@
+#include <cstdio>
+#include <algorithm>
+#include <vector>
+//#include <iostream>
+
+using namespace std;
+
+int n,m,s;
+vector<int> h[100000];
+int c[100000];
+
+int cdb[100000];
+
+int db[100000]; int dv;
+int de[100000];
+int df[100000];
+bool eler[100000];
+
+void dfs(int p) {
+    eler[p] = 1;
+    df[dv] = p;
+    db[p] = dv++;
+    for(int q:h[p]) {
+        if(eler[q]) continue;
+        dfs(q);
+    }
+    de[p] = dv-1;
+}
+
+pair<pair<int,int>,pair<int,int> > q[100000];
+
+bool cmp(pair<pair<int,int>,pair<int,int> > x, pair<pair<int,int>,pair<int,int> > y) {
+    return ((x.first.first/s < y.first.first/s)
+        || ((x.first.first/s == y.first.first/s) && (x.first.second < y.first.second)));
+}
+
+int sol[100000];
+int sols[320];
+int prnt[100000];
+
+void upd(int x, int d) {
+    sol[cdb[c[df[x]]]]--;
+    sols[cdb[c[df[x]]]/s]--;
+    cdb[c[df[x]]]+=d;
+    sol[cdb[c[df[x]]]]++;
+    sols[cdb[c[df[x]]]/s]++;
+}
+
+int main()
+{
+    scanf("%d%d",&n,&m);
+    for(int i=0; i<n; i++) {
+        scanf("%d",&c[i]); c[i]--;
+    }
+
+    for(int i=0; i<n-1; i++) {
+        int x,y; scanf("%d%d",&x,&y); x--; y--;
+        h[x].push_back(y);
+        h[y].push_back(x);
+    }
+
+    dfs(0);
+    s = (int)sqrt(n);
+
+    for(int i=0; i<m; i++) {
+        int x,y; scanf("%d%d",&x,&y); x--;
+        q[i].first = make_pair(db[x],de[x]);
+        q[i].second = make_pair(y,i);
+    }
+    sort(q,q+m,cmp);
+
+    int x(0),y(0);
+    cdb[c[df[0]]]++;
+    sol[0] = n-1;
+    sol[1] = 1;
+    sols[0] = n;
+    for(int i=0; i<m; i++) {
+        int l = q[i].first.first;
+        int r = q[i].first.second;
+        while(y<r) {
+            y++;
+            upd(y,1);
+        }
+        while(x>l) {
+            x--;
+            upd(x,1);
+        }
+        while(y>r) {
+            upd(y,-1);
+            y--;
+        }
+        while(x<l) {
+            upd(x,-1);
+            x++;
+        }
+
+        int ans(0);
+        for(int j=(q[i].second.first/s)+1; j*s<n; j++) {
+            ans+=sols[j];
+            //cerr << "[]" << j*s << endl;
+        }
+        for(int j=q[i].second.first; (j/s)==(q[i].second.first/s); j++) {
+            ans+=sol[j];
+            //cerr << " " << j << endl;
+        }
+        prnt[q[i].second.second] = ans;
+    }
+
+    for(int i=0; i<m; i++) printf("%d\n",prnt[i]);
+
+    return 0;
+}

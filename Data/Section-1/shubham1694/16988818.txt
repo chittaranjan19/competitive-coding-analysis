@@ -1,0 +1,133 @@
+#include <bits/stdc++.h>
+ 
+using namespace std;
+ 
+typedef pair<int, int> pii;
+
+#define mp make_pair
+#define f first
+#define s second
+#define ll long long
+#define gc getchar
+#define REP(i, a, b) for(int i = a; i < b; i++)
+ 
+const ll MOD = 1000000007;
+const int MAXN = 100010;
+ 
+void sin(int &x)
+{
+    register int c = gc();
+    x = 0;
+    for(;(c<48 || c>57);c = gc());
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+}
+ 
+ 
+ll modpow(ll a, ll b)
+{
+	ll x=1ll, y=a;
+	while(b){
+		if(b%2)
+			x=(x*y)%MOD;
+		y=(y*y)%MOD;
+		b/=2;
+	}
+	return x;
+}
+ 
+int z, n, m, a, b;
+ 
+/// suffix array in O(nlogn) and O(n) memory
+/// always false sign # at the end!
+ 
+int temp_suf[MAXN], len[MAXN];
+int lcp[MAXN];
+int suf[MAXN], ra[MAXN], c[MAXN];
+char t[MAXN];
+ 
+void count_sort(int k, int n, int* suf) {
+	int i, sum, maxi = max(300, n);
+	memset(c, 0, sizeof c);
+	REP(i, 0, n) c[i + k < n ? ra[i + k] : 0]++;
+	for (i = sum = 0; i < maxi; i++) {
+		int t = c[i];
+		c[i] = sum;
+		sum += t;
+	}
+	REP(i, 0, n) temp_suf[c[suf[i] + k < n ? ra[suf[i] + k] : 0]++] = suf[i];
+	REP(i, 0, n) suf[i] = temp_suf[i];
+}
+ 
+void suf_array(const char *t, int n, int* suf) {
+	int k, r;
+	REP(i, 0, n) {
+		ra[i] = t[i];
+		suf[i] = i;
+	}
+	for (k = 1; k < n; k <<= 1) {
+		count_sort(k, n, suf);
+		count_sort(0, n, suf);
+		temp_suf[suf[0]] = r = 0;
+		REP(i, 1, n) temp_suf[suf[i]] = (ra[suf[i]] == ra[suf[i - 1]] && ra[suf[i] + k] == ra[suf[i - 1] + k] ? r : ++r);
+		REP(i, 0, n) ra[i] = temp_suf[i];
+	}
+}
+ 
+/// LCP in O(n)
+ 
+int r[MAXN];
+void count_lcp(const char *t, int n, int *suf, int *lcp) {
+    int l = 0;
+    REP(i, 0, n) r[suf[i]] = i;
+    REP(i, 0, n) {
+        if(r[i] == n-1) continue;
+        int m = suf[r[i]+1];
+        while(l+i < n && l+m < n && t[l + i] == t[l + m]) l++;
+        lcp[r[i]] = l;
+        l = max(0, l-1);
+    }
+}
+
+pii solve(int cur, int req, int n, int prv)
+{
+	//cout << cur << " " << req << " " << prv << " " << len[cur] << " " << lcp[cur] << " " << suf[cur] << " " << n << "\n";
+	//if(!req)
+	//	return mp(suf[cur], len[cur]);
+	if(len[cur]>=(n-suf[cur])){
+		if(cur==n)
+			return mp(-1, -1);
+		return solve(cur+1, req, n, cur+1);
+	}
+	if(req==1)
+		return mp(suf[cur], len[cur]+1);
+	len[cur]++;
+	if(cur<=n){
+		if(lcp[cur]>=len[cur])
+			return solve(cur+1, req-1, n, prv);
+	}
+	return solve(prv, req-1, n, prv);
+} 
+
+int main()
+{
+	int T = 1, k, n, i, j;
+	ll x, y, ans;
+	while(T--){
+		scanf("%s%d", t, &k);
+		n = strlen(t);
+		t[n++] = '@'; t[n] = 0;
+        suf_array(t, n, suf);
+        count_lcp(t, n, suf, lcp);
+		//for(i=0; i<n; i++)
+		//	cout << suf[i] << " " << lcp[i] << endl;
+		pii tmp = solve(1, k, n-1, 1);
+		if(tmp.f==-1)
+			cout << "No such line.\n";
+		else{
+			string ans = "";
+			for(i=tmp.f, j=tmp.s; j; i++, j--)
+				ans+=t[i];
+			cout << ans << "\n";
+		}
+	}
+} 

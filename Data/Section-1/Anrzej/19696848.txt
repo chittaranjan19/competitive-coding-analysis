@@ -1,0 +1,128 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 5e5 + 10, lg = 20, MAXN = 1111;
+ll mod = 1e9 + 7;
+
+ll gcd(ll a, ll b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll _gcd(ll a, ll b, ll & x, ll & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	ll _x1, _y1;
+	ll d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+ll binpow(ll a, ll n) {
+	ll res = 1;
+	while (n) {
+		if (n & 1)
+			res *= a;
+		a *= a;
+		n >>= 1;
+		a %= mod;
+		res %= mod;
+	}
+	return res;
+}
+
+int n, q;
+
+int ans = 0, cur = 0;
+vector<int> unread[N];
+int t[N * 4];
+
+int sum(int v, int tl, int tr, int l, int r) {
+	if (l > r)
+		return 0;
+	if (l == tl && r == tr)
+		return t[v];
+	int tm = (tl + tr) / 2;
+	return sum(v * 2, tl, tm, l, min(r, tm))
+		+ sum(v * 2 + 1, tm + 1, tr, max(l, tm + 1), r);
+}
+
+void update(int v, int tl, int tr, int pos, int new_val) {
+	if (tl == tr)
+		t[v] = new_val;
+	else {
+		int tm = (tl + tr) / 2;
+		if (pos <= tm)
+			update(v * 2, tl, tm, pos, new_val);
+		else
+			update(v * 2 + 1, tm + 1, tr, pos, new_val);
+		t[v] = t[v * 2] + t[v * 2 + 1];
+	}
+}
+
+int lf = 0;
+
+int main()
+{
+	cin >> n >> q;
+	for (int i = 0; i < q; i++){
+		int tp;
+		cin >> tp;
+		if (tp == 1){
+			int x;
+			cin >> x;
+			unread[x].push_back(cur);
+			update(1, 0, q - 1, cur, 1);
+			cur++;
+			ans++;
+		}
+		if (tp == 2){
+			int x;
+			cin >> x;
+			for (int i = 0; i < unread[x].size(); i++){
+				int k = unread[x][i];
+				if (lf <= k)
+					update(1, 0, q - 1, k, 0), ans--;
+			}
+			unread[x].clear();
+		}
+		if (tp == 3){
+			int x;
+			cin >> x;
+			x--;
+			if (lf <= x){
+				int sm = sum(1, 0, q - 1, lf, x);
+				ans -= sm;
+				lf = x + 1;
+			}
+		}
+		cout << ans << endl;
+	}
+	return 0;
+}

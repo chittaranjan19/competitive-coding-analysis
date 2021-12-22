@@ -1,0 +1,262 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1 << 17, MAXLG = 17, MOD = 1000000007;
+
+int N, Q;
+vector<pii> adj[MAXN];
+//BIG computations for the sum of 0th-2nd powers
+int sub0[MAXN], sub1[MAXN], sub2[MAXN];	//subtree
+int tot1[MAXN], tot2[MAXN];	//total ones
+//lca, not so big. thankfully.
+int depth[MAXN];	//already computed in the big computation
+pii par[MAXN][MAXLG];	//(node, distance)
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+int add (int x, int y, int z) {
+	return add(x, add(y, z));
+}
+
+void addeq (int &x, int y) {
+	x = add(x, y);
+}
+
+int subtr (int x, int y) {
+	return add(x, MOD - y);
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+int mult (int x, int y, int z) {
+	return mult(x, mult(y, z));
+}
+
+int sqsum (int sum0, int sum1, int sum2, int w) {
+	return add(sum2, mult(2, w, sum1), mult(w, w, sum0));
+}
+
+int getsub0 (int x, int p, int d) {
+	int &ref = sub0[x];
+	ref = 1;
+	depth[x] = d++;
+	rep(it, adj[x]) {
+		int t = it->first;
+		// cout << "t = " << t << endl;
+		if (t != p) {
+			par[t][0] = pii(x, it->second);
+			ref += getsub0(t, x, d);
+		}
+	}
+	return ref;
+}
+
+int getsub1 (int x, int p) {
+	int &ref = sub1[x];
+	rep(it, adj[x]) {
+		int t = it->first;
+		if (t != p) {
+			addeq(ref, getsub1(t, x));
+			addeq(ref, mult(sub0[t], it->second));
+		}
+	}
+	return ref;
+}
+
+int gettot1 (int x, int p) {
+	int res = tot1[x];
+	rep(it, adj[x]) {
+		int t = it->first;
+		if (t != p) {
+			tot1[t] = add(res, mult(it->second, subtr(N, 2 * sub0[t])));
+			gettot1(t, x);
+		}
+	}
+	return res;
+}
+
+int getsub2 (int x, int p) {
+	int &ref = sub2[x];
+	rep(it, adj[x]) {
+		int t = it->first;
+		if (t != p) {
+			addeq(ref, sqsum(sub0[t], sub1[t], getsub2(t, x), it->second));
+		}
+	}
+	// cout << "sub2[" << x << "] = " << ref << endl;
+	return ref;
+}
+
+//this is actually quite special.
+void gettot2 (int x, int p, int sum1, int sum2) {
+	// cout << "x = " << x << ", sum2 = " << sum2 << endl;
+	addeq(tot2[x], sum2);
+	int s1 = sub1[x], s2 = sub2[x];
+	rep(it, adj[x]) {
+		int t = it->first;
+		if (t == p) {
+			continue;
+		}
+		int w = it->second;
+		//screw it compute more!
+		int exct = sub0[x] - sub0[t];
+		int exc1 = subtr(s1, add(sub1[t], mult(sub0[t], w)));
+		int w1 = add(exc1, mult(w, exct));
+		int exc2 = subtr(s2, sqsum(sub0[t], sub1[t], sub2[t], w));
+		int w2 = add(exc2, mult(2, w, exc1), mult(w, w, exct));
+		// int n1 = sum1 + exc1, n2 = sum2 + exc2;	//WRONG!!!
+		int n1 = add(sum1, exc1), n2 = add(sum2, exc2);
+		exct = N - sub0[t];
+		// gettot2(t, x, n1 + w * (N - sub0[t]), n2 + 2 * w * n1 + w * w * (N - sub0[t]));
+		gettot2(t, x, add(n1, mult(w, exct)), sqsum(exct, n1, n2, w));
+	}
+}
+
+void compute_powers() {
+	//size of subtree
+	getsub0(1, 0, 0);
+	//sum of dists
+	tot1[1] = getsub1(1, 0);
+	//ok now let's calculate the total ones
+	gettot1(1, 0);
+	//sum of dists^2
+	getsub2(1, 0);
+	copy_n(sub2 + 1, N, tot2 + 1);
+	//now, this is quite special.
+	int s1 = sub1[1], s2 = sub2[1];
+	rep(it, adj[1]) {
+		int t = it->first, w = it->second;
+		//calculate first powers
+		// int exc1 = s1 - (sub1[t] + sub0[t] * w), w1 = exc1 + w * (N - sub0[t]);
+		int exct = N - sub0[t];
+		int exc1 = subtr(s1, add(sub1[t], mult(sub0[t], w)));
+		int w1 = add(exc1, mult(w, exct));
+		// int exc2 = s2 - (sub2[t] + 2 * w * sub1[t] + w * w * sub0[t]);	//the other subtree
+		int exc2 = subtr(s2, sqsum(sub0[t], sub1[t], sub2[t], w));
+		// int w2 = exc2 + 2 * w * exc1 + w * w * exct;
+		int w2 = sqsum(exct, exc1, exc2, w);
+		gettot2(t, 1, w1, w2);
+		//calculate second powers
+		// cout << t << ' ' << w1 << ' ' << w2 << endl;
+	}
+	// for (int i = 1; i <= N; i++) {
+	// 	cout << "sub0[" << i << "] = " << sub0[i] << ", sub1[" << i << "] = " << sub1[i] << ", tot1[" << i << "] = " << tot1[i] << ", sub2[" << i << "] = " << sub2[i] << ", tot2[" << i << "] = " << tot2[i] << endl;
+	// }
+}
+
+void compute_lca() {
+	//2^0th ancestors were already computed in getsub0
+	for (int j = 1; j < MAXLG; j++) {
+		for (int i = 1; i <= N; i++) {
+			pii p = par[i][j - 1];
+			int x = p.first;
+			if (x == 0) {
+				continue;
+			}
+			pii q = par[x][j - 1];
+			if (q.first == 0) {
+				continue;
+			}
+			par[i][j] = pii(q.first, p.second + q.second);
+		}
+	}
+}
+
+pii lca (int x, int y) {
+	if (depth[x] > depth[y]) {
+		swap(x, y);
+	}
+	//move y up
+	int dist = 0;
+	for (int diff = depth[y] - depth[x], i = 0; diff; diff /= 2, i++) {
+		if (diff & 1) {
+			//move it up
+			addeq(dist, par[y][i].second);
+			y = par[y][i].first;
+		}
+	}
+	if (x == y) {
+		return pii(x, dist);
+	}
+	for (int i = MAXLG - 1; i >= 0; i--) {
+		int px = par[x][i].first, py = par[y][i].first;
+		if (px == py) {
+			continue;
+		}
+		addeq(dist, add(par[x][i].second, par[y][i].second));
+		x = px;
+		y = py;
+	}
+	return pii(par[x][0].first, add(dist, par[x][0].second, par[y][0].second));
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 1; i < N; i++) {
+		int u, v, w;
+		cin >> u >> v >> w;
+		adj[u].push_back(pii(v, w));
+		adj[v].push_back(pii(u, w));
+	}
+	compute_powers();
+	compute_lca();
+	for (cin >> Q; Q--; ) {
+		int u, v;
+		cin >> u >> v;
+		pii p = lca(u, v);
+		int t = p.first, w = p.second;
+		int nsum = tot2[u];
+		if (t == v && v != u) {
+			//special case. find N - 2B
+			cout << subtr(nsum, mult(2, sqsum(N - sub0[v], subtr(tot1[v], sub1[v]), subtr(tot2[v], sub2[v]), w)));
+		} else {
+			cout << subtr(mult(2, sqsum(sub0[v], sub1[v], sub2[v], w)), nsum);
+		}
+		cout << '\n';
+	}
+	//after so much coding, i'm finally tired...
+	//zzzzz...
+}

@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+pair<int, bool> a[105];
+char ss[5];
+int n, m, b[105];
+
+int solve1()
+{
+  multiset<int> s;
+  for(int i=0;i<m;i++)
+    s.insert(b[i]);
+  int res = 0;
+  for(int i=0;i<n;i++)
+  {
+    if(a[i].s) continue;
+    auto it = s.lower_bound(a[i].f + 1);
+    if(it == s.end()) return res;
+    s.erase(it);
+  }
+  for(int i=0;i<n;i++)
+  {
+    if(!a[i].s) continue;
+    auto it = s.lower_bound(a[i].f);
+    if(it == s.end()) return res;
+    res += (*it) - a[i].f;
+    s.erase(it);
+  }
+  for(auto x : s)
+    res += x;
+  return res;
+}
+
+int solve2()
+{
+  multiset<int> s;
+  for(int i=0;i<m;i++)
+    s.insert(b[i]);
+  int res = 0;
+  for(int i=0;i<min(m, n);i++)
+  {
+    if(!a[i].s) continue;
+    auto it = s.end();
+    it--;
+    if((*it) <= a[i].f) return res;
+    res += (*it) - a[i].f;
+    s.erase(it);
+  }
+  return res;
+}
+
+int main()
+{
+  cin >> n >> m;
+  for(int i=0;i<n;i++)
+  {
+    scanf("%s %d", ss, &a[i].f);
+    if(ss[0] == 'A') a[i].s = 1;
+  }
+  sort(a, a + n);
+  for(int i=0;i<m;i++) scanf("%d", &b[i]);
+  cout << max(solve1(), solve2());
+  return 0;
+}

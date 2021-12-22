@@ -1,0 +1,85 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define mp make_pair
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 155;
+
+void setmin (int &a, int b) {
+	if (a > b) {
+		a = b;
+	}
+}
+
+int N, K, S, A[MAXN];
+int tmpa[MAXN];
+int dp[2][MAXN][MAXN * MAXN];	//dp[# chosen elems][# cur elem][# of ways taken]
+int mdp[MAXN * MAXN];
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> K >> S;
+	for (int i = 1; i <= N; i++) {
+		cin >> A[i];
+		tmpa[i] = A[i];
+	}
+	int nswp = 0;
+	for (int i = 1; i <= K; i++) {
+		auto ci = tmpa + i, it = min_element(tmpa + i, tmpa + N + 1);
+		nswp += it - ci;
+		iter_swap(ci, it);
+	}
+
+	if (nswp <= S) {
+		cout << accumulate(tmpa + 1, tmpa + K + 1, 0) << endl;
+		return 0;
+	}
+
+	//otherwise, we have to dp
+	int cur = 0, prv = 1;
+	fillchar(dp[cur], 63);
+	dp[cur][0][0] = 0;
+
+	for (int i = 1; i <= K; i++) {
+		swap(cur, prv);
+		fill_n(mdp, S + 1, INT_MAX);
+		//calc max dp of prv
+		fillchar(dp[cur], 63);
+		for (int j = i; j <= N; j++) {
+			//calc dp[prv][i - 1 .. j - 1][0 to S - (j - i)]
+			for (int k = 0; k + (j - i) <= S; k++) {
+				setmin(mdp[k], dp[prv][j - 1][k]);
+			}
+			for (int k = j - i; k <= S; k++) {
+				/*
+				for (int m = i - 1; m < j; m++) {
+					setmin(dp[cur][j][k], dp[prv][m][k - (j - i)] + A[j]);
+				}
+				*/
+				dp[cur][j][k] = mdp[k - (j - i)] + A[j];
+				// debug("dp[%d][%d][%d] = %d\n", i, j, k, dp[cur][j][k]);
+			}
+		}
+	}
+
+	int ans = INT_MAX;
+	for (int j = K; j <= N; j++) {
+		for (int k = 0; k <= S; k++) {
+			setmin(ans, dp[cur][j][k]);
+		}
+	}
+	cout << ans << endl;
+}

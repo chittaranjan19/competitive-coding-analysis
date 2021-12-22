@@ -1,0 +1,236 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+const int lmt = 4005;
+struct node{
+    lli tot,lazy;
+    int idx;
+    node(lli _tot,int _idx){
+        tot = _tot;
+        idx = _idx;
+        lazy=0;
+    }
+    node(){
+        tot = lazy = 0;
+        idx = 0;
+    }
+};
+
+node tree_col[lmt],tree_row[lmt];
+lli mat[lmt][lmt];
+
+void lazyupdate_row(int nn,int a,int b){
+    int left = nn<<1;
+	int right = left + 1;
+    if(a != b){
+        tree_row[left].lazy  += tree_row[nn].lazy;
+        tree_row[right].lazy += tree_row[nn].lazy;
+    }
+    tree_row[nn].tot += (tree_row[nn].lazy);
+    tree_row[nn].lazy = 0;
+}
+
+void merge_row(int nn,int lt,int rt){
+    if(tree_row[lt].tot > tree_row[rt].tot){
+        tree_row[nn].tot = tree_row[lt].tot;
+        tree_row[nn].idx = tree_row[lt].idx;
+    }else{
+        tree_row[nn].tot = tree_row[rt].tot;
+        tree_row[nn].idx = tree_row[rt].idx;
+    }
+}
+
+void update_row(int nn,int a,int b,int l,int r,lli v){
+    int left = nn<<1;
+	int right = left + 1;
+
+	if(tree_row[nn].lazy != 0) //if this node is lazy correct it
+        lazyupdate_row(nn,a,b);
+
+    if(a>b || b<l || a>r) return;
+
+    if(l<=a && b<=r){
+        tree_row[nn].lazy += v;
+        lazyupdate_row(nn,a,b);
+		return;
+	}
+
+	int mid = (a+b)>>1;
+	update_row(left,a,mid,l,r,v);
+	update_row(right,mid+1,b,l,r,v);
+	if(a != b)
+        merge_row(nn,left,right);
+	return;
+}
+
+
+node query_row(int nn,int a,int b,int l,int r){
+
+	int left = nn<<1;
+	int right = left + 1;
+
+	if(tree_row[nn].lazy)
+		lazyupdate_row(nn,a,b);
+
+	if(a>b || b<l || a>r) return node(0,0);
+
+	if(l<=a && b<=r) return tree_row[nn];
+
+	int mid = (a+b)>>1;
+	node q1 = query_row(left,a,mid,l,r);
+	node q2 = query_row(right,mid+1,b,l,r);
+
+	if(q1.tot > q2.tot) return q1;
+	return q2;
+}
+
+
+void lazyupdate_col(int nn,int a,int b){
+    int left = nn<<1;
+	int right = left + 1;
+    if(a != b){
+        tree_col[left].lazy  += tree_col[nn].lazy;
+        tree_col[right].lazy += tree_col[nn].lazy;
+    }
+    tree_col[nn].tot += (tree_col[nn].lazy);
+    tree_col[nn].lazy = 0;
+}
+
+void merge_col(int nn,int lt,int rt){
+    if(tree_col[lt].tot > tree_col[rt].tot){
+        tree_col[nn].tot = tree_col[lt].tot;
+        tree_col[nn].idx = tree_col[lt].idx;
+    }else{
+        tree_col[nn].tot = tree_col[rt].tot;
+        tree_col[nn].idx = tree_col[rt].idx;
+    }
+}
+
+void update_col(int nn,int a,int b,int l,int r,lli v){
+    int left = nn<<1;
+	int right = left + 1;
+
+	if(tree_col[nn].lazy != 0) //if this node is lazy correct it
+        lazyupdate_col(nn,a,b);
+
+    if(a>b || b<l || a>r) return;
+
+    if(l<=a && b<=r){
+        tree_col[nn].lazy += v;
+        lazyupdate_col(nn,a,b);
+		return;
+	}
+
+	int mid = (a+b)>>1;
+	update_col(left,a,mid,l,r,v);
+	update_col(right,mid+1,b,l,r,v);
+	if(a != b)
+        merge_col(nn,left,right);
+	return;
+}
+
+
+node query_col(int nn,int a,int b,int l,int r){
+
+	int left = nn<<1;
+	int right = left + 1;
+
+	if(tree_col[nn].lazy)
+		lazyupdate_col(nn,a,b);
+
+	if(a>b || b<l || a>r) return node(0,0);
+
+	if(l<=a && b<=r) return tree_col[nn];
+
+	int mid = (a+b)>>1;
+	node q1 = query_col(left,a,mid,l,r);
+	node q2 = query_col(right,mid+1,b,l,r);
+
+	if(q1.tot > q2.tot) return q1;
+	return q2;
+}
+
+void build_row(int nn,int a,int b){
+   // DEBUG(a);
+   // DEBUG(b);
+    if(a>b) return ;
+    if(a==b){
+        tree_row[nn].tot = 0;
+        tree_row[nn].idx = a;
+        tree_row[nn].lazy = 0;
+        return;
+    }
+    int lt = nn<<1;
+	int rt = lt + 1;
+    int md = (a+b)>>1;
+    build_row(lt,a,md);
+    build_row(rt,md+1,b);
+}
+
+void build_col(int nn,int a,int b){
+    if(a>b) return ;
+    if(a==b){
+        tree_col[nn].tot = 0;
+        tree_col[nn].idx = a;
+        tree_col[nn].lazy = 0;
+        return;
+    }
+    int lt = nn<<1;
+	int rt = lt + 1;
+    int md = (a+b)>>1;
+    build_col(lt,a,md);
+    build_col(rt,md+1,b);
+}
+
+int main(){
+    int n,m,k,p;
+    scanf("%d %d %d %d",&n,&m,&k,&p);
+    for(int i=1;i<=n;i++){
+        for(int j=1;j<=m;j++)
+            scanf("%lld",&mat[i][j]);
+    }
+    build_row(1,1,n);
+    build_col(1,1,m);
+    for(int i=1;i<=n;i++){
+        lli sum = 0;
+        for(int j=1;j<=m;j++)
+            sum += mat[i][j];
+        update_row(1,1,n,i,i,sum);
+    }
+    for(int j=1;j<=m;j++){
+        lli sum = 0;
+        for(int i=1;i<=n;i++)
+            sum += mat[i][j];
+        update_col(1,1,m,j,j,sum);
+    }
+    lli ans = 0;
+    while(k--){
+        node a = query_row(1,1,n,1,n);
+        node b = query_col(1,1,m,1,m);
+        int mx = max(a.tot,b.tot);
+        //cout<<a.tot<<" "<<a.idx<<endl;
+        //cout<<b.tot<<" "<<b.idx<<endl;
+        //cout<<endl;
+       // if(mx<=0) break;
+        if(a.tot > b.tot){
+            ans += a.tot;
+            update_col(1,1,m,1,m,-p);
+            update_row(1,1,n,a.idx,a.idx,-(m*p));
+        }else{
+            ans += b.tot;
+            update_row(1,1,n,1,n,-p);
+            update_col(1,1,m,b.idx,b.idx,-(n*p));
+        }
+       // DEBUG(ans);
+    }
+    printf("%lld\n",ans);
+    return 0;
+}

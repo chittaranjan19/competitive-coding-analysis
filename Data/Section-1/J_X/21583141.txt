@@ -1,0 +1,61 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <queue>
+#include <map>
+
+using namespace std;
+
+const int maxn = 2e5 + 5;
+
+queue<int> que1, que2;
+map<int, queue<int> > mp;
+int a[maxn], b[maxn], match[maxn];
+
+int main()
+{
+    queue<int> &Q1 = que1, &Q2 = que2;
+    int n, m;
+    scanf("%d%d", &n, &m);
+    for(int i = 1; i <= n; ++i)
+    {
+        int x;
+        scanf("%d", &x);
+        mp[x].push(i);
+    }
+    for(int i = 1; i <= m; ++i)
+    {
+        scanf("%d", a + i);
+        Q1.push(i);
+    }
+    int ans1 = 0, ans2 = 0, cnt = 0;
+    while(!Q1.empty())
+    {
+        while(!Q1.empty())
+        {
+            int p = Q1.front();
+            Q1.pop();
+            if(mp.find(a[p]) != mp.end() && !mp[a[p]].empty())
+            {
+                int q = mp[a[p]].front();
+                mp[a[p]].pop();
+                ++ans1;
+                ans2 += cnt;
+                match[q] = p;
+                b[p] = cnt;
+            }
+            else if(a[p] > 1)
+            {
+                a[p] = (a[p] + 1) / 2;
+                Q2.push(p);
+            }
+        }
+        ++cnt;
+        swap(Q1, Q2);
+    }
+    printf("%d %d\n", ans1, ans2);
+    for(int i = 1; i <= m; ++i) printf("%d%c", b[i], " \n"[i == m]);
+    for(int i = 1; i <= n; ++i) printf("%d%c", match[i], " \n"[i == n]);
+    return 0;
+}

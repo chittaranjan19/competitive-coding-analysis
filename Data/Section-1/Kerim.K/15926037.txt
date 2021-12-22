@@ -1,0 +1,98 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000000
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int in[MAXN],out[MAXN],n,tim,arr[MAXN],lazy[MAXN<<2];
+vector<int>adj[MAXN];
+void dfs(int nd,int pr){
+	in[nd]=++tim;
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to==pr)
+			continue;
+		dfs(to,nd);	
+	}
+	out[nd]=tim;
+}
+void shift(int nd){
+	if(lazy[nd]==0)
+		return;
+	lazy[nd<<1]+=lazy[nd];
+	lazy[nd<<1|1]+=lazy[nd];
+	lazy[nd]=0;	
+}
+int tap(int p,int nd,int x,int y){
+	if(x==y)
+		return lazy[nd];
+	shift(nd);
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		return tap(p,nd<<1,x,mid);
+	else
+		return tap(p,nd<<1|1,mid+1,y);			
+}
+ll ans=0;
+void inc(int l,int r,int v,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		lazy[nd]+=v;
+		return;
+	}
+	shift(nd);
+	int mid=(x+y)>>1;
+	inc(l,r,v,nd<<1,x,mid);
+	inc(l,r,v,nd<<1|1,mid+1,y);
+}
+void dfs1(int nd,int pr){
+	int k=tap(in[nd],1,1,n);
+	ans+=abs(k);
+	if(k!=0)
+		inc(in[nd],out[nd],k,1,1,n);
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to==pr)
+			continue;
+		dfs1(to,nd);	
+	}
+}
+void build(int nd,int x,int y){
+	if(x==y){
+		lazy[nd]=arr[x];
+		return;	
+	}
+	int mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+}
+int main(){
+	scanf("%d",&n);
+	for(int i=0;i<n-1;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	for(int i=1;i<=n;i++)
+		scanf("%d",arr+i);
+	build(1,1,n);	
+	dfs(1,0);
+	dfs1(1,0);
+	printf("%lld\n",ans);
+	return 0;
+}

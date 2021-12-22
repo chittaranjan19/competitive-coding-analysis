@@ -1,0 +1,71 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const ll MAX_N = 500;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+vector<int> z_f(string s)
+{
+    int len = s.size(), l = 0, r = 0;
+    vector<int> z(len, 0);
+    for (int i = 1; i < len; i++)
+    {
+        if (i <= r)
+            z[i] = min(z[i - l], r - i + 1);
+        while (i + z[i] < len && s[z[i]] == s[i + z[i]])
+            z[i]++;
+        if (i + z[i] - 1 > r)
+        {
+            l = i;
+            r = i + z[i] - 1;
+        }
+    }
+    return z;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    string s;
+    cin >> s;
+    int l = s.size();
+    vector<int> z = z_f(s);
+    z[0] = l;
+    int cnt[l];
+    for (int i = 0; i < l; i++)
+        cnt[i] = 0;
+    for (int i = 0; i < l; i++)
+        cnt[z[i] - 1]++;
+    for (int i = l - 2; i >= 0; i--)
+        cnt[i] += cnt[i + 1];
+    vector<pair<int, int> > ans;
+    for (int i = 0; i < l; i++)
+        if (z[l - i - 1] == i + 1)
+            ans.push_back(make_pair(i + 1, cnt[i]));
+    cout << ans.size() << endl;
+    for (int i = 0; i < ans.size(); i++)
+        cout << ans[i].first << " " << ans[i].second << endl;
+    return 0;
+}

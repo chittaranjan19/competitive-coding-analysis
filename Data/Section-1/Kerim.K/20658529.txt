@@ -1,0 +1,204 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+const int N=2e6+9;
+int pr[N],id[N],sz,n,q,lvl[MAXN];//sen
+int tin[MAXN],tout[MAXN],arr[MAXN];//biz
+vector<int>wow[MAXN<<1],adj[MAXN],v;//onlar
+PII ans[MAXN],s[MAXN<<2];//zor
+int ID[MAXN<<1];
+bool cmp(int x,int y){
+	return (tin[x]<tin[y]);
+}
+PII tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return mp(0,0);
+	if(l<=x and y<=r)
+		return s[nd];
+	int mid=(x+y)>>1;
+	PII i1=tap(l,r,nd<<1,x,mid);
+	PII i2=tap(l,r,nd<<1|1,mid+1,y);
+	return max(i1,i2);
+}
+void upd(int p,int v,int nd,int x,int y){
+	if(x==y){
+		if(~v)
+			s[nd]=mp(lvl[v],v);
+		else
+			s[nd]=mp(0,0);
+		return;	
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,v,nd<<1,x,mid);
+	else
+		upd(p,v,nd<<1|1,mid+1,y);
+	s[nd]=max(s[nd<<1],s[nd<<1|1]);	
+}
+void solve(){
+	memset(ans,0,sizeof ans);
+	for(int i=1;i<=sz;i++){
+		int sz=wow[i].size();
+		if(sz<2)
+			continue;
+		sort(all(wow[i]),cmp);
+		for(int j=0;j<sz;j++){
+			int nd=wow[i][j];
+			if(j)
+				umax(ans[nd],tap(ID[tout[nd]]+1,n,1,1,n));
+			upd(ID[tout[nd]],nd,1,1,n);
+		}
+		for(int j=0;j<sz;j++)
+			upd(ID[tout[wow[i][j]]],-1,1,1,n);
+	}
+}int TIM;
+void dfs(int nd,int pr){
+	tin[nd]=++TIM;
+	lvl[nd]=(~pr?lvl[pr]+1:1);
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i];
+		if(to==pr)
+			continue;
+		dfs(to,nd);	
+	}
+	tout[nd]=++TIM;
+}
+void remove(int j,int nd){//dayanamiyorum 
+	int st=0,en=wow[j].size()-1;
+	while(st+1<en){
+		int mid=(st+en)>>1;
+		if(tin[wow[j][mid]]<tin[nd])
+			st=mid;
+		else
+			en=mid;
+	}			
+	if(wow[j][st]!=nd)
+		swap(st,en);
+	swap(wow[j][st],wow[j][int(wow[j].size())-1]);
+	wow[j].ppb();
+}
+int prime(int x){
+	return (x&1 and !pr[x]);
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	scanf("%d%d",&n,&q);
+	for(int i=1;i<=n;i++)
+		scanf("%d",arr+i);
+	for(int i=1;i<n;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	dfs(1,-1);v.pb(-INF);v.pb(2);
+	vector<int>ar;
+	for(int i=1;i<=n;i++)
+		ar.pb(tout[i]);
+	sort(all(ar));
+	for(int i=0;i<int(ar.size());i++)
+		ID[ar[i]]=i+1;	
+	pr[1]=1;	
+	for(int i=3;i<N;i+=2)
+		if(!pr[i]){
+			for(int j=i*3;j<N;j+=i)
+				pr[j]=1;
+			v.pb(i);	
+		}	
+	sz=v.size()-1;		
+	for(int i=1;i<=sz;i++)
+		id[v[i]]=i;
+	for(int i=1;i<=n;i++){
+		if(prime(arr[i])){
+			wow[id[arr[i]]].pb(i);
+			continue;
+		}
+		int x=arr[i],sq=sqrt(arr[i]);
+		for(int j=1;j<=sz;j++){
+			if(v[j]>sq)
+				break;	
+			if(x%v[j]==0){
+				while(x%v[j]==0)
+					x/=v[j];
+				wow[j].pb(i);	
+			}
+			if(x==1)
+				break;
+		}
+		if(x!=1)
+			wow[id[x]].pb(i);
+	}
+	solve();
+	while(q--){
+		int type;
+		scanf("%d",&type);
+		if(type==1){
+			int x;
+			scanf("%d",&x);
+			if(ans[x].ss)
+				printf("%d\n",ans[x].ss);
+			else
+				printf("-1\n");
+		}
+		else{
+			int x,y;
+			scanf("%d%d",&x,&y);
+			int xx=arr[x],sq=arr[x];
+			if(prime(xx))
+				remove(id[xx],x);
+			else{
+				for(int j=1;j<=sz;j++){
+					if(v[j]>sq)
+						break;
+					if(xx%v[j]==0){
+						while(xx%v[j]==0)
+							xx/=v[j];
+						remove(j,x);
+					}
+					if(xx==1)
+						break;
+				}
+				if(xx!=1)
+					remove(id[xx],x);	
+			}
+			if(prime(y))
+				wow[id[y]].pb(x);
+			else{	
+				xx=y;sq=sqrt(y);	
+				for(int j=1;j<=sz;j++){
+					if(v[j]>sq)
+						break;	
+					if(xx%v[j]==0){
+						while(xx%v[j]==0)
+							xx/=v[j];
+						wow[j].pb(x);	
+					}
+					if(xx==1)
+						break;
+				}
+				if(xx!=1)
+					wow[id[xx]].pb(x);	
+			}
+			solve();arr[x]=y;
+			//archalyk?
+		}
+	}
+	return 0;
+}

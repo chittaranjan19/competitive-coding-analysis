@@ -1,0 +1,66 @@
+#include<algorithm>
+#include<fstream>
+#include<iostream>
+using namespace std;
+const int MAX_FEW = 100000;
+const int MAX_N = 100005;
+long long end[MAX_N];
+struct Stage {
+    int x,y;
+} stage[MAX_N];
+int first_few[MAX_N];
+int calculated = 0;
+int query(long long pos, int n) {
+    int stg = 0;
+    for(int pas = 1 << 16; pas; pas >>= 1) {
+        if(stg + pas <= n && end[stg + pas] < pos) {
+            stg += pas;
+        }
+    }
+    ++ stg;
+    // pos is found in stage stg:
+    if(stage[stg].y == 0) {
+        return stage[stg].x;
+    }
+    //stage stg is a copy stage:
+    pos -= end[stg - 1];
+    //the pos-th position of stage stg:
+    pos = (pos - 1) % stage[stg].x + 1;
+    return first_few[pos];
+}
+int main() {
+    //ifstream cin("f.in");
+    int m, type;
+    cin >> m;
+    end[0] = 0;
+    for(int i = 1; i <= m; ++ i) {
+        cin >> type;
+        if(type == 1) {
+            cin >> stage[i].x;
+            end[i] = end[i - 1] + 1;
+            if(calculated != MAX_FEW) {
+                first_few[++ calculated] = stage[i].x;
+            }
+        } else {
+            cin >> stage[i].x >> stage[i].y;
+            end[i] = end[i - 1] + 1LL * stage[i].x * stage[i].y;
+            int pos = 1, number = 0;
+            while(calculated < MAX_FEW && number < 1LL * stage[i].x * stage[i].y) {
+                ++ number;
+                first_few[++ calculated] = first_few[pos];
+                ++ pos;
+                if(pos == stage[i].x + 1) {
+                    pos = 1;
+                }
+            }
+        }
+    }
+    int n;
+    cin >> n;
+    for(int i = 1; i <= n; ++ i) {
+        long long x;
+        cin >> x;
+        cout << query(x, m) << (i == n ? '\n' : ' ');
+    }
+    return 0;
+}

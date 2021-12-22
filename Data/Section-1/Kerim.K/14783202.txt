@@ -1,0 +1,73 @@
+#include<bits/stdc++.h>
+#define MAXN 300009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define lg(x) ceil(log2(x))
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN],s[MAXN*4],a;
+vector<int>adj[1000009],v;
+void build(int nd,int x,int y){
+	if(x==y){
+		s[nd]=arr[x];
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd*2,x,mid);
+	build(nd*2+1,mid+1,y);
+	s[nd]=__gcd(s[nd*2],s[nd*2+1]);
+}
+int tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return s[nd];
+	int mid=(x+y)>>1;
+	return __gcd(tap(l,r,nd*2,x,mid),tap(l,r,nd*2+1,mid+1,y));	
+}
+int cnt(int l,int r,int g){
+	int low=lower_bound(all(adj[g]),l)-adj[g].begin();
+	int upp=upper_bound(all(adj[g]),r)-adj[g].begin();
+	return (upp>low);
+}
+int take(int len){
+	for(int i=1;i<=a-len;i++)
+		if(cnt(i,i+len,tap(i,i+len,1,1,a)))
+			return 1;	
+	return 0;
+}
+int main(){
+	cin>>a;
+	for(int i=1;i<=a;i++)
+		cin>>arr[i],adj[arr[i]].pb(i);
+	build(1,1,a);	
+	int st=0,en=a+1;
+	while(st+1<en){
+		int mid=(st+en)>>1;
+		if(take(mid))
+			st=mid;
+		else
+			en=mid;	
+	}
+	for(int i=1;i<=a-st;i++)
+		if(cnt(i,i+st,tap(i,i+st,1,1,a)))
+			v.pb(i);
+	cout<<v.size()<<" "<<st<<endl;
+	tr(i,v)
+		cout<<*i<<" ";
+	cout<<"\n";		
+	return 0;
+}

@@ -1,0 +1,88 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+const int MN = 3e5;
+
+bool c[MN];
+vector<int> g[MN];
+
+const int MN2 = 1e7;
+
+int res[MN2];
+int p;
+
+void push(int x) {
+	res[p++] = x;
+}
+
+void pop() {
+	--p;
+}
+
+bool dfs(int v, int p = 0)
+{
+	push(v);
+	bool ok = !c[v] && v != 0;
+	if (v != 0) c[v] = !c[v];
+	for (int u : g[v]) {
+		while (p != u && dfs(u, v)) {
+			ok = true;
+			c[v] = !c[v];
+			push(v);
+		}
+	}
+
+	if (!ok) {
+		pop();
+		c[v] = v != 0;
+	}
+
+	return ok;
+}
+
+int main()
+{
+	ios::sync_with_stdio(false);
+	cout.tie(0);
+	int n;
+	cin >> n;
+	for (int i = 0; i < n; ++i) {
+		int x;
+		cin >> x;
+		c[i] = (x == 1);
+	}
+	for (int i = 0; i < n - 1; ++i) {
+		int a, b;
+		cin >> a >> b;
+		--a, --b;
+		g[a].push_back(b);
+		g[b].push_back(a);
+	}
+
+	bool izi = true;
+	for (int i = 0; i < n; ++i) izi = izi && c[i];
+	if (izi)
+	{
+		printf("1");
+		return 0;
+	}
+
+	dfs(0);
+
+	if (p == 0)
+		push(0);
+
+	int a = 0;
+	int b = g[0][0];
+	while (!c[a] || !c[b]) {
+		push(b);
+		c[b] = !c[b];
+		swap(a, b);
+	}
+
+	for (int i = 0; i < p; ++i) {
+		printf("%d ", res[i] + 1);
+	}
+}

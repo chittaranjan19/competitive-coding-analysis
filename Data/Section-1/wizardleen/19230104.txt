@@ -1,0 +1,99 @@
+import java.util.LinkedList;
+import java.util.Scanner;
+
+/**
+ * Created by leen on 7/19/16.
+ */
+public class _670D {
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+
+        int n = scan.nextInt(), m = scan.nextInt(), p = scan.nextInt();
+
+        scan.nextLine();
+
+        String cbs = scan.nextLine();
+        String oprs = scan.nextLine();
+
+        LinkedList<Node> stack = new LinkedList<Node>();
+
+        Node lastNode = null;
+        Node current = null;
+
+        for(int i = 0; i < n; i++) {
+            Node node = new Node(cbs.charAt(i) == '(');
+            if(lastNode == null)
+                lastNode = node;
+            else {
+                lastNode.next = node;
+                node.prev = lastNode;
+                lastNode = node;
+            }
+
+            if(node.isLeft)
+                stack.push(node);
+            else {
+                Node pair = stack.pop();
+                node.paired = pair;
+                pair.paired = node;
+            }
+
+            if(i == p - 1)
+                current = node;
+        }
+
+        assert current != null;
+
+        for(int i = 0; i < m; i++) {
+            char opr = oprs.charAt(i);
+            if(opr == 'L')
+                current = current.prev;
+            else if(opr == 'R')
+                current = current.next;
+            else {
+                Node left = (current.isLeft ? current : current.paired).prev;
+                Node right = (current.isLeft ? current.paired : current).next;
+
+                if(left != null && right != null) {
+                    left.next = right;
+                    right.prev = left;
+                    current = right;
+                }
+                else if(left != null && right == null) {
+                    left.next = null;
+                    current = left;
+                }
+                else if(right != null) {
+                    right.prev = null;
+                    current = right;
+                }
+                else
+                    assert false; // should not happen
+            }
+        }
+
+        Node start = current;
+        while(start.prev != null)
+            start = start.prev;
+
+        StringBuilder buf = new StringBuilder();
+        Node tmp = start;
+        while(tmp != null) {
+            buf.append(tmp.isLeft ? '(' : ')');
+            tmp = tmp.next;
+        }
+
+        System.out.println(buf.toString());
+    }
+
+    static class Node {
+        final boolean isLeft;
+        Node prev;
+        Node next;
+        Node paired;
+
+        Node(boolean isLeft) {
+            this.isLeft = isLeft;
+        }
+    }
+}

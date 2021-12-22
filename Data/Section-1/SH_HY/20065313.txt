@@ -1,0 +1,75 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef long long LL;
+
+const LL INF = 0x3f3f3f3f3f3f3f3f;
+
+LL ext_gcd (LL a, LL b, LL &x, LL &y) {
+    if (a == 0 && b == 0)   return -INF;
+    if (b == 0) {
+        x = 1, y = 0;
+        return a;
+    }
+    LL d = ext_gcd (b, a % b, y, x);
+    y -= a / b * x;
+    return d;
+}
+
+int main () {
+    LL a1, b1, a2, b2, L, R;
+    cin >> a1 >> b1 >> a2 >> b2 >> L >> R;
+    L = max (L, max (b1, b2));
+    if (L > R)  cout << 0 << endl;
+    else {
+        LL x, y;
+        LL d = ext_gcd (a1, -1 * a2, x, y);
+        //cout << a1 * x - a2 * y << endl;
+        //cout << d << " " << x << " " << y << endl;
+        if (d == -INF || (max (b1, b2) - min (b1, b2)) % d != 0)  cout << 0 << endl;
+        else {
+            x = (b2 - b1) / d * x;
+            y = (b2 - b1) / d * y;
+            if (d < 0)  d = -1 * d;
+            if (x < 0) {
+                LL q = a2 / d;
+                LL num = (-1 * x) / q;
+                x = x + num * q;
+                if (x < 0)  num++, x += q;
+                LL p = a1 / d;
+                y = y + num * p;
+            }
+            if (y < 0) {
+                LL q = a1 / d;
+                LL num = (-1 * y) / q;
+                y = y + num * q;
+                if (y < 0)  num++, y += q;
+                LL p = a2 / d;
+                x = x + num * p;
+            }
+            LL now = a1 * x + b1;
+            if (now > R) {
+                cout << 0 << endl;
+            } else {
+                if (now < L) {
+                    LL p = a1 / d * a2;
+                    LL num = (L - now) / p;
+                    now = now + num * p;
+                    if (now < L)    now += p;
+                    if (now > R) {
+                        cout << 0 << endl;
+                    } else {
+                        num = (R - now) / p;
+                        cout << num + 1 << endl;
+                    }
+                } else {
+                    LL p = a1 / d * a2;
+                    LL num = (R - now) / p;
+                    cout << num + 1<< endl;
+                }
+            }
+        }
+        //cout << d << " " << x << " " << y << endl;
+    }
+    return 0;
+}

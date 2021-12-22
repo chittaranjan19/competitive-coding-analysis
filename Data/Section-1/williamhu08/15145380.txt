@@ -1,0 +1,126 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef complex<ll> point;
+const int MAXN = 1e6 + 10, MOD = 1e9 + 7;
+const int HALF = (MOD + 1) / 2;
+
+int gmod (ll x) {
+	return (x % MOD + MOD) % MOD;
+}
+
+int add (ll x, ll y) {
+	return (gmod(x) + gmod(y)) % MOD;
+}
+
+int subtr (ll x, ll y) {
+	return add(x, -y);
+}
+
+int mult (ll x, ll y) {
+	return ll(gmod(x)) * gmod(y) % MOD;
+}
+
+ll cross (point a, point b) {
+	return imag(conj(a) * b);
+}
+
+ll area (point a, point b, point c) {
+	return cross(b - a, c - a);
+}
+
+int N;
+ll S;
+point A[MAXN];
+point pa[MAXN];
+ll cpsum[MAXN];
+int cppsum[MAXN];	//cppsum is mod MOD
+
+ll getarea (int from, int to) {
+	//clockwise
+	assert(from <= to);
+	return cpsum[to - 1] - cpsum[from - 1] + cross(A[to], A[from]);
+}
+
+int getparea (int from, int to) {
+	assert(from <= to);
+	int val1 = subtr(cppsum[to - 1], cppsum[from - 1]);
+	//get the non-cross stuff first?
+	val1 = subtr(val1, mult(cpsum[from - 1], to - from));	//took me so long to realize to - from :P
+	point pt = pa[to] - pa[from];
+	int val2 = gmod(cross(pt, A[from]));
+	// cerr << "val1 = " << val1 << ", val2 = " << val2 << endl;
+	return add(val1, val2);
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d", &N);
+	for (int i = 1, x, y; i <= N; i++) {
+		scanf("%d %d", &x, &y);
+		A[i] = point(x, y);
+	}
+	reverse(A + 1, A + N + 1);
+	copy_n(A + 1, N, A + N + 1);
+	A[2 * N + 1] = A[1];
+	for (int i = 1; i <= N; i++) {
+		S += cross(A[i], A[i + 1]);
+	}
+	for (int i = 1; i <= 2 * N + 1; i++) {
+		pa[i] = pa[i - 1] + A[i];
+	}
+	for (int i = 1; i <= 2 * N; i++) {
+		cpsum[i] = cpsum[i - 1] + cross(A[i], A[i + 1]);
+		cppsum[i] = add(cppsum[i - 1], cpsum[i]);
+		// printf("cpsum[%d] = %lld, cppsum[%d] = %lld\n", i, cpsum[i], i, cppsum[i]);
+	}
+
+	int ans = mult(S, mult(mult(N, N - 3), HALF));
+	// printf("S = %lld\n", S);
+	int nexact = 0;	//# of exact ones
+	for (int i = 1; i <= N; i++) {
+		//could also do sweepline but w/e
+		int lo = i + 1, hi = i + N - 1;
+		while (hi - lo > 1) {
+			int mid = (lo + hi) / 2;
+			if (getarea(i, mid) * 2 <= S) {
+				lo = mid;
+			} else {
+				hi = mid;
+			}
+		}
+		int sarea = getparea(i, lo);
+		if (getarea(i, lo) * 2 == S) {
+			nexact++;
+		}
+		// printf("getarea(%d, %d) = %lld, getparea(%d, %d) = %d\n", i, lo, getarea(i, lo), i, lo, sarea);
+		/*
+		int diff = 0;
+		for (int j = i + 1; j <= lo; j++) {
+			printf("Adding diff to getarea(%d, %d) so %lld\n", i, j, getarea(i, j));
+			diff += getarea(i, j);
+		}
+		printf("diff = %d. sarea = %d\n", diff, sarea);
+		assert(diff == sarea);
+		*/
+		ans = subtr(ans, mult(2, sarea));
+	}
+	assert(nexact % 2 == 0);
+	nexact /= 2;
+	ans = add(ans, mult(nexact, S));
+	printf("%d\n", ans);
+}

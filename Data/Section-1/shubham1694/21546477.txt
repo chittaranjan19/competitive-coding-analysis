@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 405;
+
+int mul(int a, int b) {
+    ll res = a;
+    res *= b;
+    res %= mod;
+    a = res;
+    return a;
+}
+
+int add(int a, int b) {
+    int res = (a + b) % mod;
+    return res;
+}
+
+int n, m, x, dp[2][maxn][maxn];
+
+int main() {
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    scanf("%d %d %d", &n, &m, &x);
+    if (n > m) {
+        printf("0\n");
+        return 0;
+    }
+    dp[(m + 1) & 1][n + 1][0] = 1;
+    for (int i = m; i >= 1; i--) {
+        for (int j = 1; j <= n + 1; j++) {
+            for (int k = 0; k < j; k++) {
+                dp[i & 1][j][k] = 0;
+                dp[i & 1][j][k] = add(dp[i & 1][j][k], dp[(i & 1) ^ 1][j + 1][k + 1]);     // begin a new segment
+                if (k == 0)
+                    dp[i & 1][j][k] = add(dp[i & 1][j][k], dp[(i & 1) ^ 1][j + 1][k]);
+                if (k > 0)
+                    dp[i & 1][j][k] = add(dp[i & 1][j][k], dp[(i & 1) ^ 1][j + 1][k]);     // begin a new and close previous segment
+                if (i == x)
+                    continue;
+                if (k > 0)
+                    dp[i & 1][j][k] = add(dp[i & 1][j][k], dp[(i & 1) ^ 1][j][k - 1]);     // close previous segment
+                dp[i & 1][j][k] = add(dp[i & 1][j][k], dp[(i & 1) ^ 1][j][k]);             // do nothing
+            }
+        }
+    }
+    int ans = dp[1][1][0];
+    for (int i = n; i >= 1; i--) {
+        ans = mul(ans, i);
+    }
+    printf("%d\n", ans);
+    return 0;
+}

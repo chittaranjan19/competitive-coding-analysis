@@ -1,0 +1,85 @@
+#include <iostream>
+#include <vector>
+#include <set>
+#include <utility>
+#define MAXN 100010
+#define msg(a) cout<<#a<<" : "<<a<<endl;
+
+using namespace std;
+
+struct Terna{
+	int cant, pcam, sig;
+	Terna(int _cant, int _pcam, int _sig){
+		cant = _cant; pcam = _pcam; sig = _sig;
+	}
+
+	bool operator < (const Terna T) const{
+		return cant < T.cant;
+	}
+};
+
+set <Terna> V[MAXN];
+
+char color[MAXN];
+int tTotal;
+
+void insertar(int u, Terna T) {
+	set<Terna>::iterator it;
+	it = V[u].find( T );
+	if( it == V[u].end() && T.pcam<=tTotal ) V[u].insert( T );
+	else{
+		if( T.pcam < (*it).pcam && T.pcam<=tTotal ){
+			V[u].erase(it);
+			V[u].insert(T);
+		}
+	}
+}
+vector <pair<int, int> > Adj[MAXN];
+int N;
+void DFS( int u ){
+	// cout<<"("<<u<<")\n";
+	if( u == N ) { V[N].insert(Terna(1, 0, -1)); color[N]='B'; return; }
+	color[u] = 'G';
+	// cout<<"Lista de "<<u<<":\n";
+	for( auto v : Adj[u] ){
+		// cout<<"["<<v.first<<", "<<v.second<<"] ";	
+		if( color[v.first] == 'W' ) DFS( v.first );
+	}
+	// cout<<endl;
+
+	color[u] = 'B';
+	for( auto v : Adj[u] )
+		for( auto T : V[v.first] )
+			insertar( u, Terna( T.cant+1, T.pcam+v.second, v.first) );
+}
+
+int main(){
+	int M, u, v, p, sig, cant;
+	set <Terna>::iterator it;
+
+	cin>>N>>M>>tTotal;
+
+	for(int i=1; i<=M; i++){
+		cin>>u>>v>>p;
+		Adj[u].push_back(make_pair(v, p));
+	}
+	
+	for(int i=1; i<=N; i++) color[i] = 'W';
+	// msg(N);
+	DFS(1);
+	
+	it = V[1].end(); it--; sig = (*it).sig; cant = (*it).cant;
+	cout<<cant<<endl;
+	cout<<"1 ";
+	while( sig != -1 ){
+		cout<<sig<<" "; cant--;
+		it = V[sig].find(Terna(cant, 0, 0));
+		sig = (*it).sig;
+	}
+	cout<<endl;
+
+/*	it = V[N].begin();
+	cout<<(*it).cant<<", "<<(*it).pcam<<", "<<(*it).sig<<endl;*/
+
+	return 0;
+}

@@ -1,0 +1,97 @@
+//INOG
+//<MohammadJavad Akbari/>
+//I Try So Hard And Got So Far,But In The End It Doesn't Even Matter...
+#include<bits/stdc++.h>
+using namespace std;
+
+#define mp make_pair
+#define ll long long
+#define int long long
+#define ld long double
+#define pb(x) push_back(x)
+#define all(x) x.begin(),x.end()
+#define endl '\n'
+const long long MAXN=1e6+51;
+const long long MAXM=3e3;
+const long long MOD=1610612741;
+const long long mod=1e9+7;
+const long long INF=1e15+5040;
+const int dx[4]={1,-1,0,0};
+const int dy[4]={0,0,-1,1};
+
+//int p[MAXN];
+//int root(int x){if(p[x]<0)return x;return p[x]=root(p[x]);}
+//inline void merge(int x,int y){x=root(x);y=root(y);p[x]=y;}
+
+const int N = 1e6 + 7;
+vector<int> t[N];
+vector<pair<int, int> > v;
+vector<int> adj[N], ts, in[N];
+bool mark[N];
+int col[N];
+int num[N];
+
+void dfs(int v)
+{
+    mark[v] = 1;
+    for (auto u : adj[v])
+        if (!mark[u])
+            dfs(u);
+    ts.push_back(v);
+}
+
+main(){
+    int n, m;
+    cin >> n >> m;
+    for (int i=0; i<n; i++)
+    {
+        t[i].resize(m);
+        for (int j=0; j<m; j++)
+        {
+            cin >> t[i][j];
+            v.push_back({t[i][j], j});
+        }
+        sort(v.begin(), v.end());
+        for (int j=0; j+1<m; j++)
+        {
+            adj[i*m+v[j].second].push_back(i*m+v[j+1].second);
+            in[i*m+v[j+1].second].push_back(i*m+v[j].second);
+        }
+        v.clear();
+    }
+
+    for (int i=0; i<m; i++)
+    {
+        for (int j=0; j<n; j++)
+            v.push_back({t[j][i], j});
+        sort(v.begin(), v.end());
+        for (int j=0; j+1<n; j++)
+        {
+            adj[v[j].second*m+i].push_back(v[j+1].second*m+i);
+            in[v[j+1].second*m+i].push_back(v[j].second*m+i);
+        }
+        v.clear();
+    }
+
+    for (int i=0; i<n*m; i++)
+        if (!mark[i])
+            dfs(i);
+    reverse(ts.begin(), ts.end());
+
+    for (int i=0; i<n*m; i++)
+    {
+        int v = ts[i];
+        int mx = 0;
+        for (auto u : in[v])
+            mx = max(mx, num[u] - (t[u/m][u%m] == t[v/m][v%m]));
+        num[v] = mx+1;
+    }
+    for (int i=0; i<n; i++)
+    {
+        for (int j=0; j<m; j++)
+            cout << num[i*m+j] << " ";
+        cout << "\n";
+    }
+
+    return 0;
+}

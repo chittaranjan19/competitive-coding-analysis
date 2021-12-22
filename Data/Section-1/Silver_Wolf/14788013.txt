@@ -1,0 +1,70 @@
+// In The Name Of ALLAH
+
+#include<bits/stdc++.h>
+#define LL long long
+#define LB long double
+#define ALL(X) X.begin(),X.end()
+#define DD(X) cout<<#X<<' '<<X<<endl;
+#define Speed_Up; ios_base::sync_with_stdio(0),cin.tie(0),cout.tie(0);
+using namespace std;
+
+const long long MOD=1000*1000*1000+7;
+const long long MAXN=1000+100;
+const long long MAXM=200+50;
+const long long INF=1e9+7;
+
+const long long dx[4]={0,0,-1,+1};
+const long long dy[4]={+1,-1,0,0};
+
+ifstream fin("input.txt");
+ofstream fout("output.txt");
+
+bool vis[MAXN][MAXN][3];
+long long val[MAXN][MAXN][3];
+string s[MAXN];
+deque<pair<int, int>> q;
+
+int main(){
+	Speed_Up;
+	int n,m;
+	cin>>n>>m;
+	for(int i=0;i<n;i++)cin>>s[i];
+	
+	for(int t=0;t<3;t++){
+		for(int i=0;i<n;i++)
+			for(int j=0;j<m;j++)
+				if(s[i][j]=='1'+t){
+					vis[i][j][t]=true;
+					q.push_back(make_pair(i,j));
+				}
+		while(q.size()){
+			int x=q.front().first;
+			int y=q.front().second;
+			q.pop_front();
+			for(int i=0;i<4;i++){
+				int xx=x+dx[i];
+				int yy=y+dy[i];
+				if(yy<0||xx<0||xx>=n||yy>=m||s[xx][yy]=='#')continue;
+				int nval=val[x][y][t];
+				if(s[xx][yy]=='.')nval++;
+				if(!vis[xx][yy][t]||val[xx][yy][t]>nval){
+					val[xx][yy][t]=nval;
+					vis[xx][yy][t]=true;
+					if(s[xx][yy]=='.')q.push_back(make_pair(xx,yy));
+					else q.push_front(make_pair(xx,yy));
+				}
+			}			
+		}
+	}
+	int ans=INF;
+	for(int i=0;i<n;i++)
+		for(int j=0;j<m;j++){
+			int res=0;
+			bool flag=true;
+			for(int k=0;k<3;k++)res+=val[i][j][k],flag=(flag && vis[i][j][k]);
+			if(s[i][j]=='.')res-=2;
+			if(flag)ans=min(ans,res);
+		}
+	cout<<(ans==INF ? -1 :ans);
+}
+

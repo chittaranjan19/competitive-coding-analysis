@@ -1,0 +1,190 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+
+using namespace std;
+
+const int MAXN = 5e4 + 5;
+const int MAXM = MAXN * 25;
+
+int a[MAXN], ans[MAXN], sum[MAXM];
+struct question
+{
+    int l, r, id;
+
+    question(int l, int r, int id) : l(l), r(r), id(id) {}
+
+    bool operator < (const question &a) const {return r == a.r ? l > a.l : r < a.r;}
+};
+struct trie
+{
+    int ch[MAXM][2], val[MAXM], sz;
+
+    void init()
+    {
+        sz = 0;
+        memset(ch[0], 0, sizeof(ch[0]));
+    }
+
+    void insert(int x)
+    {
+        int u = 0;
+        for(int i = 23; i >= 0; --i)
+        {
+            int c = x >> i & 1;
+            if(!ch[u][c])
+            {
+                ch[u][c] = ++sz;
+                memset(ch[sz], 0, sizeof(ch[sz]));
+                val[sz] = 0;
+            }
+            u = ch[u][c];
+            ++val[u];
+        }
+    }
+
+    void remove(int x)
+    {
+        int u = 0;
+        for(int i = 23; i >= 0; --i)
+        {
+            int c = x >> i & 1;
+            u = ch[u][c];
+            --val[u];
+        }
+    }
+
+//    int query(int x)
+//    {
+//        int ret = 0, u = 0;
+//        bool flag = false;
+//        for(int i = 23; i >= 0; --i)
+//        {
+//            int c = x >> i & 1, son0 = ch[u][0], son1 = ch[u][1];
+//            if(c)
+//            {
+//                if(val[son0]) u = son0, flag = true;
+//                else u = son1;
+//            }
+//            else if(flag)
+//            {
+//                if(val[son1]) u = son1;
+//                else u = son0;
+//            }
+//            else u = son0;
+//            if((!c && u == son1) || (c && u == son0)) ret |= 1 << i;
+//        }
+//        return ret;
+//    }
+//
+//    int query(int x)
+//    {
+//        int ret = 0, u = 0;
+//        bool flag = false;
+//        for(int i = 23; i >= 0; --i)
+//        {
+//            int c = x >> i & 1, son0 = ch[u][0], son1 = ch[u][1];
+//            if(!c)
+//            {
+//                if(val[son1]) u = son1, flag = true;
+//                else u = son0;
+//            }
+//            else if(flag)
+//            {
+//                if(val[son0]) u = son0;
+//                else u = son1;
+//            }
+//            else u = son1;
+//            if((!c && u == son1) || (c && u == son0)) ret |= 1 << i;
+//        }
+//        return ret;
+//    }
+    int query(int x)
+    {
+        int u = 0, ret = 0;
+        for(int i = 23; i >= 0; --i)
+        {
+            int c = x >> i & 1;
+            if(val[ch[u][!c]])
+            {
+                u = ch[u][!c];
+                ret |= 1 << i;
+            }
+            else
+            {
+                u = ch[u][c];
+            }
+        }
+        return ret;
+    }
+} tree1, tree2;
+vector<question> ask[MAXN];
+
+int main()
+{
+    for(int i = 1; i < MAXM; ++i) sum[i] = i ^ sum[i - 1];
+    int n, q;
+    while(~scanf("%d%d", &n, &q))
+    {
+        int block = sqrt(n);
+        tree1.init(), tree2.init();
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", a + i);
+        }
+        for(int i = 0; i <= n / block; ++i) ask[i].clear();
+        for(int i = 0; i < q; ++i)
+        {
+            int l, r;
+            scanf("%d%d", &l, &r);
+            ask[l / block].push_back(question(l, r, i));
+        }
+        for(int i = 0; i <= n / block; ++i)
+        {
+            sort(ask[i].begin(), ask[i].end());
+            int best = -1, l, r, res = 0;
+            for(int j = 0; j < ask[i].size(); ++j)
+            {
+                if(!j || ask[i][j].r != ask[i][j - 1].r)
+                {
+                    if(~best)
+                    {
+                        res = best;
+                        while(l < (i + 1) * block)
+                        {
+                            tree1.remove(sum[a[l] - 1]);
+                            tree2.remove(sum[a[l]]);
+                            ++l;
+                        }
+                    }
+                    else
+                    {
+                        tree1.init(), tree2.init();
+                        res = 0;
+                        r = min((i + 1) * block, ask[i][j].r) - 1;
+                        l = r + 1;
+                    }
+                }
+                while(r < ask[i][j].r)
+                {
+                    ++r;
+                    tree1.insert(sum[a[r] - 1]), tree2.insert(sum[a[r]]);
+                    res = max(res, max(tree1.query(sum[a[r]]), tree2.query(sum[a[r] - 1])));
+                    if(r >= (i + 1) * block) best = res;
+                }
+                while(l > ask[i][j].l)
+                {
+                    --l;
+                    tree1.insert(sum[a[l] - 1]), tree2.insert(sum[a[l]]);
+                    res = max(res, max(tree1.query(sum[a[l]]), tree2.query(sum[a[l] - 1])));
+                }
+                ans[ask[i][j].id] = res;
+            }
+        }
+        for(int i = 0; i < q; ++i) printf("%d\n", ans[i]);
+    }
+    return 0;
+}

@@ -1,0 +1,124 @@
+#include<bits/stdc++.h>
+
+using namespace std;
+
+#define debug(x) cerr << #x << "= " << x << endl;
+
+struct node{
+    int v;
+    node *p,*l,*r;
+    int cnt;
+    node(){
+        p=l=r=NULL;
+        cnt=v=0;
+    }
+};
+node*find(int x,node *first){
+    while((first->r!=NULL && first->v<x)||(first->l!=NULL && first->v>x)||first->v==x)
+        if(first->v>x)first=first->l;
+        else if(first->v<x)first=first->r;
+        else return first;
+    return NULL;
+}
+
+node*insert(int x,node*first){
+
+    while((first->r!=NULL && x>first->v)||(first->l!=NULL && x<first->v)||first->v==x)
+        if(first->v<x)first=first->r;
+        else if(first->v>x)first=first->l;
+        else break;
+    if(first->v==x) return first;
+    node*t=NULL;
+    if(first->v<x){
+        first->r=new node();
+        first->r->p=first;
+        first->r->v=x;
+        t= first->r;
+        first=t;
+    }
+    if(first->v>x){
+        first->l=new node();
+        first->l->p=first;
+        first->l->v=x;
+        t=first->l;
+        first=t;
+    }
+    while(first->p!=NULL){
+        first->cnt++;
+        first=first->p;
+    }
+    return t;
+
+}
+
+bool del(int x,node*first){
+    first=find(x,first);
+    if(first==NULL)return 0;
+    if(first->r==NULL && first->l==NULL)
+        if(first->p->r==first){first->p->r=NULL;return 1;}
+        else {first->p->l=NULL;return 1;}
+    if(first->l==NULL){
+        first->r->p=first->p;
+        if(first->p->r==first)first->p->r=first->r;
+        else first->p->l=first->r;
+        return 1;
+    }
+    if(first->r==NULL){
+        first->l->p=first->p;
+        if(first->p->r==first)first->p->r=first->l;
+        else first->p->l=first->l;
+        return 1;
+    }
+    node*h=first->r;
+    while(h->l!=NULL)h=h->l;
+    first->l->p=h;
+    h->l=first->l;
+    first->r->p=first->p;
+    if(first->p->r==first)first->p->r=first->r;
+    else first->p->l=first->r;
+    return 1;
+    //TODO
+
+}
+int succ(int x,node*first){
+    while((first->r!=NULL && x>first->v)||(first->l!=NULL && x<first->v)||first->v==x)
+        if(first->v<x)first=first->r;
+        else if(first->v>x)first=first->l;
+        else break;
+
+    return first->l->cnt;
+}
+
+void print(node*first){
+    if(first->l!=NULL)
+    {
+        //if (first->l->p != first)
+        //    cerr << "Error" << endl;
+        print(first->l);
+    }
+    //cout<<first->v<<" ";
+    if(first->r!=NULL)
+    {
+        //if (first->r->p != first)
+        //    cerr << "Error" << endl;
+        print(first->r);
+    }
+}
+
+int main(){
+
+    node *first=new node();
+    first->v=-1;
+
+    int n;
+    cin>>n;
+    int t=0;
+    for(int i=0;i<n;i++){
+        char ch;int k;
+        cin>>ch>>k;
+        if(ch=='+'){insert(k,first);t++;}
+        if(ch=='-')if(del(k,first))t--;
+        if(ch=='?')if(!t)cout<<-1<<"\n"; else cout<<succ(--k,first)<<"\n";
+        if(ch=='p')print (first);
+    }
+}

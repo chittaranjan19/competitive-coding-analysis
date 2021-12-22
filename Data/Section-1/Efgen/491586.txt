@@ -1,0 +1,143 @@
+import java.io.*;
+import java.util.*;
+import java.math.*;
+
+public class Main implements Runnable {
+	class Point {
+		long x, y;
+		public Point(long xx, long yy) {
+			x = xx; y = yy;
+		}
+	}
+	class Widget implements Comparable<Widget>{
+		String name;
+		long w, h, b, s;
+		boolean is_box = false;
+		boolean is_h = false;
+		boolean is_w = false;
+		Point size = null;
+		LinkedList<Widget> content = new LinkedList<Widget>();
+		public Widget(String s, int x, int y) {
+			name = s; w = x; h = y;
+		}
+		public Widget(String s, boolean f) {
+			is_box = true;
+			name = s; is_h = f; is_w = !f;
+		}
+		public int compareTo(Widget o) {
+			return name.compareTo(o.name);
+		}
+		public Point getSize() {
+			Point res = size;
+			if (res==null) {
+				if (is_box) {
+					if (content.isEmpty()) res = new Point(0, 0); else {					
+						long W = 0, H = 0, cnt = 0;
+						for (Widget w:content) {
+							Point p = w.getSize();
+							if (is_w) W = Math.max(W, p.x);
+							if (is_h) H = Math.max(H, p.y);
+							if (is_w) H += p.y;
+							if (is_h) W += p.x;
+							cnt++;
+						}
+						if (is_h) W += (cnt-1)*s;
+						if (is_w) H += (cnt-1)*s;
+						res = new Point(W+b*2, H+b*2);
+					}
+				} else {
+					res = new Point(w, h);
+				}
+			}
+			size = res;
+			return size;
+		}
+		
+	}
+	void solve() throws IOException {
+		int zzz = Integer.parseInt(br.readLine());
+		TreeMap<String, Widget> t = new TreeMap<String, Widget>(); 
+		while (zzz-->0) {
+			StringTokenizer st = new StringTokenizer(br.readLine()," .,()");
+			
+			String s = st.nextToken();
+			if (s.equals("Widget")) {
+				String w = st.nextToken();			
+				t.put(w, new Widget(w, Integer.parseInt(st.nextToken()), Integer.parseInt(st.nextToken())));
+			} else
+			if (s.equals("VBox")) {
+				String w = st.nextToken();
+				t.put(w, new Widget(w, false));
+			} else
+			if (s.equals("HBox")) {
+				String w = st.nextToken();
+				t.put(w, new Widget(w, true));
+			} else {
+				String w = s;
+				Widget W = t.get(w);
+				s = st.nextToken();
+				if (s.equals("pack")) {
+					W.content.add(t.get(st.nextToken()));
+				} else
+				if (s.equals("set_border")) {
+					W.b = Integer.parseInt(st.nextToken());
+				} else
+				if (s.equals("set_spacing")){
+					W.s = Integer.parseInt(st.nextToken());
+				}
+			}
+				
+		}
+		for (String s: t.keySet()) {
+			Point p = t.get(s).getSize();
+			out.println(s+" "+p.x+" "+p.y);
+		}
+		
+		
+	}
+
+	BufferedReader br;
+	StringTokenizer st;
+	PrintWriter out;
+
+	public void run() {
+		try {
+			br = new BufferedReader(new InputStreamReader(System.in));
+			out = new PrintWriter(System.out);
+			// br= new BufferedReader(new FileReader("input.txt"));
+			///out = new PrintWriter("output.txt");
+			solve();
+			br.close();
+			out.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+	}
+
+	String next() throws IOException {
+		while (st == null || !st.hasMoreTokens()) {
+			String s = br.readLine();
+			if (s == null)
+				return null;
+			st = new StringTokenizer(s,", \t");
+		}
+		return st.nextToken();
+	}
+
+	double nextDouble() throws IOException {
+		return Double.parseDouble(next());
+	}
+
+	int nextInt() throws IOException {
+		return Integer.parseInt(next());
+	}
+
+	long nextLong() throws IOException {
+		return Long.parseLong(next());
+	}
+
+	public static void main(String[] args) {
+		new Thread(new Main()).start();
+	}
+}

@@ -1,0 +1,87 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define ll long long
+#define pii pair<int, int>
+
+pii grid[1100][1100];
+int arr[1100][1100];
+pii sum[1100][1100];
+vector<string> vec[1100][1100];
+
+pii foo(int n)
+{
+    int x, y;
+    x=y=0;
+    if(n%2==0){
+        while(n%2){
+            n/=2;
+            x++;
+        }
+    }
+    if(n%5==0){
+        while(n%5==0){
+            n/=5;
+            y++;
+        }
+    }
+    pii p = make_pair(x,y);
+    return p;
+}
+
+
+
+int main()
+{
+    int n, i, j, x, y;
+    string s;
+    scanf("%d", &n);
+    for(i=0; i<n; i++){
+        for(j=0; j<n; j++){
+            scanf("%d", &arr[i][j]);
+            grid[i][j] = foo(arr[i][j]);
+        }
+    }
+    sum[0][0] = grid[i][j];
+    for(i=0; i<n; i++){
+        for(j=0; j<n; j++){
+            if(i==0 && j==0)
+                continue;
+            else if(i==0){
+                sum[i][j] = make_pair(sum[i][j-1].first+grid[i][j].first, sum[i][j-1].second+grid[i][j].second);
+                vec[i][j] = vec[i][j-1];
+                s = "R";
+                vec[i][j].push_back(s);
+            }
+            else if(j==0){
+                sum[i][j] = make_pair(sum[i-1][j].first+grid[i][j].first, sum[i-1][j].second+grid[i][j].second);
+                vec[i][j] = vec[i-1][j];
+                s = "D";
+                vec[i][j].push_back(s);
+            }
+            else{
+                x = min(sum[i-1][j].first+grid[i][j].first, sum[i-1][j].second+grid[i][j].second);
+                y = min(sum[i][j-1].first+grid[i][j].first, sum[i][j-1].second+grid[i][j].second);
+                if(x<y){
+                    sum[i][j] = make_pair(sum[i-1][j].first+grid[i][j].first, sum[i-1][j].second+grid[i][j].second);
+                    vec[i][j] = vec[i-1][j];
+                    s = "D";
+                    vec[i][j].push_back(s);
+                }
+                else{
+                    sum[i][j] = make_pair(sum[i][j-1].first+grid[i][j].first, sum[i][j-1].second+grid[i][j].second);
+                    vec[i][j] = vec[i][j-1];
+                    s = "R";
+                    vec[i][j].push_back(s);
+                }
+            }
+        }
+    }
+    int ans = min(sum[n-1][n-1].first, sum[n-1][n-1].second);
+    cout << ans << endl;
+    for(i=0; i<vec[n-1][n-1].size(); i++)
+        cout << vec[n-1][n-1][i];
+    cout << endl;
+    return 0;
+}

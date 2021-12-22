@@ -1,0 +1,83 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 2000005
+#define maxC 1000000007
+#define base1 29
+#define base2 37
+#define pb push_back
+
+using namespace std;
+string p;
+int n, m, a[mn], sz, num;
+unsigned long long ans = 1, hashVal1[mn], po1[mn], hashVal2[mn], po2[mn];
+
+void setup()
+{
+    cin >> n >> m >> p;
+    sz = p.size();
+    num = n;
+    FOR(i, 1, m)
+        cin >> a[i];
+}
+
+void makeHash()
+{
+    po1[0] = po2[0] = 1;
+    FOR(i, 1, sz)
+    {
+        po1[i] = po1[i - 1] * base1;
+        po2[i] = po2[i - 1] * base2;
+    }
+    FOR(i, 1, sz)
+    {
+        hashVal1[i] = hashVal1[i - 1] * base1 + p[i - 1] - 'a' + 1;
+        hashVal2[i] = hashVal2[i - 1] * base2 + p[i - 1] - 'a' + 1;
+    }
+}
+
+unsigned long long getHash(unsigned long long* hashVal, unsigned long long* po, int l, int r)
+{
+    return hashVal[r] - hashVal[l - 1] * po[r - l + 1];
+}
+
+void xuly()
+{
+    if (m)
+    {
+        makeHash();
+        int r = a[1] + sz - 1;
+        num -= sz;
+        FOR(i, 2, m)
+        {
+            if (r >= a[i])
+            {
+                int over = r - a[i] + 1;
+                unsigned long long getS1 = getHash(hashVal1, po1, sz - over + 1, sz);
+                unsigned long long getP1 = getHash(hashVal1, po1, 1, over);
+                unsigned long long getS2 = getHash(hashVal2, po2, sz - over + 1, sz);
+                unsigned long long getP2 = getHash(hashVal2, po2, 1, over);
+                if (getS1 != getP1 || getS2 != getP2)
+                {
+                    cout << 0;
+                    return;
+                }
+            }
+            num -= a[i] + sz - 1 - max(r + 1, a[i]) + 1;
+            r = a[i] + sz - 1;
+        }
+    }
+    FOR(i, 1, num)
+        ans = (ans * 26) % maxC;
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

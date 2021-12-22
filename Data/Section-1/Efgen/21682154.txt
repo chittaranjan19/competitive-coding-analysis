@@ -1,0 +1,108 @@
+import java.io.*;
+import java.util.*;
+
+public class Main implements Runnable {
+    class Team implements Comparable<Team> {
+        long t, w;
+
+        public Team(long t, long w) {
+            this.t = t;
+            this.w = w;
+        }
+
+        @Override
+        public int compareTo(Team o) {
+            return Long.valueOf(w).compareTo(o.w);
+        }
+    }
+
+    void solve() throws IOException {
+        int n = nextInt() - 1;
+        Team[] teams = new Team[n];
+        long ballons = nextLong();
+        nextLong();
+        PriorityQueue<Team> better = new PriorityQueue<>();
+        Vector<Team> lower = new Vector<>();
+
+        for (int i = 0; i < n; i++) {
+            Team t = new Team(nextLong(), nextLong());
+            t.w = t.w - t.t + 1;
+            if (t.t > ballons) {
+                better.add(t);
+            } else {
+                lower.add(t);
+            }
+        }
+        Collections.sort(lower, new Comparator<Team>() {
+            @Override
+            public int compare(Team o1, Team o2) {
+                return Long.valueOf(o2.t).compareTo(o1.t);
+            }
+        });
+        int res = better.size();
+        int cur = 0;
+        while (ballons > 0 && better.size() > 0) {
+            Team toKill = better.peek();
+            if (toKill.w <= ballons) {
+                better.poll();
+                ballons -= toKill.w;
+            } else {
+                break;
+            }
+            while (cur < lower.size() && lower.elementAt(cur).t > ballons) {
+                better.add(lower.elementAt(cur));
+                cur++;
+            }
+            if (better.size() < res) {
+                res = better.size();
+            }
+        }
+        out.print(res + 1);
+    }
+
+    BufferedReader br;
+    StringTokenizer st;
+    PrintWriter out;
+
+    public void run() {
+        try {
+            br = new BufferedReader(new InputStreamReader(System.in));
+            out = new PrintWriter(System.out);
+
+            solve();
+            br.close();
+            out.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(123);
+        }
+    }
+
+    String next() throws IOException {
+        while (st == null || !st.hasMoreTokens()) {
+            String s = br.readLine();
+            if (s == null)
+                return null;
+            st = new StringTokenizer(s);
+        }
+        return st.nextToken();
+    }
+
+    double nextDouble() throws IOException {
+        return Double.parseDouble(next());
+    }
+
+    int nextInt() throws IOException {
+        return Integer.parseInt(next());
+    }
+
+    long nextLong() throws IOException {
+        return Long.parseLong(next());
+    }
+
+    public static void main(String[] args) {
+        new Thread(new Main()).start();
+    }
+}
+//GHIJKLMTABCDEF

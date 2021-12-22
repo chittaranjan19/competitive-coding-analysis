@@ -1,0 +1,107 @@
+//
+// Created by Santiago on 14/04/2016.
+//
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+
+class Data {
+public:
+    int n, w, id;
+    Data(int n, int w, int id) : n(n), w(w), id(id) {}
+};
+
+class Compare {
+public:
+    bool operator()(pair<int,ll> a, pair<int, ll> b) {
+        return a.second > b.second;
+    }
+};
+
+vector<vector<Data> > graph;
+vector<vector<Data> > inv;
+vector<bool> visited;
+vector<ll> dist;
+
+void init(int n) {
+    graph = vector<vector<Data> >(n+1);
+    inv = vector<vector<Data> >(n+1);
+    dist = vector<ll>(n+1, ((ll)1<<(ll)62));
+    visited = vector<bool> (n+1, false);
+}
+
+
+
+void dijkstra(int start) {
+    priority_queue<pair<int, ll> , vector<pair<int, ll> >, Compare> pq;
+    dist[start] = 0;
+    pq.push(make_pair(start, 0));
+    while(!pq.empty()) {
+        pair<int, ll> pout = pq.top();
+        pq.pop();
+        int p = pout.first;
+        ll cdist = pout.second;
+        //printf("in %d size %d w %d\n", p, pq.size(), cdist);
+        if(visited[p])
+            continue;
+        visited[p] = true;
+        for (int i = 0; i < graph[p].size(); ++i) {
+            int t = graph[p][i].n;
+            int weight = graph[p][i].w;
+            //printf("current %d\n", t);
+            if(!visited[t]) {
+                if(cdist + weight < dist[t]) {
+                    dist[t] = cdist + weight;
+                    //printf("pused t %d w %d\n", t, cdist+weight);
+                    pq.push(make_pair(t, dist[t]));
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    //freopen("paths_and_trees.in", "r", stdin);
+    //freopen("paths_and_trees.out", "w", stdout);
+    int n, m, start, sum = 0;
+    cin>>n>>m;
+    init(n);
+    set<int> answers;
+    for (int i = 0; i < m; ++i) {
+        int u, v, w;
+        cin>>u>>v>>w;
+        graph[u].push_back(Data(v, w, i+1));
+        graph[v].push_back(Data(u, w, i+1));
+    }
+    cin>>start;
+    dijkstra(start);
+    /*for (int i = 1; i <= n; ++i) {
+        printf("i %d dist %d\n", i, dist[i]);
+    }*/
+    for (int i = 1; i <= n; ++i) {
+        if(i != start) {
+            int edgew = 1<<30, edgeid = 0;
+            for (int j = 0; j < graph[i].size(); ++j) {
+                int w = graph[i][j].w;
+                int n = graph[i][j].n;
+                int id = graph[i][j].id;
+                if(dist[n] + w == dist[i]) {
+                    if(w < edgew) {
+                        edgew = w;
+                        edgeid = id;
+                    }
+                }
+            }
+            sum += edgew;
+            answers.insert(edgeid);
+        }
+    }
+    cout<<sum<<endl;
+    for(set<int>::iterator it = answers.begin(); it != answers.end(); it++) {
+        cout<<*it<<" ";
+    }
+    return 0;
+}

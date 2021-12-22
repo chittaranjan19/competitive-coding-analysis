@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef pair<int, pair<int, pii> > ds;
+
+const int mod = 1000000007;
+const int inf = 500000000;
+const int maxn = 100010;
+
+int n, m, r, mat[61][61][61];
+int dist[61][61][61], dp[61][61][61], mn[61][61];
+
+int solve(int k, int s, int d)
+{
+	if(k==0)
+		return dp[k][s][d];
+	if(s==d)
+		return 0;
+	if(dp[k][s][d]!=-1)
+		return dp[k][s][d];
+	int i, ret = inf;
+	for(i=1; i<=n; i++)
+		ret = min(ret, solve(k-1, s, i)+dp[0][i][d]);
+	return dp[k][s][d] = ret;
+}
+
+void floyd_warshall(int c)
+{
+	int i, j, k;
+	for(i=1; i<=n; i++){
+		for(j=1; j<=n; j++)
+			dist[c][i][j] = mat[c][i][j];
+	}
+	for(i=1; i<=n; i++){
+		for(j=1; j<=n; j++){
+			for(k=1; k<=n; k++)
+				dist[c][j][k] = min(dist[c][j][k], dist[c][j][i]+dist[c][i][k]);
+		}
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, k, ans, s, d;
+	memset(dp, -1, sizeof(dp));
+	scanf("%d%d%d", &n, &m, &r);
+	for(i=1; i<=m; i++){
+		for(j=1; j<=n; j++){
+			for(k=1; k<=n; k++)
+				scanf("%d", &mat[i][j][k]);
+		}
+	}
+	for(i=1; i<=m; i++)
+		floyd_warshall(i);
+	for(i=1; i<=n; i++){
+		for(j=1; j<=n; j++){
+			dp[0][i][j] = inf;
+			for(k=1; k<=m; k++)
+				dp[0][i][j] = min(dp[0][i][j], dist[k][i][j]);
+		}
+	}
+	while(r--){
+		scanf("%d%d%d", &s, &d, &k);
+		k = min(k, n);
+		ans = solve(k, s, d);		
+		printf("%d\n", ans);
+	}
+	return 0;
+}

@@ -1,0 +1,131 @@
+//
+// Created by Santiago on 11/04/2016.
+//
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef pair<int, long long> pill;
+typedef long long ll;
+
+class Data;
+
+vector<vector<Data> > graph;
+vector<vector<Data> > tree;
+vector<ll> dist;
+vector<bool> visited;
+vector<int> trains;
+vector<int> train_valid;
+vector<int> degree;
+
+class Compare {
+public:
+    bool operator()(pill a, pill b) {
+        return a.second > b.second;
+    }
+};
+
+class Data {
+public:
+    int n, w;
+    bool train;
+    Data(int n, int w, bool train) : n(n), w(w), train(train) {}
+};
+
+void init(int n) {
+    graph = vector<vector<Data> >(n+1);
+    dist = vector<ll>(n+1, 1ll<<62ll);
+    tree = vector<vector<Data> >(n+1);
+    visited = vector<bool>(n+1, false);
+    trains = vector<int>(n+1, 0);
+    train_valid = vector<int>(n+1, 0);
+    degree = vector<int>(n+1, 0);
+}
+
+
+void dijkstra(int start) {
+    priority_queue<pill , vector<pill>, Compare> pq;
+    dist[start] = 0;
+    pq.push(make_pair(start, 0));
+    while(!pq.empty()) {
+        pill pout = pq.top();
+        pq.pop();
+        int p = pout.first;
+        ll cdist = pout.second;
+        if(visited[p])
+            continue;
+        visited[p] = true;
+        for (int i = 0; i < graph[p].size(); ++i) {
+            int t = graph[p][i].n;
+            int weight = graph[p][i].w;
+            if(!visited[t]) {
+                if(cdist + weight < dist[t]) {
+                    dist[t] = cdist + weight;
+                    pq.push(make_pair(t, dist[t]));
+                }
+            }
+        }
+    }
+}
+
+void make_tree() {
+    //cout<<"here"<<endl;
+    for (int i = 2; i < graph.size(); ++i) {
+        //printf("i %d\n");
+        for (int j = 0; j < graph[i].size(); ++j) {
+            Data data = graph[i][j];
+            int w = data.w;
+            int n = data.n;
+            //printf("current %d w %d\n", n, w);
+            if(dist[n] + w == dist[i]) {
+                tree[i].push_back(data);
+                tree[n].push_back(data);
+                if(data.train) {
+                    train_valid[i]++;
+                    train_valid[n]++;
+                }
+                degree[i]++;
+                degree[n]++;
+            }
+        }
+    }
+}
+
+int main() {
+    //freopen("jzzhu.in", "r", stdin);
+    int n, m, k, ans = 0;
+    cin>>n>>m>>k;
+    init(n);
+    for (int i = 0; i < m; ++i) {
+        int u, v, x;
+        cin>>u>>v>>x;
+        graph[u].push_back(Data(v, x, false));
+        graph[v].push_back(Data(u, x, false));
+    }
+    for (int i = 0; i < k; ++i) {
+        int u, x;
+        cin>>u>>x;
+        graph[1].push_back(Data(u, x, true));
+        graph[u].push_back(Data(1, x, true));
+        trains[u]++;
+    }
+    dijkstra(1);
+    make_tree();
+    /*or (int i = 1; i <= n; ++i) {
+        printf("i %d degree %d trains %d\n", i, degree[i], train_valid[i]);
+    }*/
+    for (int i = 2; i <= n; ++i) {
+        //printf("trains of i %d = %d\n", i, trains[i]);
+        int dif = trains[i] - train_valid[i];
+        ans += dif;
+        for (int j = dif; j < trains[i]; ++j) {
+            bool test = false;
+            if(degree[i] > 1) {
+                ans++;
+            }
+        }
+    }
+    cout<<ans;
+    return 0;
+}

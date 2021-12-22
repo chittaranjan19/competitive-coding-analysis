@@ -1,0 +1,119 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mp make_pair
+#define F first
+#define S second
+#define pb push_back
+#define mn 10004
+#define modi(x) (x & (-x))
+
+using namespace std;
+int n, t, a[mn], maxFront[mn], dem[mn], maxOfNum[mn];
+
+struct interval{
+    int tree[mn];
+
+    void reset()
+    {
+        memset(tree, 0, sizeof(tree));
+    }
+
+    void build(int l, int r, int id)
+    {
+        if (l == r)
+        {
+            tree[id] = maxOfNum[l];
+            return;
+        }
+        int g = ((l + r) >> 1);
+        build(l, g, id << 1);
+        build(g + 1, r, (id << 1) + 1);
+        tree[id] = max(tree[id << 1], tree[(id << 1) + 1]);
+    }
+
+    void update(int l, int r, int id, int x, int w)
+    {
+        if (l > x || r < x)
+            return;
+        if (l == r)
+        {
+            tree[id] = max(tree[id], w);
+            return;
+        }
+        int g = ((l + r) >> 1);
+        update(l, g, id << 1, x, w);
+        update(g + 1, r, (id << 1) + 1, x, w);
+        tree[id] = max(tree[id << 1], tree[(id << 1) + 1]);
+    }
+
+    int getMax(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return 0;
+        if (x <= l && r <= y)
+            return tree[id];
+        int g = ((l + r) >> 1);
+        int a = getMax(l, g, id << 1, x, y);
+        int b = getMax(g + 1, r, (id << 1) + 1, x, y);
+        return max(a, b);
+    }
+} tr;
+
+void setup()
+{
+    cin >> n >> t;
+    memset(dem, 0, sizeof(dem));
+    FOR(i, 1, n)
+    {
+        cin >> a[i];
+        dem[a[i]] ++;
+    }
+    tr.reset();
+    FOR(i, n + 1, n * n)
+        a[i] = a[i - n];
+}
+
+void xuly ()
+{
+    long long ans = 0;
+    if (t < 2 * n)
+    {
+        FOR(i, 1, n * t)
+        {
+            int x = tr.getMax(1, 300, 1, 1, a[i]);
+            ans = max(ans, 1ll * x + 1);
+            tr.update(1, 300, 1, a[i], x + 1);
+        }
+        cout << ans;
+        return;
+    }
+    FOR(i, 1, n * n)
+    {
+        int x = tr.getMax(1, 300, 1, 1, a[i]);
+        maxFront[i] = x + 1;
+        tr.update(1, 300, 1, a[i], x + 1);
+    }
+    tr.reset();
+    FORD(i, n * n, 1)
+    {
+        int x = tr.getMax(1, 300, 1, 1, 300 - a[i] + 1);
+        maxOfNum[a[i]] = x + 1;
+        tr.update(1, 300, 1, 300 - a[i] + 1, x + 1);
+    }
+    FORD(i, 299, 1)
+        maxOfNum[i] = max(maxOfNum[i], maxOfNum[i + 1]);
+    FOR(i, 1, n * n)
+       ans = max(ans, 1ll * maxFront[i] + 1ll * maxOfNum[a[i]] + 1ll * (t - (n << 1)) * dem[a[i]]);
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

@@ -1,0 +1,116 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <stdio.h>
+
+using namespace std;
+
+#define ll long long
+#define ull unsigned long long 
+#define sc second
+#define fs first
+#define mp make_pair
+const int N = 1e5 + 100;
+
+ll p = 59, mod = 1e9 + 9, t[4 * N], lz[4 * N], hs[10][N], pw[N];
+string s;
+
+void build(int v, int tl, int tr)
+{
+    if (tl == tr)
+        t[v] = s[tl] - '0' + 1;
+    else
+    {
+        int tm = (tl + tr) >> 1;
+        build(v * 2, tl, tm);
+        build(v * 2 + 1, tm + 1, tr);
+        t[v] = (t[v * 2] + t[v * 2 + 1] * pw[tm - tl + 1]) % mod;
+    }
+}
+
+void push(int v, int tl, int tr)
+{
+    if (lz[v] == -1) return;
+    int tm = (tl + tr) >> 1;
+    if (tl < tr){
+        lz[v * 2 + 1] = lz[v * 2] = lz[v];
+        t[v * 2] = hs[lz[v]][tm - tl + 1];
+        t[v * 2 + 1] = hs[lz[v]][tr - tm];
+    }
+    lz[v] = -1;
+}
+
+void update(int v, int tl, int tr, int l, int r, int x)
+{
+    if (l > r) return;  
+    push(v, tl, tr);
+    if (tl == l && tr == r)
+    {
+        t[v] = hs[x][tr - tl + 1];
+        lz[v] = x;
+        return;
+    }
+    int tm = (tl + tr) >> 1;
+    update(v * 2, tl, tm, l, min(r, tm),x);
+    update(v * 2 + 1, tm + 1, tr, max(tm + 1, l), r, x);
+    t[v] = (t[v * 2] + t[v * 2 + 1] * pw[tm - tl + 1]) % mod;
+}
+
+ll get(int v, int tl, int tr, int l, int r)
+{
+    if (l > r) return 0;
+    push(v, tl, tr);
+    if (tl == l && tr == r)
+        return t[v];
+    int tm = (tl + tr) >> 1;
+    ll a = get(v * 2, tl, tm, l, min(tm, r));
+    ll b = get(v*2+1, tm + 1, tr, max(l, tm + 1), r);
+    if (tm >= l)
+        return (a + b*pw[tm - l + 1]) % mod;
+    else return b;
+}
+
+int main()
+{
+    int n, m, k;
+    cin >> n >> m >> k >> s;
+    memset(lz, -1, sizeof(lz));
+    memset(hs, 0, sizeof(hs));
+    k += m;
+    pw[0] = 1;
+    for (int i = 1; i <= n; i++)
+        pw[i] = (pw[i - 1] * p) % mod;
+    ll cp = 1;
+    for (int i = 1; i <= n; i++)
+    {
+        for (int j = 0; j < 10; j++)
+        {
+            hs[j][i] = (hs[j][i - 1] + (j + 1)*cp) % mod;
+        }
+        cp *= p;
+        cp %= mod;
+    }
+    build(1, 0, n - 1);
+    while (k--)
+    {
+        int tp, l, r, d;
+        cin >> tp >> l >> r >> d;
+        if (tp == 1)
+            update(1, 0, n - 1, l - 1, r - 1, d);
+        else
+        {
+            ll a = get(1, 0, n - 1, l - 1 + d, r - 1), b = get(1, 0, n - 1, l - 1, r - 1 - d);
+            if (a == b)
+                cout << "YES";
+            else cout << "NO";
+            cout << endl;
+        }
+    }
+    return 0;
+}

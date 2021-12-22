@@ -1,0 +1,82 @@
+#include <iostream> 
+#include <cstdio>
+#include <queue>
+#include <vector>
+
+using namespace std;
+
+#define For(i , a , b) for (int i = a , _b = b ; i <= _b ; ++i)
+#define Ford(i , a  ,b) for (int i = a , _b = b : i >= _b ; --i)
+#define Rep(i , n) for (int i = 0 , _n = n ; i < _n ; ++i)
+#define sz(A) ((int)A.size())
+#define LL(x) (x << 1)
+#define RR(x) ((x << 1) | 1)
+
+typedef pair<int , int> pt;
+
+const int maxn = 200000 + 123;
+int n , a[maxn];
+
+void ReadData() {
+	cin >> n; For(i , 1 , n) cin >> a[i];
+}
+
+int deg[maxn]; // deg_in
+int nCircle = 0;
+bool was[maxn];
+vector<int> root;
+
+void Init() {
+	For(i , 1 , n) deg[a[i]]++; 
+	queue<int> qu;
+	For(i , 1 , n) if (!deg[i]) qu.push(i);
+
+	while (!qu.empty()) {
+		int u = qu.front(); qu.pop();
+		deg[a[u]]--; 
+		if (!deg[a[u]]) qu.push(a[u]);
+	}
+
+	For(i , 1 , n) if (deg[i] && !was[i]) {
+		was[i] = true; ++nCircle; root.push_back(i);
+		int cur = i;
+		while (true) {
+			was[cur] = true;
+			if (a[cur] == i) break;
+			cur = a[cur];
+		}
+	}
+}
+
+void Process() {
+	Init();
+	int z = -1;
+	for(int i = 0 ; i < root.size() ; i++) {
+		int x = root[i]; if (a[x] == x) z = i; 
+	}
+
+	vector<int> res;
+	if (z == -1) {
+		res.push_back(root[0]);
+		a[root[0]] = root[0];
+	} else swap(root[z] , root[0]);
+	for (int i = 1 ; i < root.size() ; i++) {
+		res.push_back(root[i]);
+		a[root[i]] = root[0];
+	}
+
+	cout << (int) res.size() << endl;
+	For(i , 1 , n) cout << a[i] << " "; cout << endl; 
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	
+	//freopen("input.inp" , "r" , stdin);
+	ReadData();
+	Process();
+
+	return 0;
+
+}			

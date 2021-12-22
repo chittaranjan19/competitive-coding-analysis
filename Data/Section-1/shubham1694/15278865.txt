@@ -1,0 +1,87 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 300010;
+
+vector<int> adj[maxn], dir[maxn], sol;
+int ans[maxn], dp[maxn];
+
+int solve(int cur, int parent)
+{
+    int u, d, i, ret=0;
+    for(i=0; i<adj[cur].size(); i++){
+        u = adj[cur][i];
+        d = dir[cur][i];
+        if(u==parent)
+            continue;
+        if(d==-1)
+            ret = ret + solve(u, cur) + 1;
+        else
+            ret = ret + solve(u, cur);
+    }
+    return dp[cur] = ret;
+}
+
+void dfs(int cur, int parent, int add)
+{
+    ans[cur] = ans[parent] + add;
+    int i, u, d;
+    for(i=0; i<adj[cur].size(); i++){
+        u = adj[cur][i];
+        d = dir[cur][i];
+        if(u==parent)
+            continue;
+        if(d==-1)
+            dfs(u, cur, -1);
+        else
+            dfs(u, cur, 1);
+    }
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int n, i, j, u, v, curmin;
+    sd(n);
+    for(i=1; i<n; i++){
+        scanf("%d%d", &u, &v);
+        adj[u].pb(v);
+        dir[u].pb(1);
+        adj[v].pb(u);
+        dir[v].pb(-1);
+    }
+    ans[0] = solve(1, 0);
+    dfs(1, 0, 0);
+    curmin = inf;
+    for(i=1; i<=n; i++){
+        //cout << dp[i] << " " << ans[i] << "\n";
+        if(ans[i]<curmin){
+            curmin = ans[i];
+            sol.clear();
+            sol.pb(i);
+        }
+        else if(curmin==ans[i])
+            sol.pb(i);
+    }
+   // cout << dp[1] << " " << cnt[1] << " " << dp[2] << " " << cnt[2] << "\n";
+    printf("%d\n" ,curmin);
+    for(i=0; i<sol.size(); i++)
+        printf("%d ", sol[i]);
+    printf("\n");
+    return 0;
+}

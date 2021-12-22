@@ -1,0 +1,108 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXM = 20, MAXN = 53;
+
+int N, M;
+char str[MAXN][MAXM + 1];
+ll nondiff[1 << MAXM];	//all strings #i such that chars in "mask" are also matched by #j (!= i)
+double dp[1 << MAXM];
+
+bool testbit (int x, int i) {
+	return (x >> i) & 1;
+}
+
+double getdp (int x) {
+	double &ref = dp[x];
+	if (ref != -1) {
+		return ref;
+	}
+	ref = 0;
+	if (!nondiff[x]) {
+		//if can guess correctly immediately
+		return 0;
+	}
+	for (int i = 0; i < M; i++) {
+		if (!testbit(x, i)) {
+			int nxt = x ^ (1 << i);
+			ref += getdp(nxt) * __builtin_popcountll(nondiff[nxt]) / __builtin_popcountll(nondiff[x]);
+			//OH RIGHT!!!
+			//there is a quick way out of work: happens to be last question to ask
+			//or you need to continue!!!
+		}
+	}
+	return ref = 1 + ref / (M - __builtin_popcount(x));
+}
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces482C.in", "r", stdin);
+#endif
+	scanf("%d\n", &N);
+	for (int i = 0; i < N; i++) {
+		gets(str[i]);
+	}
+	M = strlen(str[0]);
+	//ok calc masks that you cannot get differences from
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < N; j++) {
+			if (i == j) {
+				continue;
+			}
+			int mask = 0;
+			for (int k = 0; k < M; k++) {
+				if (str[i][k] == str[j][k]) {
+					//cannot distinguish this!!!
+					mask |= (1 << k);
+				}
+			}
+			nondiff[mask] |= (1 << i);
+		}
+	}
+	// assert(!nondiff[(1 << M) - 1]);
+	for (int i = (1 << M) - 2; i >= 0; i--) {
+		for (int j = 0; j < M; j++) {
+			if (!testbit(i, j)) {
+				nondiff[i] |= nondiff[i ^ (1 << j)];
+			}
+		}
+	}
+	fill(dp, dp + (1 << M), -1);
+	printf("%.15lf\n", getdp(0));
+	// for (int i = 1; i < (1 << M); i++) {
+		// printf("dp[%d] = %.10lf\n", i, dp[i]);
+	// }
+}

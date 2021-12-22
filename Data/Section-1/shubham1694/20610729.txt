@@ -1,0 +1,89 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const ll ninf = -1ll<<50;
+const int maxn = 100010;
+
+ll val[maxn], dp[maxn], pref[maxn], cur_max[maxn], a, b;
+int n, col[maxn];
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, q;
+	scanf("%d%d", &n, &q);
+	for(i=1; i<=n; i++)
+		scanf("%lld", &val[i]);
+	for(i=1; i<=n; i++)
+		scanf("%d", &col[i]);
+	while(q--){
+		scanf("%lld%lld", &a, &b);
+		ll ans = 0;
+		int c1 = -1, c2 = -1;
+		ll v1, v2;
+		for(i=1; i<=n; i++)
+			cur_max[i] = ninf;
+		for(i=1; i<=n; i++){
+			int c = col[i];
+			if(c1 == -1 && c2 == -1){
+				dp[i] = b*val[i];
+				c1 = c;
+				v1 = dp[i];
+			}
+			else if(c2==-1){
+				if(c1 == c){
+					dp[i] = max(b*val[i], v1 + a*val[i]);
+					v1 = max(v1, dp[i]);
+				}
+				else{
+					dp[i] = max(b*val[i], v1 + b*val[i]);
+					c2 = c;
+					v2 = dp[i];
+				}
+			}
+			else{
+				if(c1 == c)
+					dp[i] = max(b*val[i], max(cur_max[c] + a*val[i], v2 + b*val[i]));
+				else
+					dp[i] = max(b*val[i], max(v1 + b*val[i], cur_max[c] + a*val[i]));	
+				if(c1 == c)
+					v1 = max(v1, dp[i]);
+				else if(c2 == c)
+					v2 = max(v2, dp[i]);
+				else{
+					if(dp[i] > v1){
+						v1 = dp[i];
+						c1 = c;
+					}
+					else if(dp[i] > v2){
+						v2 = dp[i];
+						c2 = c;
+					}
+				}
+			}
+			if(c1 != -1 && c2 != -1 && v1 < v2){
+				swap(v1, v2);
+				swap(c1, c2);
+			}
+			cur_max[c] = max(cur_max[c], dp[i]);
+			ans = max(ans, dp[i]);
+		}
+		printf("%lld\n", ans);
+	}
+	return 0;
+}

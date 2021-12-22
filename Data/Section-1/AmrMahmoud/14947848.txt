@@ -1,0 +1,79 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int arr[505];
+int DP[505][505][2];
+bool v[505][505][2];
+
+int solve(int L, int R, bool have)
+{
+  if(L == R) return 1 - have;
+  if(L > R) return 0;
+  int &temp = DP[L][R][have];
+  if(v[L][R][have]) return temp;
+  v[L][R][have] = true;
+  temp = INF_MAX;
+  if(arr[L] == arr[R])
+  {
+    temp = solve(L + 1, R - 1, 1);
+    if(!have) temp++;
+  }
+  for(int i=L;i<R;i++)
+  {
+    if(have)
+    {
+      temp = min(temp, solve(L, i, 1) + solve(i + 1, R, 0));
+      temp = min(temp, solve(L, i, 0) + solve(i + 1, R, 1));
+    }
+    else
+    {
+      temp = min(temp, solve(L, i, 0) + solve(i + 1, R, 0));
+    }
+  }
+  return temp;
+}
+
+int main()
+{
+  int n;
+  scanf("%d", &n);
+  for(int i=0;i<n;i++)
+    scanf("%d", &arr[i]);
+  printf("%d", solve(0, n - 1, 0));
+  return 0;
+}

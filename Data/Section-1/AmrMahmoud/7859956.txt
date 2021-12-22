@@ -1,0 +1,124 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int arr[100005];
+int tree[400005][25];
+int lazy[400005][25];
+
+void build(int i,int L,int R)
+{
+    if(L == R)
+    {
+        for(int j=0;j<=20;j++)
+            tree[i][j] = ((arr[L] & (1 << j)) != 0) ? 1 : 0;
+        return ;
+    }
+    build(i*2 + 1, L, (L + R) / 2);
+    build(i*2 + 2, (L + R) / 2 + 1, R);
+    for(int j=0;j<=20;j++)
+        tree[i][j] = tree[i*2 + 1][j] + tree[i*2 + 2][j];
+}
+
+void update(int i,int L,int R,int x,int y,int bit)
+{
+    if(L != R)
+    {
+        lazy[i*2+1][bit]^=lazy[i][bit];
+        lazy[i*2+2][bit]^=lazy[i][bit];
+    }
+    if(lazy[i][bit])
+        tree[i][bit]=(R - L + 1) - tree[i][bit];
+    lazy[i][bit] = 0;
+    if(L >= x && R <= y)
+    {
+        lazy[i][bit] = 1;
+        lazy[i*2+1][bit]^=lazy[i][bit];
+        lazy[i*2+2][bit]^=lazy[i][bit];
+        tree[i][bit]=(R - L + 1) - tree[i][bit];
+        lazy[i][bit] = 0;
+        return;
+    }
+    if(L > y || R < x)
+        return;
+    update(i*2 + 1, L, (L + R) / 2, x, y, bit);
+    update(i*2 + 2, (L + R) / 2 + 1, R, x, y, bit);
+    tree[i][bit] = tree[i*2 + 1][bit] + tree[i*2 + 2][bit];
+}
+
+int query(int i,int L,int R,int x,int y,int bit)
+{
+    if(L != R)
+    {
+        lazy[i*2+1][bit]^=lazy[i][bit];
+        lazy[i*2+2][bit]^=lazy[i][bit];
+    }
+    if(lazy[i][bit])
+        tree[i][bit]=(R - L + 1) - tree[i][bit];
+    lazy[i][bit] = 0;
+    if(L >= x && R <= y)
+        return tree[i][bit];
+    if(L > y || R < x)
+        return 0;
+    return query(i*2 + 1, L, (L + R) / 2, x, y, bit) + query(i*2 + 2, (L + R) / 2 + 1, R, x, y, bit);
+}
+
+int main()
+{
+    int n,q,x,y,z;
+    cin >> n;
+    for(int i=0;i<n;i++)
+        scanf("%d",&arr[i]);
+    build(0,0,n-1);
+    cin >> q;
+    while(q--)
+    {
+        scanf("%d",&x);
+        if(x == 1)
+        {
+            scanf("%d %d",&x,&y);
+            LL res = 0;
+            for(int i=0;i<=20;i++)
+                res+=(1 << i) * 1LL * query(0,0,n-1,x-1,y-1,i);
+            printf("%I64d\n",res);
+        }
+        else
+        {
+            scanf("%d %d %d",&x,&y,&z);
+            for(int i=0;i<=20;i++)
+                if(z & (1 << i))
+                    update(0,0,n-1,x-1,y-1,i);
+        }
+    }
+    return 0;
+}

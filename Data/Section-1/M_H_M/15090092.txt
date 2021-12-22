@@ -1,0 +1,84 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+const int oo = 1e9;
+
+vector <pii> g[N];
+int n, m;
+int par[N];
+pii d[N];
+set <piii> s;
+
+inline void djikstra(){
+	d[0] = {0, 1};	
+	s.insert({d[0], 0});
+	while(!s.empty()){
+		int v = s.begin() -> Y;
+		s.erase(s.begin());
+		for(pii nei : g[v]){
+			int u = nei.X;
+			int  w = nei.Y;
+			if(d[v].X + w * d[v].Y < d[u].X || (d[v].X + w * d[v].Y == d[u].X && d[v].Y < d[u].Y)){
+				s.erase({d[u], u});
+				d[u].X = d[v].X + w * d[v].Y;
+				d[u].Y = d[v].Y * 10;
+				par[u] = v;
+				s.insert({d[u], u});
+			}
+		}
+	}
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	for(int i = 0; i < n; ++i){
+		par[i] = -1;
+		d[i] = {oo, i};
+	}
+	for(int i = 0; i < m; ++i){
+		int u, v, w;
+		cin >> u >> v >> w; 
+		g[u].PB({v, w});
+		g[v].PB({u, w});
+	}
+	djikstra();
+	cout << d[n - 1].X << "\n";
+	vector <int> path;
+	int x = n - 1;
+	while(par[x] != -1){
+		path.PB(x);
+		x = par[x];
+	}
+	path.PB(x);
+	cout << SZ(path) << "\n";
+	for(int i = SZ(path); i --;)
+		cout << path[i] << " ";
+	cout << "\n";
+	return 0;
+}

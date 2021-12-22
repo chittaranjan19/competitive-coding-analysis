@@ -1,0 +1,57 @@
+#include <cstdio>
+#include <vector>
+using namespace std;
+int n,i,x,y,c,p,e,v[11111];
+bool u[11111],w[11111],q;
+vector <int> g[11111],f[11111],z,r;
+void dfs(int i) {
+  w[i]=true;
+  for (int j=0; j<g[i].size(); j++) if (!w[g[i][j]]) dfs(g[i][j]);
+}
+void euler(int i) {
+  for (int j=0; j<f[i].size(); j++) if (!u[f[i][j]]) {
+    u[f[i][j]]=true; p++; r.push_back(f[i][j]); euler(g[i][j]);
+  }
+}
+int main() {
+  freopen("input.txt","r",stdin);
+  freopen("output.txt","w",stdout);
+  scanf("%d",&n);
+  for (i=1; i<=n; i++) {
+    scanf("%d%d",&x,&y); e=x; v[x]++; v[y]++;
+    g[x].push_back(y); f[x].push_back(i);
+    g[y].push_back(x); f[y].push_back(i);
+  }
+  for (i=0; i<11111; i++) if (v[i]&1) { c++; z.push_back(i); }
+  if (n<2 || c>4) { puts("-1"); return 0; }
+  if (c==4) {
+    dfs(z[1]); q=true;
+    if (w[z[2]]) {
+      g[z[1]].push_back(z[3]); f[z[1]].push_back(0);
+      g[z[3]].push_back(z[1]); f[z[3]].push_back(0);
+    } else {
+      g[z[1]].push_back(z[2]); f[z[1]].push_back(0);
+      g[z[2]].push_back(z[1]); f[z[2]].push_back(0);
+    }
+  }
+  if (z.size()>0) euler(z[0]); else euler(e);
+  if (c!=4) for (i=0; i<11111; i++) if (v[i]>0 && !u[f[i][0]]) {
+    q=true; r.push_back(0); p++; euler(i); break;
+  }
+  if (p==n+int(q)) {
+    if (q) {
+      for (i=0; i<r.size(); i++) if (r[i]==0) { x=i; break; }
+      printf("%d\n",x);
+      for (i=0; i<x; i++) printf("%d\n",r[i]);
+      printf("%d\n",r.size()-x-1);
+      for (i=x+1; i<r.size(); i++) printf("%d\n",r[i]);
+    } else {
+      x=r.size()-1;
+      printf("%d\n",x);
+      for (i=0; i<x; i++) printf("%d\n",r[i]);
+      puts("1");
+      for (i=x; i<r.size(); i++) printf("%d\n",r[i]);
+    }
+  } else puts("-1");
+  return 0;
+}

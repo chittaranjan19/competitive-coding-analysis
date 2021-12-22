@@ -1,0 +1,41 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 2e5 + 5;
+const int offset = 1e5;
+const int mod = 1e9 + 7;
+
+int f[maxn], sum[maxn];
+
+int add(int a, int b)
+{
+    a += b;
+    if(a >= mod) a -= mod;
+    return a;
+}
+
+int main()
+{
+    int a, b, k, t;
+    cin >> a >> b >> k >> t;
+    int c = k * t;
+    for(int i = 0; i <= c; ++i) sum[i + offset] = 1;
+    for(int i = 1; i <= t; ++i)
+    {
+        memset(f, 0, sizeof(f));
+        for(int j = -c; j <= c; ++j) f[j + offset] = add(sum[min(j + k, c) + offset], mod - sum[max(j - k, -c) - 1 + offset]);
+//        for(int j = -c; j <= c; ++j) cout << f[j + offset] << ' ';
+//        cout << endl;
+        for(int j = -c; j <= c; ++j) sum[j + offset] = add(sum[j - 1 + offset], f[j + offset]);
+    }
+    int ans = 0;
+    for(int i = -c; i <= c; ++i) ans = add(ans, (ll)f[i + offset] * sum[min(a - b + i - 1, c) + offset] % mod);
+    cout << ans << endl;
+    return 0;
+}

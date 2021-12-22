@@ -1,0 +1,104 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+
+using namespace std;
+
+#define ll unsigned long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+ll n, m;
+pair<ll, pair<ll, ll> > v[200000];
+
+pair<ll, ll> d[200000];
+vector<pair<ll, ll> > g[200000];
+int pr[200000];
+
+ll poww[10000];
+ll cn[200000];
+
+struct st{
+    vector<int> pr;
+    ll cnt;
+    ll t;
+};
+
+st mk(int prev, int cnt, ll tm)
+{
+    st t;
+    t.pr.push_back(prev);
+    t.cnt = cnt;
+    t.t = tm;
+    return t;
+}
+
+st ans = mk(0, 20, 2e18);
+
+void bfs()
+{
+    int v = 0;
+    queue<st> q;
+    q.push(mk(0, 0, 0));
+    while (!q.empty())
+    {
+        st s = q.front();
+        q.pop();
+        if (s.pr[s.pr.size()-1] == n-1 && (ans.t > s.t || (s.t == ans.t && s.cnt < ans.cnt)))
+            ans = s;
+        if (s.cnt > 18)
+            continue;
+        int v = s.pr[s.pr.size() - 1];
+        for (int i = 0; i < g[v].size(); i++)
+        {
+            int to = g[v][i].fs, l = g[v][i].sc;
+            bool ok = 1;
+            for (int j = 0; j < s.pr.size(); j++)
+            {
+                if (s.pr[j] == to)
+                    ok = 0;
+            }
+            if (ok){
+                st tt = s;
+                tt.pr.push_back(to);
+                tt.cnt += 1;
+                tt.t += l*poww[tt.cnt - 1];
+                q.push(tt);
+            }
+        }
+    }
+    
+}
+
+int main()
+{
+    //freopen("trans.in", "r", stdin);
+    //freopen("trans.out", "w", stdout);
+    cin >> n >> m;
+    poww[0] = 1;
+    for (int i = 1; i < 1000; i++)
+        poww[i] = (ll)((ll)10 * poww[i - 1]);
+    for (int i = 0; i < m; i++)
+    {
+        ll a, b, l;
+        cin >> a >> b >> l;
+        pair<ll, pair<ll, ll> > p;
+        p.fs = l, p.sc.fs = a, p.sc.sc = b;
+        v[i] = p;
+        g[a].push_back(mp(b, l));
+        g[b].push_back(mp(a, l));
+    }
+    bfs();
+    cout << ans.t << endl;
+    cout << ans.pr.size() << endl;
+    for (int i = 0; i < ans.pr.size(); i++)
+        cout << ans.pr[i] << ' ';
+    return 0;
+}

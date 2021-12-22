@@ -1,0 +1,296 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef unsigned long long ull;
+typedef pair<int, int> pii;
+
+class Edge;
+const int MAX = 100010;
+
+ll dist[2][MAX];
+vector<Edge> graph[2][MAX];
+vector<Edge> bigraph[MAX];
+map<pii, int> rep;
+short edge_type[MAX];//1 = good, 2 = bad, 3 = can be improved
+vector<bool> visited(MAX, false);
+vector<bool> gets_target(MAX, false);
+int post[MAX];
+int desc[MAX];
+int counter = 1;
+int parent[MAX];
+int L[MAX], H[MAX];
+
+
+class Edge {
+public:
+    int n, o, id;
+    ll imp, w;
+    Edge(int n, ll w, int id) : n(n), w(w), id(id){}
+    Edge(int n, int o, ll w, int id) : n(n), o(o), w(w), id(id){}
+    Edge(){}
+};
+Edge edges[MAX];
+
+
+class Compare {
+public:
+    bool operator()(pair<int,ll> a, pair<int, ll> b) {
+        return a.second > b.second;
+    }
+};
+
+void dijkstra(int start, int type) {
+    visited = vector<bool>(MAX, false);
+    priority_queue<pair<int, ll> , vector<pair<int, ll> >, Compare> pq;
+    dist[type][start] = 0;
+    pq.push(make_pair(start, 0));
+    while(!pq.empty()) {
+        pair<int, ll> pout = pq.top();
+        pq.pop();
+        int p = pout.first;
+        ll cdist = pout.second;
+        //printf("in %d size %d w %d\n", p, pq.size(), cdist);
+        if(visited[p])
+            continue;
+        visited[p] = true;
+        for (int i = 0; i < graph[type][p].size(); ++i) {
+            int t = graph[type][p][i].n;
+            int weight = graph[type][p][i].w;
+            //printf("current %d\n", t);
+            if(!visited[t]) {
+                if(cdist + weight < dist[type][t]) {
+                    dist[type][t] = cdist + weight;
+                    //printf("pused t %d w %d\n", t, cdist+weight);
+                    pq.push(make_pair(t, dist[type][t]));
+                }
+            }
+        }
+    }
+}
+
+/*void calc_counts(int N) {
+    //printf("in calc\n");
+    for (int i = 1; i <= N; ++i) {
+        ull ct1 = 0, ct2 = 0;
+        for (int j = 0; j < graph[1][i].size(); ++j) {
+            Edge t = graph[1][i][j];
+            if(dist[0][t.n] + t.w == dist[0][i])
+                ct1++;
+        }
+        for (int j = 0; j < graph[0][i].size(); j++) {
+            Edge t = graph[0][i][j];
+            if(dist[1][t.n] + t.w == dist[1][i])
+                ct2++;
+        }
+        counts[0][i] = ct1;
+        counts[1][i] = ct2;
+    }
+}*/
+
+void DFS_reach(int node, int target) {
+    visited[node] = true;
+    if(node == target)
+        gets_target[node] = true;
+    for (int i = 0; i < graph[0][node].size(); ++i) {
+        Edge t =graph[0][node][i];
+        if(!visited[t.n])
+            DFS_reach(t.n, target);
+        if(gets_target[t.n]) {
+            gets_target[node] = true;
+            edge_type[t.id] = 3;
+        }
+    }
+}
+
+bool calc_L_H_DFS(int node) {
+    //printf("in node %d\n", node);
+    visited[node] = true;
+    int _min = post[node], _max = post[node];
+    for (int i = 0; i < bigraph[node].size(); ++i) {
+        Edge t = bigraph[node][i];
+        //printf("in edge %d vis %d parent of node %d\n", t.n, visited[t.n]?1:0, parent[node]);
+        bool test;
+        int mn, mx;
+        mx = max(node, t.n);
+        mn = min(node, t.n);
+        pii p = make_pair(mn, mx);
+        //printf("pair %d %d node %d t.n %d rep %d type %d\n", mn, mx, node, t.n, rep[p], edge_type[t.id]);
+        if((parent[node] == t.n && rep[p] == 1) || edge_type[t.id] != 3)
+            continue;
+        //printf("after type %d\n", edge_type[t.id]);
+        if(!visited[t.n]) {
+            test = calc_L_H_DFS(t.n);
+            if(test && edge_type[t.id] != 2) {
+                //printf("bridge %d\n", t.id);
+                edge_type[t.id] = 1;
+            }
+            if (L[t.n] < _min)
+                _min = L[t.n];
+            if (H[t.n] > _max)
+                _max = H[t.n];
+        }
+        else {
+            if(post[t.n] < _min)
+                _min = post[t.n];
+            if(post[t.n] > _max)
+                _max = post[t.n];
+        }
+    }
+    L[node] = _min;
+    H[node] = _max;
+    //if(root->parent != NULL && root->H <= root->post && root->L >= root->post - root->n_sons) is bridge
+    //printf("node %d min %d max %d post %d parent %d\n", node, L[node], H[node], post[node], parent[node]);
+    if(parent[node] != 0 && H[node] <= post[node] && L[node] >= post[node] - desc[node]) {
+        //printf("true node %d min %d max %d post %d parent %d\n", node, L[node], H[node], post[node], parent[node]);
+        return true;
+    }
+    return false;
+
+}
+
+int postorder_DFS(int node) {
+    int ans = 1;
+    //printf("in %d size %d\n", node, graph[0][node].size());
+    visited[node] = true;
+    for (int i = 0; i < bigraph[node].size(); ++i) {
+        Edge p = bigraph[node][i];
+        //printf("edge node %d p.n %d type %d\n", node, p.n, edge_type[p.id]);
+        if(edge_type[p.id] != 3)
+            continue;
+        if(!visited[p.n]) {
+            parent[p.n] = node;
+            ans += postorder_DFS(p.n);
+            //printf("current id %d son %d\n", node, p.n);
+        }
+    }
+    desc[node] = ans;
+    //printf("post of %d is %d\n", node, counter);
+    post[node] = counter++;
+    return ans;
+}
+
+void proc_edges1(int M, int target) {
+    for (int i = 0; i < M; ++i) {
+        Edge t = edges[i];
+        ll d1, d2;
+        if (dist[0][t.n] < dist[0][t.o]) {
+            d1 = dist[0][t.n];
+            d2 = dist[1][t.o];
+        }
+        else {
+            d1 = dist[0][t.o];
+            d2 = dist[1][t.n];
+        }
+        //printf("Edge %d d1 %lld d2 %lld\n", i, d1, d2);
+        if (d1 + d2 + t.w == dist[0][target]) {
+            edges[t.id].imp = 1;
+            edge_type[t.id] = 3;
+        }
+        else {
+            ll x = d1 + d2 + t.w + 1 - dist[0][target];
+            if (t.w - x < 1) {
+                edge_type[t.id] = 2;
+            }
+            else {
+                //printf("in 4\n");
+                edges[t.id].imp = x;
+                edge_type[t.id] = 4;
+            }
+            int mn, mx;
+            mx = max(edges[t.id].n, edges[t.id].o);
+            mn = min(edges[t.id].n, edges[t.id].o);
+            rep[make_pair(mn, mx)]--;
+        }
+    }
+}
+
+void proc_edges2(int M, int target) {
+    for (int i = 0; i < M; ++i) {
+        Edge t = edges[i];
+        ll d1, d2;
+        if(edge_type[t.id] == 3 || edge_type[t.id] == 4) {
+            if (dist[0][t.n] < dist[0][t.o]) {
+                d1 = dist[0][t.n];
+                d2 = dist[1][t.o];
+            }
+            else {
+                d1 = dist[0][t.o];
+                d2 = dist[1][t.n];
+            }
+            //printf("in proc 2\n");
+            if (d1 + d2 + t.w == dist[0][target]) {
+                if(t.w == 1)
+                    edge_type[t.id] = 2;
+            }
+            if(t.w - t.imp < 1)
+                edge_type[t.id] = 2;
+        }
+    }
+}
+
+int main() {
+    //freopen("president.in", "r", stdin);
+    //freopen("president.out", "w", stdout);
+    int N, M, start, target;
+    scanf("%d %d %d %d", &N, &M, &start, &target);
+    for (int i = 1; i <= N; ++i) {
+        dist[0][i] = 1ll<<62ll;
+        dist[1][i] = 1ll<<62ll;
+    }
+    for (int i = 0; i < M; ++i) {
+        int a, b, l, mx, mn;
+        scanf("%d %d %d", &a, &b, &l);
+        graph[0][a].push_back(Edge(b, l, i));
+        graph[1][b].push_back(Edge(a, l, i));
+        bigraph[a].push_back(Edge(b, l, i));
+        bigraph[b].push_back(Edge(a, l, i));
+        edges[i] = Edge(a, b, l, i);
+        edge_type[i] = 2;
+        mx = max(a, b);
+        mn = min(a, b);
+        pii p = make_pair(mn, mx);
+        if(rep.count(p) == 0)
+            rep[p] = 1;
+        else
+            rep[p]++;
+    }
+    DFS_reach(start, target);
+    /*printf("after reach\n");
+    for(int i = 0; i < M; i++) {
+        printf("i %d type %d\n", i, edge_type[i]);
+    }*/
+    dijkstra(start, 0);
+    dijkstra(target, 1);
+    proc_edges1(M, target);
+    visited = vector<bool>(MAX, false);
+    postorder_DFS(start);
+    visited = vector<bool>(MAX, false);
+    calc_L_H_DFS(start);
+    /*for (int i = 0; i < M; ++i) {
+        printf(" i %d type %d\n", i, edge_type[i]);
+    }
+    for (int i = 1; i <= N; ++i) {
+        printf("j %d h %d l %d post %d desc %d\n", i, H[i], L[i], post[i], desc[i]);
+    }*/
+    //calc_counts(N);
+    //proc_edges1(M, start, target);
+    /*for (int i = 1; i <= N; ++i) {
+        printf("i %d c1 %lld c2 %lld d1 %lld d2 %lld\n", i, counts[0][i], counts[1][i], dist[0][i], dist[1][i]);
+    }*/
+    proc_edges2(M, target);
+    for (int i = 0; i < M; ++i) {
+        //printf("edge i %d %d\n", i, edge_type[i]);
+        Edge t = edges[i];
+        if(edge_type[i] == 1)
+            printf("YES\n");
+        if(edge_type[i] == 2 || dist[0][t.n] == 1ll<<62ll || dist[0][t.o] == 1ll<<62ll)
+            printf("NO\n");
+        if(edge_type[i] == 3 || edge_type[i] == 4) {
+            printf("CAN %I64d\n", edges[i].imp);
+            //cout << "CAN " << edges[i].imp << "\n";
+        }
+    }
+    return 0;
+}

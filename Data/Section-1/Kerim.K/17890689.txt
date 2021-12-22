@@ -1,0 +1,99 @@
+#include<bits/stdc++.h>
+#define MAXN 500009
+#define N 10000009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll arr[MAXN];
+int cnt[N],a,dv[N],pr[N],kinder[N];
+ll pw[MAXN],B[MAXN],st,par[N];
+ll mod(ll x){
+	if(x<0)
+		x+=INF;
+	return (x%INF);
+}
+vector<int>v;
+void rec(int x,int sz,ll y,int depth){
+	if(x==sz){
+		if(y==1)
+			return;	
+		if(depth&1){
+			st=mod(st-mod(pw[dv[y]]-1));
+			st=mod(st+mod(pw[dv[y]-1]-1));
+		}
+		else{
+			st=mod(st+mod(pw[dv[y]]-1));
+			st=mod(st-mod(pw[dv[y]-1]-1));
+		}
+		return;
+	}
+	rec(x+1,sz,y,depth);
+	rec(x+1,sz,y*v[x],depth+1);
+}
+int kind(int x){int num=0;
+	while(x>1){
+		int z=pr[x];num++;
+		x/=z;
+		if(x>1 and x%z==0)
+			return 0;
+	}
+	if(num&1)
+		return -1;
+	return 1;	
+}
+int main(){
+	memset(pr,-1,sizeof pr);pw[0]=1LL;
+	for(int i=1;i<MAXN;i++)
+		pw[i]=mod(pw[i-1]*2LL);
+	scanf("%lld",&a);
+	for(int i=1;i<=a;i++)
+		scanf("%lld",arr+i),cnt[arr[i]]++;	
+	for(int i=2;i<N;i++){
+		for(int j=i;j<N;j+=i){
+			if(pr[j]==-1)
+				pr[j]=i;
+			dv[i]+=cnt[j];
+		}
+	}
+	ll en=mod(pw[a]-1);
+	for(int i=2;i<N;i++){
+		if(!dv[i])
+			continue;
+		kinder[i]=kind(i);
+		en=mod(en+mod(kinder[i]*mod(pw[dv[i]]-1)));
+	}
+	en=mod((pw[a]-1)-en);ll sum=0;
+	for(int i=2;i<N;i++)
+		for(int j=i;j<N;j+=i){
+			par[j]=mod(par[j]+mod(kinder[i]*mod(pw[dv[i]-1]-1)));
+		}
+	for(int i=1;i<=a;i++){int x=arr[i];
+		v.clear();st=en;
+		while(x>1){int z=pr[x];
+			v.pb(pr[x]);
+			while(x%z==0)
+				x/=z;
+		}
+		rec(0,int(v.size()),1,0);
+		st=mod(st+par[arr[i]]); 
+		sum=mod(sum+st);	
+	}
+	printf("%lld\n",sum);
+	return 0;
+}
+//LooK aT mY COde ONl	inE +_+

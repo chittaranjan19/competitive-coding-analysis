@@ -1,0 +1,125 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+int gcd(int a, int b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+int _c(int k, int n){
+	int nm = 1, dm = 1;
+	while (k){
+		nm *= n;
+		dm *= k;
+		n--, k--;
+	}
+	return nm / dm;
+}
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 2e5 + 10, lg = 20;
+ll mod = 1e9 + 7;
+
+int degrees[1884010];
+
+
+
+
+ld  getAlpha(ll x, ll y, ld len, ll _x0, ll _y0){
+	if (x <= _x0 && y <= _y0)
+		return asin((ld)abs(x - _x0) / len);
+
+	if (x <= _x0 && y > _y0)
+		return pi / 2.0 + asin((ld)abs(y - _y0) / len);
+
+	if (x >= _x0 && y > _y0)
+		return pi + asin((ld)abs(x - _x0) / len);
+
+	return 6.0*pi / 4 + asin((ld)abs(y - _y0) / len);
+}
+
+vector<pair<ld, ld > > gt;
+
+int main()
+{
+	ll _x0, _y0, v, T, R;
+	memset(degrees, 0, sizeof(degrees));
+
+	double R2;
+	cin >> _x0 >> _y0 >> v >> T;
+	R = v*T;
+	R2 = R;
+	R2 *= R;
+
+	int n;
+	cin >> n;
+	for (int i = 0; i < n; i++){
+		ll x, y, r;
+		cin >> x >> y >> r;
+		ld len = (ld)sqr(x - _x0) + (ld)sqr(y - _y0);
+
+		if (r >= sqrt(len)){
+			cout << 1;
+			return 0;
+		}
+
+		ld l2 = len - sqr((ld)r);
+		if (l2 > R2) continue;
+
+		ld alpha = asin((double)r / sqrt(len));
+		ld med = getAlpha(x, y, sqrt(len), _x0, _y0);
+
+		if (med - alpha < 0){
+			gt.push_back(mp(0, med));
+			gt.push_back(mp(2 * pi - (med - alpha), 2 * pi));
+		}
+		else
+			gt.push_back(mp(med - alpha, med + alpha));
+
+		if (med + alpha > 2 * pi){
+			gt.push_back(mp(med, 2 * pi));
+			gt.push_back(mp(0, med + alpha - 2 * pi));
+		}
+		else
+			gt.push_back(mp(med, med + alpha));
+	}
+
+	sort(gt.begin(), gt.end());
+
+	ld ans = 0, left = 0, right = 0;
+	gt.push_back(mp(2 * pi + 1e-9, 2 * pi + 1e-9));
+
+	for (auto pr : gt){
+		ld start = pr.fs, end = pr.sc;
+
+		if (start > right)
+			ans += right - left, left = start;
+
+		right = max(end, right);
+	}
+
+	cout << ans / (2 * pi);
+	return 0;
+}

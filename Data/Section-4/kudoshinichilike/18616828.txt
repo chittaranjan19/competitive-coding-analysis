@@ -1,0 +1,140 @@
+#include <bits/stdc++.h>
+#define maxn 3*100005
+#define e 1000000007
+using namespace std;
+    int n,Q,deg[maxn];
+    vector<int>g[maxn];
+    int it1[4*maxn],gt1[4*maxn];
+    int it2[4*maxn],gt2[4*maxn];
+    int cl[maxn],depth[maxn],head[maxn],tail[maxn],x[maxn];
+    int cur[maxn],s[maxn];
+void dfs()
+{
+    int sn=0,slx=0;
+    s[++sn]=1; cl[1]=1; depth[1]=1;
+    x[++slx]=1; head[1]=slx;
+    while(sn)
+    {
+        int u=s[sn];
+        while(cur[u]<deg[u]&&cl[g[u][cur[u]]]) cur[u]++;
+        if(cur[u]==deg[u])
+        {
+            tail[u]=slx;
+            sn--;
+        }
+        else
+        {
+            int v=g[u][cur[u]];
+            cl[v]=1; s[++sn]=v;
+            depth[v]=depth[u]+1;
+            x[++slx]=v; head[v]=slx;
+        }
+    }
+}
+void update1(int r,int k,int l,int u,int v,int val)
+{
+    if(v<k||u>l) return;
+    if(u<=k&&l<=v)
+    {
+        gt1[r]=(gt1[r]+val)%e;
+        return;
+    }
+    int g=(k+l)/2;
+    gt1[2*r]=(gt1[2*r]+gt1[r])%e;
+    gt1[2*r+1]=(gt1[2*r+1]+gt1[r])%e;
+    gt1[r]=0;
+    update1(2*r,k,g,u,v,val);
+    update1(2*r+1,g+1,l,u,v,val);
+    int trai=(it1[2*r]+(g-k+1)*(long long)gt1[2*r])%e;
+    int phai=(it1[2*r+1]+(l-g)*(long long)gt1[2*r+1])%e;
+    it1[r]=(trai+phai)%e;
+}
+int get1(int r,int k,int l,int u,int v)
+{
+    if(v<k||u>l) return 0;
+    if(u<=k&&l<=v)
+        return (it1[r]+(l-k+1)*(long long)gt1[r])%e;
+    int g=(k+l)/2;
+    gt1[2*r]=(gt1[2*r]+gt1[r])%e;
+    gt1[2*r+1]=(gt1[2*r+1]+gt1[r])%e;
+    gt1[r]=0;
+    int t1=get1(2*r,k,g,u,v);
+    int t2=get1(2*r+1,g+1,l,u,v);
+    int trai=(it1[2*r]+(g-k+1)*(long long)gt1[2*r])%e;
+    int phai=(it1[2*r+1]+(l-g)*(long long)gt1[2*r+1])%e;
+    it1[r]=(trai+phai)%e;
+    return (t1+t2)%e;
+}
+void update2(int r,int k,int l,int u,int v,int val)
+{
+    if(v<k||u>l) return;
+    if(u<=k&&l<=v)
+    {
+        gt2[r]=(gt2[r]+val)%e;
+        return;
+    }
+    int g=(k+l)/2;
+    gt2[2*r]=(gt2[2*r]+gt2[r])%e;
+    gt2[2*r+1]=(gt2[2*r+1]+gt2[r])%e;
+    gt2[r]=0;
+    update2(2*r,k,g,u,v,val);
+    update2(2*r+1,g+1,l,u,v,val);
+    int trai=(it2[2*r]+(g-k+1)*(long long)gt2[2*r])%e;
+    int phai=(it2[2*r+1]+(l-g)*(long long)gt2[2*r+1])%e;
+    it2[r]=(trai+phai)%e;
+}
+int get2(int r,int k,int l,int u,int v)
+{
+    if(v<k||u>l) return 0;
+    if(u<=k&&l<=v) return (it2[r]+(l-k+1)*(long long)gt2[r])%e;
+    int g=(k+l)/2;
+    gt2[2*r]=(gt2[2*r]+gt2[r])%e;
+    gt2[2*r+1]=(gt2[2*r+1]+gt2[r])%e;
+    gt2[r]=0;
+    int t1=get2(2*r,k,g,u,v);
+    int t2=get2(2*r+1,g+1,l,u,v);
+    int trai=(it2[2*r]+(g-k+1)*(long long)gt2[2*r])%e;
+    int phai=(it2[2*r+1]+(l-g)*(long long)gt2[2*r+1])%e;
+    it2[r]=(trai+phai)%e;
+    return (t1+t2)%e;
+}
+void lam1()
+{
+    int v,x,k;
+    cin>>v>>x>>k;
+    int val=((x+depth[v]*(long long)k)%e+e)%e;
+    update1(1,1,n,head[v],tail[v],val);
+    update2(1,1,n,head[v],tail[v],(-k+e)%e);
+}
+void lam2()
+{
+    int v;
+    cin>>v;
+    int p1=get1(1,1,n,head[v],head[v]);
+    int p2=get2(1,1,n,head[v],head[v]);
+    int ds=((p1+(long long)p2*depth[v])%e+e)%e;
+    cout<<ds<<"\n";
+}
+int main()
+{
+    //freopen("div1c.inp","r",stdin);
+    //freopen("div1c.out","w",stdout);
+    ios::sync_with_stdio(0);
+    cin>>n;
+    for(int i=2; i<=n; i++)
+    {
+        int p;
+        cin>>p;
+        deg[p]++; g[p].push_back(i);
+        deg[i]++; g[i].push_back(p);
+    }
+    dfs();
+    cin>>Q;
+    for(int i=1; i<=Q; i++)
+    {
+        int id;
+        cin>>id;
+        if(id==1) lam1();
+        else lam2();
+    }
+}

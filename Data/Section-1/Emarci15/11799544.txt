@@ -1,0 +1,128 @@
+#include <iostream>
+
+using namespace std;
+
+struct Interv {
+    int k,v;
+    int ub,lb;
+    Interv *left, *right;
+    Interv(int k, int v): k(k),v(v) {
+        ub = lb = 0;
+        left = right = NULL;
+    }
+};
+
+Interv* build(int k, int v) {
+    Interv* ret = new Interv(k,v);
+
+    if(k<v) {
+        ret->left = build(k,(k+v)/2);
+        ret->right = build(((k+v)/2)+1,v);
+    }
+
+    return ret;
+}
+
+void update(Interv* in) {
+    if(in->left != NULL) {
+        in->left->ub = max(in->left->ub,in->ub);
+        in->left->lb = max(in->left->lb,in->lb);
+        in->right->ub = max(in->right->ub,in->ub);
+        in->right->lb = max(in->right->lb,in->lb);
+    }
+}
+
+void updLB(Interv* in, int k, int v, int lb) {
+    if((k <= in->k) && (in->v <= v)) {
+        in->lb = max(in->lb,lb);
+        return;
+    }
+    int f = (in->k+in->v)/2;
+    if(in->left == NULL) {
+        in->left = new Interv(in->k,f);
+        in->right = new Interv(f+1,in->v);
+    }
+    update(in);
+
+    if(k <= f) updLB(in->left,k,v,lb);
+    if(f < v) updLB(in->right,k,v,lb);
+}
+
+void updUB(Interv* in, int k, int v, int ub) {
+    if((k <= in->k) && (in->v <= v)) {
+        in->ub = max(in->ub,ub);
+        return;
+    }
+
+    int f = (in->k+in->v)/2;
+    if(in->left == NULL) {
+        in->left = new Interv(in->k,f);
+        in->right = new Interv(f+1,in->v);
+    }
+    update(in);
+
+    if(k <= f) updUB(in->left,k,v,ub);
+    if(f < v) updUB(in->right,k,v,ub);
+}
+
+int getLB(Interv* in, int p) {
+    if(in->k == in->v) return in->lb;
+
+    int f = (in->k+in->v)/2;
+    if(in->left == NULL) {
+        in->left = new Interv(in->k,f);
+        in->right = new Interv(f+1,in->v);
+    }
+    update(in);
+
+    if(p <= f) return getLB(in->left,p);
+    return getLB(in->right,p);
+}
+
+int getUB(Interv* in, int p) {
+    if(in->k == in->v) return in->ub;
+
+    int f = (in->k+in->v)/2;
+    if(in->left == NULL) {
+        in->left = new Interv(in->k,f);
+        in->right = new Interv(f+1,in->v);
+    }
+    update(in);
+
+    if(p <= f) return getUB(in->left,p);
+    return getUB(in->right,p);
+}
+
+int n,q;
+int x,y;
+char act;
+
+Interv* root;
+
+int main()
+{
+    ios::sync_with_stdio(0);
+    cin >> n >> q;
+
+    root = new Interv(1,n);
+
+    for(int i=0; i<q; i++) {
+        cin >> y >> x >> act;
+
+        if(act == 'L') {
+            int lb = getLB(root,y);
+            cout << (y-lb) << endl;
+
+            updUB(root,lb+1,y,x);
+            updLB(root,y,y,y);
+        } else {
+            int ub = getUB(root,y);
+            cout << (x-ub) << endl;
+
+            updLB(root,y,n+1-ub,y);
+            updUB(root,y,y,x);
+        }
+    }
+
+    return 0;
+}

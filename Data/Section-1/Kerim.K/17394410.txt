@@ -1,0 +1,103 @@
+#include<bits/stdc++.h>
+#define MAXN 200009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+struct node{
+	ll val,left,right;
+	node essi(){
+		node park;
+		park.val=-1;
+		park.left=0;
+		park.right=0;
+		return park;
+	}
+	node topla(ll x,ll y,ll z){
+		node park;
+		park.val=x;
+		park.left=y;
+		park.right=z;
+		return park;
+	}
+	node merge(node x,node y){
+		if(x.val==-1)
+			return y;
+		if(y.val==-1)
+			return x;
+		node z;
+		z.left=max(y.left,x.left);
+		z.right=max(y.right,x.right);
+		z.val=max(max(x.val,y.val),y.right+x.left);	
+		return z;
+	}
+}love;
+int n,m;
+ll h[MAXN],d[MAXN],L[MAXN<<2],R[MAXN<<2],par[MAXN],s[MAXN<<2];
+void fatal(int nd){
+	s[nd]=max(max(s[nd<<1],s[nd<<1|1]),L[nd<<1]+R[nd<<1|1]);
+	L[nd]=max(L[nd<<1],L[nd<<1|1]);
+	R[nd]=max(R[nd<<1],R[nd<<1|1]);	
+}
+void prepare(int nd,int x){
+	L[nd]=h[x]*2LL-par[x];
+	R[nd]=h[x]*2LL+par[x];
+	s[nd]=h[x]*2LL;
+}
+void build(int nd,int x,int y){
+	if(x==y){
+		prepare(nd,x);
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+	fatal(nd);
+}
+node tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return love.essi();
+	if(l<=x and y<=r)
+		return love.topla(s[nd],L[nd],R[nd]);
+	int mid=(x+y)>>1;
+	node i1=tap(l,r,nd<<1,x,mid),i3;
+	node i2=tap(l,r,nd<<1|1,mid+1,y);	
+	return love.merge(i1,i2);
+}
+int main(){
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;i++)
+		scanf("%lld",d+i),par[i]=par[i-1]+d[i-1];
+	for(int i=1;i<=n;i++)
+		scanf("%lld",h+i);
+	for(int i=n+1;i<=n*2;i++){
+		par[i]=par[i-1]+d[i-1<=n?i-1:i-n-1];	
+		h[i]=h[i-n];
+	}
+	build(1,1,n*2);
+	while(m--){
+		int l,r,l1,r1;
+		scanf("%d%d",&l,&r);
+		if(l<=r)
+			l1=r+1,r1=l+n-1;
+		else	
+			l1=r+1,r1=l-1;
+		printf("%lld\n",tap(l1,r1,1,1,n*2).val);		
+	}
+	return 0;
+}
+//LooK aT mY COde ONlinE +_+

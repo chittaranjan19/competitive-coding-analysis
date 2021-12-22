@@ -1,0 +1,84 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const int N = 100000;
+const int inf = (int)1e9;
+const int MOD = (int)1e9 + 7;
+const ld eps = 1e-6;
+const int ABC = 26;
+const int P = 239;
+
+vector<map<int, int> > g;
+vector<pair<int, int> > dist;
+vector<int> come;
+
+void solve(int n)
+{
+    set<pair<pair<int, int>, int> > q;
+    dist[0] = {0, 0};
+    q.insert({{0, 0}, 0});
+    while (!q.empty())
+    {
+        int u = (*q.begin()).second;
+        q.erase(q.begin());
+        for (auto v : g[u])
+        {
+            pair<int, int> d = {dist[u].first + 1, dist[u].second + 1 - v.second};
+            if (d < dist[v.first])
+            {
+                dist[v.first] = d;
+                come[v.first] = u;
+                q.insert({d, v.first});
+            }
+        }
+    }
+}
+
+int main()
+{
+    //freopen("refrain.in", "r", stdin);
+    //freopen("refrain.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, m;
+    cin >> n >> m;
+    g.resize(n);
+    dist.resize(n, {inf, inf});
+    come.resize(n);
+    for (int i = 0; i < m; i++)
+    {
+        int a, b, c;
+        cin >> a >> b >> c;
+        if (a > b)
+            swap(a, b);
+        g[a - 1].insert({b - 1, c});
+        g[b - 1].insert({a - 1, c});
+    }
+    solve(n);
+    vector<pair<pair<int, int>, int> > ans;
+    int curr = n - 1;
+    while (curr != 0)
+    {
+        int curr1 = come[curr];
+        if (g[curr][curr1] == 0)
+            ans.push_back({{curr, curr1}, 1});
+        g[curr].erase(curr1);
+        g[curr1].erase(curr);
+        curr = curr1;
+    }
+    for (int i = 0; i < n; i++)
+        for (auto j : g[i])
+        {
+            if (j.second == 1)
+                ans.push_back({{i, j.first}, 0});
+            g[j.first].erase(i);
+        }
+    cout << ans.size() << endl;
+    for (auto i : ans)
+        cout << i.first.first + 1 << " " << i.first.second + 1 << " " << i.second << endl;
+    return 0;
+}

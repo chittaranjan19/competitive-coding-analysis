@@ -1,0 +1,90 @@
+#include <iostream>
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 5e5 + 5;
+//const int smax = sqrt(maxn) + 1;
+
+struct ds
+{
+    int v, p;
+    ds(int v = 0, int p = 0) : v(v), p(p) {}
+    friend bool operator < (const ds &a, const ds &b)
+    {
+        if(a.v != b.v) return a.v < b.v;
+        return a.p < b.p;
+    }
+} b[maxn];
+
+int add[maxn];
+
+int main()
+{
+    int n, m;
+    while(~scanf("%d%d", &n, &m))
+    {
+        int s = sqrt(n);
+        memset(add, 0, sizeof(add));
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", &b[i].v);
+            b[i].p = i;
+//            b[i] = a[i];
+        }
+        for(int i = 1; i <= n; i += s)
+        {
+            i + s <= n + 1 ? sort(b + i, b + i + s) : sort(b + i, b + n + 1);
+        }
+        while(m--)
+        {
+            int op;
+            scanf("%d", &op);
+            if(op == 1)
+            {
+                int l, r, x;
+                scanf("%d%d%d", &l, &r, &x);
+                int i = 1;
+                while(i + s <= l)
+                {
+                    i += s;
+                }
+                for(int j = l; j < i + s; ++j)
+                {
+                    b[j].v += x;
+                }
+                sort(b + l, b + i + s);
+                for(i += s; i + s <= r; i += s)
+                {
+                    add[i / s] += x;
+                }
+                for(int j = i; j <= r; ++j)
+                {
+                    b[j].v += x;
+                }
+                sort(b + i, b + r + 1);
+            }
+            else
+            {
+                int y;
+                scanf("%d", &y);
+                int l = maxn, r = 0;
+                for(int i = 1; i <= n; i += s)
+                {
+                    int k = (i + s <= n + 1 ? lower_bound(b + i, b + i + s, ds(y - add[i / s], 0)) : lower_bound(b + i, b + n + 1, ds(y - add[i / s], 0))) - b;
+                    int j = (i + s <= n + 1 ? upper_bound(b + i, b + i + s, ds(y - add[i / s], maxn)) : upper_bound(b + i, b + n + 1, ds(y - add[i / s], maxn))) - b;
+                    if(b[k].v == y)
+                    {
+                        l = b[k].p < l ? b[k].p : l;
+                    }
+                    if(b[j - 1].v == y - add[i / s])
+                    {
+                        r = b[j - 1].p > r ? b[j - 1].p : r;
+                    }
+                }
+                printf("%d\n", l <= r ? r - l : -1);
+            }
+        }
+    }
+    return 0;
+}

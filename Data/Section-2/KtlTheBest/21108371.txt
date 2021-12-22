@@ -1,0 +1,73 @@
+#include <iostream>
+#include <vector>
+#include <stack>
+using namespace std;
+
+#define fr first
+#define sc second
+#define mkp make_pair
+#define pb push_back
+
+const long long INF = 2e9 + 100;
+
+int n, m, t, mx, st;
+int d[5001][5001];
+bool u[5001];
+vector <pair <int, int> > v[5001], from[5001];
+stack <int> stck;
+
+int main(){
+	cin >> n >> m >> t;
+	for(int i = 0; i < m; ++ i){
+		int x, y, w;
+		cin >> x >> y >> w;
+		v[x].pb(mkp(y, w));
+		from[y].pb(mkp(x, w));
+	}
+	for(int i = 1; i <= n; ++ i){
+		for(int j = 1; j <= n; ++ j){
+			d[i][j] = INF;
+		}
+	}
+	d[1][1] = 0;
+	for(int k = 1; k < n; ++ k){
+		for(int i = 1; i < n; ++ i){
+			for(int j = 0; j < v[i].size(); ++ j){
+            	int to = v[i][j].fr;
+            	int wg = v[i][j].sc;
+            	if(d[i][k] + wg <= t && d[i][k] + wg < d[to][k + 1]){
+            		d[to][k + 1] = d[i][k] + wg;
+            	}
+            }
+		}
+	}
+	for(int i = n; i > 1; -- i){
+		if(d[n][i] != INF && d[n][i] <= t){
+			mx = d[n][i];
+			st = i;
+			break;
+		}
+	}
+	cout << st << '\n';
+	int cur = n;
+	stck.push(n);
+	int nxt;
+	for(int i = st - 1; i > 0; i --){
+		mx = INF;
+		for(int j = 0; j < from[cur].size(); ++ j){
+			int frm = from[cur][j].fr;
+			int wg = from[cur][j].sc;
+			if(cur != frm && d[frm][i] + wg <= t && d[frm][i] + wg < mx){
+				mx = d[j][i - 1];
+				nxt = frm;
+			}
+		}
+		stck.push(nxt);
+		cur = nxt;
+	}
+	while(stck.size()){
+		cout << stck.top() << ' ';
+		stck.pop();
+	}
+	return 0;
+}

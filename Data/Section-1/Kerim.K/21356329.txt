@@ -1,0 +1,96 @@
+#include "bits/stdc++.h"
+#define MAXN 500009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+ll mod(ll x){
+	while(x<0)
+		x+=INF;
+	return (x%INF);
+}
+const int N=1e7+4;
+int cnt[N],pr[N],arr[MAXN],dv[N],gum[N],bit[N];
+int que[MAXN],tail;
+ll pw[MAXN],A,B;
+void rec(int pos,int mul,int bit){
+	if(pos>tail){
+		if(mul==1)
+			return;
+		if(bit&1)
+			B=mod(B-mod(pw[dv[mul]-1]-1));
+		else
+			B=mod(B+mod(pw[dv[mul]-1]-1));
+		return;	
+	}
+	rec(pos+1,mul,bit);
+	rec(pos+1,mul*que[pos],bit+1);
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	pw[0]=1;
+	for(int i=1;i<MAXN;i++)
+		pw[i]=mod(pw[i-1]*2);
+	int a;
+	scanf("%d",&a);
+	for(int i=1;i<=a;i++){
+		scanf("%d",arr+i);
+		cnt[arr[i]]++;
+	}	
+	for(int i=2;i<MAXN;i++)
+		gum[i]=i;
+	for(int i=2;i<MAXN;i++){
+		if(pr[i]){
+			for(int j=i;j<MAXN;j+=i)
+				dv[i]+=cnt[j];
+			continue;
+		}
+		for(int j=i;j<MAXN;j+=i){
+			dv[i]+=cnt[j];
+			bit[j]++;
+			gum[j]/=i;
+			pr[j]=i;
+		}
+	}
+	A=mod(pw[a]-1);
+	for(int i=2;i<MAXN;i++){
+		if(gum[i]>1 or !dv[i])
+			continue;
+		if(bit[i]&1)
+			A=mod(A-mod(pw[dv[i]]-1));
+		else
+			A=mod(A+mod(pw[dv[i]]-1));
+	}
+	B=mod(mod(pw[a]-1)-A);
+	ll temp=B,ans=0;
+	for(int i=1;i<=a;i++){
+		B=temp-1;
+		int x=arr[i];
+		tail=-1;
+		while(x>1){
+			int next=pr[x];
+			while(x%next==0)
+				x/=next;
+			que[++tail]=next;
+			B=mod(B-mod(pw[dv[next]-1]-1));
+		}
+		rec(0,1,0);
+		ans=mod(ans+B);
+	}
+	printf("%lld\n",ans);
+	return 0;
+}

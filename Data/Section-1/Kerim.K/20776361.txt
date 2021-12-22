@@ -1,0 +1,118 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+vector<PII>adj[MAXN];
+int sub[MAXN],vis[MAXN];
+void f1(int nd,int pr){
+	sub[nd]=1;
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i].ff;
+		if(to==pr or vis[to])	
+			continue;
+		f1(to,nd);
+		sub[nd]+=sub[to];	
+	}
+}
+int L,W,n;
+int f2(int nd,int pr,int sz){
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i].ff;
+		if(to==pr or vis[to])
+			continue;
+		if(sub[to]>sz)
+			return f2(to,nd,sz);
+	}
+	return nd;
+}
+vector<PII>on;
+void f3(int nd,int pr,int cost,int lvl){
+	if(cost>W or lvl>L)
+		return;
+	on.pb(mp(cost,lvl));
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i].ff;
+		int val=adj[nd][i].ss;
+		if(vis[to] or to==pr)
+			continue;
+		f3(to,nd,cost+val,lvl+1);
+	}
+}ll ans=0;
+int F[MAXN];
+void upd(int x,int y){x++;
+	for(;x<MAXN;x+=(x&(-x)))
+		F[x]+=y;
+}
+int tap(int x){
+	int tree=0;x++;
+	for(;x>=1;x-=(x&(-x)))
+		tree+=F[x];
+	return tree;	
+}
+ll get(){
+	sort(all(on));	
+	//~ tr(it,on)
+		//~ printf("%d %d\n",it->ff,it->ss);
+	//~ printf("\n");	
+	int pnt=0;ll cev=0;
+	for(int i=int(on.size())-1;i>=0;i--){
+		while(pnt<int(on.size()) and W-on[i].ff>=on[pnt].ff)
+			upd(on[pnt].ss,+1),pnt++;	
+		cev+=tap(L-on[i].ss);	
+	}
+	for(int i=0;i<pnt;i++)
+		upd(on[i].ss,-1);
+	return cev;	
+}
+void dfs(int nd){
+	on.resize(0);f1(nd,-1);
+	int centr=f2(nd,-1,sub[nd]>>1);
+	nd=centr;vis[nd]=1;
+	ll res=0;
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i].ff;
+		int val=adj[nd][i].ss;
+		if(vis[to])
+			continue;
+		on.clear();	
+		f3(to,-1,val,1);
+		res-=get();
+	}
+	on.clear();
+	f3(nd,-1,0,0);res+=get();
+	res/=2;ans+=res;
+	for(int i=0;i<int(adj[nd].size());i++){
+		int to=adj[nd][i].ff;
+		if(!vis[to])
+			dfs(to);
+	}
+}
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	scanf("%d%d%d",&n,&L,&W);
+	for(int i=2;i<=n;i++){
+		int x,v;
+		scanf("%d%d",&x,&v);
+		adj[i].pb(mp(x,v));
+		adj[x].pb(mp(i,v));
+	}
+	dfs(1);
+	printf("%lld\n",ans);
+	return 0;
+}

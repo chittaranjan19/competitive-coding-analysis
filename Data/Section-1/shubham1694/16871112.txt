@@ -1,0 +1,73 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+const ll lim = 5000000001;
+
+vector<ll> lucky;
+int pl, pr, vl, vr;
+
+void generate(ll cur)
+{
+	lucky.pb(cur);
+	ll nxt = cur;
+	nxt = nxt*10 + 4;
+	if(nxt<lim)
+		generate(nxt);
+	nxt = cur;
+	nxt = nxt*10 + 7;
+	if(nxt<lim)
+		generate(nxt);
+}
+
+ll find_common(ll x1, ll y1, ll x2, ll y2)
+{
+	ll x, y;
+	y = min(y1, y2);
+	x = max(x1, x2);
+	return max(0ll, y-x+1);
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("i.txt", "w", stdout);
+	generate(0);
+	sort(all(lucky));
+	int i, k;
+	double ans, x, y, p1, p2, cnt1, cnt2;
+	ans = 0;
+	scanf("%d%d%d%d%d", &pl, &pr, &vl, &vr, &k);
+	p1 = (double)1.0/(pr-pl+1);
+	p2 = (double)1.0/(vr-vl+1);
+	for(i=1; i+k<=lucky.size(); i++){
+		if(lucky[i+k-1]>pr && lucky[i+k-1]>vr)
+			break;
+		cnt1 = find_common(pl, pr, lucky[i-1]+1, lucky[i]);
+		cnt2 = find_common(vl, vr, lucky[i+k-1], lucky[i+k]-1);
+		x = (double)cnt1*p1;
+		y = (double)cnt2*p2; 
+		ans = (ans+(x*y));
+		cnt1 = find_common(pl, pr, lucky[i+k-1], lucky[i+k]-1);
+		cnt2 = find_common(vl, vr, lucky[i-1]+1, lucky[i]);
+		x = (double)cnt1*p1;
+		y = (double)cnt2*p2;
+		ans = (ans+(x*y));
+	}
+	printf("%.12lf\n", ans);
+	return 0;
+}

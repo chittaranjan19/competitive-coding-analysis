@@ -1,0 +1,142 @@
+#include<iostream>
+#include<cstdio>
+#include<map>
+#include<string>
+#include<cstring>
+#include<vector>
+#include<algorithm>
+#include<queue>
+#include<stack>
+
+#define fill(a,val) memset(a, (val), sizeof a)
+#define pb push_back
+#define scantype int
+#define min(a,b) a<b?a:b
+#define max(a,b) a>b?a:b
+
+using namespace std;
+
+void scan(scantype &x); //IMPORTANT: for positive only
+
+int main(void)
+{
+  int n,m,p;
+  char st[500003];
+
+  scanf("%d %d %d",&n,&m,&p);
+  scanf("%s",st);
+
+  int fb[n],rb[n];
+
+  fill(fb,-1);
+  fill(rb,-1);
+
+  stack<int> stk;
+  for(int i=0;i<n;i++)
+  {
+       char c=st[i];
+       if(c=='(') stk.push(i);
+       else
+       {
+           fb[stk.top()]=i;
+           rb[i] = stk.top();
+           stk.pop();
+       }
+  }
+
+  int next[n],prev[n];
+
+  next[n-1] = -1;
+  prev[0]   = -1;
+
+  for(int i=0;i<n-1;i++) next[i] = i+1;
+  for(int i=1;i<n;i++)   prev[i] = i-1;
+  --p;
+
+  char c;
+  scanf("%c",&c);
+  while(m--)
+  {
+     scanf("%c",&c);
+
+     if(c=='L')
+     {
+         p = prev[p];
+     }
+     else if(c=='R')
+     {
+         p = next[p];
+     }
+     else
+     {
+        int l,r;
+        if(st[p]=='(')
+        {
+            l = p;
+            r = fb[p];
+        }
+        else
+        {
+            r = p;
+            l = rb[p];
+        }
+
+        if(next[r]==-1)
+        {
+
+            next[prev[l]] = -1;
+            p = prev[l];
+        }
+        else if(prev[l]==-1)
+        {
+            prev[next[r]] = -1;
+            p = next[r];
+        }
+        else
+        {
+            next[prev[l]] = next[r];
+            prev[next[r]] = prev[l];
+            p = next[r];
+        }
+        st[l]='[';
+        st[r]=']';
+     }
+
+    //cout << "p: " << p << endl;
+  }
+
+  stack<char> sch;
+
+  for(int i=0;i<n;i++)
+  {
+      if(st[i]=='[') sch.push('[');
+      else if(st[i]==']') sch.pop();
+      else if(sch.empty()) printf("%c",st[i]);
+  }
+
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+void scan(scantype &x)
+{
+    register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+
+   /* register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x; */
+}

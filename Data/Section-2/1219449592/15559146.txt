@@ -1,0 +1,87 @@
+#include <iostream>
+#include <iomanip>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <cmath>
+#include <vector>
+#include <algorithm>
+#define N 100009
+#define ll long long
+const int mm = 0x3f3f3f3f;
+using namespace std;
+int a[N], sum[N], s1[N*2], s2[N*2];
+long long ans[N];
+struct query
+{
+	int l, r, num, index;
+	friend bool operator < (query a, query b)
+	{
+		if (a.num == b.num)	return a.r < b.r;
+		return a.num < b.num;
+	}
+}qq[N];
+int main()
+{
+#ifndef ONLINE_JUDGE
+	freopen("1.txt", "r", stdin);
+#endif
+	ios::sync_with_stdio(false);
+	cin.tie(0);
+	int i, j, n, m, k, t, L, R;
+	long long cur;
+	cin >> n >> m >> k;
+	sum[0] = 0;
+	for(i = 1; i <= n; i++)
+		cin >> a[i];
+	for (i = 1; i <= n; i++)
+		sum[i] = sum[i-1]^a[i];
+	t = (int)sqrt(n);
+	for (i = 0; i < m; i++)
+	{
+		cin >> qq[i].l >> qq[i].r;
+		qq[i].num = qq[i].l/t;
+		qq[i].index = i;
+	}
+	sort(qq, qq+m);
+	L = 1;
+	R = 0;
+	cur = 0;
+	memset(ans,0,sizeof(ans));
+	for (i = 0; i < m; i++)
+	{
+		while(R < qq[i].r)
+		{
+			R++;
+			s1[sum[R-1]]++;
+			s2[sum[R]]++;
+			cur += s1[sum[R]^k];
+		}
+		while(R > qq[i].r)
+		{
+			cur -= s1[sum[R]^k];
+			s1[sum[R-1]]--;
+			s2[sum[R]]--;
+			R--;
+		}
+		while(L < qq[i].l)
+		{
+			cur -= s2[sum[L-1]^k];
+			s1[sum[L-1]]--;
+			s2[sum[L]]--;
+			L++;
+		}
+		while(L > qq[i].l)
+		{
+			L--;
+			s1[sum[L-1]]++;
+			s2[sum[L]]++;
+			cur += s2[sum[L-1]^k];
+		}
+		ans[qq[i].index] = cur;
+	}
+	for(i = 0; i < m; i++)
+		cout << ans[i] << endl;
+	return 0;
+}

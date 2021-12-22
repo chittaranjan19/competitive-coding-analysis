@@ -1,0 +1,133 @@
+#include <iostream> 
+#include <cstdio>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+#define For(i , a , b) for (int i = a , _b = b ; i <= _b ; ++i)
+#define Ford(i , a  ,b) for (int i = a , _b = b ; i >= _b ; --i)
+#define Rep(i , n) for (int i = 0 , _n = n ; i < _n ; ++i)
+#define sz(A) ((int)A.size())
+#define LL(x) (x << 1)
+#define RR(x) ((x << 1) | 1)
+
+typedef pair<int , int> pt;
+
+const int maxn = 100000 + 123;
+
+int m , n;
+vector<int> V[maxn];
+int to[maxn];
+int papa[maxn];
+
+void ReadData() {
+	cin >> n >> m;
+	For(i , 1 , m) {
+		int u , v; cin >> u >> v;
+		papa[v] = u;
+		V[u].push_back(v);
+	}
+	For(i , 1 , n) cin >> to[i];
+}
+
+int timer = 0 , tin[maxn] , tout[maxn];
+vector<int> col;
+void dfs(int u) {
+	tin[u] = ++timer;
+	col.push_back(u);
+	Rep(i , sz(V[u])) {
+		int v = V[u][i];
+		dfs(v);
+	}
+	tout[u] = timer;
+}
+bool isson(int u , int v) {
+	return tin[u] <= tin[v] && tout[v] <= tout[u]; 
+}
+
+
+vector<int> res;
+vector<int> cur;
+
+bool cmp(int u , int v) {
+	return tin[u] > tin[v];
+}
+
+struct Segtree{
+	int it[maxn * 4];
+
+	#define mid ((l + r) >> 1)
+	void up(int x , int l , int r , int L , int R) {
+		if (l > R || L > r) return;
+		if (L <= l && r <= R) {
+			it[x]++;
+			return;
+		}
+		up(x * 2 , l , (l + r) / 2 , L , R);
+		up(x * 2 + 1 , (l + r) / 2 + 1 , r , L , R);
+		it[x] = it[LL(x)] + it[RR(x)];
+	}
+
+	int get(int x , int l , int r , int L , int R) {
+		if (l > R || L > r) return 0;
+		if (L <= l && r <= R) return it[x];
+		return get(LL(x) , l , mid , L , R) + get(RR(x) , mid + 1 , r, L , R);
+	}
+	#undef mid
+} tree , tree2;
+
+vector<int> b[maxn];
+
+void Process() {
+	For(i , 1 , n) {
+		if (to[i] != i && to[to[i]] != to[i]) {
+			cout << -1 << endl;
+			return;
+		}
+	}
+
+	For(i , 1 , n) if (to[i] != i) b[to[i]].push_back(i);
+
+	For(i , 1 , n) if (papa[i] == 0) {
+		col.clear();
+		dfs(i);
+
+		Rep(i , sz(col)) {
+			if (to[col[i]] == col[i]) cur.push_back(col[i]);
+		}
+		
+	}
+	sort(cur.begin() , cur.end() , cmp);
+	bool ok = true;
+	Ford(i , sz(cur) - 1 , 0) {
+		int x = cur[i];
+		if (tree.get(1 , 1 , n , tin[x] , tout[x])) ok = false;
+		if (tree2.get(1 , 1 , n , tin[x] , tout[x])) ok = false;
+		Rep(j , sz(b[x])) {
+			int k = b[x][j];
+	
+			tree2.up(1 , 1 , n , tin[k], tin[k]);
+		}
+		tree.up(1 , 1 , n , tin[x] , tin[x]);
+	}
+
+	if (!ok) {
+		cout << -1 << endl;
+		return;
+	}
+	cout << sz(cur) << endl;
+	Rep(i , sz(cur)) cout << cur[i] << "\n";
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	
+	//freopen("input.inp" , "r" , stdin);
+	ReadData();
+	Process();
+
+	return 0;
+
+}			

@@ -1,0 +1,61 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define llu unsigned long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+
+const int lmt = 1505;
+llu apo[lmt];
+llu ahash[lmt];
+int bad[lmt];
+llu magic1 = 173;
+
+void inithash(string str){
+    int n = str.size();
+    apo[0]=1;
+    ahash[0]=0;
+    for(int i=1;i<=n;i++){
+        apo[i] = (apo[i-1]*magic1);
+        ahash[i] = (ahash[i-1]*magic1 + str[i-1]);
+    }
+    return;
+}
+
+//1 based
+inline llu getHash(int i,int j){
+    llu h1 = (ahash[j] - (ahash[i-1]*apo[j-i+1]));
+    return h1;
+}
+
+set<llu> st;
+
+int main(){
+    string s,good;
+    cin>>s;
+    cin>>good;
+    inithash(s);
+    int k;
+    cin>>k;
+    int n = s.size();
+    for(int i=1;i<=n;i++)
+        bad[i] = bad[i-1] + (good[s[i-1]-'a']=='0');
+    int ans = 0;
+    for(int i=1;i<=n;i++){
+        for(int j=i;j<=n;j++){
+            if(bad[j]-bad[i-1] > k) continue;
+            llu h = getHash(i,j);
+            if(st.find(h) != st.end()) continue;
+            ans++;
+            st.insert(h);
+        }
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

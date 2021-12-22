@@ -1,0 +1,55 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+const int lmt = 105;
+lli dp[lmt][lmt];
+lli in[lmt];
+
+bool ok(lli n){
+    if(__builtin_popcountll(n)%3==0) return true;
+    return false;
+}
+
+lli solve(int idx,int taken,int n,int k){
+    if(taken==k) return 1;
+    if(taken > k) return 0;
+    lli ans = dp[idx][taken];
+    if(ans != -1) return ans;
+    ans = 0;
+    for(int i=0;i<n;i++){
+        if(ok(in[idx]^in[i])){
+            ans += solve(i,taken+1,n,k);
+            ans %= mod;
+        }
+    }
+    dp[idx][taken] = ans;
+    return ans;
+}
+
+int main(){
+    memset(dp,-1,sizeof(dp));
+    int n;
+    lli k;
+    cin>>n>>k;
+    for(int i=0;i<n;i++)
+        cin>>in[i];
+    if(k>n){
+        cout<<"0\n";
+        return 0;
+    }
+    lli ans = 0;
+    for(int i=0;i<n;i++){
+        ans += solve(i,1,n,k);
+        ans %= mod;
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

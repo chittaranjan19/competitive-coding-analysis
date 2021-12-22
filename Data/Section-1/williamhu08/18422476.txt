@@ -1,0 +1,67 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MOD = 1e9 + 7;
+
+#define fi first
+#define se second
+
+int add (int x, int y, int md) {
+	return (x + y) % md;
+}
+
+void addeq (int &x, int y, int md) {
+	x = add(x, y, md);
+}
+
+int mult (int x, int y, int md) {
+	return ll(x) * y % md;
+}
+
+void multeq (int &x, int y, int md) {
+	x = mult(x, y, md);
+}
+
+int pwr (int x, int y) {
+	int res = 1;
+	for (; y; y >>= 1) {
+		if (y & 1) {
+			multeq(res, x, MOD);
+		}
+		multeq(x, x, MOD);
+	}
+	return res;
+}
+
+int inv (int x) {
+	return pwr(x, MOD - 2);
+}
+
+#define div divv
+int div (int x, int y) {
+	return mult(x, inv(y), MOD);
+}
+
+pii ntimes (pii p, pii pmd) {
+	if (p.fi == 1) {
+		multeq(p.se, pmd.fi, MOD);
+		return p;
+	}
+	int am = pwr(p.fi, pmd.se);
+	return pii(am, mult(p.se, div(am - 1, p.fi - 1), MOD));
+}
+
+pii compose (pii p1, pii p2) {
+	return pii(mult(p1.fi, p2.fi, MOD), add(mult(p1.fi, p2.se, MOD), p1.se, MOD));
+}
+
+int main() {
+	int A, B, X;
+	ll N;
+	scanf("%d %d %lld %d", &A, &B, &N, &X);
+	pii p = ntimes(pii(A, B), pii(N % MOD, N % (MOD - 1)));
+	printf("%d\n", add(mult(p.fi, X, MOD), p.se, MOD));
+}

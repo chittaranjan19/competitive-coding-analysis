@@ -1,0 +1,96 @@
+#include<bits/stdc++.h>
+#define MAXN 1000009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int dp[MAXN],s[MAXN<<2],cp[MAXN],cnt[MAXN],ans[MAXN],boz[MAXN],ind[MAXN],arr[MAXN],lis[MAXN];
+vector<PII>adj[MAXN];
+int tap(int l,int r,int nd,int x,int y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return s[nd];
+	int mid=(x+y)>>1;	
+	int i1=tap(l,r,nd<<1,x,mid);
+	int i2=tap(l,r,nd<<1|1,mid+1,y);
+	return max(i1,i2);		
+	
+}
+map<int,int>pm;
+void upd(int p,int v,int nd,int x,int y){
+	if(x==y){
+		umax(s[nd],v);
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,v,nd<<1,x,mid);
+	else
+		upd(p,v,nd<<1|1,mid+1,y);
+	s[nd]=max(s[nd<<1],s[nd<<1|1]);		
+}
+int main(){
+	int n,m,c=0;
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;i++){
+		scanf("%d",&arr[i]);
+		pm[arr[i]]=1;
+	}
+	for(int i=1;i<=m;i++){
+		int x,y;
+		scanf("%d%d",&x,&y);
+		pm[y]=1;ind[i]=x;
+		adj[x].pb(mp(y,i));
+	}
+	tr(it,pm)
+		it->ss=++c;	
+	for(int i=1;i<=n;i++){
+		arr[i]=pm[arr[i]];
+		for(int j=0;j<adj[i].size();j++)
+			adj[i][j].ff=pm[adj[i][j].ff];
+	}
+	int mx=0;
+	for(int i=1;i<=n;i++){
+		for(int j=0;j<adj[i].size();j++)
+			ans[adj[i][j].ss]=tap(1,adj[i][j].ff-1,1,1,c);
+		dp[i]=tap(1,arr[i]-1,1,1,c)+1;
+		upd(arr[i],dp[i],1,1,c);
+		umax(mx,dp[i]); 
+	}
+	memset(s,0,sizeof(s));
+	cnt[mx+1]=imx;
+	for(int i=n;i>=1;i--){
+		for(int j=0;j<adj[i].size();j++)
+			ans[adj[i][j].ss]+=tap(adj[i][j].ff+1,c,1,1,c);
+		cp[i]=tap(arr[i]+1,c,1,1,c)+1;	
+		upd(arr[i],cp[i],1,1,c);
+		if(arr[i]<cnt[dp[i]+1]){
+			boz[dp[i]]++;
+			lis[i]=1;
+			umax(cnt[dp[i]],arr[i]);
+		}
+	}
+	for(int i=1;i<=m;i++){
+		if(boz[dp[ind[i]]]==1 and lis[ind[i]]==1)
+			printf("%d\n",max(ans[i]+1,mx-1));
+		else
+			printf("%d\n",max(ans[i]+1,mx));		
+	}
+	return 0;
+}
+

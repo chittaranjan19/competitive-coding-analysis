@@ -1,0 +1,117 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 400005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, m, num[mn], low[mn], rig = 0;
+int numT = 0, belong[mn], st[mn], r = 0, out[mn];
+bool vis[mn];
+vector<int> tplt[mn];
+vector< pair<int, int> > g[mn];
+pair<int, int> edge[mn];
+
+void setup()
+{
+    cin >> n >> m;
+    int u, v;
+    FOR(i, 1, m)
+    {
+        cin >> u >> v;
+        g[u].pb(mp(v, i));
+        g[v].pb(mp(u, i));
+    }
+}
+
+void dfs(int u)
+{
+    num[u] = low[u] = ++ rig;
+    st[++ r] = u;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].F;
+        int id = g[u][i].S;
+        if (vis[id])
+            continue;
+        vis[id] = true;
+        //cout << "check " << u << ' ' << v << '\n';
+        edge[g[u][i].S] = mp(u, v);
+        if (num[v])
+            low[u] = min(low[u], num[v]);
+        else
+        {
+            dfs(v);
+            low[u] = min(low[u], low[v]);
+        }
+    }
+    if (num[u] == low[u])
+    {
+        out[++ numT] = 0;
+        while(true)
+        {
+            int v = st[r --];
+            belong[v] = numT;
+            tplt[numT].pb(v);
+            if (v == u)
+                break;
+        }
+    }
+}
+
+void genOut()
+{
+    FOR(u, 1, n)
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].F;
+        int id = g[u][i].S;
+        if (belong[u] != belong[v])
+            out[belong[edge[id].F]] ++;
+    }
+}
+
+void xuly()
+{
+    dfs(1);
+    genOut();
+    int lowest = tplt[belong[1]].size();
+    int id = 1;
+    FOR(i, 1, numT)
+    if (out[i] == 0)
+    {
+        if (int(tplt[i].size()) < lowest)
+        {
+            lowest = tplt[i].size();
+            id = tplt[i][0];
+        }
+        tplt[i].clear();
+    }
+    //cout << id << '\n';
+    memset(num, 0, sizeof(int) * (n + 1));
+    memset(vis, 0, sizeof(bool) * (m + 1));
+    rig = r = numT = 0;
+    dfs(id);
+    genOut();
+    lowest = tplt[belong[id]].size();
+    FOR(i, 1, numT)
+    if (out[i] == 0)
+        lowest = min(lowest, int(tplt[i].size()));
+    cout << lowest << '\n';
+    FOR(i, 1, m)
+        cout << edge[i].F << ' ' << edge[i].S << '\n';
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

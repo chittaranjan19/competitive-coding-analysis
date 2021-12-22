@@ -1,0 +1,166 @@
+#include <iostream>
+#include <cstring>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int dp[101][50000];
+int dp2[101][50000];
+int earliest_end[101][50000];
+int earliest_start[101][50000];
+
+int next[50000];
+int prev[26];
+
+int min_q[5000];
+int min_id[5000];
+
+int main() {
+	string s; cin >> s;
+	int n = s.length();
+
+	// poor man's square root
+	int sqn = 2;
+	while (sqn*sqn < n) sqn++;
+
+	// what is the next occurrence of same character?
+	memset(prev, -1, sizeof prev);
+	memset(next, -1, sizeof next);
+	for (int i = 0; i < n; i++) {
+		int c = (int)(s[i] - 'a');
+		if (prev[c] != -1) {
+			next[prev[c]] = i;
+		}
+		prev[c] = i;
+	}
+
+	//cerr << s << endl;
+	//for (int i = 0; i < n; i++) cerr << next[i] << ' '; cerr << endl;
+
+	// let's dp!
+	memset(dp, -1, sizeof dp);
+	memset(dp2, -1, sizeof dp2);
+	memset(earliest_end, -1, sizeof earliest_end);
+	memset(earliest_start, -1, sizeof earliest_start);
+	for (int i = 0; i < n; i++) {
+		earliest_end[1][i] = i;
+		earliest_start[1][i] = i;
+	}
+	for (int i = 0; i+1 < n; i++) {
+		if (next[i] != -1) {
+			earliest_end[2][i] = next[i];
+			earliest_start[2][i] = i;
+		}
+	}
+	for (int k = 2; k <= 100; k++) {
+		memset(min_q, -1, sizeof min_q);
+		memset(min_id, -1, sizeof min_id);
+		for (int i = 0; i < n; i++) {
+			int ii = next[i];
+			if (k == 2 && ii != -1) {
+				dp2[k][i] = ii;
+				// update square-root decomposition
+				int iii = i / sqn;
+				if (min_q[iii] == -1 || ii < min_q[iii]) {
+					min_q[iii] = ii;
+					min_id[iii] = i;
+				}
+				continue;
+			}
+			int start = earliest_start[k-2][i+1];
+			int end = earliest_end[k-2][i+1];
+			if (start == -1) continue;
+			while (ii != -1) {
+				if (ii > end) {
+					dp[k][i] = start;
+					dp2[k][i] = ii;
+
+					// update square-root decomposition
+					int iii = i / sqn;
+					if (min_q[iii] == -1 || ii < min_q[iii]) {
+						min_q[iii] = ii;
+						min_id[iii] = i;
+					}
+					break;
+				}
+				ii = next[ii];
+			}
+		}
+		for (int i = 0; i < n; i++) {
+			int ii = i/sqn;
+			int start = -1, end = -1;
+			for (int j = i; j < (ii+1)*sqn && j < n; j++) {
+				if (dp2[k][j] != -1 && (end == -1 || dp2[k][j] < end)) {
+					end = dp2[k][j];
+					start = j;
+				}
+			}
+			for (int j = ii+1; sqn*j < n; j++) {
+				if (min_q[j] != -1 && (end == -1 || min_q[j] < end)) {
+					end = min_q[j];
+					start = min_id[j];
+				}
+			}
+			earliest_start[k][i] = start;
+			earliest_end[k][i] = end;
+		}
+	}
+	/*
+	for (int k = 1; k <= n; k++) {
+		for (int i = 0; i < n; i++) cerr << dp[k][i] << ' '; cerr << endl;
+	}
+	cerr << endl;
+	for (int k = 1; k <= n; k++) {
+		for (int i = 0; i < n; i++) 
+			cerr << earliest_start[k][i] << ',' << earliest_end[k][i] << ' '; 
+		cerr << endl;
+	}
+	cerr << endl;
+	*/
+
+	// print out the longest palindrome <= 100 length
+	bool done = false;
+	for (int k = max(100, n); k >= 3 && !done; k--) {
+		for (int i = 0; i < n && !done; i++) {
+			if (dp[k][i] != -1) {
+				done = true;
+				vector<char> stuff;
+				int ii = i;
+				int j = k;
+				for (j = k; j > 1; j -= 2) {
+					cout << s[ii];
+					stuff.push_back(s[ii]);
+					ii = dp[j][ii];
+				}
+				if (j == 1) {
+					cout << s[ii];
+				}
+				while (!stuff.empty()) {
+					cout << stuff.back();
+					stuff.pop_back();
+				}
+				cout << endl;
+			}
+		}
+	}
+	if (!done) {
+		// k == 2
+		int best = -1;
+		int bestlen = -1;
+		for (int i = 0; i < n; i++) {
+			if (next[i] != -1) {
+				if (bestlen == -1 || next[i] - i < bestlen) {
+					bestlen = next[i] - i;
+					best = i;
+				}
+			}
+		}
+		if (best != -1) {
+			cout << s[best] << s[best] << endl;
+		} else {
+			// k == 1
+			cout << s[0] << endl;
+		}
+	}
+}

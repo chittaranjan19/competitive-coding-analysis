@@ -1,0 +1,108 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+
+using namespace std;
+
+const long long inf = (long long)1e18;
+const long long MOD = (long long)1e9 + 7;
+const long long p = 239;
+const long long MAX_N = 1000;
+const long double pi = 3.1415926535897932384626;
+const long double eps = 1e-6;
+
+int main()
+{
+    //ifstream ifs("input.txt");
+    //ofstream ofs("output.txt");
+    //freopen("candies.in", "r", stdin);
+    //freopen("candies.out", "w", stdout);
+    //ios_base::sync_with_stdio(0);
+    //cin.tie(0);
+    long long n;
+    scanf("%I64d", &n);
+    long long a[n][n], dist[n][n];
+    for (long long i = 0; i < n; i++)
+        for (long long j = 0; j < n; j++)
+            scanf("%I64d", &a[i][j]);
+    for (long long i = 0; i < n; i++)
+        for (long long j = 0; j < n; j++)
+            dist[i][j] = inf;
+    for (long long i = 0; i < n; i++)
+        dist[i][i] = 0;
+    long long b[n], ans[n];
+    bool used[n];
+    for (long long i = 0; i < n; i++)
+        used[i] = false;
+    for (long long i = 0; i < n; i++)
+        scanf("%I64d", &b[i]);
+    for (long long i = n - 1; i >= 0; i--)
+    {
+        used[b[i] - 1] = true;
+        for (long long j = 0; j < n; j++)
+        {
+            if (used[j])
+            {
+                dist[b[i] - 1][j] = a[b[i] - 1][j];
+                dist[j][b[i] - 1] = a[j][b[i] - 1];
+            }
+        }
+        long long d[n], d1[n];
+        bool u[n];
+        for (long long j = 0; j < n; j++)
+            u[j] = false;
+        for (long long j = 0; j < n; j++)
+            d[j] = inf;
+        d[b[i] - 1] = 0;
+        for (long long j = 0; j < n - i; j++)
+        {
+            long long mi = -1;
+            for (long long k = 0; k < n; k++)
+                if (used[k] && !u[k] && (mi == -1 || d[k] < d[mi]))
+                    mi = k;
+            u[mi] = true;
+            for (long long k = 0; k < n; k++)
+                if (used[k])
+                    d[k] = min(d[k], d[mi] + a[mi][k]);
+        }
+        for (long long j = 0; j < n; j++)
+            u[j] = false;
+        for (long long j = 0; j < n; j++)
+            d1[j] = inf;
+        d1[b[i] - 1] = 0;
+        for (long long j = 0; j < n - i; j++)
+        {
+            long long mi = -1;
+            for (long long k = 0; k < n; k++)
+                if (used[k] && !u[k] && (mi == -1 || d1[k] < d1[mi]))
+                    mi = k;
+            u[mi] = true;
+            for (long long k = 0; k < n; k++)
+                if (used[k])
+                    d1[k] = min(d1[k], d1[mi] + a[k][mi]);
+        }
+        for (long long j = 0; j < n; j++)
+            for (long long k = 0; k < n; k++)
+                if (used[j] && used[k])
+                    dist[j][k] = min(dist[j][k], d1[j] + d[k]);
+        ans[i] = 0;
+        for (long long j = 0; j < n; j++)
+            for (long long k = 0; k < n; k++)
+                if (dist[j][k] < inf)
+                    ans[i] += dist[j][k];
+    }
+    for (long long i = 0; i < n; i++)
+        printf("%I64d ", ans[i]);
+    return 0;
+}

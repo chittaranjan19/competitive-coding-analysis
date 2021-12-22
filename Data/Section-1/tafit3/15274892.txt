@@ -1,0 +1,111 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class ProblemC2 {
+    BufferedReader rd;
+
+    ProblemC2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        char[] a = rd.readLine().toCharArray();
+        char[] e = rd.readLine().toCharArray();
+        int n = a.length;
+        char[] rev = new char[n];
+        for(int i=0;i<n;i++) {
+            rev[i] = a[n-i-1];
+        }
+        Node root = new Node();
+        for(int i=0;i<n;i++) {
+            Node cur = root;
+            for(int j=i;j<n;j++) {
+                char c = a[j];
+                Node next = cur.get(c);
+                if(next.a == -1) {
+                    next.a = i+1;
+                    next.b = j+1;
+                }
+                cur = next;
+            }
+        }
+
+        for(int i=0;i<n;i++) {
+            Node cur = root;
+            for(int j=i;j<n;j++) {
+                char c = rev[j];
+                Node next = cur.get(c);
+                if(next.a == -1) {
+                    next.a = n-i;
+                    next.b = n-j;
+                }
+                cur = next;
+            }
+        }
+
+        List<Integer> res = new ArrayList<>();
+        Node cur = root;
+        boolean ok = true;
+        for(char c: e) {
+            if(cur.nodes.get(c) == null) {
+                if(cur.a == -1) {
+                    ok = false;
+                    break;
+                } else {
+                    res.add(cur.a);
+                    res.add(cur.b);
+                    cur = root;
+                }
+                if(cur.nodes.get(c) == null) {
+                    ok = false;
+                    break;
+                }
+            }
+            if(cur.nodes.get(c) != null) {
+                cur = cur.get(c);
+            }
+        }
+        if(cur.a != -1) {
+            res.add(cur.a);
+            res.add(cur.b);
+        }
+        if(!ok || res.isEmpty()) {
+            out("-1");
+        } else {
+            out(res.size());
+            for(int i=0;i<res.size();i+=2) {
+                out(res.get(i)+" "+res.get(i+1));
+            }
+        }
+    }
+
+    private class Node {
+        Map<Character, Node> nodes = new HashMap<>(2);
+        int a = -1;
+        int b;
+
+        private Node get(char c) {
+            Node node = nodes.get(c);
+            if(node == null) {
+                node = new Node();
+                nodes.put(c, node);
+            }
+            return node;
+        }
+    }
+
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC2();
+    }
+}

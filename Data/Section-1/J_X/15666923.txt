@@ -1,0 +1,86 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+typedef long long ll;
+
+const int MAXN = 200000 + 5;
+
+int degree[MAXN];
+struct edge
+{
+    int to, next;
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[MAXN << 1];
+int head[MAXN], tot, cnt;
+
+void init()
+{
+    memset(degree, 0, sizeof(degree));
+    memset(head, -1, sizeof(head));
+    tot = cnt = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u]);
+    head[u] = tot++;
+    G[tot] = edge(u, head[v]);
+    head[v] = tot++;
+}
+
+int dfs(int u, int fa)
+{
+    int ret = degree[u] == 1 ? u : -1;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(v == fa) continue;
+        int tmp = dfs(v, u);
+        if(tmp > 0)
+        {
+            if(ret == -1)
+            {
+                ret = tmp;
+            }
+            else if(ret != -2)
+            {
+                ++cnt;
+                ret = -2;
+            }
+            else
+            {
+                ++cnt;
+            }
+        }
+    }
+    return ret == -1 ? u : ret;
+}
+
+int main()
+{
+    int n, x, y;
+    while(~scanf("%d%d%d", &n, &x, &y))
+    {
+        init();
+        for(int i = 1; i < n; ++i)
+        {
+            int u, v;
+            scanf("%d%d", &u, &v);
+            ++degree[u], ++degree[v];
+            addedge(u, v);
+        }
+        int _max = 0;
+        for(int i = 1; i <= n; ++i)
+        {
+            _max = max(_max, degree[i]);
+        }
+        ll ans = _max != n - 1 ? 1LL * y * (n - 1) : 1LL * y * (n - 2) + x;
+        if(dfs(1, 0) > 0) ++cnt;
+        ans = min(ans, 1LL * (cnt - 1) * y + 1LL * (n - cnt) * x);
+        printf("%I64d\n", ans);
+    }
+    return 0;
+}

@@ -1,0 +1,105 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <time.h>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <algorithm>
+using namespace std;
+
+#define eps 1e-8
+
+char a[100005];
+int b[100005], maxv = -1, bestL, bestR;
+vector <pair <int, int> > v;
+
+int main()
+{
+    int i, j, k;
+    gets(a);
+
+    b[0] = (a[0] == '[');
+    for(i = 1; a[i]; i++)
+    {
+        b[i] += b[i-1];
+        b[i] += (a[i] == '[');
+    }
+    stack <pair <char, int> > st;
+    st.push(make_pair(a[0], 0));
+    for(i = 1; a[i]; i++)
+    {
+        if(a[i] == '(' || a[i] == '[')
+            st.push(make_pair(a[i], i));
+        else
+            if(a[i] == ')' && !st.empty() && st.top().first == '(')
+            {
+                if(v.size() > 0 && v.back().first > st.top().second && v.back().second < i)
+                    v.back() = make_pair(st.top().second, i);
+                else
+                    v.push_back(make_pair(st.top().second, i));
+                int tmp = b[i];
+                if(st.top().second > 0)
+                    tmp -= b[st.top().second-1];
+                if(maxv < tmp)
+                {
+                    maxv = tmp;
+                    bestL = st.top().second;
+                    bestR = i;
+                }
+                st.pop();
+            }
+            else
+                if(a[i] == ']' && !st.empty() && st.top().first == '[')
+                {
+                    if(v.size() > 0 && v.back().first > st.top().second && v.back().second < i)
+                        v.back() = make_pair(st.top().second, i);
+                    else
+                        v.push_back(make_pair(st.top().second, i));
+                    int tmp = b[i];
+                    if(st.top().second > 0)
+                        tmp -= b[st.top().second-1];
+                    if(maxv < tmp)
+                    {
+                        maxv = tmp;
+                        bestL = st.top().second;
+                        bestR = i;
+                    }
+                    st.pop();
+                }
+                else
+                    st.push(make_pair(a[i], i));
+    }
+
+    sort(v.begin(), v.end());
+    for(i = 1; i < v.size(); i++)
+    {
+        if(v[i-1].second + 1 == v[i].first)
+            v[i] = make_pair(v[i-1].first, v[i].second);
+        int tmp = b[v[i].second];
+        if(v[i].first > 0)
+            tmp -= b[v[i].first-1];
+        if(maxv < tmp)
+        {
+            maxv = tmp;
+            bestL = v[i].first;
+            bestR = v[i].second;
+        }
+    }
+
+    if(maxv == -1)
+        puts("0");
+    else
+    {
+        printf("%d\n", maxv);
+        a[bestR+1] = 0;
+        puts(a + bestL);
+    }
+    return 0;
+}

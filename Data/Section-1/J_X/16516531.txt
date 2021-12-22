@@ -1,0 +1,78 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 2e5 + 5;
+
+int a[maxn], que[maxn];
+ll sum[maxn];
+
+ll getx(int i)
+{
+    return i;
+}
+
+ll gety(int i, int k)
+{
+    return -sum[i - k];
+}
+
+ll getdp(int i, int j, int k)
+{
+    if(k) return 1LL * a[i] * (j - i) + sum[i] - sum[j];
+    return 1LL * a[i] * (j - i) + sum[i - 1] - sum[j - 1];
+}
+
+bool check(int x, int k, int g)
+{
+    return gety(que[x + 1], g) - gety(que[x], g) <= k * (getx(que[x + 1]) - getx(que[x]));
+}
+
+int main()
+{
+    int n;
+    ll base = 0;
+    scanf("%d", &n);
+    for(int i = 1; i <= n; ++i)
+    {
+        scanf("%d", &a[i]);
+        sum[i] = sum[i - 1] + a[i];
+        base += 1LL * a[i] * i;
+    }
+    ll ans = base;
+    int head = 0, tail = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        while(tail - head > 1 && (gety(que[tail - 1], 1) - gety(que[tail - 2], 1)) * (getx(i) - getx(que[tail - 1]))
+              <= (gety(i, 1) - gety(que[tail - 1], 1)) * (getx(que[tail - 1]) - getx(que[tail - 2]))) --tail;
+        que[tail++] = i;
+        int l = head, r = tail - 1;
+        while(r > l)
+        {
+            int mid = (l + r) >> 1;
+            check(mid, -a[i], 1) ? r = mid : l = mid + 1;
+        }
+        ans = max(ans, base + getdp(i, que[l], 0));
+    }
+    head = tail = 0;
+    for(int i = n; i; --i)
+    {
+        while(tail - head > 1 && (gety(que[tail - 1], 0) - gety(que[tail - 2], 0)) * (getx(i) - getx(que[tail - 1]))
+              >= (gety(i, 0) - gety(que[tail - 1], 0)) * (getx(que[tail - 1]) - getx(que[tail - 2]))) --tail;
+        que[tail++] = i;
+        int l = head, r = tail - 1;
+        while(r > l)
+        {
+            int mid = (l + r) >> 1;
+            check(mid, -a[i], 0) ? r = mid : l = mid + 1;
+        }
+        ans = max(ans, base + getdp(i, que[l], 1));
+    }
+    printf("%I64d\n", ans);
+    return 0;
+}

@@ -1,0 +1,66 @@
+#include <stdio.h>
+#include <vector>
+#include <string.h>
+using namespace std;
+typedef unsigned long long ull;
+
+struct Pair {
+	int to;
+	ull length;
+	Pair(int to, ull length) :to(to), length(length) {}
+};
+vector<Pair*> roads[5002];
+int n, m;
+ull T;
+int memo[5002];
+
+int dfs(int node, ull current_time) {
+	if (memo[node] != -1) {
+		return memo[node];
+	}
+	bool has_new = true;
+	for (unsigned int i = 0; i < roads[node].size(); i++) {
+		Pair* current_road = roads[node][i];
+		ull new_time = current_road->length + current_time;
+		if (new_time <= T) {
+			int nodes_count = dfs(current_road->to, new_time);
+			if (nodes_count != 0 && nodes_count > memo[node] - 1) {
+				has_new = true;
+				memo[node] = nodes_count + 1;
+			}
+		}
+	}
+	if (!has_new) {
+		memo[node] = 0;
+	}
+	return memo[node];
+}
+
+void func() {
+	dfs(1, 0);
+	printf("%d\n", memo[1]);
+	for (int i = 1; i != n;) {
+		printf("%d ", i);
+		for (int j = 0; j < roads[i].size(); j++) {
+			if (memo[roads[i][j]->to] == memo[i] - 1) {
+				i = roads[i][j]->to;
+				break;
+			}
+		}
+	}
+	printf("%d", n);
+}
+
+int main() {
+	scanf("%d %d %I64d", &n, &m, &T);
+	memset(memo, -1, (n + 1)* sizeof(int));
+	memo[n] = 1;
+	int from, to;
+	ull time;
+	for (int i = 0; i < m; i++) {
+		scanf("%d %d %I64d", &from, &to, &time);
+		roads[from].push_back(new Pair(to, time));
+	}
+	func();
+	return 0;
+}

@@ -1,0 +1,39 @@
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+int main() {
+    const long long maxint = 1000000000000000000;
+    int n;
+    cin >> n;
+    long long cost[n];
+    long long dp[n][2];
+    for(int i = 0; i < n; i++) {
+        cin >> cost[i];
+    }
+    string s1,s2,s3,s4;
+    dp[0][0] = 0;
+    dp[0][1] = cost[0];
+    cin >> s1;
+    s2 = s1;
+    reverse(s2.begin(),s2.end());
+    for (int i = 1; i < n; i++) {
+        cin >> s3;
+        s4 = s3;
+        reverse(s4.begin(),s4.end());
+        if (dp[i - 1][0] == maxint && dp[i - 1][1] == maxint) {
+            dp[n - 1][0] = maxint;
+            dp[n - 1][1] = maxint;
+            break;
+        }
+        dp[i][0] = (s3 >= s1 && (s3 < s2 || dp[i - 1][0] <= dp[i - 1][1])) ? dp[i - 1][0] :
+                   ((s3 >= s2 && dp[i - 1][1] < maxint) ? dp[i - 1][1] : maxint);
+        dp[i][1] = (s4 >= s1 && (s4 < s2 || dp[i - 1][0] <= dp[i - 1][1])) ? dp[i - 1][0] + cost[i] :
+                   ((s4 >= s2 && dp[i - 1][1] < maxint) ? dp[i - 1][1] + cost[i] : maxint);
+        s1 = s3;
+        s2 = s4;
+    }
+    if (min(dp[n - 1][0], dp[n - 1][1]) == maxint)
+        cout << "-1"; else
+        cout << (min(dp[n - 1][0], dp[n - 1][1]));
+}

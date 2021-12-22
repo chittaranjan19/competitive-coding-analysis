@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <math.h>
+#include <algorithm>
+#include <vector>
+using namespace std;
+typedef long long ll;
+
+ll exgcd(ll a, ll b, ll&x, ll&y){
+if(!b) return x=1,y=0,a;
+int d=exgcd(b,a%b,x,y),t=x;
+return x=y,y=t-a/b*y,d;
+}
+
+bool solve(vector<ll>&aa,vector<ll>&rr,ll&mm,ll&kk ){
+    ll n,flag,k,m,a,r,d,x,y;
+    n=aa.size();
+    flag=k=1,m=0;
+    while(n--){
+        a=aa[n];
+        r=rr[n];
+        if(flag){
+            d=exgcd(k,a,x,y);
+            if((r-m)%d){flag=0; continue;}
+            x=(x*(r-m)/d+a/d)%(a/d),y=k/d*a,m=((x*k+m)%y)%y;
+            if(m<0)m+=y;
+            k=y;
+        }
+    }
+    if(!flag)return false;
+    mm=m;kk=k;
+    return true;
+}
+
+int main(){
+    int n,m,k;
+    scanf("%d%d%d",&n,&m,&k);
+    for(;k--;){
+        ll x,y;
+        ll res=1LL<<60;
+        ll mm,kk;
+        scanf("%I64d%I64d",&x,&y);
+        
+        vector<ll>aa;
+        vector<ll>rr;
+        aa.push_back(2*n);
+        aa.push_back(2*m);
+        rr.push_back(x);
+        rr.push_back(y);
+        if(solve(aa,rr,mm,kk))res=min(res,mm);
+        aa.clear();rr.clear();
+        
+        
+        aa.push_back(2*n);
+        aa.push_back(2*m);
+        rr.push_back(2*n-x);
+        rr.push_back(y);
+        if(solve(aa,rr,mm,kk))res=min(res,mm);
+        aa.clear();rr.clear();
+        
+        aa.push_back(2*n);
+        aa.push_back(2*m);
+        rr.push_back(2*n-x);
+        rr.push_back(2*m-y);
+        if(solve(aa,rr,mm,kk))res=min(res,mm);
+        aa.clear();rr.clear();
+        
+        aa.push_back(2*n);
+        aa.push_back(2*m);
+        rr.push_back(x);
+        rr.push_back(2*m-y);
+        if(solve(aa,rr,mm,kk))res=min(res,mm);
+        aa.clear();rr.clear();
+        
+        printf("%I64d\n",res==(1LL<<60)?-1:res);
+    }
+    return 0;
+}

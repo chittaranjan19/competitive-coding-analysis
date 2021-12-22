@@ -1,0 +1,75 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+pair<int, int> comp[200005];
+int match[200005], adap[200005];
+set<pair<pair<int, int>, int> > s;
+
+int main()
+{
+  int n, m, x;
+  cin >> n >> m;
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d", &comp[i].f);
+    comp[i].s = i;
+  }
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d", &x);
+    s.insert(mp(mp(-x, 0), i));
+  }
+  int cnt = 0, cost = 0;
+  sort(comp, comp + n, greater<pair<int, int> >());
+  for(int i=0;i<n && !s.empty();i++)
+  {
+    while(1)
+    {
+      auto it = s.begin();
+      pair<pair<int, int>, int> tmp = *it;
+      if(-tmp.f.f <= comp[i].f) break;
+      s.erase(it);
+      tmp.f.f = (1 - tmp.f.f) / 2;
+      tmp.f.f *= -1;
+      tmp.f.s++;
+      s.insert(tmp);
+    }
+    auto it = s.begin();
+    pair<pair<int, int>, int> tmp = *it;
+    if(-tmp.f.f != comp[i].f) continue;
+    s.erase(it);
+    cost += tmp.f.s;
+    cnt++;
+    match[comp[i].s] = tmp.s + 1;
+    adap[tmp.s] = tmp.f.s;
+  }
+  cout << cnt << " " << cost << "\n";
+  for(int i=0;i<m;i++)
+  {
+    if(i != 0) printf(" ");
+    printf("%d", adap[i]);
+  }
+  cout << "\n";
+  for(int i=0;i<n;i++)
+  {
+    if(i != 0) printf(" ");
+    printf("%d", match[i]);
+  }
+  return 0;
+}

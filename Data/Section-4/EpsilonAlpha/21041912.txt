@@ -1,0 +1,234 @@
+import java.io.*;
+import java.util.*;
+import java.math.*;
+
+/*
+ * Created by Epsilon Alpha on 30-Sep-16 at 8:52 PM.
+ */
+
+public final class Journey
+{
+    static OutputWriter Writer = new OutputWriter(System.out);
+    public static void main(String[] args) throws Exception
+    {
+        Parser Reader = new Parser(System.in);
+        int n = Reader.nextInt();
+        int m = Reader.nextInt();
+        int T = Reader.nextInt();
+
+        Graph G = new Graph(n,m,T);
+        for(int i=0;i<m;i++)
+        {
+            int u = Reader.nextInt();
+            int v = Reader.nextInt();
+            int t = Reader.nextInt();
+            G.addEdge(u,v,t);
+        }
+
+        G.DFS(1,0,1);
+        G.getMax();
+        G.getPath();
+
+        Writer.close();
+    }
+
+    private static class Graph
+    {
+        private int n,m,maxTime;
+        private int[][] matrix;
+        private boolean[] visited;
+        private int max;
+        public List<Integer> path;
+        private List<Integer> temp;
+
+        Graph(int n, int m, int T)
+        {
+            this.n = n;
+            this.m = m;
+            this.maxTime = T;
+
+            matrix = new int[n+1][n+1];
+            visited = new boolean[m+1];
+            max = 0;
+            path = new ArrayList<>();
+            temp = new ArrayList<>();
+            temp.add(1);
+        }
+
+        void addEdge(int u, int v, int t)
+        {
+            matrix[u][v] = t;
+        }
+
+        void getMax()
+        {
+            Writer.println(max);
+        }
+
+        void getPath()
+        {
+            for(int p:path)
+                Writer.print(p + " ");
+        }
+
+        void DFS(int current, int timeTaken, int visited)
+        {
+            if(timeTaken>maxTime)
+            {
+                temp.remove(temp.size()-1);
+                return;
+            }
+
+            if(current==n)
+            {
+                if(visited > max)
+                {
+                    max = visited;
+                    path.clear();
+                    for(int element: temp)
+                        path.add(element);
+                    temp.clear();
+                    temp.add(1);
+                }
+            }
+
+            for(int i=1;i<=n;i++)
+            {
+                if(matrix[current][i]>0)
+                {
+                    temp.add(i);
+                    DFS(i,timeTaken+matrix[current][i],visited+1);
+                }
+            }
+            if(temp.size()>0)
+                temp.remove(temp.size()-1);
+        }
+    }
+
+    private static class Parser
+    {
+        final private int BUFFER_SIZE = 1 << 16;
+
+        private DataInputStream din;
+        private byte[] buffer;
+        private int bufferPointer, bytesRead;
+
+        public Parser(InputStream in)
+        {
+            din = new DataInputStream(in);
+            buffer = new byte[BUFFER_SIZE];
+            bufferPointer = bytesRead = 0;
+        }
+
+        public int nextInt() throws Exception
+        {
+            int ret = 0;
+            byte c = read();
+            while (c <= ' ') c = read();
+            boolean neg = c == '-';
+            if (neg) c = read();
+            do
+            {
+                ret = ret * 10 + c - '0';
+                c = read();
+            } while (c > ' ');
+            if (neg) return -ret;
+            return ret;
+        }
+
+        public long nextLong() throws Exception
+        {
+            long ret = 0;
+            byte c = read();
+            while (c <= ' ') c = read();
+            boolean neg = c == '-';
+            if (neg) c = read();
+            do
+            {
+                ret = ret * 10 + c - '0';
+                c = read();
+            } while (c > ' ');
+            if (neg) return -ret;
+            return ret;
+        }
+
+        public String next() throws Exception
+        {
+            StringBuffer ret = new StringBuffer();
+            byte c = read();
+            while (c <= ' ') c = read();
+            do
+            {
+                ret = ret.append((char) c);
+                c = read();
+            } while (c > ' ');
+            return ret.toString();
+        }
+
+        public String nextLine() throws Exception
+        {
+            StringBuffer ret = new StringBuffer();
+            byte c = read();
+            while (c <= ' ') c = read();
+            do
+            {
+                ret = ret.append((char) c);
+                c = read();
+            } while (c != '\n');
+            return ret.toString();
+        }
+
+        private void fillBuffer() throws Exception
+        {
+            bytesRead = din.read(buffer, bufferPointer = 0, BUFFER_SIZE);
+            if (bytesRead == -1) buffer[0] = -1;
+        }
+
+        private byte read() throws Exception
+        {
+            if (bufferPointer == bytesRead) fillBuffer();
+            return buffer[bufferPointer++];
+        }
+    }
+
+    private static class OutputWriter
+    {
+        private final PrintWriter writer;
+
+        public OutputWriter(OutputStream outputStream)
+        {
+            writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(outputStream)), true);
+        }
+
+        public OutputWriter(Writer writer)
+        {
+            this.writer = new PrintWriter(writer);
+        }
+
+        public void print(Object... objects)
+        {
+            for (int i = 0; i < objects.length; i++)
+            {
+                if (i != 0)
+                    writer.print(' ');
+                writer.print(objects[i]);
+            }
+        }
+
+        public void println(Object... objects)
+        {
+            print(objects);
+            writer.println();
+        }
+
+        public void close()
+        {
+            writer.close();
+        }
+
+        public void flush()
+        {
+            writer.flush();
+        }
+    }
+}

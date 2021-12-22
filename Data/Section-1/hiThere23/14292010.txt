@@ -1,0 +1,87 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 2000000000
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+struct interval
+{
+    int tree[mn << 2];
+    void update(int l, int r, int id, int x, int val)
+    {
+        if (l > x || r < x)
+            return;
+        if (l == r)
+        {
+            tree[id] = max(tree[id], val);
+            return;
+        }
+        int g = ((l + r) >> 1);
+        update(l, g, id << 1, x, val);
+        update(g + 1, r, (id << 1) + 1, x, val);
+        tree[id] = max(tree[id << 1], tree[(id << 1) + 1]);
+    }
+    int getMax(int l, int r, int id, int x, int y)
+    {
+        if (l > y || r < x)
+            return -1;
+        if (x <= l && r <= y)
+            return tree[id];
+        int g = ((l + r) >> 1);
+        int a = getMax(l, g, id << 1, x, y);
+        int b = getMax(g + 1, r, (id << 1) + 1, x, y);
+        return max(a, b);
+    }
+} t;
+int n;
+pair<int, int> ans[mn];
+set< pair<int, int> > s;
+set< pair<int, int> > :: iterator it;
+
+void setup()
+{
+    int x, y;
+    cin >> n;
+    FOR(i, 1, n)
+    {
+        cin >> x >> y;
+        s.insert(mp(y - x, x));
+    }
+    memset(t.tree, -1, sizeof(t.tree));
+}
+
+void xuly()
+{
+    int w;
+    FOR(i, 1, n)
+    {
+        cin >> w;
+        it = s.lower_bound(mp(w, -1));
+        pair<int, int> z = *it;
+        if (z.F != w || t.getMax(0, 100000, 1, z.S, 100000) >= z.S + w)
+        {
+            cout << "NO";
+            return;
+        }
+        ans[i] = z;
+        t.update(0, 100000, 1, z.S, z.F + z.S);
+        s.erase(it);
+    }
+    cout << "YES\n";
+    FOR(i, 1, n)
+        cout << ans[i].S << ' ' << ans[i].F + ans[i].S << '\n';
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

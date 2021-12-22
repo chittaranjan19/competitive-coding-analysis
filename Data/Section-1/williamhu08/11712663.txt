@@ -1,0 +1,93 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 55;
+
+int N;
+char grid[MAXN][MAXN], ans[2 * MAXN][2 * MAXN];
+bool ok[MAXN][MAXN];
+
+bool bounded (int x, int y) {
+	return 0 <= x && x < N && 0 <= y && y < N;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 0; i < N; i++) {
+		cin >> grid[i];
+	}
+	//try all possibilities
+	//see if it only attack that
+	vector<pii> v;
+	for (int i = -(N - 1); i < N; i++) {
+		for (int j = -(N - 1); j < N; j++) {
+			if (i == 0 && j == 0) {
+				continue;
+			}
+			//check if valid.
+			bool good = true;
+			for (int x = 0; x < N; x++) {
+				for (int y = 0; y < N; y++) {
+					if (grid[x][y] == 'o') {
+						if (bounded(x + i, y + j) && grid[x + i][y + j] == '.') {
+							//bad
+							good = false;
+							break;
+						}
+					}
+				}
+				if (!good) {
+					break;
+				}
+			}
+			if (good) {
+				v.push_back(pii(i, j));
+				// cerr << i << ' ' << j << endl;
+				//mark everything as attackedok
+				for (int x = 0; x < N; x++) {
+					for (int y = 0; y < N; y++) {
+						if (grid[x][y] == 'o') {
+							if (bounded(x + i, y + j) && grid[x + i][y + j] != '.') {
+								ok[x + i][y + j] = true;	//this position is ok
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	//check if every ATTACKED spot is ok
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < N; j++) {
+			if (grid[i][j] == 'x' && !ok[i][j]) {
+				cout << "IMPOSSIBLE\n";
+				return 0;
+			}
+		}
+	}
+	//ok that means
+	for (int i = 0; i < 2 * N - 1; i++) {
+		fill_n(ans[i], 2 * N - 1, '.');
+	}
+	//do it
+	ans[N - 1][N - 1] = 'o';
+	for (pii p : v) {
+		ans[N - 1 + p.first][N - 1 + p.second] = 'x';
+	}
+	for (int i = 0; i < 2 * N - 1; i++) {
+		cout << ans[i] << '\n';
+	}
+	//whew. i'm tired.
+}

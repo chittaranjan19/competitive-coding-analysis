@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define mp make_pair
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 5e5 + 10;
+
+int N, A[MAXN];
+int ans[MAXN];
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	//stable iff a <= b <= c or a >= b >= c
+	scanf("%d", &N);
+	//find the largest mountain
+	for (int i = 0; i < N; i++) {
+		scanf("%d", &A[i]);
+	}
+
+	int mtn = 0;
+	int nstep = 0;
+
+	for (int i = 1; i < N; i++) {
+		bool stop = false;
+		if (i != N - 1 && A[i - 1] != A[i] && A[i + 1] != A[i]) {
+			mtn++;
+		} else {
+			stop = true;
+		}
+
+		if (i == N - 1 || stop) {
+			nstep = max(nstep, (mtn + 1) / 2);
+			mtn = 0;
+		}
+	}
+
+	printf("%d\n", nstep);
+
+	copy_n(A, N, ans);
+
+	for (int i = 1; i < N; i++) {
+		bool stop = false;
+		if (i != N - 1 && A[i - 1] != A[i] && A[i + 1] != A[i]) {
+			mtn++;
+		} else {
+			stop = true;
+		}
+		
+		if (i == N - 1 || stop) {
+			//length of mtn??
+			int val = A[i];
+			if (mtn % 2) {
+				//end with same #s
+				//everyting flattens out
+				fill_n(ans + i - mtn, mtn, val);
+			} else {
+				//meet in middle
+				int half = mtn / 2;
+				fill_n(ans + i - half, half, val);
+				fill_n(ans + i - mtn, half, !val);	//argh why not !val !!??
+			}
+			mtn = 0;
+		}
+	}	
+
+	for (int i = 0; i < N; i++) {
+		printf("%d ", ans[i]);
+	}
+	puts("");
+}

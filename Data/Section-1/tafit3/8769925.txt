@@ -1,0 +1,123 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+public class ProblemB2 {
+    BufferedReader rd;
+
+    private ProblemB2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int n = a[0];
+        int m = a[1];
+        int c = pint();
+        Set<String> pts = new HashSet<>();
+        List<int[]> pall = new ArrayList<>();
+        for(int i=0;i<c;i++) {
+            int[] h = intarr();
+            int x = h[0];
+            int y = h[1];
+            int[][] mt = new int[3][3];
+            for(int[] h2: pall) {
+                int u = h2[0];
+                int v = h2[1];
+                if(u != x || v != y) {
+                    int ds2 = d(u,v,x,y);
+                    for(int j=-1;j<=1;j++) {
+                        for(int k=-1;k<=1;k++) {
+                            if(j!=0||k!=0) {
+                                int c1 = x+j;
+                                int c2 = y+k;
+                                if(c1 >= 1 && c1 <= n && c2 >= 1 && c2 <= m) {
+                                    int ds = d(u,v,c1,c2);
+                                    if(ds > ds2) {
+                                        mt[j+1][k+1] = 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            for(int j=0;j<3;j++) {
+                for(int k=0;k<3;k++) {
+                    if(j!=1||k!=1) {
+                        if(mt[j][k] == 0) {
+                            if(pts.add(x+"_"+y)) {
+                                pall.add(new int[] {x,y});
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        int[][] p = new int[pts.size()][];
+        int z = 0;
+        for(int[] yy: pall) {
+            p[z++] = yy;
+        }
+
+        int h = pint();
+        int minDist = 2100000000;
+        int idx = 0;
+        for(int i=0;i<h;i++) {
+            int[] r = intarr();
+            int dist = 0;
+            for(int j=0;j<p.length;j++) {
+                dist = Math.max(dist, d(r,p[j]));
+            }
+            if(dist < minDist) {
+                minDist = dist;
+                idx = i+1;
+            }
+        }
+        out(minDist);
+        out(idx);
+    }
+
+    private int d(int a1, int a2, int b1, int b2) {
+        return Math.abs(a1-b1) + Math.abs(a2-b2);
+    }
+
+    private int d(int[] a, int[] b) {
+        return Math.abs(a[0]-b[0]) + Math.abs(a[1]-b[1]);
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = s.split(" ");
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB2();
+    }
+}

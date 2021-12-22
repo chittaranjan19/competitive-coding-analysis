@@ -1,0 +1,51 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 1e4 + 5;
+
+map<string, bool> mp;
+string s;
+bool ok[maxn];
+bitset<maxn << 1> bs[maxn], p;
+
+int myhash(const string &st)
+{
+    int ret = 0;
+    for(int i = 0; i < st.size(); ++i) ret = ret * 26 + st[i] - 'a';
+    return ret;
+}
+
+int main()
+{
+    cin >> s;
+    ok[s.size()] = true;
+    for(int i = s.size(); i > 4; --i)
+    {
+        if(!ok[i]) continue;
+        for(int j = i - 2; j >= i - 3 && j > 4; --j)
+        {
+            int t = myhash(s.substr(j, i - j));
+            if(!bs[i][t])
+            {
+                mp[s.substr(j, i - j)] = true;
+                if(!ok[j])
+                {
+                    ok[j] = true;
+                    bs[j] = bs[i];
+                    bs[j][t] = 1;
+                }
+                else
+                {
+                    p = bs[i];
+                    p[t] = 1;
+                    p = p & bs[j];
+                    bs[j] &= ~p;
+                }
+            }
+        }
+    }
+    cout << mp.size() << endl;
+    for(map<string, bool>::iterator p = mp.begin(); p != mp.end(); ++p) cout << p->first << endl;
+    return 0;
+}

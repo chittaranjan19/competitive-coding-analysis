@@ -1,0 +1,142 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+int n, s, l, arr[maxn], nxt[maxn], dp[maxn*5], ans[maxn];
+pii st[maxn*5];
+
+void init(int s, int e, int node)
+{
+    if(s==e){
+        st[node].f = st[node].s = arr[s];
+        return;
+    }
+    int mid, lc, rc;
+    mid = (s+e)>>1, lc = 2*node + 1, rc = lc+1;
+    init(s, mid, lc);
+    init(mid+1, e, rc);
+    st[node].f = max(st[lc].f, st[rc].f);
+    st[node].s = min(st[lc].s, st[rc].s);
+}   
+
+pii query(int s, int e, int qs, int qe, int node)
+{
+    if(s>e || s>qe || qs>e)
+        return mp(-2e9, 2e9);
+    if(s>=qs && qe>=e)
+        return st[node];
+    int mid, lc, rc;
+    mid = (s+e)>>1, lc = 2*node + 1, rc = lc+1;
+    pii ret, x, y;
+    x = query(s, mid, qs, qe, lc);
+    y = query(mid+1, e, qs, qe, rc);
+    ret.f = max(x.f, y.f);
+    ret.s = min(x.s, y.s);
+    return ret;
+}
+
+void init1(int s, int e, int node)
+{
+    if(s==e){
+        dp[node] = n+5;
+        return;
+    }
+    int mid, lc, rc;
+    mid = (s+e)>>1, lc = 2*node + 1, rc = lc+1;
+    init1(s, mid, lc);
+    init1(mid+1, e, rc);
+    dp[node] = n+5;
+}   
+
+void update(int s, int e, int q, int node, int val)
+{
+    if(s>e || s>q || q>e)
+        return;
+    if(s==e){
+        dp[node] = min(dp[node], val);
+        return;
+    }
+    int mid, lc, rc;
+    mid = (s+e)>>1, lc = 2*node + 1, rc = lc+1;
+    update(s, mid, q, lc, val);
+    update(mid+1, e, q, rc, val);
+    dp[node] = min(dp[lc], dp[rc]); 
+}
+
+int query1(int s, int e, int qs, int qe, int node)
+{
+    if(s>e || s>qe || qs>e)
+        return (n+5);
+    if(s>=qs && qe>=e)
+        return dp[node];
+    int mid, lc, rc, x, y, ret;
+    mid = (s+e)>>1, lc = 2*node + 1, rc = lc+1;
+    x = query1(s, mid, qs, qe, lc);
+    y = query1(mid+1, e, qs, qe, rc);
+    ret = min(x, y);
+    return ret;
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int i, j, cmin, cmax, rmin;
+    pii temp;
+    scanf("%d%d%d", &n, &s, &l);
+    for(i=1; i<=n; i++)
+        scanf("%d", &arr[i]);
+    init(1, n, 0);
+    j = 1;
+    for(i=1; i<=n; i++){
+        ans[1] = n+5;
+        j = max(j, i);
+        temp = query(1, n, i, j, 0);
+        cmin = temp.s;
+        cmax = temp.f;
+        while(j<=n){
+            cmax = max(cmax, arr[j]);
+            cmin = min(cmin, arr[j]);
+            if(cmax-cmin > s)
+                break;
+            j++;
+        }
+        j--;
+        nxt[i] = j;
+        //cout << nxt[i] << " ";
+    }
+    //cout << "\n";
+    init1(1, n+1, 0);
+    update(1, n+1, n+1, 0, 0);
+    /*for(i=1; i<=n; i++){
+        cout << i << " " << query1(1, n+1, i, i, 0) << "\n";
+    }*/
+    for(i=n; i>=1; i--){
+        if(nxt[i]-i+1 < l)
+            continue;
+        rmin = query1(1, n+1, i+l, nxt[i]+1, 0);
+        ans[i] = rmin+1;
+        update(1, n+1, i, 0, rmin+1);
+        //cout << i << " " << i+l << " " << nxt[i]+1 << " " << rmin << "\n";
+    }
+    if(ans[1]<=n)
+        printf("%d\n", ans[1]);
+    else
+        printf("-1\n");
+    return 0;
+}

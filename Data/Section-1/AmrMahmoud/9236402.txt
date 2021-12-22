@@ -1,0 +1,134 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int DP[100005];
+int choice[100005];
+LL arr[100005];
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int n, d;
+    cin >> n >> d;
+    for(int i=0;i<n;i++)
+        cin >> arr[i];
+    set<pair<LL,int> > hig, les;
+    for(int i=n-1;i>=0;i--)
+    {
+        set<pair<LL,int> >::iterator it1, it2;
+        int res = 1, tmp = -1;
+        it1 = hig.lower_bound(mp(arr[i], 0));
+        it2 = les.lower_bound(mp(arr[i], 0));
+        if(it2 != les.end())
+        {
+            pair<LL, int> temp = *it2;
+            if(res < DP[temp.second] + 1)
+                res = DP[temp.second] + 1, tmp = temp.second;
+        }
+        if(hig.size() != 0 && it1 != hig.begin())
+        {
+            it1--;
+            pair<LL, int> temp = *it1;
+            if(res < DP[temp.second] + 1)
+                res = DP[temp.second] + 1, tmp = temp.second;
+        }
+        DP[i] = res;
+        choice[i] = tmp;
+
+        it1 = hig.lower_bound(mp(arr[i] + d, 0));
+        it2 = les.lower_bound(mp(arr[i] - d, 0));
+        bool add = 0;
+        if(hig.size() == 0 || it1 == hig.begin())
+            add = 1;
+        else {
+            set<pair<LL,int> >::iterator ittemp = it1;
+            ittemp--;
+            pair<LL, int> temp = *ittemp;
+            if(DP[i] > DP[temp.second])
+                add = 1;
+        }
+        if(add)
+        {
+            while(it1 != hig.end())
+            {
+                pair<LL, int> temp = *it1;
+                if(DP[i] < DP[temp.second]) break;
+                set<pair<LL,int> >::iterator ittemp = it1;
+                ittemp++;
+                hig.erase(it1);
+                it1 = ittemp;
+            }
+            hig.insert(mp(arr[i] + d, i));
+            add = 0;
+        }
+        if(it2 == les.end())
+            add = 1;
+        else {
+            pair<LL, int> temp = *it2;
+            if(DP[i] > DP[temp.second])
+                add = 1;
+        }
+        if(add)
+        {
+            if(les.size() != 0 && it2 != les.begin())
+                it2--;
+            while(les.size() != 0)
+            {
+                pair<LL, int> temp = *it2;
+                if(DP[i] < DP[temp.second]) break;
+                set<pair<LL,int> >::iterator ittemp = it2;
+                if(it2 == les.begin())
+                {
+                    les.erase(it2);
+                    break;
+                }
+                ittemp--;
+                les.erase(it2);
+                it2 = ittemp;
+            }
+            les.insert(mp(arr[i] - d, i));
+        }
+    }
+    int ch = 0;
+    for(int i=1;i<n;i++)
+        if(DP[ch] < DP[i])
+            ch = i;
+    cout << DP[ch] << "\n";
+    while(ch != -1)
+    {
+        cout << ch + 1 << " ";
+        ch = choice[ch];
+    }
+    return 0;
+}

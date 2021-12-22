@@ -1,0 +1,123 @@
+#include <iostream>
+#include <string>       // string s; cin >> s;
+#include <cstring>      // memset(b, 0, sizeof(arr)); strcpy(a1, a2); strcat(a1, a2);
+#include <cmath>
+#include <cstdio>       // getchar(), gets()
+#include <cstdlib>      // rand(), max(), min()
+#include <ctime>        // rand(): srand(int(time(0)));
+#include <algorithm>    // std::sort(a + 0, a + n); a - массв, n - кол-во эл-тов
+#include <iomanip>      // setw()
+#include <vector>
+#include <array>
+#include <fstream>      // file IO (input-output)
+#include <cctype>       // isupper()
+#include <memory>       // shared_ptr<>, uniqu_ptr<>
+#include <iterator>     // ostream_iterator<int, char> our_iter(cout, " ");
+#include <set>
+#include <map>
+#include <list>
+#include <queue>
+#define SRT srand(int(time(0)))
+typedef long long ll;
+typedef long double ld;
+typedef unsigned long long ull;
+using namespace std;
+
+typedef pair<int, int> Pair;
+typedef list<Pair> List;
+typedef List::iterator List_iter;
+const int S = 1002;
+ull k, sum = 0;
+int n, m, a[S][S], region[S][S], r = 0;
+bool was_there[S][S];
+void entrance();
+bool check(int i, int j);
+void show();
+int main()
+{
+    entrance();
+    if (sum < k)
+    {
+        cout << "NO\n";
+        return 0;
+    }
+    for (int i = 1; i <= n; ++i)
+        for (int j = 1; j <= m; ++j)
+            if (check(i, j))
+            {
+                show();
+                return 0;
+            }
+    cout << "NO\n";
+    return 0;
+}
+inline void entrance()
+{
+    cin >> n >> m >> k;
+    for (int i = 1; i <= n; ++i)
+        for (int j = 1; j <= m; ++j)
+        {
+            scanf("%d", a[i] + j);
+            sum += a[i][j];
+        }
+}
+List l;
+int n1, n2, dx[4] = {0, 0, 1, -1}, dy[4] = {1, -1, 0, 0}, x, y, xx, yy, s;
+ull needed, amount;
+bool check(int i, int j)
+{
+    if (was_there[i][j] || k % a[i][j] != 0 || k / a[i][j] > n * m)
+        return false;
+    region[i][j] = ++r;
+    was_there[i][j] = true;
+    amount = 1;
+    s = a[i][j];
+    if ((needed = k / a[i][j]) == amount)
+        return true;
+    l.clear();
+    l.push_back(Pair(i, j));
+    List_iter it = l.begin();
+    n1 = 1;
+    while (it != l.end())
+    {
+        n2 = 0;
+        while (n1-- > 0)
+        {
+            x = (*it).first;
+            y = (*it).second;
+            for (int dir = 0; dir < 4; ++dir)
+            {
+                xx = x + dx[dir];
+                yy = y + dy[dir];
+                if (region[xx][yy] == r || a[xx][yy] < s || a[xx][yy] == 0)
+                    continue;
+                ++amount;
+                if (a[xx][yy] == s)
+                    was_there[xx][yy] = true;
+                region[xx][yy] = r;
+                if (amount == needed)
+                    return true;
+                l.push_back(Pair(xx, yy));
+                ++n2;
+            }
+            ++it;
+        }
+        n1 = n2;
+    }
+    return false;
+}
+void show()
+{
+    cout << "YES\n";
+    for (int i = 1; i <= n; ++i)
+    {
+        for (int j = 1; j <= m; ++j)
+        {
+            if (region[i][j] == r)
+                printf("%d ", s);
+            else
+                printf("0 ");
+        }
+        putchar('\n');
+    }
+}

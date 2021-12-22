@@ -1,0 +1,79 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <cstdio>
+#include <cstring>
+#include <cassert>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
+#include <algorithm>
+#include <vector>
+#include <string> 
+#include <map>
+#include <iostream>
+#include <queue>
+#include <time.h>
+#include <set>
+#include <bitset>
+#include <sstream>
+using namespace std;
+
+typedef long long ll;
+
+#define INF 1000000000
+#define eps 1e-7
+#define mod 1000000007
+#define SHIFT 262144
+
+int n;
+ll a[2*SHIFT];
+
+ll getmul(int cur, int L, int R, int notneed)
+{
+    if(L == notneed && R == notneed)
+        return 1;
+    if(L <= notneed && notneed <= R)
+    {
+        int half = (R - L) / 2;
+        return (getmul(cur * 2, L, L + half, notneed) * getmul(cur * 2 + 1, L + half + 1, R, notneed)) % (mod - 1);
+    }
+    return a[cur];
+}
+
+ll qpow(ll a, ll n)
+{
+    ll b = 1;
+    while(n)
+    {
+        if(n & 1)
+            b = (b * a) % mod;
+        a = a * a % mod;
+        n >>= 1;
+    }
+    return b;
+}
+
+int main()
+{
+    ll res = 1;
+    cin >> n;
+    for(int i = 0; i < n; i++)
+    {
+        int k;
+        scanf("%d", &k);
+        a[SHIFT+k]++;
+    }
+    for(int i = SHIFT; i < 2 * SHIFT; i++)
+        a[i]++;
+    for(int i = SHIFT - 1; i >= 1; i--)
+        a[i] = (a[2*i] * a[2*i+1]) % (mod - 1);
+
+    
+    for(int i = SHIFT; i < 2 * SHIFT; i++)
+        if(a[i] > 1)
+        {
+            ll x = getmul(1, SHIFT, 2 * SHIFT - 1, i);
+            res = (res * qpow(i - SHIFT, ((ll)a[i] * (a[i] - 1) / 2 % (mod - 1) * x) % (mod - 1))) % mod;
+        }
+    cout << res << endl;
+    return 0;
+}

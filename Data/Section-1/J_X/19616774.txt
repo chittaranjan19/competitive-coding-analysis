@@ -1,0 +1,66 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 2e3 + 5;
+const int maxm = 1e5 + 5;
+const int mod = 1e9 + 7;
+
+int f[maxm], invf[maxm], dp[maxn], n, x[maxn], y[maxn];
+
+int pow_mod(int x, int n)
+{
+    int ret = 1;
+    while(n)
+    {
+        if(n & 1) ret = (ll)ret * x % mod;
+        x = (ll)x * x % mod;
+        n >>= 1;
+    }
+    return ret;
+}
+
+int C(int n, int m)
+{
+    if(m < 0 || n < m) return 0;
+    return (ll)f[n] * invf[m] % mod * invf[n - m] % mod;
+}
+
+void add(int &a, int b)
+{
+    a += b;
+    if(a >= mod) a -= mod;
+    else if(a < 0) a += mod;
+}
+
+int dfs(int u)
+{
+    if(~dp[u]) return dp[u];
+    int &res = dp[u];
+    res = C(x[u] + y[u] - 2, y[u] - 1);
+    for(int i = 0; i <= n; ++i)
+    {
+        if(i != u && x[i] <= x[u] && y[i] <= y[u]) add(dp[u], -1LL * dfs(i) * C(x[u] - x[i] + y[u] - y[i], y[u] - y[i]) % mod);
+    }
+    return res;
+}
+
+int main()
+{
+    f[0] = 1;
+    for(int i = 1; i < maxm; ++i) f[i] = (ll)f[i - 1] * i % mod;
+    invf[maxm - 1] = pow_mod(f[maxm - 1], mod - 2);
+    for(int i = maxm - 1; i > 0; --i) invf[i - 1] = (ll)invf[i] * i % mod;
+    int h, w;
+    scanf("%d%d%d", &h, &w, &n);
+    memset(dp, -1, sizeof(dp));
+    x[0] = h, y[0] = w;
+    for(int i = 1; i <= n; ++i) scanf("%d%d", x + i, y + i);
+    printf("%d\n", dfs(0));
+    return 0;
+}

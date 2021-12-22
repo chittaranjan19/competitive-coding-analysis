@@ -1,0 +1,146 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemC2 {
+    BufferedReader rd;
+    char[] cd;
+    int[] cur;
+
+    private ProblemC2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        cd = rd.readLine().toCharArray();
+        cur = new int[cd.length];
+        for(int i=0;i<cd.length;i++) {
+            cur[i] = i;
+        }
+        int n = pint();
+        for(int i=0;i<n;i++) {
+            int[] a = intarr();
+            if(a[1] > 1 && a[1] < a[0]) {
+                shuffle(a[0],a[1]);
+            }
+            StringBuilder buf = new StringBuilder();
+            for(int j=0;j<cd.length;j++) {
+                buf.append(cd[cur[j]]);
+            }
+            out(buf);
+        }
+    }
+
+    private void shuffle(int k, int d) {
+        int[] p = new int[k];
+        int t = 0;
+        int u = 0;
+        int y = 1;
+        while(t < k) {
+            p[t] = u;
+            u += d;
+            if(u >= k) {
+                u = y;
+                y++;
+            }
+            t++;
+        }
+
+        int[] od = new int[k];
+        for(int i=0;i<k;i++) {
+            od[p[i]] = i;
+        }
+
+        boolean[] used = new boolean[k];
+        int[] queue = new int[k];
+        int s = 1;
+        int len = 1;
+        while(len < k && s < k) {
+            s = p[s];
+            used[s] = true;
+            queue[len] = s;
+            s++;
+            len++;
+        }
+
+        List<List<Integer>> cycles = new ArrayList<>();
+        for(int i=1;i<k;i++) {
+            if(!used[i]) {
+                List<Integer> cycle = new ArrayList<>();
+                int f = i;
+                cycle.add(f);
+                used[f] = true;
+                int g = od[f]-1;
+                while(g != f) {
+                    cycle.add(g);
+                    used[g] = true;
+                    g = od[g]-1;
+                }
+                cycles.add(cycle);
+            }
+        }
+        int[] pcur = Arrays.copyOf(cur, k);
+
+        int n = cur.length;
+        boolean[] marked = new boolean[n];
+        Queue<Integer> qi = new LinkedList<>();
+        for(int i=0;i<len;i++) {
+            qi.add(cur[queue[i]]);
+        }
+        for(int i=0;i<n-k;i++) {
+            cur[i] = qi.poll();
+            marked[i] = true;
+            qi.add(cur[i+k]);
+        }
+        for(int i=0;i<len;i++) {
+            int x = qi.poll();
+            cur[n-k+od[queue[i]]] = x;
+            marked[n-k+od[queue[i]]] = true;
+        }
+
+        for(List<Integer> cycle: cycles) {
+            int cs = cycle.size();
+            int[] orig = new int[cs];
+            for(int i=0;i<cs;i++) {
+                orig[i] = pcur[cycle.get(i)];
+            }
+            int offset = (n-k) % cs;
+            for(int i=0;i<cs;i++) {
+                int idx = (cs*100+i-offset)%cs;
+                cur[n-k + od[cycle.get(i)]] = orig[idx];
+            }
+        }
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = s.split(" ");
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC2();
+    }
+}

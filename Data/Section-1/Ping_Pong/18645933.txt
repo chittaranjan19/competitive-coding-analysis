@@ -1,0 +1,74 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+#include <clocale>
+
+#pragma comment(lib,"psapi")
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const ll MAX_N = 500;
+const ld pi = 3.1415926535897932384626;
+const ld eps = 1e-6;
+
+int main()
+{
+    //freopen("mutants.in", "r", stdin);
+    //freopen("mutants.out", "w", stdout);
+    //setlocale(LC_CTYPE, "rus");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, m, k;
+    cin >> n >> m >> k;
+    string s, t;
+    cin >> s >> t;
+    int dp1[n][m];
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            if (s[i] != t[j])
+                dp1[i][j] = 0;
+            else
+            {
+                if (i > 0 && j > 0)
+                    dp1[i][j] = dp1[i - 1][j - 1] + 1;
+                else
+                    dp1[i][j] = 1;
+            }
+    int dp[n][m][k];
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            for (int l = 0; l < k; l++)
+            {
+                dp[i][j][l] = 0;
+                if (l > min(i, j))
+                    continue;
+                if (i > 0)
+                    dp[i][j][l] = max(dp[i][j][l], dp[i - 1][j][l]);
+                if (j > 0)
+                    dp[i][j][l] = max(dp[i][j][l], dp[i][j - 1][l]);
+                int cnt = dp1[i][j];
+                dp[i][j][l] = max(dp[i][j][l], cnt);
+                if (cnt <= min(i, j))
+                    for (int p = 1; p <= min(cnt, l); p++)
+                        dp[i][j][l] = max(dp[i][j][l], dp[i - cnt][j - cnt][l - p] + cnt);
+            }
+    cout << dp[n - 1][m - 1][k - 1] << endl;
+    return 0;
+}

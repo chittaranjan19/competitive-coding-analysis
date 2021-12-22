@@ -1,0 +1,110 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+
+LL DP[105];
+LL d[100005], arr[100005], sum[100005];
+int points[105];
+vector<pair<LL, LL> > lines[105];
+
+inline bool cross(const pair<LL, LL> &A, const pair<LL, LL> &O, const pair<LL, LL> &B)
+{
+  LL a = (A.f - O.f);
+  LL b = (B.s - O.s);
+  LL c = (A.s - O.s);
+  LL d = (B.f - O.f);
+  bool s1 = (a < 0) ^ (b < 0);
+  bool s2 = (c < 0) ^ (d < 0);
+  if(!a || !b) return !c || !d || !s2;
+  if(!c || !d) return s1;
+  if(s1 && !s2) return false;
+  if(!s1 && s2) return true;
+  long double x = llabs(a);
+  long double y = llabs(c);
+  x /= llabs(d);
+  y /= llabs(b);
+  return x <= y;
+}
+
+inline void add_line(LL m, LL c, int k)
+{
+  pair<LL, LL> tmp = mp(m, c);
+  while(lines[k].size() >= 2 && cross(lines[k][lines[k].size() - 2], lines[k][lines[k].size() - 1], tmp))
+    lines[k].pop_back();
+  lines[k].pb(tmp);
+}
+
+inline LL query(LL x, int k)
+{
+  int &p = points[k];
+  while(p != lines[k].size() - 1 && lines[k][p].f * x + lines[k][p].s > lines[k][p+1].f * x + lines[k][p+1].s)
+    p++;
+  return lines[k][p].f * x + lines[k][p].s;
+}
+
+int main()
+{
+  int n, m, p, x, y;
+  cin >> n >> m >> p;
+  for(int i=1;i<n;i++)
+  {
+    scanf("%d", &d[i]);
+    d[i] += d[i - 1];
+  }
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d %d", &x, &y);
+    arr[i] = y - d[x - 1];
+  }
+  sort(arr, arr + m);
+  for(int i=0;i<m;i++)
+  {
+    sum[i] = arr[i];
+    if(i) sum[i] += sum[i - 1];
+  }
+  add_line(0, 0, 0);
+  for(int i=0;i<m;i++)
+  {
+    for(int j=1;j<=p;j++)
+    {
+      if(lines[j - 1].empty())
+      {
+        DP[j] = -1;
+        break;
+      }
+      else DP[j] = query(arr[i], j - 1) + arr[i] * (i + 1) - sum[i];
+    }
+    for(int j=1;j<=p;j++)
+    {
+      if(DP[j] == -1) break;
+      else add_line(-i-1, DP[j] + sum[i], j);
+    }
+  }
+  LL res = INF_LL;
+  for(int i=1;i<=p;i++)
+    res = min(res, DP[i]);
+  cout << res;
+  return 0;
+}
+
+/*
+  DP[i][j] = mink DP[k - 1][j - 1] + arr[i] * (i - k) - sum[i] + sum[k - 1]
+  DP[i][j] = arr[i] * i - sum[i] + mink DP[k - 1][j - 1] + sum[k - 1] - arr[i] * k
+*/

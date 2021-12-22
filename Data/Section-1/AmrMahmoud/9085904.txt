@@ -1,0 +1,114 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int arr[100005];
+bool changed[100005];
+int n,len,k;
+LL sum = 0,res = -1LL * (LL)(1e16);
+
+void solve()
+{
+    int kk = k;
+    setzero(changed);
+    priority_queue<pair<int,int> > taken,nottaken;
+    vector<pair<int,int> > temp;
+    for(int i=0;i<len;i++)
+        temp.push_back(mp(abs(arr[i]), i));
+    sort(temp.begin(), temp.end(),compare);
+    sum = 0;
+    for(int i=0;i<len;i++)
+    {
+        if(arr[temp[i].second] < 0 && kk)
+            changed[temp[i].second] = true,kk--,taken.push(temp[i] * -1);
+        else if(arr[temp[i].second] < 0)
+            temp[i].first*=-1,nottaken.push(temp[i] * -1);
+        sum+=temp[i].first;
+    }
+    res = max(res, sum);
+    for(int i=0;i<n - len;i++)
+    {
+        if(changed[i])
+            kk++,sum-=arr[i]*-1;
+        else sum-=arr[i];
+        sum+=arr[i + len];
+        if(arr[i + len] < 0)
+            nottaken.push(mp(arr[i + len] * -1, i + len));
+        while(!taken.empty() && taken.top().second <= i)
+            taken.pop();
+        while(!nottaken.empty() && nottaken.top().second <= i)
+            nottaken.pop();
+        while(kk && !nottaken.empty())
+        {
+            changed[nottaken.top().second] = true;
+            sum+=nottaken.top().first * 2;
+            taken.push(mp(nottaken.top().first * -1, nottaken.top().second));
+            nottaken.pop();
+            kk--;
+            while(!nottaken.empty() && nottaken.top().second <= i)
+                nottaken.pop();
+        }
+        while(!taken.empty() && !nottaken.empty() && taken.top().first * -1 < nottaken.top().first)
+        {
+            changed[taken.top().second] = false;
+            changed[nottaken.top().second] = true;
+            sum-=taken.top().first * -1 * 2;
+            sum+=nottaken.top().first * 2;
+            pair<int,int> t = mp(taken.top().first * -1, taken.top().second);
+            taken.pop();
+            taken.push(mp(nottaken.top().first * -1, nottaken.top().second));
+            nottaken.pop();
+            nottaken.push(t);
+            while(!taken.empty() && taken.top().second <= i)
+                taken.pop();
+            while(!nottaken.empty() && nottaken.top().second <= i)
+                nottaken.pop();
+        }
+        res = max(res, sum);
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin >> n >> len;
+    for(int i=0;i<n;i++)
+        cin >> arr[i];
+    cin >> k;
+    solve();
+    for(int i=0;i<n;i++)
+        arr[i]*=-1;
+    solve();
+    cout << res;
+    return 0;
+}

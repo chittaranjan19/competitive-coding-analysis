@@ -1,0 +1,88 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+const int SQ = 317;
+
+int n, m;
+int a[N];
+
+int nxt[N]; 
+int cnt[N];
+
+void build(int x){
+	int l = x * SQ;
+	int r = min(n, x * SQ + SQ);
+	for(int i = r - 1; i >= l; --i){
+		if(i + a[i] >= r)
+			cnt[i] = 1, nxt[i] = i + a[i];
+		else
+			cnt[i] = cnt[i + a[i]] + 1, nxt[i] = nxt[i + a[i]];
+	}
+}
+
+pii get(int x){
+	pii ans;
+	while(nxt[x] < n){
+		ans.Y += cnt[x];
+		x = nxt[x];
+	}
+	while(x + a[x] < n){
+		ans.Y ++;
+		x = x + a[x];
+	}
+	ans.X = x;
+	return ans;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	for(int i = 0; i < n; ++i)
+		cin >> a[i];
+	for(int i = 0; i <= (n - 1) / SQ; ++i)
+		build(i);
+	for(int i = 0; i < m; ++i){
+		int t;
+		cin >> t;
+		if(!t){
+			int x, y;
+			cin >> x >> y;
+			x --;
+			a[x] = y;
+			build(x / SQ);
+		}
+		else{
+			int x;
+			cin >> x;
+			x --;
+			pii ans = get(x);
+			cout << ans.X + 1 << " " << ans.Y + 1 << "\n";
+		}
+	}
+	return 0;
+}

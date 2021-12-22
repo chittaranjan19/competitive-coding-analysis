@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 200010;
+
+int a[2], orders[maxn];
+int st[2][maxn*6];
+
+void update(int t, int s, int e, int q, int node)
+{
+	if(s>e || s>q || q>e)
+		return;
+	if(s==e){
+		st[t][node] = min(a[t], orders[q]);
+		return;
+	}
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc+1;
+	update(t, s, mid, q, lc);
+	update(t, mid+1, e, q, rc);
+	st[t][node] = st[t][lc]+st[t][rc];
+}
+
+int query(int t, int s, int e, int qs, int qe, int node)
+{
+	if(s>e || s>qe || qs>e || qs>qe)
+		return 0;
+	if(s>=qs && qe>=e)
+		return st[t][node];
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc+1;
+	int ret = query(t, s, mid, qs, qe, lc) + query(t, mid+1, e, qs, qe, rc);
+	return ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int n, k, q, i, j, t, val, p, ans;
+	scanf("%d%d%d%d%d", &n, &k, &a[1], &a[0], &q);
+	while(q--){
+		sd(t);
+		if(t==1){
+			scanf("%d%d", &p, &val);
+			p--;
+			orders[p]+=val;
+			update(0, 0, n-1, p, 0);
+			update(1, 0, n-1, p, 0);
+		}
+		else{
+			scanf("%d", &p);
+			p--;
+			ans = 0;
+			if(p>=1)
+				ans+=query(0, 0, n-1, 0, p-1, 0);
+			if((p+k)<n)
+				ans+=query(1, 0, n-1, p+k, n-1, 0);
+			printf("%d\n", ans);
+		}
+	}
+	return 0;
+}

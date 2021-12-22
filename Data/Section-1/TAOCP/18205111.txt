@@ -1,0 +1,118 @@
+/*
+*Rainto96
+*Beijing University of Posts and Telecommunications School of Software Engineering
+*http://blog.csdn.net/u011775691
+*/
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <queue>
+#include <cstring>
+#include <string>
+#include <cmath>
+#include <set>
+#include <map>
+#include <vector>
+#include <climits>
+using namespace std;
+#define pb push_back
+#define ALL(x) x.begin(),x.end()
+#define VINT vector<int>
+#define PII pair<int,int>
+#define MP(x,y) make_pair((x),(y))
+#define ll long long
+#define ull unsigned long long
+#define MEM0(x)  memset(x,0,sizeof(x))
+#define MEM(x,val) memset((x),val,sizeof(x))
+#define scan(x) scanf("%d",&(x))
+#define scan2(x,y) scanf("%d%d",&(x),&(y))
+#define scan3(x,y,z) scanf("%d%d%d",&(x),&(y),&(z))
+#define scan4(x,y,z,k) scanf("%d%d%d%d",&(x),&(y),&(z),&(k))
+#define Max(a,b) a=max(a,b)
+#define Min(a,b) a=min(a,b)
+#define fuck(x) cout<<#x<<" - "<<x<<endl
+int g[333][333];
+vector<PII > num[333*333];
+map<int ,int > dp[303][303];
+int dir[4][2] = {-1,0, 0,1, 1,0 ,0,-1};
+struct Info{
+    int x,y,p;
+    int step;
+    bool operator<(const Info& s) const{
+        return (step > s.step) || (step == s.step && p > s.p);
+    }
+};
+#define NOT(x,y,p) (dp[x][y].find(p) == dp[x][y].end())
+int main(){
+    //freopen("in.txt","r",stdin);
+    int n,m,P;
+    scan3(n,m,P);
+    for(int i=1;i<=n;i++){
+        for(int j=1;j<=m;j++){
+            scan(g[i][j]);
+            num[g[i][j]].pb(MP(i,j));
+        }
+    }
+    priority_queue<Info > que[2];
+    int fl = 0;
+    que[fl].push((Info){1,1, g[1][1] == 1, 0});
+    int maxn = -0x3f3f3f3f;
+    while(true){
+        int nowp = -1;
+        while(!que[fl].empty()){
+            Info now = que[fl].top();
+            que[fl].pop();
+            int x = now.x , y= now.y, p = now.p;
+            nowp = p;
+            int step = now.step;
+            //cout<<x<<" "<<y<<" "<<p<<" "<<step<<endl;
+
+            if(p == P){
+                cout<<step<<endl;
+                return 0;
+            }
+            if(step > dp[x][y][p]){
+                continue;
+            }
+            int sz1 = num[p].size();
+            int sz2 = num[p+1].size();
+            if(1LL*sz1*sz2 > n*m){
+                for(int i=0;i<4;i++){
+                    int tx = x+dir[i][0] , ty = y + dir[i][1];
+                    if(tx<1 || tx > n || ty < 1 || ty > m) continue;
+                    int np = p;
+                    int nstep = step+1;
+                    if(g[tx][ty] == p+1) np = p+1;
+                    if(NOT(tx,ty, np) || nstep < dp[tx][ty][np]){
+                        dp[tx][ty][np] = nstep;
+                        if(np == p+1){
+                            //que[1-fl].push((Info){tx, ty, np, nstep});
+                            que[fl].push((Info){tx, ty, p, nstep});
+                        }else que[fl].push((Info){tx, ty, np, nstep});
+                    }
+                }
+            }else{
+                for(int i=0;i<num[p+1].size();i++){
+                    int tx = num[p+1][i].first , ty = num[p+1][i].second;
+                    int nstep = step + abs(tx - x) + abs(ty - y);
+                    //cout<<NOT(tx,ty,p+1)<<endl;
+                    if(NOT(tx,ty,p+1) || nstep < dp[tx][ty][p+1]){
+                        dp[tx][ty][p+1] = nstep;
+                        que[1-fl].push((Info){tx,ty, p+1, nstep});
+                        maxn = max(maxn, nstep);
+                    }
+                }
+            }
+        }
+        int sz1 = num[nowp].size();
+        int sz2 = num[nowp+1].size();
+        if(1LL*sz1*sz2 > n*m){
+            for(int i=0;i<num[nowp+1].size();i++){
+                int tx = num[nowp+1][i].first , ty = num[nowp+1][i].second;
+                que[1-fl].push((Info){tx,ty, nowp+1, dp[tx][ty][nowp]});
+            }
+        }
+        fl = 1-fl;
+    }
+    return 0;
+}

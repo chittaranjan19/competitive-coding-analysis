@@ -1,0 +1,117 @@
+#include <cstdio>
+#include <cstring>
+#include <cassert>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
+#include <algorithm>
+#include <vector>
+#include <string> 
+#include <map>
+#include <iostream>
+#include <queue>
+#include <time.h>
+#include <set>
+#include <bitset>
+using namespace std;
+
+typedef long long ll;
+
+#define INF 1000000000
+#define eps 1e-9
+#define mod 1000000007
+/*
+struct point
+{
+    int x, y, i;
+    bool operator<(const point &p) const
+    {
+        return atan2(p.y + 0.0, p.x) - atan2(y + 0.0, x) > eps;
+    }
+}a[100005];
+
+const int pi = acos(-1.0);
+
+int main()
+{
+    int n;
+    scanf("%d", &n);
+    for(int i = 0; i < n; i++)
+    {
+        scanf("%d %d", &a[i].x, &a[i].y);
+        a[i].i = i + 1;
+    }
+    sort(a, a + n);
+    double minAngle = 10;
+    int mini;
+    for(int i = 0; i < n; i++)
+    {
+        double angle = fabs(atan2(a[i].y + 0.0, a[i].x) - atan2(a[(i+1)%n].y + 0.0, a[(i+1)%n].x));
+        if(angle - pi > eps)
+            angle -= pi;
+        if(minAngle - angle > eps)
+        {
+            minAngle = angle;
+            mini = i;
+        }
+    }
+    printf("%d %d\n", a[mini].i, a[(mini+1)%n].i);
+    return 0;
+}
+*/
+char a[1005][1005];
+int dx[] = {-1, 1, 0, 0};
+int dy[] = {0, 0, -1, 1};
+int queries[1005][1005], res[100005], used[1005][1005];
+
+int main()
+{
+    int n, m, K;
+    scanf("%d %d %d", &n, &m, &K);
+    for(int i = 0; i < n; i++)
+        scanf("%s", a[i]);
+    for(int i = 0; i < K; i++)
+    {
+        int x, y;
+        scanf("%d %d", &x, &y);
+        x--; y--;
+        queries[x][y] = i + 1;
+    }
+    for(int i = 0; i < n; i++)
+        for(int j = 0; j < m; j++)
+            if(queries[i][j] > 0 && used[i][j] == 0)
+            {
+                queue <int> q;
+                vector <int> v;
+                q.push(i); q.push(j);
+                int cnt = 0;
+                used[i][j] = 1;
+                while(!q.empty())
+                {
+                    int x = q.front(); q.pop();
+                    int y = q.front(); q.pop();
+                    v.push_back(x); 
+                    v.push_back(y);
+                    for(int k = 0; k < 4; k++)
+                    {
+                        if(0 <= x + dx[k] && x + dx[k] < n && 0 <= y + dy[k] && y + dy[k] < m && used[x+dx[k]][y+dy[k]] == 0)
+                        {
+                            if(a[x+dx[k]][y+dy[k]] == '*')
+                                cnt++;
+                            else
+                            {
+                                used[x+dx[k]][y+dy[k]] = 1;
+                                q.push(x+dx[k]);
+                                q.push(y+dy[k]);
+                            }
+                        }
+                    }
+                }
+                for(int k = 0; k < v.size(); k += 2)
+                    if(queries[v[k]][v[k+1]] > 0)
+                        res[queries[v[k]][v[k+1]]] = cnt;
+            }
+    for(int i = 1; i <= K; i++)
+        printf("%d\n", res[i]);
+    return 0;
+}

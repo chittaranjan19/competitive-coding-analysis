@@ -1,0 +1,100 @@
+//INOG
+//how many problem are you solve ?!
+#include<bits/stdc++.h>
+using namespace std;
+
+#define mp make_pair
+#define ll long long
+#define int long long
+#define lb long double
+#define pb(x) push_back(x)
+#define all(x) x.begin(),x.end()
+
+const long long MAXN=1e6;
+const long long MAXM=1e3;
+const long long MOD=1e9+7;
+const long long INF=1e15+5040;
+
+vector<pair<int,int>>in[MAXN],out[MAXN];
+vector<pair<pair<int,int>,int>>E;
+int d[MAXN],u[MAXN];
+set<pair<int,int>>st;
+vector<pair<int,int>>fu,fd;
+int dpu[MAXN],dpd[MAXN];
+
+void diji(int s,int *dis,vector<pair<int,int>>*adj)
+{
+	fill(dis,dis+MAXN,INF);
+	dis[s]=0;
+	st.insert({0,s});
+	while (!st.empty()){
+		int v=st.begin()->second;
+		st.erase(st.begin());
+		for (auto u:adj[v])
+			if(dis[v]+u.second<dis[u.first]){
+				st.erase({dis[u.first],u.first});
+				dis[u.first] = dis[v]+u.second;
+				st.insert({dis[u.first],u.first});
+			}
+	}
+}
+
+
+
+main(){
+    ios_base::sync_with_stdio(false);
+    cin.tie(false),cout.tie(false);
+    int m,n;
+    cin>>n>>m;
+    int s,t;
+    cin>>s>>t;
+    s--,t--;
+    for(int i=0;i<m;i++){
+    	int x,y,z;
+    	cin>>x>>y>>z;
+    	x--,y--;
+    	out[x].push_back({y,z});
+    	in[y].push_back({x,z});
+    	E.push_back({{x,y},z});
+    }
+    diji(s,u,out);
+    diji(t,d,in);
+    
+    
+	for(int i=0;i<n;i++)fu.push_back({u[i],i});
+    sort(all(fu));
+    dpu[s]=1;
+    
+    for(auto v:fu){
+    	int x=v.second;
+    	for(auto t:in[x]){
+    		int y=t.first;
+    		int w=t.second;
+    		if(u[x]-u[y]==w)dpu[x]+=dpu[y];
+    	}
+    }
+    
+    for(int i=0;i<n;i++)fd.push_back({d[i],i});
+    sort(all(fd));
+    dpd[t]=1;
+    for(auto v:fd){
+    	int x=v.second;
+    	
+    	for(auto t:out[x]){
+    		int y=t.first;
+    		int w=t.second;
+    		if(d[x]-d[y]==w)dpd[x]+=dpd[y];
+    	}
+    }
+    
+    for(auto e:E){
+    	int x=e.first.first;
+    	int y=e.first.second;
+    	int z=e.second;
+    	if(dpu[x]*dpd[y]==dpu[t] && dpd[x]==dpd[y] && u[y]-u[x]==z){cout<<"YES\n";continue;}
+    	if(u[x]+d[y]<u[t] && z-(u[t]-(u[x]+d[y])-1) < z){cout<<"CAN "<<z-(u[t]-(u[x]+d[y])-1)<<'\n';continue;}
+    	cout<<"NO\n";
+    	
+    }
+    
+}

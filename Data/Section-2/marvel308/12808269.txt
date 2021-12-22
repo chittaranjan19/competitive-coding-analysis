@@ -1,0 +1,65 @@
+#include <cstdio>
+#define ll (long long)
+#define md 1000000007
+
+bool dp[1010][55][55];
+int ans[1010][55][55];
+int C[55][55];
+int cn1,cn2,i1,i2,j1,j2,i,x,t,k,j;
+int n;
+int main()
+{
+    for (i=0;i<=54;i++)
+        C[i][i]=C[i][0]=1;
+
+    for (i=1;i<=54;i++)
+        for (j=1;j<i;j++)
+            C[i][j]=ll (ll C[i-1][j-1]+C[i-1][j])%md;
+    scanf("%d%d",&n,&k);
+    for (i=1;i<=n;i++)
+    {
+        scanf("%d",&x);
+        if (x==50)
+            cn1++;
+        else
+            cn2++;
+    }
+    
+
+    bool ok=false;
+
+    dp[0][cn1][cn2]=true;
+    ans[0][cn1][cn2]=1;
+
+    for (t=1;t<=n*10;t++)
+    {
+            for (i1=0;i1<=cn1;i1++)
+                for (j1=0;j1<=cn2;j1++)
+                    if (i1+j1>0)
+                    for (i2=0;i2<=i1 && i2*50<=k;i2++)
+                        for (j2=0;j2<=j1 && j2*100+i2*50<=k; j2++)
+                            if (i2+j2>0)
+                            if (dp[t-1][cn1-i1+i2][cn2-j1+j2]==true)
+                            {
+                                dp[t][i1][j1]=true;
+                                ans[t][i1][j1]=ll (ll ans[t][i1][j1]+ll( ll (ll C[cn1-i1+i2][i2]*C[cn2-j1+j2][j2])%md*ans[t-1][cn1-i1+i2][cn2-j1+j2])%md ) %md ;
+                            }
+
+
+        if (t%2==1 && dp[t][cn1][cn2]==true)
+        {
+            ok=true;
+            break;
+        }
+    }
+
+
+    if (ok==false)
+    {
+        printf("-1\n0");
+        return 0;
+    }
+    printf("%d\n%d",t,ans[t][cn1][cn2]);
+
+    return 0;
+}

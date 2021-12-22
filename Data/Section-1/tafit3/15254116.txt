@@ -1,0 +1,133 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.math.BigInteger;
+import java.util.Arrays;
+
+import static java.math.BigInteger.*;
+
+public class ProblemE {
+    private static final BigInteger TWO = v(2);
+    private static final BigInteger THREE = v(3);
+    BufferedReader rd;
+
+    ProblemE() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        BigInteger n = new BigInteger(rd.readLine());
+        BigInteger base = find(n);
+        BigInteger rest = n.subtract(s(base));
+        BigInteger x = base.multiply(TWO);
+        BigInteger y = ZERO;
+        if(rest.compareTo(ZERO) > 0) {
+            BigInteger[] xy = new BigInteger[] { x, y };
+            if(n.compareTo(v(6)) < 0) {
+                int dir = 0;
+                int steps = 0;
+                while(steps < n.longValue()) {
+                    xy = go(xy, dir, ONE);
+                    dir++;
+                    if(dir == 1) {
+                        dir = 2;
+                    }
+                    steps++;
+                }
+            } else {
+                BigInteger[] M = new BigInteger[7];
+                M[0] = ONE;
+                M[1] = base;
+                M[2] = base.add(ONE);
+                Arrays.fill(M,3,7,M[2]);
+                for(int i=0;i<7;i++) {
+                    if(rest.compareTo(M[i]) > 0) {
+                        rest = rest.subtract(M[i]);
+                        xy = go(xy, i, M[i]);
+                    } else {
+                        xy = go(xy, i, rest);
+                        break;
+                    }
+                }
+            }
+            x = xy[0];
+            y = xy[1];
+        }
+        out(x+" "+y);
+    }
+
+    private BigInteger[] go(BigInteger[] u, int dir, BigInteger steps) {
+        BigInteger x = u[0];
+        BigInteger y = u[1];
+        switch(dir) {
+            case 0:
+                x = x.add(steps);
+                y = y.add(steps.multiply(TWO));
+                break;
+            case 1:
+                x = x.subtract(steps);
+                y = y.add(steps.multiply(TWO));
+                break;
+            case 2:
+                x = x.subtract(steps.multiply(TWO));
+                break;
+            case 3:
+                x = x.subtract(steps);
+                y = y.subtract(steps.multiply(TWO));
+                break;
+            case 4:
+                x = x.add(steps);
+                y = y.subtract(steps.multiply(TWO));
+                break;
+            case 5:
+                x = x.add(steps.multiply(TWO));
+                break;
+            case 6:
+                x = x.add(steps);
+                y = y.add(steps.multiply(TWO));
+                break;
+        }
+        return new BigInteger[] { x, y };
+    }
+
+    private BigInteger find(BigInteger n) {
+        BigInteger min = ZERO;
+        BigInteger max = new BigInteger("1000000000");
+        while(max.subtract(min).compareTo(ONE) > 0) {
+            BigInteger mid = min.add(max).divide(TWO);
+            BigInteger sum = s(mid);
+            if(sum.compareTo(n) > 0) {
+                max = mid;
+            } else {
+                min = mid;
+            }
+        }
+        for(int i=-4;i<=4;i++) {
+            BigInteger x = min.add(BigInteger.valueOf(i));
+            if(x.compareTo(ZERO) >= 0) {
+                BigInteger sum = s(x);
+                if(sum.compareTo(n) > 0) {
+                    return x.subtract(ONE);
+                }
+            }
+        }
+        return null;
+    }
+
+    private static BigInteger v(long x) {
+        return BigInteger.valueOf(x);
+    }
+
+    private BigInteger s(BigInteger x) {
+        return THREE.multiply(x).multiply(x.add(ONE));
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemE();
+    }
+}

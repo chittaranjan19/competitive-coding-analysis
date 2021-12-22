@@ -1,0 +1,224 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+
+class Node;
+
+vector<bool> sieve(1001, true);
+vector<ll> values;
+vector<vector<int> > graph;
+//vector<Node> seg_tree;
+vector<ll> lazy;
+vector<int> pre;
+vector<int> inv_pre;
+vector<int> sons;
+vector<bool> visited;
+int M = 1;
+int prec = 1;
+
+class Node {
+public:
+    int hi, lo;
+    ll pending;
+    int ans;
+    Node *right, *left;
+    bitset<1000> res;
+    Node(int lo, int hi) : lo(lo), hi(hi){
+        pending = 0;
+        this->hi = hi;
+        this->lo = lo;
+        if(hi == lo) {
+            //printf("lo %d val %d\n", lo, values[inv_pre[hi]]);
+            int test  = values[inv_pre[hi]] % M;
+            if(sieve[test])
+                res.set(test, 1);
+            right = NULL;
+            left = NULL;
+            ans = res.count();
+        }
+        else {
+            Node *tl = new Node(lo, (lo+hi)/2);
+            Node *tr = new Node(((lo+hi)/2)+1, hi);
+            res = tl->res | tr->res;
+            ans = res.count();
+            left = tl;
+            right = tr;
+        }
+    }
+};
+
+void build_sieve() {
+    sieve[0] = false;
+    sieve[1] = false;
+    for (int i = 2; i <= sqrt(1000); ++i) {
+        if(sieve[i]) {
+            for (int j = 2; i*j <= 1000; ++j)
+                sieve[i*j] = false;
+        }
+    }
+}
+
+int preorder(int node) {
+    int nson = 1;
+    visited[node] = true;
+    pre[node] = prec;
+    inv_pre[prec] = node;
+    prec++;
+    for (int i = 0; i < graph[node].size(); ++i) {
+        int p = graph[node][i];
+        if(!visited[p]) {
+            nson += preorder(p);
+        }
+    }
+    sons[node] = nson;
+    return nson;
+}
+
+bitset<1000> query(Node *root, int lo, int hi) {
+    bitset<1000> ans;
+    if(lo > hi || hi < lo)
+        return ans;
+
+    if(root->pending > 0 && lo != hi) {
+        root->left->pending += root->pending;
+        root->right->pending += root->pending;
+    }
+
+    if(root->hi == hi && root->lo == lo) {
+        if(root->pending > 0)
+        {
+            if(hi == lo) {
+                values[inv_pre[lo]] += root->pending;
+                root->pending = 0;
+                root->res.reset();
+                int test  = values[inv_pre[hi]] % M;
+                if(sieve[test])
+                    root->res.set(test, 1);
+                root->ans = root->res.count();
+                return  root->res;
+            }
+        }
+        else
+            return root->res;
+    }
+    bitset<1000> a1, a2;
+    a1 = query(root->left, lo, root->left->hi);
+    a2 = query(root->right, root->right->lo, hi);
+    if(root->pending > 0)
+        root->pending = 0;
+    root->res = a1|a2;
+    root->ans = root->res.count();
+    return a1|a2;
+}
+
+void traverse_tree(Node root) {
+    queue<Node*> q;
+    q.push(&root);
+    while(!q.empty()) {
+        Node *p = q.front();
+        q.pop();
+        printf("lo %d hi %d count %d ", p->lo, p->hi, p->ans);
+        for (int i = 1; i < 20; ++i) {
+            cout<<p->res[i];
+        }
+        cout<<endl;
+        if(p->left != NULL)
+            q.push(p->left);
+        if(p->right != NULL)
+            q.push(p->right);
+    }
+}
+
+void tree_sum(Node *root, int lo, int hi, ll k) {
+    if(lo > hi || hi < lo)
+        return;
+    if(hi == lo) {
+        root->res.reset();
+        values[inv_pre[lo]] += k;
+        int test  = values[inv_pre[hi]] % M;
+        if(sieve[test])
+            root->res.set(test, 1);
+        root->ans = root->res.count();
+        return;
+    }
+    if(root->hi == hi && root->lo == lo) {
+        root->pending += k;
+        return;
+    }
+    tree_sum(root->left, lo, root->left->hi, k);
+    tree_sum(root->right, root->right->lo, hi, k);
+    root->res.reset();
+    root->res = root->left->res | root->right->res;
+    root->ans = root->res.count();
+}
+
+void init(int N) {
+    values = vector<ll>(N+1);
+    graph = vector<vector<int> >(N+1);
+    lazy = vector<ll>(N+1, 0);
+    visited = vector<bool>(N+1, false);
+    //seg_tree = vector<Node>(N+1);
+    pre = vector<int>(N+1);
+    inv_pre = vector<int>(N+1);
+    sons = vector<int>(N+1);
+}
+
+int main() {
+    //freopen("yash_and_trees.in", "r", stdin);
+    //freopen("yash_and_trees.out", "w", stdout);
+    build_sieve();
+    int N;
+    cin>>N>>M;
+    init(N);
+    for (int i = 1; i <= N; ++i) {
+        int t;
+        scanf("%d", &t);
+        values[i] = t;
+    }
+    for (int i = 0; i < N - 1; ++i) {
+        int a, b;
+        //cin>>a>>b;
+        scanf("%d %d", &a, &b);
+        graph[a].push_back(b);
+        graph[b].push_back(a);
+    }
+    preorder(1);
+    Node tree(1, N);
+
+    /*for (int i = 1; i <= N; ++i) {
+        printf("i = %d pre %d inv_pre %d nson %d\n", i, pre[i], inv_pre[i], sons[i]);
+    }*/
+    //traverse_tree(tree);
+    int c;
+    //cin>>c;
+    scanf("%d", &c);
+
+    for (int i = 0; i < c; ++i) {
+        int type;
+        //cin>>type;
+        scanf("%d", &type);
+        if(type == 1) {
+            int v, x;
+            scanf("%d %d", &v, &x);
+            lazy[v] += x;
+            tree_sum(&tree, pre[v], pre[v] + sons[v]-1, x);
+            //printf("after sum %d\n", x);
+            //traverse_tree(tree);
+            /*for (int j = 1; j <= N; ++j) {
+                printf("j %d val %d\n", j, values[j]);
+            }*/
+        }
+        else {
+            int v;
+            scanf("%d", &v);
+            //printf("querying\n");
+            bitset<1000> ans = query(&tree, pre[v], pre[v]+sons[v]-1);
+            printf("%d\n", ans.count());
+            //traverse_tree(tree);
+        }
+    }
+
+    return 0;
+}

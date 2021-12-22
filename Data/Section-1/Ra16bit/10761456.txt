@@ -1,0 +1,79 @@
+#include <cstdio>
+#include <queue>
+#include <algorithm>
+using namespace std;
+typedef pair<long long, long long> pll;
+int n,i,l,r,h,x[100100],a[100100];
+long long pos,rgh,prev,need,res;
+priority_queue<pll> q,w;
+vector<pll> s;
+pll pp;
+int main() {
+  scanf("%d",&n);
+  for (i=0; i<=n+1; i++) {
+    scanf("%d",&x[i]);
+    x[i]*=2;
+  }
+  for (i=1; i<=n+1; i++) {
+    if (i<=n) {
+      scanf("%d",&a[i]);
+      a[i]*=2;
+    }
+    prev=x[0];
+    while (!q.empty()) {
+      pos=q.top().first;
+      rgh=q.top().second;
+      if (rgh>=x[i]) {
+        prev=pos;
+        break;
+      }
+      q.pop();
+    }
+    if (i==n+1) {
+      if (prev!=x[0]) {
+        puts("0");
+        return 0;
+      }
+      break;
+    }
+    need=x[i]-(prev+x[i])/2;
+    if (need<=a[i]) {
+      pp=make_pair(x[i],x[i]+(a[i]-need)*2LL);
+      q.push(pp);
+      //while (!s.empty() && s.back().second<=pp.second) s.pop_back();
+      s.push_back(pp);
+    }
+  }
+  res=(x[n+1]-x[0])/2;
+  if (!s.empty()) {
+    pos=s.back().second;
+    res=(x[n+1]-s.back().first)/2;
+  }
+  for (i=n; i>0; i--) {
+    prev=x[n+1];
+    while (!w.empty()) {
+      pos=w.top().first;
+      rgh=w.top().second;
+      if (rgh<=x[i]) {
+        prev=pos;
+        break;
+      }
+      w.pop();
+    }
+    need=(prev+x[i])/2-x[i];
+    if (need<=a[i]) {
+      pp=make_pair(x[i],x[i]-(a[i]-need)*2LL);
+      w.push(pp);
+      if (s.size()>0 && s[0].second>=pp.second && s[0].first<pp.first) {
+        l=0; r=int(s.size())-1;
+        while (l<r) {
+          h=(l+r)/2+1;
+          if (s[h].second>=pp.second && s[h].first<pp.first) l=h; else r=h-1;
+        }
+        res=min(res,abs(s[l].first-x[i])/2);
+      }
+    }
+  }
+  printf("%.8lf\n",res*0.5);
+  return 0;
+}

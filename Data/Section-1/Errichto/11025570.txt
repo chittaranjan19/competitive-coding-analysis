@@ -1,0 +1,102 @@
+#include<cstdio>
+#include<vector>
+#include<algorithm>
+#include<cstring>
+#include<assert.h>
+using namespace std;
+#define FOR(i,a,b) for(int i = a; i <= b; ++i)
+#define FORD(i,a,b) for(int i = a; i >= b; --i)
+#define RI(i,n) FOR(i,1,n)
+#define REP(i,n) FOR(i,0,(n)-1)
+#define mini(a,b) a=min(a,b)
+#define maxi(a,b) a=max(a,b)
+#define mp make_pair
+#define pb push_back
+#define st first
+#define nd second
+#define sz(w) (int) w.size()
+bool debug;
+typedef vector<int> vi;
+typedef long long ll;
+typedef long double ld;
+typedef pair<int,int> pii;
+const int inf = 1e9 + 5;
+const ll INF = (ll) inf * inf;
+const int nax = 3005;
+
+int zap[2][3];
+vi w[nax];
+int n;
+bool vis[nax];
+int d[nax][nax];
+
+void bfs(int sta) {
+	d[sta][sta] = 0;
+	RI(i, n) vis[i] = false;
+	vis[sta] = true;
+	vi kol;
+	kol.pb(sta);
+	while(!kol.empty()) {
+		vi nowy;
+		for(auto a : kol) for(auto b : w[a]) if(!vis[b]) {
+			vis[b] = true;
+			nowy.pb(b);
+			d[sta][b] = d[sta][a] + 1;
+		}
+		kol = nowy;
+	}
+}
+
+int main(int argc, char *argv[])
+{
+	debug = argc > 1;
+	
+	int m;
+	scanf("%d%d", &n, &m);
+	REP(_, m) {
+		int a, b;
+		scanf("%d%d", &a, &b);
+		w[a].pb(b);
+		w[b].pb(a);
+	}
+	REP(i, 2) REP(j, 3) scanf("%d", &zap[i][j]);
+	RI(sta, n) bfs(sta);
+	int res = inf;
+	
+	bool ok = true;
+	REP(i, 2) if(d[zap[i][0]][zap[i][1]] > zap[i][2]) ok = false;
+	if(ok) {
+		res = 0;
+		REP(i, 2) res += d[zap[i][0]][zap[i][1]];
+	}
+	
+	RI(a, n) RI(b, n) {
+		ok = true;
+		REP(i, 2)
+			if(d[zap[i][0]][a] + d[a][zap[i][1]] > zap[i][2] &&
+			d[zap[i][0]][b] + d[b][zap[i][1]] > zap[i][2])
+				ok = false;
+		if(ok) {
+			int pom = d[a][b];
+			pom += d[zap[0][0]][a] + d[a][zap[0][1]];
+			pom += d[zap[1][0]][b] + d[b][zap[1][1]];
+			mini(res, pom);
+			
+			pom = d[a][b];
+			pom += d[zap[0][0]][a] + d[a][zap[1][0]];
+			pom += d[zap[0][1]][b] + d[b][zap[1][1]];
+			mini(res, pom);
+			
+			pom = d[a][b];
+			pom += d[zap[0][0]][a] + d[a][zap[1][1]];
+			pom += d[zap[0][1]][b] + d[b][zap[1][0]];
+			mini(res, pom);
+		}
+	}
+	
+	if(res == inf) res = -1;
+	else res = m - res;
+	printf("%d\n", res);
+	
+	return 0;
+}

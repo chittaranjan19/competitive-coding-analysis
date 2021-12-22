@@ -1,0 +1,84 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int n,m,dp[42][2<<6][2<<6];
+int bit[2<<6];
+int pw(int x){
+	return (1<<x);
+}
+int rec(int x,int last,int now){
+	if(x==n){
+		if(!(last&pw(0)) and !(now&pw(1)) and !(now&pw(0)))
+			return INF;	
+		for(int i=2;i<m;i++)
+			if(!(last&pw(i-1)) and !(now&pw(i-2)) and !(now&pw(i-1)) and !(now&pw(i)))
+				return INF;	
+		if(!(last&pw(m-1)) and !(now&pw(m-1)) and !(now&pw(m-2)))
+			return INF;	
+		return 0;	
+	}
+	int &ret=dp[x][last][now];
+	if(~ret)
+		return ret;ret=INF;
+	for(int mask=0;mask<(1<<m);mask++){
+		if(!(last&pw(0)) and !(mask&pw(0)) and !(now&pw(0)) and !(now&pw(1)))
+			return ret=INF;	
+		for(int i=2;i<m;i++)
+			if(!(last&pw(i-1)) and !(mask&pw(i-1)) and !(now&pw(i-1))and !(now&pw(i-2)) and !(now&pw(i)))
+				return ret=INF;	
+		if(!(last&pw(m-1)) and !(mask&pw(m-1)) and !(now&pw(m-1)) and !(now&pw(m-2)))
+			return ret=INF;	
+		umin(ret,rec(x+1,now,mask)+bit[mask]);	
+	}
+	return ret;
+}
+int main(){
+	memset(dp,-1,sizeof dp);
+	for(int i=0;i<(1<<6);i++)
+		bit[i]=__builtin_popcount(i);
+	//~ #ifndef ONLINE_JUDGE
+    //~ freopen("file.in", "r", stdin);
+	//~ #endif	
+	scanf("%d%d",&n,&m);
+	if(n<m)
+		swap(n,m);
+	if(n==1){
+		printf("0\n");
+		return 0;
+	}	
+	if(m==1){
+		printf("%d\n",n-(n/3+(n%3!=0)));
+		return 0;
+	}
+	int ans=INF;	
+	for(int now=0;now<(1<<m);now++)
+		for(int mask=0;mask<(1<<m);mask++){	
+			bool flag=1;
+			if(!(mask&pw(0)) and !(now&pw(1)) and !(now&pw(0)))
+				flag=0;
+			for(int i=2;i<m;i++)
+				if(!(mask&pw(i-1)) and !(now&pw(i-2)) and !(now&pw(i-1)) and !(now&pw(i)))
+					flag=0;
+			if(!(mask&pw(m-1)) and !(now&pw(m-1)) and !(now&pw(m-2)))
+				flag=0;
+			if(flag)	
+				umin(ans,rec(2,now,mask)+bit[now]+bit[mask]);
+		}
+	printf("%d\n",n*m-ans);	
+	return 0;
+}

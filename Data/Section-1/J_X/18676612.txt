@@ -1,0 +1,80 @@
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 100 + 5;
+
+string s1, s2;
+char ss1[maxn], ss2[maxn];
+int ans;
+bool used[15];
+
+void change(int x, string &s)
+{
+    if(x == 0)
+    {
+        s = "0";
+        return;
+    }
+    while(x)
+    {
+        s.push_back(x % 7 + '0');
+        x /= 7;
+    }
+    reverse(s.begin(), s.end());
+}
+
+void dfs(int th)
+{
+    if(th == s1.size() + s2.size())
+    {
+        ss2[s2.size()] = 0;
+        if((string)ss2 <= s2)
+        {
+//            cout << ss1 << ' ' << ss2 << endl;
+            ++ans;
+        }
+        return;
+    }
+    for(int i = 0; i < 7; ++i)
+    {
+        if(used[i]) continue;
+        used[i] = true;
+        if(th < s1.size())
+        {
+            ss1[th] = i + '0';
+            dfs(th + 1);
+        }
+        else if(th == s1.size())
+        {
+            ss1[th] = 0;
+            ss2[0] = i + '0';
+            if(string(ss1) <= s1) dfs(th + 1);
+        }
+        else
+        {
+            ss2[th - s1.size()] = i + '0';
+            dfs(th + 1);
+        }
+        used[i] = false;
+    }
+}
+
+int main()
+{
+    int n, m;
+    cin >> n >> m;
+    change(n - 1, s1), change(m - 1, s2);
+//    cout << s1 << ' ' << s2 << endl;
+    if(s1.size() + s2.size() > 7) cout << "0" << endl;
+    else
+    {
+        ans = 0;
+        dfs(0);
+        cout << ans << endl;
+    }
+    return 0;
+}

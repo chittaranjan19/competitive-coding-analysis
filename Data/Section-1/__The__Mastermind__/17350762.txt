@@ -1,0 +1,125 @@
+#include <bits/stdc++.h>
+#define forinc(i,a,b) for(int i = a, _key = b; i <= _key; i++)
+#define fordec(i,a,b) for(int i = a, _key = b; i >= _key; i--)
+#define fori(i,n) for(int i = 0, _key = n; i < _key; i++)
+#define ford(i,n) for(int i = n - 1; i >= 0; i--)
+#define forvct(i,v) for(int i = 0, _key = v.size(); i < _key; i++)
+#define task "x"
+#define st first
+#define nd second
+#define m_p make_pair
+#define p_b push_back
+#define p_f push_front
+#define ll long long
+#define db double
+#define str string
+#define base 1000000007
+#define nn 100010
+
+using namespace std;
+
+bool ok;
+int n, m, res, c1, c2, rem, key, a[nn], d[nn], b[nn];
+vector <int> adj[nn], c[nn];
+
+void visit(const int &u)
+{
+    c1++;
+    if (d[u] == 1) c2++;
+    forvct(j,adj[u])
+    {
+        int v = adj[u][j];
+        if (d[v])
+        {
+            if ((c[u][j] == key && d[u] != d[v]) || (c[u][j] != key && d[u] == d[v]))
+            {
+                ok = false;
+                return;
+            }
+        }
+        else
+        {
+            if (c[u][j] == key) d[v] = d[u]; else d[v] = 3 - d[u];
+            visit(v);
+            if (!ok) return;
+        }
+    }
+}
+
+void color(const int &u)
+{
+    if (d[u] == rem) a[u] = 1; else a[u] = 2;
+    forvct(j,adj[u])
+    {
+        int v = adj[u][j];
+        if (!a[v]) color(v);
+    }
+}
+
+void check()
+{
+    memset(d,0,sizeof d);
+    memset(a,0,sizeof a);
+    int tmp = 0;
+    ok = true;
+    forinc(u,1,n)
+        if (!d[u])
+        {
+            c1 = 0;
+            c2 = 0;
+            d[u] = 1;
+            visit(u);
+            if (!ok) return;
+            if (c2 < c1 - c2) rem = 1; else rem = 2;
+            color(u);
+            tmp += min(c2,c1 - c2);
+        }
+    if (res > tmp)
+    {
+        res = tmp;
+        forinc(i,1,n) b[i] = a[i];
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(0);
+    //freopen(task".inp","r",stdin);
+    //freopen(task".out","w",stdout);
+    cin >> n >> m;
+    int u, v;
+    char ch;
+    forinc(i,1,m)
+    {
+        cin >> u >> v >> ch;
+        adj[u].p_b(v);
+        adj[v].p_b(u);
+        if (ch == 'R')
+        {
+            c[u].p_b(0);
+            c[v].p_b(0);
+        }
+        else
+        {
+            c[u].p_b(1);
+            c[v].p_b(1);
+        }
+    }
+    res = base;
+    key = 0;
+    check();
+    key = 1;
+    check();
+    if (res > n)
+    {
+        cout << -1;
+        return 0;
+    }
+    else
+    {
+        cout << res << "\n";
+        forinc(i,1,n)
+            if (b[i] == 1) cout << i << " ";
+    }
+}

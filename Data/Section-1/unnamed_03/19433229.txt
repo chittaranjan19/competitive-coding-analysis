@@ -1,0 +1,100 @@
+#include<cstdio>
+#include<cstring>
+#include<iostream>
+#include<cmath>
+#include<algorithm>
+using namespace std;
+int x[10010],y[10010];
+int B,n,m,f[110][110][500],num[110][110];
+int find(int a,int b,int x)
+{
+	if(f[a][b][x]==x)return x;
+	else return f[a][b][x]=find(a,b,f[a][b][x]);
+}
+void init()
+{
+//	cout<<"**"<<m<<endl;
+	for(int i=0;i*B<=m;i++)
+	{
+//		cout<<i<<endl;
+		if(!i)
+		{
+			for(int j=1;j<=n;j++)f[0][0][j]=j;
+			num[0][0]=n;
+		}
+		else 
+		{
+			for(int j=1;j<=n;j++)f[i][0][j]=f[i-1][0][j];
+			num[i][0]=num[i-1][0];
+		}
+		if(i)for(int k=(i-1)*B+1;k<=(i*B);k++)
+		{
+			int a=find(i,0,x[k]);
+			int b=find(i,0,y[k]);
+			if(a!=b)f[i][0][a]=b,num[i][0]--;
+		}
+		for(int j=1;(i+j)*B<=m;j++)
+		{
+			for(int l=1;l<=n;l++)f[i][j][l]=f[i][j-1][l];
+			num[i][j]=num[i][j-1];
+			for(int k=m-(j-1)*B;k>m-(j*B);k--)
+			{
+				int a=find(i,j,x[k]);
+				int b=find(i,j,y[k]);
+				if(a!=b)f[i][j][a]=b,num[i][j]--;
+			}
+		}
+	}
+//	for(int i=1;i*B<=m;i++)
+//	cout<<num[i][0]<<" ";cout<<endl;
+	return ;
+}
+int p[500],ans;
+int FIND(int x)
+{
+	return p[x]==x ? x:p[x]=FIND(p[x]);
+}
+int query(int l,int r)
+{
+	l--;r++;
+	int a,b;a=b=0;
+	while(a*B<=l)a++;a--;
+	while(m-b*B+1>=r)b++;b--;
+	for(int i=1;i<=n;i++)p[i]=f[a][b][i];
+	ans=num[a][b];
+//	cout<<a<<" "<<b<<endl;
+//	system("pause"); 
+	for(int i=a*B+1;i<=l;i++)
+	{
+		int a=FIND(x[i]);
+		int b=FIND(y[i]);
+		if(a!=b)p[a]=b,ans--;
+	}
+	for(int i=r;i<=m-b*B;i++)
+	{
+		int a=FIND(x[i]);
+		int b=FIND(y[i]);
+		if(a!=b)p[a]=b,ans--;
+	}
+	return ans;
+}
+int main()
+{
+	freopen("test.in","r",stdin);
+	freopen("my.out","w",stdout);
+	cin>>n>>m;
+	B=sqrt(m);
+//	cout<<B<<endl;
+//	system("pause");
+	for(int i=1;i<=m;i++)
+	scanf("%d%d",&x[i],&y[i]);
+	init();
+	int q;cin>>q;
+	for(int i=1;i<=q;i++)
+	{
+		int a,b;scanf("%d%d",&a,&b);
+		printf("%d\n",query(a,b));
+//		system("pause"); 
+	}
+	return 0;
+} 

@@ -1,0 +1,157 @@
+/*	 Hello World!	*/
+
+#include <bits/stdc++.h>
+
+#define pb push_back
+#define pf push_front
+#define mp make_pair
+#define f first
+#define s second
+#define let(x,a) __typeof(a) x(a)
+#define all(a) (a).begin(),(a).end() 
+#define endl '\n'
+#define present(c,x) ((c).find(x) != (c).end()) 
+#define tr(v,it) for( let(it,v.begin()) ; it != v.end() ; it++)
+#define rtr(v,it) for( let(it,v.rbegin()) ; it != v.rend() ; it++)
+#define rep1(i,n) for(int i=0; i<(int)n;i++)
+#define rep2(i,a,b) for(int i=(int)a; i<=(int)b; i++)
+
+#define trace1(x)                cerr << #x << ": " << x << endl;
+#define trace2(x, y)             cerr << #x << ": " << x << " | " << #y << ": " << y << endl;
+#define trace3(x, y, z)          cerr << #x << ": " << x << " | " << #y << ": " << y << " | " << #z << ": " << z << endl;
+#define trace4(a, b, c, d)       cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << endl;
+#define trace5(a, b, c, d, e)    cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << endl;
+#define trace6(a, b, c, d, e, f) cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << " | " << #f << ": " << f << endl;
+
+#define LL long long int
+#define PII pair<int,int>
+#define VI vector<int>
+#define inf INT_MAX
+
+using namespace std;
+
+void FastIO()
+{
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	cout.tie(NULL);
+}
+
+LL mod=2e9+10;
+
+class SegmentTree
+{
+public: 
+	vector<int> st;
+	vector<int> lazy;
+	VI A;
+	int n;
+	int left(int p)
+	{
+		return (p<<1)+1;
+	}
+	int right(int p)
+	{
+		return (p<<1)+2;
+	}
+	void build(int p, int l, int r)
+	{
+		if(l==r) st[p]=A[l];
+		else
+		{
+			build(left(p),l,(l+r)/2);
+			build(right(p),(l+r)/2+1,r);
+			st[p] = st[left(p)]+st[right(p)];
+		}
+	}
+	SegmentTree(VI a)
+	{
+		A=a;
+		n=(int)A.size();
+		st.assign(4*n,0);
+		lazy.assign(4*n,0);
+		build(0,0,n-1);
+	}
+	void lazyUpdate(int pos, int l, int r)
+	{
+		st[pos] += lazy[pos]*(r-l+1);
+		if(l!=r)
+		{
+			lazy[left(pos)] += lazy[pos];
+			lazy[right(pos)] += lazy[pos];
+		}
+		lazy[pos]=0;
+	}
+	int query(int pos, int l, int r, int i, int j)
+	{
+		lazyUpdate(pos,l,r);
+		if(i>r || j<l || l>r) return 0;
+		if(i<=l && r<=j)
+		{
+			return st[pos];
+		}
+		LL q1=query(left(pos),l,(l+r)/2,i,j);
+		LL q2=query(right(pos),(l+r)/2+1,r,i,j);
+		return (q1+q2)%mod;
+	}
+	void update(int pos, int l, int r, int i, int j, int val)
+	{
+		lazyUpdate(pos,l,r);
+		if(i>r || j<l || l>r) return;
+		if(i<=l && r<=j)
+		{
+			st[pos] += val*(r-l+1);
+			if(l!=r)
+			{
+				lazy[left(pos)] += val;
+				lazy[right(pos)] += val;
+			}
+			return;
+		}
+		update(left(pos),l,(l+r)/2,i,j,val);
+		update(right(pos),(l+r)/2+1,r,i,j,val);
+		st[pos]=(st[left(pos)]+st[right(pos)]);
+	}
+};
+
+int main()
+{
+	FastIO();
+	int n,k,a,b,q,d,x,p,type;
+	cin>>n>>k>>a>>b>>q;
+	VI V1(n,0),V2(n,0),V3(n,0);
+	SegmentTree ST2(V2);
+	SegmentTree ST3(V3);
+	while(q--)
+	{
+		cin>>type;
+		if(type==1)
+		{
+			cin>>d>>x;
+			d--;
+			V1[d]+=x;
+			ST2.update(0,0,n-1,d,d,min(b,V1[d])-V2[d]);
+			V2[d]=min(b,V1[d]);
+			ST3.update(0,0,n-1,n-d-1,n-d-1,min(a,V1[d])-V3[n-d-1]);
+			V3[n-d-1]=min(a,V1[d]);
+		}
+		else
+		{
+			cin>>p;
+			p--;
+			int temp1=0,temp2=0;
+			if(p)
+			{
+				temp1=ST2.query(0,0,n-1,0,p-1);
+			}
+			p+=k-1;
+			p=n-p-1;
+			if(p)
+			{
+				temp2=ST3.query(0,0,n-1,0,p-1);
+			}
+			cout<<temp1+temp2<<endl;
+		}
+	}
+	return 0;
+}

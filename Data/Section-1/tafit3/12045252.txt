@@ -1,0 +1,135 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemB {
+    BufferedReader rd;
+
+    ProblemB() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        rd.readLine();
+        int[] a = intarr();
+        NavigableMap<Integer, Set<Integer>> byCount = new TreeMap<>();
+        Map<Integer, int[]> mmcMap = new HashMap<>();
+        for(int i=0;i<a.length;i++) {
+            int x = a[i];
+            int[] mmc = mmcMap.get(x);
+            if(mmc == null) {
+                mmc = new int[] { i, i, 1 };
+                mmcMap.put(x, mmc);
+                addToMap(byCount, 1, x);
+            } else {
+                mmc[1] = i;
+                removeFromMap(byCount, mmc[2], x);
+                mmc[2]++;
+                addToMap(byCount, mmc[2], x);
+            }
+        }
+        Map.Entry<Integer, Set<Integer>> last = byCount.lastEntry();
+        int[] s = new int[] { 0, a.length-1 };
+        for(Integer v: last.getValue()) {
+            int[] mmc = mmcMap.get(v);
+            if(mmc[1] - mmc[0] < s[1]-s[0]) {
+                s[0] = mmc[0];
+                s[1] = mmc[1];
+            }
+        }
+        out((s[0]+1)+" "+(s[1]+1));
+    }
+
+    private void removeFromMap(NavigableMap<Integer, Set<Integer>> m, int key, int value) {
+        Set<Integer> s = m.get(key);
+        if(s != null && s.contains(value)) {
+            if(s.size() == 1) {
+                m.remove(key);
+            } else {
+                s.remove(value);
+            }
+        }
+    }
+
+    private void addToMap(NavigableMap<Integer, Set<Integer>> m, int key, int value) {
+        Set<Integer> s = m.get(key);
+        if(s == null) {
+            s = new HashSet<>();
+            m.put(key, s);
+        }
+        s.add(value);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB();
+    }
+}

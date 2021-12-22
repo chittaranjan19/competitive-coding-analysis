@@ -1,0 +1,102 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1010;
+const int inc[4][2] = {{0, 1}, {0, -1}, {-1, 0}, {1, 0}};
+
+int N, M;
+char A[MAXN][MAXN];
+pii par[MAXN][MAXN];
+int sz[MAXN][MAXN];
+
+#define get(mat, p) (mat)[(p).fi][(p).se]
+
+vector<pii> vfind;
+
+pii find (pii x) {
+	//oops. this is hard.
+	while (x != get(par, x)) {
+		vfind.push_back(x);
+		x = get(par, x);
+	}
+	for (pii p : vfind) {
+		get(par, p) = x;
+	}
+	vfind.clear();
+	return x;
+}
+
+void merge (pii x, pii y) {
+	x = find(x);
+	y = find(y);
+	if (x == y) {
+		return;
+	}
+	get(par, x) = y;
+	get(sz, y) += get(sz, x);
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d", &N, &M);
+	vfind.reserve(N * M);
+	for (int i = 0; i < N; i++) {
+		scanf("%s", A[i]);
+		for (int j = 0; j < M; j++) {
+			par[i][j] = pii(i, j);
+			sz[i][j] = 1;
+		}
+	}
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < M; j++) {
+			if (A[i][j] == '.') {
+				if (A[i + 1][j] == '.') {
+					merge(pii(i, j), pii(i + 1, j));
+				}
+				if (A[i][j + 1] == '.') {
+					merge(pii(i, j), pii(i, j + 1));
+				}
+			}
+		}
+	}
+
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < M; j++) {
+			if (A[i][j] == '*') {
+				vector<pii> comps;
+				for (int k = 0; k < 4; k++) {
+					pii p(i + inc[k][0], j + inc[k][1]);
+					if (0 <= p.fi && p.fi < N && 0 <= p.se && p.se < M && get(A, p) == '.') {
+						// printf("i = %d, j = %d. (%d, %d) -> (%d, %d) with size %d\n", i, j, p.fi, p.se, find(p).fi, find(p).se, get(sz, find(p)));
+						comps.push_back(find(p));
+					}
+				}
+				sort(all(comps));
+				comps.resize(unique(all(comps)) - comps.begin());
+				int ans = 1;
+				for (pii p : comps) {
+					ans += get(sz, p);
+				}
+				A[i][j] = '0' + ans % 10;
+			}
+		}
+	}
+
+	for (int i = 0; i < N; i++) {
+		puts(A[i]);
+	}
+}

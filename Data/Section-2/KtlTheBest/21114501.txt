@@ -1,0 +1,64 @@
+#include <iostream>
+#include <vector>
+#include <stack>
+using namespace std;
+
+#define fr first
+#define sc second
+#define pb push_back
+#define mkp make_pair
+
+const int INF = 2e9;
+
+int n, m, T, d[5001][5001], pr[5001][5001];
+stack <int> st;
+vector <pair <int, int> > v[5001];
+
+int main(){
+	cin >> n >> m >> T;
+	for(int i = 0; i < m; ++ i){
+		int x, y, w;
+		cin >> x >> y >> w;
+		v[x].pb(mkp(y, w));
+	}
+	for(int i = 1; i <= n; ++ i){
+		for(int j = 1; j <= n; ++ j){
+			d[i][j] = INF;
+		}
+	}
+	d[1][1] = 0;
+	for(int k = 1; k < n; ++ k){
+		for(int x = 1; x < n; ++ x){
+			if(d[x][k] != INF){
+				for(int i = 0; i < v[x].size(); ++ i){
+				 	int to = v[x][i].fr;
+				 	int wg = v[x][i].sc;
+				 	if(1ll * d[x][k] + wg <= T && d[x][k] + wg < d[to][k + 1]){
+				 		d[to][k + 1] = d[x][k] + wg;
+				 		pr[to][k + 1] = x;
+				 	}
+				}
+			}
+		}
+	}
+	int lvl, cur;
+	for(int i = n; i > 1; -- i){
+		if(d[n][i] <= T){
+			lvl = i;
+			break;
+		}
+	}
+	cout << lvl << '\n';
+	cur = n;
+	while(lvl > 1){
+    	st.push(cur);
+    	cur = pr[cur][lvl];
+    	lvl --;
+    }
+    st.push(1);
+    while(st.size()){
+    	cout << st.top() << ' ';
+    	st.pop();
+    }
+	return 0;
+}

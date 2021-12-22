@@ -1,0 +1,91 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+#define EPS 1E-5
+
+struct point { double x, y; };
+double cross(point p, point q, point r) // cross product of vectors qr and qp
+{
+return (r.x - q.x) * (p.y - q.y) - (r.y - q.y) * (p.x - q.x);
+}
+// Producto punto
+double dot(point p, point q) { return p.x * q.x + p.y * q.y; }
+// Modulo^2 de un punto (distancia al origen)
+double norm(point p) { return p.x * p.x + p.y * p.y; }
+double angle(point a, point o, point b) // Angulo AOB en radianes
+{
+point u={a.x - o.x, a.y - o.y}; // u: vector oa
+point v={b.x - o.x, b.y - o.y}; // v: vector ob
+return acos(dot(u, v) / sqrt(norm(u) * norm(v))); // Definicion prod punto
+}
+bool inPolygon(point p, vector<point> P)
+{
+double sum = 0.0;
+int n = (int)P.size();
+for(int i = 0; i < n; i++)
+if(cross(p, P[i], P[(i + 1) % n]) < 0)
+sum -= angle(P[i], p, P[(i + 1) % n]);
+else
+sum += angle(P[i], p, P[(i + 1) % n]);
+return fabs(fabs(sum) - 2 *M_PI) < EPS; // Suma debe ser 360
+}
+int comparar(double d1, double d2)
+{
+    if(d2 - d1 > EPS) return -1;
+    if(d1 - d2 > EPS) return 1;
+    return 0;
+}
+int turn(point p, point q, point r)
+{
+    double result = (r.x - q.x) * (p.y - q.y) - (r.y - q.y) * (p.x - q.x);
+    return comparar(result, 0);
+}
+bool cw(point p, point q, point r)
+{
+    return turn(p, q, r) < 0;
+    // Para que NO acepte puntos colineares:
+    // return turn(p, q, r) <= 0;
+}
+bool cmp(point p1,point p2)
+{
+    return p1.x < p2.x || (p1.x == p2.x && p1.y < p2.y);
+}
+vector<point> convexHull(vector<point> P)
+{
+    int n = (int)P.size(), k = 0;
+    vector<point> H(2 * n);
+    sort(P.begin(), P.end(),cmp);
+    for(int i = 0; i < n; i++) // Hull superior
+    {
+    while(k >= 2 && cw(H[k - 2], H[k - 1], P[i])) k--;
+    H[k++] = P[i];
+    }
+    for(int i = n - 2, t = k + 1; i >= 0; i--) // Hull inferior
+    {
+    while(k >= t && cw(H[k - 2], H[k - 1], P[i])) k--;
+    H[k++] = P[i];
+    }
+    H.resize(k); H.pop_back(); // Eliminamos el ultimo punto
+    return H;
+}
+int main(){
+    int n;
+    cin>>n;
+    ll x,y;
+    cin>>x>>y;
+    ll outer=0,inner=10000000000000000LL;
+    vector<point> vp;
+    for(int i=0;i<n;++i){
+        ll a,b;
+        cin>>a>>b;
+        a-=x;b-=y;
+        point p={a,b};
+        vp.push_back(p);
+        outer=max(outer,a*a+b*b);
+        inner=min(inner,a*a+b*b);
+    }
+    vector<point> convex=convexHull(vp);
+    point origin={0,0};
+    if(inPolygon(origin,convex)) inner=0;
+    printf("%.07f",M_PI*(outer-inner));
+}

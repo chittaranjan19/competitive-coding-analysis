@@ -1,0 +1,76 @@
+// In The Name Of ALLAH
+
+#include<bits/stdc++.h>
+#define LL long long
+#define LB long double
+#define ALL(X) X.begin(),X.end()
+#define DD(X) cout<<#X<<' '<<X<<endl;
+#define MP make_pair
+#define Speed_Up; ios_base::sync_with_stdio(0),cin.tie(0),cout.tie(0);
+#define int long long
+#define X.size() int(X.size())
+
+using namespace std;
+
+const long long MOD=1000*1000*1000+7;
+const long long MAXN=1e6+100;
+const long long MAXM=200+50;
+const long long INF=1e15;
+
+const long long dx[4]={0,0,-1,+1};
+const long long dy[4]={+1,-1,0,0};
+
+ifstream fin("input.txt");
+ofstream fout("output.txt");
+
+vector <pair<int,int> >ver[MAXN];
+set<pair<pair<pair<int,int>,int>,int> >E;
+int par[MAXN];
+int val[MAXN];
+set<pair<int,int>> s;
+main(){
+	int n,m;
+	cin>>n>>m;
+	fill(val,val+n,INF);
+	fill(par,par+n,INF);
+	for(int i=0;i<m;i++){
+		int x,y,z;
+		cin>>x>>y>>z;
+		x--,y--;
+		ver[x].push_back(make_pair(y,z));
+		ver[y].push_back(make_pair(x,z));
+		E.insert(MP(MP(MP(x,y),z),i));
+		E.insert(MP(MP(MP(y,x),z),i));
+	}
+	
+	int S;
+	cin>>S;
+	S--;
+	val[S]=0;
+	s.insert(MP(0,S));
+	while(s.size()){
+		int v=s.begin()->second;
+		//cout<<v<<' ';
+		s.erase(MP(val[v],v));
+		for(auto u:ver[v])
+			if(val[u.first]>val[v]+u.second){
+				s.erase(MP(val[u.first],u.first));
+				val[u.first]=val[v]+u.second;
+				par[u.first]=v;
+				s.insert(MP(val[u.first],u.first));
+			}
+			else if(val[u.first]==val[v]+u.second && u.second<(*E.lower_bound(MP(MP(MP(u.first,par[u.first]),0),0))).first.second)
+				par[u.first]=v;
+	
+	}
+	vector<int>ans;
+	int res=0;
+	for(int i=0;i<n;i++){
+		if(i==S)continue;
+		ans.push_back(E.lower_bound(MP(MP(MP(i,par[i]),0),0))->second);
+		res+=(*E.lower_bound(MP(MP(MP(i,par[i]),0),0))).first.second;
+	}
+	cout<<res<<'\n';
+	for(auto e:ans)cout<<e+1<<' ';
+	
+}

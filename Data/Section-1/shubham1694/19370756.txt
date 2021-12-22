@@ -1,0 +1,101 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxt = 100010;
+const int maxn = 305;
+
+ll dp[maxn][maxt], vis[maxn], d[maxn], value[maxn], cycle = 0;
+vector<ll> adj[maxn], radj[maxn];
+ll n, q, t, cnt = 0;
+
+void dfs(int cur)
+{
+	vis[cur] = 1;
+	cnt++;
+	for(auto it : adj[cur]){
+		if(!vis[it])
+			dfs(it);
+		else
+			cycle = 1;
+	}
+}
+
+void dfs1(int cur, int prev)
+{
+	value[cur] += prev;
+	t -= prev;
+	for(auto it : adj[cur]){
+		dfs1(it, value[cur]);
+	}
+}
+
+ll solve(int cur, ll sum)
+{
+	if(cur==0)
+		return sum==0;
+	if(dp[cur][sum] != -1)
+		return dp[cur][sum];
+	ll ret = solve(cur-1, sum);
+	if(value[cur] <= sum)
+		ret = (ret + solve(cur, sum-value[cur]))%mod;
+	return dp[cur][sum] = ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	memset(dp, -1, sizeof(dp));
+	ll i, j, b, c;
+	scanf("%lld%lld%lld", &n, &q, &t);
+	for(i=1; i<=n; i++)
+		scanf("%lld", &value[i]);
+	for(i=1; i<=q; i++){
+		scanf("%lld%lld", &b, &c);
+		adj[b].pb(c);
+		radj[c].pb(b);
+		++d[c];
+	}
+	for(i=1; i<=n; i++){
+		if(!vis[i] && !d[i]){
+			dfs(i);
+			if(cycle){
+				printf("0\n");
+				return 0;
+			}
+		}
+	}
+	if(cnt<n){
+		printf("0\n");
+		return 0;
+	}
+	for(i=1; i<=n; i++){
+		if(radj[i].empty())
+			dfs1(i, 0);
+	}
+	// for(i=1; i<=n; i++)
+	// 	cout << i << " " << value[i] << "\n";
+	// cout << t << "\n";
+	if(t<0){
+		printf("0\n");
+		return 0;
+	}
+	ll ans = solve(n, t);
+	printf("%lld\n", ans);
+	return 0;
+}

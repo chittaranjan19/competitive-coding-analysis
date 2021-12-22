@@ -1,0 +1,220 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Deque;
+
+public class ProblemD {
+    BufferedReader rd;
+    private long[][] gaps;
+    private long[] a;
+    private int[] gmatch;
+    private int[] bmatch;
+    private int[][] lst;
+
+    ProblemD() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] q = intarr();
+        int n = q[0];
+        int m = q[1];
+        boolean res = false;
+        gaps = new long[n - 1][2];
+        Integer[] ix = null;
+        if (m >= n - 1) {
+            long[] last = new long[0];
+            for (int i = 0; i < n; i++) {
+                long[] c = longarr();
+                if (i > 0) {
+                    gaps[i - 1] = new long[]{c[0] - last[1], c[1] - last[0]};
+                }
+                last = c;
+            }
+            a = longarr();
+            ix = new Integer[a.length];
+            for(int i=0;i<a.length;i++) {
+                ix[i] = i;
+            }
+            Arrays.sort(ix, new Comparator<Integer>() {
+                @Override
+                public int compare(Integer x, Integer y) {
+                    return Long.compare(a[x], a[y]);
+                }
+            });
+            Arrays.sort(a);
+            lst = new int[n-1][];
+            for(int i=0;i<n-1;i++) {
+                int low = Arrays.binarySearch(a, gaps[i][0]);
+                int hi = Arrays.binarySearch(a, gaps[i][1]);
+                if(low < 0) {
+                    low = -low-1;
+                } else {
+                    while(low-1 > 0 && a[low-1] == gaps[i][0]) {
+                        low--;
+                    }
+                }
+                if(hi < 0) {
+                    hi = -hi-1;
+                } else {
+                    while(hi < a.length && a[hi] == gaps[i][1]) {
+                        hi++;
+                    }
+                }
+                lst[i] = low <= hi ? new int[] { low, hi } : new int[] { 0, 0 };
+            }
+            gmatch = new int[n - 1];
+            bmatch = new int[a.length];
+            Arrays.fill(gmatch, -1);
+            Arrays.fill(bmatch, -1);
+            int rc = 0;
+            for (int i = 0; i < n - 1; i++) {
+                if (findMatch(i)) {
+                    rc++;
+                }
+            }
+            res = rc >= n - 1;
+        }
+        out(res ? "Yes" : "No");
+        if (res) {
+            StringBuilder buf = new StringBuilder();
+            for (int i = 0; i < n - 1; i++) {
+                if (i > 0) {
+                    buf.append(' ');
+                }
+                buf.append(ix[gmatch[i]]+1);
+            }
+            out(buf);
+        }
+    }
+
+    private boolean findMatch(int gapSrc) {
+        int u = Math.max(a.length, gaps.length);
+        int[] from = new int[u];
+        int where = 0, match = 0;
+        Arrays.fill(from, -1);
+        from[gapSrc] = gapSrc;
+        Deque<Integer> q = new ArrayDeque<>();
+        q.add(gapSrc);
+        boolean foundPath = false;
+        while (!foundPath && !q.isEmpty()) {
+            where = q.poll();
+            for (int i = lst[where][0]; i < lst[where][1]; ++i) {
+                match = i;
+                int next = bmatch[match];
+                if (where != next) {
+                    if (next == -1) {
+                        foundPath = true;
+                        break;
+                    }
+                    if (from[next] == -1) {
+                        q.add(next);
+                        from[next] = where;
+                    }
+                }
+            }
+        }
+        if (!foundPath) {
+            return false;
+        }
+        while (from[where] != where) {
+            int aux = gmatch[where];
+            gmatch[where] = match;
+            bmatch[match] = where;
+            where = from[where];
+            match = aux;
+        }
+        gmatch[where] = match;
+        bmatch[match] = where;
+        return true;
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for (int i = 0; i < n; i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if (s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for (int i = 0; i < n; i++) {
+            char c = s.charAt(i);
+            if (isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if (lastWhitespace) {
+                    sp++;
+                }
+                if (start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if (start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for (int i = start; i <= end; i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if (w && !lastWhitespace) {
+                res[x++] = s.substring(last, i);
+            } else if (!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last, end + 1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c == ' ' || c == '\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

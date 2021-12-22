@@ -1,0 +1,82 @@
+#include <iostream>
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+
+vector<int> v;
+
+ll cal(string s)
+{
+    ll res = 0, mul = 0;
+    s = '+' + s;
+    for(int i = 0; i < s.size(); i += 2)
+    {
+        if(s[i] == '+')
+        {
+            res += mul;
+            mul = 0;
+            if(i + 2 < s.size() && s[i + 2] == '*')
+            {
+                mul = s[i + 1] - '0';
+            }
+            else
+            {
+                res += s[i + 1] - '0';
+            }
+        }
+        else
+        {
+            mul *= s[i + 1] - '0';
+        }
+    }
+    return res + mul;
+}
+
+int main()
+{
+    string s;
+    while(cin >> s)
+    {
+        s = "1*" + s + "*1";
+        v.clear();
+        ll ans = cal(s);
+        for(int i = 1; i < s.size(); i += 2)
+        {
+            if(s[i] == '*')
+            {
+                v.push_back(i);
+            }
+        }
+        for(int i = 0; i < v.size(); ++i)
+        {
+            for(int j = i + 1; j < v.size(); ++j)
+            {
+//                    ans = max(ans, cal(s.substr(0, v[i]) + '*' + (cal(s.substr(v[i] + 1, v[j] - v[i] - 1)) + '0') + '*' + s.substr(v[j] + 1)));
+                ll temp = cal(s.substr(v[i] + 1, v[j] - v[i] - 1)), l = 0, r = 0;
+                for(int k = v[i]; k >= 0; k -= 2)
+                {
+                    if(s[k] == '+')
+                    {
+                        l = cal(s.substr(0, k));
+                        break;
+                    }
+                    temp *= s[k - 1] - '0';
+                }
+                for(int k = v[j]; k < s.size(); k += 2)
+                {
+                    if(s[k] == '+')
+                    {
+                        r = cal(s.substr(k + 1));
+                        break;
+                    }
+                    temp *= s[k + 1] - '0';
+                }
+                ans = max(ans, l + temp + r);
+            }
+        }
+        cout << ans << endl;
+    }
+    return 0;
+}

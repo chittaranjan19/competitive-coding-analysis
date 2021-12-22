@@ -1,0 +1,65 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+queue<int> ind[26];
+char s[1000005], tmp[50];
+pair<int, int> arr[26];
+map<int, int> m;
+int queries[10005];
+
+int main()
+{
+  scanf("%s", s);
+  int n = strlen(s);
+  for(int i=0;i<n;i++)
+    ind[s[i] - 'a'].push(i);
+  int q;
+  cin >> q;
+  for(int i=0;i<q;i++)
+  {
+    scanf("%s", tmp);
+    int t = strlen(tmp);
+    for(int j=0;j<t;j++)
+      queries[i] |= (1 << (tmp[j] - 'a'));
+    m[queries[i]] = 0;
+  }
+  for(int i=0;i<n;i++)
+  {
+    int sz = 0;
+    for(int j=0;j<26;j++)
+    {
+      if(ind[j].empty()) continue;
+      arr[sz++] = mp(ind[j].front(), j);
+    }
+    sort(arr, arr + sz);
+    int mask = 0;
+    for(int j=0;j<sz;j++)
+    {
+      mask |= (1 << arr[j].s);
+      if(i && (mask & (1 << (s[i - 1] - 'a'))) != 0) break;
+      auto it = m.find(mask);
+      if(it == m.end()) continue;
+      it->s++;
+    }
+    ind[s[i] - 'a'].pop();
+  }
+  for(int i=0;i<q;i++)
+    printf("%d\n", m[queries[i]]);
+  return 0;
+}

@@ -1,0 +1,76 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdio>
+#include <stdlib.h>
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
+const long long inf = (long long)2 * 1e18;
+const long long MOD = (long long)1e9 + 7;
+const long long MAX_N = 100000;
+
+long long n;
+vector<vector<pair<long long, long long> > > graph(MAX_N);
+long long dist[MAX_N];
+unordered_set<long long> wait[MAX_N];
+set<pair<long long, long long> > q;
+bool used[MAX_N];
+
+void deikstra()
+{
+    while (!q.empty())
+    {
+        long long x = q.begin()->second;
+        q.erase(q.begin());
+        used[x] = true;
+        for (long long i = 0; i < graph[x].size(); i++)
+        {
+            if (!used[graph[x][i].first])
+            {
+                long long time = dist[x];
+                while (*wait[x].find(time) == time)
+                    time++;
+                if (time + graph[x][i].second < dist[graph[x][i].first])
+                {
+                    dist[graph[x][i].first] = time + graph[x][i].second;
+                    q.insert(make_pair(time + graph[x][i].second, graph[x][i].first));
+                }
+            }
+        }
+    }
+}
+
+int main()
+{
+    //freopen("ladder.in", "r", stdin);
+    //freopen("ladder.out", "w", stdout);
+    //ios_base::sync_with_stdio(false);
+    //cin.tie(NULL);
+    long long m, s, f, t, k;
+    scanf("%I64d %I64d", &n, &m);
+    for (long long i = 0; i < m; i++)
+    {
+        scanf("%I64d %I64d %I64d", &s, &f, &t);
+        graph[s - 1].push_back(make_pair(f - 1, t));
+        graph[f - 1].push_back(make_pair(s - 1, t));
+    }
+    for (long long i = 0; i < n; i++)
+    {
+        scanf("%I64d", &k);
+        for (long long j = 0; j < k; j++)
+        {
+            scanf("%I64d", &t);
+            wait[i].insert(t);
+        }
+    }
+    for (long long i = 0; i < n; i++)
+        dist[i] = inf;
+    dist[0] = 0;
+    q.insert(make_pair(0, 0));
+    for (long long i = 0; i < n; i++)
+        used[i] = false;
+    deikstra();
+    printf("%I64d", (dist[n - 1] != inf ? dist[n - 1] : -1));
+    return 0;
+}

@@ -1,0 +1,158 @@
+/*	 Hello World!	*/
+
+#include <bits/stdc++.h>
+
+#define pb push_back
+#define pf push_front
+#define mp make_pair
+#define f first
+#define s second
+#define let(x,a) __typeof(a) x(a)
+#define all(a) (a).begin(),(a).end() 
+#define endl '\n'
+#define present(c,x) ((c).find(x) != (c).end()) 
+#define tr(v,it) for( let(it,v.begin()) ; it != v.end() ; it++)
+#define rtr(v,it) for( let(it,v.rbegin()) ; it != v.rend() ; it++)
+#define rep1(i,n) for(int i=0; i<(int)n;i++)
+#define rep2(i,a,b) for(int i=(int)a; i<=(int)b; i++)
+
+#define trace1(x)                cerr << #x << ": " << x << endl;
+#define trace2(x, y)             cerr << #x << ": " << x << " | " << #y << ": " << y << endl;
+#define trace3(x, y, z)          cerr << #x << ": " << x << " | " << #y << ": " << y << " | " << #z << ": " << z << endl;
+#define trace4(a, b, c, d)       cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << endl;
+#define trace5(a, b, c, d, e)    cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << endl;
+#define trace6(a, b, c, d, e, f) cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << " | " << #f << ": " << f << endl;
+
+#define LL long long int
+#define PII pair<int,int>
+#define VI vector<int>
+#define inf INT_MAX
+
+using namespace std;
+
+void FastIO()
+{
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	cout.tie(NULL);
+}
+
+map<int,int> ans;
+
+class node
+{
+public:
+    int key;
+    node *left;
+    node *right;
+    int height;
+    node(int k)
+    {
+    	key=k;
+    	left=NULL;
+    	right=NULL;
+    	height=1;
+    }
+};
+
+int height(node *N)
+{
+    if (N == NULL)
+        return 0;
+    return N->height;
+}
+
+node *rightRotate(node *y)
+{
+    node *x = y->left;
+    node *T2 = x->right;
+ 
+    x->right = y;
+    y->left = T2;
+ 
+    y->height = max(height(y->left), height(y->right))+1;
+    x->height = max(height(x->left), height(x->right))+1;
+ 
+    return x;
+}
+
+struct node *leftRotate(node *x)
+{
+    node *y = x->right;
+    node *T2 = y->left;
+ 
+    y->left = x;
+    x->right = T2;
+ 
+    x->height = max(height(x->left), height(x->right))+1;
+    y->height = max(height(y->left), height(y->right))+1;
+ 
+    return y;
+}
+ 
+int getBalance(node *N)
+{
+    if (N == NULL)
+        return 0;
+    return height(N->left) - height(N->right);
+}
+ 
+node* insert(node* Node, int key, int parent)
+{
+    if(Node == NULL)
+    {
+    	node *t=new node(key);
+    	ans[key]=parent;
+    	return t;
+    }
+ 
+    if (key < Node->key)
+        Node->left  = insert(Node->left, key, Node->key);
+    else
+        Node->right = insert(Node->right, key, Node->key);
+ 
+    Node->height = max(height(Node->left), height(Node->right)) + 1;
+
+    int balance = getBalance(Node);
+
+    if (balance > 1 && key < Node->left->key)
+        return rightRotate(Node);
+
+    if (balance < -1 && key > Node->right->key)
+        return leftRotate(Node);
+
+    if (balance > 1 && key > Node->left->key)
+    {
+        Node->left =  leftRotate(Node->left);
+        return rightRotate(Node);
+    }
+
+    if (balance < -1 && key < Node->right->key)
+    {
+        Node->right = rightRotate(Node->right);
+        return leftRotate(Node);
+    }
+ 
+    return Node;
+}
+
+int main()
+{
+	FastIO();
+	int n,num;
+	cin>>n;
+	VI V;
+	node *root=NULL;
+	for(int i=0;i<n;i++)
+	{
+		cin>>num;
+		V.pb(num);
+		root=insert(root,num,0);
+	}
+	for(int i=1;i<n;i++)
+	{
+		cout<<ans[V[i]]<<" ";
+	}
+	cout<<endl;
+	return 0;
+}

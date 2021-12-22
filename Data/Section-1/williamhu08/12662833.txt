@@ -1,0 +1,112 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+
+int A[3], L;
+
+ll sint (int x) {
+	return ll(x) * (x + 1) / 2;
+}
+
+ll cntpt (int tri, int x1, int x2) {
+	//THIS IS THE ANNOYING PART
+	if (x1 + x2 <= tri) {
+		return ll(x1 + 1) * (x2 + 1);
+	}
+	if (x1 > x2) {
+		swap(x1, x2);
+	}
+	if (tri <= x1) {
+		return sint(tri + 1);
+	} else if (tri <= x2) {
+		return sint(tri + 1) - sint(tri - x1);
+	} else {
+		return ll(x1 + 1) * (x2 + 1) - sint(x1 + x2 - tri);
+	}
+}
+
+ll getcnt (int mx, int id) {
+	int diff = mx - A[id];
+	if (diff < 0 || diff > L) {
+		return 0;
+	}
+	for (int i = 0; i < 3; i++) {
+		if (A[i] > mx) {
+			return 0;	//OOPS
+		}
+	}
+	int rem = L - diff;	//this is remaining one...
+	int y = A[id == 0], z = A[id == 2 ? 1 : 2];
+	// printf("cntpt of %d %d %d\n", rem, mx - y, mx - z);
+	ll ans = cntpt(rem, mx - y, mx - z);
+	//mx - (y + z)
+	int out = mx - (y + z);
+	if (out >= 0) {
+		// printf("out of %d %d %d which %d\n", out, mx - y, mx - z, int(cntpt(out, mx - y, mx - z)));
+		ans -= cntpt(out, mx - y, mx - z);;
+	}
+	ans = max(ans, 0ll);
+	return ans;
+}
+
+ll except (int mx, int id) {
+	//all except this
+	int x = A[id == 0], y = A[id == 2 ? 1 : 2], z = A[id];
+	//make this the max!!! HAHAHAHAHAHA
+	if (mx < x || mx < y || mx < z) {
+		return 0;
+	}
+	int diff = (mx - x) + (mx - y);
+	if (diff > L) {
+		return 0;
+	}
+	int rem = L - diff;	//fAak
+	//increment z by 0 to rem to make this a good one
+	return max(0, min(z + rem, mx) - z + 1);
+}
+
+ll getcnt (int mx) {
+	//get the to be max
+	ll ans = 0;
+	for (int i = 0; i < 3; i++) {
+		ans += getcnt(mx, i);
+	}
+	// printf("sofar %d\n", int(ans));
+	for (int i = 0; i < 3; i++) {
+		ans -= except(mx, i);
+	}
+	bool equ = true;
+	int sm = 0;
+	for (int i = 0; i < 3; i++) {
+		equ &= (A[i] <= mx);
+		sm += mx - A[i];
+	}
+	ans += (equ && sm <= L);
+	// printf("mx = %d. ans = %d\n", mx, int(ans));
+	return ans;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	// printf("cntpt(%d, %d, %d) = %d\n", 3, 7, 8, int(cntpt(3, 7, 8)));
+	cin >> A[0] >> A[1] >> A[2] >> L;
+	int tot = A[0] + A[1] + A[2] + L;
+	int smin = tot / 2 + 1;	//max side len min
+	ll ans = 0;
+	for (int i = max(A[0], max(A[1], A[2])); i < tot; i++) {
+		//i = mx;
+		ans += getcnt(i);
+	}
+	cout << ans << endl;
+}

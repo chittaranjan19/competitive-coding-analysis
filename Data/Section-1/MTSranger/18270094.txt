@@ -1,0 +1,154 @@
+#include <iostream>
+#include <algorithm>
+#include <queue>
+#include <vector>
+#include <cmath>
+#include <cstring>
+
+using namespace std;
+
+const int A = 10;
+const int N = 100005;
+
+vector<int> adj[N];
+vector<int> child[N];
+int ancestor[N][20];
+int depth[N];
+
+vector<int> people[N];
+int minPop[N][20][10];
+
+
+void merge(int * a, int * b, int * target, int n) {
+	int i1 = 0;
+	int i2 = 0;
+	int t = 0;
+	while (t < n && ((i1 < n && a[i1] != -1) || (i2 < n && b[i2] != -1))) {
+		if (i1 == n || a[i1] == -1) {
+			target[t] = b[i2]; i2++;
+		} else if (i2 == n || b[i2] == -1) {
+			target[t] = a[i1]; i1++;
+		} else {
+			if (a[i1] < b[i2]) {
+				target[t] = a[i1]; i1++;
+			} else {
+				target[t] = b[i2]; i2++;
+			}
+		}
+		t++;
+	}
+	while (t < n) {
+		target[t] = -1;
+		t++;
+	}
+}
+
+void merge2(int * to, int * from, int n) {
+	int scratch[n];
+	merge(to, from, scratch, n);
+	for (int i = 0; i < n; i++) to[i] = scratch[i];
+}
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+
+	// read in tree
+	int n, m, numQueries; cin >> n >> m >> numQueries;
+	for (int i = 0; i < n-1; i++) {
+		int v, u; cin >> v >> u; v--; u--;
+		adj[v].push_back(u);
+		adj[u].push_back(v);
+	}
+
+	// read in people
+	for (int i = 0; i < m; i++) {
+		int c; cin >> c; c--;
+		people[c].push_back(i);
+	}
+
+	// bfs to root the tree and do LCA dp
+	memset(ancestor, -1, sizeof ancestor);
+	memset(minPop, -1, sizeof minPop);
+	queue<int> q;
+	q.push(0);
+	depth[0] = 0;
+	while (!q.empty()) {
+		int curr = q.front();
+		q.pop();
+
+		sort(people[curr].begin(), people[curr].end());
+		for (int i = 0; i < people[curr].size() && i < A; i++) {
+			minPop[curr][0][i] = people[curr][i];
+		}
+
+		int k = 0;
+		while (ancestor[curr][k] != -1) {
+			int currAncestor = ancestor[curr][k];
+			ancestor[curr][k+1] = ancestor[currAncestor][k];
+			if (ancestor[curr][k+1] != -1) {
+				merge(minPop[curr][k], minPop[currAncestor][k], minPop[curr][k+1], A);
+			}
+			k++;
+		}
+
+		for (int i = 0; i < adj[curr].size(); i++) {
+			int next = adj[curr][i];
+			if (ancestor[next][0] == -1 && next != 0) {
+				ancestor[next][0] = curr;
+				depth[next] = depth[curr]+1;
+				child[curr].push_back(next);
+				q.push(next);
+			}
+		}
+	}
+
+	// process query
+	for (int currQuery = 0; currQuery < numQueries; currQuery++) {
+		int v, u, a; cin >> v >> u >> a; v--; u--;
+		int cand[A]; memset(cand, -1, sizeof cand);
+		if (u != v) {
+			if (depth[u] != depth[v]) {
+				if (depth[u] < depth[v]) {
+					int tmp = u; u = v; v = tmp;
+				}
+				// raise u
+				int diff = depth[u] - depth[v];
+				int p = 1;
+				for (int z = 0; z < 20 && p <= diff; z++) {
+					if ((diff & p) > 0) {
+						merge2(cand, minPop[u][z], A);
+						u = ancestor[u][z];
+					}
+					p <<= 1;
+				}
+			}
+			if (u != v) {
+				while (ancestor[u][0] != ancestor[v][0]) {
+					int k = 0;
+					while (ancestor[u][k+1] != ancestor[v][k+1]) k++;
+					merge2(cand, minPop[u][k], A);
+					merge2(cand, minPop[v][k], A);
+					u = ancestor[u][k];
+					v = ancestor[v][k];
+				}
+				merge2(cand, minPop[u][0], A);
+				merge2(cand, minPop[v][0], A);
+				u = ancestor[u][0];
+				v = ancestor[v][0];
+			}
+		}
+		merge2(cand, minPop[u][0], A);
+
+		int k = 0;
+		for (int j = 0; j < a; j++) {
+			if (cand[j] == -1) break;
+			k++;
+		}
+		cout << k;
+		for (int j = 0; j < k; j++) {
+			cout << " " << cand[j]+1;
+		}
+		cout << endl;
+	}
+}

@@ -1,0 +1,81 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+#define PB push_back
+#define MP make_pair
+#define X first
+#define Y second
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+const int N = 1e5 + 100;
+
+int n;
+int h[N];
+deque <int> mi;
+deque <int> ma;
+deque <int> indx;
+vector<int> minx;
+vector<int> maxx;
+
+bool isval(int x){
+	minx.clear();
+	maxx.clear();
+	ma.clear();
+	mi.clear();
+	indx.clear();
+	for(int i = 0; i < n; ++i){
+		while(!mi.empty() && h[i] - i < mi.front()){
+			mi.pop_front();
+			indx.pop_front();
+		}
+		mi.push_front(h[i] - i) ;
+		indx.push_front(i);
+		if(!mi.empty() && indx.back() <= i - x){
+			mi.pop_back();
+			indx.pop_back();
+		}
+		minx.PB(mi.back());
+	}
+	indx.clear();
+	for(int i = 0; i < n; ++i){
+		while(!ma.empty() && h[i] + i < ma.front()){
+			ma.pop_front();
+			indx.pop_front();
+		}
+		ma.push_front(h[i] + i) ;
+		indx.push_front(i);
+		if(!ma.empty() && indx.back() <= i - x){
+			ma.pop_back();
+			indx.pop_back();
+		}
+		maxx.PB(ma.back());
+	}
+	for(int i = x; i + x < n; ++i){
+		int t = min(minx[i - 1] + (i - x), maxx[i + x] - (2 * x) - (i - x));
+		t = min(t , h[i] - x);
+		if(t > 0)
+			return false;
+	}
+	return true;
+}
+
+int main(){
+	cin >> n;
+	for(int i = 0; i < n; ++i){
+		cin >> h[i];
+	}
+//	isval(2);
+//	return 0;
+	int f = 0, l = N;
+	while(l - f > 1){
+		int mid = (f + l) / 2;
+		if(isval(mid))
+			l = mid;
+		else
+			f = mid;
+	}
+	cout << l << "\n";
+	return 0;
+}

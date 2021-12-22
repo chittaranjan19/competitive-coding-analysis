@@ -1,0 +1,107 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int power(int a, int b)
+{
+  if(b == 0) return 1;
+  int temp = power(a, b / 2);
+  temp = (temp * 1LL * temp) % mod;
+  if(b & 1) temp = (temp * 1LL * a) % mod;
+  return temp;
+}
+
+struct disjointset
+{
+    vector<int> rank, parent;
+    int subtrees;
+
+    disjointset(int n)
+    {
+        subtrees = n;
+        for(int i=0;i<n;i++)
+            rank.pb(1),parent.pb(i);
+    }
+
+    int find_set(int x)
+    {
+        if(x == parent[x])
+            return x;
+        return parent[x] = find_set(parent[x]);
+    }
+
+    void link(int x,int y)
+    {
+        if(rank[x] > rank[y])
+            swap(x, y);
+        parent[x] = y;
+        if(rank[x] == rank[y])
+            rank[y]++;
+    }
+
+    bool union_sets(int x,int y)
+    {
+        x = find_set(x),y = find_set(y);
+        if(x != y)
+        {
+            link(x,y);
+            subtrees--;
+        }
+        return x != y;
+    }
+
+    bool same_set(int x,int y)
+    {
+        return find_set(x) == find_set(y);
+    }
+};
+
+int main()
+{
+  int n, k;
+  scanf("%d %d", &n, &k);
+  if(k == 0)
+  {
+    printf("%d", power(n, n - 1));
+    return 0;
+  }
+  disjointset temp(n);
+  for(int i=1;i<n;i++)
+    temp.union_sets(i, (i * 1LL * k) % n);
+  printf("%d", power(n, temp.subtrees - 1));
+  return 0;
+}

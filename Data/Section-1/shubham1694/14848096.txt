@@ -1,0 +1,95 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define ll long long
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+ll arr[4];
+map<ll, int> m1[6];
+map<ll, pair<int, pair<ll, ll> > > m2[2];
+
+void pre(ll cur, int moves, int ind)
+{
+    if(m1[ind].find(cur)!=m1[ind].end())
+        return;
+    m1[ind][cur] = moves;
+    if(!(cur%2))
+        pre(cur/2, moves+1, ind);
+    if(!(cur%3))
+        pre(2*(cur/3), moves+1, ind);
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int i, j;
+    for(i=0; i<4; i++)
+        cin >> arr[i];
+    ll area;
+    pre(arr[0], 0, 0);
+    pre(arr[1], 0, 1);
+    pre(arr[2], 0, 2);
+    pre(arr[3], 0, 3);
+    /*cout << m1[0].size() << " " << m1[1].size() << "\n";
+    for(auto it=m1[1].begin(); it!=m1[1].end(); ++it)
+        cout << it->first << " ";
+    cout << "\n";*/
+    for(auto it=m1[0].begin(); it!=m1[0].end(); ++it){
+        for(auto jt=m1[1].begin(); jt!=m1[1].end(); ++jt){
+            area = (it->first)*(jt->first);
+            if(m2[0].find(area)==m2[0].end())
+                m2[0][area] = mp(it->second + jt->second, mp(it->first, jt->first));
+            else{
+                if(m2[0][area].f > it->second + jt->second)
+                    m2[0][area] = mp(it->second + jt->second, mp(it->first, jt->first));
+            }
+        }
+    }
+    for(auto it=m1[2].begin(); it!=m1[2].end(); ++it){
+        for(auto jt=m1[3].begin(); jt!=m1[3].end(); ++jt){
+            area = (it->first)*(jt->first);
+            if(m2[1].find(area)==m2[1].end())
+                m2[1][area] = mp(it->second + jt->second, mp(it->first, jt->first));
+            else{
+                if(m2[1][area].f > it->second + jt->second)
+                    m2[1][area] = mp(it->second + jt->second, mp(it->first, jt->first));
+            }
+        }
+    }
+    int ans = inf, moves;
+    ll a1, a2, b1, b2;
+    for(auto it=m2[0].begin(); it!=m2[0].end(); ++it){
+        area = it->first;
+        auto jt = m2[1].find(area);
+        if(jt!=m2[1].end()){
+            moves = (it->second).f + (jt->second).f;
+            if(moves<ans){
+                ans = moves;
+                a1 = (it->s).s.f;
+                a2 = (it->s).s.s;
+                b1 = (jt->s).s.f;
+                b2 = (jt->s).s.s;
+            }
+        }
+    }
+    if(ans==inf)
+        printf("-1\n");
+    else{
+        printf("%d\n", ans);
+        cout << a1 << " " << a2 << "\n" << b1 << " " << b2 << "\n";
+    }
+    return 0;
+}

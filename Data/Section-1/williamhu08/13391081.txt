@@ -1,0 +1,70 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 4e5 + 100;
+
+void setmax (int &a, int b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+int N, A[MAXN];
+int ismx[MAXN];
+int gcd[MAXN];
+int pig[MAXN];	//prefix is gcd
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 0; i < N; i++) {
+		cin >> A[i];
+	}
+	for (int i = 1; i <= N; i++) {
+		gcd[i] = __gcd(i, N);
+	}
+	ll ans = 0;
+	for (int g = 1; g <= N; g++) {
+		if (N % g) {
+			continue;
+		}
+		//g = gcd(N, len)
+		//find the maximum
+		for (int i = 0; i < g; i++) {
+			int mx = 0;
+			for (int j = i; j < N; j += g) {
+				setmax(mx, A[i]);
+			}
+			for (int j = i; j < N; j += g) {
+				ismx[j] = ismx[j + N] = (A[j] == mx);
+			}
+		}
+		for (int i = 1; i < 2 * N; i++) {
+			//change to prefix sums
+			if (ismx[i]) {
+				ismx[i] += ismx[i - 1];
+			}
+		}
+		pig[0] = 0;
+		for (int i = 1; i < N; i++) {
+			pig[i] = pig[i - 1] + (gcd[i] == g);
+		}
+		//OH WAT s < N...
+		for (int j = N; j < 2 * N; j++) {
+			//this is the best place to start i think...
+			ans += pig[min(ismx[j], N - 1)];
+		}
+	}
+	cout << ans << endl;
+}

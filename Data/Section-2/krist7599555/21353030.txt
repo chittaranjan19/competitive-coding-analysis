@@ -1,0 +1,132 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+enum stat : char { water='.' , land = '*' , visited='v' , getit='g', notget='z' , danger='#' };
+
+int ROW,COL,need;
+char C[70][70];
+
+vector< pair<int,char *> > vec;
+
+void PRIN();
+
+pair<int,int> P[]{ {1,0},{0,1},{-1,0},{0,-1} };
+
+void BFS(int r,int c, char to = 'v', char canwalk = '.' ){
+	
+	int Count(1);
+	int i,j,ii,jj;
+	
+	queue<pair<int,int>> Q;
+	Q.push({r,c});
+	C[r][c] = to;
+	
+	while(!Q.empty()){
+		
+		tie(i,j) = Q.front(); Q.pop();
+		
+		for( const auto pp : P ){
+			
+			ii = i + pp.first;
+			jj = j + pp.second;
+			
+			if( C[ii][jj] == canwalk ){
+				
+				C[ii][jj] = to;
+				Count++;
+				
+				Q.push({ii,jj});
+				
+			}
+			
+			if( C[ii][jj]=='#' ) C[r][c] = 'z';
+		}
+		
+	}
+	
+	if(to=='v')vec.push_back({ Count , & C[r][c] });
+	
+	
+}
+
+
+int main(){
+	
+	int i,j;
+	
+	ios_base::sync_with_stdio(false);
+	
+	// CIN
+	
+	cin >> ROW >> COL >> need;
+	
+	for(i=1;i<=ROW;i++) scanf("%s",C[i]+1);
+	
+	for(i=-1;i++<=ROW;) C[i][0] = C[i][COL+1] = danger;
+	for(i=-1;i++<=COL;) C[0][i] = C[ROW+1][i] = danger;
+
+
+
+	// BFS
+	
+	for(i=1;i<=ROW;i++)
+		for(j=1;j<=COL;j++)
+			if(C[i][j]=='.') BFS(i,j,'v','.');
+	
+	
+	// SORT ans
+	
+	sort( vec.begin() , vec.end() , []( const pair<int,char *> &a , const pair<int,char *> &b ){
+		
+		return tie(*a.second,b.first) < tie(*b.second,a.first);		
+	
+	});
+	
+	// out lake
+	
+	while( !vec.empty() && *vec.back().second=='z' ){
+		
+		BFS( (vec.back().second-C[0]) / sizeof(C[0]), (vec.back().second-C[0]) % sizeof(C[0]) , 'z' , 'v' );
+		vec.pop_back();
+		
+	};
+	
+	// in lake
+	
+	int Count=0;
+	
+	while( !vec.empty() && (int)vec.size() > need ){
+		
+		Count += vec.back().first;
+		BFS( (vec.back().second-C[0]) / sizeof(C[0]), (vec.back().second-C[0]) % sizeof(C[0]) , 'g' , 'v' ); 
+		vec.pop_back();
+	};
+	
+	cout << Count << endl;
+	for(i=1;i<=ROW;i++){
+		for(j=1;j<=COL;j++){
+			
+			switch(C[i][j]){
+				
+				case 'g':
+				case '*': cout << '*'; break;
+				
+				case 'z':
+				case 'v': cout << '.'; break;
+			}	
+			
+		}	cout << endl;
+	}
+	
+}
+
+
+
+void PRIN(){
+	
+	for(int i=0;i<=ROW+1;i++){
+		for(int j=0;j<=COL+1;j++)
+			cout << C[i][j];
+		cout << endl;
+	}
+}

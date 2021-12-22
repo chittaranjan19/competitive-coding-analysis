@@ -1,0 +1,95 @@
+#include<bits/stdc++.h>
+#define MAXN 200009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll n,m,k,s,dol[MAXN],pou[MAXN];
+vector<PII>adj[3];
+int calc(int h){
+	ll ans=0,dolar=INF,pound=INF;
+	int i1=1,i2=1;
+	for(int i=1;i<=h;i++){
+		umin(dolar,dol[i]);
+		umin(pound,pou[i]);
+	}
+	while(i1+i2<=k+1){
+		if(i2>=adj[2].size())
+			ans+=adj[1][i1++].ff*dolar;
+		else if(i1>=adj[1].size())
+			ans+=adj[2][i2++].ff*pound;
+		else if(adj[1][i1].ff*dolar<=adj[2][i2].ff*pound)	
+			ans+=adj[1][i1++].ff*dolar;
+		else
+			ans+=adj[2][i2++].ff*pound;				
+	}
+	return (ans<=s);
+}
+int main(){
+	scanf("%lld%lld%lld%lld",&n,&m,&k,&s);
+	for(int i=1;i<=n;i++)
+		scanf("%lld",dol+i);
+	for(int i=1;i<=n;i++)
+		scanf("%lld",pou+i);
+	for(int i=1;i<=m;i++){
+		ll type,v;
+		scanf("%lld%lld",&type,&v);
+		adj[type].pb(mp(v,i));	
+	}
+	adj[1].pb(mp(-1,-1));
+	adj[2].pb(mp(-1,-1));
+	sort(all(adj[1]));
+	sort(all(adj[2]));
+	if(!calc(n)){
+		printf("-1\n");
+		return 0;
+	}
+	int st=1,en=n;
+	while(st+1<en){
+		int mid=(st+en)>>1;
+		if(calc(mid))
+			en=mid;
+		else
+			st=mid;	
+	}
+	int day=-1;
+	for(int i=st;i<=en;i++)
+		if(calc(i)){
+			day=i;
+			break;
+		}
+	printf("%d\n",day);
+	PII dl=mp(imx,-1),pn=mp(imx,-1);
+	for(int i=1;i<=day;i++){
+		if(dl.ff>dol[i])
+			dl=mp(dol[i],i);
+		if(pn.ff>pou[i])
+			pn=mp(pou[i],i);	
+	}
+	int i1=1,i2=1;
+	while(i1+i2<=k+1){
+		if(i2>=adj[2].size())
+			cout<<adj[1][i1++].ss<<" "<<dl.ss<<endl;
+		else if(i1>=adj[1].size())
+			cout<<adj[2][i2++].ss<<" "<<pn.ss<<endl;
+		else if(adj[1][i1].ff*dl.ff<=adj[2][i2].ff*pn.ff)
+			cout<<adj[1][i1++].ss<<" "<<dl.ss<<endl;
+		else
+			cout<<adj[2][i2++].ss<<" "<<pn.ss<<endl;				
+	}
+	return 0;
+}

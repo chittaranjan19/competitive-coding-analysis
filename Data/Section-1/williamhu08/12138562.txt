@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 2e6 + 100;
+
+int N, Q;
+int A[MAXN];
+ll P[MAXN];
+ll B;
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d", &N, &Q);
+	for (int i = 0; i < N; i++) {
+		scanf("%d", &A[i]);
+		A[i + N] = A[i];
+	}
+	for (int i = 0; i < 2 * N; i++) {
+		P[i + 1] = P[i] + A[i];
+	}
+	P[2 * N + 1] = P[2 * N];	//just for the i + N thing in hi
+	while (Q--) {
+		scanf("%I64d", &B);
+		if (B >= P[N]) {
+			puts("1");
+			continue;
+		}
+		//calculate best
+		int mn = N, ind = 0;
+		ll cs = 0;
+		for (int i = 0, j = 0; i < N; ) {
+			if (cs <= B) {
+				cs += A[j];
+				j++;
+			} else {
+				if (mn > j - i) {
+					mn = j - i;
+					ind = i;
+				}
+				cs -= A[i];
+				i++;
+			}
+		}
+		int ans = N;
+		//just do the ddm blocks!
+		for (int i = ind; P[i] - P[ind] <= B; i++) {
+			int use = 0, cur = i;
+			while (cur < i + N) {
+				int lo = cur, dist = 1;
+				while (lo + dist < i + N && P[lo + dist] - P[lo] <= B) {
+					dist *= 2;
+				}
+				int hi = min(lo + dist, i + N) + 1;
+				//bsearching is ok? i never knew that...
+				while (hi - lo > 1) {
+					int mid = (lo + hi) / 2;
+					if (P[mid] - P[cur] <= B) {
+						lo = mid;
+					} else {
+						hi = mid;
+					}
+				}
+				cur = lo;
+				use++;
+			}
+			if (ans > use) {
+				ans = use;
+			}
+		}
+		printf("%d\n", ans);
+	}
+}

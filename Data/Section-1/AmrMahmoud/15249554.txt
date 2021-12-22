@@ -1,0 +1,105 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+LL power(LL a, LL b)
+{
+  if(b == 0) return 1;
+  LL temp = power(a, b / 2);
+  temp = (temp * temp) % mod;
+  if(b & 1) temp = (temp * a) % mod;
+  return temp;
+}
+
+int arr[200005];
+
+int main()
+{
+  //freopen("aerodynamics.in", "r", stdin);
+  //freopen("aerodynamics.out", "w", stdout);
+  int n;
+  scanf("%d", &n);
+  LL res = 1;
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d", &arr[i]);
+    res = (res * arr[i]) % mod;
+  }
+  sort(arr, arr + n);
+  vector<pair<int, int> > v;
+  int curr = 1;
+  bool done = false;
+  for(int i=1;i<n;i++)
+  {
+    if(arr[i] == arr[i - 1])
+      curr++;
+    else
+    {
+      if(!done && curr % 2 == 1)
+      {
+        curr++;
+        curr /= 2;
+        done = true;
+        v.pb(mp(arr[i - 1], curr));
+      }
+      else v.pb(mp(arr[i - 1], curr + 1));
+      curr = 1;
+    }
+  }
+  if(!done && curr % 2 == 1)
+  {
+    curr++;
+    curr /= 2;
+    done = true;
+    v.pb(mp(arr[n - 1], curr));
+  }
+  else v.pb(mp(arr[n - 1], curr + 1));
+  if(!done)
+    v[0].s /= 2;
+  for(int i=0;i<v.size();i++)
+    res = power(res, v[i].s);
+  if(!done)
+  {
+    res = (res * power(v[0].f, v[0].s)) % mod;
+    for(int i=1;i<v.size();i++)
+    {
+      res = (res * power(v[i].f, v[i].s / 2)) % mod;
+    }
+  }
+  cout << res;
+  return 0;
+}

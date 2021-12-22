@@ -1,0 +1,117 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+#include <fstream>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int parent[550];
+int flow[550][550];
+int cap[550][550];
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  int n, m, x, y, ss = 0;
+  cin >> n >> m;
+  for(int i=0;i<n;i++)
+  {
+    cin >> x;
+    cap[0][i + 1] = x;
+  }
+  for(int i=0;i<n;i++)
+  {
+    cin >> x;
+    ss+=x;
+    cap[i + n + 1][2 * n + 2] = x;
+    cap[i + 1][i + n + 1] =  100000;
+  }
+  for(int i=0;i<m;i++)
+  {
+    cin >> x >> y;
+    cap[x][y + n] = 100000;
+    cap[y][x + n] = 100000;
+  }
+  int totalFlow = 0, s = 0, t = 2 * n + 2;
+  while(1)
+  {
+    queue<int> q;
+    setdp(parent);
+    q.push(s);
+    while(!q.empty())
+    {
+      int node = q.front();
+      q.pop();
+      for(int j=0;j<=2*n+2;j++)
+        if(cap[node][j] - flow[node][j] > 0 && parent[j] == -1)
+        {
+          parent[j] = node;
+          q.push(j);
+        }
+    }
+    if(parent[t] == -1)
+      break;
+    int cflow = INF_MAX;
+    int current = t;
+    while(current != s)
+    {
+        cflow = min(cflow, cap[parent[current]][current] - flow[parent[current]][current]);
+        current = parent[current];
+      }
+      current = t;
+      while(current != s)
+      {
+        flow[parent[current]][current] += cflow;
+        flow[current][parent[current]] -= cflow;
+        current = parent[current];
+      }
+      totalFlow+=cflow;
+  }
+
+  if(totalFlow != ss)
+  {
+    cout << "NO";
+  }
+  else
+  {
+    cout << "YES\n";
+    for(int i=0;i<n;i++)
+    {
+      for(int j=0;j<n;j++)
+        cout << flow[i+1][j+n+1] << " ";
+      cout << "\n";
+    }
+  }
+  return 0;
+}

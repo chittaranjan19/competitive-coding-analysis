@@ -1,0 +1,78 @@
+#include <stdio.h>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+typedef struct
+{
+    int s;
+    int f;
+    int color;
+} not_change;
+
+int main()
+{
+    int n;
+    scanf("%d", &n);
+    int a[n];
+    for (int i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+    vector<not_change> v;
+    not_change x, x1;
+    x.s = 0;
+    x.f = 0;
+    x.color = a[0];
+    for (int i = 1; i < n; i++)
+        if (a[i] == a[i - 1])
+            x.f = i;
+        else
+            break;
+    v.push_back(x);
+    x1.s = n - 1;
+    x1.f = n - 1;
+    x1.color = a[n - 1];
+    for (int i = n - 2; i >= 0; i--)
+        if (a[i] == a[i + 1])
+            x1.s = i;
+        else
+            break;
+    int cnt = 1, s = v[0].f + 1, f = x1.s;
+    for (int i = s; i <= f; i++)
+        if (a[i] == a[i - 1])
+            cnt++;
+        else if (cnt > 1)
+        {
+            x.s = i - cnt;
+            x.f = i - 1;
+            x.color = a[i - 1];
+            v.push_back(x);
+            cnt = 1;
+        }
+    v.push_back(x1);
+    /*for (int i = 0; i < v.size(); i++)
+        printf("%d %d %d\n", v[i].s, v[i].f, v[i].color);*/
+    int ans[n], cnt_ans = 0;
+    for (int i = 0; i < v.size() - 1; i++)
+    {
+        for (int j = v[i].s; j <= v[i].f; j++)
+            ans[j] = v[i].color;
+        cnt_ans = max(cnt_ans, (v[i + 1].s - v[i].f - 1) / 2 + (v[i + 1].s - v[i].f - 1) % 2);
+        if (v[i].color == v[i + 1].color)
+            for (int j = v[i].f + 1; j < v[i + 1].s; j++)
+                ans[j] = v[i].color;
+        else
+        {
+            for (int j = v[i].f + 1; j < v[i].f + 1 + (v[i + 1].s - v[i].f - 1) / 2 + (v[i + 1].s - v[i].f - 1) % 2; j++)
+                ans[j] = v[i].color;
+            for (int j = v[i].f + 1 + (v[i + 1].s - v[i].f - 1) / 2 + (v[i + 1].s - v[i].f - 1) % 2; j < v[i + 1].s; j++)
+                ans[j] = v[i + 1].color;
+        }
+    }
+    for (int j = v[v.size() - 1].s; j <= v[v.size() - 1].f; j++)
+        ans[j] = v[v.size() - 1].color;
+    printf("%d\n", cnt_ans);
+    for (int i = 0; i < n; i++)
+        printf("%d ", ans[i]);
+    return 0;
+}

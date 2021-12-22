@@ -1,0 +1,143 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 175781251
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+struct disjointset
+{
+    vector<int> rank, parent, sz;
+    int subtrees;
+
+    disjointset(int n)
+    {
+        subtrees = n;
+        for(int i=0;i<n;i++)
+            rank.pb(1),parent.pb(i), sz.pb(1);
+    }
+
+    int find_set(int x)
+    {
+        if(x == parent[x])
+            return x;
+        return parent[x] = find_set(parent[x]);
+    }
+
+    void link(int x,int y)
+    {
+        if(rank[x] > rank[y])
+            swap(x, y);
+    sz[y] += sz[x];
+        parent[x] = y;
+        if(rank[x] == rank[y])
+            rank[y]++;
+    }
+
+    bool union_sets(int x,int y)
+    {
+        x = find_set(x),y = find_set(y);
+        if(x != y)
+        {
+            link(x,y);
+            subtrees--;
+        }
+        return x != y;
+    }
+
+    bool same_set(int x,int y)
+    {
+        return find_set(x) == find_set(y);
+    }
+};
+
+bool v[200005];
+int arr[200005];
+int ans[200005];
+
+int main()
+{
+  int n, k, a, m;
+  scanf("%d %d %d %d", &n, &k, &a, &m);
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d", &arr[i]);
+    v[arr[i]] = true;
+  }
+  int nxt = 1;
+  for(int i=1;i<=n;i++)
+  {
+    if(i >= a * nxt + nxt - 1) ans[i] = nxt++;
+    else ans[i] = ans[i - 1];
+  }
+  disjointset s(n + 2);
+  int res = 0;
+  for(int i=2;i<=n;i++)
+    if(!v[i] && !v[i - 1])
+      s.union_sets(i, i - 1);
+  for(int i=1;i<=n;i++)
+  {
+    if(i != 1 && !v[i] && !v[i-1]) continue;
+    res += ans[s.sz[s.find_set(i)]];
+  }
+  if(res >= k)
+  {
+    printf("-1");
+    return 0;
+  }
+  for(int i=m-1;i>=0;i--)
+  {
+    int y = arr[i], x;
+    if(y != 1 && !v[y - 1])
+    {
+      x = ans[s.sz[s.find_set(y)]] + ans[s.sz[s.find_set(y - 1)]];
+      s.union_sets(y, y - 1);
+      res += s.sz[s.find_set(y)] / a - x;
+    }
+    if(y != n && !v[y + 1])
+    {
+      x = ans[s.sz[s.find_set(y)]] + ans[s.sz[s.find_set(y + 1)]];
+      s.union_sets(y, y + 1);
+      res += ans[s.sz[s.find_set(y)]] - x;
+    }
+    if(res >= k)
+    {
+      printf("%d", i + 1);
+      return 0;
+    }
+    v[y] = false;
+  }
+  printf("-1");
+  return 0;
+}

@@ -1,0 +1,105 @@
+#include <cstdio>
+#include <cmath>
+#include <algorithm>
+
+#define maxs 250
+
+using namespace std;
+
+int n,m,q,s;
+
+pair<int,int> mord[100001];
+
+long long a[100001];
+int sk[100001];
+int sv[100001];
+
+int dbve[100001][maxs];
+int dbvev[100001];
+
+bool db[maxs][100001];
+long long koz[maxs][maxs];
+int intrsctn[maxs][100001];
+long long asz[maxs];
+long long pl[maxs];
+
+int bign[100001];
+
+int main()
+{
+    scanf("%d%d%d",&n,&m,&q);
+    s = min(250,(int)sqrt(n));
+
+    for(int i=0; i<n; i++) scanf("%I64d",&a[i]);
+
+    for(int i=1; i<=m; i++) {
+        scanf("%d",&sv[i]);
+        mord[i-1].first = -sv[i];
+        mord[i-1].second = i;
+        sv[i] += sv[i-1];
+
+        for(int j=sv[i-1]; j<sv[i]; j++) {
+			scanf("%d",&sk[j]);
+			sk[j]--;
+		}
+    }
+
+    sort(mord,mord+m);
+    fill(bign,bign+m+1,-1);
+
+    int dbv(0);
+    for(int i=0; mord[i].first < -s; i++) {
+        int ii(mord[i].second);
+        bign[ii] = i;
+        koz[i][i] = sv[ii]-sv[ii-1];
+        dbv++;
+        for(int j=sv[ii-1]; j<sv[ii]; j++) {
+            asz[i] += a[sk[j]];
+            db[i][sk[j]] = 1;
+            dbve[sk[j]][dbvev[sk[j]]++] = i;
+        }
+    }
+
+    for(int i=1; i<=m; i++) {
+        if(bign[i]>=0) continue;
+        for(int j=sv[i-1]; j<sv[i]; j++) {
+            for(int k=0; k<dbvev[sk[j]]; k++) intrsctn[dbve[sk[j]][k]][i]++;
+        }
+    }
+
+    for(int i=0; i<n; i++) {
+        for(int j=0; j<(int)dbvev[i]; j++) {
+            for(int k=j+1; k<(int)dbvev[i]; k++) {
+                koz[dbve[i][j]][dbve[i][k]]++;
+                koz[dbve[i][k]][dbve[i][j]]++;
+            }
+        }
+    }
+
+    for(int Q=0; Q<q; Q++) {
+        char c = getchar();
+        while((c!='?') && (c!='+')) c = getchar();
+        if(c=='?') {
+            int x; scanf("%d",&x);
+            long long ans(0ll);
+            if(bign[x]>=0) {
+                for(int i=0; i<dbv; i++) ans += pl[i]*koz[i][bign[x]];
+                ans += asz[bign[x]];
+            } else {
+                for(int i=sv[x-1]; i<sv[x]; i++) ans += a[sk[i]];
+                for(int i=0; i<dbv; i++) ans += pl[i]*intrsctn[i][x];
+            }
+            printf("%I64d\n",ans);
+        } else {
+            int x,y; scanf("%d%d",&x,&y);
+            if(bign[x]>=0) {
+                pl[bign[x]]+= y;
+            } else {
+                for(int i=sv[x-1]; i<sv[x]; i++) a[sk[i]]+= y;
+                for(int i=0; i<dbv; i++) asz[i] += y*((long long)intrsctn[i][x]);
+            }
+        }
+    }
+
+    return 0;
+}

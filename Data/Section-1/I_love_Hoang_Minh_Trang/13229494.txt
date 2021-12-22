@@ -1,0 +1,60 @@
+using namespace std;
+#include<bits/stdc++.h>
+#define FOR(i, a, b) for (int i = a; i < b; i++)
+#define FORE(i, a, b) for (int i = a; i <= b; i++)
+#define FORD(i, a, b) for (int i = a; i >= b; i--)
+const int MAXN = 6*1e5;
+const int INF  = 1e9 + 7;
+
+int n, k, f[MAXN][50];
+string s;
+int L[500], R[500];
+int i;
+
+
+int main()
+{
+    ios::sync_with_stdio(false);
+    //freopen("573B.inp", "r", stdin);
+    //freopen("573B.out", "w", stdout);
+    cin >> n >> k;
+    cin >> s;
+    s = "+" + s;
+    for(i = 1; i <= n; i++){
+        L[0] = INF;
+        L[1] = f[i - 1][1];
+        FORE(j, 2, k) L[j] = min(L[j - 1], f[i - 1][j]);
+        R[k + 1] = INF;
+        R[k] = f[i - 1][k];
+        FORD(j, k - 1, 1) R[j] = min(R[j + 1], f[i - 1][j]);
+        FORE(j, 1, k) {
+        int add = 0;
+        if (s[i] - 'A' + 1 != j) add = 1;
+
+        f[i][j] = min(L[j - 1], R[j + 1]) + add;
+        }
+    }
+    int ans = INF;
+    FORE(i, 1, k) ans = min(ans, f[n][i]);
+    cout<<ans<<endl;
+    string res;
+    int x;
+    for(x = 1; x <= 26; x++) if (f[n][x] == ans) break;
+    while (n) {
+        char ch = 'A' + x - 1;
+        res = ch + res;
+        //cout<<ch<<"wtf"<<endl;
+        int add = 0;
+        if (ch != s[n]) add = 1;
+        //if (n == 6) cout<<add<<"wtf"<<ch<<" "<<s[n]<<endl;
+        int y;
+        for(y = 1; y <= 26; y++) if (y != x && f[n - 1][y] + add == f[n][x]) {
+            x = y;
+            break;
+        }
+        n--;
+    }
+    cout<<res<<endl;
+    //cout<<f[5][2]<<" "<<f[6][1]<<endl;
+    return 0;
+}

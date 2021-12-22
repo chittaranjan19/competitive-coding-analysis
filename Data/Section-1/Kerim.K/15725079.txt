@@ -1,0 +1,114 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+PII far[MAXN][3],arr[MAXN];
+vector<PII>adj[MAXN];
+ll dsu[MAXN],rank[MAXN],P[MAXN];
+bool cmp(PII x,PII y){
+	if(x.ff!=y.ff)
+		return (x.ff>y.ff);
+	return (x.ss<y.ss);	
+}
+void dfs(ll nd,ll pr){
+	far[nd][0].ss=nd;
+	for(ll i=0;i<adj[nd].size();i++){
+		ll to=adj[nd][i].ff;
+		ll cs=adj[nd][i].ss;
+		if(to==pr)
+			continue;		
+		dfs(to,nd);
+		PII tmp=far[to][0];tmp.ff+=cs;
+		if(tmp.ff>far[nd][0].ff)
+			far[nd][1]=far[nd][0],far[nd][0]=tmp;
+		else if(tmp.ff>far[nd][1].ff)
+			far[nd][1]=tmp;
+	}
+}
+ll tap(ll x){
+	if(dsu[x]==x)
+		return x;
+	return dsu[x]=tap(dsu[x]);	
+}
+void dfs2(ll nd,ll pr,ll cost){
+	if(pr!=-1){
+		PII tmp=far[pr][0];
+		if(tmp.ss==far[nd][0].ss)
+			tmp=far[pr][1];
+		tmp.ff+=cost;
+		if(tmp.ff>far[nd][0].ff)
+			far[nd][1]=far[nd][0],far[nd][0]=tmp;
+		else if(tmp.ff>far[nd][1].ff)
+			far[nd][1]=tmp;
+	}
+	for(ll i=0;i<adj[nd].size();i++){
+		ll to=adj[nd][i].ff,cs=adj[nd][i].ss;
+		if(to==pr)
+			continue;
+		dfs2(to,nd,cs);	
+	}
+}
+void dfs3(ll nd,ll pr){
+	P[nd]=pr;
+	tr(it,adj[nd])
+		if(it->ff!=pr)
+			dfs3(it->ff,nd);
+}
+int main(){
+	ll a;
+	scanf("%lld",&a);
+	for(ll i=0;i<a-1;i++){
+		ll u,v,w;
+		scanf("%lld%lld%lld",&u,&v,&w);
+		adj[u].pb(mp(v,w));
+		adj[v].pb(mp(u,w));
+	}
+	dfs(1,-1);
+	dfs2(1,-1,0);
+	PII root=mp(LLINF,0);
+	for(ll i=1;i<=a;i++){
+		if(root.ff>far[i][0].ff)
+			root=mp(far[i][0].ff,i);
+		arr[i]=mp(far[i][0].ff,i);	
+	}
+	sort(arr+1,arr+a+1,cmp);
+	dfs3(root.ss,-1);	
+	ll q;
+	scanf("%lld",&q);
+	for(ll i=0;i<q;i++){
+		ll l,st=1,mx=0;
+		scanf("%lld",&l);
+		for(ll j=1;j<=a;j++)
+			rank[j]=1,dsu[j]=j;		
+		for(ll j=1;j<=a;j++){
+			ll nd=arr[j].ss;
+			tr(it,adj[nd]){
+				if(it->ff==P[nd])
+					continue;
+				rank[tap(nd)]+=rank[tap(it->ff)];
+				dsu[tap(it->ff)]=tap(nd);
+			}
+			while(st<j and far[arr[st].ss][0].ff-far[nd][0].ff>l)
+				rank[tap(arr[st++].ss)]--;
+			umax(mx,rank[tap(nd)]);		
+		}
+		printf("%lld\n",mx);
+	}
+	return 0;
+}

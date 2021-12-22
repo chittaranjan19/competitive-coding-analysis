@@ -1,0 +1,112 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+#include <clocale>
+
+#pragma comment(lib,"psapi")
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const ll MAX_N = 500;
+const ld pi = 3.1415926535897932384626;
+const ld eps = 1e-6;
+
+int n, m;
+vector<vector<int> > graph;
+int dist[3000][3000];
+queue<int> q;
+
+void bfs(int num)
+{
+    while (!q.empty())
+    {
+        int x = q.front();
+        q.pop();
+        for (int i = 0; i < graph[x].size(); i++)
+            if (dist[num][graph[x][i]] > dist[num][x] + 1)
+            {
+                dist[num][graph[x][i]] = dist[num][x] + 1;
+                q.push(graph[x][i]);
+            }
+    }
+}
+
+int main()
+{
+    //freopen("mutants.in", "r", stdin);
+    //freopen("mutants.out", "w", stdout);
+    //setlocale(LC_CTYPE, "rus");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n >> m;
+    graph.resize(n);
+    for (int i = 0; i < m; i++)
+    {
+        int s, f;
+        cin >> s >> f;
+        graph[s - 1].push_back(f - 1);
+        graph[f - 1].push_back(s - 1);
+    }
+    int s1, t1, l1, s2, t2, l2;
+    cin >> s1 >> t1 >> l1 >> s2 >> t2 >> l2;
+    s1--; t1--; s2--; t2--;
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            dist[i][j] = inf;
+    for (int i = 0; i < n; i++)
+    {
+        dist[i][i] = 0;
+        q.push(i);
+        bfs(i);
+    }
+    /*for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            cout << dist[i][j] << (j == n - 1 ? "\n" : " ");*/
+    if (dist[s1][t1] > l1 || dist[s2][t2] > l2)
+    {
+        cout << -1;
+        return 0;
+    }
+    int ans = min(dist[s1][t1] + dist[s2][t2], m);
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+        {
+            if (dist[s1][i] + dist[i][j] + dist[j][t1] <= l1 && dist[s2][i] + dist[i][j] + dist[j][t2] <= l2)
+                ans = min(ans, dist[s1][i] + dist[s2][i] + dist[i][j] + dist[j][t1] + dist[j][t2]);
+            if (dist[s1][i] + dist[i][j] + dist[j][t1] <= l1 && dist[t2][i] + dist[i][j] + dist[j][s2] <= l2)
+                ans = min(ans, dist[s1][i] + dist[t2][i] + dist[i][j] + dist[j][t1] + dist[j][s2]);
+        }
+    cout << m - ans;
+    return 0;
+}
+/*
+9 9
+1 2
+2 3
+2 4
+4 5
+5 7
+5 6
+3 8
+8 9
+9 6
+1 7 4
+3 6 3
+*/

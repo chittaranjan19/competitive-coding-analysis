@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+const int off = 3000;
+
+int n, slen, plen, qlen, o, c, maxdiff, mindiff, req;
+char str[maxn];
+ll dp[2][2010][5010];
+
+//diff - current value of opening-closing
+
+ll solve(int p, int cur, int diff)
+{
+	//cout << p << " " << cur << " " << diff << "\n";
+	if(cur==0){
+		if(p){
+			if(diff==0)
+				return 1;
+			else
+				return 0;
+		}
+		else
+			return solve(1, 0, diff+o-c);
+	}
+	if(dp[p][cur][diff]!=-1)
+		return dp[p][cur][diff];
+	ll ret = 0;
+	if(p){
+		if(diff>0)
+			ret = (ret+solve(1, cur-1, diff-1))%mod;
+		ret = (ret+solve(1, cur-1, diff+1))%mod;
+	}
+	else{
+		if(diff>=maxdiff)
+			ret = (ret+solve(1, cur, diff+o-c))%mod;
+		if(diff>0)
+			ret = (ret+solve(0, cur-1, diff-1))%mod;
+		ret = (ret+solve(0, cur-1, diff+1))%mod;
+	}
+	return dp[p][cur][diff] = ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j;
+	o = c = maxdiff = mindiff = 0;
+	memset(dp, -1, sizeof(dp));
+	scanf("%d%d%s", &n, &slen, str+1);
+	for(i=1; i<=slen; i++){
+		if(str[i]=='(')
+			o++;
+		else
+			c++;
+		maxdiff = max(maxdiff, c-o);
+		mindiff = max(mindiff, o-c);
+	}
+	req = n-slen;
+	if(maxdiff >= 2500){
+		printf("0\n");
+		return 0;
+	}
+	ll ans = solve(0, req, 0);
+	printf("%lld\n", ans);
+	return 0;
+}

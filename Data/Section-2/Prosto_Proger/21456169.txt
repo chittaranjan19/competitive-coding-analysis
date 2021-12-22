@@ -1,0 +1,68 @@
+#include <iostream>
+#include <map>
+
+using namespace std;
+
+const string S[6] = {"S", "M", "L", "XL", "XXL", "XXXL" };
+const int MAXN = 1e5;
+int g[MAXN][6];
+int a[6];
+int stof[MAXN];
+bool used[MAXN];
+bool kek[MAXN];
+
+int n;
+
+map <string, int> sto;
+
+bool dfs(int v) {
+	for (int i = 0; i < 6; ++i) {
+		if (g[v][i] && a[i] != 0) {
+			--a[i]; stof[v] = i;
+			return true ;
+		}
+	}
+	used[v] = true;
+	for (int i = 0; i < n; ++i) {
+		int wef = stof[i];
+		if (!used[i] && g[v][wef] && dfs(i) ) {
+			stof[v] = wef;
+			used[v] = false;
+			return true;
+		}
+	}
+	used[v] = false;
+	return false;
+}	
+
+int main() {
+	for (int i = 0; i < 6; ++i) { 
+		sto[ S[i] ] = i;
+		cin >> a[i];
+	}
+	cin >> n;
+	for (int i = 0; i < n; ++i) {
+		string s;	cin >> s;
+		int pos = s.find(',');
+		if (pos == -1) g[i][ sto[s] ] = true;
+		else {
+			int ind1 = sto[s.substr(0, pos)];
+			int ind2 = sto[s.substr(pos + 1, s.size() - pos - 1)];
+			g[i][ind1] = true, 
+			g[i][ind2] = true;
+		}
+	}
+	int cnt = 0;
+	for (int i = 0; i < n; ++i) {
+		if (!kek[i] && !dfs(i)){
+			cout << "NO" << endl;
+			return 0;
+		}
+		else kek[i] = true;
+	}
+	cout << "YES" << endl;
+	for (int i = 0; i < n; ++i) {
+		cout << S[ stof[i] ] << endl; 
+	}
+	return 0;
+}

@@ -1,0 +1,83 @@
+//INOG
+//<MohammadJavad Akbari/>
+//I Try So Hard And Got So Far,But In The End It Doesn't Even Matter... 
+#include<bits/stdc++.h>
+using namespace std;
+
+#define mp make_pair
+#define ll long long
+#define int long long
+#define ld long double
+#define pb(x) push_back(x)
+#define all(x) x.begin(),x.end()
+#define endl '\n'
+const long long MAXN=1e5+51;
+const long long MAXM=3e3;
+const long long MOD=1610612741;
+const long long mod=1e9+7;
+const long long INF=1e15+5040;
+const int dx[4]={1,-1,0,0};
+const int dy[4]={0,0,-1,1};
+
+bool vis[MAXN];
+int p[MAXN];
+int par[MAXN][20];
+int dis[MAXN];
+
+vector<int>ver[MAXN];
+vector<pair<int,int>>event,pack;
+
+int root(int x){if(p[x]<0)return x;return p[x]=root(p[x]);}
+inline void merge(int x,int y){x=root(x);y=root(y);p[x]=y;}
+void dfs(int v=0,int d=0){
+	dis[v]=d;
+	for(auto u:ver[v])dfs(u,d+1);
+}
+int getPar(int x,int y){
+	for(int i=0;y>0;i++){
+		if(y%2)
+			x=par[x][i];
+		y/=2;
+	}
+	return x;
+}
+main(){
+//	ios_base::sync_with_stdio(0);
+//	cin.tie(0);cout.tie(0);
+	int n,m;
+	cin>>n>>m;
+	fill(p,p+MAXN,-1*INF);
+	while(m--){
+		int t,x,y;
+		cin>>t;
+		if(t==1){
+			cin>>x>>y;
+			par[x][0]=y;
+			merge(x,y);
+		}
+		else if(t==2){
+			cin>>x;
+			pack.push_back(mp(x,root(x)));
+		}
+		else{
+			cin>>x>>y;
+			event.push_back(mp(x,y-1));
+		}
+	}
+	for(int i=1;i<=n;i++)
+		ver[par[i][0]].push_back(i);
+	for(int i=1;i<19;i++)
+		for(int j=0;j<=n;j++)
+			par[j][i]=par[par[j][i-1]][i-1];
+	dfs();
+	
+	for(auto q:event){
+		int x=q.first;
+		int dn=pack[q.second].first;
+		int up=pack[q.second].second;
+		if(dis[dn]<dis[x] || dis[up]>dis[x]){cout<<"NO\n"; continue;}
+		if(getPar(x,dis[x]-dis[up])!=up){cout<<"NO\n"; continue;}
+		if(getPar(dn,dis[dn]-dis[x])!=x){cout<<"NO\n"; continue;}
+		cout<<"YES\n";
+	}
+}

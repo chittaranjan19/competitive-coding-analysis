@@ -1,0 +1,62 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+#define PB push_back
+#define MP make_pair
+#define X first
+#define Y second
+
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef pair<int, int> pii;
+const int N = 200 * 1000 + 100;
+const int oo = 1e9;
+const ld eps = 1e-9;
+int n;
+ld a[N];
+ld b[N];
+ld sum[N];
+
+ld weak(ld x){
+	ld mn = oo, mx = -oo;
+	ld mn2 = oo, mx2 = -oo;
+	for(int i = 0; i < n; ++i) b[i] = (a[i] - x);
+	for(int i = 1; i <= n; ++i) sum[i] = sum[i - 1] + b[i - 1];
+	for(int i = 0; i <= n; ++i){
+		if(sum[i] > mx2)
+			mx2 = sum[i];
+		if(sum[i] < mn2)
+			mn2 = sum[i];
+		mn = min(mn, sum[i] - mx2);
+		mx = max(mx, sum[i] - mn2);
+	}
+	return max(mx, -mn);
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for(int i = 0; i < n; ++i) cin >> a[i];
+	ld f = -N, l = N;
+	for(int i = 0; i < 100; ++i){
+	//	cerr << f << " " << l << "\n"; 
+		ld h1 = f + (l - f) / 3;
+		ld h2 = f + (l - f) * 2 / 3;
+		//cerr << h1 << " " << h2 << " " << weak(h1) << " " << weak(h2) << "\n";
+		if(weak(h1) - weak(h2) > eps){
+			f = h1;
+		}
+		else if(weak(h2) - weak(h1) > eps){
+			l = h2;
+		}
+		else{
+			f = h1;
+			l = h2;
+		}
+	}
+//	cerr << f << "\n";
+	cout << fixed << setprecision(6) << weak(f) << "\n";
+	return 0;
+}

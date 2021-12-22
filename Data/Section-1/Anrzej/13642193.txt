@@ -1,0 +1,119 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+ll gcd(ll a, ll b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+vector<int> g[200000];
+int n, m, q, t = 0;
+vector<int> people[200000];
+int tin[200000], tout[200000], d[30][200000], l = 0;
+set<int> ans[200000];
+
+void dfs1(int v, int p = 0)
+{
+	tin[v] = t++;
+	d[v][0] = p;
+	for (int i = 1; i <= l; i++)
+		d[v][i] = d[d[v][i - 1]][i - 1];
+	for (int i = 0; i< g[v].size(); i++) {
+		int to = g[v][i];
+		if (to != p)
+			dfs1(to, v);
+	}
+	tout[v] = t++;
+}
+
+bool up(int a, int b) {
+	return tin[a] <= tin[b] && tout[a] >= tout[b];
+}
+
+int lca(int a, int b) {
+	if (up(a, b))  return a;
+	if (up(b, a))  return b;
+	for (int i = l; i >= 0; --i)
+	if (!up(d[a][i], b))
+		a = d[a][i];
+	return d[a][0];
+}
+
+void dfs(int v, int p, set<int> tans){
+	for (int i = 0; i < people[v].size(); i++){
+		tans.insert(people[v][i]);
+	}
+	ans[v] = tans;
+	while (tans.size() > 20){
+		set<int>::iterator it = tans.end();
+		it--;
+		tans.erase(it);
+	}
+	for (int i = 0; i < g[v].size(); i++){
+		if (g[v][i] == p) continue;
+		dfs(g[v][i], v, tans);
+	}
+}
+
+int main()
+{
+	cin >> n >> m >> q;
+	while ((1 << l) < n) l++;
+	for (int i = 0; i < n - 1; i++){
+		int u, v;
+		cin >> u >> v;
+		g[v].push_back(u);
+		g[u].push_back(v);
+	}
+	int r = 1;
+	for (int i = 0; i < m; i++){
+		int t;
+		cin >> t;
+		people[t].push_back(i + 1);
+	}
+	dfs1(r);
+	set<int> strt;
+	dfs(1, -1, strt);
+	while (q--){
+		int u, v, a;
+		cin >> u >> v >> a;
+		int lc = lca(u, v);
+		set<int> RootToLca = ans[lc], UToLca = ans[u], VToLca = ans[v];
+		set<int>::iterator it;
+		for (it = UToLca.begin(); it != UToLca.end(); it++){
+			VToLca.insert(*it);
+		}
+		for (it = RootToLca.begin(); it != RootToLca.end(); it++){
+			VToLca.erase(*it);
+		}
+		if (lc == u||lc == v){
+			for (int i = 0; i < people[lc].size(); i++){
+				VToLca.insert(people[lc][i]);
+			}
+		}
+		int k = min(a, (int)VToLca.size());
+		it = VToLca.begin();
+		printf("%d ", k);
+		while(k--){
+			printf("%d ",*it);
+			it++;
+		}
+		cout << endl;
+	}
+	return 0;
+}

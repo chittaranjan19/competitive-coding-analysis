@@ -1,0 +1,82 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+const int N = 1e5 + 10;
+
+ll n, A, cf, cm, m, a[N], ss[N];
+pair<ll, ll> p[N];
+ll ps[N];
+
+ll can(int cur, int have)
+{
+	ll need = 0;
+	int l = 1, r = have;
+	while (l <= r)
+	{
+		int mid = (l + r) >> 1;
+		if (p[mid-1].fs < cur)
+			l = mid+1;
+		else r = mid-1;
+	}
+	l -= 1;
+	need = (ll)cur*(ll)(l) - ps[l];
+	return need;
+}
+
+int main()
+{
+	cin >> n >> A >> cf >> cm >> m;
+	for (int i = 0; i < n; i++)
+		cin >> a[i], p[i] = mp(a[i], i);
+	sort(p, p + n);
+	for (int i = 1; i <= n; i++)
+		ps[i] = ps[i - 1] + p[i - 1].fs;
+	int fmx, fmn;
+	ll ans = 0;
+	for (int i = 0; i <= n; i++)
+	{
+		ll nmx = i * 1ll * A - ps[n] + ps[n - i];
+		if (nmx > m) break;
+		int l = 0, r = A;
+		ll have = m - nmx;
+		while (l <= r)
+		{
+			int mid = (l + r) >> 1;
+			ll k = can(mid, n - i);
+			if (nmx + k <= m)
+				l = mid+1;
+			else r = mid-1;
+		}
+		l -= 1;
+		ll tans = (ll)l*cm + (ll)i*cf;
+		if (tans > ans)
+			ans = tans, fmx = i, fmn = l;
+	}
+	cout << ans << endl;
+	for (int i = n-1; i >= n-fmx; i--)
+		a[p[i].sc] = A;
+	for (int i = 0; i < n - fmx; i++)
+		a[p[i].sc] = max(a[p[i].sc], (ll)fmn);
+	for (int i = 0; i < n; i++)
+		cout << a[i] << ' ';
+	return 0;
+}

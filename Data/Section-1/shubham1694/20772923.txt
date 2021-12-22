@@ -1,0 +1,106 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 300010;
+
+ll modpow(ll a, ll b)
+{
+	ll x=1, y=a;
+	while(b){
+		if(b&1)
+			x = (x*y)%mod;
+		y = (y*y)%mod;
+		b/=2;
+	}
+	return x;
+}
+
+int mu[maxn], prime[maxn];
+int n, f;
+ll fact[maxn], mfact[maxn], ways[maxn];
+vector<int> divisors;
+
+void pre()
+{
+	int i, j;
+	for(i=2; i<maxn; i++){
+		for(j=i; j<maxn; j+=i){
+			if(!prime[j])
+				prime[j] = i;
+		}
+	}
+	mu[1] = 1;
+	for(i=2; i<maxn; i++){
+		int temp = i;
+		int p = prime[i];
+		int val = 1;
+		while(temp > 1){
+			int c = 0;
+			while(!(temp%p)){
+				temp /= p;
+				++c;
+			}
+			if(c > 1){
+				val = 0;
+				break;
+			}
+			val *= -1;
+			p = prime[temp];
+		}
+		mu[i] = val;
+	}
+}
+
+void find_divisors()
+{
+	divisors.clear();
+	divisors.pb(n);
+	for(int i=2; i<=sqrt(n); i++){
+		if(!(n%i)){
+			divisors.pb(i);
+			if(i != (n/i))
+				divisors.pb(n/i);
+		}
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int q, i, j;
+	pre();
+	fact[0] = mfact[0] = 1;
+	for(i=1; i<maxn; i++){
+		fact[i] = (fact[i-1]*i)%mod;
+		mfact[i] = modpow(fact[i], mod-2);
+	}
+	scanf("%d", &q);
+	while(q--){
+		scanf("%d%d", &n, &f);
+		find_divisors();
+		ll ans = ((fact[n-1]*mfact[f-1])%mod * mfact[n-f])%mod;
+		for(int it : divisors){
+			if(n/it < f)
+				continue;
+			int r = n/it - f;
+			ways[it] = ((fact[f+r-1]*mfact[f-1])%mod * mfact[r])%mod;
+			ans = (ans + (ways[it]*mu[it])%mod + mod)%mod;
+		}
+		printf("%lld\n", ans);
+	}
+	return 0;
+}

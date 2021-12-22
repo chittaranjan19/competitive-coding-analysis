@@ -1,0 +1,103 @@
+using namespace std;
+#include<bits/stdc++.h>
+#define FOR(i, a, b) for (int i = a; i < b; i++)
+#define FORE(i, a, b) for (int i = a; i <= b; i++)
+#define FORD(i, a, b) for (int i = a; i >= b; i--)
+const int MAXN = 401;
+const int INF = 1e9 + 7;
+int m, n;
+int a[MAXN][MAXN];
+int b[MAXN * MAXN + 1];
+int top;
+int D[MAXN][MAXN], R[MAXN][MAXN];
+map<int, bool> M;
+bool dd[10001];
+
+void sub1()
+{
+    int ans = 0;
+    FORE(x, 1, m) FORE(y, 1, n)
+    FORE(lx, 1, m - x + 1) FORE(ly, 1, n - y + 1){
+        int x2 = x + lx - 1;
+        int y2 = y + ly - 1;
+        M.clear();
+        bool ok = 1;
+        FORE(i, x, x2) FORE(j, y, y2) if (M[a[i][j]]) ok = 0;
+            else M[a[i][j]]++;
+        if (ok) ans = max(ans, lx * ly); else break;
+        //if (ans == 6) cout<<x<< " "<<y<<" "<<lx<<" "<<ly<<endl;
+    }
+    cout << ans << endl;
+}
+/*
+void sub2()
+{
+    int ans = 0;
+    FORE(y, 1, n)
+    FORE(x1, 1, m){
+        FORE(x2, x1, m){
+            dd.clear();
+            bool ok = 1;
+            FORE(j, y, n){
+                FORE(k, x1, x2) if (dd[a[k][j]]){
+                    ok = 0;
+                    break;
+                } else dd[a[k][j]]++;
+                if (ok) ans = max(ans, (x2 - x1 + 1) * (j - y + 1));
+                    else break;
+            }
+        }
+    }
+    cout << ans << endl;
+}
+*/
+void full()
+{
+    int ans = 0;
+    FORE(x1, 1, m)
+    FORE(x2, x1, m){
+        memset(dd, 0, sizeof(dd));
+        int i = 1;
+        int last = 0;
+        while (i <= n){
+            last = max(last, i - 1);
+            int j = last;
+            while (j < n){
+                bool ok = 1;
+                FORE(k, x1, x2) if (dd[a[k][j + 1]] > 0) ok = 0;
+                    else dd[a[k][j + 1]] = 1;
+                if (ok) j++;
+                else {
+                    FORE(k, x1, x2) dd[a[k][j + 1]] = 0;
+                    break;
+                }
+
+            }
+            ans = max(ans, (x2 - x1 + 1) * max(0, j - i + 1));
+            last = j;
+            FORE(k, x1, x2) dd[a[k][i]] = 0;
+            i++;
+        }
+    }
+    cout<<ans << endl;
+}
+int main()
+{
+    ios::sync_with_stdio(false); cin.tie(0);
+    #ifndef ONLINE_JUDGE
+    freopen("BOARD.inp", "r", stdin);
+    freopen("BOARD.out", "w", stdout);
+    #endif // ONLINE_JUDGE
+    //MIKELHPDATKE;
+    cin >> m >> n;
+    FORE(i, 1, m) FORE(j, 1, n) cin >> a[i][j];
+    FORE(i, 1, m) FORE(j, 1, n) b[++top] = a[i][j];
+    sort(b + 1, b + top + 1);
+    FORE(i, 1, m) FORE(j, 1, n) a[i][j] = lower_bound(b + 1, b + top + 1, a[i][j]) - b;
+    //if (n <= 20) sub2();
+    //else
+        full();
+    //cout << ans << endl;
+    //sub2();
+    return 0;
+}

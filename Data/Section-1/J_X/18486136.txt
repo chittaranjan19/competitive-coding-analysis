@@ -1,0 +1,93 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+typedef pair<double, double> pdd;
+typedef long long ll;
+
+const int maxn = 1e5 + 5;
+const double eps = 1e-10;
+const double PI = acos(-1.0);
+
+struct circle
+{
+    int x, y, r;
+} c[maxn];
+pdd p[maxn << 1];
+
+int dcmp(double x)
+{
+    if(fabs(x) < eps) return 0;
+    return x > eps ? 1 : -1;
+}
+
+double solve(double a, double b, double c)
+{
+    return (-b - sqrt(b * b - 4 * a * c)) / 2;
+}
+
+ll dis(ll x1, ll y1, ll x2, ll y2)
+{
+    return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+}
+
+int main()
+{
+    int x0, y0, n, v, t, cnt = 0, tot = 0;
+    scanf("%d%d%d%d%d", &x0, &y0, &v, &t, &n);
+    ll b = (ll)v * t;
+    bool flag = false;
+    for(int i = 0; i < n; ++i)
+    {
+        scanf("%d%d%d", &c[i].x, &c[i].y, &c[i].r);
+        c[i].x -= x0, c[i].y -= y0;
+        double d = sqrt(dis(0, 0, c[i].x, c[i].y)) - sqrt((ll)c[i].r * c[i].r);
+        if(d < eps) flag = true;
+        else if(d < b - eps) c[cnt++] = c[i];
+    }
+    if(flag) puts("1.0000000000");
+    else
+    {
+        double ans = 0;
+        for(int i = 0; i < cnt; ++i)
+        {
+            double a = atan2(c[i].y, c[i].x);
+            double d = sqrt(dis(0, 0, c[i].x, c[i].y)), r = sqrt((ll)c[i].r * c[i].r);
+            double lb = 0, ub = atan2(r, sqrt(d * d - r * r));
+            for(int j = 0; j < 100; ++j)
+            {
+                double m = (lb + ub) / 2;
+                if(dcmp(solve(1, -2 * r * cos(m), r * r - d * d) - b) < 0) lb = m;
+                else ub = m;
+            }
+            if(dcmp(a - lb + PI) < 0)
+            {
+                p[tot++] = pdd(-PI, a + lb);
+                p[tot++] = pdd(a - lb + 2 * PI, PI);
+            }
+            else if(dcmp(a + lb - PI) > 0)
+            {
+                p[tot++] = pdd(-PI, a + lb  - 2 * PI);
+                p[tot++] = pdd(a - lb, PI);
+            }
+            else p[tot++] = pdd(a - lb, a + lb);
+        }
+        sort(p, p + tot);
+        for(int i = 0, j = 0; i < tot; i = j)
+        {
+            double r = p[i].second;
+            while(j < tot && dcmp(r - p[j].first) >= 0)
+            {
+                r = max(p[j].second, r);
+                ++j;
+            }
+            ans += r - p[i].first;
+        }
+        printf("%.10f\n", ans / (2 * PI));
+    }
+    return 0;
+}

@@ -1,0 +1,107 @@
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <climits>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define lsone(value) (value)&(-value)
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define loop(i, n) for(int i = 0; i < n; ++i)
+#define loop1(i, n) for(int i = 1; i <= n; ++i)
+#define reverse_iterate(a, b) for(__typeof(b.rend()) a = b.rbegin(); a != b.rend(); ++a)
+#define iterate(a, b) for(__typeof(b.begin()) a = b.begin(); a != b.end(); ++a)
+#define all(i) i.begin(), i.end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+// end of template
+
+int main() {
+    // freopen("580D.in", "r", stdin);
+    
+    int n, m, k;
+    scanf("%d %d %d", &n, &m, &k);
+
+    vi satis(n);
+    for (int it = 0; it < n; ++it)
+    	scanf("%d", &satis[it]);
+
+
+    vii rules[n];
+    for (int it = 0; it < k; ++it) {
+    	int a, b, c;
+    	scanf("%d %d %d", &a, &b, &c);
+    	--a, --b;
+    	rules[a].pub(mp(b, c));
+    }
+    #define NOT_VISITED -1
+    vector<ll> dp(1 << n, NOT_VISITED);
+    que<int> q;
+
+    dp[0] = 0;
+    q.pu(0);
+
+    while (m--) {
+    	int q_size = q.size();
+    	while (q_size--) {
+    		int val_consumed_dish = q.front();
+	    	q.pop();
+	    	for (int next_dish_idx = 0; next_dish_idx < n; ++next_dish_idx) {
+	    		int val_next_dish = 1 << next_dish_idx;
+	    		if (val_consumed_dish & val_next_dish)
+	    			continue;
+
+	    		int next_val_consumed_dish = val_consumed_dish | val_next_dish;
+	    		if (dp[next_val_consumed_dish] == NOT_VISITED)
+	    			q.pu(next_val_consumed_dish);
+
+	    		int bonus = 0;
+	    		iterate(rule, rules[next_dish_idx]) {
+	    			int dish_idx = (1 << rule->a);
+	    			if (val_consumed_dish & dish_idx)
+	    				bonus += rule->b;
+	    		}
+	    		dp[next_val_consumed_dish] = max(dp[next_val_consumed_dish], dp[val_consumed_dish]+bonus+satis[next_dish_idx]);
+	    	}
+    	}
+    }
+
+    ll ans = 0;
+    while (!q.empty()) {
+    	ans = max(ans, dp[q.front()]);
+    	q.pop();
+    }
+    printf("%I64d\n", ans);
+
+    return 0;
+}

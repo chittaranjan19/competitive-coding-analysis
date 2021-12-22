@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 201;
+const int maxk = 1001;
+
+int n, k, A[maxn];
+int dp[maxn][maxn][maxk];
+
+int add(int a, int b) {
+    int res = (a + b) % mod;
+    return res;
+}
+
+int mul(int a, int b) {
+    ll res = a;
+    res *= b;
+    res %= mod;
+    a = res;
+    return a;
+}
+
+int solve(int u, int g, int sum) {
+    if (sum > k || g < 0) {
+        return 0;
+    }
+    if (u > n) {
+        return g == 0;
+    }
+    if (dp[u][g][sum] != -1)
+        return dp[u][g][sum];
+    int nxt = sum + (A[u] - A[u - 1]) * g;
+    int ret = mul(g, solve(u + 1, g, nxt));
+    ret = add(ret, solve(u + 1, g, nxt));
+    if (g > 0)
+        ret = add(ret, mul(g, solve(u + 1, g - 1, nxt)));
+    ret = add(ret, solve(u + 1, g + 1, nxt));
+    return dp[u][g][sum] = ret;
+}
+
+int main() {
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    memset(dp, -1, sizeof(dp));
+    scanf("%d %d", &n, &k);
+    for (int i = 1; i <=n; i++) {
+        scanf("%d", &A[i]);
+    }
+    sort(A + 1, A + n + 1);    
+    int ans = solve(1, 0, 0);
+    printf("%d\n", ans);
+    return 0;
+}

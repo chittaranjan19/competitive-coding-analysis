@@ -1,0 +1,220 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD {
+    BufferedReader rd;
+    Node[] nodes;
+
+    ProblemD() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int n = a[0];
+        int m = a[1];
+        int[] p = intarr();
+        char[] c = rd.readLine().toCharArray();
+        int[] depth = new int[n];
+        int deepest = 1;
+
+        nodes = new Node[n];
+        nodes[0] = new Node(null, 0);
+        for(int i=0;i<n-1;i++) {
+            nodes[i+1] = new Node(nodes[p[i]-1], i+1);
+            depth[i+1] = depth[p[i]-1] + 1;
+            deepest = Math.max(deepest, depth[i+1]);
+        }
+        for(int i=1;i<n;i++) {
+            nodes[i].parent.children.add(nodes[i]);
+        }
+
+        int[][] byLevel = new int[deepest+1][2];
+        int[] idxOf = new int[n];
+        int[] byIdx = new int[n*2];
+        int idx = 0;
+        Queue<Node> queue = new LinkedList<>();
+        queue.add(nodes[0]);
+        while(!queue.isEmpty()) {
+            Node node = queue.poll();
+            idxOf[node.i] = idx;
+            byIdx[idx] = node.i;
+            if(byLevel[depth[node.i]][0] == 0) {
+                byLevel[depth[node.i]][0] = idx;
+            }
+            byLevel[depth[node.i]][1] = idx;
+            idx++;
+            if(node.children != null) {
+                for(Node child: node.children) {
+                    queue.add(child);
+                }
+            }
+        }
+
+        Fenwick[] byCharacter = new Fenwick[26];
+        for(int j=0;j<26;j++) {
+            byCharacter[j] = new Fenwick();
+            byCharacter[j].init(idx+1);
+        }
+        for(int i=0;i<n;i++) {
+            Fenwick fenwick = byCharacter[c[i]-'a'];
+            fenwick.add(idxOf[i], 1);
+        }
+
+        for(int i=0;i<m;i++) {
+            int[] vh = intarr();
+            int v = vh[0] - 1;
+            int h = vh[1] - 1;
+            if(depth[v] <= h) {
+                int from = -1;
+                int to = -1;
+                for(int j=byLevel[h][0];j<=byLevel[h][1];j++) {
+                    if(isAncestorOf(v, byIdx[j])) {
+                        if(from == -1) {
+                            from = j;
+                        }
+                        to = j;
+                    }
+                }
+                int[] cnt = new int[26];
+                for(int j=0;j<26;j++) {
+                    cnt[j] = byCharacter[j].sum(from, to);
+                }
+                out(isPalin(cnt)?"Yes":"No");
+            } else {
+                out("Yes");
+            }
+        }
+    }
+
+    private boolean isAncestorOf(int x, int y) {
+        Node n = nodes[y];
+        while(n != null && n.i != x) {
+            n = n.parent;
+        }
+        return n != null && n.i == x;
+    }
+
+    public class Fenwick {
+        private int[] s;
+
+        public void init(int n) {
+            s = new int[n];
+        }
+
+        public int sum(int r) {
+            int ret = 0;
+            for (; r >= 0; r = (r & (r+1)) - 1)
+                ret += s[r];
+            return ret;
+        }
+
+        public void add(int idx, int delta) {
+            for (; idx < s.length; idx = idx | (idx+1))
+                s[idx] += delta;
+        }
+
+        public int sum(int l, int r) {
+            return sum(r) - sum(l-1);
+        }
+
+    }
+
+    private boolean isPalin(int[] cnt) {
+        int odd = 0;
+        for(int i: cnt) {
+            if(i%2==1) {
+                odd++;
+                if(odd > 1) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private class Node {
+        Node parent;
+        int i;
+        List<Node> children = new ArrayList<>();
+
+        private Node(Node parent, int i) {
+            this.parent = parent;
+            this.i = i;
+        }
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD();
+    }
+}

@@ -1,0 +1,122 @@
+//Cok tavsanin pesinde kosan hicbrini yakalmaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define lg(x) ceil(log2(x))
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN];
+int n,q,lvl[MAXN],in[MAXN],out[MAXN],tim,maxlvl,last,chain[MAXN],sl[MAXN<<2],sv[MAXN<<2];
+vector<int>adj[MAXN];
+void dfs(int nd,int pr){
+	in[nd]=++tim;
+	lvl[nd]=lvl[pr]+1;
+	umax(maxlvl,lvl[nd]);
+	int leaf=0;
+	tr(v,adj[nd]){
+		if(*v!=pr)
+			leaf=1,dfs(*v,nd);	
+	}
+	if(!leaf)
+		last=in[nd];
+	chain[nd]=last;			
+}
+void incl(int l,int r,int v,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		sl[nd]+=v;
+		return;
+	}
+	int mid=(x+y)>>1;
+	incl(l,r,v,(nd<<1),x,mid);
+	incl(l,r,v,(nd<<1)|1,mid+1,y);		
+}
+void incv(int l,int r,int v,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		sv[nd]+=v;
+		return;
+	}
+	int mid=(x+y)>>1;
+	incv(l,r,v,(nd<<1),x,mid);
+	incv(l,r,v,(nd<<1)|1,mid+1,y);		
+}
+int tapl(int p,int nd,int x,int y){
+	if(!(x^y))
+		return sl[nd];
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		return sl[nd]+tapl(p,(nd<<1),x,mid);
+	else
+		return sl[nd]+tapl(p,(nd<<1)|1,mid+1,y);		
+}
+int tapv(int p,int nd,int x,int y){
+	if(!(x^y))
+		return sv[nd];
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		return sv[nd]+tapv(p,(nd<<1),x,mid);
+	else
+		return sv[nd]+tapv(p,(nd<<1)|1,mid+1,y);		
+}
+int main(){
+	cin>>n>>q;
+	for(int i=0;i<n-1;i++){
+		int u,v;
+		cin>>u>>v;
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	dfs(1,0);
+	while(q--){
+		int type,v;
+		cin>>type>>v;
+		if(type==0){
+			int x,d;
+			cin>>x>>d;
+			int h=in[v];
+			int ch=chain[v];
+			if(lvl[v]-d<=1){
+				int k=d-lvl[v]+2;
+				incl(1,k,x,1,1,maxlvl);
+				if(k>=lvl[v]){
+					d-=k-lvl[v]+1;
+					h+=k-lvl[v]+1;
+					if(h<=ch){
+						umin(ch,h+d);
+						incv(h,ch,x,1,1,n);
+					}
+				}
+				else{
+					int dis=lvl[v]-k;
+					dis=h-dis+1;	
+					umin(ch,h+d);
+					incv(dis,ch,x,1,1,n);
+				}
+			}
+			else{
+				umin(ch,h+d);
+				incv(h-d,ch,x,1,1,n);	
+			}
+		}
+		else
+			cout<<tapl(lvl[v],1,1,maxlvl)+tapv(in[v],1,1,n)<<endl;
+	}
+	return 0;
+}

@@ -1,0 +1,65 @@
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int MAXN=4e5+10;
+const int INF=1e9+17;
+
+pair<int,int>seg[4*MAXN];   int lazy[4*MAXN];
+
+int x[MAXN],y[MAXN],z[MAXN];
+vector<int>ans,cor;
+vector<pair<int,pair<int,int>>>q;
+
+void shift(int id){
+    seg[2*id+1].first+=lazy[id];    lazy[2*id+1]+=lazy[id];
+    seg[2*id+2].first+=lazy[id];    lazy[2*id+2]+=lazy[id];
+    lazy[id]=0;
+}
+void update(int ql,int qr,int qv,int xl=0,int xr=MAXN,int id=0){
+    if(ql<=xl && xr<=qr){seg[id].first+=qv; lazy[id]+=qv;  return; }
+    if(qr<=xl || xr<=ql)return ;
+    shift(id);
+    int mid=(xl+xr)/2;
+    update(ql,qr,qv,xl,mid,2*id+1);
+    update(ql,qr,qv,mid,xr,2*id+2);
+    seg[id]=max(seg[2*id+1] , seg[2*id+2]);
+}
+
+void build(int xl=0,int xr=MAXN,int id=0){
+    if(xr-xl==1){seg[id].second=xl; return;}
+    int mid=(xl+xr)/2;
+    build(xl,mid,2*id+1);
+    build(mid,xr,2*id+2);
+    seg[id]=max(seg[2*id+1] , seg[2*id+2]);
+}
+main(){
+    ios::sync_with_stdio(false);
+    cout.tie(0);    cin.tie(0);
+    build();
+    int n;  cin>>n;
+    for(int i=0;i<n;i++){
+        cin>>x[i]>>y[i]>>z[i];
+        cor.push_back(x[i]);    cor.push_back(y[i]);    cor.push_back(z[i]);
+    }
+    sort(cor.begin(),cor.end());
+    cor.resize(unique(cor.begin(),cor.end())-cor.begin());
+    for(int i=0;i<n;i++){
+        x[i]=lower_bound(cor.begin(),cor.end(),x[i])-cor.begin();   q.push_back({x[i],{0,i}});
+        y[i]=lower_bound(cor.begin(),cor.end(),y[i])-cor.begin();   q.push_back({y[i],{1,i}});
+        z[i]=lower_bound(cor.begin(),cor.end(),z[i])-cor.begin();
+    }
+    sort(q.begin(),q.end());
+    int mxv=-INF,mxl=0,mxr=0;
+    for(auto v:q){
+        int id=v.second.second;
+        if(v.second.first){update(y[id],z[id]+1,-1);    continue;}
+        update(y[id],z[id]+1,+1);
+        if(mxv < seg[0].first)mxv=seg[0].first,mxr=seg[0].second,mxl=v.first;
+    }
+    //cout<<mxl << ' '<<mxr<<' '<<mxv<<'\n';
+    for(int i=0;i<n;i++)
+        if(x[i]<=mxl && z[i]>=mxr && y[i]>=mxl && y[i]<=mxr)ans.push_back(i);
+    cout<<ans.size()<<'\n';
+    for(auto v:ans)cout<<v+1<<' ';
+}

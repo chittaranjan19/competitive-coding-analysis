@@ -1,0 +1,88 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define ll long long
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+int n;
+int dp[111][2][2][111][55];
+char str[111];
+
+/*
+    d1: direction in which dist movement
+    d2: facing direction
+*/
+
+int solve(int cur, int d1, int d2, int dist, int lt)
+{   
+    if(dist<0){
+        dist*=(-1);
+        d1^=1;
+    }
+    int ret = dist, i;
+    if(cur==n){
+        if(str[cur]=='F'){
+            if(!(lt&1)){
+                if(d1==d2)
+                    return (dist+1);
+            }
+            return dist;
+        }
+        else{
+            if(lt&1){
+                if(d1==d2)
+                    return (dist+1);
+            }
+            return dist;
+        }
+    }
+    if(dp[cur][d1][d2][dist][lt]!=-1)
+        return dp[cur][d1][d2][dist][lt];
+    if(str[cur]=='T'){
+        for(i=0; i<=lt; i+=2)
+            ret = max(ret, solve(cur+1, d1, d2^1, dist, lt-i));
+        for(i=1; i<=lt; i+=2){
+            if(d1==d2)
+                ret = max(ret, solve(cur+1, d1, d2, dist+1, lt-i));
+            else
+                ret = max(ret, solve(cur+1, d1, d2, dist-1, lt-i));
+        }
+    }
+    else{
+        for(i=1; i<=lt; i+=2)
+            ret = max(ret, solve(cur+1, d1, d2^1, dist, lt-i));
+        for(i=0; i<=lt; i+=2){
+            if(d1==d2)
+                ret = max(ret, solve(cur+1, d1, d2, dist+1, lt-i));
+            else
+                ret = max(ret, solve(cur+1, d1, d2, dist-1, lt-i));
+        }
+    }
+    return dp[cur][d1][d2][dist][lt] = ret;
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    memset(dp, -1, sizeof(dp));
+    int i, k;
+    scanf("%s%d", str+1, &k);
+    n = strlen(str+1);
+    int ans = solve(1, 0, 0, 0, k);
+    printf("%d\n", ans);
+    return 0;
+}

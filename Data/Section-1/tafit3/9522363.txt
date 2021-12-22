@@ -1,0 +1,141 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
+
+public class ProblemC {
+    BufferedReader rd;
+    Map<Node, Long> dpMap = new HashMap<>();
+    int maxh;
+    long[] p2 = new long[60];
+
+    private ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        long[] a = longarr();
+        maxh = (int)a[0];
+        long n = a[1];
+
+        p2[0] = 1;
+        for(int i=1;i<60;i++) {
+            p2[i] = p2[i-1]*2;
+        }
+        out(solve(new Node(0, 0, n)));
+    }
+
+    private class Node {
+        int h;
+        int nextMove;
+        long exit;
+
+        private Node(int h, int nextMove, long exit) {
+            this.h = h;
+            this.nextMove = nextMove;
+            this.exit = exit;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Node)) return false;
+
+            Node node = (Node) o;
+
+            if (exit != node.exit) return false;
+            if (h != node.h) return false;
+            if (nextMove != node.nextMove) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = h;
+            result = 31 * result + nextMove;
+            result = 31 * result + (int) (exit ^ (exit >>> 32));
+            return result;
+        }
+    }
+
+    private long solve(Node node) {
+        Long res = dpMap.get(node);
+        if(res == null) {
+            if(node.exit == 0) {
+                res = p2[maxh-node.h+1]-1;
+            } else {
+                if(node.h == maxh) {
+                    if(node.exit == 1) {
+                        res = 0L;
+                    } else {
+                        res = 1L;
+                    }
+                } else {
+                    long half = p2[maxh-node.h-1];
+                    if(node.nextMove == 0) {
+                        if(node.exit <= half) {
+                            res = 1 + solve(new Node(node.h+1, 1-node.nextMove, node.exit));
+                        } else {
+                            res = 1 + solve(new Node(node.h+1, 1-node.nextMove, 0)) + solve(new Node(node.h+1, node.nextMove, node.exit - half));
+                        }
+                    } else if(node.nextMove == 1) {
+                        if(node.exit <= half) {
+                            res = 1 + solve(new Node(node.h+1, 1-node.nextMove, 0)) + solve(new Node(node.h+1, node.nextMove, node.exit));
+                        } else {
+                            res = 1 + solve(new Node(node.h+1, 1-node.nextMove, node.exit - half));
+                        }
+                    }
+                }
+            }
+            dpMap.put(node, res);
+        }
+        return res;
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    private String[] split(String s) {
+        int n = s.length();
+        int sp = 0;
+        for(int i=0;i<n;i++) {
+            if(s.charAt(i)==' ') {
+                sp++;
+            }
+        }
+        String[] res = new String[sp+1];
+        int last = 0;
+        int x = 0;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(c == ' ') {
+                res[x++] = s.substring(last,i);
+                last = i+1;
+            }
+        }
+        res[x] = s.substring(last,n);
+        return res;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

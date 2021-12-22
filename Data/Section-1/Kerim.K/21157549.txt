@@ -1,0 +1,78 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+set<PII>q;
+int arr[MAXN],old[MAXN],ID[MAXN],ans[MAXN];
+vector<int>adj[MAXN];
+map<int,int>pm;
+int main(){
+	int n,m;
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;i++){
+		scanf("%d",arr+i);
+		old[i]=arr[i];
+		pm[arr[i]]=1;
+	}int c=0;
+	for(int i=1;i<=m;i++)
+		pm[i]=1;
+	tr(it,pm){
+		it->ss=++c;
+		ID[c]=it->ff;
+	}
+	for(int i=1;i<=n;i++)
+		adj[pm[arr[i]]].pb(i);
+	//~ priority_queue<PII,vector<PII>,greater<PII> >q;	
+	for(int i=1;i<=m;i++)
+		q.insert(mp(adj[i].size(),i));
+	for(int i=m+1;i<=c;i++){
+		for(int j=0;j<int(adj[i].size());j++){
+			PII st=*q.begin();
+			int ind=st.ss;
+			q.erase(st);
+			arr[adj[i][j]]=ind;
+			adj[ind].pb(adj[i][j]);
+			q.insert(mp(adj[ind].size(),ind));
+		}
+	}
+	while(1){
+		PII st=*q.begin();
+		int ind=st.ss;
+		int cnt=st.ff;
+		if(cnt>=n/m)
+			break;	
+		q.erase(st);
+		PII asd=*q.rbegin();
+		q.erase(asd);
+		arr[adj[asd.ss].back()]=ind;
+		adj[ind].pb(adj[asd.ss].back());
+		adj[asd.ss].ppb();
+		q.insert(mp(adj[asd.ss].size(),asd.ss));
+		q.insert(mp(adj[ind].size(),ind));
+	}
+	for(int i=1;i<=m;i++)
+		tr(it,adj[i])
+			ans[*it]=i;
+	int dif=0;
+	for(int i=1;i<=n;i++)
+		dif+=(ans[i]!=old[i]);
+	printf("%d %d\n",n/m,dif);
+	for(int i=1;i<=n;i++)
+		printf("%d ",ans[i]);
+	printf("\n");	
+	return 0;
+}

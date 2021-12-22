@@ -1,0 +1,81 @@
+#include <cstdio>
+#include <vector>
+#include <set>
+
+using namespace std;
+
+int n,k;
+int uni[200000];
+int d[200000];
+bool eler[200000];
+vector<int> h[200000];
+int db[200000];
+
+long long dfs(int p) {
+    long long ret(uni[p]*d[p]);
+    eler[p] = 1;
+
+    for(int q:h[p]) {
+        if(eler[q]) continue;
+
+        d[q] = d[p]+1;
+        ret += dfs(q);
+        uni[p] += uni[q];
+    }
+
+    return ret;
+}
+
+long long ans;
+set<pair<int,int> > sz;
+
+void dfs2(int p) {
+    eler[p] = 1;
+    for(int q:h[p]) {
+        if(eler[q]) continue;
+
+        sz.insert({-(uni[q]-db[q]),q});
+    }
+
+    for(int i=0; i<db[p]; i++) {
+        int q = sz.begin()->second;
+        sz.erase(sz.begin());
+        db[q]++;
+        sz.insert({-(uni[q]-db[q]),q});
+    }
+
+    int q = sz.begin()->second;
+    sz.clear();
+
+    if((uni[q]-db[q]) <= ((uni[p]-db[p])/2)) {
+        ans -= (uni[p]-db[p])*d[p];
+    } else {
+        ans -= ((uni[p]-db[p]) - (uni[q]-db[q])) * 2 * d[p];
+        db[q] += ((uni[p]-db[p]) - (uni[q]-db[q]));
+        dfs2(q);
+    }
+}
+
+int main()
+{
+    scanf("%d%d",&n,&k);
+    for(int i=0; i<2*k; i++) {
+        int x; scanf("%d",&x); x--;
+        uni[x] = 1;
+    }
+
+    for(int i=0; i<n-1; i++) {
+        int x,y; scanf("%d%d",&x,&y); x--; y--;
+        h[x].push_back(y);
+        h[y].push_back(x);
+    }
+
+    ans = dfs(0);
+
+    fill(eler,eler+n,0);
+    dfs2(0);
+
+    printf("%I64d\n",ans);
+
+    return 0;
+}

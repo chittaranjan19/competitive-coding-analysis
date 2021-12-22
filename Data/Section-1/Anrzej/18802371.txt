@@ -1,0 +1,107 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+int gcd(int a, int b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+int _gcd(int a, int b, int & x, int & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	int _x1, _y1;
+	int d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+vector<int> factor(int n){
+	vector<int> f;
+	for (int i = 2; i*i <= n; i++){
+		if (n % i != 0) continue;
+		int cnt = 0;
+		while (n % i == 0){
+			n /= i;
+			cnt++;
+			f.push_back(i);
+		}
+	}
+	if (n != 1)
+		f.push_back(n);
+	sort(f.begin(), f.end());
+	return f;
+}
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 3e5 + 10, lg = 20;
+ll mod = 1e9 + 7;
+ll n, m, k;
+int a[N*4];
+int hv[N*4];
+int d[N * 4];
+vector<int> f;
+bool ok = 0;
+
+void rec(int cur, int i){
+	if (i == f.size())
+		ok = 1;
+	int gt = 1;
+	for (int j = i + 1; j < f.size();){
+		gt *= f[j++];
+		while (j < f.size() && f[i + 1] == f[j])
+			gt *= f[j++];
+		if (hv[gt])
+			rec(cur*gt, j);
+	}
+}
+
+int main()
+{
+	memset(hv, 0, sizeof(hv));
+	cin >> n >> k;
+	for (int i = 0; i < n; i++)
+		cin >> a[i];
+	for(int i = 0; i < n; i++)
+		hv[a[i]] = 1;
+
+	f = factor(k);
+
+	memset(d, 0, sizeof(d));
+	int cnt = f.size();
+
+	for (int i = 2; i <= k; i++){
+		if (k%i == 0)
+			d[i] = 1;
+	}
+	rec(1, -1);
+
+	if (ok)
+		cout << "Yes";
+	else cout << "No";
+	return 0;
+}

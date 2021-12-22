@@ -1,0 +1,63 @@
+#include "bits/stdc++.h"
+#define MAXN 1009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int d[MAXN][MAXN],arr[MAXN],deg[MAXN];
+int dis[MAXN];
+vector<int>adj[MAXN][2];
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	int n,k;
+	scanf("%d%d",&n,&k);
+	for(int l=1;l<=k;l++){
+		for(int i=1;i<=n;i++)
+			scanf("%d",&arr[i]);
+		for(int i=1;i<=n;i++)
+			for(int j=i+1;j<=n;j++)
+				d[arr[i]][arr[j]]++;
+	}
+	for(int i=1;i<=n;i++)
+		for(int j=1;j<=n;j++)
+			if(d[i][j]==k){
+				adj[j][1].pb(i);adj[i][0].pb(j);
+				//~ cout<<i<<"->"<<j<<endl;
+				deg[i]++;
+			}
+	queue<int>q;
+	for(int i=1;i<=n;i++)
+		if(!deg[i]){
+			q.push(i);
+			dis[i]=1;
+		}
+	while(!q.empty()){
+		int nd=q.front();q.pop();
+		for(int i=0;i<int(adj[nd][0].size());i++){
+			int to=adj[nd][0][i];
+			umax(dis[nd],dis[to]+1);
+		}
+		for(int i=0;i<int(adj[nd][1].size());i++){
+			int to=adj[nd][1][i];
+			deg[to]--;
+			if(!deg[to])
+				q.push(to);
+		}
+	}	
+	printf("%d\n",*max_element(dis+1,dis+n+1));	
+	return 0;
+}

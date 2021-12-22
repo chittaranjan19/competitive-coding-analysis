@@ -1,0 +1,78 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 200010;
+
+struct edge {
+	int u, f, id;
+	edge() {}
+	edge (int a, int b, int c) {
+		u = a;
+		f = b;
+		id = c;
+	}
+};
+
+int N, M;
+vector<edge> adj[MAXN];
+int A[MAXN], B[MAXN], C[MAXN];
+bool vis[MAXN];
+int flow[MAXN];
+int ans[MAXN];
+queue<int> q;
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M;
+	int a, b, c;
+	for (int i = 0; i < M; i++) {
+		cin >> a >> b >> c;
+		adj[a].push_back(edge(b, c, i));
+		adj[b].push_back(edge(a, c, i));
+		flow[a] += c;
+		flow[b] += c;
+		ans[i] = -1;
+		A[i] = a;
+		B[i] = b;
+		C[i] = c;
+	}
+	for (int i = 1; i <= N; i++) {
+		flow[i] /= 2;
+	}
+	for (q.push(1); !q.empty(); ) {
+		int x = q.front();
+		q.pop();
+		if (vis[x]) {
+			continue;
+		}
+		vis[x] = true;
+		for (edge e : adj[x]) {
+			int u = e.id;
+			if (ans[u] != -1) {
+				continue;
+			}
+			ans[u] = (x != A[u]);
+			u = e.u;
+			flow[u] -= e.f;
+			if (flow[u] == 0 && u != N) {
+				q.push(e.u);
+			}
+		}
+	}
+	for (int i = 0; i < M; i++) {
+		cout << ans[i] << '\n';
+	}
+}

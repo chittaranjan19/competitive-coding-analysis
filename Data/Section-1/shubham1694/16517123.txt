@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const ll inf = 1ll<<40;
+const int maxn = 100010;
+
+ll arr[maxn], s[maxn], d[maxn], r[maxn];
+int n;
+vector<int> adj[maxn];
+
+ll gcd(ll a, ll b)
+{
+	if(!b)
+		return a;
+	return gcd(b, a%b);
+}
+
+ll dfs1(int cur, int p)
+{
+	int c = 0;
+	ll lcm = -1;
+	for(auto it:adj[cur]){
+		if(it!=p){
+			c++;
+			s[cur]+=dfs1(it, cur);
+			if(lcm==-1)
+				lcm = d[it];
+			else
+				lcm = (lcm*d[it])/gcd(lcm, d[it]);
+		}
+	}
+	if(!c){
+		d[cur] = 1;
+		s[cur] = arr[cur];
+	}
+	else
+		d[cur] = lcm*c;
+	return s[cur];
+}
+
+void dfs2(int cur, int p)
+{
+	ll m, t, c=0;
+	m = inf; 
+	for(auto it:adj[cur]){
+		if(it!=p){
+			dfs2(it, cur);
+			c++;
+			m = min(m, s[it]);
+		}
+	}
+	if(c){
+		t = d[cur]/c;
+		r[cur] = (m/t)*t;
+	}
+	else
+		r[cur] = d[cur];
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int u, v, i, j;
+	ll ans = 0;
+	sd(n);
+	for(i=1; i<=n; i++)
+		scanf("%lld", &arr[i]), ans+=arr[i];
+	for(i=1; i<n; i++){
+		scanf("%d%d", &u, &v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	dfs1(1, 0);
+	dfs2(1, 0);
+	ans = ans - (r[1]*(int)adj[1].size());
+	printf("%lld\n", ans);
+	return 0;
+}

@@ -1,0 +1,72 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define pb push_back
+#define mp make_pair
+#define ft first
+#define sd second
+#define mem(a, v) memset(a, v, sizeof(a))
+#define PI 3.14159265358979323846
+typedef long long ll;
+typedef vector<int> VI;
+typedef pair<ll, ll> PII;
+typedef vector<VI> matrix;
+const ll mod = 1000000007LL;
+
+ll cost[500500], sum[500500];
+ll n, a, b, t;
+
+bool go(int idx, ll chk, int n)
+{
+    ll cur = sum[n-1] - sum[idx - 1];
+    cur += (n - 1 - idx) * a;
+    cur += (n - 1 - idx + 1);
+    return (cur <= chk);
+}
+
+int main()
+{
+    //freopen("input.txt", "r", stdin);
+    //freopen("output.txt", "w", stdout);
+    int n;
+    cin>>n>>a>>b>>t;
+    string str;
+    cin>>str;
+    ll tot = 0;
+    for(int i=0; i<n; i++){
+        if(str[i] == 'w'){
+            cost[i] = b;
+            tot += b;
+        }
+    }
+    sum[0] = cost[0];
+    for(int i=1; i<n; i++){
+        sum[i] = cost[i] + sum[i-1];
+    }
+    tot += a * (n - 1);
+    tot += n;
+    if(tot <= t){
+        cout<<n<<"\n";
+        return 0;
+    }
+    int ans = 0;
+    for(int i=0; i<n; i++){ // 0 to i and n-1 to z
+        ll cur = sum[i] + i + 1 + i * a;
+        ll chk = t - cur - (i + 1) * a;
+        if(chk < 0)
+            break;
+        //cout<<"cur : "<<cur<<" chk : "<<chk<<"\n";
+        int lo = 0, hi = n - 1;
+        while(lo < hi){
+            int mid = (lo + hi) / 2;
+            if(go(mid, chk, n)){
+                hi = mid;
+            }
+            else{
+                lo = mid + 1;
+            }
+        }
+        ans = max(ans, i + 1 + n - 1 - lo + 1);
+    }
+    cout<<ans<<"\n";
+    return 0;
+}

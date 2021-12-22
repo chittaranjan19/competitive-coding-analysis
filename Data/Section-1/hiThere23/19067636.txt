@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 1003
+#define maxC 1000000007
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+int n, m, q, p[mn];
+bool par[mn];
+int in[mn][mn], sz[mn];
+pair< pair<int, int> , pair<int, int> > e[mn * mn];
+
+void setup()
+{
+    cin >> n >> m >> q;
+    FOR(i, 1, m)
+    {
+        cin >> e[i].S.F >> e[i].S.S >> e[i].F.F;
+        e[i].F.S = i;
+    }
+    sort(e + 1, e + m + 1, greater< pair< pair<int, int> , pair<int, int> > > ());
+}
+
+void combine(int a, int b)
+{
+    bool parA = par[a];
+    bool parB = par[b];
+    a = p[a];
+    b = p[b];
+    if (sz[a] < sz[b])
+        swap(a, b);
+    FOR(i, 1, sz[b])
+    {
+        in[a][++ sz[a]] = in[b][i];
+        p[in[b][i]] = a;
+        par[in[b][i]] = parA ^ parB ^ par[in[b][i]] ^ 1;
+    }
+}
+
+void xuly()
+{
+    FOR(i, 1, n)
+        in[i][1] = i;
+    int l, r, ans;
+    FOR(i, 1, q)
+    {
+        FOR(i, 1, n)
+            sz[i] = 1, p[i] = i;
+        memset(par, 0, sizeof(par));
+        ans = -1;
+        cin >> l >> r;
+        FOR(i, 1, m)
+        {
+            if (e[i].F.S < l || e[i].F.S > r)
+                continue;
+            int a = e[i].S.F;
+            int b = e[i].S.S;
+            if (p[a] == p[b] && par[a] == par[b])
+            {
+                ans = e[i].F.F;
+                break;
+            }
+            if (p[a] != p[b])
+                combine(a, b);
+        }
+        cout << ans << '\n';
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

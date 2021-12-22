@@ -1,0 +1,183 @@
+#include <iostream> 
+#include <cstdio>
+#include <vector>
+
+using namespace std;
+
+#define For(i , a , b) for (int i = a , _b = b ; i <= _b ; ++i)
+#define Ford(i , a  ,b) for (int i = a , _b = b : i >= _b ; --i)
+#define Rep(i , n) for (int i = 0 , _n = n ; i < _n ; ++i)
+#define sz(A) ((int)A.size())
+#define LL(x) (x << 1)
+#define RR(x) ((x << 1) | 1)
+
+typedef pair<int , int> pt;
+
+const int maxn = 1000 + 123;
+int n , m ;
+int s , t;
+struct edge{
+	int u , v , w;
+} e[60000];
+vector<int> V[maxn];
+ 
+const long long INF = 1e18;
+int z = 0;
+
+void ReadData() {
+	cin >> n >> m;
+	cin >> s >> t;
+	For(i , 1 , m) {
+		int u , v , w; cin >> u >> v >> w;
+		e[z++] = (edge) {u , v , w};
+		V[u].push_back(z - 1); 
+		e[z++] = (edge) {v , u , w};
+		V[v].push_back(z - 1);
+	}
+}
+
+
+const int lg = 13;
+int papa[maxn] , level[maxn];
+int tin[maxn] , tout[maxn] , timer = 0;
+bool used[60000 + 123];
+int toPar[maxn];
+
+void dfs(int u , int prev) {
+	tin[u] = ++timer;
+	for (int i = 0 ; i < V[u].size() ; i++) {
+		int id = V[u][i] , v = e[id].v;
+		if (v == prev) continue;
+		if (level[v]) continue;
+		level[v] = level[u] + 1;
+		toPar[v] = id;
+		used[id] = used[id ^ 1] = true;
+		papa[v] = u;
+		dfs(v , u);
+	}
+	tout[u] = timer;
+}
+bool isson(int u , int v) {
+	return tin[u] <= tin[v] && tout[v] <= tout[u];
+}
+
+long long res;
+vector<int> contain[maxn];
+
+int up[maxn];
+void add_edge(int u , int v , int id) {
+	if (isson(u , v)) swap(u , v);
+	int du = level[u] , dv = level[v];
+	up[u]++;
+	if (!isson(v , u)) up[v]++;
+	while (du > dv) {
+		 contain[u].push_back(id);
+		--du; u = papa[u];
+	}
+	while (dv > du) {
+		 contain[v].push_back(id);
+		--dv; v = papa[v];
+	}
+	while (du != dv) {
+		--du; --dv;
+		 contain[u].push_back(id);
+		 contain[v].push_back(id);
+		v = papa[v] , u = papa[u];
+	}
+}
+
+vector<int> modi;
+
+void update(long long cur , vector<int> x) {
+	if (cur < res) {
+		res = cur; modi = x;
+	}
+}
+
+void Solve() {
+	int last = t;
+	while (t != s) {
+		if (sz(contain[t]) == 0) {
+			vector<int> x; x.push_back(toPar[t]);
+			update(e[toPar[t]].w , x);
+		}
+		if (sz(contain[t]) == 1) {
+			vector<int> x; x.push_back(toPar[t]);
+			x.push_back(contain[t][0]);
+			update(e[toPar[t]].w + e[contain[t][0]].w , x);
+		}
+		t = papa[t];
+	}
+
+	t = last;
+	vector<int> col;
+	vector<int> cur = contain[t];
+
+	while (t != s) {
+		if (contain[t] == cur) col.push_back(toPar[t]); else break;
+		t = papa[t];
+	}
+
+
+	t = last;
+	vector<int> colDown;
+	For (i , 1 , n) if (isson(t , i) && t != i) {
+		if (contain[i] == cur) colDown.push_back(toPar[i]);
+	}
+
+	if (sz(col) && sz(colDown)) {
+		int mn1 = -1;
+		for (int i = 0; i < col.size() ; i++) {
+			if (mn1 == -1 || e[mn1].w > e[col[i]].w) mn1 = col[i];
+		}
+		int mn2 = -1;
+		for (int i = 0; i < colDown.size() ; i++) {
+			if (mn2 == -1 || e[mn2].w > e[colDown[i]].w) mn2 = colDown[i];
+		}
+		vector<int> x; x.push_back(mn1); x.push_back(mn2);
+		update(e[mn1].w + e[mn2].w , x);
+	}
+}
+
+void Process() {
+	res = INF;
+	level[s] = 1;
+	dfs(s , -1);
+
+
+	if (level[t] == 0) {
+		cout << 0 << endl;
+		cout << 0 << endl;
+		return;
+	}
+
+	For(i , 0 , z - 1) if (!used[i]) {
+		used[i] = true; used[i ^ 1] = true;
+		add_edge(e[i].u , e[i].v , i);
+	}
+
+
+	Solve();
+
+	if (res == INF) {
+		cout << -1 << endl;
+	} else {
+		cout << res << endl;
+		cout << (int) modi.size() << endl;
+		for (int i = 0 ; i < modi.size() ; i++) {
+			cout << modi[i] / 2 + 1 << " ";
+		}
+	}
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	
+	//freopen("input.inp" , "r" , stdin);
+	ReadData();
+	Process();
+
+	return 0;
+
+}			

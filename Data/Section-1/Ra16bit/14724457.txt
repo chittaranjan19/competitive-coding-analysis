@@ -1,0 +1,46 @@
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+typedef pair<int,int> pii;
+int n,i,j,t;
+pii a[100100],s[100100];
+double p,q,ca,cb,r,eps=1e-10;
+double calc(double h, int i, int j) {
+  double rp=max(0.,p-h*s[i].first);
+  double rq=max(0.,q-h*s[i].second);
+  return h+max(rp/s[j].first,rq/s[j].second);
+}
+double solve(int i, int j) {
+  if (i==j) return max(p/s[i].first,q/s[i].second);
+  double le=0,ri=p/s[i].first+eps;
+  for (int it=0; it<100; it++) {
+    double h1=(le+le+ri)/3.;
+    double h2=(le+ri+ri)/3.;
+    double s1=calc(h1,i,j);
+    double s2=calc(h2,i,j);
+    if (s1<s2) ri=h2; else le=h1;
+  }
+  return calc(0.5*(le+ri),i,j);
+}
+int main() {
+  scanf("%d%lf%lf",&n,&p,&q);
+  for (i=0; i<n; i++) scanf("%d%d",&a[i].first,&a[i].second);
+  sort(a,a+n);
+  for (i=0; i<n; i++) {
+    while (t>0 && s[t].second<=a[i].second) t--;
+    s[++t]=a[i];
+  }
+  r=solve(1,1);
+  for (i=2; i<=t; i++) r=min(r,solve(i,i));
+  for (i=1, j=t; i<j; i++) for (; i<j; j--) {
+    ca=solve(i,j);
+    cb=solve(i,j-1);
+    if (ca<cb) {
+      r=min(r,ca);
+      break;
+    }
+    r=min(r,cb);
+  }
+  printf("%.14lf\n",r);
+  return 0;
+}

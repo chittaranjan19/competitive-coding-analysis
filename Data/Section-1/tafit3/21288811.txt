@@ -1,0 +1,211 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemC {
+    BufferedReader rd;
+
+    ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int n = a[0];
+        int m = a[1];
+        int k = a[2];
+        Map<Integer, List<int[]>> slash = new HashMap<>();
+        Map<Integer, List<int[]>> blash = new HashMap<>();
+        for(int i=0;i<k;i++) {
+            a = intarr();
+            int x = a[0];
+            int y = a[1];
+            slash.computeIfAbsent(x-y, z -> new ArrayList<>()).add(new int[] { x, i });
+            blash.computeIfAbsent(x+y, z -> new ArrayList<>()).add(new int[] { x, i });
+        }
+        long[] res = new long[k];
+        Arrays.fill(res, -1);
+        int dir = 0;
+        int sx = 0;
+        int sy = 0;
+        long t = 0;
+        boolean end = false;
+        while(!end) {
+            int leftX, leftY, mi = 0;
+            List<int[]> c;
+            switch(dir) {
+                case 0:
+                    leftX = n-sx;
+                    leftY = m-sy;
+                    c = slash.get(sx-sy);
+                    if(c != null) {
+                        for (int[] p : c) {
+                            if (res[p[1]] == -1) {
+                                res[p[1]] = t + (p[0] - sx);
+                            }
+                        }
+                    }
+                    if(leftX == leftY) {
+                        end = true;
+                    } else if(leftX > leftY) {
+                        dir = 3;
+                    } else {
+                        dir = 1;
+                    }
+                    mi = Math.min(leftX, leftY);
+                    sx += mi;
+                    sy += mi;
+                    break;
+                case 2:
+                    leftX = sx;
+                    leftY = sy;
+                    c = slash.get(sx-sy);
+                    if(c != null) {
+                        for (int[] p : c) {
+                            if (res[p[1]] == -1) {
+                                res[p[1]] = t + (sx - p[0]);
+                            }
+                        }
+                    }
+                    if(leftX == leftY) {
+                        end = true;
+                    } else if(leftX > leftY) {
+                        dir = 1;
+                    } else {
+                        dir = 3;
+                    }
+                    mi = Math.min(leftX, leftY);
+                    sx -= mi;
+                    sy -= mi;
+                    break;
+                case 1:
+                    leftX = sx;
+                    leftY = m-sy;
+                    c = blash.get(sx+sy);
+                    if(c != null) {
+                        for (int[] p : c) {
+                            if (res[p[1]] == -1) {
+                                res[p[1]] = t + (sx - p[0]);
+                            }
+                        }
+                    }
+                    if(leftX == leftY) {
+                        end = true;
+                    } else if(leftX > leftY) {
+                        dir = 2;
+                    } else {
+                        dir = 0;
+                    }
+                    mi = Math.min(leftX, leftY);
+                    sx -= mi;
+                    sy += mi;
+                    break;
+                case 3:
+                    leftX = n-sx;
+                    leftY = sy;
+                    c = blash.get(sx+sy);
+                    if(c != null) {
+                        for (int[] p : c) {
+                            if (res[p[1]] == -1) {
+                                res[p[1]] = t + (p[0] - sx);
+                            }
+                        }
+                    }
+                    if(leftX == leftY) {
+                        end = true;
+                    } else if(leftX > leftY) {
+                        dir = 0;
+                    } else {
+                        dir = 2;
+                    }
+                    mi = Math.min(leftX, leftY);
+                    sx += mi;
+                    sy -= mi;
+                    break;
+            }
+            t += mi;
+        }
+
+        StringBuilder buf = new StringBuilder();
+        for(int i=0;i<res.length;i++) {
+            if(i > 0) {
+                buf.append('\n');
+            }
+            buf.append(res[i]);
+        }
+        out(buf);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

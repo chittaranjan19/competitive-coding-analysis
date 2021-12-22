@@ -1,0 +1,139 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+#include <stack>
+using namespace std;
+
+typedef long long ll;
+#define mod 1000000007
+#define INF mod
+#define pi acos(-1.0)
+#define LINF 1000000000000000000LL
+#define eps 1e-10
+
+int n, m;
+vector <int> v[100005];
+int U[100005], V[100005];
+int tin[100005], tout[100005], ans[100005][18], timer;
+int offspringCnt[100005];
+ll totalLength[100005];
+
+void prepare4LCA(int node, int parent)
+{
+	tin[node] = timer++;
+	ans[node][0] = parent;
+	for(int i = 1; i < 18; i++)
+		ans[node][i] = ans[ans[node][i-1]][i-1];
+	for(int i = 0; i < v[node].size(); i++)
+		if(v[node][i] != parent)
+			prepare4LCA(v[node][i], node);
+	tout[node] = timer++;
+}
+
+bool isUpper(int a, int b)
+{
+	return tin[a] <= tin[b] && tout[a] >= tout[b];
+}
+
+int lca(int a, int b)
+{
+	if(isUpper(a, b)) return a;
+	if(isUpper(b, a)) return b;
+	for(int i = 17; i >= 0; i--)
+		if(!isUpper(ans[a][i], b))
+			a = ans[a][i];
+	return ans[a][0];
+}
+
+int prevParent(int parent, int a)
+{
+	for(int i = 17; i >= 0; i--)
+		if(!isUpper(ans[a][i], parent))
+			a = ans[a][i];
+	return a;
+}
+
+int dist(int parent, int a)
+{
+	if(parent == a)
+		return 0;
+	int pow2 = 131072;
+	int res = 0;
+	for(int i = 17; i >= 0; i--, pow2 >>= 1)
+		if(!isUpper(ans[a][i], parent))
+		{
+			res += pow2;
+			a = ans[a][i];
+		}
+	return res + 1;
+}
+
+void dfs(int node, int parent)
+{
+	for(int i = 0; i < v[node].size(); i++)
+		if(v[node][i] != parent)
+		{
+			dfs(v[node][i], node);
+			offspringCnt[node] += offspringCnt[v[node][i]];
+			totalLength[node] += totalLength[v[node][i]];
+		}
+	totalLength[node] += offspringCnt[node];
+	offspringCnt[node]++;
+}
+
+int main()
+{
+	cin >> n >> m;
+	for(int i = 0; i < n - 1; i++)
+	{
+		int x, y;
+		scanf("%d %d", &x, &y);
+		v[x].push_back(y);
+		v[y].push_back(x);
+	}
+	for(int i = 0; i < m; i++)
+		scanf("%d %d", &U[i], &V[i]);
+
+	prepare4LCA(1, 1);
+
+	dfs(1, 1);
+
+	for(int i = 0; i < m; i++)
+	{
+		int parent = lca(U[i], V[i]);
+		if(V[i] == parent)
+			swap(U[i], V[i]);
+		double res;
+		if(U[i] == parent)
+		{
+			ll distV = dist(parent, V[i]);
+			ll prevLCA = prevParent(parent, V[i]);
+			double res1 = (totalLength[1] - totalLength[prevLCA] - offspringCnt[prevLCA] * dist(1, prevLCA)) * offspringCnt[V[i]];
+			double res2 = totalLength[V[i]] * (offspringCnt[1] - offspringCnt[prevLCA]);
+			res = (res1 + res2) / offspringCnt[V[i]] / (offspringCnt[1] - offspringCnt[prevLCA]) + distV + 1;
+		}
+		else
+		{
+			ll distU = dist(parent, U[i]);
+			ll distV = dist(parent, V[i]);
+			res = offspringCnt[V[i]] * (totalLength[U[i]] + distU * offspringCnt[U[i]]) +
+				  offspringCnt[U[i]] * (totalLength[V[i]] + distV * offspringCnt[V[i]]);
+			res /= offspringCnt[V[i]];
+			res /= offspringCnt[U[i]];
+			res += 1;
+		}
+		printf("%.9lf\n", res);
+	}
+	return 0;
+}

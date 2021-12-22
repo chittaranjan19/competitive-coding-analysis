@@ -1,0 +1,198 @@
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <cstdio>
+#include <memory>
+#include <algorithm>
+#include <iomanip>
+#include <vector>
+#include <list>
+#include <set>
+#include <map>
+#include <string>
+#include <memory.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef long double ld;
+typedef unsigned uint;
+
+const ll posinf = 1000000000000000001;
+const ll neginf = -1000000000000000001;
+
+int n, i, j, zx, zy, t;
+vector<vector<int> > m2, m5, dp2, dp5;
+vector<vector<pair<int, int> > > p2, p5;
+
+inline void bzero ()
+{
+	cout << 1 << endl;
+	int i = 0, j = 0;
+	while (i++ != zx)
+		cout << 'R';
+	while (j++ != n - 1)
+		cout << 'D';
+	while (i++ != n - 1)
+		cout << 'R';
+}
+
+inline void bpath2 ()
+{
+	int i = n - 1, j = n - 1, ni, nj;
+	string s; s.reserve (2 * n + 5);
+	do
+	{
+		ni = p2[i][j].first;
+		nj = p2[i][j].second;
+		if (ni == -1)
+			break;
+		else if (ni < i)
+			s.push_back ('D');
+		else if (nj < j)
+			s.push_back ('R');
+		i = ni; j = nj;
+	} while (true);
+	for (i = s.length () - 1; i >= 0; i--)
+		cout << s[i];
+	cout << endl;
+}
+
+inline void bpath5 ()
+{
+	int i = n - 1, j = n - 1, ni, nj;
+	string s; s.reserve (2 * n + 5);
+	do
+	{
+		ni = p5[i][j].first;
+		nj = p5[i][j].second;
+		if (ni == -1)
+			break;
+		else if (ni < i)
+			s.push_back ('D');
+		else if (nj < j)
+			s.push_back ('R');
+		i = ni; j = nj;
+	} while (true);
+	for (i = s.length () - 1; i >= 0; i--)
+		cout << s[i];
+	cout << endl;
+}
+
+int c2 (int n)
+{
+	int t = 0;
+	while (!(n & 1))
+	{
+		n >>= 1;
+		t++;
+	}
+	return t;
+}
+
+int c5 (int n)
+{
+	int t = 0;
+	while (!(n % 5))
+	{
+		n /= 5;
+		t++;
+	}
+	return t;
+}
+
+int main ()
+{
+#ifdef CONTEST_ONME
+	freopen ("input.txt", "r", stdin);
+	freopen ("output.txt", "w", stdout);
+#endif
+
+	cin >> n;
+	m2.resize (n); dp2.resize (n); p2.resize (n);
+	m5.resize (n); dp5.resize (n); p5.resize (n);
+	for (i = 0; i < n; i++)
+	{
+		m2[i].resize (n); dp2[i].resize (n); p2[i].resize (n);
+		m5[i].resize (n); dp5[i].resize (n); p5[i].resize (n);
+	}
+	zx = -1; zy = -1;
+	for (i = 0; i < n; i++)
+	{
+		for (j = 0; j < n; j++)
+		{
+			cin >> t;
+			if (!t)
+			{
+				zx = i; zy = j;
+				m2[i][j] = 1;
+				m5[i][j] = 1;
+			}
+			else
+			{
+				m2[i][j] = c2 (t);
+				m5[i][j] = c5 (t);
+			}
+		}
+	}
+	for (i = 0; i < n; i++)
+	{
+		for (j = 0; j < n; j++)
+		{
+			if (!i && !j)
+			{
+				dp2[0][0] = m2[0][0]; p2[0][0] = make_pair (-1, -1);
+				dp5[0][0] = m5[0][0]; p5[0][0] = make_pair (-1, -1);
+			}
+			else if (!i)
+			{
+				dp2[0][j] = dp2[0][j - 1] + m2[0][j]; p2[0][j] = make_pair (0, j - 1);
+				dp5[0][j] = dp5[0][j - 1] + m5[0][j]; p5[0][j] = make_pair (0, j - 1);
+			}
+			else if (!j)
+			{
+				dp2[i][0] = dp2[i - 1][0] + m2[i][0]; p2[i][0] = make_pair (i - 1, 0);
+				dp5[i][0] = dp5[i - 1][0] + m5[i][0]; p5[i][0] = make_pair (i - 1, 0);
+			}
+			else
+			{
+				if (dp2[i - 1][j] > dp2[i][j - 1])
+				{
+					dp2[i][j] = dp2[i][j - 1] + m2[i][j];
+					p2[i][j] = make_pair (i, j - 1);
+				}
+				else
+				{
+					dp2[i][j] = dp2[i - 1][j] + m2[i][j];
+					p2[i][j] = make_pair (i - 1, j);
+				}
+				if (dp5[i - 1][j] > dp5[i][j - 1])
+				{
+					dp5[i][j] = dp5[i][j - 1] + m5[i][j];
+					p5[i][j] = make_pair (i, j - 1);
+				}
+				else
+				{
+					dp5[i][j] = dp5[i - 1][j] + m5[i][j];
+					p5[i][j] = make_pair (i - 1, j);
+				}
+			}
+		}
+	}
+	int res = min (dp2[n - 1][n - 1], dp5[n - 1][n - 1]);
+	if (zx != -1 && res > 1)
+		bzero ();
+	else
+	{
+		cout << res << endl;
+		if (dp2[n - 1][n - 1] < dp5[n - 1][n - 1])
+			bpath2 ();
+		else
+			bpath5 ();
+	}
+
+#ifdef CONTEST_ONME
+	//system ("pause");
+#endif
+	return 0;
+}

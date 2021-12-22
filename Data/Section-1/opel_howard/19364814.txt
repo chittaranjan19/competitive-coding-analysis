@@ -1,0 +1,124 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <climits>
+#ifdef DEBUG
+	#include <ctime>
+#endif
+using namespace std;
+
+// template
+
+// abbreviations
+#define vi vector<int>
+#define vl vector<ll>
+#define vb vector<bool>
+#define vs vector<string>
+#define ii pair<int, int>
+#define a first
+#define b second
+#define vii vector<ii>
+#define mii map<ii>
+#define vvi vector<vi>
+#define vvl vector<vl>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define sz(var) ((int) var.size())
+#define rep(it, n) for(int it = 0; it < n; ++it)
+#define rep1(it, n) for(int it = 1; it <= n; ++it)
+#define loop(it, from, to) for(int it = (from); it <= (to); ++it)
+#define iter(it, cont) for(__typeof((cont).begin()) it = (cont).begin(); it != (cont).end(); ++it)
+#define riter(it, cont) for(__typeof((cont).rbegin()) it = (cont).rbegin(); it != (cont).rend(); ++it)
+#define all(cont) (cont).begin(), (cont).end()
+#define memclr(var) memset(var, 0, sizeof(var))
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const int INF = INT_MAX;
+const int NINF = INT_MIN;
+const ll INF_LL = LLONG_MAX;
+const ll NINF_LL = LLONG_MIN;
+const double PI = acos(-1.0);
+const int MOD = 1e9+7;
+
+#ifdef DEBUG
+	#define debug(fmt, args...) printf("Line %d, in %s\t: " fmt, __LINE__, __FUNCTION__, ##args)
+	#define rep_rt() printf("[Run time: %.3fs]\n", ((double)clock())/CLOCKS_PER_SEC)
+#else
+	#define debug(...)
+#endif
+
+// end of template
+
+bool check_poss(int n, double l, double v1, double v2, int k, double tl) {
+	int nit = (n / k) + ((n % k) > 0);
+	double up_pos = 0.0, el_time = 0.0, bus_pos = 0.0;
+	rep(it, nit) {
+		// meet bus and unpicked passenger
+		double meet_time;
+		double dist_up_and_bus = bus_pos - up_pos;
+		meet_time = dist_up_and_bus / (v1 + v2);
+		up_pos += meet_time * v1;
+		bus_pos -= meet_time * v2;
+		el_time += meet_time;
+
+		double curr_tl = tl - el_time;
+		double walk_time = min((curr_tl * v2 - (l - up_pos)) / (v2 - v1), curr_tl);
+		if (walk_time < 0) { // it means it needs more bus time
+			return false;
+		}
+		double inbus_time = max(curr_tl - walk_time, 0.0);
+		debug("%f %f\n", walk_time, inbus_time);
+
+		// move unpicked passenger
+		bus_pos += v2 * inbus_time;
+		up_pos += v1 * inbus_time;
+		el_time += inbus_time;
+	}
+	return true;
+}
+
+int main() {
+#ifdef DEBUG
+	freopen("701D.in", "r", stdin);
+#endif
+    
+    int n, l, v1, v2, k;
+    scanf("%d %d %d %d %d", &n, &l, &v1, &v2, &k);
+
+    double ans_lb = 1.0, ans_ub = 1e9;
+    while (ans_lb < ans_ub - 1e-10) {
+    	double m = (ans_lb + ans_ub) / 2;
+    	if (check_poss(n, l, v1, v2, k, m)) {
+    		ans_ub = m;
+    	} else {
+    		ans_lb = m;
+    	}
+    }
+    printf("%.10f\n", ans_lb);
+
+#ifdef DEBUG
+    rep_rt();
+#endif
+    return 0;
+}

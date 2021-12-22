@@ -1,0 +1,183 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.HashSet;
+import java.util.Set;
+
+public class ProblemB {
+    private static final long B = 1000000007;
+
+    BufferedReader rd;
+
+    private ProblemB() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        String p = rd.readLine();
+        int[] ys = intarr();
+        int pl = p.length();
+
+        char[] pc = new char[pl+1];
+        System.arraycopy(p.toCharArray(),0,pc,1,pl);
+        int[] pi = new int[pl+1];
+        int k = 0;
+        for(int q=2;q<=pl;q++) {
+            while(k > 0 && pc[k+1]!=pc[q]) {
+                k = pi[k];
+            }
+            if(pc[k+1] == pc[q]) {
+                k++;
+            }
+            pi[q] = k;
+        }
+        Set<Integer> allowed = new HashSet<>();
+        int x = pl;
+        while(pi[x] >= 1) {
+            allowed.add(pl-pi[x]);
+            x = pi[x];
+        }
+        for(int j=1;j<ys.length;j++) {
+            int diff = ys[j]-ys[j-1];
+            if(diff < pl && !allowed.contains(diff)) {
+                out(0);
+                return;
+            }
+        }
+
+        int n = a[0];
+        int[] c = new int[n+1];
+        for(int y: ys) {
+            int yp = y-1;
+            c[yp]++;
+            c[yp+pl]--;
+        }
+        int[] d = new int[n+1];
+        d[0] = c[0];
+        for(int i=1;i<n+1;i++) {
+            d[i] = d[i-1] + c[i];
+        }
+        int zeros = 0;
+        for(int i=0;i<n;i++) {
+            if(d[i] == 0) {
+                zeros++;
+            }
+        }
+        out(pow(26,zeros));
+    }
+
+    private long pow(long a, long b) {
+        if(b > 1) {
+            long x = pow(a,b/2);
+            x = x*x;
+            x %= B;
+            if(b%2==1) {
+                x*=a;
+                x%=B;
+            }
+            return x;
+        } else if(b == 1) {
+            return a%B;
+        } else {
+            return 1;
+        }
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+
+
+    private long plong() throws IOException {
+        return plong(rd.readLine());
+    }
+
+    private long plong(String s) {
+        return Long.parseLong(s);
+    }
+
+
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+
+
+    private double[] doublearr() throws IOException {
+        return doublearr(rd.readLine());
+    }
+
+    private double[] doublearr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        double[] a = new double[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Double.parseDouble(q[i]);
+        }
+        return a;
+    }
+
+    private String[] split(String s) {
+        int n = s.length();
+        int sp = 0;
+        for(int i=0;i<n;i++) {
+            if(s.charAt(i)==' ') {
+                sp++;
+            }
+        }
+        String[] res = new String[sp+1];
+        int last = 0;
+        int x = 0;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(c == ' ') {
+                res[x++] = s.substring(last,i);
+                last = i+1;
+            }
+        }
+        res[x] = s.substring(last,n);
+        return res;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB();
+    }
+}

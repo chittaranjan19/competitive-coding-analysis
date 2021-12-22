@@ -1,0 +1,49 @@
+#include<bits/stdc++.h>
+using namespace std;
+int n,m,x,y;
+int mat[101];
+int sum[101];
+int dp[101][2];
+// 1 == white
+// 0 == black
+int rec(int pos, int pre)
+{
+		if(pos == m)  return 0;
+		if(pos>m) return INT_MAX;
+		if(dp[pos][pre] != -1) return dp[pos][pre];
+		int i,ans,tmp;
+		ans = INT_MAX;
+		if(pre)
+		{
+				for(i=x;i<=y;++i)
+				{
+						tmp = rec(pos+i+1,pre^1);		
+						if(tmp != INT_MAX) ans = min((sum[pos+i] - sum[pos-1]) + tmp , ans);		
+				}
+		}
+		else
+		{
+				for(i=x;i<=y;++i)
+				{
+						tmp = rec(pos+i+1,pre^1);
+						if(tmp != INT_MAX) ans = min(n*i - (sum[pos+i] - sum[pos-1]) + tmp , ans);		
+				}
+		}
+		return dp[pos][pre] = ans;
+}
+int main()
+{
+		int i,j;
+		memset(dp,-1,sizeof dp);
+		char c[101];
+		scanf("%d %d %d %d",&n,&m,&x,&y);
+		for(i=1;i<=n;++i)
+		{
+				scanf(" %s",c);
+				for(j=0;j<m;++j)
+						if(c[j] == '.') mat[j+1]++;
+		}
+		for(i=1;i<=n;++i)
+				sum[i] = sum[i-1] + mat[i];
+		printf("%d\n",max(rec(0,0),rec(0,1)));
+}

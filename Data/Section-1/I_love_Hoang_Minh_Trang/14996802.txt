@@ -1,0 +1,60 @@
+#include <bits/stdc++.h>
+#define FORE(i, a, b) for(int i = a; i <= b; i++)
+#define FORD(i, a, b) for(int i = a; i >= b; i--)
+#define FOR(i, a, b) for(int i = a; i < b; i++)
+const int MAXN = 502;
+const int INF = 1e9 + 7;
+
+using namespace std;
+int n, m;
+int a[MAXN], b[MAXN];
+int dp[MAXN][MAXN];
+int L[MAXN];
+int vet[MAXN][MAXN];
+int main()
+{
+    ios::sync_with_stdio(0); cin.tie(0);
+    #ifndef ONLINE_JUDGE
+    freopen("LCIS.inp", "r", stdin);
+    freopen("LCIS.out", "w", stdout);
+    #endif //MIKELHPDATKE
+    cin >> n;
+    FORE(i, 1, n) cin >> a[i];
+    cin >> m;
+    FORE(i, 1, m) cin >> b[i];
+    a[0] = b[0] = -1;
+    FORE(i, 1, n){
+        FORE(j, 1, m){
+            dp[i][j] = dp[i - 1][j];
+            vet[i][j] = -1;
+            if (a[i] == b[j])
+                FORE(prev, 0, j - 1) if (b[prev] < b[j])
+                    if (dp[i][j] < L[prev] + 1){
+                        dp[i][j] = L[prev] + 1;
+                        vet[i][j] = prev;
+                    }
+        }
+        FORE(j, 1, m) L[j] = max(L[j], dp[i][j]);
+    }
+    int ans = 0, j = 0, i = n;
+    FORE(j, 1, m) ans = max(ans, dp[n][j]);
+    FORE(k, 1, m) if (ans == dp[n][k]) j = k;
+    vector< int > res;
+    while (j){
+        //cout <<i<<" "<<j<<endl;
+
+        if (vet[i][j] == -1) i--;
+        else{
+            res.push_back(b[j]);
+            int prevj = vet[i][j];
+            int previ = i - 1;
+            while (previ > 1 && a[previ] != b[prevj]) previ--;
+            i = previ;
+            j = prevj;
+        }
+    }
+    cout << ans << endl;
+    FORD(i, res.size() - 1, 0) cout << res[i]<<" ";
+    return 0;
+}
+

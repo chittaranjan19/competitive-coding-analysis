@@ -1,0 +1,90 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define fr first
+#define sc second
+#define mkp make_pair
+#define pb push_back
+
+int n;
+multiset <int> cnt;
+vector <pair <int, int> > v;
+queue <pair <int, int> > ans;
+
+int main(){
+	cin >> n;
+	for(int i = 0; i < n; ++ i){
+		string com;
+		int d = 0, x = -1; 
+		cin >> com;
+		if(com != "removeMin"){
+			cin >> x;
+		}
+		if(com == "insert"){
+			d = 1;
+		}
+		if(com == "getMin"){
+			d = 2;
+		}
+		v.pb(mkp(d, x));
+	}
+	cnt.insert(int(1e9) + 10);
+	for(int i = 0; i < v.size(); ++ i){
+		if(v[i].fr == 0){
+			if(cnt.size() - 1 == 0){
+				ans.push(mkp(1, 1));
+				ans.push(mkp(0, -1));
+			} else {
+				cnt.erase(cnt.begin());
+				ans.push(mkp(0, -1));
+			}
+		}
+		if(v[i].fr == 1){
+			ans.push(mkp(1, v[i].sc));
+			cnt.insert(v[i].sc);
+		}
+		if(v[i].fr == 2){
+			if(cnt.size() - 1 == 0){
+				ans.push(mkp(1, 1));
+				ans.push(mkp(2, 1));
+			}
+			if(v[i].sc == *cnt.begin()){
+				ans.push(mkp(2, v[i].sc));
+			} else {
+				if(v[i].sc < *cnt.begin()){
+					ans.push(mkp(1, v[i].sc));
+				} else {
+					while(*cnt.begin() < v[i].sc){
+						//cerr << *cnt.begin() << '\n';
+						ans.push(mkp(0, -1));
+						cnt.erase(cnt.begin());
+					}
+				}
+				if(*cnt.begin() == v[i].sc){
+					ans.push(mkp(2, v[i].sc));
+				} else {
+					ans.push(mkp(1, v[i].sc));
+					cnt.insert(v[i].sc);
+					ans.push(mkp(2, v[i].sc));
+				}
+			}
+		}
+		//cerr << "ok\n";
+	}
+	//cerr << "ok";
+	cout << ans.size() << '\n';
+	for(;ans.size();){
+		if(ans.front().fr == 0){
+			cout << "removeMin";
+		}
+		if(ans.front().fr == 1){
+			cout << "insert " << ans.front().sc;
+		}
+		if(ans.front().fr == 2){
+			cout << "getMin " << ans.front().sc;
+		}
+		cout << "\n";
+		ans.pop();
+	}
+	return 0;
+}

@@ -1,0 +1,221 @@
+/*	 Hello World!	*/
+
+#include <bits/stdc++.h>
+
+#define pb push_back
+#define pf push_front
+#define mp make_pair
+#define f first
+#define s second
+#define let(x,a) __typeof(a) x(a)
+#define all(a) (a).begin(),(a).end() 
+#define endl '\n'
+#define present(c,x) ((c).find(x) != (c).end()) 
+#define tr(v,it) for( let(it,v.begin()) ; it != v.end() ; it++)
+#define rtr(v,it) for( let(it,v.rbegin()) ; it != v.rend() ; it++)
+#define rep1(i,n) for(int i=0; i<(int)n;i++)
+#define rep2(i,a,b) for(int i=(int)a; i<=(int)b; i++)
+
+#define trace1(x)                cerr << #x << ": " << x << endl;
+#define trace2(x, y)             cerr << #x << ": " << x << " | " << #y << ": " << y << endl;
+#define trace3(x, y, z)          cerr << #x << ": " << x << " | " << #y << ": " << y << " | " << #z << ": " << z << endl;
+#define trace4(a, b, c, d)       cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << endl;
+#define trace5(a, b, c, d, e)    cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << endl;
+#define trace6(a, b, c, d, e, f) cerr << #a << ": " << a << " | " << #b << ": " << b << " | " << #c << ": " << c << " | " << #d << ": " << d << " | " << #e << ": " << e << " | " << #f << ": " << f << endl;
+
+#define LL long long int
+#define PII pair<int,int>
+#define VI vector<int>
+#define inf INT_MAX
+
+using namespace std;
+
+void FastIO()
+{
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	cout.tie(NULL);
+}
+
+double foo(double a, double b)
+{
+	return a*a+b*b;
+}
+
+double aa,bb;
+
+int hoo(pair<double,double> a, pair<double,double> b)
+{
+	double ret=(a.s-bb)*(b.f-aa) - (a.f-aa)*(b.s-bb);
+	if(!ret) return 0;
+	if(ret>0) return 1;
+	return 2;
+}
+
+int Hoo(pair<double,double> t, pair<double,double> a, pair<double,double> b)
+{
+	double aa=t.f;
+	double bb=t.s;
+	double ret=(a.s-bb)*(b.f-aa) - (a.f-aa)*(b.s-bb);
+	if(!ret) return 0;
+	if(ret>0) return 1;
+	return 2;
+}
+
+bool cmp(pair<double,double> a, pair<double,double> b)
+{
+	int g=hoo(a,b);
+	if(!g)
+	{
+		if(foo(b.f-aa,b.s-bb)>=foo(a.f-aa,a.s-bb))
+		{
+			return -1;
+		}
+		else
+		{
+			return 1;
+		}
+	}
+	if(g==2) return 0;
+	return 1;
+}
+
+double area(pair<double,double> A, pair<double,double> B, pair<double,double> C)
+{
+	double x1=A.f, y1=A.s, x2=B.f, y2=B.s, x3=C.f, y3=C.s;
+	return fabs(x1*(y2-y3) + x2*(y3-y1) + x3*(y1-y2))/2;
+}
+
+stack< pair<double,double> > S;
+
+pair<double,double> nextToTop()
+{
+    pair<double,double> p=S.top();
+    S.pop();
+    pair<double,double> ret=S.top();
+    S.push(p);
+    return ret;
+}
+
+int main()
+{
+	FastIO();
+	int n,flag=0,p0;
+	double a,b,x,y,d,dmax=0,dmin=1e18,pi,ymin=1e10;
+	pi=2*asin(1);
+	vector< pair<double,double> > V;
+	cin>>n>>a>>b;
+	for(int i=0;i<n;i++)
+	{
+		cin>>x>>y;
+		V.pb(mp(x,y));
+		d=foo(x-a,y-b);
+		dmax=max(d,dmax);
+		dmin=min(d,dmin);
+		if(y<ymin)
+		{
+			ymin=y;
+			p0=i;
+		}
+	}
+	V.pb(mp(a,b));
+	aa=V[p0].f;
+	bb=V[p0].s;
+	swap(V[0],V[p0]);
+	if(b<ymin)
+	{
+		swap(V[0],V[n]);
+		aa=a;
+		bb=b;
+	}
+	sort(V.begin()+1,V.end(),cmp);
+	vector< pair<double,double> > N;
+	N.pb(V[0]);
+	for(int i=1;i<n;i++)
+	{
+		while(i<n && hoo(V[i],V[i+1])==0)
+          i++;
+      	N.pb(V[i]);
+	}
+	if(N.size()<3)
+	{
+		cout<<setprecision(20)<<fixed<<pi*(dmax-dmin)<<endl;
+		trace2(dmax,dmin);
+		return 0;
+	}
+	S.push(N[0]);
+	S.push(N[1]);
+	S.push(N[2]);
+	for(int i=3;i<N.size();i++)
+	{
+		while(1)
+		{
+			if(S.size()>1 && Hoo(nextToTop(), S.top(), N[i])==1)
+	        	S.pop();
+	        else break;
+		}
+	    S.push(N[i]);
+	}
+	flag=1;
+	pair<double,double> prev=mp(1e10,1e10);
+	pair<double,double> NN=mp(1e10,1e10);
+	pair<double,double> FF=mp(1e10,1e10);
+	pair<double,double> KK=mp(1e10,1e10);
+	FF=S.top();
+	int f=0;
+	pair<double,double> P;
+	while(!S.empty())
+	{
+		P=S.top();
+		trace2(P.f, P.s);
+		S.pop();
+		if(P.f==a && P.s==b)
+		{
+			flag=0;
+			if(prev.f==1e10)
+			{
+				f=1;
+			}
+			else
+			{
+				KK=prev;
+			}
+				if(S.empty())
+				{
+					NN=FF;
+				}
+				else
+				{
+					NN=S.top();
+				}
+			
+		}
+		prev=P;
+	}
+	if(!flag)
+	{
+		if(f)
+		{
+			KK=P;
+		}
+		if(area(NN,KK,mp(a,b))==0)
+		{
+			cout<<setprecision(20)<<fixed<<pi*dmax<<endl;
+			return 0;
+		}
+		else
+		{
+			cout<<setprecision(20)<<fixed<<pi*(dmax-dmin)<<endl;
+			return 0;
+		}
+	}
+	if(flag)
+	{
+		cout<<setprecision(20)<<fixed<<pi*dmax<<endl;
+	}
+	else
+	{
+		cout<<setprecision(20)<<fixed<<pi*(dmax-dmin)<<endl;
+	}
+	return 0;
+}

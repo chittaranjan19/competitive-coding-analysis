@@ -1,0 +1,144 @@
+#define DEBUG
+
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <climits>
+#include <ctime>
+#include <cassert>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector<int>
+#define vl vector<long long>
+#define vb vector<bool>
+#define vs vector<string>
+#define ii pair<int, int>
+#define a first
+#define b second
+#define vii vector<ii>
+#define mii map<ii>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define loop(i, n) for(int i = 0; i < n; ++i)
+#define loop1(i, n) for(int i = 1; i <= n; ++i)
+#define reverse_iterate(a, b) for(__typeof((b).rend()) a = (b).rbegin(); a != (b).rend(); ++a)
+#define iterate(a, b) for(__typeof((b).begin()) a = (b).begin(); a != (b).end(); ++a)
+#define all(i) (i).begin(), (i).end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const double PI = acos(-1);
+
+#ifdef DEBUG
+	#define debug(...) printf(__VA_ARGS__)
+	#define GetTime() fprintf(stderr,"Running time: %.3lf second\n",((double)clock())/CLOCKS_PER_SEC)
+#else
+	#define debug(...) 
+	#define GetTime() 
+#endif
+
+// end of template
+
+#ifdef __WIN32 
+	#define gc getchar
+#else
+	#define gc getchar_unlocked
+#endif
+#define fsdecimal(type) \
+	void fs ##type  (type& inp) { \
+		register char c = gc(), prev = '+'; \
+		for (; !isdigit(c); c = gc()) prev = c; \
+		inp = 0; \
+		for (; isdigit(c); c = gc()) { \
+			inp = (inp << 3)+(inp << 1)+(c-'0'); \
+		} \
+		if (prev == '-') \
+			inp = -inp; \
+	}
+fsdecimal(int)
+fsdecimal(ll)
+
+const int MAX_N = 1e5+5;
+
+int vals[MAX_N];
+vii edges[MAX_N];
+vii childs[MAX_N];
+
+void create_tree(int id, int par = -1) {
+	iterate(edge_p, edges[id]) {
+		if (edge_p->a == par)
+			continue;
+		childs[id].pub(mp(edge_p->a, edge_p->b));
+		create_tree(edge_p->a, id);
+	}
+}
+
+int ans;
+ll dp[MAX_N];
+
+bool get_ans(int id, int par = -1) {
+	bool remove = true;
+	iterate(child_p, childs[id]) {
+		int child_id = child_p->a;
+		dp[child_id] = max(dp[id]+child_p->b, 0LL);
+		remove = remove and get_ans(child_id, id);
+	}
+	if (remove) {
+		if (par == -1)
+			return false;
+		if (dp[id] > vals[id]) {
+			ans++;
+			remove = true;
+		}
+	}
+	return remove;
+}
+
+int main() {
+    // freopen("682C.in", "r", stdin);
+    
+    int n;
+    fsint(n);
+    loop(it, n)
+    	fsint(vals[it]);
+    loop1(i, n-1) {
+    	int j, c;
+    	fsint(j), fsint(c);
+    	--j;
+    	edges[j].pub(mp(i, c));
+    	edges[i].pub(mp(j, c));
+    }
+
+    create_tree(0);
+
+    ans = 0;
+    dp[0] = 0;
+    get_ans(0);
+    printf("%d\n", ans);
+
+    return 0;
+}

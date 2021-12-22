@@ -1,0 +1,76 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 2e5 + 5;
+
+struct point
+{
+    ll x, y;
+
+    point(ll x = 0, ll y = 0) : x(x), y(y) {}
+};
+int a[maxn];
+point st[maxn];
+ll sum[maxn];
+
+ll cross(const point &a, const point &b, const point &c)
+{
+    return (a.y - b.y) * (b.x - c.x) - (b.y - c.y) * (a.x - b.x);
+}
+
+ll cal(const point &p, int k)
+{
+    return p.x * k + p.y;
+}
+
+int main()
+{
+    int n;
+    ll base = 0;
+    scanf("%d", &n);
+    for(int i = 1; i <= n; ++i)
+    {
+        scanf("%d", &a[i]);
+        sum[i] = sum[i - 1] + a[i];
+        base += 1LL * a[i] * i;
+    }
+    ll ans = base;
+    int top = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        point p(i, -sum[i - 1]);
+        while(top > 1 && cross(st[top - 2], st[top - 1], p) <= 0) --top;
+        st[top++] = p;
+        int l = 0, r = top - 1;
+        while(r > l)
+        {
+            int m = (l + r) >> 1;
+            if(cal(st[m], a[i]) >= cal(st[m + 1], a[i])) r = m;
+            else l = m + 1;
+        }
+        ans = max(ans, base + cal(st[l], a[i]) + sum[i - 1] - 1LL * i * a[i]);
+    }
+    top = 0;
+    for(int i = n; i; --i)
+    {
+        point p(i, -sum[i]);
+        while(top > 1 && cross(st[top - 2], st[top - 1], p) >= 0) --top;
+        st[top++] = p;
+        int l = 0, r = top - 1;
+        while(r > l)
+        {
+            int m = (l + r) >> 1;
+            if(cal(st[m], a[i]) >= cal(st[m + 1], a[i])) r = m;
+            else l = m + 1;
+        }
+        ans = max(ans, base + cal(st[l], a[i]) + sum[i] - 1LL * i * a[i]);
+    }
+    printf("%I64d\n", ans);
+    return 0;
+}

@@ -1,0 +1,138 @@
+#include <iostream>
+
+using namespace std;
+
+int n,m;
+long long dd[100000],h[100000];
+int a,b;
+
+long long d[100000];
+
+long long mmin[100000][17],mmax[100000][17];
+
+long long xxx(int x) {
+    return h[x]-d[x];
+}
+long long yyy(int y) {
+    return h[y]+d[y];
+}
+
+long long xval(int aa, int bb) {
+    int llog = 0;
+    while((bb+1-aa) >= (1<<llog)) {
+        llog++;
+    }
+    llog--;
+    if(xxx(mmax[aa][llog]) <= xxx(mmax[bb+1-(1<<llog)][llog])) {
+        return mmax[aa][llog];
+    } else {
+        return mmax[bb+1-(1<<llog)][llog];
+    }
+}
+
+long long yval(int aa, int bb) {
+    int llog = 0;
+    while((bb+1-aa) >= (1<<llog)) {
+        llog++;
+    }
+    llog--;
+    if(yyy(mmin[aa][llog]) <= yyy(mmin[bb+1-(1<<llog)][llog])) {
+        return mmin[aa][llog];
+    } else {
+        return mmin[bb+1-(1<<llog)][llog];
+    }
+}
+
+int main()
+{
+    ios::sync_with_stdio(0);
+    cin >> n >> m;
+
+    for(int i=0; i<n; i++ ) {
+        cin >> dd[i];
+    }
+    for(int i=0; i<n; i++) {
+        cin >> h[i];
+        h[i] *= 2;
+    }
+
+    d[0] = dd[n-1];
+    for(int i=0; i<n-1; i++) {
+        d[i+1] = d[i] + dd[i];
+    }
+
+    for(int i=0; i<n; i++) {
+        mmax[i][0] = i;
+        mmin[i][0] = i;
+    }
+
+    for(int j=1; (1<<j) <= n; j++) {
+        for(int i=0; i<n; i++) {
+            mmin[i][j] = mmin[i][j-1];
+            if((i+(1<<(j-1)) < n) && (yyy(mmin[i+(1<<(j-1))][j-1]) > yyy(mmin[i][j-1])))
+                    mmin[i][j] = mmin[i+(1<<(j-1))][j-1];
+            mmax[i][j] = mmax[i][j-1];
+            if((i+(1<<(j-1)) < n) && (xxx(mmax[i+(1<<(j-1))][j-1]) > xxx(mmax[i][j-1])))
+                    mmax[i][j] = mmax[i+(1<<(j-1))][j-1];
+        }
+    }
+
+    for(int i=0; i<m; i++) {
+        cin >> b >> a;
+        a--; b--;
+
+        a = (a+1) % n; b = (b+n-1) % n;
+
+        if(a < b) {
+            long long r1 = -(1ll<<60);
+            int xx = xval(a,b);
+            int yy;
+            if(xx < b) {
+                yy = yval(xx+1,b);
+                r1 = yyy(yy)+xxx(xx);
+            }
+            yy = yval(a,b);
+            long long r2 = -(1ll<<60);
+            if(yy > a) {
+                xx = xval(a,yy-1);
+                r2 = yyy(yy)+xxx(xx);
+            }
+
+            cout << max(r1,r2) << endl;
+        } else {
+            int xx = xval(a,n-1);
+            int yy = yval(0,b);
+            long long r1 = d[n-1]+yyy(yy)+xxx(xx);
+            if(yy > 0) {
+                int xx2 = xval(0,yy-1);
+                r1 = max(r1,xxx(xx2)+yyy(yy));
+            }
+            if(xx < n-1) {
+                int yy2 = xval(xx+1,n-1);
+                r1 = max(r1,xxx(xx)+yyy(yy2));
+            }
+
+            xx = xval(0,b);
+            long long r2 = -(1ll<<60);
+            if(xx < b) {
+                yy = yval(xx+1,b);
+                r2 = yyy(yy)+xxx(xx);
+            }
+            yy = yval(a,n-1);
+            long long r3 = -(1ll<<60);
+            if(yy > a) {
+                xx = xval(a,yy-1);
+                r3 = yyy(yy)+xxx(xx);
+            }
+
+            long long r = max(r1,max(r2,r3));
+
+            //long long xx = max(xval(a,n-1),xval(0,b)-d[n-1]);
+            //long long yy = max(yval(a,n-1),yval(0,b)+d[n-1]);
+
+            cout << r << endl;
+        }
+    }
+
+    return 0;
+}

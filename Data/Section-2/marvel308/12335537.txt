@@ -1,0 +1,173 @@
+#include<stdio.h>
+#include<memory.h>
+typedef long long int ll;
+struct node
+{
+    ll lazy,sum;
+    ll bits[20];
+} tree[400005];
+ll A[100005];
+void init(ll l,ll r,ll idx)
+{
+    if(l>r)
+        return ;
+    //printf("l=%d r=%d\n",l,r);
+    if(l==r)
+    {
+        tree[idx].lazy=0;
+        tree[idx].sum=A[l];
+        memset(tree[idx].bits,0,sizeof(tree[idx].bits));
+        for(int i=0;i<20;i++)
+        {
+            if(A[l]&(1<<i))
+            {
+                tree[idx].bits[i]++;
+            }
+        }
+    }
+    else
+    {
+        ll mid=(l+r)/2;
+        init(l,mid,2*idx);
+        init(mid+1,r,2*idx+1);
+        tree[idx].lazy=0;
+        tree[idx].sum=tree[2*idx].sum+tree[2*idx+1].sum;
+        memset(tree[idx].bits,0,sizeof(tree[idx].bits));
+        for(ll i=0;i<20;i++)
+        {
+            tree[idx].bits[i]=tree[2*idx].bits[i]+tree[2*idx+1].bits[i];
+        }
+    }
+}
+void update(ll l,ll r,ll a,ll b,ll val,ll idx)
+{
+    if(tree[idx].lazy)
+    {
+        ll temp=tree[idx].lazy,i;
+        //printf("#1\n");
+        for(i=0;i<20;i++)
+        {
+            //if(i<=6)
+            //printf("size=%d %d ",r-l+1,tree[idx].bits[i]);
+            if(temp&(1<<i))
+            {
+                ll size1=(r-l+1);
+                tree[idx].sum-=(1<<i)*tree[idx].bits[i];
+                tree[idx].sum+=(1<<i)*(size1-tree[idx].bits[i]);
+                tree[idx].bits[i]=(size1-tree[idx].bits[i]);
+            }
+            //if(i<=6)
+            //printf("%d\n",tree[idx].bits[i]);
+        }
+        if(l!=r){
+            tree[2*idx].lazy^=temp;
+            tree[2*idx+1].lazy^=temp;
+        }
+        tree[idx].lazy=0;
+    }
+    if(l>b || r<a || l>r)
+        return ;
+    //printf("l=%d r=%d\n",l,r);
+    if(l>=a && r<=b)
+    {
+        ll temp=val,i;
+        //printf("#2 %d\n",tree[idx].sum);
+        for(i=0;i<20;i++)
+        {
+            //if(i<=6)
+            //printf("size=%d %d ",r-l+1,tree[idx].bits[i]);
+            if(temp&(1<<i))
+            {
+                ll size1=(r-l+1);
+                tree[idx].sum-=(1<<i)*tree[idx].bits[i];
+                tree[idx].sum+=(1<<i)*(size1-tree[idx].bits[i]);
+                tree[idx].bits[i]=(size1-tree[idx].bits[i]);
+            }
+            //if(i<=6)
+            //printf("%d\n",tree[idx].bits[i]);
+        }
+
+        tree[idx].lazy=0;
+        if(l!=r){
+            tree[2*idx].lazy^=temp;
+            tree[2*idx+1].lazy^=temp;
+        }
+        return ;
+    }
+    ll mid=(l+r)/2,i;
+    update(l,mid,a,b,val,2*idx);
+    update(mid+1,r,a,b,val,2*idx+1);
+    //printf("## l=%d r=%d child1=%d child2=%d\n",l,r,tree[2*idx].sum,tree[2*idx+1].sum);
+    tree[idx].sum=tree[2*idx].sum+tree[2*idx+1].sum;
+    for(ll i=0;i<20;i++)
+    {
+        tree[idx].bits[i]=tree[2*idx].bits[i]+tree[2*idx+1].bits[i];
+    }
+}
+ll query(ll l,ll r,ll a,ll b,ll idx)
+{
+    if(l>b || r<a || l>r)
+        return 0;
+    if(tree[idx].lazy)
+    {
+        ll temp=tree[idx].lazy,i;
+        for(i=0;i<20;i++)
+        {
+            if(temp&(1<<i))
+            {
+                ll size1=(r-l+1);
+                tree[idx].sum-=(1<<i)*tree[idx].bits[i];
+                tree[idx].sum+=(1<<i)*(size1-tree[idx].bits[i]);
+                tree[idx].bits[i]=(size1-tree[idx].bits[i]);
+            }
+        }
+        if(l!=r){
+            tree[2*idx].lazy^=temp;
+            tree[2*idx+1].lazy^=temp;
+        }
+        tree[idx].lazy=0;
+    }
+    if(l>=a && r<=b)
+    {
+        return tree[idx].sum;
+    }
+    else
+    {
+        ll mid=(l+r)/2;
+        return query(l,mid,a,b,2*idx)+query(mid+1,r,a,b,2*idx+1);
+    }
+}
+int main()
+{
+    ll n,i;
+    scanf("%I64d",&n);
+    for(i=1;i<=n;i++)
+    {
+        scanf("%I64d",&A[i]);
+    }
+    init(1,n,1);
+    ll q;
+    scanf("%I64d",&q);
+    while(q--)
+    {
+        int type;
+        scanf("%d",&type);
+        if(type==1)
+        {
+            ll l,r;
+            scanf("%I64d%I64d",&l,&r);
+            printf("%I64d\n",query(1,n,l,r,1));
+        }
+        else
+        {
+            ll l,r,v;
+            scanf("%I64d%I64d%I64d",&l,&r,&v);
+            update(1,n,l,r,v,1);
+        }
+        /*for(int j=1;j<10;j++)
+        {
+            printf("j=%d lazy=%d sum=%d\n",j,tree[j].lazy,tree[j].sum);
+        }*/
+    }
+    return 0;
+}

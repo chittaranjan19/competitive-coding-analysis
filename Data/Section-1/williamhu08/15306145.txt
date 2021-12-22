@@ -1,0 +1,168 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 5e5 + 10, MAXLG = 19;
+
+int N;
+char buf[MAXN];
+string S[MAXN];
+ll C[MAXN];
+int lpsum[MAXN];
+pii getp[MAXN];
+vector<pii> vsuff;
+int suff[MAXN][MAXLG];
+
+int getind (int x, int s) {
+	assert(0 <= x && s < S[x].size());
+	return (x ? lpsum[x - 1] : 0) + s;
+}
+
+int lcp (pii p1, pii p2) {
+	//ok let's see
+	int len = 0, ind1 = p1.se, ind2 = p2.se;
+	for (int i = MAXLG - 1; i >= 0; i--) {
+		int nxt1 = ind1 + (1 << i), nxt2 = ind2 + (1 << i);
+		if (nxt1 > S[p1.fi].size() || nxt2 > S[p2.fi].size()) {
+			continue;
+		}
+		int s1 = suff[getind(p1.fi, ind1)][i], s2 = suff[getind(p2.fi, ind2)][i];
+		if (s1 == s2) {
+			ind1 = nxt1;
+			ind2 = nxt2;
+			len += (1 << i);
+		}
+	}
+	return len;
+}
+
+bool comp (pii p1, pii p2) {
+	int len = lcp(p1, p2);
+	return S[p1.fi][p1.se + len] < S[p2.fi][p2.se + len];
+}
+
+int ufpar[MAXN];
+ll csum[MAXN];
+int lt[MAXN], rt[MAXN];
+
+int find (int x) {
+	return x == ufpar[x] ? x : ufpar[x] = find(ufpar[x]);
+}
+
+bool merge (int x, int y) {
+	x = find(x);
+	y = find(y);
+	if (x == y) {
+		return false;
+	}
+	ufpar[x] = y;
+	csum[y] += csum[x];
+	lt[y] = min(lt[y], lt[x]);
+	rt[y] = max(rt[y], rt[x]);
+	return true;
+}
+
+vector<int> vlcp[MAXN];
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d", &N);
+	for (int i = 0; i < N; i++) {
+		scanf("%s", buf);
+		S[i] = string(buf);
+		if (i) {
+			lpsum[i] = lpsum[i - 1];
+		}
+		lpsum[i] += S[i].size();
+	}
+
+	for (int i = 0; i < N; i++) {
+		scanf("%lld", &C[i]);
+	}
+
+	for (int i = 0, ptr = 0; i < N; i++) {
+		for (int j = 0; j < S[i].size(); j++) {
+			int x = ptr++;
+			suff[x][0] = S[i][j] - 'a';
+			getp[x] = pii(i, j);
+		}
+	}
+
+	for (int k = 1; k < MAXLG; k++) {
+		vector<pair<pii, pii> > v;	//pair(pair(suff1, suff2), pair(string #, position))
+		for (int i = 0; i < N; i++) {
+			for (int j = 0; j + (1 << k) <= S[i].size(); j++) {
+				int ind = getind(i, j);
+				v.push_back(make_pair(pii(suff[ind][k - 1], suff[ind + (1 << (k - 1))][k - 1]), pii(i, j)));
+			}
+		}
+		sort(all(v));
+		pii prv(-1, -1);
+		int ind = -1;
+		for (auto pp : v) {
+			if (pp.fi != prv) {
+				ind++;
+			}
+			suff[getind(pp.se.fi, pp.se.se)][k] = ind;
+			prv = pp.fi;
+		}
+	}
+
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < S[i].size(); j++) {
+			vsuff.push_back(pii(i, j));
+		}
+	}
+	sort(all(vsuff), comp);
+
+	for (int i = 0; i + 1 < vsuff.size(); i++) {
+		// printf("lcp = %d\n", lcp(vsuff[i], vsuff[i + 1]));
+		vlcp[lcp(vsuff[i], vsuff[i + 1])].push_back(i);
+	}
+
+	for (int i = 0, ptr = 0; i < N; i++) {
+		for (int j = 0; j < S[i].size(); j++) {
+			int x = ptr++;
+			ufpar[x] = x;
+			csum[x] = C[i];
+			lt[x] = rt[x] = x;
+		}
+	}
+
+	ll ans = 0;
+	for (int i = MAXN - 1; i; i--) {
+		vector<int> vfind;
+		for (int ind : vlcp[i]) {
+			int f1 = find(ind), f2 = find(ind + 1);
+			assert(f1 != f2);
+			merge(f1, f2);
+			vfind.push_back(find(f1));
+		}
+		for (int &f : vfind) {
+			f = find(f);
+		}
+		sort(all(vfind));
+		vfind.resize(unique(all(vfind)) - vfind.begin());
+		for (int f : vfind) {
+			int ileft = lt[f], iright = rt[f];
+			int llim = (ileft == 0 ? 0 : lcp(getp[ileft], getp[ileft - 1]));
+			int rlim = (iright == lpsum[N - 1] ? 0 : lcp(getp[iright], getp[iright + 1]));
+			int mxlim = max(llim, rlim);
+			ans = max(ans, max(csum[f] * (mxlim + 1), csum[f] * i));
+		}
+	}
+	printf("%lld\n", ans);
+}

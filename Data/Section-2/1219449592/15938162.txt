@@ -1,0 +1,77 @@
+#include <bits/stdc++.h>
+#define N 200005
+#define ll long long
+using namespace std;
+struct node
+{
+	int x, id;
+	friend bool operator < (node a, node b)
+	{
+		return a.x < b.x;
+	}
+};
+bool cmp(node a, node b)
+{
+	return a.x < b.x;
+}
+typedef vector<node> vn;
+vector<vn> v(N<<2);
+int a[N], n, m, x;
+void PushUp(int r)
+{
+	int i, l = v[r<<1].size();
+	for(i = 0; i < l; i++)
+		v[r].push_back(v[r<<1][i]);
+	l = v[r<<1|1].size();
+	for (i = 0; i < l; i++)
+		v[r].push_back(v[r<<1|1][i]);
+}
+void build(int l, int r, int root)
+{
+	if (l == r)
+	{
+		node t;
+		scanf("%d", &t.x);
+		t.id = l;
+		v[root].push_back(t);
+		return ;
+	}
+	int m = (l+r)>>1;
+	build(l, m, root<<1);
+	build(m+1, r, root<<1|1);
+	PushUp(root);
+}
+int query(int l, int r, int L, int R, int root)
+{
+	if (l <= L && r >= R)
+	{
+		int i, l = v[root].size();
+		if (v[root][0].x != x)	return v[root][0].id;
+		else if (v[root][l-1].x != x)	return v[root][l-1].id;
+		else return -1;
+	}
+	int m = (L+R)>>1, t1 = -1, t2 = -1;
+	if (m >= l)	t1 = query(l, r, L, m, root<<1);
+	if (m < r)	t2 = query(l, r, m+1, R, root<<1|1);
+	if (t1 == -1)	return t2;
+	if (t2 == -1)	return t1;
+	return t1;
+}
+int main()
+{
+#ifndef ONLINE_JUDGE
+	freopen("1.txt", "r", stdin);
+#endif
+	int i,j, k, l, r, ans;
+	scanf("%d%d", &n, &m);
+	build(1, n, 1);
+	for (i = 0; i < 3*N; i++)
+		sort(v[i].begin(), v[i].end());
+	for (i = 0; i < m; i++)
+	{
+		scanf("%d%d%d", &l, &r, &x);
+		ans = query(l, r, 1, n, 1);
+		printf("%d\n", ans);
+	}
+	return 0;
+}

@@ -1,0 +1,95 @@
+program kindergarten;
+
+const
+  tfi = '';//'484d.inp';
+  tfo = '';//'484d.out';
+
+var
+  res : int64;
+  n : longint;
+  a : array [1..1000000] of int64;
+  fi,fo : text;
+
+procedure input;
+  var i : longint;
+  begin
+    assign(fi,tfi);
+    reset(fi);
+    read(fi,n);
+    for i := 1 to n do read(fi,a[i]);
+    close(fi);
+  end;
+
+function incright(i : longint) : longint;
+  var j : longint;
+  begin
+    j := i;
+    while (j < n) and (a[j] < a[j+1]) do inc(j);
+    exit(j);
+  end;
+
+function decright(i : longint) : longint;
+  var j : longint;
+  begin
+    j := i;
+    while (j < n) and (a[j] > a[j+1]) do inc(j);
+    exit(j);
+  end;
+
+procedure process;
+  var
+    i,j : longint;
+    tmp : int64;
+  begin
+    i := 1;
+    while i < n do
+      begin
+        j := i + 1;
+        tmp := 0;
+        if a[i] < a[j] then
+          begin
+            while (j < n) and (a[j] < a[j+1]) do inc(j);
+            tmp := a[j] - a[i];
+            if tmp >= a[j] - a[decright(j)] then
+              begin
+                res := res + tmp;
+                i := j+1;
+              end
+            else
+              begin
+                res := res + a[j-1] - a[i] + a[j] - a[decright(j)];
+                i := decright(j) + 1;
+              end;
+          end else
+        if a[i] > a[j] then
+          begin
+            while (j < n) and (a[j] > a[j+1]) do inc(j);
+            tmp := a[i] - a[j];
+            if tmp >= a[incright(j)] - a[j] then
+              begin
+                res := res + tmp;
+                i := j+1;
+              end
+            else
+              begin
+                res := res + a[i] - a[j-1] + a[incright(j)] - a[j];
+                i := incright(j) + 1;
+              end;
+          end else
+        if a[i] = a[j] then inc(i);
+      end;
+  end;
+
+procedure output;
+  begin
+    assign(fo,tfo);
+    rewrite(fo);
+    write(fo,res);
+    close(fo);
+  end;
+
+begin
+  input;
+  process;
+  output;
+end.

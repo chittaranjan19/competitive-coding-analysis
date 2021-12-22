@@ -1,0 +1,134 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+typedef pair<pii, pii> pp;
+
+const int N = 100 * 1000 + 100;
+const int SQ = 320;
+
+int n, m;
+int c[N];
+int d[N];
+int T;
+int st[N];
+int ft[N];
+int ans[N];
+vector <int> g[N];
+pp q[N];
+int x, y;
+set <int> s;
+int cnt[N];
+
+bool cmp(pp a, pp b){
+	if(a.X.X / SQ == b.X.X / SQ)
+		return (a.X.Y < b.X.Y);
+	return (a.X.X < b.X.X);
+}
+
+void dfs(int v, int p){
+	st[v] = T++;
+	d[st[v]] = c[v];
+	for(int u : g[v]){
+		if(u == p) continue;
+		dfs(u, v);
+	}
+	ft[v] = T;
+}
+
+int fen[N];
+
+int gt(int p, int sum = 0){
+	for(; p; p -= p & -p)
+		sum += fen[p];
+	return sum;
+}
+
+void ad(int p){
+	if(p == 0) return;
+	for(p ++; p <= N; p += p & -p)
+		fen[p] ++;
+}
+
+void rm(int p){
+	if(p == 0) return;
+	for(p ++; p <= N; p += p & -p)
+		fen[p] --;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	for(int i = 0; i < n; ++i)
+		cin >> c[i];
+	for(int i = 0; i < n - 1; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; v --;
+		g[u].PB(v);
+		g[v].PB(u);
+	}
+	dfs(0, -1);
+	for(int i = 0; i < m; ++i){
+		int v, k;
+		cin >> v >> k;
+		v --;
+		q[i] = MP(MP(st[v], ft[v]), MP(k, i));
+	
+	}
+	sort(q, q + m, cmp);
+	for(int i = 0; i < m; ++i){
+		int l = q[i].X.X;
+		int r = q[i].X.Y;
+		int k = q[i].Y.X;
+		while(y < r){
+			rm(cnt[d[y]]);
+			cnt[d[y]] ++; 
+			ad(cnt[d[y]]);
+			y ++;	
+		}
+		while(x > l){
+			x --;
+			rm(cnt[d[x]]);
+			cnt[d[x]] ++; 
+			ad(cnt[d[x]]);
+		}
+		while(y > r){
+			y --;
+			rm(cnt[d[y]]);
+			cnt[d[y]] --; 
+			ad(cnt[d[y]]);
+		}
+		while(x < l){
+			rm(cnt[d[x]]);
+			cnt[d[x]] --; 
+			ad(cnt[d[x]]);	
+			x ++;
+		}
+	 	ans[q[i].Y.Y] = gt(N) - gt(k);
+	}
+	for(int i = 0; i < m; ++i)
+		cout << ans[i] << "\n";
+	return 0;
+}

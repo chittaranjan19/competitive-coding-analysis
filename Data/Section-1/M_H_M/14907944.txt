@@ -1,0 +1,114 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+typedef pair<pii, pii> ipii;
+
+const int N = 200 * 1000 + 100;
+const int LG = 20;
+
+int n, m;
+vector <pii> g[N];
+ipii edg[N];
+int par[N];
+pii bpar[N][LG];
+ll sum;
+ll ans[N];
+bool mark[N];
+int h[N];
+
+int get_par(int v){
+	if(par[v] == v) return v;
+	return par[v] = get_par(par[v]);
+}
+
+void merge(int v, int u, int w, int x){
+	u = get_par(u);
+	v = get_par(v);
+	if(u == v) return;
+	sum += w;
+	mark[x] = true;
+	par[v] = u;
+	g[u].PB({w, v});
+	g[v].PB({w, u});
+}
+
+void dfs(int v, int p){
+	for(pii nei : g[v]){
+		int w = nei.X;
+		int u = nei.Y;
+		if(u == p) continue;
+		h[u] = h[v] + 1;
+		bpar[u][0] = {p, w};
+		for(int i = 1; i < LG; ++i)
+			bpar[u][i] = {bpar[bpar[u][i - 1].X][i - 1].X, max(bpar[bpar[u][i - 1].X][i - 1].Y, bpar[u][i - 1].Y)};
+		dfs(u, v);
+	}
+}
+
+int lca(int v, int u){
+	if(h[u] < h[v]) swap(u, v);
+	int mx = -1;
+	for(int i = LG; i --;)
+		if(h[bpar[u][i].X] >= h[v])
+		 	mx = max(mx, bpar[u][i].Y), u = bpar[u][i].X;
+	if(u == v) return mx;
+	for(int i = LG; i --;)
+		if(bpar[u][i].X != bpar[v][i].X){
+			mx = max(mx, bpar[u][i].Y);
+			mx = max(mx, bpar[v][i].Y);
+			u = bpar[u][i].X;
+			v = bpar[v][i].X;
+		}
+	mx = max(mx, bpar[u][0].Y);
+	mx = max(mx, bpar[v][0].Y);
+	return mx;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	for(int i = 0; i < n; ++i) par[i] = i;
+	for(int i = 0; i < m; ++i){
+		int u, v, w;
+		cin >> u >> v >> w;
+		u --; v --;
+		edg[i] = {{w, i}, {u, v}};
+	}
+	sort(edg, edg + m);
+	for(int i = 0; i < m; ++i)
+		merge(edg[i].Y.X, edg[i].Y.Y, edg[i].X.X, edg[i].X.Y);
+	dfs(0, 0);
+	for(int i = 0; i < m; ++i){
+		if(mark[edg[i].X.Y]){
+			ans[edg[i].X.Y] = sum;
+			continue;
+		}
+		ans[edg[i].X.Y] = sum + edg[i].X.X - lca(edg[i].Y.X, edg[i].Y.Y);
+	}
+	for(int i = 0; i < m; ++i)
+		cout << ans[i] << "\n";
+	return 0;
+}

@@ -1,0 +1,132 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false)
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+const int maxm = 105;
+const int maxc = 26;
+const int maxl = 1005;
+
+string p[maxm], s;
+int n, m, state_cnt[2], root = 0;
+int to[2][maxn][maxc], fail[2][maxn], minPos[2][maxn];
+int pos[2][maxl];
+
+void add(int t, string str)
+{
+	int cur_state = root;
+	for(auto it : str){
+		int ind = it - 'A';
+		if(!to[t][cur_state][ind])
+			to[t][cur_state][ind] = ++state_cnt[t];
+		cur_state = to[t][cur_state][ind];
+	}
+}
+
+void ahoc(int t)
+{
+	queue<int> q;
+	q.push(root);
+	while(!q.empty()){
+		int cur_state = q.front();
+		q.pop();
+		for(int i=0; i<maxc; i++){
+			int nxt_state = to[t][cur_state][i];
+			if(nxt_state){
+				int fail_state = fail[t][cur_state];
+				while(fail_state && !to[t][fail_state][i])
+					fail_state = fail[t][fail_state];
+				if(nxt_state == to[t][fail_state][i])
+					fail[t][nxt_state] = 0;
+				else
+					fail[t][nxt_state] = to[t][fail_state][i];
+				q.push(nxt_state);
+			}
+		}
+	}
+}
+
+void traverse(int t)
+{
+	int cur_state = root, cur_pos = 0;
+	for(auto it : s){
+		int ind = it - 'A';
+		while(cur_state && !to[t][cur_state][ind])
+			cur_state = fail[t][cur_state];
+		cur_state = to[t][cur_state][ind];
+		int f_state = cur_state;
+		while(f_state){
+			minPos[t][f_state] = min(minPos[t][f_state], cur_pos);
+			f_state = fail[t][f_state];
+		}
+		++cur_pos;
+	}
+}
+
+void fill(int t, string str)
+{
+	int cur_state = root, cur_pos = 0;
+	for(auto it : str){
+		int ind = it - 'A';
+		cur_state = to[t][cur_state][ind];
+		pos[t][cur_pos] = minPos[t][cur_state];
+		++cur_pos;
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	// boost;
+	cin >> s >> m;
+	n = s.size();
+	for(int i=0; i<maxn; i++)
+		minPos[0][i] = minPos[1][i] = inf;
+	for(int i=1; i<=m; i++){
+		cin >> p[i];
+		add(0, p[i]);
+	}
+	ahoc(0);
+	traverse(0);
+	for(int i=1; i<=m; i++){
+		reverse(all(p[i]));
+		add(1, p[i]);
+	}
+	ahoc(1);	
+	reverse(all(s));
+	traverse(1);
+	int ans = 0;
+	for(int i=1; i<=m; i++){
+		fill(1, p[i]);
+		reverse(all(p[i]));
+		fill(0, p[i]);
+		int k = p[i].size();
+		if(pos[0][k-1] >= 0 && pos[0][k-1] < n){
+			ans++;
+			continue;
+		}
+		for(int j=0; j<k-1; j++){
+			if(pos[0][j] >= 0 && pos[0][j] < n && pos[1][k-j-2] < (n-1-pos[0][j])){
+				ans++;
+				break;
+			}
+		}
+	}
+	cout << ans << '\n';
+	return 0;
+}

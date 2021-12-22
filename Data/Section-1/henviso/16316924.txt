@@ -1,0 +1,81 @@
+#include <iostream>
+#include <cstdio>
+#include <ctime>
+#include <cstdlib>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+
+using namespace std;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef vector<int> vi;
+typedef pair<int,int> ii;
+typedef vector< ii > vii;
+///////////////////////////////UTIL/////////////////////////////////
+#define ALL(x) (x).begin(),x.end()
+#define CLEAR0(v) memset(v, 0, sizeof(v))
+#define CLEAR(v, x) memset(v, x, sizeof(v))
+#define COPY(a, b) memcpy(a, b, sizeof(a))
+#define CMP(a, b) memcmp(a, b, sizeof(a))
+#define REP(i,n) for(int i = 0; i<n; i++)
+#define REPP(i,a,n) for(int i = a; i<n; i++)
+#define REPD(i,n) for(int i = n-1; i>-1; i--)
+#define REPDP(i,a,n) for(int i = n-1; i>=a; i--)
+#define MOD 1000000007LL
+#define PI 3.1415926535897932384626
+
+int n;
+int a[100100];
+pair<ll, int> b[100100];
+ll s[400100];
+
+void build(){
+	CLEAR0(s);
+}
+
+void modify(int p, int x,int id = 1,int l = 0, int r = n){
+	if(r - l < 2){
+		s[id] = x;
+		return ;
+	}
+	int mid = (l + r)/2;
+	if(p < mid)
+		modify(p, x, id * 2, l, mid);
+	else
+		modify(p, x, id * 2 + 1, mid, r);
+	s[id] = max(s[id * 2], s[id * 2 + 1]);
+}
+
+ll query(int x, int y, int id = 1, int l = 0, int r = n){
+	if(x >= r || l >= y) return 0;
+	if(x <= l && r <= y){
+		return s[id];
+	}
+	int mid = (l+r)/2;
+	return max(query(x, y, id * 2, l, mid), query(x, y, id * 2 + 1, mid, r));
+}
+
+
+int main(){
+	while(cin >> n){
+		build();
+		ll r, h;
+		REP(i, n){
+			cin >> r >> h;
+			b[i] = pair<ll, int>(r*r*h, i);
+		}
+		sort(b, b+n);
+		REP(i, n) a[b[i].second] = i;
+		REP(i, n){
+			int r = a[i];
+			ll v = b[r].first;
+			v += query(0, r);
+			modify(r, v);
+		}
+		double ans = PI * query(0, n);
+		printf("%.10lf\n", ans);
+	}
+}

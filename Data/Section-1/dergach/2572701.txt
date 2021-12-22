@@ -1,0 +1,94 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <algorithm>
+using namespace std;
+
+#define eps 1e-8
+
+vector <vector <int> > v(100005);
+int i, j, k, n, m, t, h, cnt;
+map <int, int> mp;
+map <int, int> :: iterator it;
+vector <int> head, tail;
+
+int main()
+{
+    scanf("%d %d %d %d", &n, &m, &h, &t);
+    for(i = 0; i < m; i++)
+    {
+        scanf("%d %d", &j, &k);
+        v[j].push_back(k);
+        v[k].push_back(j);
+    }
+
+    for(i = 1; i <= n; i++)
+        if(v[i].size() > h)
+            for(j = 0; j < v[i].size(); j++)
+                if(v[v[i][j]].size() > t)
+                {
+                    mp.clear();
+                    for(k = 0; k < v[i].size(); k++)
+                        if(k != j)
+                            mp[v[i][k]]++;
+                    for(k = 0; k < v[v[i][j]].size(); k++)
+                        if(v[v[i][j]][k] != i)
+                            mp[v[v[i][j]][k]]++;
+                    cnt = 0;
+                    for(it = mp.begin(); it != mp.end(); it++)
+                        if(it -> second == 2)
+                            cnt++;
+
+                    if(cnt > 0) continue;
+
+                    int for_head = v[i].size() - 1 - cnt;
+                    int for_tails = v[v[i][j]].size() - 1 - cnt;
+                    if(for_head < h)
+                        cnt -= h - for_head;
+                    if(cnt < 0 || cnt + for_tails < t)
+                        continue;
+
+                    puts("YES");
+                    printf("%d %d\n", i, v[i][j]);
+                    for(k = 0; k < v[i].size(); k++)
+                        if(k != j && mp[v[i][k]] == 1)
+                            head.push_back(v[i][k]);
+                    for(k = 0; k < v[v[i][j]].size(); k++)
+                        if(v[v[i][j]][k] != i && mp[v[v[i][j]][k]] == 1)
+                            tail.push_back(v[v[i][j]][k]);
+                    for(it = mp.begin(); it != mp.end(); it++)
+                        if(it -> second == 2)
+                        {
+                            if(tail.size() < t)
+                                tail.push_back(it -> first);
+                            else
+                                if(head.size() < h)
+                                    head.push_back(it -> first);
+                        }
+                    for(k = 0; k < head.size(); k++)
+                    {
+                        if(k) printf(" ");
+                        printf("%d", head[k]);
+                    }
+                    puts("");
+                    for(k = 0; k < tail.size(); k++)
+                    {
+                        if(k) printf(" ");
+                        printf("%d", tail[k]);
+                    }
+                    puts("");
+                    return 0;
+                }
+            
+    puts("NO");
+    return 0;
+}

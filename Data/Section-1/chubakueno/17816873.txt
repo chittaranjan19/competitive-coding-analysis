@@ -1,0 +1,46 @@
+#include <bits/stdc++.h>
+using namespace std;
+int data[1000000];
+void update(int at, int by) {
+    while (at < 1000000) {
+        data[at] += by;
+        at |= (at + 1);
+    }
+}
+int query(int at) {
+    int res = 0;
+    while (at >= 0) {
+        res += data[at];
+        at = (at & (at + 1)) - 1;
+    }
+    return res;
+}
+int ans[1000000];
+int main(){
+	int n;
+	vector<pair<pair<int,int>,int> > v;
+	cin>>n;
+	unordered_map<int,int> mp;
+	vector<int> compress;
+	for(int i=0,id=0;i<n;++i){
+		int x,y;
+		scanf("%d%d",&x,&y);
+		compress.push_back(x);
+		compress.push_back(y);
+		v.push_back(make_pair(make_pair(x,y),i));
+	}
+	sort(compress.begin(),compress.end());
+	for(int i=0;i<compress.size();++i)
+		mp[compress[i]]=i;
+	for(int i=0;i<n;++i){
+		v[i].first.first=mp[v[i].first.first];
+		v[i].first.second=mp[v[i].first.second];
+	}
+	sort(v.begin(),v.end());
+	for(int i=n-1;i>=0;--i){
+		ans[v[i].second]=query(v[i].first.second);
+		update(v[i].first.second,1);
+	}
+	for(int i=0;i<n;++i)
+		cout<<ans[i]<<"\n";
+}

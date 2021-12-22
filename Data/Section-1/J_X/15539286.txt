@@ -1,0 +1,86 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int MAXN = 100000 + 5;
+
+int block, a[MAXN], num[MAXN * 20];
+struct question
+{
+    int x, y, id;
+    ll ans;
+} q[MAXN];
+
+bool cmp1(const question &a, const question &b)
+{
+    return a.x / block == b.x / block ? a.y < b.y : a.x / block < b.x / block;
+}
+
+bool cmp2(const question &a, const question &b)
+{
+    return a.id < b.id;
+}
+
+int main()
+{
+    int n, m, k;
+    while(~scanf("%d%d%d", &n, &m, &k))
+    {
+        block = sqrt(n);
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", a + i);
+            a[i] ^= a[i - 1];
+        }
+        for(int i = 0; i < m; ++i)
+        {
+            scanf("%d%d", &q[i].x, &q[i].y);
+            q[i].id = i;
+        }
+        sort(q, q + m, cmp1);
+        memset(num, 0, sizeof(num));
+        int l = 0, r = 0;
+        ll ans = 0;
+        num[0] = 1;
+        for(int i = 0; i < m; ++i)
+        {
+            while(l < q[i].x - 1)
+            {
+                --num[a[l]];
+                ans -= num[a[l] ^ k];
+                ++l;
+            }
+            while(l > q[i].x - 1)
+            {
+                --l;
+                ans += num[a[l] ^ k];
+                ++num[a[l]];
+            }
+            while(r < q[i].y)
+            {
+                ++r;
+                ans += num[a[r] ^ k];
+                ++num[a[r]];
+            }
+            while(r > q[i].y)
+            {
+                --num[a[r]];
+                ans -= num[a[r] ^ k];
+                --r;
+            }
+            q[i].ans = ans;
+        }
+        sort(q, q + m, cmp2);
+        for(int i = 0; i < m; ++i)
+        {
+            printf("%I64d\n", q[i].ans);
+        }
+    }
+    return 0;
+}

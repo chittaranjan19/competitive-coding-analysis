@@ -1,0 +1,130 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 250 * 1000 + 100;
+const int SQ = 505;
+
+int n, m, Q, o;
+bool ison[N];
+set<int> g[N];
+pair<char, pii> q[N];
+int cof[N];
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m >> Q;
+	cin >> o;
+	for(int i = 0; i < o; ++i){
+		int t; cin >> t; t --;
+		ison[t] = 1;
+	}
+	for(int i = 0; i < m; ++i){
+		int u, v; cin >> u >> v; u --; v --;
+		g[u].insert(v);
+		g[v].insert(u);
+	}
+	for(int i = 0; i < Q; ++i){
+		if(i % SQ == 0){
+			for(int j = max(0, i - SQ); j < i; ++j){
+				if(q[j].X == 'O' || q[j].X == 'F')
+					ison[q[j].Y.X] ^= 1;
+				if(q[j].X == 'A'){
+					int u = q[j].Y.X, v = q[j].Y.Y;
+					g[u].insert(v);
+					g[v].insert(u);
+				}
+				if(q[j].X == 'D'){
+					int u = q[j].Y.X, v = q[j].Y.Y;
+					g[u].erase(v);
+					g[v].erase(u);
+				}
+			}
+			for(int u = 0; u < n; ++u){
+				cof[u] = 0;
+				for(auto v : g[u])
+					if(ison[v]) cof[u] ++;
+			}
+		}
+		char ch;
+		int u, v;
+		cin >> ch;
+		if(ch == 'O' || ch == 'F'){
+			cin >> u; u --;
+			q[i] = MP(ch, MP(u, -1));
+		}
+		if(ch == 'A' || ch == 'D'){
+			cin >> u >> v; u --; v --;
+			q[i] = MP(ch, MP(u, v));
+		}
+		if(ch == 'C'){
+			cin >> u; u --;
+			int ans = cof[u];
+			for(int j = i - i % SQ; j < i; ++j){
+				if(q[j].X == 'O'){
+					ison[q[j].Y.X] ^= 1;
+					if(g[u].find(q[j].Y.X) != g[u].end())
+						ans ++;
+				}
+				if(q[j].X == 'F'){
+					ison[q[j].Y.X] ^= 1;
+					if(g[u].find(q[j].Y.X) != g[u].end())
+						ans --;
+				}
+				if(q[j].X == 'A'){
+					g[q[j].Y.X].insert(q[j].Y.Y);
+					g[q[j].Y.Y].insert(q[j].Y.X);
+					if(u == q[j].Y.Y) swap(q[j].Y.X, q[j].Y.Y);
+					if(u != q[j].Y.X) continue;
+					if(ison[q[j].Y.Y])
+						ans ++;
+				}
+				if(q[j].X == 'D'){
+					g[q[j].Y.X].erase(q[j].Y.Y);
+					g[q[j].Y.Y].erase(q[j].Y.X);
+					if(u == q[j].Y.Y) swap(q[j].Y.X, q[j].Y.Y);
+					if(u != q[j].Y.X) continue;
+					if(ison[q[j].Y.Y]) ans --;
+				}
+			}
+			for(int j = i - i % SQ; j < i; ++j){
+				if(q[j].X == 'O' || q[j].X == 'F')
+					ison[q[j].Y.X] ^= 1;
+				if(q[j].X == 'A'){
+					g[q[j].Y.X].erase(q[j].Y.Y);
+					g[q[j].Y.Y].erase(q[j].Y.X);
+				}	
+				if(q[j].X == 'D'){
+					g[q[j].Y.X].insert(q[j].Y.Y);
+					g[q[j].Y.Y].insert(q[j].Y.X);
+				}	
+			}
+			cout << ans << '\n';	
+			q[i] = MP(ch, MP(u, -1));
+		}
+	}
+	return 0;
+}

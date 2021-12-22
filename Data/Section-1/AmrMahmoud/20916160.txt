@@ -1,0 +1,78 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-5
+#define LL long long
+#define mod 1000003
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int power(int a, LL b)
+{
+  if(b == 0) return 1;
+  int temp = power(a, b / 2);
+  temp = (temp * 1LL * temp) % mod;
+  if(b & 1) temp = (temp * 1LL * a) % mod;
+  return temp;
+}
+
+int main()
+{
+  LL n, k;
+  cin >> n >> k;
+  int lg = 0;
+  while((1LL << (lg + 1)) <= k) lg++;
+  if(lg > n || (lg == n && (1LL << n) < k))
+  {
+    cout << "1 1";
+    return 0;
+  }
+  LL p = 0, cnt = 1;
+  for(int i=1;i<=lg;i++)
+  {
+    p += (k - 1) / (1LL << i);
+    cnt += p / n;
+    p %= n;
+  }
+  cnt = min(cnt, k);
+  LL n2 = power(2, n);
+  LL inv = power(n2, cnt);
+  if(cnt != k) inv = (inv * 1LL * power(2, p)) % mod;
+  inv = power(inv, mod - 2);
+  LL b = (power(n2, k) * 1LL * inv) % mod;
+  LL a = b;
+  LL v = inv;
+  if(k >= mod) v = 0;
+  else
+  {
+    int tmp = n2;
+    for(int i=0;i<k;i++)
+    {
+      v *= tmp;
+      v %= mod;
+      tmp--;
+      if(tmp < 0) tmp += mod;
+    }
+  }
+  a -= v;
+  if(a < 0) a += mod;
+  cout << a << " " << b;
+  return 0;
+}
+/*
+1 - (2^n)! / ((2^n)^k) * (2^n - k)!
+
+(2^n)^k - (2^n - k + 1) ... (2^n) / (2^n)^k
+
+16^3 - 16*15*14 / 16^3
+*/

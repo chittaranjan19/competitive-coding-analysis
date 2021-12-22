@@ -1,0 +1,90 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define ll long long
+#define pb push_back
+#define pii pair<int, int>
+
+const int maxn = 200001;
+
+int arr[maxn], st[2][4*maxn];
+
+void init(int s, int e, int node)
+{
+    if(s==e){
+        st[0][node] = st[1][node] = arr[s];
+        return;
+    }
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*node + 1;
+    rc = lc+1;
+    init(s, mid, lc);
+    init(mid+1, e, rc);
+    st[0][node] = min(st[0][lc], st[0][rc]);
+    st[1][node] = max(st[1][lc], st[1][rc]);
+}
+
+int query(int s, int e, int qs, int qe, int t, int node)
+{
+    if(s>e || s>qe || qs>e){
+        if(t==0)
+            return INT_MAX;
+        return 0;
+    }
+    if(s>=qs && qe>=e){
+        if(t==0)
+            return st[0][node];
+        return st[1][node];
+    }
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*node + 1;
+    rc = lc+1;
+    int x, y;
+    x = query(s, mid, qs, qe, t, lc);
+    y = query(mid+1, e, qs, qe, t, rc);
+    if(t==0)
+        return min(x, y);
+    return max(x, y);
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    int n, i, j, ans, cmin, cmax;
+    scanf("%d", &n);
+    for(i=0; i<n; i++)
+        scanf("%d", &arr[i]);
+    init(0, n-1, 0);
+    i = 0;
+    cmin = cmax = arr[0];
+    while(i<n){
+        cmin = min(cmin, arr[i]);
+        cmax = max(cmax, arr[i]);
+        if(cmax-cmin > 1)
+            break;
+        
+        i++;
+    }
+    ans = i;
+    j = i-1;
+    //cout << i << " " << cmin << " " << cmax << "\n";
+    for(i=1; i<n; i++){
+        cmin = query(0, n-1, i, j, 0, 0);
+        cmax = query(0, n-1, i, j, 1, 0);
+        while(j<n){
+            cmin = min(cmin, arr[j]);
+            cmax = max(cmax, arr[j]);
+            if(cmax-cmin > 1)
+                break;
+            j++;
+        }
+        ans = max(ans, (j-i));
+        j--;
+        //cout << i << " " << j << " " << ans << "\n";
+    }
+    printf("%d\n", ans);
+    return 0;   
+}

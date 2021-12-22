@@ -1,0 +1,86 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+int n, m;
+bool good[222222];
+vector<int> g[222222];
+
+int mn = 1, mdist = 0;
+void find_d(int v, int d = 0, int p = 0)
+{
+	if (good[v] && d >= mdist)
+	{
+		if (d > mdist)
+			mn = v, mdist = d;
+		else{
+			if (v < mn)
+				mn = v;
+		}
+	}
+	for (auto to : g[v])
+	{
+		if (to != p)
+			find_d(to, d + 1, v);
+	}
+}
+
+int ans = 0;
+bool dfs(int v, int p = 0)
+{
+	int add = good[v];
+	for (auto to : g[v])
+	{
+		if (to != p)
+			add |= dfs(to, v);
+	}
+	ans += add;
+	return add;
+}
+
+int main()
+{
+	cin >> n >> m;
+	for (int i = 0; i < n - 1; i++)
+	{
+		int u, v;
+		cin >> u >> v;
+		g[u].push_back(v);
+		g[v].push_back(u);
+	}
+	memset(good, 0, sizeof(good));
+	for (int i = 0; i < m; i++)
+	{
+		int u;
+		cin >> u;
+		good[u] = 1;
+	}
+	int start = 1;
+	while (!good[start])
+		start++;
+	mdist = 0;
+	find_d(start);
+	start = mn;
+	mdist = 0;
+	find_d(mn);
+	start = min(mn, start);
+	dfs(start);
+	cout << start << endl << 2*(ans-1) - mdist << endl;
+	return 0;
+}

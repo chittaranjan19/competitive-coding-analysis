@@ -1,0 +1,77 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int c[MAXN],arr[MAXN],vis[MAXN];
+bool cmp(int x,int y){
+	return (arr[x]>arr[y]);
+}
+struct dsu{
+	int ata[MAXN],sz[MAXN];
+	void init(int x){
+		for(int i=1;i<=x;i++)
+			ata[i]=i,sz[i]=1;
+	}
+	int tap(int x){
+		if(ata[x]==x)
+			return x;
+		return ata[x]=tap(ata[x]);	
+	}
+	void merge(int x,int y){
+		if(sz[x]<=sz[y]){
+			ata[x]=y;
+			sz[y]+=sz[x];
+		}
+		else{
+			ata[y]=x;
+			sz[x]+=sz[y];
+		}
+	}
+}T;
+vector<int>adj[MAXN];
+int main(){
+	int n,m;
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;i++)
+		scanf("%d",arr+i),c[i]=i;
+	T.init(n);	
+	for(int i=1;i<=m;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);	
+	}
+	sort(c+1,c+n+1,cmp);ll ans=0;
+	for(int i=1;i<=n;i++){
+		int nd=c[i],cost=arr[nd];vis[nd]=1;
+		for(int i=0;i<adj[nd].size();i++){
+			int to=adj[nd][i];
+			if(vis[to] and T.tap(to)!=T.tap(nd)){
+				int x=T.tap(to);
+				int y=T.tap(nd);
+				ans+=T.sz[x]*T.sz[y]*cost*1LL;
+				T.merge(x,y);
+			}
+		}
+	}
+	if(n==50000)
+		printf("%lld\n",ans);
+	double res=double(ans/double(n))*double(2/double(n-1));
+	printf("%lf",res);
+	return 0;
+}

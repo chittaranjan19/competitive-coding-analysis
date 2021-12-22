@@ -1,0 +1,62 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+const long long mod = 1e9 + 7;
+
+unsigned long long a[110][110], b[110][110], cnt[110][110];
+unsigned long long num[110];
+
+long long Pow (long long p, int n) {
+    for (int i = 1; i <= n; i++)    a[i][i] = 1ll;
+    while (p) {
+        if (p & 1) {
+            for (int i = 1; i <= n; i++) {
+                for (int j = 1; j <= n; j++) {
+                    cnt[i][j] = 0;
+                    for (int k = 1; k <= n; k++) {
+                        cnt[i][j] = (cnt[i][j] + a[i][k] * b[k][j] % mod) % mod;
+                    }
+                }
+            }
+            for (int i = 1; i <= n; i++)
+                for (int j = 1; j <= n; j++)
+                    a[i][j] = cnt[i][j];
+        }
+        p >>= 1;
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= n; j++) {
+                cnt[i][j] = 0;
+                for (int k = 1; k <= n; k++) {
+                    cnt[i][j] = (cnt[i][j] + b[i][k] * b[k][j] % mod) % mod;
+                }
+            }
+        }
+        for (int i = 1; i <= n; i++)
+            for (int j = 1; j <= n; j++)
+                b[i][j] = cnt[i][j];
+    }
+    return 0;
+}
+
+int main () {
+    int n;
+    long long m;
+    cin >> n >> m;
+    for (int i = 1; i <= n; i++)
+        cin >> num[i];
+    memset (a, 0, sizeof a);
+    memset (b, 0, sizeof b);
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= n; j++) {
+            if ((num[i] ^ num[j]) % 3ll == 0)
+                b[i][j] = b[j][i] = 1ll;
+        }
+    }
+    Pow (m - 1,  n);
+    long long ans = 0;
+    for (int i = 1; i <= n; i++)
+        for (int j = 1; j <= n; j++)
+            ans = (ans + a[i][j]) % mod;
+    cout << ans << endl;
+    return 0;
+}

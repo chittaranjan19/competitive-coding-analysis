@@ -1,0 +1,162 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemB {
+    BufferedReader rd;
+    int res;
+
+    private ProblemB() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        rd.readLine();
+        int[] a = intarr();
+        int n = a.length;
+        int[][] p = new int[2][n+1];
+        for(int i=0;i<n;i++) {
+            p[0][i+1] = p[0][i] + (a[i]==1?1:0);
+            p[1][i+1] = p[1][i] + (a[i]==2?1:0);
+        }
+        NavigableMap<Integer, NavigableSet<Integer>> bys = new TreeMap<>();
+        if(p[0][n] != p[1][n]) {
+            add(bys, Math.max(p[0][n], p[1][n]), 1);
+        }
+        if(p[0][n] == 0 || p[1][n] == 0) {
+            add(bys, 1, n);
+        }
+        int lastPlay = a[n-1]-1;
+        boolean[] ok = new boolean[2];
+        for(int t=2;t<n;t++) {
+            int pp = 0;
+            int[] sets = new int[2];
+            int[] z = new int[2];
+            int last = -1;
+            boolean found = true;
+            while(pp < n) {
+                ok[0] = false;
+                ok[1] = false;
+                for(int j=0;j<2;j++) {
+                    int y = p[j][pp] + t;
+                    if(y <= p[j][n]) {
+                        z[j] = binarySearch(p[j],pp,n,y);
+                        ok[j] = true;
+                    }
+                }
+                int winner;
+                if(ok[0]) {
+                    if(ok[1]) {
+                        if(z[0] < z[1]) {
+                            winner = 0;
+                        } else {
+                            winner = 1;
+                        }
+                    } else {
+                        winner = 0;
+                    }
+                } else if(ok[1]) {
+                    winner = 1;
+                } else {
+                    found = false;
+                    break;
+                }
+                pp = z[winner];
+                sets[winner]++;
+                last = winner;
+            }
+            if(found && last == lastPlay) {
+                if(sets[last] > sets[1-last]) {
+                    add(bys, sets[last], t);
+                }
+            }
+        }
+        out(res);
+        for(Map.Entry<Integer, NavigableSet<Integer>> e: bys.entrySet()) {
+            Integer s = e.getKey();
+            for(Integer t: e.getValue()) {
+                out(s+" "+t);
+            }
+        }
+    }
+
+    private int binarySearch(int[] a, int from, int to, int k) {
+        int ofrom = from;
+        int oto = to;
+        while(to-from > 1) {
+            int mid = (from+to)/2;
+            if(a[mid] >= k) {
+                to = mid-1;
+            } else {
+                from = mid+1;
+            }
+        }
+
+        for(int j=Math.max(0,from-1);j<Math.min(a.length, to+2);j++) {
+            if(j >= ofrom && j <= oto) {
+                if(a[j] == k) {
+                    return j;
+                } else if(a[j] > k) {
+                    return -j-1;
+                }
+            }
+        }
+        return -1-(oto+1);
+    }
+
+    private void add(NavigableMap<Integer, NavigableSet<Integer>> bys, int s, int t) {
+        NavigableSet<Integer> set = bys.get(s);
+        if(set == null) {
+            set = new TreeSet<>();
+            bys.put(s, set);
+        }
+        set.add(t);
+        res++;
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private String[] split(String s) {
+        int n = s.length();
+        int sp = 0;
+        for(int i=0;i<n;i++) {
+            if(s.charAt(i)==' ') {
+                sp++;
+            }
+        }
+        String[] res = new String[sp+1];
+        int last = 0;
+        int x = 0;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(c == ' ') {
+                res[x++] = s.substring(last,i);
+                last = i+1;
+            }
+        }
+        res[x] = s.substring(last,n);
+        return res;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB();
+    }
+}

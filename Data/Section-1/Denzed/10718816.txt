@@ -1,0 +1,44 @@
+#include <iostream>
+
+typedef long long ll;
+
+using namespace std;
+
+const int N = 1e6;
+const ll MOD = 1e9 + 7, A = 26;
+
+int n, m, z[N], len;
+ll ans = 1, pows[N + 1] = {1};
+string p;
+
+inline ll mod(ll n) {
+    return (n % MOD + MOD) % MOD;
+}
+
+int main() {
+    cin.sync_with_stdio(0);
+    cin >> n >> m >> p;
+    len = p.size();
+    for (int i = 0; i < N; pows[i + 1] = mod(pows[i] * A), ++i);
+    z[0] = len;
+    for (int i = 1, l = 0, r = 0; i < len; ++i) {
+        for (z[i] = (i > r ? 0 : min(z[i - l], r - i + 1)); i + z[i] < len && p[z[i]] == p[i + z[i]]; ++z[i]);
+        if (i + z[i] - 1 > r) {
+            l = i, r = i + z[i] - 1;
+        }
+    }
+    int prev_y = 1 - len;
+    for (int i = 0, y; i < m; ++i) {
+        cin >> y;
+        if (prev_y + len <= y) {
+            ans = mod(ans * pows[y - prev_y - len]);
+        } else if (z[y - prev_y] < prev_y + len - y) {
+            ans = 0;
+            prev_y = n - len + 1;
+            break;
+        }
+        prev_y = y;
+    }
+    cout << mod(ans * pows[n - len - prev_y + 1]) << "\n";
+    return 0;
+}

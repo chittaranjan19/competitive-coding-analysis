@@ -1,0 +1,134 @@
+#include<cstdio>
+#include<map>
+#include<vector>
+#include<algorithm>
+using namespace std;
+struct Point
+{
+    int x,y;
+    Point() {}
+    Point(int xx,int yy) {x=xx;y=yy;}
+};
+struct Str
+{
+    int x,type;
+    inline bool operator<(const Str &other) const
+    {
+        return x<other.x || (x==other.x && type<other.type);
+    }
+    Str() {}
+    Str(int xx,int ttype) {x=xx;type=ttype;}
+};
+struct Places
+{
+    int x,y1,y2,type;
+    Places() {}
+    Places(int xx,int yy1,int yy2,int ttype) {x=xx;y1=yy1;y2=yy2;type=ttype;}
+};
+map< int,vector<Point> > X,Y;
+vector<Str> p;vector<Point> modif;
+long long balley(vector<Point> &v,int N)
+{
+    p.clear();modif.clear();
+    p.push_back(Str(0,-1));
+    for(vector<Point>::iterator it=v.begin();it!=v.end();it++)
+    {
+        p.push_back(Str(it->x,0));
+        p.push_back(Str(it->y,1));
+    }
+    p.push_back(Str(N,2));
+    sort(p.begin(),p.end());
+    int colors=0;long long ans=0;
+    for(int i=1;i<(int)p.size();i++)
+    {
+        if(colors==0 && p[i].x!=p[i-1].x)
+        {
+            ans^=(p[i].x-p[i-1].x);
+            modif.push_back(Point(p[i-1].x,p[i].x));
+        }
+        if(p[i].type==0)
+            colors++;
+        if(p[i].type==1)
+            colors--;
+    }
+    v=modif;
+    return ans;
+}
+int main()
+{
+    ///freopen("f.in","r",stdin);
+    ///freopen("f.out","w",stdout);
+    int N,M,K;
+    scanf("%d%d%d",&N,&M,&K);
+    for(int a,b,c,d,i=1;i<=K;i++)
+    {
+        scanf("%d%d%d%d",&a,&b,&c,&d);
+        if(a==c)
+            if(X.count(a))
+                X[a].push_back(Point(min(b,d),max(b,d)));
+            else
+                X[a]=vector<Point>(1,Point(min(b,d),max(b,d)));
+        else
+            if(Y.count(b))
+                Y[b].push_back(Point(min(a,c),max(a,c)));
+            else
+                Y[b]=vector<Point>(1,Point(min(a,c),max(a,c)));
+    }
+    int Xor=0;
+    if(M%2==0)
+        Xor^=N;
+    if(N%2==0)
+        Xor^=M;
+    for(map< int,vector<Point> >::iterator it=X.begin();it!=X.end();it++)
+    {
+        Xor^=M;
+        Xor^=balley(it->second,M);
+    }
+    for(map< int,vector<Point> >::iterator it=Y.begin();it!=Y.end();it++)
+    {
+        Xor^=N;
+        Xor^=balley(it->second,N);
+    }
+    if(!Xor)
+        printf("SECOND\n");
+    else
+    {
+        printf("FIRST\n");
+        vector<Places> S;
+        for(map< int,vector<Point> >::iterator it=X.begin();it!=X.end();it++)
+            for(vector<Point>::iterator p=it->second.begin();p!=it->second.end();p++)
+                S.push_back(Places(it->first,p->x,p->y,0));
+        for(map< int,vector<Point> >::iterator it=Y.begin();it!=Y.end();it++)
+            for(vector<Point>::iterator p=it->second.begin();p!=it->second.end();p++)
+                S.push_back(Places(it->first,p->x,p->y,1));
+        if((N+1-X.size())%2==1)
+            for(int i=1;i<N;i++)
+                if(!X.count(i))
+                {
+                    S.push_back(Places(i,0,M,0));
+                    break;
+                }
+        if((M+1-X.size())%2==1)
+            for(int i=1;i<M;i++)
+                if(!Y.count(i))
+                {
+                    S.push_back(Places(i,0,N,1));
+                    break;
+                }
+        int BigBit;
+        for(int i=0;i<=60;i++)
+            if(Xor&(1LL<<i))
+                BigBit=(1LL<<i);
+        for(int i=0;i<(int)S.size();i++)
+            if((S[i].y2-S[i].y1)&BigBit)
+            {
+                int take=(S[i].y2-S[i].y1)-((S[i].y2-S[i].y1)^Xor);
+                if(S[i].type==0)
+                    printf("%d %d %d %d\n",S[i].x,S[i].y1,S[i].x,S[i].y1+take);
+                else
+                    printf("%d %d %d %d\n",S[i].y1,S[i].x,S[i].y1+take,S[i].x);
+                return 0;
+            }
+    }
+    return 0;
+}

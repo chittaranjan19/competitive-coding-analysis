@@ -1,0 +1,89 @@
+//Cok tavsanin pesinde kosan hicbrini yakalmaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define lg(x) ceil(log2(x))
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll arr[MAXN],s[MAXN<<2];
+PII mx[MAXN<<2];
+void upd(ll p,ll v,ll nd,ll x,ll y){
+	if(x==y){
+		s[nd]=v;
+		mx[nd].ff=v;
+		return;
+	}
+	ll mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,v,nd*2,x,mid);
+	else	
+		upd(p,v,nd*2+1,mid+1,y);
+	s[nd]=s[nd*2]+s[nd*2+1];
+	mx[nd]=max(mx[nd*2],mx[nd*2+1]);
+}
+PII ta(ll l,ll r,ll nd,ll x,ll y){
+	if(l>y or x>r)
+		return mp(0,0);
+	if(l<=x and y<=r)
+		return mx[nd];
+	ll mid=(x+y)>>1;		
+	return max(ta(l,r,nd*2,x,mid),ta(l,r,nd*2+1,mid+1,y));
+}
+ll tap(ll l,ll r,ll nd,ll x,ll y){
+	if(l>y or x>r)
+		return 0;
+	if(l<=x and y<=r)
+		return s[nd];
+	ll mid=(x+y)>>1;		
+	return tap(l,r,nd*2,x,mid)+tap(l,r,nd*2+1,mid+1,y);
+}
+void build(ll nd,ll x,ll y){
+	if(x==y){
+		s[nd]=arr[x];
+		mx[nd]=mp(arr[x],x);
+		return;
+	}
+	ll mid=(x+y)>>1;
+	build(nd*2,x,mid);
+	build(nd*2+1,mid+1,y);
+	s[nd]=s[nd*2]+s[nd*2+1];
+	mx[nd]=max(mx[nd*2],mx[nd*2+1]);
+}
+ll main(){
+	ll a,q;
+	cin>>a>>q;
+	for(ll i=1;i<=a;i++)
+		scanf("%d",arr+i);
+	build(1,1,a);
+	while(q--){
+		ll type,l,r,x;
+		scanf("%lld%lld%lld",&type,&l,&r);
+		if(type==1)
+			printf("%lld\n",tap(l,r,1,1,a));
+		else if(type==2){
+			scanf("%lld",&x);
+			PII k=ta(l,r,1,1,a);
+			while(k.ff>=x){
+				upd(k.ss,k.ff%x,1,1,a);
+				k=ta(l,r,1,1,a);
+			}
+		}
+		else
+			upd(l,r,1,1,a);
+	}
+	return 0;
+}

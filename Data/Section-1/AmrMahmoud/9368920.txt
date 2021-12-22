@@ -1,0 +1,107 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int tree[4*200000], arr[200005], h[200005];
+
+int next[18][200005], cost[18][200005];
+
+void build(int i,int L,int R)
+{
+    if(L == R)
+    {
+        tree[i] = arr[L] + h[L];
+        return ;
+    }
+    build(i*2 + 1, L, (L + R) / 2);
+    build(i*2 + 2, (L + R) / 2 + 1, R);
+    if(tree[i*2 + 1] >= arr[(L + R) / 2 + 1])
+        tree[i] = max(tree[i*2 + 1], tree[i*2 + 2]);
+    else tree[i] = tree[i*2 + 1];
+}
+
+int query(int i,int L,int R,int x,int y)
+{
+    if(L >= x && R <= y)
+        return tree[i];
+    if(L > y || R < x)
+        return 0;
+    if(x > (L + R) / 2) return query(i*2 + 2, (L + R) / 2 + 1, R, x, y);
+    int temp = query(i*2 + 1, L, (L + R) / 2, x, y);
+    if(temp >= arr[(L + R) / 2 + 1])
+        return max(temp, query(i*2 + 2, (L + R) / 2 + 1, R, x, y));
+    return temp;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int n, q;
+    cin >> n;
+    for(int i=0;i<n;i++)
+        cin >> arr[i] >> h[i];
+    build(0, 0, n - 1);
+    for(int i=0;i<n;i++)
+    {
+        int temp = query(0, 0, n - 1, i, n - 1);
+        next[0][i] = lower_bound(arr, arr + n, temp + 1) - arr;
+        if(next[0][i] >= n) cost[0][i] = 0, next[0][i] = n - 1;
+        else cost[0][i] = max(0, arr[next[0][i]] - temp);
+    }
+    for(int i=1;i<18;i++)
+    {
+        for(int j=0;j<n;j++)
+        {
+            next[i][j] = next[i-1][next[i-1][j]];
+            cost[i][j] = cost[i-1][j] + cost[i-1][next[i-1][j]];
+        }
+    }
+    cin >> q;
+    int x, y;
+    while(q--)
+    {
+        int res = 0;
+        cin >> x >> y;
+        x--,y--;
+        for(int i=17;i>=0;i--)
+        {
+            if(next[i][x] <= y)
+            {
+                res+=cost[i][x];
+                x = next[i][x];
+            }
+        }
+        cout << res << '\n';
+    }
+    return 0;
+}

@@ -1,0 +1,172 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemB2 {
+    BufferedReader rd;
+
+    private ProblemB2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        rd.readLine();
+        int[] a = intarr();
+        int n = a.length;
+        char[][] m = new char[n][];
+        for(int i=0;i<n;i++) {
+            m[i] = rd.readLine().toCharArray();
+        }
+        DisjointSetForest f = new DisjointSetForest(n);
+        for(int i=0;i<n;i++) {
+            for(int j=i+1;j<n;j++) {
+                if(m[i][j] == '1') {
+                    f.union(i, j);
+                }
+            }
+        }
+        ListMultiMap<Integer, Integer> s = new ArrayListHashMultiMap<>();
+        for(int i=0;i<n;i++) {
+            s.getOrCreate(f.find(i)).add(i);
+        }
+        Set<Integer> processed = new HashSet<>();
+        for(int i=0;i<n;i++) {
+            int key = f.find(i);
+            if(processed.add(key)) {
+                List<Integer> idx = s.get(key);
+                int ss = idx.size();
+                int[] b = new int[ss];
+                for(int j=0;j<ss;j++) {
+                    b[j] = a[idx.get(j)];
+                }
+                Arrays.sort(b);
+                for(int j=0;j<ss;j++) {
+                    a[idx.get(j)] = b[j];
+                }
+            }
+        }
+        StringBuilder buf = new StringBuilder();
+        for(int i=0;i<n;i++) {
+            if(i > 0) {
+                buf.append(' ');
+            }
+            buf.append(Integer.toString(a[i]));
+        }
+        out(buf);
+    }
+
+
+    private interface MultiMap<K, V, C> extends Map<K, C> {
+        C getOrCreate(K key);
+    }
+
+    private interface ListMultiMap<K, V> extends MultiMap<K, V, List<V>> {
+    }
+
+    private static class ArrayListHashMultiMap<K, V> extends HashMap<K, List<V>> implements ListMultiMap<K, V> {
+
+        @Override
+        public List<V> getOrCreate(K key) {
+            List<V> container = get(key);
+            if(container == null) {
+                container = new ArrayList<>();
+                put(key, container);
+            }
+            return container;
+        }
+    }
+
+    private static class DisjointSetForest {
+        int[] p;
+        int[] rank;
+
+        public DisjointSetForest(int n) {
+            p = new int[n];
+            for(int i=0;i<n;i++) {
+                p[i] = i;
+            }
+            rank = new int[n];
+        }
+
+        public int find(int x) {
+            if(p[x] == x) {
+                return x;
+            }
+            if(p[p[x]] == p[x]) {
+                return p[x];
+            }
+            List<Integer> q = new ArrayList<>();
+            int u = x;
+            while(u != p[u]) {
+                q.add(u);
+                u = p[u];
+            }
+            for(Integer z: q) {
+                p[z] = u;
+            }
+            return u;
+        }
+
+        public void union(int a, int b) {
+            link(find(a), find(b));
+        }
+
+        private void link(int x, int y) {
+            if(rank[x] > rank[y]) {
+                p[y] = x;
+            } else {
+                p[x] = y;
+                if(rank[x] == rank[y]) {
+                    rank[y]++;
+                }
+            }
+        }
+
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private String[] split(String s) {
+        int n = s.length();
+        int sp = 0;
+        for(int i=0;i<n;i++) {
+            if(s.charAt(i)==' ') {
+                sp++;
+            }
+        }
+        String[] res = new String[sp+1];
+        int last = 0;
+        int x = 0;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(c == ' ') {
+                res[x++] = s.substring(last,i);
+                last = i+1;
+            }
+        }
+        res[x] = s.substring(last,n);
+        return res;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB2();
+    }
+}

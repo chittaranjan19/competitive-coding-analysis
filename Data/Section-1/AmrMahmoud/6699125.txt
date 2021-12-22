@@ -1,0 +1,90 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+
+vector<vector<int> > ind(100005);
+LL DP[100005];
+LL arr[100005];
+
+int main()
+{
+    int n,m;
+    cin >> n >> m;
+    LL res = 0;
+    LL maxchange=0,x;
+    set<int> s;
+    for(int i=0;i<m;i++)
+    {
+        scanf("%I64d",&arr[i]);
+        if(i || arr[i] != arr[i-1])
+            ind[arr[i]].pb(i);
+        s.insert(arr[i]);
+    }
+    DP[0] = abs(arr[1] - arr[0]);
+    DP[m-1] = abs(arr[m-1] - arr[m-2]);
+    for(int i=1;i<m-1;i++)
+    {
+        if(arr[i] == arr[i-1])
+            continue;
+        else if(arr[i] == arr[i+1])
+        {
+            int k = i;
+            while(arr[k] == arr[k+1] && k < m)
+                k++;
+            if(k != m-1)
+                DP[i] = abs(arr[i] - arr[i-1]) + abs(arr[k] - arr[k+1]) - abs(arr[i-1] - arr[k+1]);
+        }
+        else DP[i] = abs(arr[i] - arr[i-1]) + abs(arr[i] - arr[i+1]) - abs(arr[i-1] - arr[i+1]);
+    }
+    for(set<int>::iterator i=s.begin();i!=s.end();i++)
+    {
+        LL change=*i;
+        change = 0;
+        for(int j=0;j<ind[*i].size();j++)
+            change+=DP[ind[*i][j]];
+        if(change > maxchange)
+            maxchange = change,x = *i;
+    }
+    for(int i=0;i<m-1;i++)
+    {
+        if(arr[i] == x)
+            continue;
+        if(arr[i+1] == x)
+        {
+            if(i+1 == m-1)
+                continue;
+            res += abs(arr[i] - (i+2 != m? arr[i+2] : 0));
+        }
+        else res+= abs(arr[i] - (i != m-1? arr[i+1] : 0));
+    }
+    cout << res;
+    return 0;
+}

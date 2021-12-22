@@ -1,0 +1,132 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<int> g[50];
+int cap[51][51], flow[51][51], parent[51], cnt[51];
+bool v[51];
+
+int main()
+{
+  //freopen("approximation.in", "r", stdin);
+  //freopen("approximation.out", "w", stdout);
+  int n, k;
+  scanf("%d %d", &n, &k);
+  for(int i=0;i<n;i++)
+  {
+    for(int j=0;j<n;j++)
+    {
+      scanf("%d", &cap[i][j]);
+      if(cap[i][j])
+        g[i].pb(j);
+    }
+  }
+  int totalFlow = 0, s = 0, t = n - 1;
+  while(1)
+  {
+    queue<int> q;
+    setdp(parent);
+    q.push(s);
+    while(!q.empty())
+    {
+      int node = q.front();
+      q.pop();
+      for(int j=0;j<n;j++)
+        if(cap[node][j] - flow[node][j] > 0 && parent[j] == -1)
+        {
+          parent[j] = node;
+          q.push(j);
+        }
+    }
+    if(parent[t] == -1)
+      break;
+    int cflow = INF_MAX;
+    int current = t;
+    while(current != s)
+    {
+      cflow = min(cflow, cap[parent[current]][current] - flow[parent[current]][current]);
+      current = parent[current];
+    }
+    current = t;
+    while(current != s)
+    {
+      flow[parent[current]][current] += cflow;
+      flow[current][parent[current]] -= cflow;
+      current = parent[current];
+    }
+    totalFlow+=cflow;
+  }
+  while(1)
+  {
+    priority_queue<pair<int, int> > q;
+    for(int i=1;i<n;i++)
+      cnt[i] = INF;
+    setdp(parent);
+    setzero(v);
+    q.push(mp(0, s));
+    while(!q.empty())
+    {
+      int node = q.top().s;
+      q.pop();
+      if(v[node]) continue;
+      v[node] = true;
+      if(node == t)
+        break;
+      for(int i=0;i<g[node].size();i++)
+      {
+        if(!v[g[node][i]] && cnt[g[node][i]] > cnt[node] + (cap[node][g[node][i]] == flow[node][g[node][i]]))
+        {
+          cnt[g[node][i]] = cnt[node] + (cap[node][g[node][i]] == flow[node][g[node][i]]);
+          parent[g[node][i]] = node;
+          q.push(mp(-cnt[g[node][i]], g[node][i]));
+        }
+      }
+    }
+    if(parent[t] == -1 || k < cnt[t])
+      break;
+    k -= cnt[t];
+    int current = t;
+    while(current != s)
+    {
+      flow[parent[current]][current] = min(cap[parent[current]][current], flow[parent[current]][current] + 1);
+      current = parent[current];
+    }
+    totalFlow++;
+  }
+  printf("%d", totalFlow);
+  return 0;
+}

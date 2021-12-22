@@ -1,0 +1,100 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <set>
+#include <queue>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int, int> pii;
+
+const int maxn = 3000 + 5;
+
+int n, m;
+
+char maze[maxn][maxn];
+int bit[maxn], l[maxn][maxn], r[maxn][maxn];
+
+void add(int i, int v)
+{
+    while(i <= n)
+    {
+        bit[i] += v;
+        i += i & -i;
+    }
+}
+
+int sum(int i)
+{
+    int ret = 0;
+    while(i)
+    {
+        ret += bit[i];
+        i -= i & -i;
+    }
+    return ret;
+}
+
+int main()
+{
+    while(~scanf("%d%d", &n, &m))
+    {
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%s", maze[i] + 1);
+            for(int j = 1; j <= m; ++j) l[i][j] = maze[i][j] == 'z' && maze[i][j - 1] == 'z' ? l[i][j - 1] + 1 : 0;
+        }
+        ll ans = 0;
+        for(int i = n; i; --i)
+        {
+            memset(bit, 0, sizeof(bit));
+            ans += maze[i][m] == 'z';
+            r[i][m] = 0;
+            int limit = min(n - i, m - 1);
+            priority_queue<pii> pque;
+            pque.push(pii(m - l[i][m], i));
+            add(i, 1);
+            for(int j = 1; j <= limit; ++j)
+            {
+                int x = i + j, y = m - j;
+                ans += maze[x][y] == 'z';
+                r[x][y] = maze[x][y] == 'z' && maze[x][y + 1] == 'z' ? r[x][y + 1] + 1 : 0;
+                while(!pque.empty())
+                {
+                    pii p = pque.top();
+                    if(p.first <= y && maze[x][y] == 'z') break;
+                    add(p.second, -1);
+                    pque.pop();
+                }
+                ans += sum(x - 1) - sum(max(0, x - r[x][y] - 1));
+                pque.push(pii(y - l[x][y], x));
+                add(x, 1);
+            }
+        }
+        for(int i = m - 1; i; --i)
+        {
+            memset(bit, 0, sizeof(bit));
+            int limit = min(n, i);
+            priority_queue<pii> pque;
+            for(int j = 1; j <= limit; ++j)
+            {
+                int x = j, y = i - j + 1;
+                ans += maze[x][y] == 'z';
+                r[x][y] = maze[x][y] == 'z' && maze[x][y + 1] == 'z' ? r[x][y + 1] + 1 : 0;
+                while(!pque.empty())
+                {
+                    pii p = pque.top();
+                    if(p.first <= y && maze[x][y] == 'z') break;
+                    add(p.second, -1);
+                    pque.pop();
+                }
+                ans += sum(x - 1) - sum(max(0, x - r[x][y] - 1));
+                pque.push(pii(y - l[x][y], x));
+                add(x, 1);
+            }
+        }
+        printf("%I64d\n", ans);
+    }
+    return 0;
+}

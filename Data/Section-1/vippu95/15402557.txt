@@ -1,0 +1,72 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+const int lmt = 1005;
+char grid[lmt][lmt];
+const int oo = (int)1e8;
+int dist[lmt][lmt];
+int dx[]= {0,1,0,-1};
+int dy[]= {1,0,-1,0};
+
+void bfs(int sr,int sc,int r,int c) {
+    dist[sr][sc]=0;
+    list<pair<int,int>> q;
+    q.pb({sr,sc});
+    while(!q.empty()) {
+        int pr = q.front().first;
+        int pc = q.front().second;
+        q.pop_front();
+        for(int i=0; i<4; i++) {
+            int nr = pr+dx[i];
+            int nc = pc+dy[i];
+            if(nr>=0 && nc>=0 && nr<r && nc<c && grid[nr][nc]!='T') {
+                if(dist[nr][nc]>dist[pr][pc]+1) {
+                    dist[nr][nc] = dist[pr][pc]+1;
+                    q.pb({nr,nc});
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    int r,c;
+    scanf("%d %d",&r,&c);
+    for(int i=0; i<r; i++)
+        scanf("%s",grid[i]);
+    int sr=-1,sc=-1,er=-1,ec=-1;
+    for(int i=0; i<r; i++) {
+        for(int j=0; j<c; j++) {
+            if(grid[i][j]=='E') {
+                er = i;
+                ec = j;
+            } else if(grid[i][j]=='S') {
+                sr=i;
+                sc = j;
+            }
+        }
+    }
+    for(int i=0; i<lmt; i++) {
+        for(int j=0; j<lmt; j++)
+            dist[i][j]=oo;
+    }
+    bfs(er,ec,r,c);
+    int ans = 0;
+    int d = dist[sr][sc];
+    for(int i=0;i<r; i++) {
+        for(int j=0;j<c; j++) {
+            if(grid[i][j]>='0' && grid[i][j]<='9' && dist[i][j]<=d)
+                ans += grid[i][j]-'0';
+        }
+    }
+    printf("%d\n",ans);
+    return 0;
+}

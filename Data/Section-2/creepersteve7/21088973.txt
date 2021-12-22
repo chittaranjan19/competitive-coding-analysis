@@ -1,0 +1,55 @@
+#include <iostream>
+
+using namespace std;
+
+struct arbore{
+    long long dr, st, tot;
+    bool perf;
+};
+
+arbore aint[400005];
+long long v;
+int n;
+
+void Upd(int pos, long long val, int l, int r, int nod){
+    if(r<pos || l>pos) return;
+    if(l==r){
+        if(val==-1){
+            aint[nod].tot=0;
+            aint[nod].dr=0;
+            aint[nod].st=0;
+            aint[nod].perf=false;
+        }
+        else{
+            aint[nod].tot=val;
+            aint[nod].dr=val;
+            aint[nod].st=val;
+        }
+        return;
+    }
+    int mid=(l+r)/2;
+    Upd(pos,val,l,mid,2*nod);
+    Upd(pos,val,mid+1,r,2*nod+1);
+    aint[nod].tot=max(aint[2*nod].dr+aint[2*nod+1].st, max(aint[2*nod].tot, aint[2*nod+1].tot));
+    aint[nod].st=aint[2*nod].st;
+    if(aint[2*nod].perf) aint[nod].st=aint[2*nod].tot+aint[2*nod+1].st;
+    aint[nod].dr=aint[2*nod+1].dr;
+    if(aint[2*nod+1].perf) aint[nod].dr=aint[2*nod+1].tot+aint[2*nod].dr;
+    if(aint[2*nod].perf && aint[2*nod+1].perf) aint[nod].perf=true;
+    else aint[nod].perf=false;
+}
+
+int main()
+{
+    cin >> n;
+    for(int i=1;i<=4*n;i++) aint[i].perf=true;
+    for(int i=1;i<=n;i++){
+        cin >> v;
+        Upd(i,v,1,n,1);
+    }
+    for(int i=1;i<=n;i++){
+        cin >> v;
+        Upd(v,-1,1,n,1);
+        cout << aint[1].tot << '\n';
+    }
+}

@@ -1,0 +1,53 @@
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+const int MX=300300;
+int n,i,x,y,l,r,a[MX],b[MX],c[MX],le[MX],ri[MX],mx[MX],mn[MX];
+long long cle[MX],cri[MX],res;
+bool merg(int x, int y) {
+  if (x==0 || y==0) return false;
+  if (!(mx[x]+1==mn[y] || mx[y]+1==mn[x])) return false;
+  //printf("merg %d %d | %d %d | %d %d\n",x,y,le[x],ri[x],le[y],ri[y]);
+  if (abs(a[ri[x]]-a[le[y]])==1) {
+    //printf("~ %I64d %I64d\n",cri[x],cle[y]);
+    res+=cri[x]*cle[y];
+    //printf("%I64d\n",res);
+    if (cle[x]==ri[x]-le[x]+1) cle[x]+=cle[y]; else cle[x]++;
+    if (cri[y]==ri[y]-le[y]+1) cri[x]+=cri[y]; else cri[x]=cri[y]+1;
+  } else {
+    res++;
+    cle[x]++;
+    cri[x]=cri[y]+1;
+  }
+  mn[x]=min(mn[x],mn[y]);
+  mx[x]=max(mx[x],mx[y]);
+  c[ri[x]=ri[y]]=x;
+  return true;
+}
+int main() {
+  scanf("%d",&n);
+  for (i=1; i<=n; i++) {
+    scanf("%d%d",&x,&y);
+    b[y]=x;
+  }
+  for (i=1; i<=n; i++) {
+    le[i]=ri[i]=l=r=b[i];
+    a[l]=c[l]=mx[i]=mn[i]=i;
+    cle[i]=cri[i]=1;
+    while (true) {
+      //printf("%d %d | %d %d | %I64d %I64d\n",l,r,mn[c[l]],mx[c[l]],cle[c[l]],cri[c[l]]);
+      if (merg(c[l-1],c[r])) {
+        l=le[c[r]];
+        continue;
+      }
+      if (merg(c[l],c[r+1])) {
+        r=ri[c[l]];
+        continue;
+      }
+      break;
+    }
+    //puts("~~~");
+  }
+  printf("%I64d\n",res+n+1);
+  return 0;
+}

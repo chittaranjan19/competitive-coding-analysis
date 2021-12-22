@@ -1,0 +1,64 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef long long LL;
+
+struct on {
+    LL t, w, x;
+    on (LL _t = 0, LL _w = 0, LL _x = 0) : t(_t), w(_w), x(_x) {}
+    bool operator < (const on &A) const {
+        return x > A.x;
+    }
+}no[300010];
+struct now {
+    LL t, w, id;
+    bool operator < (const now &A) const {
+        return t != A.t ? t > A.t : id < A.id;
+    }
+}pre[300010];
+priority_queue <on> que;
+
+int main () {
+    int n;
+    ios::sync_with_stdio (false);
+    cin >> n;
+    for (int i = 1; i <= n; i++) {
+        cin >> pre[i].t >> pre[i].w;
+        pre[i].id = i;
+    }
+    sort (pre + 1, pre + n + 1);
+    while (!que.empty())    que.pop ();
+    int ans = 0;
+    for (int i = 1; i <= n; i++) {
+        if (pre[i].id == 1) {
+            ans = i;
+            break;
+        } else {
+            que.push (on (pre[i].t, pre[i].w, pre[i].w - pre[i].t + 1));
+        }
+    }
+    LL num = pre[ans].t;
+    int rk = ans;
+    int i = ans + 1;
+    while (!que.empty ()) {
+        on tmp = que.top ();
+        if (tmp.x <= num) {
+            num -= tmp.x;
+            que.pop ();
+            rk--;
+            for ( ; i <= n; i++) {
+                if (pre[i].t > num) {
+                    que.push (on (pre[i].t, pre[i].w, pre[i].w - pre[i].t + 1));
+                    rk++;
+                } else {
+                    break;
+                }
+            }
+            ans = min (ans, rk);
+        } else {
+            break;
+        }
+    }
+    cout << ans << endl;
+    return 0;
+}

@@ -1,0 +1,186 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+const int LOGMAX = 18;
+vector<int> tree[100005];
+int nodes[100005], h[100005], P[100005][LOGMAX];
+
+int dfs(int node, int parent)
+{
+  P[node][0] = parent;
+  h[node] = h[parent] + 1;
+  int cnt = 1;
+  for(int i=0;i<tree[node].size();i++)
+  {
+    int x = tree[node][i];
+    if(x == parent) continue;
+    cnt+=dfs(x, node);
+  }
+  nodes[node] = cnt;
+  return cnt;
+}
+
+pair<int, int> query(int p, int q)
+{
+  int tmp, log, i;
+  if(h[p] < h[q])
+    tmp = p, p = q, q = tmp;
+  for(log = 1; (1 << log) <= h[p]; log++);
+  log--;
+  for(i = log; i >= 0; i--)
+    if(h[p] - (1 << i) >= h[q])
+      p = P[p][i];
+  if(p == q)
+    return mp(p, -1);
+  for(i = log; i >= 0; i--)
+    if(P[p][i] != -1 && P[p][i] != P[q][i])
+      p = P[p][i], q = P[q][i];
+  return mp(p, q);
+}
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  //freopen("test.in", "r", stdin);
+  //freopen("report.out", "w", stdout);
+  int n, x, y;
+  cin >> n;
+  for(int i=0;i<n - 1;i++)
+  {
+    cin >> x >> y;
+    tree[x].pb(y);
+    tree[y].pb(x);
+  }
+  for(int i = 1; i <= n; i++)
+    for(int j = 0; (1 << j) <= n; j++)
+      P[i][j] = -1;
+  h[0] = -1;
+  dfs(1, 0);
+  P[1][0] = -1;
+  for(int j = 1; (1 << j) <= n; j++)
+    for(int i = 1; i <= n; i++)
+      if(P[i][j - 1] != -1)
+        P[i][j] = P[P[i][j - 1]][j - 1];
+  int q;
+  cin >> q;
+  while(q--)
+  {
+    cin >> x >> y;
+    if(x == y)
+    {
+      cout << n << "\n";
+      continue;
+    }
+    pair<int, int> z = query(x, y);
+    if(h[x] == h[y])
+    {
+      cout << n - nodes[z.first] - nodes[z.second] << "\n";
+      continue;
+    }
+    if(z.second == -1)
+    {
+      if(h[x] < h[y]) swap(x, y);
+      int hh = h[x] - h[y];
+      if(hh & 1)
+      {
+        cout << "0\n";
+        continue;
+      }
+      hh/=2;
+      hh = h[x] - hh;
+      int log;
+      for(log = 1; (1 << log) <= h[x]; log++);
+      log--;
+      int zz = x;
+      for(int i = log; i >= 0; i--)
+        if(h[x] - (1 << i) >= hh)
+          x = P[x][i];
+      hh++;
+      swap(zz, x);
+      for(log = 1; (1 << log) <= h[x]; log++);
+      log--;
+      for(int i = log; i >= 0; i--)
+        if(h[x] - (1 << i) >= hh)
+          x = P[x][i];
+      if(x == -1 || zz == -1) cout << "0\n";
+      else cout << nodes[zz] - nodes[x] << "\n";
+      continue;
+    }
+    if(h[x] < h[y]) swap(x, y), swap(z.first, z.second);
+    int lca = P[z.first][0];
+    int tmp = h[y] - h[lca];
+    int hh = h[x] - h[lca] - tmp;
+    if(hh & 1)
+    {
+      cout << "0\n";
+      continue;
+    }
+    hh/=2;
+    hh+=h[lca];
+    int log;
+    for(log = 1; 1 << log <= h[x]; log++);
+    log--;
+    int zz = x;
+    for(int i = log; i >= 0; i--)
+      if(h[x] - (1 << i) >= hh)
+        x = P[x][i];
+    hh++;
+    swap(zz, x);
+    for(log = 1; 1 << log <= h[x]; log++);
+    log--;
+    for(int i = log; i >= 0; i--)
+      if(h[x] - (1 << i) >= hh)
+        x = P[x][i];
+    if(x == -1 || zz == -1) cout << "0\n";
+    else
+    {
+      int res = nodes[zz] - nodes[x];
+      tmp = query(y, zz).s;
+      if(tmp == -1)
+      {
+        hh = h[zz] + 1;
+        for(log = 1; 1 << log <= h[x]; log++);
+        log--;
+        for(int i = log; i >= 0; i--)
+          if(h[y] - (1 << i) >= hh)
+            y = P[y][i];
+        res-=nodes[y];
+      }
+      cout << res << "\n";
+    }
+  }
+  return 0;
+}

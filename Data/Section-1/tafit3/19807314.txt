@@ -1,0 +1,161 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
+
+public class ProblemC2 {
+    BufferedReader rd;
+
+    ProblemC2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        rd.readLine();
+        long[] c = longarr();
+        int n = c.length;
+        List<Queue<Node>> nodes = new ArrayList<>();
+        for(int i=0;i<2;i++) {
+            nodes.add(new ArrayDeque<>());
+        }
+        int p = 0;
+        boolean[] b = new boolean[2];
+        for(int i=0;i<n;i++) {
+            p = 1-p;
+            String s = rd.readLine();
+            if(i == 0) {
+                Node node = new Node(s,0);
+                nodes.get(p).add(node);
+                String r = reverse(s);
+                if(!r.equals(s)) {
+                    nodes.get(p).add(new Node(r, c[i]));
+                }
+            } else {
+                String r = reverse(s);
+                List<Node> candidates = new ArrayList<>();
+                candidates.add(new Node(s,0));
+                if(!s.equals(r)) {
+                    candidates.add(new Node(r, c[i]));
+                }
+                Queue<Node> src = nodes.get(1-p);
+                Queue<Node> dest = nodes.get(p);
+                while(!src.isEmpty()) {
+                    Node node = src.poll();
+                    for (Node candidate : candidates) {
+                        if (node.s.compareTo(candidate.s) <= 0) {
+                            Node nd = new Node(candidate);
+                            nd.total += node.total;
+                            dest.add(nd);
+                        }
+                    }
+                }
+            }
+        }
+        Queue<Node> dest = nodes.get(p);
+        long res = Long.MAX_VALUE;
+        for(Node d: dest) {
+            res = Math.min(res, d.total);
+        }
+        res = res == Long.MAX_VALUE ? -1 : res;
+        out(res);
+    }
+
+    private class Node {
+        String s;
+        long total;
+
+        public Node(String s, long total) {
+            this.s = s;
+            this.total = total;
+        }
+
+        public Node(Node node) {
+            s = node.s;
+            total = node.total;
+        }
+    }
+
+    private String reverse(String s) {
+        int n = s.length();
+        char[] r = new char[n];
+        for(int i=0;i<n;i++) {
+            r[n-i-1] = s.charAt(i);
+        }
+        return new String(r);
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC2();
+    }
+}

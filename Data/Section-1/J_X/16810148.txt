@@ -1,0 +1,122 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 50 + 5;
+const int maxm = 500 + 5;
+const int INF = 1 << 30;
+const long double eps = 1e-8;
+
+struct edge
+{
+    int to, cap, next;
+
+    edge(int to = 0, int cap = 0, int next = 0) : to(to), cap(cap), next(next) {}
+} G[maxm << 3];
+int head[maxn], tot, que[maxn], cur[maxn], d[maxn], ver[maxm][2], cap[maxm];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v, int cap)
+{
+    G[tot] = edge(v, cap, head[u]);
+    head[u] = tot++;
+    G[tot] = edge(u, 0, head[v]);
+    head[v] = tot++;
+}
+
+void build(int n, int m, long double y, int x)
+{
+    init();
+    int s = 0;
+    for(int i = 1; i <= m; ++i)
+    {
+        int c = int(cap[i] / y);
+        addedge(ver[i][0], ver[i][1], c);
+    }
+    addedge(s, 1, x);
+}
+
+bool bfs(int s, int t)
+{
+    int front = 0, rear = 0;
+    memset(d, -1, sizeof(d));
+    d[s] = 0;
+    que[rear++] = s;
+    while(front < rear)
+    {
+        int u = que[front++];
+        for(int i = head[u]; ~i; i = G[i].next)
+        {
+            edge e = G[i];
+            if(e.cap > 0 && d[e.to] == -1)
+            {
+                d[e.to] = d[u] + 1;
+                que[rear++] = e.to;
+            }
+        }
+    }
+    return ~d[t];
+}
+
+int dfs(int u, int t, int f)
+{
+    if(u == t) return f;
+    int ret = 0;
+    for(int &i = cur[u]; ~i; i = G[i].next)
+    {
+        edge &e = G[i];
+        if(e.cap > 0 && d[e.to] == d[u] + 1)
+        {
+            int flow = dfs(e.to, t, min(f, e.cap));
+            if(flow > 0)
+            {
+                e.cap -= flow;
+                G[i ^ 1].cap += flow;
+                f -= flow;
+                ret += flow;
+                if(!f) break;
+            }
+        }
+    }
+    return ret;
+}
+
+int Dinic(int s, int t)
+{
+    int ret = 0;
+    while(bfs(s, t))
+    {
+        memcpy(cur, head, sizeof(head));
+        ret += dfs(s, t, INF);
+    }
+    return ret;
+}
+
+bool check(int n, int m, long double y, int x)
+{
+    build(n, m, y, x);
+    return Dinic(0, n) == x;
+}
+
+int main()
+{
+    int n, m, x;
+    scanf("%d%d%d", &n, &m, &x);
+    for(int i = 1; i <= m; ++i)
+    {
+        scanf("%d%d%d", &ver[i][0], &ver[i][1], &cap[i]);
+    }
+    long double l = eps, r = INF;
+    for(int i = 0; i < 200; ++i)
+    {
+        double mid = (l + r) / 2;
+        check(n, m, mid, x) ? l = mid : r = mid;
+    }
+    printf("%.10f\n", (double)(l * x));
+    return 0;
+}

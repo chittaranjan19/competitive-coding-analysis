@@ -1,0 +1,172 @@
+import java.util.Scanner;
+
+/**
+ * Created by leen on 6/3/16.
+ *
+ */
+public class MainE {
+
+    static int n;
+    static int[][] matrix;
+    static Product[][] productMatrix;
+
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+
+        n = scan.nextInt();
+        scan.nextLine();
+        matrix = new int[n][n];
+        productMatrix = new Product[n][n];
+        for(int i = 0; i < n; i++) {
+            String line = scan.nextLine();
+            for(int j = 0; j < n; j++) {
+                int value = line.charAt(j) - '0';
+                matrix[i][j] = value;
+                productMatrix[i][j] = new Product(value);
+            }
+        }
+
+        for(int d = 1; d <= n-1>>1; d++)
+            convolve(d);
+
+        Number max = new Number();
+        for(int i = 0; i< n; i++) {
+            for(int j =0; j < n; j++) {
+                Product product = productMatrix[i][j];
+                if(product.normalProduct.isGreaterThan(max))
+                    max = product.normalProduct;
+                if(product.rotatedProduct.isGreaterThan(max))
+                    max = product.rotatedProduct;
+            }
+        }
+
+        System.out.println(max.modulo());
+
+    }
+
+    static void convolve(int d) {
+        for(int x = d; x < n - d; x++) {
+            for(int y = d; y < n -d; y++) {
+                Product product = productMatrix[x][y];
+                if(!product.normalProduct.isZero) {
+
+                    int p1 = matrix[x - d][y];
+                    int p2 = matrix[x + d][y];
+                    int p3 = matrix[x][y-d];
+                    int p4 = matrix[x][y+d];
+
+                    if(p1 == 0 || p2 == 0 || p3 == 0 || p4 ==0)
+                        product.normalProduct.isZero = true;
+                    else {
+                        if(p1 == 2)
+                            product.normalProduct.pow2++;
+                        else if(p1 == 3)
+                            product.normalProduct.pow3++;
+
+                        if(p2 == 2)
+                            product.normalProduct.pow2++;
+                        else if(p2 == 3)
+                            product.normalProduct.pow3++;
+
+                        if(p3 == 2)
+                            product.normalProduct.pow2++;
+                        else if(p3 == 3)
+                            product.normalProduct.pow3++;
+
+                        if(p4 == 2)
+                            product.normalProduct.pow2++;
+                        else if(p4 == 3)
+                            product.normalProduct.pow3++;
+                    }
+
+                }
+                if(!product.rotatedProduct.isZero) {
+                    int p1 = matrix[x-d][y-d];
+                    int p2 = matrix[x-d][y+d];
+                    int p3 = matrix[x+d][y-d];
+                    int p4 = matrix[x+d][y+d];
+
+                    if(p1 == 0 || p2 == 0 || p3 == 0 || p4 ==0)
+                        product.rotatedProduct.isZero = true;
+                    else {
+                        if(p1 == 2)
+                            product.rotatedProduct.pow2++;
+                        else if(p1 == 3)
+                            product.rotatedProduct.pow3++;
+
+                        if(p2 == 2)
+                            product.rotatedProduct.pow2++;
+                        else if(p2 == 3)
+                            product.rotatedProduct.pow3++;
+
+                        if(p3 == 2)
+                            product.rotatedProduct.pow2++;
+                        else if(p3 == 3)
+                            product.rotatedProduct.pow3++;
+
+                        if(p4 == 2)
+                            product.rotatedProduct.pow2++;
+                        else if(p4 == 3)
+                            product.rotatedProduct.pow3++;
+                    }
+                }
+            }
+        }
+    }
+
+    static class Product {
+        Number normalProduct = new Number();
+        Number rotatedProduct = new Number();
+
+        Product(int value) {
+            if(value == 0) {
+                this.normalProduct.isZero = true;
+                this.rotatedProduct.isZero = true;
+            }
+            else if(value == 2) {
+                this.normalProduct.pow2 = 1;
+                this.rotatedProduct.pow2 = 1;
+            }
+            else if(value == 3) {
+                this.normalProduct.pow3 = 1;
+                this.rotatedProduct.pow3 = 1;
+            }
+        }
+
+    }
+
+    static class Number {
+        int pow2;
+        int pow3;
+        boolean isZero;
+
+        boolean isGreaterThan(Number that) {
+            return compareTo(that) > 0;
+        }
+
+        int compareTo(Number that) {
+            if(pow2 > that.pow2 && pow3 > that.pow3)
+                return 1;
+            if(pow2 == that.pow2 && pow3 == that.pow3)
+                return 0;
+            if(pow2 < that.pow2 && pow3 < that.pow3)
+                return -1;
+            double rs = Math.pow(2, pow2 - that.pow2) * Math.pow(3, pow3 - that.pow3);
+            if(rs < 1.0)
+                return -1;
+            else
+                return 1;
+        }
+
+        int modulo() {
+            int result = 1;
+            for(int i = 0; i < pow2; i++)
+                result = result * 2 % 1000000007;
+            for(int i = 0; i < pow3; i++)
+                result = result * 3 % 1000000007;
+            return result;
+        }
+
+
+    }
+}

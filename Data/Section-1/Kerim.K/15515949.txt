@@ -1,0 +1,80 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 800009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll arr[MAXN],pre[MAXN],suf[MAXN],trie[MAXN][3],no,hor[MAXN];
+ll tap(ll k){
+	ll c=45,nd=0,ans=0;
+	while(k>=1){
+		hor[c--]=k%2;	
+		k=k>>1;
+	}
+	for(ll i=0;i<=45;i++){
+		ans*=2;
+		if(!hor[i]){
+			if(trie[nd][1])
+				ans++,nd=trie[nd][1];
+			else
+				nd=trie[nd][0];	
+		}
+		else{
+			if(trie[nd][0])
+				ans++,nd=trie[nd][0];
+			else
+				nd=trie[nd][1];	
+		}
+		hor[i]=0;
+	}
+	return ans;	
+}
+void ins(ll k){
+	ll c=45,nd=0;
+	while(k>=1){
+		hor[c--]=k%2;
+		k=k>>1;
+	}
+	for(ll i=0;i<=45;i++){
+		if(!trie[nd][hor[i]])
+			trie[nd][hor[i]]=++no;
+		nd=trie[nd][hor[i]];	
+		hor[i]=0;
+	}
+}
+int main(){
+	ll a,mx=0,mx1=0;
+	scanf("%lld",&a);
+	ins(0);
+	for(ll i=1;i<=a;i++)
+		scanf("%lld",arr+i);
+	for(ll i=1;i<=a;i++)
+		pre[i]=pre[i-1]^arr[i];
+	for(ll i=a;i>=1;i--)
+		suf[i]=suf[i+1]^arr[i];
+	for(ll i=a;i>=0;i--){
+		umax(mx,tap(pre[i]));
+		ins(suf[i]);
+	}
+	printf("%lld\n",mx);
+	return 0;
+}
+/*
+6
+13 21 3 61 1 2
+1099511627775
+*/

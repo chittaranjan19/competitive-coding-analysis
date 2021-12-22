@@ -1,0 +1,79 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN],rr[MAXN],lazy[MAXN<<2];
+void shift(int nd){
+	if(lazy[nd]==INF)
+		return;
+	lazy[nd<<1]=lazy[nd];
+	lazy[nd<<1|1]=lazy[nd];
+	lazy[nd]=INF;	
+}
+void inc(int l,int r,int v,int nd,int x,int y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		lazy[nd]=v;
+		return;
+	}	
+	shift(nd);
+	int mid=(x+y)>>1;
+	inc(l,r,v,nd<<1,x,mid);
+	inc(l,r,v,nd<<1|1,mid+1,y);
+}
+int tap(int p,int nd,int x,int y){
+	if(x==y)
+		return lazy[nd];
+	shift(nd);	
+	int mid=(x+y)>>1;	
+	if(p<=mid)
+		return tap(p,nd<<1,x,mid);
+	else
+		return tap(p,nd<<1|1,mid+1,y);		
+}
+int main(){
+	int n,m;
+	for(int i=0;i<MAXN*4;i++)
+		lazy[i]=INF;
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;i++)
+		scanf("%d",arr+i);
+	for(int i=1;i<=n;i++)
+		scanf("%d",rr+i);
+	while(m--){
+		int type;
+		scanf("%d",&type);
+		if(type==1){
+			int x,y,k;
+			scanf("%d%d%d",&x,&y,&k);
+			inc(y,y+k-1,x-y,1,1,n);
+		}
+		else{
+			int v;
+			scanf("%d",&v);	
+			int k=tap(v,1,1,n);
+			if(k==INF)
+				printf("%d\n",rr[v]);
+			else
+				printf("%d\n",arr[v+k]);	
+		}
+	}
+	return 0;
+}

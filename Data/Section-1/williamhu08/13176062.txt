@@ -1,0 +1,128 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+const int MAXN = 1 << 17;
+const int NLORAX = 3;
+
+int N, M, K;
+
+struct thneed {
+	ll base, inv;
+	ll pwr[MAXN], ipwr[MAXN], pspwr[MAXN];
+	vector<ll> sums[MAXN];
+	ll tree[2 * MAXN];
+	int lazy[2 * MAXN];
+
+	void init (ll baba, ll vava) {
+		base = baba;
+		inv = vava;
+		assert(base * inv == 1);
+		for (int i = 1; i <= N; i++) {
+			pwr[0] = ipwr[0] = pspwr[0] = 1;
+		}
+		for (int i = 1; i <= N; i++) {
+			pwr[i] = pwr[i - 1] * base;
+			pspwr[i] = pspwr[i - 1] + pwr[i];
+			ipwr[i] = ipwr[i - 1] * inv;
+		}
+		for (int i = 1; i <= N; i++) {
+			sums[i].push_back(1);
+			for (int j = i; j <= N; j += i) {
+				sums[i].push_back(sums[i].back() + pwr[j]);
+			}
+		}
+		memset(lazy, -1, sizeof(lazy));
+	}
+
+	void add (int cur, int v, int lt, int rt) {
+		/*the range is [lt, rt - 1]*/
+		tree[cur] = (pspwr[rt - 1] - pspwr[lt - 1]) * v;
+		lazy[cur] = v;
+	}
+
+	void down (int cur, int lt, int rt) {
+		if (lazy[cur] != -1) {
+			int mid = (lt + rt) / 2;
+			add(2 * cur, lazy[cur], lt, mid);
+			add(2 * cur + 1, lazy[cur], mid, rt);
+			lazy[cur] = -1;
+		}
+	}
+
+	void update (int a, int b, int v, int cur = 1, int lt = 0, int rt = MAXN) {
+		if (rt <= a || b <= lt) {
+			return;
+		}
+		if (a <= lt && rt <= b) {
+			add(cur, v, lt, rt);
+			return;
+		}
+		down(cur, lt, rt);
+		int mid = (lt + rt) / 2;
+		update(a, b, v, 2 * cur, lt, mid);
+		update(a, b, v, 2 * cur + 1, mid, rt);
+		tree[cur] = tree[2 * cur] + tree[2 * cur + 1];
+	}
+
+	ll query (int a, int b, int cur = 1, int lt = 0, int rt = MAXN) {
+		if (rt <= a || b <= lt) {
+			return 0;
+		}
+		if (a <= lt && rt <= b) {
+			/*printf("TW tree[%d -> %d] is %lld\n", lt, rt - 1, tree[cur]);*/
+			return tree[cur];
+		}
+		down(cur, lt, rt);
+		int mid = (lt + rt) / 2;
+		return query(a, b, 2 * cur, lt, mid) + query(a, b, 2 * cur + 1, mid, rt);
+	}
+	bool check (int lt, int rt, int v, int len, int rem, int ntime, int fwd) {
+		if (query(lt, fwd) == query(lt, lt + v) * sums[v][ntime - 1]) {
+			if (query(fwd, rt) * ipwr[fwd] == query(lt, lt + rem) * ipwr[lt]) {
+				return true;
+			}
+		}
+		return false;
+	}
+} lorax[NLORAX];
+
+void upd (int x, int y, int v) {
+	for (int i = 0; i < NLORAX; i++) {
+		lorax[i].update(x, y, v);
+	}
+}
+
+int main() {
+	//woops hashing is bad...
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d %d\n", &N, &M, &K);
+	lorax[0].init(-4947476124452486217ll, 1000000007ll);
+	lorax[1].init(1249857779ll, 3767363990679839801ll);
+	lorax[2].init(3767363990679839801ll, 1000000009ll);
+	for (int i = 1; i <= N; i++) {
+		upd(i, i + 1, getchar() - '0');
+	}
+	for (M += K; M--; ) {
+		int qt, lt, rt, v;
+		scanf("%d %d %d %d", &qt, &lt, &rt, &v);
+		rt++;
+		if (qt == 1) {
+			upd(lt, rt, v);
+		} else {
+			bool ans = true;
+			int len = rt - lt, rem = len % v, ntime = len / v;
+			int fwd = lt + ntime * v;
+			for (int i = 0; i < NLORAX; i++) {
+				if (!t.check(lt, rt, v, len, rem, ntime, fwd)) {
+					ans = false;
+					break;
+				}
+			}
+			puts(ans ? "YES" : "NO");
+		}
+	}
+}

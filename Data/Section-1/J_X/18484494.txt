@@ -1,0 +1,148 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 100000 + 5;
+
+struct edge
+{
+    int to, next;
+
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxn];
+int head[maxn], tot;
+int dep[maxn], tp[maxn], fp[maxn], son[maxn], clk, sz[maxn], g[maxn], p[maxn], fa[maxn];
+int bit[maxn], n, m;
+bool root[maxn];
+int ans[maxn];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    memset(root, true, sizeof(root));
+    memset(bit, 0, sizeof(bit));
+    tot = clk = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u]);
+    head[u] = tot++;
+    fa[v] = u;
+    root[v] = false;
+}
+
+void dfs1(int u, int d)
+{
+    dep[u] = d;
+    sz[u] = 1;
+    son[u] = 0;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        dfs1(v, d + 1);
+        if(sz[v] > sz[son[u]]) son[u] = v;
+        sz[u] += sz[v];
+    }
+}
+
+void dfs2(int u, int sp)
+{
+    fp[u] = ++clk;
+    tp[u] = sp;
+    if(!son[u]) return;
+    dfs2(son[u], sp);
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        if(G[i].to == son[u]) continue;
+        dfs2(G[i].to, G[i].to);
+    }
+}
+
+void add(int i, int v)
+{
+    while(i <= n)
+    {
+        bit[i] += v;
+        i += i & -i;
+    }
+}
+
+int sum(int i)
+{
+    int ret = 0;
+    while(i)
+    {
+        ret += bit[i];
+        i -= i & -i;
+    }
+    return ret;
+}
+
+int query(int u, int v)
+{
+    int ret = 0, f1 = tp[u], f2 = tp[v];
+    while(f1 != f2)
+    {
+        if(dep[f1] < dep[f2])
+        {
+            swap(f1, f2);
+            swap(u, v);
+        }
+        ret += sum(fp[u]) - sum(fp[f1] - 1);
+        u = fa[f1];
+        f1 = tp[u];
+    }
+    if(dep[u] > dep[v]) swap(u, v);
+    return ret + sum(fp[v]) - sum(fp[u] - 1);
+}
+
+bool cmp(int a, int b)
+{
+    return dep[g[a]] != dep[g[b]] ? dep[g[a]] > dep[g[b]] : g[a] < g[b];
+}
+
+int main()
+{
+    scanf("%d%d", &n, &m);
+    init();
+    for(int i = 0; i < m; ++i)
+    {
+        int u, v;
+        scanf("%d%d", &u, &v);
+        addedge(u, v);
+    }
+    for(int i = 1; i <= n; ++i)
+    {
+        if(root[i])
+        {
+            dfs1(i, 0);
+            dfs2(i, i);
+        }
+    }
+    for(int i = 1; i <= n; ++i)
+    {
+        p[i] = i;
+        scanf("%d", g + i);
+    }
+    sort(p + 1, p + n + 1, cmp);
+    int cnt = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        int k = p[i];
+        int s = query(k, g[k]) - query(g[k], g[k]);
+        if(s)
+        {
+            cnt = -1;
+            break;
+        }
+        add(fp[g[k]], 1);
+        if(!cnt || ans[cnt - 1] != g[k]) ans[cnt++] = g[k];
+    }
+    printf("%d\n", cnt);
+    for(int i = 0; i < cnt; ++i) printf("%d\n", ans[i]);
+    return 0;
+}

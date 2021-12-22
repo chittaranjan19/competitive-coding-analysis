@@ -1,0 +1,89 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 200005
+#define maxC 1000000007
+#define base 1000007
+#define F first
+#define S second
+
+using namespace std;
+int n, t, a[mn], sq, b[mn], num[base], l = 0, r = -1;
+long long ans[mn], sum = 0;
+pair< pair<int, int>, int > p[mn];
+
+bool com(pair< pair<int, int>, int > x, pair< pair<int, int>, int > y)
+{
+    if (b[x.F.F] != b[y.F.F])
+        return x.F.F < y.F.F;
+    return x.F.S < y.F.S;
+}
+
+void setup()
+{
+    cin >> n >> t;
+    sq = sqrt(n);
+    FOR(i, 1, n)
+        cin >> a[i], b[i] = (i - 1) / sq + 1;
+    FOR(i, 1, t)
+    {
+        cin >> p[i].F.F >> p[i].F.S;
+        p[i].S = i;
+    }
+    sort(p + 1, p + t + 1, com);
+}
+
+void change(int x, int dif)
+{
+    sum -= num[x] * num[x] * x;
+    num[x] += dif;
+    sum += num[x] * num[x] * x;
+}
+
+void resetBlock(int lef, int rig)
+{
+    FOR(i, l, r)
+        change(a[i], -1);
+    l = lef, r = rig;
+    FOR(i, l, r)
+        change(a[i], 1);
+}
+
+void xuly()
+{
+    FOR(i, 1, t)
+    {
+        if (b[p[i].F.F] != b[l])
+            resetBlock(p[i].F.F, p[i].F.S);
+        else
+        {
+            FOR(j, r + 1, p[i].F.S)
+                change(a[j], 1);
+            r = p[i].F.S;
+            if (l < p[i].F.F)
+            {
+                FOR(j, l, p[i].F.F - 1)
+                    change(a[j], -1);
+            }
+            else
+            {
+                FORD(j, l - 1, p[i].F.F)
+                    change(a[j], 1);
+            }
+            l = p[i].F.F;
+        }
+        ans[p[i].S] = sum;
+    }
+    FOR(i, 1, t)
+        cout << ans[i] << '\n';
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

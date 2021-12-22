@@ -1,0 +1,74 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+LL tree[400005];
+pair<LL, int> arr[400005];
+
+void update(int i,int L,int R,int node,LL val)
+{
+  if(L == R)
+  {
+    tree[i] = val;
+    return ;
+  }
+  if(node <= (L + R) / 2)
+    update(i*2 + 1, L, (L + R) / 2, node, val);
+  else update(i*2 + 2, (L + R) / 2 + 1, R, node, val);
+  tree[i] = max(tree[i*2 + 1], tree[i*2 + 2]);
+}
+
+LL query(int i,int L,int R,int x,int y)
+{
+  if(L >= x && R <= y)
+    return tree[i];
+  if(L > y || R < x)
+    return 0;
+  return max(query(i*2 + 1, L, (L + R) / 2, x, y), query(i*2 + 2, (L + R) / 2 + 1, R, x, y));
+}
+
+bool sorter(pair<LL, int> a, pair<LL, int> b)
+{
+  if(a.f == b.f) return a.s > b.s;
+  return a.f < b.f;
+}
+
+int main()
+{
+  int n, x, y;
+  cin >> n;
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d %d", &x, &y);
+    arr[i].f = x * 1LL * x * 1LL * y;
+    arr[i].s = i;
+  }
+  sort(arr, arr + n, sorter);
+  LL res = 0;
+  for(int i=0;i<n;i++)
+  {
+    x = arr[i].s;
+    LL tmp = query(0, 0, n - 1, 0, x);
+    tmp += arr[i].f;
+    res = max(res, tmp);
+    update(0, 0, n - 1, x, tmp);
+  }
+  printf("%.15lf", res * 1.0 * PI);
+  return 0;
+}

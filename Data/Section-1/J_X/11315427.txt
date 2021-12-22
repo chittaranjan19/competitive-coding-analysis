@@ -1,0 +1,118 @@
+#include <iostream>
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 505;
+
+int maze[maxn][maxn], ma[maxn], cnt;
+
+class tree
+{
+private:
+    int a, rt, l, r;
+    void pushup();
+public:
+    void build(int rt, int l, int r);
+    void update(int x, int y, int u);
+    int query(int x, int y);
+} t[4 * maxn];
+
+void tree::pushup()
+{
+    a = max(t[rt << 1].a, t[(rt << 1) | 1].a);
+}
+
+void tree::build(int rt, int l, int r)
+{
+    this->rt = rt, this->l = l, this->r = r;
+    if(l == r)
+    {
+        a = ma[cnt++];
+        return;
+    }
+    int m = (l + r) >> 1;
+    t[rt << 1].build(rt << 1, l, m);
+    t[(rt << 1) | 1].build((rt << 1) | 1, m + 1, r);
+    pushup();
+}
+
+void tree::update(int x, int y, int u)
+{
+    if(l == r)
+    {
+        a = u;
+        return;
+    }
+    int m = (l + r) >> 1;
+    if(x <= m)
+    {
+        t[rt << 1].update(x, y, u);
+    }
+    if(m < y)
+    {
+        t[(rt << 1) | 1].update(x, y, u);
+    }
+    pushup();
+}
+
+int tree::query(int x, int y)
+{
+    if(x <= l && r <= y)
+    {
+        return a;
+    }
+    int m = (l + r) >> 1, sum = 0;
+    if(x <= m)
+    {
+        sum = max(sum, t[rt << 1].query(x, y));
+    }
+    if(m < y)
+    {
+        sum = max(sum, t[(rt << 1) | 1].query(x, y));
+    }
+    return sum;
+}
+
+int check(int r, int m)
+{
+    int sum = 0, max_ = 0;
+    for(int i = 1; i <= m; ++i)
+    {
+        if(!maze[r][i])
+        {
+            max_ = max(max_, sum);
+            sum = 0;
+        }
+        else
+        {
+            ++sum;
+        }
+    }
+    return max(max_, sum);
+}
+
+int main()
+{
+    int n, m, q;
+    cin >> n >> m >> q;
+    for(int i = 1; i <= n; ++i)
+    {
+        for(int j = 1; j <= m; ++j)
+        {
+            cin >> maze[i][j];
+        }
+        ma[i] = check(i, m);
+    }
+    cnt = 1;
+    t[1].build(1, 1, n);
+    while(q--)
+    {
+        int r, c;
+        cin >> r >> c;
+        maze[r][c] = !maze[r][c];
+        t[1].update(r, r, check(r, m));
+        cout << t[1].query(1, n) << endl;
+    }
+    return 0;
+}

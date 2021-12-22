@@ -1,0 +1,132 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef long long LL;
+
+const LL inf = 0x3f3f3f3f3f3f3f3f;
+
+LL d[110][110][110];
+LL mp[110][110];
+LL c[110], f[110][110];
+LL x[110], y[110];
+int id1[110], id2[110];
+
+int main () {
+    int n, m, k;
+    cin >> n >> m >> k;
+    for (int i = 1; i <= n; i++)    cin >> c[i];
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= m; j++) {
+            cin >> mp[i][j];
+        }
+    }
+    memset (d, inf, sizeof d);
+    if (c[1] == 0) {
+        for (int i = 1; i <= m; i++) {
+            d[1][i][1] = mp[1][i];
+        }
+    } else {
+        d[1][c[1]][1] = 0;
+    }
+    memset (f, inf, sizeof f);
+    memset (x, inf, sizeof x);
+    memset (y, inf, sizeof y);
+    memset (id1, -1, sizeof id1);
+    memset (id2, -1, sizeof id2);
+    for (int j = 1; j <= m; j++) {
+        for (int l = 1; l <= k; l++) {
+            if (d[1][j][l] < x[l]) {
+                y[l] = x[l];
+                id2[l] = id1[l];
+                x[l] = d[1][j][l];
+                id1[l] = j;
+            } else if (d[1][j][l] < y[l]) {
+                y[l] = d[1][j][l];
+                id2[l] = j;
+            }
+        }
+    }
+    for (int j = 1; j <= m; j++) {
+            for (int l = 1; l <= k; l++) {
+                if (j == id1[l])    f[j][l] = min (f[j][l], x[l]);
+                if (j == id2[l])    f[j][l] = min (f[j][l], y[l]);
+                if (j != id1[l])    f[j][l + 1] = min (f[j][l + 1], x[l]);
+                if (j != id2[l])    f[j][l + 1] = min (f[j][l + 1], y[l]);
+            }
+        }
+    for (int i = 2; i <= n; i++) {
+        if (c[i] == 0) {
+            if (c[i - 1] == 0) {
+                for (int j = 1; j <= m; j++) {
+                    for (int l = 1; l <= k; l++) {
+                        d[i][j][l] = min (d[i][j][l], f[j][l] + mp[i][j]);
+                    }
+                }
+            } else {
+                for (int j = 1; j <= m; j++) {
+                    for (int l = 1; l <= k; l++) {
+                        if (j != c[i - 1])
+                            d[i][j][l] = min (d[i][j][l], d[i - 1][c[i - 1]][l - 1] + mp[i][j]);
+                        else
+                            d[i][j][l] = min (d[i][j][l], d[i - 1][c[i - 1]][l] + mp[i][j]);
+                    }
+                }
+            }
+        } else {
+            if (c[i - 1] == 0) {
+                for (int j = 1; j <= m; j++) {
+                    for (int l = 1; l <= k; l++) {
+                        if (c[i] != j)
+                            d[i][c[i]][l] = min (d[i][c[i]][l], d[i - 1][j][l - 1]);
+                        else
+                            d[i][c[i]][l] = min (d[i][c[i]][l], d[i - 1][j][l]);
+                    }
+                }
+            } else {
+                for (int l = 1; l <= k; l++) {
+                    if (c[i] != c[i - 1])
+                        d[i][c[i]][l] = min (d[i][c[i]][l], d[i - 1][c[i - 1]][l - 1]);
+                    else
+                        d[i][c[i]][l] = min (d[i][c[i]][l], d[i - 1][c[i - 1]][l]);
+                }
+            }
+        }
+        memset (f, inf, sizeof f);
+        memset (x, inf, sizeof x);
+        memset (y, inf, sizeof y);
+        memset (id1, -1, sizeof id1);
+        memset (id2, -1, sizeof id2);
+        for (int j = 1; j <= m; j++) {
+            for (int l = 1; l <= k; l++) {
+                if (d[i][j][l] < x[l]) {
+                    y[l] = x[l];
+                    id2[l] = id1[l];
+                    x[l] = d[i][j][l];
+                    id1[l] = j;
+                } else if (d[i][j][l] < y[l]) {
+                    y[l] = d[i][j][l];
+                    id2[l] = j;
+                }
+            }
+        }
+        for (int j = 1; j <= m; j++) {
+            for (int l = 1; l <= k; l++) {
+                if (j == id1[l])    f[j][l] = min (f[j][l], x[l]);
+                if (j == id2[l])    f[j][l] = min (f[j][l], y[l]);
+                if (j != id1[l])    f[j][l + 1] = min (f[j][l + 1], x[l]);
+                if (j != id2[l])    f[j][l + 1] = min (f[j][l + 1], y[l]);
+            }
+        }
+//        for (int j = 1; j <= m; j++) {
+//            for (int l = 1; l <= k; l++) {
+//                cout << d[i][j][l] << " ";
+//            }
+//            cout << endl;
+//        }
+    }
+    LL ans = inf;
+    for (int i = 1; i <= m; i++)    ans = min (ans, d[n][i][k]);
+    if (ans == inf) ans = -1;
+    cout << ans << endl;
+    return 0;
+}

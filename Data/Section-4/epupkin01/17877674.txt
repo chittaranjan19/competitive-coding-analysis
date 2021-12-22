@@ -1,0 +1,118 @@
+#include <iostream>
+#include <climits>
+#include <string>       // string s; cin >> s;
+#include <cstring>      // memset(b, 0, sizeof(arr)); strcpy(a1, a2); strcat(a1, a2);
+#include <cmath>
+#include <cstdio>       // getchar(), gets()
+#include <cstdlib>      // rand(), max(), min()
+#include <ctime>        // rand(): srand(int(time(0)));
+#include <algorithm>    // std::sort(a + 0, a + n); a - массв, n - кол-во эл-тов
+#include <iomanip>      // setw(4), setfill('.'), setprecision(2)
+#include <vector>
+#include <array>
+#include <fstream>      // file IO (input-output)
+#include <cctype>       // isupper()
+#include <memory>       // shared_ptr<>, uniqu_ptr<>
+#include <iterator>     // ostream_iterator<int, char> our_iter(cout, " ");
+#include <set>
+#include <map>
+#include <list>
+#include <queue>
+#define SRT srand(int(time(0)))
+
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef unsigned long long ull;
+ld pi = 3.14159265358979323;
+int ten[8] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000};
+
+typedef map<int, int> Map;
+typedef Map::iterator mIter;
+typedef pair<const int, int> mPair;
+typedef pair<ld, int> Pair;
+typedef set<int> Set;
+typedef Set::iterator sIter;
+typedef list<int> List;
+typedef List::iterator lIter;
+
+ld Dist(int x1, int y1, int x2, int y2)
+{
+    return sqrt( ld((x1 - x2) * (x1 - x2) + double(y1 - y2) * (y1 - y2)) );
+}
+
+const int S = 100000;
+int ax, ay, bx, by, tx, ty, n;
+
+struct Bot
+{
+    ld d;
+    int i;
+} da[S], db[S];
+
+bool by_dist(Bot &b1, Bot &b2)
+{
+    if (b1.d > b2.d)
+        return true;
+    return false;
+}
+
+int main()
+{
+    cin >> ax >> ay >> bx >> by >> tx >> ty >> n;
+    
+    ld t, sum = 0;
+    for (int i = 0, x, y; i < n; ++i)
+    {
+        scanf("%d%d", &x, &y);
+        da[i].i = db[i].i = i;
+        
+        t = Dist(x, y, tx, ty);
+        da[i].d = t - Dist(x, y, ax, ay);
+        db[i].d = t - Dist(x, y, bx, by);
+        
+        sum += 2 * t;
+    }
+    
+    sort(da, da + n, by_dist);
+    sort(db, db + n, by_dist);
+    
+    Bot *big, *small;
+    if (da[0].d < db[0].d)
+    {
+        big = db;
+        small = da;
+    }
+    else
+    {
+        big = da;
+        small = db;
+    }
+    
+    if (small->d < 0)
+        sum -= big->d;
+    else if (big->i != small->i)
+        sum -= big->d + small->d;
+    else if (n > 1)
+    {
+        if ( (small + 1)->d < 0 )
+        {
+            if ( (big + 1)->d < 0 )
+                sum -= big->d;
+            else
+                sum -= max(big->d, (big + 1)->d + small->d);
+        }
+        else
+        {
+            if ( (big + 1)->d < 0 )
+                sum -= big->d + (small + 1)->d;
+            else
+                sum -= max( (big + 1)->d + small->d, big->d + (small + 1)->d );
+        }
+    }
+    else
+        sum -= big->d;
+    
+    cout << fixed << setprecision(20) << sum << '\n';
+    return 0;
+}

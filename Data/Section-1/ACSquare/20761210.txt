@@ -1,0 +1,109 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+const int MAX_nm = 10000;
+struct heap
+{
+    int sz,dat[MAX_nm];
+    inline void init() {   sz = 0; }
+    inline bool empty(){    return sz == 0;  }
+    inline int top()    {   return dat[0];  }
+    void push(int x)
+    {
+        int i = sz++;
+        while(i)
+        {
+            int p = (i-1)/2;
+            if(x <= dat[p]) break;
+            
+            dat[i] = dat[p];
+            i = p;
+        }
+        dat[i] = x;
+    }
+    
+    void pop()
+    {
+        int i = 0,x = dat[--sz];
+        while(i < sz)
+        {
+            int a = i*2 + 1, b = a + 1;
+            if(dat[a] < dat[b]) swap(a, b);
+            
+            if(x >= dat[a]) break;
+            
+            dat[i] = dat[a];
+            i = a;
+        }
+        dat[i] = x;
+    }
+};
+
+struct queue
+{
+    int head,tail,dat[MAX_nm];
+    inline void init()  {   head = tail = 0;    }
+    inline bool empty() {   return head == tail;    }
+    inline int front()  {   return dat[head];   }
+    inline void push(int x)  {  dat[tail++] = x;   }
+    inline void pop()   {  ++head; }
+};
+
+inline int abs(int x)   {   return x < 0? -x : x;   }
+inline int dist(int i,int j,int x,int y)    {   return abs(i-x) + abs(j-y); }
+
+queue L;
+heap R;
+int s[MAX_nm];
+
+bool solve(int n,int m,int k)
+{
+    for(int i = 0; i < n*m; ++i)
+        s[i] = min(s[i],n + m);
+    sort(s, s+k);
+
+    L.init(),R.init();
+    for(int i = 0; i < k; ++i)  L.push(s[i]);
+    for(int step = 0; step <= n + m; ++step)
+    {
+        for(int i = 1; i <= n &&  i <= step; ++i)
+        {
+            int j = step - i;
+            if(j < 1 || m < j)  continue;
+            R.push(dist(i, j, 0, m+1));
+        }
+        
+        while (!L.empty() && L.front() <= step) {
+            if(R.empty())   return false;
+            L.pop();
+            R.pop();
+        }
+    }
+    
+    sort(s+k, s+n*m);
+    for(int i = n*m - 1; i >= k; --i)
+    {
+        if(R.top() > s[i]) return false;
+        R.pop();
+    }
+    return true;
+}
+
+
+int main()
+{
+    int n,m;
+    scanf("%d%d",&n,&m);
+    int k,l;
+    scanf("%d",&k);
+    for(int i = 0; i < k; ++i)
+        scanf("%d",s+i);
+    scanf("%d",&l);
+    for(int i = k;i < n*m;++i)
+        scanf("%d",s+i);
+    
+    if(solve(n,m,k))    puts("YES");
+    else                puts("NO");
+
+}

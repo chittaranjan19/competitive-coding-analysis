@@ -1,0 +1,78 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 2000000000000000000LL
+#define INF 2000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int arr[200005], rem[200005], to[200005];
+set<int> s[200005];
+bool ch[200005];
+
+int main()
+{
+  int c, n;
+  cin >> c >> n;
+  for(int i=0;i<n;i++)
+    scanf("%d", &arr[i]);
+  sort(arr, arr + n, greater<int>());
+  vector<pair<int, int> > v;
+  int tmp = c;
+  for(int i=0;i<n;i++)
+  {
+    if(tmp >= arr[i])
+    {
+      v.pb(mp(arr[i] + 1, tmp - 1));
+      tmp -= arr[i];
+    }
+    rem[i] = tmp;
+  }
+  if(rem[n - 1] != 0)
+  {
+    cout << 0;
+    return 0;
+  }
+  sort(v.begin(), v.end());
+  int curr = 1;
+  for(int i=0;i<v.size();i++)
+  {
+    curr = max(curr, v[i].f);
+    while(curr <= v[i].s)
+      ch[curr++] = true;
+  }
+  int ans = -1;
+  curr = n - 1;
+  for(int i=1;i<=c && ans == -1;i++)
+  {
+    if(!ch[i]) continue;
+    while(curr > 0 && arr[curr - 1] < i) curr--;
+    int tmp = c;
+    if(curr != 0) tmp = rem[curr - 1];
+    if(tmp <= i) continue;
+    tmp -= i;
+    bool good = true;
+    for(int j=curr;j<n && good && tmp;j++)
+    {
+      if(s[j].find(tmp) != s[j].end()) good = false;
+      else s[j].insert(tmp);
+      if(tmp >= arr[j])
+        tmp -= arr[j];
+    }
+    if(good && tmp) ans = i;
+  }
+  if(ans == -1) cout << "Greed is good";
+  else cout << ans;
+  return 0;
+}

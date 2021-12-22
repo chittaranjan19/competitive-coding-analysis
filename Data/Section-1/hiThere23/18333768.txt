@@ -1,0 +1,99 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for(int i = j; i <= k; i ++)
+#define FORD(i, j, k) for(int i = j; i >= k; i --)
+#define maxC 2000000007
+#define mn 600
+#define pb push_back
+#define mp make_pair
+#define base 29
+
+using namespace std;
+int n, k, belong[mn][mn], siz[mn * mn];
+int mark[mn * mn], num = 0, ans = 0, val;
+int addX[] = {0, 0, 1, -1};
+int addY[] = {1, -1, 0, 0};
+char g[mn][mn];
+
+void dfs(int x, int y)
+{
+    belong[x][y] = num;
+    siz[num] ++;
+    FOR(i, 0, 3)
+    {
+        int _x = x + addX[i];
+        int _y = y + addY[i];
+        if (g[_x][_y] != '.' || belong[_x][_y])
+            continue;
+        dfs(_x, _y);
+    }
+}
+
+void add(int x, int y)
+{
+    if (g[x][y] != '.')
+        return;
+    int id = belong[x][y];
+    if (mark[id] != num)
+    {
+        mark[id] = num;
+        val += siz[id];
+    }
+}
+
+void check(int t)
+{
+    FOR(i, t, t + k - 1)
+    FOR(j, 1, k)
+        siz[belong[i][j]] --;
+    FOR(y, 1, n - k + 1)
+    {
+        val = k * k;
+        num ++;
+        FOR(i, t, t + k - 1)
+            add(i, y - 1), add(i, y + k);
+        FOR(i, y, y + k - 1)
+            add(t - 1, i), add(t + k, i);
+        ans = max(ans, val);
+        FOR(i, t, t + k - 1)
+        {
+            siz[belong[i][y]] ++;
+            siz[belong[i][y + k]] --;
+        }
+    }
+    FOR(i, t, t + k - 1)
+    FOR(j, n - k + 2, n)
+        siz[belong[i][j]] ++;
+}
+
+void setup()
+{
+    cin >> n >> k;
+    FOR(i, 1, n)
+    FOR(j, 1, n)
+        cin >> g[i][j];
+}
+
+void xuly()
+{
+    FOR(i, 1, n)
+    FOR(j, 1, n)
+    if (g[i][j] == '.' && belong[i][j] == 0)
+    {
+        num ++;
+        dfs(i, j);
+        ans = max(ans, siz[num]);
+    }
+    FOR(i, 1, n - k + 1)
+        check(i);
+    cout << ans;
+}
+
+int main()
+{
+    iostream::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup();
+    xuly();
+    return 0;
+}

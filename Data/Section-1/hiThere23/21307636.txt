@@ -1,0 +1,127 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+#define lineSum(x) (x.F.F + x.F.S)
+#define lineSub(x) (x.F.F - x.F.S)
+
+using namespace std;
+int n, m, k, num = 0, id0;
+vector< bool > done[2];
+vector< pair< pair<int, int> , int > > point;
+vector< int > nex[4], a;
+long long ans[mn];
+
+void addPoint(int x, int y)
+{
+    a.pb(x);
+    done[0].pb(false);
+    done[1].pb(false);
+    point.pb(mp(mp(x, y), ++ num));
+    FOR(i, 0, 3)
+        nex[i].pb(-1);
+}
+
+bool com1(pair< pair<int, int> , int > a, pair< pair<int, int> , int > b)
+{
+    if (lineSub(a) != lineSub(b))
+        return lineSub(a) < lineSub(b);
+    return a.F.F < b.F.F;
+}
+
+bool com2(pair< pair<int, int> , int > a, pair< pair<int, int> , int > b)
+{
+    if (lineSum(a) != lineSum(b))
+        return lineSum(a) < lineSum(b);
+    return a.F.F < b.F.F;
+}
+
+void setup()
+{
+    cin >> n >> m >> k;
+    int x, y;
+    FOR(i, 1, k)
+    {
+        cin >> x >> y;
+        addPoint(x, y);
+        ans[i] = -1;
+    }
+    FOR(i, 1, n - 1)
+        addPoint(i, 0), addPoint(i, m);
+    FOR(i, 1, m - 1)
+        addPoint(0, i), addPoint(n, i);
+    addPoint(0, 0);
+    id0 = num;
+    addPoint(0, m);
+    addPoint(n, 0);
+    addPoint(n, m);
+}
+
+void createNext()
+{
+    sort(point.begin(), point.end(), com1);
+    FOR(i, 1, num - 1)
+    if (lineSub(point[i - 1]) == lineSub(point[i]))
+    {
+        nex[2][point[i - 1].S - 1] = point[i].S;
+        nex[0][point[i].S - 1] = point[i - 1].S;
+    }
+    sort(point.begin(), point.end(), com2);
+    FOR(i, 1, num - 1)
+    if (lineSum(point[i - 1]) == lineSum(point[i]))
+    {
+        nex[1][point[i - 1].S - 1] = point[i].S;
+        nex[3][point[i].S - 1] = point[i - 1].S;
+    }
+}
+
+int toNex(int id, int dir)
+{
+    id --;
+    if (nex[dir][id] != -1)
+        return dir;
+    FOR(i, 0, 1)
+    {
+        int u = ((dir & 1) ^ 1) | (i << 1);
+        if (nex[u][id] != -1)
+            return u;
+    }
+    return -1;
+}
+
+void xuly()
+{
+    createNext();
+    int dir = 2;
+    done[0][id0 - 1] = true;
+    long long sum = 0;
+    while((dir = toNex(id0, dir)) != -1)
+    {
+        int id = nex[dir][id0 - 1];
+        if (done[dir & 1][id - 1])
+            break;
+        done[dir & 1][id - 1] = true;
+        sum += abs(a[id - 1] - a[id0 - 1]);
+        if (id <= k)
+            if (ans[id] == -1)
+                ans[id] = sum;
+        id0 = id;
+    }
+    FOR(i, 1, k)
+        cout << ans[i] << '\n';
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

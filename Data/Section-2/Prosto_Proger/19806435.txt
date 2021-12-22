@@ -1,0 +1,103 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+const int pow = 31;
+
+void get_dv(vector<bool>&v, int num)
+{
+    v.clear(); v.resize(pow);
+    for (int i = pow - 1; i >= 0; --i)
+        v[i] = num&1, num >>= 1;
+}
+
+struct vertex
+{
+    int next[2];
+    int cnt;
+    vertex(){
+        next[0] =  next[1] = -1;
+        cnt = 0;
+    }
+};
+
+const int inf = 1e5;
+vertex mem[inf];
+int size_ = 1;
+int root = 0;
+
+int go(int ind, int n)
+{
+    if (mem[ind].next[n] == -1)
+    {
+        mem[size_] = vertex();
+        mem[ind].next[n] = size_++;
+    }
+    return mem[ind].next[n];
+}
+
+void add(int x)
+{
+    vector <bool> dv;
+    get_dv(dv, x);
+    int we = root;
+    for (int i = 0; i < pow; ++i)
+    {
+        we = go(we, dv[i]);
+        ++mem[we].cnt;
+    }
+}
+
+void del(int x)
+{
+    vector <bool> dv;
+    get_dv(dv, x);
+    int we = root;
+    for (int i = 0; i < pow; ++i)
+    {
+        we = go(we, dv[i]);
+        --mem[we].cnt;
+    }
+}
+
+int f(int x)
+{
+    vector <bool> dv;
+    get_dv(dv, x);
+    int we = root;
+    int res = 0;
+    for (int i = 0; i < pow; ++i)
+    {
+        if (dv[i])
+        {
+            int to_0 = mem[we].next[0];
+            if (to_0 != -1 and mem[to_0].cnt != 0) res <<= 1, res += 1, we = to_0;
+            else res <<= 1, we = mem[we].next[1];
+        }
+        else
+        {
+            int to_1 = mem[we].next[1];
+            if (to_1 != -1 and mem[to_1].cnt != 0) res <<= 1, res += 1, we = to_1;
+            else res <<= 1, we = mem[we].next[0];
+        }
+    }
+    return res;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(false);
+    int n;
+    cin >> n;
+    mem[root] = vertex();
+    for (int i = 0, x; i < n; ++i)
+    {
+        char c;
+        cin >> c >> x;
+        if (c == '+') add(x);
+        else if (c == '-') del(x);
+        else cout << f(x) << endl;
+    }
+    return 0;
+}

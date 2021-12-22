@@ -1,0 +1,66 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int x[5005], a[5005], b[5005], c[5005], d[5005], s, t, n;
+LL DP[5005][5005];
+bool v[5005][5005];
+
+LL solve(int ind, int pre, int nxt)
+{
+  if(ind == n)
+  {
+    if(pre == 0 && nxt == 0) return 0;
+    return (LL)(1e18);
+  }
+  if(pre == 0 && nxt == 0 && ind) return (LL)(1e18);
+  LL &temp = DP[ind][pre];
+  if(v[ind][pre]) return temp;
+  v[ind][pre] = true;
+  temp = (LL)(1e18);
+  if(ind == s)
+  {
+    if(pre) temp = min(temp, solve(ind + 1, pre - 1, nxt) + x[ind] + c[ind]);
+    temp = min(temp, solve(ind + 1, pre, nxt + 1) - x[ind] + d[ind]);
+    return temp;
+  }
+  if(ind == t)
+  {
+    if(nxt) temp = min(temp, solve(ind + 1, pre, nxt - 1) + x[ind] + a[ind]);
+    temp = min(temp, solve(ind + 1, pre + 1, nxt) - x[ind] + b[ind]);
+    return temp;
+  }
+  if(nxt && pre) temp = min(temp, solve(ind + 1, pre - 1, nxt - 1) + 2 * x[ind] + a[ind] + c[ind]);
+  if(nxt) temp = min(temp, solve(ind + 1, pre, nxt) + a[ind] + d[ind]);
+  if(pre) temp = min(temp, solve(ind + 1, pre, nxt) + b[ind] + c[ind]);
+  temp = min(temp, solve(ind + 1, pre + 1, nxt + 1) - 2 * x[ind] + b[ind] + d[ind]);
+  return temp;
+}
+
+int main()
+{
+  cin >> n >> s >> t;
+  s--, t--;
+  for(int i=0;i<n;i++) scanf("%d", &x[i]);
+  for(int i=0;i<n;i++) scanf("%d", &a[i]);
+  for(int i=0;i<n;i++) scanf("%d", &b[i]);
+  for(int i=0;i<n;i++) scanf("%d", &c[i]);
+  for(int i=0;i<n;i++) scanf("%d", &d[i]);
+  cout << solve(0, 0, 0);
+  return 0;
+}

@@ -1,0 +1,138 @@
+//~  Inshaallah
+/*
+ID: omarmuh1
+PROG: test
+LANG: C++
+*/
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+
+using namespace std;
+using namespace __gnu_pbds;
+
+#define ll long long
+#define pb push_back
+#define mp make_pair
+#define ff first
+#define ss second
+#define pp pop_back
+#define pii pair<int ,int>
+#define pll pair<ll , ll>
+#define mid(x , y)	(x+y)/2
+#define sz(x) int(x.size())
+#define db		cout << "****" << endl;
+#define all(x) 	x.begin() , x.end()
+#define lgn 	19
+#define N 		500007
+#define INF 	1000000007
+#define LLINF 	1000000000000000009
+#define tr(i, c) for(__typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+#define Help_me  ios_base::sync_with_stdio(false);
+
+typedef tree<int,null_type,less<int>,rb_tree_tag,tree_order_statistics_node_update> omar;
+
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+
+//~ freopen("test.out" , "r" , stdin);
+//~ freopen("test.out" , "w",  stdout);
+
+int a , b , c , t , d[N] , m , my[N];
+int cur[N] , S[N][21] , sorted[N] , lcp[N];
+pii C[N];
+vector <int> E[N<<1];
+set <pii> ms;
+char s[N];
+ll ans , n;
+int l , r , k , L , R;
+
+void SA()
+{
+	for(int i = 1 ; i <= n ; i++)
+		S[i][0] = s[i] - '(' + 1;
+	
+	for(int j = 1 ; j < 20 ; j++)
+	{
+		for(int i = 1 ; i <= n ; i++)
+			C[i] = {S[i][j-1] , (i+(1<<(j-1)) <= n ? S[i+(1<<(j-1))][j-1] : -1)} , cur[i] = i;
+		
+		sort(cur+1 , cur+n+1 , [](int x , int y){
+			return (C[x] < C[y]);
+		});
+		
+		for(int i = 1 ; i <= n ; i++)
+			S[cur[i]][j] = S[cur[i-1]][j] + (C[cur[i]] != C[cur[i-1]]);
+	}
+}
+
+void lc_p()
+{
+	for(int i = 1 ; i <= n ; i++)
+		sorted[S[i][19]] = i;
+	
+	for(int i = 2 ; i <= n ; i++)
+	{
+		a = sorted[i-1];
+		b = sorted[i];
+		t = 0;
+		
+		for(int j = 19 ; j >= 0 ; j--)
+			if(a <= n && b <= n && S[a][j] == S[b][j])
+				t += (1 << j) , a += (1 << j) , b += (1 << j);
+		
+		lcp[i] = t;
+	}
+}
+
+int main()
+{
+	scanf("%lld" , &n);
+	scanf("%s" , s+1);
+	
+	SA();
+	lc_p();
+	
+	for(int i = 1 ; i <= n ; i++)
+	{
+		d[i] = (s[i] == '(' ? 1 : -1) + d[i-1];
+		E[d[i]+n].pb(i);
+	}
+	
+	my[n] = n;
+	ms.insert({INF , INF});
+	ms.insert({-INF , -INF});
+	ms.insert({d[n] , n});
+	
+	for(int i = n-1 ; i >= 1 ; --i)
+	{
+		ms.insert({d[i] , i});
+		
+		auto tr = *(--ms.lower_bound({d[i-1] , -1}));
+		
+		if(s[i] == ')')		{my[i] = i ; continue ;}
+		
+		if(tr.ff == -INF)
+			my[i] = n;
+		else
+			my[i] = (*ms.lower_bound({tr.ff , -1})).ss-1;
+	}
+	
+	for(int i = 1 ; i <= n ; i++)
+	{
+		if(sorted[i] + lcp[i] > my[sorted[i]])	continue;
+		
+		l = sorted[i] + lcp[i];
+		r = my[sorted[i]];
+		k = d[sorted[i]-1] + n;
+		
+		R = upper_bound(all(E[k]) , r) - E[k].begin();
+		L = lower_bound(all(E[k]) , l) - E[k].begin();
+		
+		ans += R - L;
+	}
+	
+	printf("%lld\n" , ans);
+	
+	return 0;
+}
+

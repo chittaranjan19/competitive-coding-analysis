@@ -1,0 +1,141 @@
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+inline bool lexcomp(int a1,int a2,int b1,int b2)
+{return a1 < b1 || a1 == b1 && a2 < b2;}
+inline bool lexcomp(int a1,int a2, int a3,int b1,int b2,int b3)
+{return a1 < b1 || a1 == b1 && lexcomp(a2,a3,b2,b3);}
+void radix_sort(int a[],int keys[],int n,int K)
+{
+    int *cnt = new int[K + 1], *ret = new int [n];
+    memset(cnt, 0, (K+1)*sizeof(int));
+    for (int i = 0; i < n; ++i) ++cnt[keys[a[i]]];
+    for (int i = 0, sum = 0; i <= K; ++i)
+    {
+        int t = cnt[i];
+        cnt[i] = sum, sum += t;
+    }
+    for(int i = 0; i < n; ++i)  ret[cnt[keys[a[i]]]++] = a[i];
+    memcpy(a, ret, n * sizeof (int));
+    delete [] cnt;
+    delete [] ret;
+}
+
+void DC3(int T[], int sa[], int n, int K)
+{
+    int n0 = (n+2)/3, n1 = (n + 1) /3, n2 = n/3, n02 = n0 + n2;
+    int *R0 = new int [n0], *sa0 = new int [n0];
+    int *R12 = new int[n02 + 3], *sa12 = new int[n02 + 3];
+    R12[n02] = R12[n02 + 1] = R12[n02 + 2] = 0;
+    
+    for(int i = 0, j = 0; i < n + n0 - n1; ++i) if(i%3) sa12[j++] = i;
+    
+    radix_sort(sa12, T + 2, n02, K);
+    radix_sort(sa12, T + 1, n02, K);
+    radix_sort(sa12, T    , n02, K);
+    
+    int key = 0, k0 = -1, k1 = -1, k2 = -1;
+    for (int i = 0; i < n02; ++i)
+    {
+        if(T[sa12[i]] != k0 || T[sa12[i] + 1] != k1 || T[sa12[i] + 2] != k2)
+            ++key,  k0 = T[sa12[i]],  k1 = T[sa12[i] + 1],  k2 = T[sa12[i] + 2];
+        if(sa12[i] % 3 == 1)  R12[sa12[i]/3]      = key;
+        else                  R12[sa12[i]/3 + n0] = key;
+    }
+    
+    if(key < n02)
+    {
+        DC3(R12, sa12, n02, key);
+        for (int i = 0; i < n02; ++i) R12[sa12[i]] = i + 1;
+    }
+    else
+        for (int i = 0; i < n02; ++i) sa12[R12[i] - 1] = i;
+    
+    for (int i = 0, j = 0; i < n02; ++i)  if (sa12[i] < n0) sa0[j++] = 3 * sa12[i];
+    radix_sort(sa0,T,n0,K);
+    
+    int i = 0, j = n0 - n1, k = 0;
+    while(i < n0 && j < n02)
+    {
+        int pi = sa0[i],pj = sa12[j] < n0 ? sa12[j] * 3 + 1 : (sa12[j] - n0)*3 + 2;
+        if (sa12[j] < n0 ?
+            lexcomp(T[pi],  R12[pi/3],     T[pj], R12[sa12[j] + n0]) :
+            lexcomp(T[pi], T[pi+1], R12[pi/3 + n0],T[pj],T[pj+1], T[sa12[j] - n0 +1]))
+            sa[k++] = pi, ++i;
+        else
+            sa[k++] = pj, ++j;
+    }
+    
+    for (; i < n0; ++i)   sa[k++] = sa0[i++];
+    for (; j < n02; ++j)  sa[k++] = sa12[j] < n0 ?sa12[j] * 3 + 1 : (sa12[j] - n0)*3 + 2;
+    
+    delete [] R0;  delete [] sa0;  delete [] R12;  delete [] sa12;
+}
+
+const int MAX_length = 100000, MAX_n = MAX_length + 1;
+const int SGM = 'Z' - 'A' + 1, leastChar = 'A';
+int sa[MAX_length+1],_rank[MAX_n],lcp[MAX_length];
+
+void construct_sa(char str[],int length)
+{
+    int *T = new int [length + 4];
+    for(int i = 0; i < length; ++i) T[i] = str[i] - leastChar + 1;
+    for(int i = 0; i < 4; ++i)  T[length + i] = 0;
+    
+    DC3(T, sa, length + 1, SGM);
+    delete [] T;
+}
+
+
+void construct_lcp(char str[],int length)
+{
+    for(int i = 0; i <= length; ++i)    _rank[sa[i]] = i;
+    
+    int h = 0;
+    lcp[0] = 0;
+    for(int i = 0; i < length; ++i)
+    {
+        int j = sa[_rank[i] - 1];
+        
+        if(h > 0)   --h;
+        for (; j + h < length && i + h < length; ++h)
+            if(str[j+h] != str[i+h])
+                break;
+        
+        lcp[_rank[i] - 1] = h;
+    }
+}
+
+char str[MAX_length + 1];
+int least[MAX_n];
+int ans[MAX_length+1];
+int main()
+{
+    scanf(" %s",str);
+    int length = strlen(str);
+    construct_sa(str, length);
+    construct_lcp(str, length);
+    int p = _rank[0];
+    least[p] = length;
+    for(int i = p; i + 1 < length; ++i)
+        least[i + 1] = min(least[i],lcp[i]);
+    for(int i = p; i >0; --i)
+        least[i - 1] = min(least[i], lcp[i - 1]);
+    
+    int l = 0,r = max(length-1,p),cnt = 0;;
+    for (int len = 1; len <= length; ++len)
+    {
+        int s = _rank[length - len];
+        if (least[s] >= len) {
+            while (least[l] < len)  ++l;
+            while (least[r] < len)  --r;
+            ans[len] = r - l + 1;
+            ++cnt;
+        }
+    }
+    printf("%d\n",cnt);
+    for(int i = 1; i <= length; ++i)
+        if (ans[i])
+            printf("%d %d\n",i,ans[i]);
+}

@@ -1,0 +1,132 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+pair<int, ll> st[maxn*5];
+int lazy[maxn*5];
+int n, m;
+
+void init(int s, int e, int node)
+{
+	if(s==e){
+		st[node].f = s;
+		st[node].s = 0;
+		return;
+	}
+	int mid = (s+e)>>1;
+	int lc = node*2 + 1;
+	int rc = lc + 1;
+	init(s, mid, lc);
+	init(mid+1, e, rc);
+	st[node].f = -1;
+	st[node].s = 0;
+}
+
+void propagate_down(int s, int e, int node)
+{
+	if(lazy[node]){
+		if(s==e){
+			st[node].s += abs(st[node].f-lazy[node]);
+			st[node].f = lazy[node];
+			lazy[node] = 0;
+			return;
+		}
+		int lc = node*2 + 1;
+		int rc = lc + 1;
+		int mid = (s+e)>>1;
+		if(st[node].f==-1){
+			lazy[lc] = lazy[rc] = lazy[node];
+			propagate_down(s, mid, lc);
+			propagate_down(mid+1, e, rc);
+			st[node].f = lazy[node];
+			st[node].s = st[lc].s + st[rc].s;
+			lazy[node] = 0;
+			return;
+		}
+		ll temp = e-s+1;
+		temp *= abs(st[node].f-lazy[node]);
+		st[node].s += temp;
+		lazy[lc] = lazy[rc] = st[node].f = lazy[node];
+		lazy[node] = 0;
+	}
+}
+
+void update(int s, int e, int qs, int qe, int c, int node)
+{
+	if(s>e || s>qe || qs>e)
+		return;
+	propagate_down(s, e, node);
+	int mid = (s+e)>>1;
+	int lc = node*2 + 1;
+	int rc = lc + 1;
+	if(s>=qs && qe>=e && st[node].f!=-1){
+		ll temp = e-s+1;
+		temp *= abs(st[node].f-c);
+		st[node].s += temp;
+		st[node].f = c;
+		if(s!=e){
+			propagate_down(s, mid, lc);
+			propagate_down(mid+1, e, rc);
+			lazy[lc] = lazy[rc] = c;
+		}
+		return;
+	}
+	update(s, mid, qs, qe, c, lc);
+	update(mid+1, e, qs, qe, c, rc);
+	st[node].s = st[lc].s + st[rc].s;
+	if(st[lc].f==st[rc].f)
+		st[node].f = st[lc].f;
+	else
+		st[node].f = -1;
+}
+
+ll query(int s, int e, int qs, int qe, int node)
+{
+	if(s>e || s>qe || qs>e)
+		return 0;
+	propagate_down(s, e, node);
+	if(s>=qs && qe>=e)
+		return st[node].s;
+	int mid = (s+e)>>1;
+	int lc = node*2 + 1;
+	int rc = lc + 1;
+	return query(s, mid, qs, qe, lc) + query(mid+1, e, qs, qe, rc);
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int t, l, r, x;
+	scanf("%d%d", &n, &m);
+	init(1, n, 0);
+	while(m--){
+		scanf("%d%d%d", &t, &l, &r);
+		if(t==1){
+			scanf("%d", &x);
+			update(1, n, l, r, x, 0);
+		}
+		else{
+			ll ans = query(1, n, l, r, 0);
+			printf("%lld\n", ans);
+		}
+	}
+	
+	return 0;
+}

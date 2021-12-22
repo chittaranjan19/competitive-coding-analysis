@@ -1,0 +1,102 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+typedef long double ld;
+
+#define pi  3.14159265359
+
+const int N = 100 * 1000 + 100;
+
+int n;
+ll r[N];
+ll h[N];
+ll v[N];
+ll dp[N];
+
+vector <int> x;
+
+ll fen[N];
+
+/*
+
+void add(ll val, int p){
+	for(p ++; p < N; p += p & -p)
+		fen[p] += val;
+}
+
+ll get(int p, ll ret = 0){
+	for(; p; p -= p & -p)
+		ret += fen[p];
+	return ret;
+}
+
+*/
+
+ll mx[4 * N];
+
+void update(int v, int s, int e, int p, ll val){
+	if(p < s || p >= e) return;
+	if(s <= p && p < e){
+		mx[v] = max(mx[v], val);
+	}
+	if(e - s == 1) return;
+	int mid = (s + e) / 2;
+	update(2 * v + 0, s, mid, p, val);
+	update(2 * v + 1, mid, e, p, val);
+}
+
+ll get(int v, int s, int e, int l, int r){
+	if(s >= r || l >= e) return 0;
+	if(l <= s && e <= r) return mx[v];
+	int mid = (s + e) / 2;
+	return max(get(2 * v + 0, s, mid, l, r), get(2 * v + 1, mid, e, l, r));
+}
+
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for(int i = 0; i < n; ++i){
+		cin >> r[i] >> h[i];
+		v[i] = r[i] * r[i] * h[i];
+		x.PB(v[i]);
+	}
+	sort(x.begin(), x.end());
+	x.resize(unique(x.begin(), x.end()) - x.begin());
+	
+	for(int i = n; i --;){
+		int t = lower_bound(x.begin(), x.end(), v[i]) - x.begin();
+		dp[i] = v[i] + get(1, 0, SZ(x), t, SZ(x));
+		update(1, 0, SZ(x), t, dp[i]);
+	}
+	ll ma = 0;
+	for(int i = 0; i < n; ++i)
+		ma = max(ma, dp[i]);
+	cerr << ma << "\n";
+	ld ans = (ld)pi * ma;
+	cout << fixed << setprecision(6) << ans << "\n";	
+	return 0;
+}

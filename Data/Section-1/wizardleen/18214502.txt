@@ -1,0 +1,103 @@
+import java.io.BufferedInputStream;
+import java.util.*;
+
+/**
+ * Created by leen on 6/2/16.
+ */
+public class Main {
+
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(new BufferedInputStream(System.in));
+        int numRows = scan.nextInt();
+        int numCols = scan.nextInt();
+        int numTypes = scan.nextInt();
+        Point[] pointsByType = new Point[numTypes];
+
+        TreeSet<Point> unvisitedSet = new TreeSet<Point>();
+
+        for (int i = 0; i < numRows; i++) {
+            for (int j = 0; j < numCols; j++) {
+                int type = scan.nextInt() - 1;
+                Point p = new Point(i, j, type, Integer.MAX_VALUE);
+                Point exsit = pointsByType[type];
+                p.next = exsit;
+                pointsByType[type] = p;
+            }
+        }
+
+        Point p = new Point(0, 0, -1, 0);
+        while(p.type < numTypes - 1) {
+            Point np = pointsByType[p.type + 1];
+            while(np != null) {
+                if(!np.visited) {
+                    int newTentativeDist = p.tentativeDistance + p.distance(np);
+                    if (newTentativeDist < np.tentativeDistance) {
+                        if(np.inSet)
+                            unvisitedSet.remove(np);
+                        else
+                            np.inSet = true;
+                        np.tentativeDistance = newTentativeDist;
+                        unvisitedSet.add(np);
+                    }
+                }
+                np = np.next;
+            }
+            p = unvisitedSet.pollFirst();
+            p.visited = true;
+        }
+
+        System.out.println(p.tentativeDistance);
+    }
+
+    static class Point implements Comparable<Point> {
+        final int x;
+        final int y;
+        final int type;
+        Point next;
+        boolean visited;
+        boolean inSet;
+        int tentativeDistance;
+
+        Point(int x, int y, int type, int tentativeDistance) {
+            this.x = x;
+            this.y = y;
+            this.type = type;
+            this.tentativeDistance = tentativeDistance;
+        }
+
+        @Override
+        public int hashCode() {
+            return x ^ y;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if(obj instanceof Point) {
+                Point that = (Point) obj;
+                return tentativeDistance == that.tentativeDistance && x == that.x && y == that.y;
+            }
+            else
+                return false;
+        }
+
+        int distance(Point that) {
+            return Math.abs(x - that.x) + Math.abs(y - that.y);
+        }
+
+        public int compareTo(Point o) {
+            if(tentativeDistance < o.tentativeDistance)
+                return -1;
+            if(tentativeDistance > o.tentativeDistance)
+                return 1;
+            if(x < o.x)
+                return -1;
+            if(x > o.x)
+                return 1;
+            if(y < o.y)
+                return -1;
+            if(y > o.y)
+                return 1;
+            return 0;
+        }
+    }
+}

@@ -1,0 +1,91 @@
+#include <cstdio>
+
+#define mod 1000000007
+
+using namespace std;
+
+template<typename T>
+void scan(T &x) {
+    char c=getchar(); x = 0;
+    while(c<'0') c=getchar();
+    while(c>='0') {
+        x = (x<<3) + (x<<1) + c - '0';
+        c = getchar();
+    }
+}
+
+int k;
+
+void mul(long long a[2][2], long long b[2][2], long long c[2][2]) {
+    for(int i=0; i<2; i++) {
+        for(int j=0; j<2; j++) {
+            c[i][j] = (c[i][j] + (a[i][0]*b[0][j]) + (a[i][1]*b[1][j])) % mod;
+        }
+    }
+}
+
+void cpy(long long a[2][2], long long b[2][2]) {
+    for(int i=0; i<2; i++) for(int j=0; j<2; j++) b[i][j] = a[i][j];
+}
+
+long long mm[2][2];
+long long M[2][2];
+void mpow(long long p, long long m[2][2]) {
+    if(p==1) {
+        cpy(M,m);
+        return;
+    }
+
+    if(p&1) {
+        mpow(p-1,m);
+        mul(m,M,mm);
+        cpy(mm,m);
+    } else {
+        mpow(p>>1,m);
+        mul(m,m,mm);
+        cpy(mm,m);
+    }
+}
+
+long long ppow(long long x, long long p) {
+    if(p==1) return x;
+
+    if(p&1) return (x*ppow(x,p-1)) % mod;
+    x = ppow(x,p>>1);
+    x = (x*x) % mod;
+    return x;
+}
+
+long long mc[2][2];
+
+bool notone;
+
+long long x;
+
+int main()
+{
+    scan(k);
+    long long denom(2ll);
+    M[0][0] = M[0][1] = 1;
+    M[1][0] = 2;
+    for(int i=0; i<k; i++) {
+        scan(x);
+        notone |= (x!=1ll);
+        mpow(x,mc);
+        cpy(mc,M);
+
+        denom = ppow(denom,x);
+    }
+
+    if(!notone) {
+        printf("0/1\n");
+        return 0;
+    }
+
+    long long p2 = ppow(2ll,mod-2);
+    M[1][1] = (M[1][1]*p2) % mod;
+    denom = (denom*p2) % mod;
+    printf("%I64d/%I64d\n",M[1][1],denom);
+
+    return 0;
+}

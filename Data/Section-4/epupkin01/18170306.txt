@@ -1,0 +1,124 @@
+#include <iostream>
+#include <climits>
+#include <string>       // string s; cin >> s;
+#include <cstring>      // memset(b, 0, sizeof(arr)); strcpy(a1, a2); strcat(a1, a2);
+#include <cmath>
+#include <cstdio>       // getchar(), gets()
+#include <cstdlib>      // rand(), max(), min()
+#include <ctime>        // rand(): srand(int(time(0)));
+#include <algorithm>    // std::sort(a + 0, a + n); n - amount; pair
+#include <iomanip>      // setw(4), setfill('.'), setprecision(2)
+#include <vector>
+#include <array>
+#include <fstream>      // file IO (input-output)
+#include <cctype>       // isupper()
+#include <memory>       // shared_ptr<>, uniqu_ptr<>
+#include <iterator>     // ostream_iterator<int, char> out_iter(cout, " ");
+#include <set>
+#include <map>
+#include <list>
+#include <queue>
+#include <functional>   // function
+#define SRT srand(int(time(0)))
+
+using namespace std;
+
+typedef long long ll;
+typedef long double ld;
+typedef unsigned long long ull;
+ld pi = 3.14159265358979323;
+int ten[8] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000};
+
+typedef map<int, int> Map;
+typedef Map::iterator mIter;
+typedef pair<int, int> Pair;
+typedef set<int> Set;
+typedef Set::iterator sIter;
+typedef list<Pair> List;
+typedef List::iterator lIter;
+
+const int S = 100000;
+int a[S], ans[S];
+
+class node
+{
+public:
+    int val;
+    node *up, *l, *r;
+    
+    explicit node(int v = 0, node *u = nullptr,
+                  node *_l = nullptr, node *_r = nullptr)
+    : val(v), up(u), l(_l), r(_r) {}
+    
+    friend void del(node *t)
+    {
+        if (t == nullptr)
+            return;
+        
+        node *_r = t->r, *_l = t->l;
+        delete t;
+        
+        del(_l);
+        del(_r);
+    }
+};
+
+class bin_tree
+{
+private:
+    node *top;
+public:
+    bin_tree() : top(nullptr) {}
+    bin_tree(int v) {top = new node(v);}
+    ~bin_tree() {del(top);}
+    
+    int add(const int &v)
+    {
+        node *now = top;
+        while (now != nullptr)
+        {
+            if (v > now->val)
+            {
+                if (now->r == nullptr)
+                {
+                    node *temp = new node(v, now);
+                    now->r = temp;
+                    return now->val;
+                }
+                else
+                    now = now->r;
+            }
+            else
+            {
+                if (now->l == nullptr)
+                {
+                    node *temp = new node(v, now);
+                    now->l = temp;
+                    return now->val;
+                }
+                else
+                    now = now->l;
+            }
+        }
+        return -1;
+    }
+};
+
+int main()
+{
+    int n;
+    cin >> n >> a[0];
+    bin_tree tr(a[0]);
+    
+    for (int i = 1; i < n; ++i)
+    {
+        scanf("%d", a + i);
+        ans[i] = tr.add(a[i]);
+    }
+    
+    for (int i = 1; i < n; ++i)
+        printf("%d ", ans[i]);
+    cout << '\n';
+    
+    return 0;
+}

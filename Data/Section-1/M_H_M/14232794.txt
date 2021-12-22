@@ -1,0 +1,71 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 1000;
+
+char a[N][N];
+int n, m, q;
+int ans[N][N];
+int mark[N][N];
+
+int xi[4] = {1, -1, 0, 0};
+int yi[4] = {0, 0, -1, 1};
+int sum;
+
+bool isval(int x, int y){
+	return (0 <= x && x < n && 0 <= y && y < m);
+}
+
+void dfs(int x, int y){
+	mark[x][y] = 1;
+	for(int i = 0; i < 4; ++i){
+		int p = x + xi[i];
+		int q = y + yi[i];
+		if(!isval(p, q)) continue;
+		if(a[p][q] == '*') sum++;
+		else if(!mark[p][q]) dfs(p, q);
+	}
+}
+
+void dfs2(int x, int y){
+	ans[x][y] = sum;
+	for(int i = 0; i < 4; ++i){
+		int p = x + xi[i];
+		int q = y + yi[i];
+		if(!isval(p, q)) continue;
+		if(a[p][q] == '.' && !ans[p][q]) 
+			dfs2(p, q);
+	}
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m >> q;
+	for(int i = 0; i < n; ++i)
+		for(int j = 0; j < m; ++j)
+			cin >> a[i][j];
+	for(int i = 0; i < q; ++i){
+		int l, r;
+		cin >> l >> r;
+		l --; r--;
+		if(!ans[l][r]){
+			sum = 0;
+			dfs(l, r);
+			dfs2(l, r);
+		}
+		cout << ans[l][r] << "\n";
+	}
+	return 0;
+}

@@ -1,0 +1,202 @@
+#include <stdio.h>
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e9;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const ll ABC = 26;
+const ll MAX_N = 100000;
+const ld pi = 3.1415926535897932384626;
+const ld eps = 1e-6;
+
+int f(int a)
+{
+    if (a >= MOD)
+        a -= MOD;
+    return a;
+}
+
+struct M
+{
+    ll a, b, c, d;
+    M(int x)
+    {
+        a = 1;
+        b = 0;
+        c = 0;
+        d = 1;
+    }
+    M()
+    {
+        a = 0;
+        b = 1;
+        c = 1;
+        d = 1;
+    }
+    M(int q, int w, int e, int r)
+    {
+        a = q;
+        b = w;
+        c = e;
+        d = r;
+    }
+    print()
+    {
+        cout << a << " " << c << endl << b << " " << d << endl;
+    }
+};
+
+bool operator == (M m1, M m2)
+{
+    return m1.a == m2.a && m1.b == m2.b && m1.c == m2.c && m1.d == m2.d;
+}
+
+M mult(M m1, M m2)
+{
+    return M(((ll)m1.a * m2.a + (ll)m1.c * m2.b) % MOD, ((ll)m1.b * m2.a + (ll)m1.d * m2.b) % MOD, ((ll)m1.a * m2.c + (ll)m1.c * m2.d) % MOD, ((ll)m1.b * m2.c + (ll)m1.d * m2.d) % MOD);
+}
+
+M add(M m1, M m2)
+{
+    return M(f(m1.a + m2.a), f(m1.b + m2.b), f(m1.c + m2.c), f(m1.d + m2.d));
+}
+
+M b_pow(ll p)
+{
+    if (p == 0)
+        return M(0);
+    M res, a;
+    p--;
+    while (p)
+    {
+        if (p & 1)
+            res = mult(res, a);
+        a = mult(a, a);
+        p >>= 1;
+    }
+    return res;
+}
+
+M tree[400000];
+M pl[400000];
+int cnt_ver = 1, height = 0;
+
+void build(vector<int> &a, int n)
+{
+    while (cnt_ver < n)
+    {
+        cnt_ver <<= 1;
+        height++;
+    }
+    for (int i = 0; i < cnt_ver * 2 - 1; i++)
+    {
+        tree[i] = M(0);
+        pl[i] = M(0);
+    }
+    for (int i = 0; i < n; i++)
+        tree[cnt_ver - 1 + i] = b_pow(a[i]);
+    for (int i = cnt_ver - 2; i >= 0; i--)
+        tree[i] = add(tree[i * 2 + 1], tree[i * 2 + 2]);
+}
+
+void push(int x)
+{
+    if (pl[x] == M(0))
+        return;
+    pl[x * 2 + 1] = mult(pl[x * 2 + 1], pl[x]);
+    tree[x * 2 + 1] = mult(tree[x * 2 + 1], pl[x]);
+    pl[x * 2 + 2] = mult(tree[x * 2 + 2], pl[x]);
+    tree[x * 2 + 2] = mult(tree[x * 2 + 2], pl[x]);
+    pl[x] = M(0);
+}
+
+void update(int x, int lx, int rx, int l, int r, M v)
+{
+    if (l >= rx || lx >= r)
+        return;
+    else if (lx >= l && rx <= r)
+    {
+        pl[x] = mult(pl[x], v);
+        tree[x] = mult(tree[x], v);
+    }
+    else
+    {
+        push(x);
+        update(x * 2 + 1, lx, (lx + rx) / 2, l, r, v);
+        update(x * 2 + 2, (lx + rx) / 2, rx, l, r, v);
+        tree[x] = add(tree[x * 2 + 1], tree[x * 2 + 2]);
+    }
+}
+
+int ans(int x, int lx, int rx, int l, int r)
+{
+    if (lx >= r || l >= rx)
+        return 0;
+    else if (lx >= l && rx <= r)
+        return tree[x].c;
+    else
+    {
+        push(x);
+        return f(ans(x * 2 + 1, lx, (lx + rx) / 2, l, r) + ans(x * 2 + 2, (lx + rx) / 2, rx, l, r));
+    }
+}
+
+void print()
+{
+	ll curr = 0, d = cnt_ver - 1, curr_cnt_ver = 1;
+	for (ll i = 0; i <= height; i++)
+	{
+		for (ll i = 0; i < d; i++)
+			cout << "  ";
+		for (ll i = 0; i < curr_cnt_ver; i++)
+		{
+			if (tree[curr].c >= 0 && tree[curr].c < 10)
+					cout << " ";
+            cout << tree[curr].c;
+			curr++;
+			for (ll i = 0; i < d * 2 + 1; i++)
+				cout << "  ";
+		}
+		cout << endl << endl;
+		curr_cnt_ver *= 2;
+		d /= 2;
+	}
+}
+
+int main()
+{
+    //ios_base::sync_with_stdio(0);
+    //cin.tie(0);
+    int n, m;
+    scanf("%d %d", &n, &m);
+    vector<int> a(n);
+    for (int i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+    build(a, n);
+    //print();
+    for (int i = 0; i < m; i++)
+    {
+        int t;
+        scanf("%d", &t);
+        if (t == 1)
+        {
+            int l, r, val;
+            scanf("%d %d %d", &l, &r, &val);
+            M v = b_pow(val);
+            update(0, cnt_ver - 1, cnt_ver * 2 - 1, cnt_ver - 1 + l - 1, cnt_ver - 1 + r, v);
+        }
+        else
+        {
+            int l, r;
+            scanf("%d %d", &l, &r);
+            printf("%d\n", ans(0, cnt_ver - 1, cnt_ver * 2 - 1, cnt_ver - 1 + l - 1, cnt_ver - 1 + r));
+        }
+        //print();
+    }
+    return 0;
+}

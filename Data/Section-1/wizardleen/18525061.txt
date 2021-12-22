@@ -1,0 +1,102 @@
+import java.io.BufferedInputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.*;
+
+/**
+ * Created by leen on 6/16/16.
+ */
+public class _681D {
+    public static void main(String[] args) {
+
+        Scanner scan = new Scanner(new BufferedInputStream(System.in, 16 * 1024));
+
+        int n = scan.nextInt();
+        int m = scan.nextInt();
+
+        Man[] men = new Man[1 + n];
+
+        for(int i = 1; i <= n; i++)
+            men[i] = new Man(i);
+
+        for(int i = 0; i < m; i++) {
+            int fatherIdx = scan.nextInt();
+            int sonIdx = scan.nextInt();
+            men[sonIdx].father = men[fatherIdx];
+            men[fatherIdx].children.add(men[sonIdx]);
+        }
+
+        for(int i = 1; i <= n; i++) {
+            int desiredIdx = scan.nextInt();
+            Man desired = men[desiredIdx];
+            men[i].desired = desired;
+            desired.isDesired = true;
+        }
+
+        List<Man> roots = new ArrayList<Man>();
+
+        for(int i = 1; i <= n; i++) {
+            Man man = men[i];
+            if(man.father == null)
+                roots.add(man);
+        }
+
+        List<Man> out = new ArrayList<Man>(100000);
+        for(Man root : roots) {
+            root.checked = true;
+            if(!process(root, out)) {
+                System.out.println(-1);
+                System.out.flush();
+                return;
+            }
+        }
+
+        System.out.println(out.size());
+
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+
+        for(Man man : out)
+            pw.println(man.index);
+
+        pw.flush();
+
+        System.out.print(sw.toString());
+        System.out.flush();
+
+    }
+
+    static boolean process(Man tree, List<Man> out) {
+
+        tree.checked = true;
+
+        for(Man child : tree.children) {
+            if(child.desired != child && child.desired != tree.desired)
+                return false;
+
+            if(!process(child, out))
+                return false;
+        }
+
+        if(tree.isDesired)
+            out.add(tree);
+
+        return true;
+    }
+
+    static class Man {
+        final int index;
+        Man father;
+        boolean checked;
+        final List<Man> children = new ArrayList<Man>();
+        Man desired;
+        boolean isDesired;
+
+        Man(int index) {
+            this.index = index;
+        }
+
+
+    }
+
+}

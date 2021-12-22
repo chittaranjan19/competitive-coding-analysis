@@ -1,0 +1,64 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+
+public class ProblemC {
+    private ProblemC() throws IOException {
+        BufferedReader rd = new BufferedReader(new InputStreamReader(System.in));
+        String h = rd.readLine();
+        int t = Integer.parseInt(h);
+        for(int i=0;i<t;i++) {
+            h = rd.readLine();
+            String[] q = h.split("\\s+");
+            long n = Long.parseLong(q[0]);
+            long k = Long.parseLong(q[1]);
+            long d1 = Long.parseLong(q[2]);
+            long d2 = Long.parseLong(q[3]);
+            out(compute(n,k,d1,d2));
+        }
+    }
+
+    private String compute(long n, long k, long d1, long d2) {
+        boolean res = n % 3 == 0;
+        if(res) {
+            long third = n / 3;
+            for(int i=-1;i<3;i+=2) {
+                for(int j=-1;j<3;j+=2) {
+                    long[] w1w3 = solve(new long[][] { { 2*i, 1*i, d1 + k*i }, { -1, -2*j, d2-k*j } });
+                    long w1 = w1w3[0];
+                    long w3 = w1w3[1];
+                    if(w1 >= 0 && w3 >= 0) {
+                        long w2 = k - w1 - w3;
+                        if(w1 > third || w2 > third || w3 > third) {
+                            res = false;
+                        }
+                    }
+                }
+            }
+        }
+        return res?"yes":"no";
+    }
+
+    private long[] solve(long[][] m) {
+        long[][] orig = new long[2][3];
+        for(int i=0;i<2;i++) {
+            orig[i] = Arrays.copyOf(m[i], 3);
+        }
+        long y = - m[0][0] / m[1][0];
+        for(int i=0;i<3;i++) {
+            m[1][i] *= y;
+        }
+        long w3 = (m[0][2] + m[1][2]) / (m[0][1] + m[1][1]);
+        long w1 = (-orig[1][1] * w3 + orig[1][2]) / orig[1][0];
+        return new long[] { w1, w3 };
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

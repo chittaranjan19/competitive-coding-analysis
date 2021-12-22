@@ -1,0 +1,112 @@
+#include <bits/stdc++.h>
+
+#define list    saodmsaodmoas
+#define f       first
+#define s       second
+#define mp      make_pair
+#define rank    something_which_is_supposed_to_be_rank
+#define left    something_which_is_supposed_to_be_left
+#define right   something_which_is_supposed_to_be_right
+
+using namespace std;
+
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+typedef long double ld;
+
+const int N = 1e3;
+
+ll a[N], n;
+
+struct list {
+    int len;
+    pair<ll,ll> l, r;
+
+    list() {
+    }
+    
+    list(int i, int j) {
+        len = 2;
+        l = {a[j] - a[i], a[j]};
+        r = {a[j], a[i] + a[j]};
+    }
+
+    list(list &x, list &y) {
+        len = x.len + y.len - 1;
+        l = x.l;
+        r = y.r;
+    }
+};
+
+list lists[N * N];
+
+unordered_map<ll,int> cnt, cur;
+map<pair<ll,ll>,int> l, r;
+
+void update(int t) {
+    lists[t] = list(t / N, t % N);
+    l[lists[t].l] = r[lists[t].r] = t;
+    if (l.find(lists[t].r) != l.end()) {
+        int k = l[lists[t].r];
+        l.erase(lists[t].r);
+        r.erase(lists[t].r);
+        lists[t] = list(lists[t], lists[k]);
+        r[lists[k].r] = t;
+        lists[k].len = 0;
+    }
+    if (r.find(lists[t].l) != r.end()) {
+        int k = r[lists[t].l];
+        l.erase(lists[t].l);
+        r.erase(lists[t].l);
+        lists[k] = list(lists[k], lists[t]);
+        l[lists[k].l] = t;
+        lists[t].len = 0;
+    }
+}
+
+bool check(int t) {
+    // cerr << t / N << " " << t % N << " -> " << lists[t].len << "\n";
+    cur.clear();
+    ll x = a[t / N], y = a[t % N];
+    for (int i = 0; i < lists[t].len; ++i) {
+        // cerr << x << " ";
+        ++cur[x];
+        if (cnt[x] < cur[x]) {
+            // cerr << "!\n\n";
+            return false;
+        }
+        x += y;
+        swap(x, y);
+    }
+    // cerr << "\n\n";
+    return true;
+}
+
+int main() {
+    cin.sync_with_stdio(0);
+    cin.tie(0);
+    cin >> n;
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+        ++cnt[a[i]];
+        for (int j = 0; j < i; ++j) {
+            update(i * N + j);
+            update(j * N + i);           
+        }
+    }
+    int ans = 0;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < i; ++j) {
+            if (check(i * N + j)) {
+                ans = max(ans, lists[i * N + j].len);
+            }
+            if (check(j * N + i)) {
+                ans = max(ans, lists[j * N + i].len);
+            }
+        }
+    }
+    cout << ans << "\n";
+    cerr << "Time elapsed: " << (ld) clock() / CLOCKS_PER_SEC << "\n";
+    return 0;
+}

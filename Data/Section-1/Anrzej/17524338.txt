@@ -1,0 +1,161 @@
+/**
+ * !!! WARNING !!!
+ * USE GNU GCC COMPILER
+ * (g++)
+ */
+#include <cstdio>
+#include <cstring>
+#include <set>
+#include <map>
+
+struct Task
+{
+    int limit; // Time limit
+    int tests; // Number of tests
+};
+
+struct Solution
+{
+    int task; // Number of task
+    int test; // Number of last test
+    int free; // Free threads
+};
+
+// Information about invokers
+int invokers_count;
+int invokers_free;
+
+// Information about tasks
+Task *tasks;
+int tasks_count;
+
+// Information about solutions
+// Structure: < solution_id, solution_info >
+// Very convenient for removing random elements
+std::map< int, Solution > solutions;
+int solutions_count;
+
+// Solutions queue
+std::set< int > solutions_queue;
+
+int main(int argc, char *argv[])
+{
+    scanf("%d", &invokers_count);
+    scanf("%d", &tasks_count);
+
+    tasks = new Task[tasks_count];
+
+    for (int i = 0; i < tasks_count; i++)
+    {
+        Task &task = tasks[i];
+
+        scanf("%d", &task.limit);
+        scanf("%d", &task.tests);
+    }
+
+    invokers_free = invokers_count;
+
+    while (!feof(stdin))
+    {
+        // Read new solutions
+        for (;;)
+        {
+            int task;
+
+            scanf("%d", &task);
+
+            // On end
+            if (task == -1)
+                break;
+
+            Solution solution;
+
+            solution.task = task;
+            solution.test = -1;
+            solution.free = 3;
+
+            solutions[solutions_count] = solution;
+            solutions_queue.insert(solutions_count);
+
+            ++solutions_count;
+        }
+
+        // Read new verdicts
+        for (;;)
+        {
+            int id, test;
+            char status[3];
+
+            scanf("%d%d", &id, &test);
+
+            // On end
+            if (id == -1 && test == -1)
+                break;
+
+            scanf("%*c%s", status);
+
+            if (strcmp(status, "OK") == 0)
+            {
+                Solution &solution = solutions[id];
+                Task &task = tasks[solution.task];
+
+                ++solution.free;
+            }
+            else
+            {
+                // We don't need this task
+                solutions_queue.erase(id);
+            }
+
+            ++invokers_free;
+        }
+
+        // Solutions schedule
+
+        // Very slow: O(invokers_free * solutions_queue)
+        while (invokers_free > 0)
+        {
+            bool has_action = false;
+            std::set< int >::iterator it;
+
+            for (it = solutions_queue.begin(); it != solutions_queue.end(); ++it)
+            {
+                int id = *it;
+                Solution &solution = solutions[id];
+                Task &task = tasks[solution.task];
+
+                if (solution.free == 0)
+                    continue;
+
+                ++solution.test;
+
+                if (solution.test >= task.tests)
+                {
+                    solutions_queue.erase(it);
+                    has_action = true;
+                    break;
+                }
+
+                --solution.free;
+                --invokers_free;
+                has_action = true;
+
+                printf("%d %d\n", id, solution.test);
+
+                break;
+            }
+
+            if (!has_action)
+                break;
+        }
+
+        // End of schedule
+        printf("%d %d\n", -1, -1);
+        fflush(stdout);
+    }
+
+    // Free memory
+    delete tasks;
+
+    return 0;
+}

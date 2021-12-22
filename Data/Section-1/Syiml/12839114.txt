@@ -1,0 +1,88 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+int nm[100005],new1[100005],sig[100005];
+void sort(int *a,int left,int right)
+{
+    if(left>=right)
+    {
+        return ;
+    }
+    int i=left;
+    int j=right;
+    int key=a[left];
+    while(i<j)
+    {
+        while(i<j&&key<=a[j])
+        {
+            j--;
+        }
+        a[i]=a[j];
+        while(i<j&&key>=a[i])
+        {
+            i++;
+        }
+        a[j]=a[i];
+    }
+
+    a[i]=key;
+    sort(a,left,i-1);
+    sort(a,i+1,right);
+}
+
+void f(int x,int c)
+{
+    int k=sig[x];
+    while(k%c==0)
+    {
+        new1[x]--;
+        k/=c;
+    }
+}
+int modexp(int a,int b,int n)
+{
+    int ret=1;
+    int tmp=a;
+    while(b)
+    {
+       if(b%2)ret=ret*tmp%n;
+       tmp=tmp*tmp%n;
+       b=b/2;
+    }
+    return ret;
+}
+int main()
+{
+    int n,x,i,max,k,s;
+    while(scanf("%d%d",&n,&x)!=EOF)
+    {
+        for(i=1,s=0;i<=n;i++)
+        {
+            scanf("%d",&nm[i]);
+            s=(s+nm[i])%1000000007;
+        }
+        sort(nm,1,n);
+        memset(sig,0,sizeof(sig));
+        new1[1]=nm[1];sig[1]++;
+        for(i=2,k=1;i<=n;i++)
+        {
+            if(nm[i]!=nm[i-1])
+            {
+                new1[++k]=nm[i];
+                sig[k]++;
+            }
+            else sig[k]++;
+        }
+        for(i=1;i<=k;i++)
+        {
+            f(i,x);
+        }
+        for(i=1,max=0;i<=k;i++)
+        {
+            if(new1[i]>max)max=new1[i];
+        }
+        s=(s+1000000007-max)%1000000007;
+        printf("%d\n",modexp(x,s,1000000007));
+    }
+    return 0;
+}

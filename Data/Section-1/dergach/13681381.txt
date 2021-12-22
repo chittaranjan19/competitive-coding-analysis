@@ -1,0 +1,76 @@
+#define _SCL_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#pragma comment(linker, "/STACK:500000000") 
+#include <functional>
+#include <algorithm>
+#include <iostream> 
+#include <string.h> 
+#include <stdlib.h>
+#include <complex>
+#include <sstream> 
+#include <numeric>
+#include <ctype.h> 
+#include <stdio.h> 
+#include <bitset>
+#include <vector> 
+#include <string> 
+#include <math.h> 
+#include <time.h> 
+#include <queue> 
+#include <stack> 
+#include <list>
+#include <map> 
+#include <set> 
+#define Int long long 
+#define INF 0x3F3F3F3F 
+#define eps 1e-9
+using namespace std;
+typedef pair<int, int> pii;
+
+#define N 102
+#define M 10009
+
+vector<pii> A[M];
+
+int main()
+{
+	int n, a, b, i, j;
+	scanf("%d", &n);
+	for (i = 0; i < n; i++)
+	{
+		scanf("%d %d", &a, &b);
+		for (j = a; j <= b; j++)
+			A[j].push_back({ b, i });
+	}
+	for (i = 0; i < M; i++)
+		sort(A[i].begin(), A[i].end());
+
+	auto can = [&](int lim)
+	{
+		vector<int> eaten(n);
+		for (i = 0; i < M; i++)
+		{
+			for (auto &p : A[i])
+			{
+				if (eaten[p.second] == lim)
+					continue;
+				if (p.first < i)
+					return false;
+				eaten[p.second]++;
+				break;
+			}
+		}
+		return count(eaten.begin(), eaten.end(), lim) == n;
+	};
+
+	int L = 0, R = M, res = 0;
+	while (L <= R)
+	{
+		int c = (L + R) / 2;
+		if (can(c))
+			L = c + 1, res = c;
+		else
+			R = c - 1;
+	}
+	printf("%d\n", res * n);
+}

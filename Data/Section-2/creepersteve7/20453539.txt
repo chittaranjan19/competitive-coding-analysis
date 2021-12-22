@@ -1,0 +1,79 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct Trie{
+    int nr, nrfii;
+    Trie *fii[2];
+    Trie (){
+        nr=0; nrfii=0;
+        fii[0]=0; fii[1]=0;
+    }
+};
+
+Trie *T = new Trie;
+
+int q;
+long long x;
+
+char c;
+
+long long pwr(int b){
+    long long s=1;
+    for(int i=1;i<=b;i++){
+        s*=2;
+    }
+    return s;
+}
+
+void add(Trie *nod, long long x, int b){
+    int bit=(x/pwr(b))%2;
+    if(b==-1){
+        nod->nr++;
+        return;
+    }
+    else{
+        if(nod->fii[bit]==0){
+            nod->fii[bit] = new Trie;
+            nod->nrfii++;
+        }
+        add(nod->fii[bit], x, b-1);
+    }
+}
+
+bool rem(Trie *nod, long long x, int b){
+    int bit=(x/pwr(b))%2;
+    if(b==-1){
+        nod->nr--;
+    }
+    else if(rem(nod->fii[bit],x,b-1)){
+        nod->nrfii--;
+        nod->fii[bit]=0;
+    }
+    if(nod->nr==0 && nod->nrfii==0 && nod!=T){
+        delete nod;
+        return 1;
+    }
+    return 0;
+}
+
+long long qry(Trie *nod, long long x, int b){
+    int bit=(x/pwr(b))%2;
+    if(b==-1 || nod->nrfii==0) return 0;
+    else{
+        if(nod->fii[(bit+1)%2]) return pwr(b)+qry(nod->fii[(bit+1)%2],x,b-1);
+        else return qry(nod->fii[bit],x,b-1);
+    }
+}
+
+int main()
+{
+    add(T,0,30);
+    cin >> q;
+    for(int i=1;i<=q;i++){
+        cin >> c >> x;
+        if(c=='+') add(T,x,30);
+        if(c=='-') rem(T,x,30);
+        if(c=='?') cout << qry(T,x,30) << '\n';
+    }
+}

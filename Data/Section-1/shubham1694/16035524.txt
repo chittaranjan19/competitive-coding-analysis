@@ -1,0 +1,120 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 10010;
+const int block = 400;
+
+int cnt[block][maxn], temp[block], arr[maxn*10], good[maxn];
+vector<int> store;
+char str[10];
+
+void update_chunk(int ci)
+{
+	int i, j, val;
+	for(i=ci*block; i<(ci+1)*block; i++){
+		val = arr[i]+temp[ci];
+		cnt[ci][arr[i]]--;
+		cnt[ci][val]++;
+		arr[i] = val;
+	}
+	temp[ci] = 0;
+}
+
+void pre()
+{
+	int i, j;
+	for(i=1; i<maxn; i++){
+		j = i;
+		while(j){
+			if((j%10)!=4 && (j%10)!=7)
+				break;
+			j/=10;
+		}
+		if(!j){
+			good[i] = 1;
+			store.pb(i);
+		}
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int n, m, i, j, l, r, d, bno, lb, rb, val, ans;
+	pre();
+	scanf("%d%d", &n, &m);
+	for(i=0; i<n; i++){
+		sd(arr[i]);	
+		bno = i/block;
+		cnt[bno][arr[i]]++;
+	}
+	while(m--){
+		scanf("%s%d%d", str, &l, &r);
+		l--, r--;
+		if(str[0]=='a'){
+			sd(d);
+			lb = l/block;
+			rb = r/block;
+			update_chunk(lb);
+			for(i=l; i<min((lb+1)*block, r+1); i++){
+				val = arr[i] + d;
+				cnt[lb][arr[i]]--;
+				cnt[lb][val]++;
+				arr[i] = val;
+			}
+			for(i=lb+1; i<rb; i++)
+				temp[i]+=d;
+			if(lb!=rb){
+				update_chunk(rb);
+				for(i=rb*block; i<r+1; i++){
+					val = arr[i] + d;
+					cnt[rb][arr[i]]--;
+					cnt[rb][val]++;
+					arr[i] = val;
+				}
+			}
+		}
+		else{
+			lb = l/block;
+			rb = r/block;
+			ans = 0;
+			update_chunk(lb);
+			for(i=l; i<min((lb+1)*block, r+1); i++){
+				if(good[arr[i]])
+					ans++;
+			}
+			for(i=lb+1; i<rb; i++){
+				d = temp[i];
+				for(j=0; j<store.size(); j++){
+					if(store[j]<d)
+						continue;
+					ans+=cnt[i][store[j]-d];
+				}
+			}
+			if(lb!=rb){
+				update_chunk(rb);
+				for(i=rb*block; i<r+1; i++){
+					if(good[arr[i]])
+						ans++;
+				}
+			}
+			printf("%d\n", ans);
+		}
+	}
+	return 0;
+}

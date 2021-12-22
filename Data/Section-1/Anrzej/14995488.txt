@@ -1,0 +1,96 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+int n;
+ll res = 0;
+int used[2][200000];
+int ans[200000];
+
+struct nd
+{
+	nd* nxt[26];
+	vector<int> hv[2];
+	nd() {
+		fill(nxt, nxt + 26, nullptr);
+	}
+};
+
+nd* root = new nd();
+
+void add(string s, int id, int t)
+{
+	nd *v = root;
+	for (int i = 0; i < s.size(); i++)
+	{
+		int ch = (int)(s[i] - 'a');
+		if (v->nxt[ch] == nullptr)
+			v->nxt[ch] = new nd();
+		v->hv[t].push_back(id);
+		v = v->nxt[ch];
+	}
+	v->hv[t].push_back(id);
+}
+
+void dfs(nd* v, int d)
+{
+	for (int i = 0; i < 26; i++)
+	{
+		if (v->nxt[i])
+			dfs(v->nxt[i], d + 1);
+	}
+	int cur = 0;
+	for (int i = 0; i < v->hv[0].size(); i++)
+	{
+		if (used[0][v->hv[0][i]]) continue;
+		while (cur < v->hv[1].size() && used[1][v->hv[1][cur]])
+			cur++;
+		if (cur < v->hv[1].size())
+		{
+			res += d;
+			ans[v->hv[0][i]] = v->hv[1][cur];
+			used[0][v->hv[0][i]] = 1;
+			used[1][v->hv[1][cur]] = 1;
+		}
+	}
+}
+
+int main()
+{
+	cin >> n;
+	for (int i = 0; i < n; i++)
+	{
+		string s;
+		cin >> s;
+		add(s, i + 1, 0);
+	}
+	for (int i = 0; i < n; i++)
+	{
+		string s;
+		cin >> s;
+		add(s, i + 1, 1);
+	}
+	dfs(root, 0);
+	cout << res << endl;
+	for (int i = 0; i < n; i++)
+		cout << i + 1 << ' ' << ans[i + 1] << endl;
+	return 0;
+}

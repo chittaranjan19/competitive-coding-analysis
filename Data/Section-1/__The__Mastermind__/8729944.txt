@@ -1,0 +1,80 @@
+uses math;
+
+const
+  tfi = '';//'c.inp';
+  tfo = '';//'c.out';
+
+var
+  m,s : longint;
+  ok1,ok2 : boolean;
+  a,b : array [1..100] of longint;
+  dd1,dd2 : array [1..101,0..900] of boolean;
+  fi,fo : text;
+
+procedure input;
+  begin
+    assign(fi,tfi);
+    reset(fi);
+    read(fi,m,s);
+    close(fi);
+  end;
+
+procedure make1(i,j : longint);
+  var cs,d : longint;
+  begin
+    if dd1[i,j] then exit;
+    dd1[i,j] := true;
+    if (i < m + 1) and (j >= s) then exit;
+    if i = m + 1 then
+      begin
+        if j = s then ok1 := true;
+        exit;
+      end;
+    if i = 1 then d := 1 else d := 0;
+    for cs := d to min(9,s) do
+      begin
+        a[i] := cs;
+        make1(i+1,j+cs);
+        if ok1 then exit;
+      end;
+  end;
+
+procedure make2(i,j : longint);
+  var cs,d : longint;
+  begin
+    if dd2[i,j] then exit;
+    dd2[i,j] := true;
+    if (i < m + 1) and (j >= s) then exit;
+    if i = m + 1 then
+      begin
+        if j = s then ok2 := true;
+        exit;
+      end;
+    if i = 1 then d := 1 else d := 0;
+    for cs := min(9,s) downto d do
+      begin
+        b[i] := cs;
+        make2(i+1,j+cs);
+        if ok2 then exit;
+      end;
+  end;
+
+procedure output;
+  var i : longint;
+  begin
+    assign(fo,tfo);
+    rewrite(fo);
+    ok1 := false;
+    ok2 := false;
+    make1(1,0);
+    make2(1,0);
+    if not ok1 then write(fo,-1) else for i := 1 to m do write(fo,a[i]);
+    write(fo,' ');
+    if not ok2 then write(fo,-1) else for i := 1 to m do write(fo,b[i]);
+    close(fo);
+  end;
+
+begin
+  input;
+  output;
+end.

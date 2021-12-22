@@ -1,0 +1,153 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+int n, m;
+string grid[1005];
+
+struct P {
+	int r;
+	int c;
+	int k;
+	int dist;
+	P(){}
+	P(int lr, int lc, int lk, int ldist) {
+		r = lr; c = lc; k = lk; dist = ldist;
+	}
+};
+
+struct compareP {
+	bool operator()(const P &p1, const P &p2) const {
+		if (p1.dist != p2.dist) return p1.dist < p2.dist;
+		return false;
+	}
+};
+
+string blocks = "+-|^><vLRUD*";
+string doors[12] = {
+	"1111", //+
+	"1010", //-
+	"0101", //|
+	"0100", //^
+	"0010", //>
+	"1000", //<
+	"0001", //v
+	"0111", //L
+	"1101", //R
+	"1011", //U
+	"1110", //D
+	"0000"  //*
+};
+int dr[4] = {0, -1, 0, 1};
+int dc[4] = {-1, 0, 1, 0};
+int opp[4] = {2, 3, 0, 1};
+bool isPass[256][256][4];
+
+char rot[4][256];
+
+bool visited[1005][1005][4];
+
+int main() {
+	ios_base::sync_with_stdio(0);
+	cin.tie(0);
+	
+	for (int i = 0; i < blocks.length(); i++) {
+		for (int j = 0; j < blocks.length(); j++) {
+			for (int k = 0; k < 4; k++) {
+				isPass[blocks[i]][blocks[j]][k] = (doors[i][k] == '1' && doors[j][opp[k]] == '1');
+			}
+		}
+	}
+
+	for (int i = 0; i < blocks.length(); i++) {
+		rot[0][blocks[i]] = blocks[i];
+	}
+
+	rot[1]['+'] = '+';
+	rot[1]['-'] = '|';
+	rot[1]['|'] = '-';
+	rot[1]['^'] = '>';
+	rot[1]['>'] = 'v';
+	rot[1]['<'] = '^';
+	rot[1]['v'] = '<';
+	rot[1]['L'] = 'U';
+	rot[1]['R'] = 'D';
+	rot[1]['U'] = 'R';
+	rot[1]['D'] = 'L';
+	rot[1]['*'] = '*';
+
+	for (int z = 2; z < 4; z++) {
+		for (int i = 0; i < blocks.length(); i++) {
+			rot[z][blocks[i]] = rot[1][rot[z-1][blocks[i]]];
+		}
+	}
+
+	/*
+	for (int z = 0; z < 4; z++) {
+		cerr << "Rotation level: " << z << endl;
+		for (int i = 0; i < blocks.length(); i++) {
+			cerr << blocks[i] << " -> " << rot[z][blocks[i]] << endl;
+		}
+	}
+	*/
+
+	/*
+	for (int k = 0; k < 4; k++) {
+		cerr << "dir = " << k << endl;
+		for (int i = 0; i < blocks.length(); i++) {
+			for (int j = 0; j < blocks.length(); j++) {
+				cerr << blocks[i] << " " << blocks[j] << " " << isPass[blocks[i]][blocks[j]][k] << endl;
+			}
+		}
+	}
+	*/
+
+	cin >> n >> m;
+	for (int r = 0; r < n; r++) {
+		cin >> grid[r];
+	}
+
+	int sr, sc, tr, tc;
+	cin >> sr >> sc; sr--; sc--;
+	cin >> tr >> tc; tr--; tc--;
+
+	for (int r = 0; r < n; r++) {
+		for (int c = 0; c < m; c++) {
+			for (int k = 0; k < 4; k++) {
+				visited[r][c][k] = false;
+			}
+		}
+	}
+
+	priority_queue<P, vector<P>, compareP > q;
+	q.push(P(sr, sc, 0, 0));
+	while (!q.empty()) {
+		P curr = q.top();
+		q.pop();
+
+		if (visited[curr.r][curr.c][curr.k]) continue;
+		visited[curr.r][curr.c][curr.k] = true;
+
+		if (curr.r == tr && curr.c == tc) {
+			cout << curr.dist << endl;
+			return 0;
+		}
+
+		q.push(P(curr.r, curr.c, (curr.k+1)%4, curr.dist+1));
+		char cb = rot[curr.k][grid[curr.r][curr.c]];
+		for (int dir = 0; dir < 4; dir++) {
+			int nr = curr.r + dr[dir];
+			int nc = curr.c + dc[dir];
+			if (nr < 0 || nr >= n || nc < 0 || nc >= m) continue;
+
+			char nb = rot[curr.k][grid[nr][nc]];
+			if (isPass[cb][nb][dir]) {
+				q.push(P(nr, nc, curr.k, curr.dist+1));
+			}
+		}
+	}
+	cout << -1 << endl;
+	return 0;
+}

@@ -1,0 +1,155 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+
+set < pair<int, pair<int, int> > > h, v, _h, _v;
+int n;
+vector<pair<int, pair<int, int> > > ev;
+
+struct Node{
+	Node *l, *r;
+	int s;
+	Node() : l(NULL), r(NULL), s(0) {}
+};
+
+Node* root;
+int E = 1e9 + 10;
+void update(Node *v, int l, int r, int p, int vl)
+{
+	if (l > r) return;
+	if (l == r) v->s = vl;
+	else
+	{
+		int m = (l + r) >> 1, f = 0, s = 0;
+		if (p <= m)
+		{
+			if (v->l == NULL)
+				v->l = new Node();
+			update(v->l, l, m, p, vl);
+		}
+		else
+		{
+			if (v->r == NULL)
+				v->r = new Node();
+			update(v->r, m + 1, r, p, vl);
+		}
+		if (v->l != NULL)
+			f = v->l->s;
+		if (v->r != NULL)
+			s = v->r->s;
+		v->s = s+f;
+	}
+}
+
+int sum(Node* v, int l, int r, int lf, int rt)
+{
+	if (l > rt || r < lf) return 0;
+	if (l >= lf && r <= rt) return v->s;
+	int m = (l + r) >> 1, f = 0, s = 0;
+	if (v->l != NULL)
+		f = sum(v->l, l, m, lf, rt);
+	if (v->r != NULL)
+		s = sum(v->r, m + 1, r, lf, rt);
+	return s + f;
+}
+
+int main()
+{
+	root = new Node();
+	cin >> n;
+	for (int i = 0; i < n; i++)
+	{
+		int x0, y0, x1, y1;
+		cin >> x0 >> y0 >> x1 >> y1;
+		if (x0 == x1)
+		{
+			if (y0 > y1) swap(y0, y1);
+			v.insert(mp(x0, mp(y0, y1)));
+		}
+		else
+		{
+			if (x0 > x1) swap(x0, x1);
+			h.insert(mp(y0, mp(x0, x1)));
+		}
+	}
+	set<pair<int, pair<int, int> > >::iterator cur;
+	pair<int, pair<int, int> > prev;
+	if (h.size() != 0)
+		prev = *h.begin();
+	cur = h.begin();
+	while (true)
+	{
+		if (cur == h.end())
+		{
+			if (h.size() != 0)
+			_h.insert(prev);
+			break;
+		}
+		if (prev.fs != cur->fs || prev.sc.sc < cur->sc.fs){
+			_h.insert(prev);
+			prev = *cur;
+			cur++;
+			continue;
+		}
+		prev.sc.sc = max(prev.sc.sc, cur->sc.sc);
+		cur++;
+	}
+	cur = v.begin();
+	if(cur != v.end())	prev = *cur;
+	while (true)
+	{
+		if (cur == v.end())
+		{
+			if (v.size() != 0)
+			_v.insert(prev);
+			break;
+		}
+		if (prev.fs != cur->fs || prev.sc.sc < cur->sc.fs){
+			_v.insert(prev);
+			prev = *cur;
+			cur++;
+			continue;
+		}
+		prev.sc.sc = max(prev.sc.sc, cur->sc.sc);
+		cur++;
+	}
+	ll ans = 0;
+	for (cur = _v.begin(); cur != _v.end(); cur++)
+	{
+		ans += (cur->sc.sc - cur->sc.fs + 1);
+		ev.push_back(mp(cur->sc.fs, mp(cur->fs, 1)));
+		ev.push_back(mp(cur->sc.sc+1, mp(cur->fs, -1)));
+	}
+	sort(ev.begin(), ev.end());
+	int evi = 0;
+	for (cur = _h.begin(); cur != _h.end(); cur++)
+	{
+		int cury = cur->fs;
+		while (evi < ev.size() && ev[evi].fs <= cury)
+		{
+			update(root, -E, E, ev[evi].sc.fs, (ev[evi].sc.sc==1)?1:0);
+			evi++;
+		}
+		ans += (cur->sc.sc - cur->sc.fs + 1) - sum(root, -E, E, cur->sc.fs, cur->sc.sc);
+	}
+	cout << ans;
+	return 0;
+}

@@ -1,0 +1,109 @@
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <iomanip>
+#include <map>
+
+
+using namespace std;
+
+typedef long long ll;
+
+#if _DEBUG
+#include <fstream>
+ifstream cin("input.txt");
+ofstream cout("output.txt");
+#else
+#include <iostream>
+#endif
+
+struct edge {
+	int to;
+	bool used;
+	edge () {}
+	edge(int to, bool used) : to(to), used(used) {}
+};
+
+vector < vector <edge> > vv;
+
+const int maxx = 200000;
+
+int in[maxx + 5], out[maxx + 5];
+
+vector <int> ans;
+
+void dfs(int v) {
+	for(int i = 0; i < vv[v].size(); i++) {
+		if(!vv[v][i].used) {
+			vv[v][i].used = true;
+			dfs(vv[v][i].to);
+		}
+	}
+	ans.push_back(v);
+}
+
+			
+
+int main() {
+	int n;
+	cin >> n;
+	vv.resize(maxx);
+	for(int i = 0; i < n; i++) {
+		string s;
+		cin >> s;
+		int from = (s[0] - '0') * 1000 + (s[1] - '0');
+		int to = (s[1] - '0') * 1000 + (s[2] - '0');
+		out[from]++;
+		in[to]++;
+		vv[from].push_back(edge(to, false));
+	}
+	bool was1 = false, was2 = false;
+	for(int i = 0; i < maxx; i++) {
+		if(in[i] + 1 == out[i] && !was1) {
+			was1 = true;
+			continue;
+		}
+		if(in[i] == out[i] + 1 && !was2) {
+			was2 = true;
+			continue;
+		}
+		if(in[i] != out[i]) {
+			cout << "NO";
+			return 0;
+		}
+	}
+	bool ok = false;
+	for(int i = 0; i < maxx; i++) {
+		if(in[i] + 1 == out[i]) {
+			dfs(i);
+			ok = true;
+			break;
+		}
+	}
+	if(!ok) {
+		for(int i = 0; i < maxx; i++) {
+			if(vv[i].size() != 0) {
+				dfs(i);
+				break;
+			}
+		}
+	}
+	for(int i = 0; i < maxx; i++) {
+		for(int j = 0; j < vv[i].size(); j++) {
+			if(!vv[i][j].used) {
+				cout << "NO";
+				return 0;
+			}
+		}
+	}
+	if(ans.size() != n + 1) {
+		cout << "NO";
+		return 0;
+	}
+	cout << "YES\n";
+	cout << char(ans.back() / 1000 + '0');
+	for(int i = ans.size() - 1; i >= 0; i--) {
+		cout << char(ans[i] % 1000 + '0');
+	}
+	return 0;
+}

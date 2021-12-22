@@ -1,0 +1,95 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemBDiv2_Towers {
+    BufferedReader rd;
+
+    private ProblemBDiv2_Towers() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        int[] a = intarr();
+        int k = a[1];
+        a = intarr();
+        int n = a.length;
+        SortedMap<Integer,Set<Integer>> s = new TreeMap<Integer,Set<Integer>>();
+        for(int i=0;i<a.length;i++) {
+            addTo(s, a[i], i);
+        }
+        int diff = s.lastKey() - s.firstKey();
+        List<int[]> steps = new ArrayList<>();
+        int lastStop = 0;
+        while(diff > 0) {
+            Integer last = s.lastKey();
+            Set<Integer> q = s.get(last);
+            Integer index = q.iterator().next();
+            removeFrom(s, last, index);
+            addTo(s, last-1, index);
+
+            Integer first = s.firstKey();
+            q = s.get(first);
+            Integer index2 = q.iterator().next();
+            removeFrom(s, first, index2);
+            addTo(s, first+1, index2);
+
+            steps.add(new int[] { index+1, index2+1 });
+
+            int diff2 = s.lastKey() - s.firstKey();
+            if(diff2 < diff) {
+                diff = diff2;
+                lastStop = steps.size();
+            }
+            if(steps.size() >= k) {
+                break;
+            }
+        }
+        out(diff+" "+lastStop);
+        for(int[] x: steps.subList(0, lastStop)) {
+            out(x[0]+" "+x[1]);
+        }
+    }
+
+    private void removeFrom(Map<Integer, Set<Integer>> m, int key, int value) {
+        Set<Integer> q = m.get(key);
+        if(q != null) {
+            if(q.contains(value)) {
+                if(q.size() == 1) {
+                    m.remove(key);
+                } else {
+                    q.remove(value);
+                }
+            }
+        }
+    }
+
+    private void addTo(Map<Integer, Set<Integer>> m, int key, int value) {
+        Set<Integer> q = m.get(key);
+        if(q == null) {
+            q = new HashSet<Integer>();
+            m.put(key, q);
+        }
+        q.add(value);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = s.split(" ");
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemBDiv2_Towers();
+    }
+}

@@ -1,0 +1,94 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define imx 2147483647
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int>PII;
+typedef pair<PII,PII>PTT;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+map<int,int>pm;
+int ans[MAXN];
+PTT bus[MAXN],man[MAXN];
+set<PII>s[MAXN<<2];
+PII tap(int l,int r,int t,int nd,int x,int y){
+	if(l>y or x>r)
+		return mp(-1,-1);
+	if(l<=x and y<=r){
+		typeof((s[nd]).begin()) it=s[nd].lower_bound(mp(t,-1));
+		if(it==s[nd].end())
+			return mp(-1,-1);
+	//	cout<<it->ff<<" "<<it->ss<<" "<<t<<endl;
+		return *it;	
+	}
+	int mid=(x+y)>>1;
+	PII i1=tap(l,r,t,nd<<1,x,mid);
+	PII i2=tap(l,r,t,nd<<1|1,mid+1,y);
+	if(i1.ff>=t and i2.ff>=t)
+		return min(i1,i2);
+	if(i1.ff>=t)
+		return i1;
+	if(i2.ff>=t)
+		return i2;
+	return mp(-1,-1);			
+}
+void upd(int p,int t,int ind,int nd,int x,int y){
+	s[nd].insert(mp(t,ind));
+	if(x==y)
+		return;	
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,t,ind,nd<<1,x,mid);
+	else
+		upd(p,t,ind,nd<<1|1,mid+1,y);			
+}
+int main(){
+	memset(ans,-1,sizeof(ans));
+	int n,m;
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;i++){
+		int s,f,t;
+		scanf("%d%d%d",&s,&f,&t);
+		pm[s]=pm[f]=1;
+		bus[i]=mp(mp(f,s),mp(t,i));
+	}
+	for(int i=1;i<=m;i++){
+		int l,r,b;
+		scanf("%d%d%d",&l,&r,&b);
+		pm[l]=pm[r]=1;
+		man[i]=mp(mp(r,l),mp(b,i));
+	}int c=0;
+	tr(it,pm)
+		it->ss=++c;
+	for(int i=1;i<=n;i++)
+		bus[i]={{pm[bus[i].ff.ff],pm[bus[i].ff.ss]},bus[i].ss};	
+	for(int i=1;i<=m;i++)
+		man[i]={{pm[man[i].ff.ff],pm[man[i].ff.ss]},man[i].ss};
+	int point=1;		
+	sort(bus+1,bus+n+1,greater<PTT>());		
+	sort(man+1,man+m+1,greater<PTT>());		
+	for(int i=1;i<=m;i++){
+		while(point<=n and bus[point].ff.ff>=man[i].ff.ff){
+			upd(bus[point].ff.ss,bus[point].ss.ff,bus[point].ss.ss,1,1,c);
+			point++;
+		}
+		ans[man[i].ss.ss]=tap(1,man[i].ff.ss,man[i].ss.ff,1,1,c).ss;
+	}
+	for(int i=1;i<=m;i++)
+		printf("%d ",ans[i]);
+	printf("\n");	
+	return 0;
+}
+//LooK aT mY COde ONlinE +_+

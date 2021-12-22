@@ -1,0 +1,169 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class ProblemA2 {
+    BufferedReader rd;
+
+    ProblemA2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int n = a[0];
+        int px = a[1];
+        int py = a[2];
+        int[][] d = new int[n][];
+        for(int i=0;i<n;i++) {
+            d[i] = intarr();
+        }
+        double min = 1e9;
+        double max = 0;
+        for(int i=0;i<n;i++) {
+            int x1 = d[i][0];
+            int y1 = d[i][1];
+            int x2 = d[(i+1)%n][0];
+            int y2 = d[(i+1)%n][1];
+            double dx1 = dist(x1,y1,px,py);
+            double dx2 = dist(x2,y2,px,py);
+            double minDx = Math.min(dx1, dx2);
+            max = Math.max(max, dx1);
+            int minX = Math.min(x1, x2);
+            int maxX = Math.max(x1, x2);
+            int minY = Math.min(y1, y2);
+            int maxY = Math.max(y1, y2);
+            double minDist;
+            if(x1 == x2) {
+                if(y1 == y2) {
+                    minDist = dx1;
+                } else if(px == x1) {
+                    if(py > maxY) {
+                        minDist = py - maxY;
+                    } else {
+                        minDist = minY - py;
+                    }
+                } else if(py >= minY && py <= maxY) {
+                    minDist = Math.abs(px - x1);
+                } else {
+                    minDist = minDx;
+                }
+            } else if(y1 == y2) {
+                if(py == y1) {
+                    if(px > maxX) {
+                        minDist = px - maxX;
+                    } else {
+                        minDist = minX - px;
+                    }
+                } else if(px >= minX && px <= maxX) {
+                    minDist = Math.abs(py - y1);
+                } else {
+                    minDist = minDx;
+                }
+            } else {
+                minDist = compute(x1,y1,x2,y2,px,py,minDx);
+            }
+            min = Math.min(min, minDist);
+        }
+        double res = circ(max) - circ(min);
+        out(res);
+    }
+
+    private double circ(double r) {
+        return Math.PI * r*r;
+    }
+
+    private double compute(double x1, double y1, double x2, double y2, double px, double py, double minDx) {
+        double x2x1_y2y1 = (x1 - x2) / (y2 - y1);
+        double y2y1_x2x1 = (y2 - y1) / (x2 - x1);
+
+        double b = py - x2x1_y2y1*px;
+        double c = y2 - y2y1_x2x1*x2;
+        double d = y2y1_x2x1 - x2x1_y2y1;
+        double x = (b-c)/d;
+        double y = x2x1_y2y1 * x + b;
+        if(x >= Math.min(x1,x2) && x <= Math.max(x1,x2)) {
+            return dist(x,y,px,py);
+        } else {
+            return minDx;
+        }
+    }
+
+    private double dist(double x1, double y1, double x2, double y2) {
+        double dx = x1-x2;
+        double dy = y1-y2;
+        return Math.sqrt(dx*dx + dy*dy);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemA2();
+    }
+}

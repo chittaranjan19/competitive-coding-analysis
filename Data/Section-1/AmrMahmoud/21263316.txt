@@ -1,0 +1,201 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+const int magic = 270;
+
+vector<int> tree[100005];
+set<pair<int, int> > e;
+set<int> under[100005];
+bool v[100005], done[100005];
+int arr[100005], P[17][100005], h[100005], tmp[100005], ans;
+
+int query(int p, int q)
+{
+  int log;
+  if(h[p] < h[q])
+    swap(p, q);
+  for(log = 1; (1 << log) <= h[p]; log++);
+  log--;
+  for(int i = log; i >= 0; i--)
+    if(h[p] - (1 << i) >= h[q])
+      p = P[i][p];
+  if(p == q)
+    return p;
+  for(int i = log; i >= 0; i--)
+    if(P[i][p] != -1 && P[i][p] != P[i][q])
+      p = P[i][p], q = P[i][q];
+  return P[0][p];
+}
+
+void dfs(int node, int parent = -1, int depth = 1)
+{
+  P[0][node] = parent;
+  h[node] = depth;
+  for(int x : tree[node])
+  {
+    if(x == parent) continue;
+    dfs(x, node, depth + 1);
+  }
+}
+
+bool solve(int node, int parent = -1)
+{
+  int cnt = 0;
+  for(int x : tree[node])
+  {
+    if(x == parent) continue;
+    cnt += solve(x, node);
+  }
+  if(v[node])
+  {
+    ans += cnt;
+    return true;
+  }
+  if(cnt == 1) return true;
+  if(cnt) ans++;
+  return false;
+}
+
+bool sorter(int x, int y)
+{
+  return h[x] > h[y];
+}
+
+int main()
+{
+  int n, m, q, x, y;
+  cin >> n;
+  for(int i=0;i<n-1;i++)
+  {
+    scanf("%d %d", &x, &y);
+    tree[x].pb(y);
+    tree[y].pb(x);
+    e.insert(mp(x, y));
+    e.insert(mp(y, x));
+  }
+  setdp(P);
+  dfs(1);
+  for(int j = 1; (1 << j) <= n; j++)
+    for(int i = 1; i <= n; i++)
+      if(P[j - 1][i] != -1)
+        P[j][i] = P[j - 1][P[j - 1][i]];
+  cin >> q;
+  while(q--)
+  {
+    scanf("%d", &m);
+    for(int i=0;i<m;i++)
+      scanf("%d", &arr[i]);
+    if(m == 1)
+    {
+      printf("0\n");
+      continue;
+    }
+    if(m < magic)
+    {
+      bool bad = false;
+      int c = 0;
+      for(int i=0;i<m && !bad;i++)
+      {
+        v[arr[i]] = true;
+        for(int j=i+1;j<m;j++)
+        {
+          if(e.find(mp(arr[i], arr[j])) != e.end())
+          {
+            bad = true;
+            break;
+          }
+          int lca = query(arr[i], arr[j]);
+          if(!done[lca])
+          {
+            tmp[c++] = lca;
+            done[lca] = true;
+          }
+          if(lca != arr[i]) under[lca].insert(arr[i]);
+          if(lca != arr[j]) under[lca].insert(arr[j]);
+        }
+      }
+      for(int i=0;i<c;i++) done[tmp[i]] = false;
+      if(bad)
+      {
+        for(int i=0;i<m;i++)
+          v[arr[i]] = false;
+        for(int i=0;i<c;i++) under[tmp[i]].clear();
+        printf("-1\n");
+        continue;
+      }
+      sort(tmp, tmp + c, sorter);
+      ans = 0;
+      for(int i=0;i<c;i++)
+      {
+        int cnt = 0;
+        for(int x : under[tmp[i]])
+        {
+          if(done[x]) continue;
+          cnt++;
+        }
+        if(v[tmp[i]])
+        {
+          ans += cnt;
+          for(int x : under[tmp[i]])
+            done[x] = true;
+          under[tmp[i]].clear();
+          continue;
+        }
+        if(cnt == 1)
+        {
+          under[tmp[i]].clear();
+          continue;
+        }
+        if(cnt) ans++;
+        for(int x : under[tmp[i]])
+          done[x] = true;
+        under[tmp[i]].clear();
+      }
+      for(int i=0;i<m;i++)
+        done[arr[i]] = v[arr[i]] = false;
+      printf("%d\n", ans);
+    }
+    else
+    {
+      for(int i=0;i<m;i++)
+        v[arr[i]] = true;
+      bool bad = false;
+      for(int i=0;i<m && !bad;i++)
+        for(int x : tree[arr[i]])
+          if(v[x])
+          {
+            bad = true;
+            break;
+          }
+      if(bad)
+      {
+        for(int i=0;i<m;i++)
+          v[arr[i]] = false;
+        printf("-1\n");
+        continue;
+      }
+      ans = 0;
+      solve(1);
+      printf("%d\n", ans);
+      for(int i=0;i<m;i++)
+        v[arr[i]] = false;
+    }
+  }
+  return 0;
+}

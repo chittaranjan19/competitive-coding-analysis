@@ -1,0 +1,60 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 2e5 + 5;
+
+struct seg
+{
+    int l, r, id;
+
+    bool operator < (const seg &a) const
+    {
+        return l < a.l;
+    }
+} S[maxn];
+int bit[maxn], n, b[maxn], ans[maxn];
+
+void add(int i, int v)
+{
+    while(i <= n)
+    {
+        bit[i] += v;
+        i += i & -i;
+    }
+}
+
+int sum(int i)
+{
+    int ret = 0;
+    while(i)
+    {
+        ret += bit[i];
+        i -= i & -i;
+    }
+    return ret;
+}
+
+int main()
+{
+    scanf("%d", &n);
+    for(int i = 1; i <= n; ++i)
+    {
+        scanf("%d%d", &S[i].l, &S[i].r);
+        S[i].id = i;
+        b[i] = S[i].r;
+    }
+    sort(S + 1, S + n + 1);
+    sort(b + 1, b + n + 1);
+    for(int i = n; i; --i)
+    {
+        int k = lower_bound(b + 1, b + n + 1, S[i].r) - b;
+        ans[S[i].id] = sum(k);
+        add(k, 1);
+    }
+    for(int i = 1; i <= n; ++i) printf("%d\n", ans[i]);
+    return 0;
+}

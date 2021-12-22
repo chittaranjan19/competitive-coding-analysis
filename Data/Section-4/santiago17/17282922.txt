@@ -1,0 +1,101 @@
+//
+// Created by Santiago on 11/04/2016.
+//
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+vector<bool> solution;
+vector<bool> inserted;
+vector<int> height;
+vector<int> parent;
+
+void DFS2(vector<vector<pair<int, bool> > > &graph, vector<bool> &ins, int node) {
+    //printf("DFS2 %d\n", node);
+    solution[node] = true;
+    for (int i = 0; i < graph[node].size(); ++i) {
+        int t = graph[node][i].first;
+        if(parent[node] == t)
+            continue;
+        bool b = graph[node][i].second;
+        //printf("t %d h1 %d h2 %d\n", t, height[t], height[node]);
+        if(!ins[t] && !solution[t]) {
+            ins[t] = true;
+            DFS2(graph, ins, t);
+        }
+    }
+}
+
+void DFS1(vector<vector<pair<int, bool> > > &graph, int node, bool reach) {
+    //printf("DFS1 %d parent %d\n", node, parent[node]);
+    if(reach)
+        solution[node] = true;
+    for (int i = 0; i < graph[node].size(); ++i) {
+        int t = graph[node][i].first;
+        if(parent[node] == t)
+            continue;
+        bool b = graph[node][i].second;
+        if(!inserted[t]) {
+            inserted[t] = true;
+            parent[t] = node;
+            height[t] = height[node] + 1;
+            DFS1(graph, t, reach || b);
+        }
+        else if(reach || b)
+            solution[t] = true;
+    }
+    if(solution[node] && !reach) {
+        vector<bool> ins(graph.size(), false);
+        ins[node] = true;
+        for (int i = 0; i < graph[node].size(); ++i) {
+            int t = graph[node][i].first;
+            bool b = graph[node][i].second;
+            //printf("in %d b %d\n", t, b?1:0);
+            if(!solution[t] && height[t] > height[node]) {
+                ins[t] = true;
+                DFS2(graph, ins, t);
+            }
+            else if(height[t] < height[node] && t != parent[node]) {
+                solution[t] = true;
+            }
+        }
+    }
+}
+
+
+int main() {
+    //freopen("pursuit.in", "r", stdin);
+    int N, M;
+    cin>>N>>M;
+    vector<vector<pair<int, bool> > > graph(N+1);
+    for (int i = 0; i < M; ++i) {
+        int x, y, z;
+        cin>>x>>y>>z;
+        graph[x].push_back(make_pair(y, z==1?true:false));
+        graph[y].push_back(make_pair(x, z==1?true:false));
+    }
+    /*for (int i = 0; i <= N; ++i) {
+        printf("node %d\n", i);
+        for (int j = 0; j < graph[i].size(); ++j) {
+            pair<int, bool> t = graph[i][j];
+            printf("%d %d\n", t.first, t.second? 1:0);
+        }
+    }*/
+    solution = vector<bool>(N+1, false);
+    inserted = vector<bool>(N+1, false);
+    height = vector<int>(N+1);
+    parent = vector<int>(N+1);
+    int start, end;
+    cin>>start>>end;
+    inserted[start] = true;
+    height[start] = 0;
+    parent[start] = 0;
+    DFS1(graph, start, false);
+    if(solution[end])
+        cout<<"YES";
+    else
+        cout<<"NO";
+
+    return 0;
+}

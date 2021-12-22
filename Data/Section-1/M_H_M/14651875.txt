@@ -1,0 +1,121 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <unordered_map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+const int SQ = 320;
+
+unordered_map <int, int> mp[SQ];
+int n, q;
+int a[N];
+deque <int> dq[SQ];
+
+int lastans;
+
+int get(int l, int r, int k){
+	int ans = 0;
+	while(l % SQ != 0 && l < r){
+		if(dq[l / SQ][l % SQ] == k)
+			ans ++;
+		l ++;
+	}
+	while(r % SQ != 0 && l < r){
+		r --;
+		if(dq[r / SQ][r % SQ] == k)
+			ans ++;
+	}
+	for(; l < r; l += SQ)
+		ans += mp[l / SQ][k];
+	return ans;
+}
+
+void update(int l, int r){
+	if(l == r - 1) return;
+	int t;
+	auto it2 = dq[(r - 1) / SQ].begin() + ((r - 1) % SQ);
+	t = *it2;
+	dq[(r - 1) / SQ].erase(it2);
+	mp[(r - 1 / SQ)][t] --;
+	auto it1 = dq[l / SQ].begin() + (l % SQ);
+	dq[l / SQ].insert(it1, t);
+	mp[l / SQ][t] ++;
+	int t1 = l / SQ, t2 = (r - 1) / SQ;
+	while(l % SQ != 0 && l < r)
+		l ++;
+	while(r % SQ != 0 && l < r)
+		r --;
+	for(int i = t1; i < t2; ++i){
+		t = dq[i].back();
+		dq[i].pop_back();
+		mp[i][t] --;
+		dq[i + 1].push_front(t);
+		mp[i + 1][t] ++;
+	}
+/*
+	cerr << "log : \n";
+	for(int i = 0; i < n; ++i){
+		cerr << dq[i / SQ][i % SQ] << " ";
+		if((i + 1) % SQ == 0)
+			cerr << '\n';
+	}
+	cerr << " : end\n";
+*/
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for(int i = 0; i < n; ++i){
+		cin >> a[i];
+		mp[i / SQ][a[i]] ++;
+		dq[i / SQ].push_back(a[i]);
+	}
+	cin >> q;
+	for(int i = 0; i < q; ++i){
+		int t, l, r;
+		cin >> t >> l >> r;
+		if(t == 2){
+			int k;
+			cin >> k;
+			l = (l + lastans - 1) % n + 1;
+			r = (r + lastans - 1) % n + 1;
+			k = (k + lastans - 1) % n + 1;
+			if(l > r) swap(l, r);
+			l --;
+			lastans = get(l, r, k);
+			cout << lastans << "\n";
+		}
+		else{
+			l = (l + lastans - 1) % n + 1;
+			r = (r + lastans - 1) % n + 1;
+			if(l > r) swap(l, r);
+			l --;	
+			update(l, r);
+		}
+	}
+	return 0;
+}

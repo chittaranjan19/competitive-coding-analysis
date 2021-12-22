@@ -1,0 +1,74 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 2e5 + 5;
+const int maxm = 30;
+
+int ch[maxn * maxm][2], val[maxn * maxm], tot;
+char op[5];
+
+void ins(int x)
+{
+    int u = 0;
+    for(int i = maxm; i >= 0; --i)
+    {
+        int c = x >> i & 1;
+        if(!ch[u][c])
+        {
+            ch[u][c] = ++tot;
+            memset(ch[tot], 0, sizeof(ch[tot]));
+            val[tot] = 0;
+        }
+        u = ch[u][c];
+        ++val[u];
+    }
+}
+
+void del(int x)
+{
+    int u = 0;
+    for(int i = maxm; i >= 0; --i)
+    {
+        int c = x >> i & 1;
+        u = ch[u][c];
+        --val[u];
+    }
+}
+
+int query(int x)
+{
+    int u = 0, ret = 0;
+    for(int i = maxm; i >= 0; --i)
+    {
+        int c = x >> i & 1;
+        if(val[ch[u][!c]])
+        {
+            ret |= 1 << i;
+            u = ch[u][!c];
+        }
+        else u = ch[u][c];
+    }
+    return ret;
+}
+
+int main()
+{
+    int n;
+    scanf("%d", &n);
+    tot = 0;
+    memset(ch[0], 0, sizeof(ch[0]));
+    ins(0);
+    for(int i = 0; i < n; ++i)
+    {
+        int x;
+        scanf("%s%d", op, &x);
+        if(*op == '+') ins(x);
+        else if(*op == '-') del(x);
+        else printf("%d\n", query(x));
+    }
+    return 0;
+}

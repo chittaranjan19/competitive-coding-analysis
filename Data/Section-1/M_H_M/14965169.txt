@@ -1,0 +1,113 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+typedef pair<pii, pii> pp;
+
+const int N = 100 * 1000 + 100;
+
+int n, m;
+int a[N];
+int b[N];
+int sz[N];
+int c[N];
+int ps[N];
+int ans[N];
+
+vector <int> g[N];
+vector <pii> q[N];
+
+inline bool cmp(int u, int v){
+	return (sz[u] < sz[v]);
+}
+
+void dfs(int v, int p){
+	for(int u : g[v]){
+		if(u == p) continue;
+		dfs(u, v);
+		sz[v] += sz[u];
+	}
+	sz[v] += 1;
+}
+
+void add(int v, int x){
+	if(x == 1)
+		ps[c[a[v]]] --, c[a[v]] ++;
+	else
+		c[a[v]] --, ps[c[a[v]]] ++;
+}
+
+void doJob(int v, int x){
+	for(int u : g[v])
+		doJob(u, x);
+	add(v, x);
+}
+
+void solve(int v){
+	int lst = -1;
+	for(int u : g[v]){
+		if(lst != -1) doJob(lst, -1);
+		solve(u);
+		lst = u;
+	}
+	lst = -1; 
+	for(int u : g[v]){
+		if(lst != -1) doJob(lst, 1);
+		lst = u;
+	}
+	add( v , 1 ); 
+	for(pii t : q[v]){
+		ans[t.Y] = ps[n] - ps[t.X - 1];
+	}
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> m;
+	for(int i = 0; i < n; ++i){ 
+		cin >> a[i];
+	}
+	for(int i = 0; i < n - 1; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; v --;
+		g[v].PB(u);
+		g[u].PB(v);
+	}
+	dfs(0, -1);
+	for(int i = 0; i < n; ++i)
+		sort(g[i].begin(), g[i].end(), cmp);
+	for(int i = 1; i < n; ++i)
+		g[i].pop_back();
+	for(int i = 0; i < m; ++i){
+		int v, k;
+		cin >> v >> k;
+		v --;
+		q[v].PB(MP(k, i));
+	}
+	solve(0);
+	for(int i = 0; i < m; ++i)
+		cout << ans[i] << "\n";
+	return 0;
+}

@@ -1,0 +1,144 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 175781251
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+pair<int, pair<int, int> > edges[100005];
+vector<pair<int, int> > graph[100005], graphT[100005], sp[100005];
+LL dist[100005], distT[100005];
+bool v[100005];
+bool bridge[100005];
+
+int main()
+{
+  int n, m, s, t, x, y, z;
+  scanf("%d %d %d %d", &n, &m, &s, &t);
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d %d %d", &x, &y, &z);
+    graph[x].pb(mp(y, z));
+    graphT[y].pb(mp(x, z));
+    edges[i] = mp(x, mp(y, z));
+  }
+  for(int i=1;i<=n;i++)
+  {
+    dist[i] = (1LL << 50);
+    distT[i] = (1LL << 50);
+  }
+  priority_queue<pair<LL, int> > q;
+  q.push(mp(0, s));
+  dist[s] = 0;
+  while(!q.empty())
+  {
+    x = q.top().s;
+    q.pop();
+    if(v[x]) continue;
+    v[x] = true;
+    for(int i=0;i<graph[x].size();i++)
+    {
+      y = graph[x][i].f;
+      z = graph[x][i].s;
+      if(dist[y] > dist[x] + z)
+      {
+        dist[y] = dist[x] + z;
+        q.push(mp(-dist[y], y));
+      }
+    }
+  }
+  for(int i=1;i<=n;i++) v[i] = false;
+  q.push(mp(0, t));
+  distT[t] = 0;
+  while(!q.empty())
+  {
+    x = q.top().s;
+    q.pop();
+    if(v[x]) continue;
+    v[x] = true;
+    for(int i=0;i<graphT[x].size();i++)
+    {
+      y = graphT[x][i].f;
+      z = graphT[x][i].s;
+      if(distT[y] > distT[x] + z)
+      {
+        distT[y] = distT[x] + z;
+        q.push(mp(-distT[y], y));
+      }
+    }
+  }
+  for(int i=0;i<m;i++)
+  {
+    x = edges[i].f;
+    y = edges[i].s.f;
+    z = edges[i].s.s;
+    if(dist[x] + distT[y] + z == dist[t])
+    {
+      sp[x].pb(mp(y, i));
+    }
+  }
+  for(int i=1;i<=n;i++) v[i] = false;
+  q.push(mp(0, s));
+  v[s] = true;
+  while(!q.empty())
+  {
+    x = q.top().s;
+    q.pop();
+    if(x == t) break;
+    if(q.size() == 0 && sp[x].size() == 1 && !v[sp[x][0].f])
+      bridge[sp[x][0].s] = true;
+    for(int i=0;i<sp[x].size();i++)
+    {
+      y = sp[x][i].f;
+      if(v[y]) continue;
+      v[y] = true;
+      q.push(mp(-dist[y], y));
+    }
+  }
+  for(int i=0;i<m;i++)
+  {
+    x = edges[i].f;
+    y = edges[i].s.f;
+    z = edges[i].s.s;
+    if(bridge[i])
+    {
+      printf("YES\n");
+      continue;
+    }
+    LL tmp = (dist[x] + distT[y] + z) - dist[t] + 1;
+    if(tmp >= z) printf("NO\n");
+    else printf("CAN %d\n", tmp);
+  }
+  return 0;
+}

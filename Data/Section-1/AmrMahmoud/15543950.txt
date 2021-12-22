@@ -1,0 +1,138 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int arr[100005],sq;
+int suffxor[100005];
+int newk[100005];
+
+int cnt[(1 << 20) + 15], rem[(1 << 20) + 15];
+vector<pair<int, int> > queries[100005];
+LL ans[100005];
+LL cul[100005];
+
+vector<pair<pair<int, int>, int> > v;
+
+bool sorter(pair<pair<int, int>, int> a,pair<pair<int, int>, int> b )
+{
+  if(a.f.f / sq == b.f.f / sq) return a.f.s < b.f.s;
+  return a.f.f / sq < b.f.f / sq;
+}
+
+int main()
+{
+  //freopen("farmer.in", "r", stdin);
+  //freopen("farmer.out", "w", stdout);
+  int n, q, k, x, y, z;
+  cin >> n >> q >> k;
+  sq = sqrt(n) + EPS;
+  for(int i=0;i<n;i++)
+    scanf("%d", &arr[i]);
+  for(int i=0;i<q;i++)
+  {
+    scanf("%d %d", &x, &y);
+    x--, y--;
+    queries[x].pb(mp(y, i));
+    v.pb(mp(mp(x, y), i));
+  }
+  sort(v.begin(), v.end(), sorter);
+  for(int i=n - 1;i>=0;i--)
+  {
+    suffxor[i] = arr[i];
+    if(i != n - 1) suffxor[i] ^= suffxor[i + 1];
+    cnt[suffxor[i]]++;
+  }
+  int _k = k;
+  for(int i=n-1;i>=0;i--)
+  {
+    cul[i + 1] = cnt[_k];
+    cnt[suffxor[i]]--;
+    newk[i] = _k;
+    _k ^= arr[i];
+  }
+  for(int i=2;i<=n;i++)
+    cul[i] += cul[i - 1];
+  for(int i=0;i<n;i++)
+  {
+    for(int j=0;j<queries[i].size();j++)
+    {
+      x = queries[i][j].f, y = queries[i][j].s;
+      ans[y] = cul[x + 1] - cul[i];
+    }
+  }
+  int L = 0, R = 0;
+  LL curr = 0;
+  cnt[newk[0]]++;
+  for(int i=0;i<v.size();i++)
+  {
+    x = v[i].f.f;
+    y = v[i].f.s;
+    z = v[i].s;
+    while(L < x)
+    {
+      cnt[newk[L]]--;
+      curr -= rem[newk[L]];
+      curr += cnt[suffxor[L]];
+      rem[suffxor[L]]++;
+      L++;
+    }
+    while(L > x)
+    {
+      L--;
+      cnt[newk[L]]++;
+      curr += rem[newk[L]];
+      curr -= cnt[suffxor[L]];
+      rem[suffxor[L]]--;
+    }
+    while(R < y)
+    {
+      R++;
+      curr += rem[newk[R]];
+      cnt[newk[R]]++;
+    }
+    while(R > y)
+    {
+      curr -= rem[newk[R]];
+      cnt[newk[R]]--;
+      R--;
+    }
+    ans[z] -= curr;
+  }
+  for(int i=0;i<q;i++)
+    printf("%I64d\n", ans[i]);
+  return 0;
+}

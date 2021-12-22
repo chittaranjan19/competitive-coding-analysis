@@ -1,0 +1,118 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 100010;
+
+struct bit {
+	vector<int> data;
+	int size;
+	void resize (int siz) {
+		size = siz;
+		data.resize(siz + 1);
+	}
+	void update (int x, int v) {
+		for (; x <= size; x += (x & -x)) {
+			data[x] += v;
+		}
+	}
+	void update (int x, int y, int v) {
+		//inc on both ends
+		if (x <= size) {
+			update(max(1, x), v);
+		}
+		y++;
+		if (y <= size) {
+			update(max(1, y), -v);
+		}
+	}
+	int query (int x) {
+		int s = 0;
+		for (; x; x &= x - 1) {
+			s += data[x];
+		}
+		return s;
+	}
+};
+
+int N, Q;
+vector<int> adj[MAXN];
+int bel[MAXN], ind[MAXN];
+bit chains[MAXN], dp;	//chains = each one chain, dp = for just depth in general
+int val1;
+
+void dfs (int x, int p, int b, int d) {
+	bel[x] = b;
+	ind[x] = d++;
+	bool nochild = true;
+	for (int t : adj[x]) {
+		if (t != p) {
+			nochild = false;
+			dfs(t, x, b, d);
+		}
+	}
+	if (nochild) {
+		//then resize the array
+		chains[b].resize(d);
+	}
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> Q;
+	for (int i = 1, a, b; i < N; i++) {
+		cin >> a >> b;
+		adj[a].push_back(b);
+		adj[b].push_back(a);
+	}
+	//find the chains
+	for (int i = 0, sz = adj[1].size(); i < sz; i++) {
+		dfs(adj[1][i], 1, i, 1);
+	}
+	dp.resize(N);
+	for (int q, v, x, d; Q--; ) {
+		cin >> q >> v;
+		if (q) {
+			if (v == 1) {
+				cout << val1;
+			} else {
+				//otherwise it's more complicated
+				int b = bel[v], i = ind[v];
+				cout << chains[b].query(i) + dp.query(i);
+			}
+			cout << '\n';
+		} else {
+			cin >> x >> d;
+			bit &bt = chains[bel[v]];
+			//first update go DOWN
+			bt.update(ind[v] + 1, ind[v] + d, x);
+			//a few cases
+			if (d < ind[v]) {
+				//then you just update the chain. easy
+				bt.update(ind[v] - d, ind[v], x);
+			} else {
+				val1 += x;
+				bt.update(1, ind[v], x);	//meh stupid error
+				d -= ind[v];
+				if (d) {
+					//then update d down
+					dp.update(1, d, x);
+					bt.update(1, d, -x);
+				}
+			}
+		}
+	}
+}

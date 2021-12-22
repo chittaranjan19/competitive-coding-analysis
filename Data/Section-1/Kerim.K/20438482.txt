@@ -1,0 +1,98 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+ll type[MAXN],p[MAXN],d[MAXN],xx[MAXN];
+class node{
+	public:
+	ll cnt,sum,ans;
+	node(){cnt=sum=ans=0;}
+	void init(){cnt=sum=ans=0;}
+}s[MAXN<<4],res;
+node merge(node x,node y){
+	node z;
+	z.cnt=x.cnt+y.cnt;
+	z.sum=x.sum+y.sum;
+	z.ans=(x.cnt*y.sum-y.cnt*x.sum)+(x.ans+y.ans);
+	return z;
+}
+void upd(ll p,ll v,ll vv,ll nd,ll x,ll y){
+	if(x==y){
+		s[nd].cnt+=vv;
+		s[nd].sum+=v;
+		return;
+	}
+	ll mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,v,vv,nd<<1,x,mid);
+	else
+		upd(p,v,vv,nd<<1|1,mid+1,y);
+	s[nd]=merge(s[nd<<1],s[nd<<1|1]);	
+}
+void tap(ll l,ll r,ll nd,ll x,ll y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		res=merge(res,s[nd]);
+		return;
+	}
+	ll mid=(x+y)>>1;
+	tap(l,r,nd<<1,x,mid);
+	tap(l,r,nd<<1|1,mid+1,y);
+}
+map<ll,ll>pm;
+int main(){
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	ll n;
+	scanf("%lld",&n);
+	for(ll i=1;i<=n;i++){
+		scanf("%lld",&xx[i]);
+		pm[xx[i]]=1;
+	}ll q,c=0;
+	scanf("%lld",&q);
+	for(ll i=1;i<=q;i++){
+		scanf("%lld%lld%lld",type+i,p+i,d+i);	
+		if(type[i]==1){
+			xx[p[i]]+=d[i];
+			pm[xx[p[i]]]=1;
+		}
+		else
+			pm[p[i]]=pm[d[i]]=1;
+	}
+	for(ll i=1;i<=q;i++)
+		if(type[i]==1)
+			xx[p[i]]-=d[i];
+	tr(it,pm)
+		it->ss=++c;
+	for(ll i=1;i<=n;i++)
+		upd(pm[xx[i]],xx[i],1,1,1,c);
+	for(ll i=1;i<=q;i++){
+		if(type[i]==1){
+			ll &ret=xx[p[i]];
+			upd(pm[ret],-ret,-1,1,1,c);ret+=d[i];
+			upd(pm[ret],+ret,+1,1,1,c);
+		}
+		else{
+			res.init();
+			tap(pm[p[i]],pm[d[i]],1,1,c);
+			printf("%lld\n",res.ans);
+		}
+	}			
+	return 0;
+}

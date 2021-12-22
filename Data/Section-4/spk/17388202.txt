@@ -1,0 +1,148 @@
+#include<iostream>
+#include<cstdio>
+#include<map>
+#include<string>
+#include<cstring>
+#include<vector>
+#include<algorithm>
+#include<stack>
+
+using namespace std;
+
+void scan(int &x); //IMPORTANT: for positive only
+void scanl(long &x);
+
+#define fill(a,val) memset(a, (val), sizeof a)
+#define pb push_back
+#define N 100003
+#define MOD 1000000007
+
+long cost[N];
+vector<int> edge[N],edge_rev[N];
+long long tmin,nowa;
+bool visited[N]={false};
+stack<int> stk;
+
+void dfs(int s)
+{
+    visited[s] = true;
+
+    for(int i=0;i<edge[s].size();i++)
+    {
+        if(!visited[edge[s][i]])
+        {
+            dfs(edge[s][i]);
+        }
+    }
+    stk.push(s);
+}
+
+void dfs1(int s)
+{
+    visited[s] = true;
+
+    for(int i=0;i<edge_rev[s].size();i++)
+    {
+        if(!visited[edge_rev[s][i]])
+        {
+
+          if(cost[edge_rev[s][i]]<tmin)
+          {
+            tmin = cost[edge_rev[s][i]];
+            nowa = 1;
+          }
+          else if(cost[edge_rev[s][i]]==tmin) nowa++;
+
+          dfs1(edge_rev[s][i]);
+        }
+    }
+}
+
+int main(void)
+{
+  int n,m,x,y;
+
+  long long totw=1,totc=0;
+
+  cin >> n ;
+
+  for(int i=0;i<n;i++) scanl(cost[i]);
+
+  cin >> m;
+
+  for(int i=0;i<m;i++)
+  {
+      scan(x);
+      scan(y);
+      x--;
+      y--;
+      edge[x].pb(y);
+      edge_rev[y].pb(x);
+  }
+
+  fill(visited,false);
+
+  for(int i=0;i<n;i++)
+    if(!visited[i]) dfs(i);
+
+  fill(visited,false);
+
+  while(!stk.empty())
+  {
+      if(!visited[stk.top()])
+      {
+          tmin = cost[stk.top()];
+          nowa = 1;
+          dfs1(stk.top());
+          totc += tmin;
+          totw = (totw*nowa)%MOD;
+      }
+      stk.pop();
+  }
+
+  cout << totc << " " << totw;
+  return 0;
+}
+
+
+
+
+void scan(int &x)
+{
+    register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+
+   /* register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x; */
+}
+
+
+
+
+
+
+
+
+
+void scanl(long &x)
+{
+    register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+
+   /* register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x; */
+}

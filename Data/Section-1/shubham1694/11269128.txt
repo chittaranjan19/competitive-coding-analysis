@@ -1,0 +1,124 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define MOD 1000000007
+#define inf 1000000000
+#define maxn 10000
+
+#define ll long long
+#define pii pair<int, int>
+#define pb push_back
+#define sin scanint
+#define bitcount(x) __builtin_popcount(x)
+#define fill(s, p) memset(s, p, sizeof(s));
+#define gc getchar
+
+void scanint(int &x)
+{
+    register int c = gc();
+    x = 0;
+    for(;(c<48 || c>57);c = gc());
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+}
+
+struct node{
+    int ind, val;
+};
+
+node segtree[2][maxn];
+int feeder[maxn], mat[1001][1001];
+
+void init(int s, int e, int node_num, int type)
+{   
+    if(s==e){
+        segtree[type][node_num].ind = s;
+        segtree[type][node_num].val = feeder[s];
+        return;
+    }
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*node_num+1;
+    rc = lc+1;
+    init(s, mid, lc, type);
+    init(mid+1, e, rc, type);
+    if(segtree[type][lc].val > segtree[type][rc].val)
+        segtree[type][node_num] = segtree[type][lc];
+    else
+        segtree[type][node_num] = segtree[type][rc];
+    return;
+}
+
+void update(int s, int e, int q, int diff, int node_num, int type)
+{
+    if(s>e || s>q || q>e)
+        return;
+    if(s==e){
+        segtree[type][node_num].val+=diff;
+        return;
+    }
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*node_num+1;
+    rc = lc+1;
+    if(q<=mid)
+        update(s, mid, q, diff, lc, type);
+    else
+        update(mid+1, e, q, diff, rc, type);
+    if(segtree[type][lc].val > segtree[type][rc].val)
+        segtree[type][node_num] = segtree[type][lc];
+    else
+        segtree[type][node_num] = segtree[type][rc];
+    return;
+}
+
+int main()
+{
+    #ifndef ONLINE_JUDJE
+        //freopen("input.txt", "r", stdin);
+    #endif
+    int n, m, k, p, i, j, x, y, r_ind, c_ind, sum, r_off, c_off, ans, diff;
+    sin(n);
+    sin(m);
+    sin(k);
+    sin(p);
+    for(i=0; i<n; i++){
+        sum = 0;
+        for(j=0; j<m; j++){
+            sin(mat[i][j]);
+            sum+=mat[i][j];
+        }
+        feeder[i] = sum;
+    }
+    init(0, n-1, 0, 0);
+    for(i=0; i<m; i++){
+        sum = 0;
+        for(j=0; j<n; j++)
+            sum+=mat[j][i];
+        feeder[i] = sum;
+    }
+    init(0, n-1, 0, 1);
+    r_off = c_off = ans = 0;
+    while(k--){
+        //cout << k << endl;
+        x = segtree[0][0].val + r_off;
+        r_ind = segtree[0][0].ind;
+        y = segtree[1][0].val + c_off;
+        c_ind = segtree[1][0].ind;
+        //cout << x << " " << y << endl;
+        if(x>=y){
+            ans += x;
+            c_off-=p;
+            diff = -(n*p);
+            update(0, n-1, r_ind, diff, 0, 0);
+        }
+        else{
+            ans += y;
+            r_off-=p;
+            diff = -(m*p);
+            update(0, m-1, c_ind, diff, 0, 1);
+        }
+    }
+    printf("%d\n", ans);
+    return 0;
+}

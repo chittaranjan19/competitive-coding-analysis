@@ -1,0 +1,153 @@
+#include<iostream>
+#include<cstdio>
+#include<map>
+#include<string>
+#include<cstring>
+#include<vector>
+#include<algorithm>
+#include<queue>
+#include<set>
+#include<stack>
+
+#define fill(a,val) memset(a, (val), sizeof a)
+#define pb push_back
+#define scantype int
+#define min(a,b) a<b?a:b
+#define max(a,b) a>b?a:b
+#define lli long long int
+
+lli powermod(lli _a,lli _b){lli _r=1;while(_b){if(_b%2==1)_r=(_r*_a);_b/=2;_a=(_a*_a);}return _r;}
+
+using namespace std;
+
+void scan(scantype &x);
+
+int main(void)
+{
+  int n,m;
+
+  cin>>n>>m;
+
+  int a[m];
+  lli res=0,now=0;
+
+  for(int i=0;i<m;i++)
+      scan(a[i]);
+
+  for(int i=1;i<m;i++)
+    res+= abs(a[i]-a[i-1]);
+  now=res;
+
+  bool vis[m];
+  map<int,vector<int> >mp;
+
+  for(int i=0;i<m;i++)
+      mp[a[i]].pb(i);
+
+  fill(vis,false);
+
+  for(int i=0;i<m;i++)
+  {
+      if(vis[i])continue;
+
+      int k = a[i],ma=-1,by,by1;
+      by=by1=0;
+      lli sum = now;
+      //cout<<"now: "<<a[i]<<" "<<endl;
+      for(int j=0;j<mp[k].size();j++)
+      {
+          int ti = mp[k][j],ta=0,tby,tby1;
+          tby=tby1=0;
+          //cout<<"  "<<ti<<" "<<endl;
+          vis[ti]=true;
+          if(ti==0)
+          {
+            ta = abs(a[ti]-a[ti+1]);
+            tby1=a[ti+1];
+            sum-=(lli)ta;
+          }
+          else if(ti==m-1)
+          {
+             ta = abs(a[ti]-a[ti-1]);
+             tby=a[ti-1];
+             sum-=(lli)ta;
+          }
+          else
+          {
+              ta = abs(a[ti-1]-a[ti+1]);
+              tby=a[ti-1];
+              tby1=a[ti+1];
+              sum-= (lli)(abs(a[ti]-a[ti+1])+abs(a[ti-1]-a[ti]));
+          }
+
+          if(ta>ma)
+           {
+               by=tby;
+               by1=tby1;
+               ma=ta;
+           }
+      }
+      //cout<<"sum: "<<sum<<endl;
+      lli tsum=sum;
+
+      //cout<<"   got: "<<by<<" "<<by1<<endl;
+      int flag=0;
+      for(int j=0;j<mp[k].size() && by;j++)
+      {
+          flag=1;
+          int ti=mp[k][j];
+
+          if(ti==0)
+            sum+=(lli)abs(by-a[ti+1]);
+          else if(ti==m-1)
+            sum+=(lli)abs(by-a[ti-1]);
+          else
+            sum+=(lli)(abs(by-a[ti-1])+abs(by-a[ti+1]));
+
+      }
+      if(flag)res = min(res,sum);
+      sum=tsum;
+      flag=0;
+      for(int j=0;j<mp[k].size() && by1;j++)
+      {
+          flag=1;
+          int ti=mp[k][j];
+
+          if(ti==0)
+            sum+=(lli)abs(by1-a[ti+1]);
+          else if(ti==m-1)
+            sum+=(lli)abs(by1-a[ti-1]);
+          else
+            sum+=(lli)(abs(by1-a[ti-1])+abs(by1-a[ti+1]));
+
+      }
+      if(flag)res= min(res,sum);
+  }
+
+  cout<<res;
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+void scan(scantype &x)
+{
+    /*register int c = getchar(); //for positive
+    x = 0;
+    for(;(c<48 || c>57);c = getchar());
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}*/
+
+    register int c = getchar(); //for negative/positive
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = getchar());
+    if(c=='-') {neg=1;c=getchar();}
+    for(;c>47 && c<58;c = getchar()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x;
+}

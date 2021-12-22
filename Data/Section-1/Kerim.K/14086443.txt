@@ -1,0 +1,113 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define dbgs(x) cerr << (#x) << " --> " << (x) << ' '
+#define dbg(x) cerr << (#x) << " --> " << (x) << endl
+
+#define foreach(i,x) for(type(x)i=x.begin();i!=x.end();i++)
+#define FOR(ii,aa,bb) for(int ii=aa;ii<=bb;ii++)
+#define ROF(ii,aa,bb) for(int ii=aa;ii>=bb;ii--)
+
+#define type(x) __typeof(x.begin())
+
+#define orta (bas + son >> 1)
+#define sag (k + k + 1)
+#define sol (k + k)
+
+#define pb push_back
+#define mp make_pair
+
+#define nd second
+#define st first
+
+#define endl '\n'
+
+typedef pair < int ,int > pii;
+
+typedef long long ll;
+
+const long long linf = 1e18+5;
+const int mod = (int) 1e9 + 7;
+const int inf = 1e9;
+const int N = 2e5 + 5;
+const int logN = 17;
+
+#define int ll
+
+int q, n, m, t, lca[N][logN+1], depth[N], up[N], root[N];
+ll x, y, z, val[N], vv[N];
+vector< pair< int , ll > > v[N];
+pii e[N];
+
+int findset(int x) { return root[x] == x ? x : root[x] = findset(root[x]); }
+
+void dfs(int node, int root) {
+	lca[node][0] = root;
+	depth[node] = depth[root] + 1;
+	foreach(it, v[node])
+		if(it->st != root) {
+			vv[it->st] = it->nd;
+			dfs(it->st, node);
+		}
+}
+
+int LCA(int x, int y) {
+	if(depth[x] < depth[y]) swap(x, y);
+	int diff = depth[x] - depth[y];
+	FOR(j, 0, logN)
+		if((1 << j) & diff)
+			x = lca[x][j];
+	if(x == y) return x;
+	ROF(i, logN, 0)
+		if(lca[x][i] != lca[y][i])
+			x = lca[x][i],
+			y = lca[y][i];
+	return lca[x][0];
+}
+
+void take(ll &val, int x, int y) {
+	while(val && findset(x) != findset(y)) {
+		val /= vv[findset(x)];
+		x = lca[findset(x)][0];
+	}	
+}
+
+ main() {
+	
+	scanf("%lld %lld",&n, &q);
+
+	FOR(i, 1, n) root[i] = i; 
+
+	FOR(i, 1, n-1) {
+		scanf("%lld %d %lld", &e[i].st, &e[i].nd, &val[i]);
+		v[e[i].st].pb(mp(e[i].nd, val[i]));
+		v[e[i].nd].pb(mp(e[i].st, val[i]));
+	}
+	
+	dfs(1, 0);
+
+	FOR(i, 1, logN)
+		FOR(j, 1, n)
+			lca[j][i] = lca[lca[j][i-1]][i-1];
+
+	FOR(i, 1, q) {
+		scanf("%d",&t);
+		if(t == 1) {
+			scanf("%lld %lld %lld",&x, &y, &z);
+			int t = LCA(x, y);
+			take(z, x, t);
+			take(z, y, t);
+			printf("%lld\n",z);
+		}
+		else {
+			scanf("%lld %lld",&x, &y);
+			int xx = e[x].st, yy = e[x].nd;
+			if(depth[xx] < depth[yy]) swap(xx, yy);
+			vv[xx] = y;
+		}
+	
+	}
+
+	return 0;
+}

@@ -1,0 +1,127 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<int> g[3005];
+int sp[3005][3005], v[3005];
+int pa[3005][3005];
+bool taken[3005][3005];
+int s[2], t[2], l[2];
+
+int main()
+{
+  //freopen("immetric.in", "r", stdin);
+  //freopen("immetric.out", "w", stdout);
+  int n, m, x, y;
+  scanf("%d %d", &n, &m);
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d %d", &x, &y);
+    g[x].pb(y);
+    g[y].pb(x);
+  }
+  for(int i=1;i<=n;i++)
+  {
+    queue<pair<int, int> > q;
+    q.push(mp(i, 0));
+    v[i] = i;
+    pa[i][i] = -1;
+    while(!q.empty())
+    {
+      x = q.front().f;
+      y = q.front().s;
+      q.pop();
+      sp[i][x] = y;
+      for(int j=0;j<g[x].size();j++)
+      {
+        if(v[g[x][j]] != i)
+        {
+          q.push(mp(g[x][j], y + 1));
+          v[g[x][j]] = i;
+          pa[i][g[x][j]] = x;
+        }
+      }
+    }
+  }
+  int res = 0, cnt = 0;
+  for(int i=0;i<2;i++)
+  {
+    scanf("%d %d %d", &s[i], &t[i], &l[i]);
+    if(sp[s[i]][t[i]] > l[i])
+    {
+      printf("-1");
+      return 0;
+    }
+  }
+  for(int _=0;_<2;_++)
+  {
+    if(_)
+    {
+      swap(s[0], s[1]);
+      swap(t[0], t[1]);
+      swap(l[0], l[1]);
+    }
+    vector<int> nodes;
+    x = t[1];
+    while(x != -1)
+    {
+      nodes.pb(x);
+      y = pa[s[1]][x];
+      if(y != -1 && !taken[x][y])
+      {
+        taken[x][y] = true;
+        taken[y][x] = true;
+        cnt++;
+      }
+      x = y;
+    }
+    for(int i=0;i<nodes.size();i++)
+    {
+      x = nodes[i];
+      for(int j=0;j<nodes.size();j++)
+      {
+        y = sp[s[0]][x] + sp[x][nodes[j]] + sp[nodes[j]][t[0]];
+        if(y > l[0]) continue;
+        y += sp[s[1]][x] + sp[nodes[j]][t[1]];
+        res = max(res, m - y);
+      }
+    }
+  }
+  res = max(res, m - cnt);
+  printf("%d", res);
+  return 0;
+}

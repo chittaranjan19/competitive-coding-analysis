@@ -1,0 +1,55 @@
+program antimatter;
+
+const
+  tfi = '';//'383d.inp';
+  tfo = '';//'383d.out';
+  base = 1000000007;
+
+var
+  n : longint;
+  a : array [1..1000] of longint;
+  f : array [1..1001,-10000..10000,0..1] of longint;
+  dd : array [1..1001,-10000..10000,0..1] of boolean;
+  fi,fo : text;
+
+procedure input;
+  var i : longint;
+  begin
+    assign(fi,tfi);
+    reset(fi);
+    read(fi,n);
+    for i := 1 to n do read(fi,a[i]);
+    close(fi);
+  end;
+
+function cal(i,j,k : longint) : longint;
+  begin
+    if not dd[i,j,k] then
+      begin
+        dd[i,j,k] := true;
+        if i = n+1 then
+          begin
+            if (j = 0) and (k = 1) then f[i,j,k] := 1;
+          end
+        else
+          begin
+            f[i,j,k] := (cal(i+1,j-a[i],1) + cal(i+1,j+a[i],1)) mod base;
+            if (j = 0) and (k <> 0) then f[i,j,k] := (f[i,j,k] + 1) mod base;
+            if k = 0 then f[i,j,k] := (f[i,j,k] + cal(i+1,j,0)) mod base;
+          end;
+      end;
+    exit(f[i,j,k]);
+  end;
+
+procedure output;
+  begin
+    assign(fo,tfo);
+    rewrite(fo);
+    write(fo,cal(1,0,0));
+    close(fo);
+  end;
+
+begin
+  input;
+  output;
+end.

@@ -1,0 +1,173 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+#include <stack>
+using namespace std;
+
+typedef long long ll;
+#define mod 1000000007
+#define pi acos(-1.0)
+#define LINF 1000000000000000000LL
+#define eps 1e-10
+
+char a[100005], res[100005];
+int n;
+int dp[100005][2][2][2];
+
+bool solve(int i, int perenosLeft, int perenosRight, int can0)
+{
+	int j = n - i - 1;
+	if(i > j)
+		return true;
+	if(dp[i][perenosLeft][perenosRight][can0] != -1)
+		return dp[i][perenosLeft][perenosRight][can0];
+	bool res = false;
+	int sum = a[i];
+	if(perenosLeft)
+		sum += 10;
+	for(int k = can0 ? 0 : 1; k <= 9; k++)
+	{
+		int k2 = sum - k;
+		if(i == j && k != k2) continue;
+		if(0 <= k2 && k2 <= 9)
+		{
+			if((k + k2 + perenosRight) % 10 == a[j])
+				res |= solve(i + 1, 0, (k + k2 + perenosRight) / 10, 1);
+		}
+	}
+	sum--;
+	if(sum >= 0)
+	{
+		for(int k = can0 ? 0 : 1; k <= 9; k++)
+		{
+			int k2 = sum - k;
+			if(i == j && k != k2) continue;
+			if(0 <= k2 && k2 <= 9)
+			{
+				if((k + k2 + perenosRight) % 10 == a[j])
+				{
+					if(j - i > 1 || (j - i == 1 && k + k2 + perenosRight >= 10))
+					{
+						res |= solve(i + 1, 1, (k + k2 + perenosRight) / 10, 1);
+					}
+				}
+			}
+		}
+	}
+	return dp[i][perenosLeft][perenosRight][can0] = res;
+}
+
+void buildRes(int i, int perenosLeft, int perenosRight, int can0)
+{
+	int j = n - i - 1;
+	if(i > j)
+		return;
+	int sum = a[i];
+	if(perenosLeft)
+		sum += 10;
+	for(int k = can0 ? 0 : 1; k <= 9; k++)
+	{
+		int k2 = sum - k;
+		if(i == j && k != k2) continue;
+		if(0 <= k2 && k2 <= 9)
+		{
+			if((k + k2 + perenosRight) % 10 == a[j])
+			{
+				if(solve(i + 1, 0, (k + k2 + perenosRight) / 10, 1))
+				{
+					res[i] = k + '0';
+					res[j] = k2 + '0';
+					buildRes(i + 1, 0, (k + k2 + perenosRight) / 10, 1);
+					return;
+				}
+			}
+		}
+	}
+	sum--;
+	if(sum >= 0)
+	{
+		for(int k = can0 ? 0 : 1; k <= 9; k++)
+		{
+			int k2 = sum - k;
+			if(i == j && k != k2) continue;
+			if(0 <= k2 && k2 <= 9)
+			{
+				if((k + k2 + perenosRight) % 10 == a[j])
+				{
+					if(j - i > 1 || (j - i == 1 && k + k2 + perenosRight >= 10))
+					{
+						res[i] = k + '0';
+						res[j] = k2 + '0';
+						buildRes(i + 1, 1, (k + k2 + perenosRight) / 10, 1);
+						return;
+					}
+				}
+			}
+		}
+	}
+}
+
+int rev(int n)
+{
+	int k = 0;
+	while(n)
+	{
+		k = k * 10 + n % 10;
+		n /= 10;
+	}
+	return k;
+}
+
+int brute(int n)
+{
+	for(int i = 1; i <= n; i++)
+		if(i + rev(i) == n)
+			return i;
+	return 0;
+}
+
+int main()
+{
+	scanf("%s", a);
+
+	n = strlen(a);
+	for(int i = 0; i < n; i++)
+		a[i] -= '0';
+	memset(dp, -1, sizeof(dp));
+	bool ok = solve(0, 0, 0, 0);
+	if(ok)
+	{
+		buildRes(0, 0, 0, 0);
+		puts(res);
+		return 0;
+	}
+	else if(a[0] == 1 && n >= 2)
+	{
+		n--;
+		for(int i = 0; i < n; i++)
+			a[i] = a[i+1];
+		memset(dp, -1, sizeof(dp));
+		ok = solve(0, 1, 0, 0);
+		if(ok)
+		{
+			buildRes(0, 1, 0, 0);
+			puts(res);
+			return 0;
+		}
+	}
+	puts("0");
+	//printf("%d\n", brute(110));
+	return 0;
+}
+

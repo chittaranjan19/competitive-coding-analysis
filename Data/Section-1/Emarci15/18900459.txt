@@ -1,0 +1,87 @@
+#include <cstdio>
+#include <algorithm>
+
+#define maxs 320
+
+using namespace std;
+
+int n,q,s;
+
+int a[maxs][2*maxs];
+int ak[maxs];
+int db[maxs][100000];
+
+int b[100000];
+
+void cleardb() {
+    int bv(0);
+    for(int i=0; i<=((n-1)/s); i++) {
+        for(int j=0; j<(ak[i+1]-ak[i]); j++) {
+            db[i][a[i][j]]--;
+            b[bv++] = a[i][j];
+        }
+    }
+}
+
+void build() {
+    for(int i=0; i<n; i++) {
+        if(!(i%s)) ak[(i/s)+1] = ak[i/s];
+        a[i/s][i%s] = b[i];
+        db[i/s][b[i]]++;
+        ak[(i/s)+1]++;
+    }
+}
+
+int main()
+{
+    scanf("%d",&n);
+    s = (int)sqrt(n);
+
+    for(int i=0; i<n; i++) {
+        scanf("%d",&b[i]); b[i]--;
+    }
+    build();
+
+
+    int ans(0);
+    scanf("%d",&q);
+    for(int i=0; i<q; i++) {
+        if((i%s) == s-1) {
+            cleardb();
+            build();
+        }
+
+        int t,l,r; scanf("%d%d%d",&t,&l,&r); l--; r--;
+        l = (l+ans) % n;
+        r = (r+ans) % n;
+        if(l>r) swap(l,r);
+        auto lit = upper_bound(ak,ak+((n-1)/s)+1,l); lit--;
+        int ls = lit-&ak[0];
+        auto rit = upper_bound(ak,ak+((n-1)/s)+1,r); rit--;
+        int rs = rit-&ak[0];
+
+        if(t==1) {
+            int ar = a[rs][r-ak[rs]];
+            db[rs][ar]--;
+            for(int j=r-ak[rs]; j<(ak[rs+1]-ak[rs])-1; j++) a[rs][j] = a[rs][j+1];
+
+            db[ls][ar]++;
+            for(int j=ak[ls+1]-ak[ls]; j>l-ak[ls]; j--) a[ls][j] = a[ls][j-1];
+            a[ls][l-ak[ls]] = ar;
+
+            for(int j=ls+1; j<=rs; j++) ak[j]++;
+        } else {
+            int k; scanf("%d",&k); k--;
+            k = (k+ans) % n;
+
+            ans = 0;
+            for(int j=l-ak[ls]; j<(ak[ls+1]-ak[ls]); j++) ans += (a[ls][j]==k);
+            for(int j=0; j<=r-ak[rs]; j++) ans += (a[rs][j]==k);
+            if(ls == rs) ans -= db[ls][k];
+            for(int j=ls+1; j<rs; j++) ans += db[j][k];
+            printf("%d\n",ans);
+        }
+    }
+
+    return 0;
+}

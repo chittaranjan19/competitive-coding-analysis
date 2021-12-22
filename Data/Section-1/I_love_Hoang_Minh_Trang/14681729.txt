@@ -1,0 +1,121 @@
+using namespace std;
+#include<bits/stdc++.h>
+#define FOR(i, a, b) for (int i = a; i < b; i++)
+#define FORE(i, a, b) for (int i = a; i <= b; i++)
+#define FORD(i, a, b) for (int i = a; i >= b; i--)
+const int MAXN = 1e6 * 5 + 10;
+const int INF = 1e9 + 9;
+
+int m, n, k;
+int a[MAXN], b[MAXN];
+int Era[MAXN], nt[MAXN], c[MAXN], top = 0;
+pair<int, int> X[MAXN], Y[MAXN];
+int tx = 0, ty = 0;
+int dx[MAXN], dy[MAXN];
+
+void sub1()
+{
+    FORE(i, 1, m){
+        int tmp = a[i];
+        while (tmp > 1){
+            int prime = nt[Era[tmp]];
+            while (tmp % prime == 0) dx[prime]++, tmp /= prime;
+        }
+    }
+    FORE(i, 1, n){
+        int tmp = b[i];
+        while (tmp > 1){
+            int prime = nt[Era[tmp]];
+            while (tmp % prime == 0) dy[prime]++, tmp /= prime;
+        }
+    }
+    FORE(i, 1, 1e6) if (dx[i]){
+        X[++tx].first = i;
+        X[tx].second = dx[i];
+    }
+    FORE(i, 1, 1e6) if (dy[i]){
+        Y[++ty].first = i;
+        Y[ty].second = dy[i];
+    }
+    if (tx == 0 && ty == 0) //both == 1
+    {
+        cout<<1;
+        return;
+    }
+    if (tx == 0 && ty){
+        long long ans = 1;
+        FORE(i, 1, ty) ans = (ans * 2) % INF;
+        cout<<ans;
+        return;
+    }
+    if (ty == 0 && tx){
+        cout<<0;
+        return;
+    }
+    FORE(i, 1, 1e6) if (dx[i] > dy[i]){
+        cout<<0;
+        return;
+    }
+    if (tx != ty){
+        cout<<0;
+        return;
+    }
+    FORE(i, 1, tx) if (X[i].first != Y[i].first || X[i].second > Y[i].second){
+        cout<<0;
+        return ;
+    }
+    long long ans = 1;
+    FORE(i, 1, tx) if (X[i].second != Y[i].second) ans = (ans * 2) % INF;
+    cout << ans;
+}
+
+int lcm(int a, int b)
+{
+    return a / __gcd(a, b) * b;
+}
+
+void trau()
+{
+    long long q = 1, p = 1;
+    FORE(i, 1, m) q *= a[i];
+    FORE(i, 1, n) p *= b[i];
+    int ans  = 0;
+    //cout<<q<<" "<<p<<endl;
+    FORE(x, q, p)
+    FORE(y, q, p) if (__gcd(x, y) == q && lcm(x, y) == p){
+        ans++;
+      //  cout<<x<<" "<<y<<endl;
+    }
+    cout <<ans<<endl;
+}
+int main()
+{
+    ios::sync_with_stdio(false); cin.tie(0);
+    #ifndef ONLINE_JUDGE
+    freopen("GCDLCM.inp", "r", stdin);
+    freopen("GCDLCM.out", "w", stdout);
+    #endif // ONLINE_JUDGE
+    //MIKELHPDATKE;
+    cin >> m >> n >> k;
+    FORE(i, 1, m) cin >> a[i];
+    FORE(i, 1, n) cin >> b[i];
+
+    if (m == 1 && n == 1 && k == 1){
+        if (a[1] == b[1]) cout<<1;
+        else cout<<0;
+        return 0;
+    }
+    FORE(i, 2, 1e6) if (!c[i]){
+        nt[++top] = i;
+        Era[i] = top;
+        int j = i + i;
+        while (j <= 1e6){
+            c[j] = 1;
+            Era[j] = top;
+            j += i;
+        }
+    }
+    //trau();
+    sub1();
+    return 0;
+}

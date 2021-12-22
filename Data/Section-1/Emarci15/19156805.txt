@@ -1,0 +1,146 @@
+#include <iostream>
+#include <unordered_map>
+#include <queue>
+
+using namespace std;
+
+int idv;
+struct Trie {
+    unordered_map<char,Trie*> ch;
+    Trie *parent, *fall;
+    char c;
+    int sz;
+    int id;
+    Trie(char c): c(c) {
+        sz = 0;
+        fall = parent = NULL;
+        id = idv++;
+    }
+};
+
+void add(Trie *t, char *c, int w) {
+    if(*c=='\0') {
+        t->sz += w;
+        return;
+    }
+
+    if(t->ch.find(*c) == t->ch.end()) {
+        Trie *u = new Trie(*c);
+        u->parent = t;
+        t->ch[*c] = u;
+    }
+
+    char *cc = c; cc++;
+    add(t->ch[*c],cc,w);
+}
+
+void muladd(long long a[201][201], long long b[201][201], long long c[201][201]) {
+    for(int i=0; i<idv; i++) {
+        for(int j=0; j<idv; j++) {
+            c[i][j] = -10000000000000001ll;
+            for(int k=0; k<idv; k++) {
+                c[i][j] = max(c[i][j], a[i][k]+b[k][j]);
+            }
+            if(c[i][j] < 0) c[i][j] = -10000000000000001ll;
+        }
+    }
+}
+
+void cpy(long long a[201][201], long long b[201][201]) {
+    for(int i=0; i<idv; i++) {
+        for(int j=0; j<idv; j++) {
+            b[i][j] = a[i][j];
+        }
+    }
+}
+
+long long M[201][201];
+long long mm[201][201];
+
+void mpow(long long m[201][201], long long p) {
+    if(p==1ll) {
+        cpy(M,m);
+        return;
+    }
+
+    if(p&1) {
+        mpow(m,p-1);
+        muladd(m,M,mm);
+        cpy(mm,m);
+    } else {
+        mpow(m,p>>1);
+        muladd(m,m,mm);
+        cpy(mm,m);
+    }
+}
+
+int n,l;
+int w[201];
+char s[201];
+queue<Trie*> q;
+
+Trie *root;
+long long m[201][201];
+
+int main()
+{
+    ios::sync_with_stdio(0);
+    cin.tie(NULL);
+    cin >> n >> l;
+
+    root = new Trie('\0');
+    root->fall = root;
+
+    for(int i=0; i<n; i++) cin >> w[i];
+    for(int i=0; i<n; i++) {
+        cin >> s;
+        add(root,s,w[i]);
+    }
+
+    q.push(root);
+
+    while(!q.empty()) {
+        Trie *t = q.front(); q.pop();
+
+        for(auto u:t->ch) q.push(u.second);
+
+        if(t == root) continue;
+        t->fall = t->parent->fall;
+        while((t->fall != root) && (t->fall->ch.find(t->c) == t->fall->ch.end())) t->fall = t->fall->fall;
+
+        auto it = t->fall->ch.find(t->c);
+        if((it != t->fall->ch.end()) && (it->second != t)) t->fall = it->second;
+
+        t->sz += t->fall->sz;
+    }
+
+    fill(&M[0][0],&M[idv][0],-10000000000000001ll);
+
+    q.push(root);
+
+    while(!q.empty()) {
+        Trie *t = q.front(); q.pop();
+
+        for(auto u:t->ch) {
+            M[t->id][u.second->id] = u.second->sz;
+            q.push(u.second);
+        }
+
+        Trie *tt = t;
+        while(tt!= root) {
+            tt = tt->fall;
+            for(auto u:tt->ch) {
+                M[t->id][u.second->id] = u.second->sz;
+            }
+        }
+    }
+
+    mpow(m,l);
+
+    long long ans(-10000000000000001ll);
+    for(int i=0; i<idv; i++) ans = max(ans,m[0][i]);
+
+    cout << ans << endl;
+
+    return 0;
+}

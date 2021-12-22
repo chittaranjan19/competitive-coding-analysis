@@ -1,0 +1,94 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 305, MAXT = 100005, MOD = 1e9 + 7;
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+void addeq (int &x, int y) {
+	x = add(x, y);
+}
+
+void subtreq (int &x, int y) {
+	x -= y;
+	if (x < 0) {
+		x += MOD;
+	}
+}
+
+int N, M, T;
+int A[MAXN], nxt[MAXN], prv[MAXN];
+bool vis[MAXN];
+int swp[MAXN], dp[MAXT];	//sweepline
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M >> T;
+	for (int i = 1; i <= N; i++) {
+		cin >> A[i];
+	}
+	for (int i = 0, x, y; i < M; i++) {
+		cin >> x >> y;
+		nxt[x] = y;
+		prv[y] = x;
+	}
+	dp[0] = 1;
+	for (int x = 1; x <= N; x++) {
+		if (prv[x]) {
+			continue;
+		}
+		vector<int> vec;
+		//then find cycle
+		int psum = 0;
+		for (int j = x; j; j = nxt[j]) {
+			vis[j] = true;
+			psum += A[j];
+			vec.push_back(psum);
+		}
+		reverse(all(vec));
+		//knapsack
+		for (int i = 0, sz = vec.size(); i < sz; i++) {
+			int v = vec[i];
+			memset(swp, 0, v * sizeof(int));
+			for (int j = 0; j <= T; j++) {
+				addeq(swp[j % v], dp[j]);
+			}
+			//now let's calc the ans
+			for (int j = T; j >= 0; j--) {
+				//if we need at least one of them, then we subtract right away
+				int &ref = swp[j % v];
+				if (i && nxt[x]) {
+					//careful, the size of the component may be more than 1
+					subtreq(ref, dp[j]);
+					dp[j] = ref;
+				} else {
+					int temp = dp[j];
+					dp[j] = ref;
+					subtreq(ref, temp);
+				}
+			}
+		}
+	}
+	for (int i = 1; i <= N; i++) {
+		if (!vis[i]) {
+			cout << "0\n";
+			return 0;
+		}
+	}
+	cout << dp[T] << endl;
+}

@@ -1,0 +1,168 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <queue>
+#include <deque>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+#include <valarray>
+
+typedef long long tint;
+typedef unsigned long long utint;
+typedef long double ldouble; 
+
+
+#define forn(i,n) for(tint i=0;i<(tint)(n); i++)
+#define forsn(i,s,n) for(tint i=(s);i<(tint)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+
+
+using namespace std;
+
+
+
+void imprimirVector (deque<tint> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+tint toNumber (string s)
+{
+	tint Number;
+	if ( ! (istringstream(s) >> Number) )
+		Number = 0; // el string vacio lo manda al cero
+	return Number;
+}
+
+string toString (tint number)
+{    
+    ostringstream ostr;
+    ostr << number;
+    return  ostr.str();
+}
+
+struct Nodo
+{
+	tint indice,distanciaRaiz,padre, color;
+	Nodo(tint ii, tint dd, tint pp, tint cc)
+	{
+		indice = ii;
+		distanciaRaiz = dd;
+		padre = pp;
+		color = cc;
+	}
+};
+
+bool operator < (Nodo n1, Nodo n2)
+{
+	return make_tuple(n1.distanciaRaiz,n1.indice) > make_tuple(n2.distanciaRaiz,n2.indice);
+}
+
+void bfs (vector<vector<tint> > &adj, tint inicio, vector<Nodo> &nodo)
+{
+	tint n = adj.size();
+	nodo[inicio].distanciaRaiz = 0;
+	deque<tint> v = {inicio};
+	while (!v.empty())
+	{
+		tint u = v.front();
+		v.pop_front();
+		for (auto x : adj[u])
+		{
+			if (nodo[x].distanciaRaiz == n)
+			{
+				v.push_back(x);
+				nodo[x].padre = u;
+				nodo[x].distanciaRaiz = nodo[u].distanciaRaiz + 1;
+			}
+		}
+	}
+}
+
+void escribirCamino(tint u, vector<Nodo> &nodo)
+{
+	deque<tint> camino = {u};
+	while (nodo[u].padre != 0)
+	{
+		u = nodo[u].padre;
+		camino.push_back(u);
+		camino.push_front(u);
+	}
+	camino.push_back(0);
+	for (auto x : camino)
+	{
+		cout << " ";
+		cout << x + 1;
+	}
+}
+
+
+int main()
+{
+	#ifdef ACMTUYO
+		assert(freopen("entrada.in", "r", stdin));
+	#endif
+	ios_base::sync_with_stdio(0);
+	cin.tie(NULL);
+	tint n;
+	while (cin >> n)
+	{
+		vector<Nodo> nodo (n,Nodo(0,0,0,0));
+		tint sumaRosas = 0;
+		forn(i,n)
+		{
+			tint c;
+			cin >> c;
+			nodo[i] = Nodo(i,n,-1,c);
+			sumaRosas += (c == -1);
+		}
+		vector<vector<tint> > adj (n);
+		forn(i,n-1)
+		{
+			tint u,v;
+			cin >> u >> v;
+			adj[u-1].push_back(v-1);
+			adj[v-1].push_back(u-1);
+		}
+		bfs(adj,0,nodo);
+		vector<Nodo> nodoOrig = nodo;
+		sort(nodo.begin(),nodo.end());
+		cout << 1;
+		forn(i,n)
+			if (nodo[i].indice > 0 && nodo[i].color == -1)
+			{
+				nodoOrig[0].color *= -1;
+				escribirCamino(nodo[i].indice,nodoOrig);
+			}
+		if (nodoOrig[0].color == -1)
+			cout << " " << adj[0][0]+1 << " " << 1 << " " << adj[0][0]+1;
+		cout << "\n";
+		
+	}
+	return 0;
+}
+
+
+

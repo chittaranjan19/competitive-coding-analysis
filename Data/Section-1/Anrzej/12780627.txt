@@ -1,0 +1,127 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+#include <cstring>
+#include <map>
+#include <unordered_map>
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <ctime>
+
+using namespace std;
+#define ll long long
+#define db double
+#define fs first
+#define sc second
+#define mp make_pair
+
+vector<int> g[100010], rg[100010];
+ll n;
+int chld[100010];
+bool ok = 1;
+vector<int> tt;
+int prv[100000];
+
+bool u[200000];
+
+void rdfs(int v)
+{
+    queue<int> q;
+    q.push(v);
+    while (!q.empty())
+    {
+        int uu = q.front();
+        q.pop();
+        for (int i = 0; i < rg[uu].size(); i++)
+        {
+            if (!u[rg[uu][i]])
+            {
+                prv[rg[uu][i]] = uu;
+                u[rg[uu][i]] = 1;
+                q.push(rg[uu][i]);
+            }
+        }
+    }
+}
+
+void dfs(int v, bool go = 1)
+{
+    if (u[v]) return;
+    u[v] = 1;
+    int gsize = 0;
+    for (int i = 0; i < g[v].size(); i++)
+    if (!u[g[v][i]])
+        gsize++;
+    if (gsize > 1 && !go)
+        ok = 0;
+    if (gsize > 1)
+        go = 0;
+    for (int i = 0; i < g[v].size(); i++)
+    {
+        dfs(g[v][i], go);
+    }
+}
+
+int main()
+{
+    memset(chld, 0, sizeof(chld));
+    //ios::sync_with_stdio(false);
+    cin >> n;
+    bool lf[200000];
+    memset(lf, 1, sizeof(lf));
+    for (int i = 1; i < n; i++)
+    {
+        int v, u;
+        cin >> v >> u;
+        g[v].push_back(u);
+        lf[v] = 0;
+        rg[u].push_back(v);
+        rg[v].push_back(u);
+    }
+    int s = -1, f;
+    for (int i = 1; i <= n; i++)
+    {
+        if (lf[i] && s == -1)
+            s = i;
+        else
+        {
+            if (lf[i]){
+                f = i;
+                break;
+            }
+        }
+    }
+    if (n == 1){
+        cout << "YES";
+        return 0;
+    }
+    rdfs(f);
+    prv[f] = -1;
+    int t = s;
+    while (t != -1)
+    {
+        tt.push_back(t);
+        t = prv[t];
+    }
+    memset(u, 0, sizeof(u));
+    for (int i = 0; i < tt.size(); i++)
+    {
+        for (int j = 0; j < rg[tt[i]].size(); j++)
+        {
+            if (prv[tt[i]] != rg[tt[i]][j])
+                dfs(rg[tt[i]][j]);
+        }
+    }
+    if (ok)
+        cout << "YES";
+    else cout << "NO";
+    return 0;
+}

@@ -1,0 +1,60 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 3000010;
+
+ll dp[maxn];
+char str[maxn];
+int seen[30];
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int n, m, k, i, j, ind;
+	ll ans = 0, prev, add;
+	scanf("%d%d%s", &n, &k, str+1);
+	m = strlen(str+1);
+	for(i=1; i<=m; i++){
+		if(seen[str[i]-'a'])
+			prev = (dp[i-1]-dp[seen[str[i]-'a']-1]+mod)%mod;
+		else
+			prev = (dp[i-1]+1)%mod;
+		ans = (ans+prev)%mod;
+		dp[i] = ans;
+		seen[str[i]-'a'] = i;
+	}
+	for(i=m+1; i<=m+n; i++){
+		add = 0;
+		for(j=0; j<k; j++){
+			if(!seen[j])
+				prev = (dp[i-1]+1)%mod;
+			else
+				prev = (dp[i-1]-dp[seen[j]-1]+mod)%mod;
+			if(prev > add){
+				add = prev;
+				ind = j;
+			}
+		}
+		ans = (ans+add)%mod;
+		seen[ind] = i;
+		dp[i] = ans;
+	}
+	ans = (ans+1)%mod;
+	printf("%lld\n", ans);
+	return 0;
+}

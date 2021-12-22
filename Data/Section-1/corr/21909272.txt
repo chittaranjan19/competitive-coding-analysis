@@ -1,0 +1,70 @@
+#include<bits/stdc++.h>
+#define ii long long int
+#define pi 2*acos(0.0)
+#define eps 1e-9
+#define mem(x,y) memset(x,y,sizeof(x))
+#define all(x) x.begin(), x.end()
+#define pb push_back
+#define sz(a) (int)a.size()
+#define inf 2147483640
+#define mx 1000010
+
+using namespace std;
+
+int a[mx];
+int n,m;
+vector <int> v;
+int dp[1010][1010][2];
+
+const int debug= 0;
+
+bool call(int i,int mod,bool taken) {
+    if (!mod && taken) return true;
+    if (i==sz(v)) return false;
+    if (dp[i][mod][taken]!=-1) return dp[i][mod][taken];
+    bool ans= call(i+1,mod,taken);
+    if (!ans) ans= call(i+1,(mod+v[i])%m,true);
+    return dp[i][mod][taken]= ans;
+}
+
+int main() {
+    //freopen("in.txt","r",stdin);
+    //freopen("out.txt","w",stdout);
+
+    while (cin>>n>>m) {
+        v.clear();
+        mem(dp,-1);
+        int i;
+        bool hasZero= false;
+        map <int,int> mp;
+        set <int> st;
+
+        for (i=1;i<=n;++i) {
+            cin>>a[i];
+            if (a[i]>=m) a[i]%=m;
+            if (!a[i]) hasZero= true;
+            mp[a[i]]++;
+        }
+        if (hasZero) {puts("YES");continue;}
+        map <int,int> :: iterator it;
+        for (it=mp.begin();it!=mp.end();++it) {
+            int num= (*it).first;
+            int cnt= (*it).second;
+            int sum= 0;
+            for (i=1;i<=cnt;++i) {
+                sum+= num;
+                if (sum>=m) sum%=m;
+                if (st.find(sum)==st.end()) {
+                    st.insert(sum);
+                    v.pb(sum);
+                }
+            }
+        }
+        bool ans= call(0,0,0);
+        if (ans) puts("YES");
+        else puts("NO");
+    }
+
+    return 0;
+}
+

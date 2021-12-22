@@ -1,0 +1,120 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+void imprimirVector (vector<bool> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+vector<bool> binary (int n)
+{
+	vector <bool> ans;
+	while (n > 0)
+	{
+		ans.insert(ans.begin(),n % 2);
+		n /= 2;
+	}
+	return ans;
+}
+
+int main()
+{
+	int n;
+	cin >> n;
+	vector<int> num (n);
+	forn(i,n)
+		cin >> num[i];
+	sort(num.begin(),num.end());
+	
+	vector<vector<bool> > des(n);
+	forn(i,n)
+		des[i] = binary(num[i]);
+	vector<bool> commonPrefix;
+	int largo = des[0].size(); // Vale como mucho 17
+	forn(i,largo)
+	{
+		bool tutti1 = true;
+		forn(j,n)
+			tutti1 &= des[j][i];
+		bool tutti0 = true;
+		forn(j,n)
+			tutti0 &= !des[j][i];
+		if (tutti1)
+			commonPrefix.push_back(true);
+		else if (tutti0)
+			commonPrefix.push_back(false);
+		else
+			break;	
+	}
+	int commonLargo = commonPrefix.size();
+	int total = 0;
+	forn(i,n)
+	{
+		int largoDes = des[i].size();
+		int qcom = commonLargo;
+		forsn(j,qcom,largoDes)
+		{
+			if (!des[i][qcom])
+				qcom++;
+			else
+				break;
+		}
+		forsn(j,qcom,largoDes)
+			des[i].pop_back();
+		total += largoDes - qcom;		
+
+	}
+	int best = 1000000;
+	int subtotal = 0;
+	forsn(i,commonLargo,17)
+	{
+		forn(j,n)
+		{
+			int aux = des[j].size();
+			subtotal += abs(i-aux);
+		}
+		if (subtotal < best)
+			best = subtotal;
+		subtotal = 0;
+	}
+	cout << total + best << endl;
+	
+	
+	
+	return 0;
+}

@@ -1,0 +1,90 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int arr1[100005],arr2[100005];
+int pos1[100005],pos2[100005];
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int n,x,cnt = 0;
+    bool win;
+    cin >> n;
+    setdp(pos1);
+    setdp(pos2);
+    for(int i=0;i<n;i++)
+    {
+        cin >> x;
+        if(i == n-1) win = x - 1;
+        cnt+=x-1;
+        if(x == 1) arr2[i] = (i != 0 ? arr2[i-1] : 0) + 1,pos2[arr2[i]] = i, arr1[i] = (i != 0 ? arr1[i-1] : 0);
+        else arr1[i] = (i != 0 ? arr1[i-1] : 0) + 1,pos1[arr1[i]] = i,arr2[i] = (i != 0 ? arr2[i-1] : 0);
+
+    }
+    if(!win)
+    {
+        cnt = n - cnt;
+        for(int i=0;i<n;i++)
+            swap(arr1[i], arr2[i]);
+        for(int i=0;i<=cnt;i++)
+            swap(pos2[i], pos1[i]);
+    }
+    vector<pair<int,int> > res;
+    for(int i=1;i<=cnt;i++)
+    {
+        int tmp1 = 0,tmp2 = 0, cnt1 = 0,cnt2 = 0;
+        while(1)
+        {
+            int nxt1 = pos1[tmp1 + i], nxt2 = pos2[tmp2 + i];
+            if(nxt1 == -1 && nxt2 == -1)
+            {
+                if(tmp1 != cnt) cnt2 = INF_MAX;
+                break;
+            }
+            if(nxt1 == -1) nxt1 = INF_MAX;
+            if(nxt2 == -1) nxt2 = INF_MAX;
+            if(nxt1 < nxt2)
+                cnt1++;
+            else cnt2++;
+            tmp1 = arr1[min(nxt1, nxt2)];
+            tmp2 = arr2[min(nxt1, nxt2)];
+        }
+        if(cnt1 > cnt2) res.pb(mp(cnt1, i));
+    }
+    sort(res.begin(), res.end());
+    cout << res.size() << "\n";
+    for(int i=0;i<res.size();i++)
+        cout << res[i].first << " " << res[i].second << "\n";
+    return 0;
+}

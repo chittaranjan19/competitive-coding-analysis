@@ -1,0 +1,117 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <vector>
+#include <queue>
+#include <set>
+#include <map>
+#include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <tuple>
+#include <functional>
+#include <unordered_set>
+#include <unordered_map>
+#include <sstream>
+#include <stdio.h>
+
+
+#define forn(i,n) for(int i=0;i<(int)(n); i++)
+#define forsn(i,s,n) for(int i=(s);i<(int)(n); i++)
+#define esta(x,v) (find((v).begin(),(v).end(),(x)) !=  (v).end())
+#define index(x,v) (find((v).begin(),(v).end(),(x)) - (v).begin())
+#define debug(x) cout << #x << " = "  << x << endl
+
+typedef long long tint;
+typedef unsigned long long utint;
+
+using namespace std;
+
+struct Nodo
+{
+	vector<bool> pos;
+	tint total,l;
+	bool movimiento; // 0 es a la izquierda y 1 es a la derecha
+};
+
+void imprimirVector (vector<bool> v)
+{
+	if (!v.empty())
+	{ 
+		int p = v.size();
+		cout << "[";
+		forn(i,p-1)
+			cout << v[i] << ",";
+		cout << v[p-1] << "]" << endl;
+	}
+	else
+		cout << "[]" << endl;
+}
+
+Nodo moverVecino(Nodo x)
+{
+	Nodo nuevo = x;
+	nuevo.pos.erase(nuevo.pos.begin());
+	nuevo.pos.push_back(x.movimiento);
+	nuevo.l++;
+	nuevo.movimiento = 1 - nuevo.movimiento;
+	return nuevo;
+}
+
+vector<bool> binaryFixed (tint n,tint h)
+{
+	vector <bool> ans;
+	while (n > 0)
+	{
+		ans.insert(ans.begin(),n % 2);
+		n /= 2;
+	}
+	int pepe = ans.size();
+	while (pepe < h)
+	{
+		ans.insert(ans.begin(),0);
+		pepe++;
+	}
+	ans.insert(ans.begin(),1);
+	return ans;
+}
+
+bool hayCamino(Nodo estoy, vector<bool> salida, tint h)
+{
+	
+	bool tutti = true;
+	Nodo nestoy = moverVecino(estoy);
+	forn(i,nestoy.l)
+		tutti &= (nestoy.pos[h-i] == salida[nestoy.l-i]);
+	return tutti;
+	
+}
+
+int main()
+{
+	tint h,n;
+	cin >> h >> n;
+	Nodo nodoActual;
+	nodoActual.pos = vector<bool> (h+1,0);
+	nodoActual.pos[h] = 1;
+	nodoActual.total = 0;
+	nodoActual.l = 0;
+	nodoActual.movimiento = 0;
+	vector<bool> salida = binaryFixed(n-1,h);
+	while (nodoActual.l < h)
+	{
+		if (hayCamino(nodoActual,salida,h))
+		{
+			nodoActual = moverVecino(nodoActual);
+			nodoActual.total++;
+		}
+		else
+		{
+			nodoActual.movimiento = 1 - nodoActual.movimiento;
+			nodoActual.total += pow(2,h-nodoActual.l);
+			nodoActual = moverVecino(nodoActual);
+		}
+	}
+	cout << nodoActual.total << endl;
+	return 0;
+}

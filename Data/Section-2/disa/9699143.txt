@@ -1,0 +1,79 @@
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <iomanip>
+#include <map>
+#include <windows.h>
+#pragma comment(linker, "/STACK:128000000")
+using namespace std;
+
+typedef long long ll;
+
+#if _DEBUG
+#include <fstream>
+ifstream cin("input.txt");
+ofstream cout("output.txt");
+#else
+#include <iostream>
+#endif
+
+char a[102][102];
+
+int used[102][102];
+
+bool dfs(int x, int y, int px, int py) {
+	if(used[x][y] == 0) {
+		used[x][y] = 1;
+		int sum = 0;
+		if(a[x - 1][y] == a[x][y] && x - 1 != px)
+			sum += dfs(x - 1, y, x, y);
+		if(a[x + 1][y] == a[x][y] && x + 1 != px)
+			sum += dfs(x + 1, y, x, y);
+		if(a[x][y - 1] == a[x][y] && y - 1 != py)
+			sum += dfs(x, y - 1, x, y);
+		if(a[x][y + 1] == a[x][y] && y + 1 != py)
+			sum += dfs(x, y + 1, x, y);
+		used[x][y] = 2;
+		return sum > 0;
+	}
+	if(used[x][y] == 1)
+		return true;
+	return false;
+}
+
+int n, m;
+
+
+void clear () {
+	for(int i = 1; i <= n; i++) {
+		for(int j = 1; j <= m; j++) {
+			used[i][j] = 0;
+		}
+	}
+}
+
+int main() {
+	
+	cin >> n >> m;
+	for(int i = 1; i <= n; i++) {
+		for(int j = 1; j <= m; j++) {
+			cin >> a[i][j];
+		}
+	}
+	for(int i = 0; i <= n + 1; i++) {
+		for(int j = 0; j <= m + 1; j++) {
+			used[i][j] = 2;
+		}
+	}
+	for(int i = 1; i <= n; i++) {
+		for(int j = 1; j <= m; j++) {
+			clear();
+			if(dfs(i, j, -1, -1)) {
+				cout << "Yes";
+				return 0;
+			}
+		}
+	}
+	cout << "No";
+	return 0;
+}

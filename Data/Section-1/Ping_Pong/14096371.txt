@@ -1,0 +1,74 @@
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <set>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <math.h>
+
+using namespace std;
+
+int main()
+{
+    int n;
+    scanf("%d", &n);
+    int a[n];
+    for (int i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+    long long s = 0;
+    for (int i = 0; i < n; i++)
+        s += a[i];
+    if (s % 3 != 0)
+    {
+        cout << 0;
+        return 0;
+    }
+    else
+        s /= 3;
+    long long pref[n], suff[n];
+    pref[0] = a[0];
+    for (int i = 1; i < n; i++)
+        pref[i] = pref[i - 1] + a[i];
+    suff[n - 1] = a[n - 1];
+    for (int i = n - 2; i >= 0; i--)
+        suff[i] = suff[i + 1] + a[i];
+    vector<int> v_pref, v_suff;
+    for (int i = 0; i < n; i++)
+        if (pref[i] == s)
+            v_pref.push_back(i);
+    for (int i = 0; i < n; i++)
+        if (suff[i] == s)
+            v_suff.push_back(i);
+    sort(v_pref.begin(), v_pref.end());
+    sort(v_suff.begin(), v_suff.end());
+    /*for (int i = 0; i < v_pref.size(); i++)
+        cout << v_pref[i] << " ";
+    cout << endl;
+    for (int i = 0; i < v_suff.size(); i++)
+        cout << v_suff[i] << " ";
+    cout << endl;*/
+    long long ans = 0, l, r, mid;
+    for (int i = 0; i < v_pref.size(); i++)
+    {
+        if (v_pref[i] + 2 <= v_suff[v_suff.size() - 1])
+        {
+            l = -1; r = v_suff.size();
+            while (r - l > 1)
+            {
+                mid = (l + r) / 2;
+                //cout << v_pref[i] + 2 << " " << v_suff[mid] << endl;
+                if (v_pref[i] + 2 > v_suff[mid])
+                    l = mid;
+                else
+                    r = mid;
+                //cout << l << " " << r << endl;
+            }
+            //cout << v_pref[i] << " " << v_suff[r] << endl;
+            //cout << l << " " << r << endl;
+            ans += (v_suff.size() - r);
+        }
+    }
+    printf("%I64d", ans);
+    return 0;
+}

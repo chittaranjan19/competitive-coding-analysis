@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct vec
+{
+    int l;
+    int r;
+    int q;
+};
+
+int n, m;
+int d;
+int a[101111];
+int t[1011];
+vec c[101111];
+
+void up(int u, int v, int k)
+{
+    int x, y;
+    x = u/d; y = v/d;
+    if(x == y)
+    {
+        for(int i = u; i <= v; i++)
+            a[i] = a[i]|k;
+    }
+    else
+    {
+        for(int i = x+1; i < y; i++)
+            t[i] = t[i]|k;
+        for(int i = u; i < (x+1)*d; i++)
+            a[i] = a[i]|k;
+        for(int i = y*d; i <= v; i++)
+            a[i] = a[i]|k;
+    }
+}
+
+int get(int u, int v)
+{
+    int x, y;
+    x = u/d; y = v/d;
+    int s = (1 << 30) - 1;
+    if(x == y)
+    {
+        for(int i = u; i <= v; i++)
+            s = s&a[i];
+    }
+    else
+    {
+        for(int i = x+1; i < y; i++)
+        {
+            s = s&t[i];
+        }
+        for(int i = u; i < (x+1)*d; i++)
+            s = s&a[i];
+        for(int i = y*d; i <= v; i++)
+            s = s&a[i];
+    }
+    return s;
+}
+
+int main()
+{
+   // freopen("in.txt", "r", stdin);
+    cin >> n >> m;
+    d = sqrt(n);
+    for(int i = 0; i < m; i++)
+    {
+        cin >> c[i].l >> c[i].r >> c[i].q;
+        c[i].l--; c[i].r--;
+        up(c[i].l, c[i].r, c[i].q); 
+    }
+    for(int i = 0; i < n; i++)
+        a[i] = a[i]|t[i/d];
+    for(int i = 0; i <= n/d; i++) t[i] = (1 << 30) - 1;
+    for(int i = 0; i < n; i++)
+        t[i/d] = t[i/d]&a[i];
+    for(int i = 0; i < m; i++)
+    {
+        if(get(c[i].l, c[i].r) != c[i].q) 
+        {
+            //cout << get(c[i].l, c[i].r) << "\n";
+            cout << "NO";
+            return 0;
+        }
+    }
+    cout << "YES" << "\n";
+    for(int i = 0; i < n; i++)
+    {
+        cout << a[i] << " ";
+    }
+    return 0;
+}

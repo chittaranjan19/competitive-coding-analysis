@@ -1,0 +1,151 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int arr[305];
+
+string get(int x)
+{
+    string temp = "";
+    while(x > 0)
+    {
+        temp+=min(9, x) + '0';
+        x -= 9;
+    }
+    reverse(temp.begin(), temp.end());
+    return temp;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int n;
+    cin >> n;
+    for(int i=0;i<n;i++)
+        cin >> arr[i];
+    string last = get(arr[0]);
+    cout << last << '\n';
+    for(int i=1;i<n;i++)
+    {
+        string temp = "";
+        int diff = arr[i] - arr[i-1];
+        if(diff <= 0)
+        {
+            diff--;
+            int cnt = 0, ch = -1;
+            bool mustadd = 0;
+            for(int j=last.size()-1;j>=0;j--)
+            {
+                cnt+=last[j] - '0';
+                if(cnt >= abs(diff))
+                {
+                    ch = j - 1;
+                    mustadd = (j == 0);
+                    break;
+                }
+            }
+            while(ch >= 0 && last[ch] == '9')
+                ch--;
+            if(ch == -1 || mustadd)
+            {
+                temp = "1";
+                for(int j=0;j<last.size();j++)
+                    temp+="0";
+                diff = arr[i] - 1;
+                for(int j=temp.size()-1;j>=0 && diff > 0;j--)
+                {
+                    temp[j]=min(9, diff) + '0';
+                    diff-=9;
+                }
+                cout << temp << '\n';
+                last = temp;
+                continue;
+            }
+            else
+            {
+                temp = last;
+                temp[ch]++;
+                diff = arr[i];
+                for(int j=0;j<=ch;j++)
+                    diff-=temp[j] - '0';
+                for(int j=ch + 1;j<temp.size();j++)
+                    temp[j] = '0';
+            }
+            diff = abs(diff);
+            for(int j=temp.size()-1;j>=0 && diff > 0;j--)
+            {
+                temp[j]=min(9, diff) + '0';
+                diff-=9;
+            }
+        }
+        else
+        {
+            /// TODO
+            int cnt = 0, ch = -1;
+            for(int j=last.size() - 1;j>=0;j--)
+            {
+                cnt+='9' - last[j];
+                if(cnt >= diff)
+                {
+                    ch = j;
+                    break;
+                }
+            }
+            if(ch == -1)
+            {
+                temp = "1";
+                for(int j=0;j<last.size();j++)
+                    temp+="0";
+                diff = arr[i] - 1;
+                for(int j=temp.size()-1;j>=0 && diff > 0;j--)
+                {
+                    temp[j]=min(9, diff) + '0';
+                    diff-=9;
+                }
+                cout << temp << '\n';
+                last = temp;
+                continue;
+            }
+            else temp = last;
+            for(int j=temp.size()-1;j>=0 && diff > 0;j--)
+            {
+                int x = min('9' - temp[j], diff);
+                temp[j]+=x;
+                diff-=x;
+            }
+        }
+        cout << temp << '\n';
+        last = temp;
+    }
+    return 0;
+}

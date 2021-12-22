@@ -1,0 +1,135 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define MOD 1000000007
+#define inf 1000000000
+#define maxn 1000000
+
+#define ll long long
+#define pii pair<int, int>
+#define pb push_back
+#define sin scanint
+#define bitcount(x) __builtin_popcount(x)
+#define fill(s, p) memset(s, p, sizeof(s));
+#define gc getchar
+
+void scanint(int &x)
+{
+    register int c = gc();
+    x = 0;
+    for(;(c<48 || c>57);c = gc());
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+}
+
+ll modpow(ll a, ll b)
+{
+    ll x=1ll, y=a;
+    while(b){
+        if(b%2)
+            x=(x*y)%MOD;
+        y=(y*y)%MOD;
+        b/=2;
+    }
+    return x;
+}
+
+map<double, int> m1;
+int arr[2100];
+vector<int> v[2100];
+double xc[2100], yc[2100]; 
+
+int main()
+{
+    #ifndef ONLINE_JUDJE
+        //freopen("input.txt", "r", stdin);
+    #endif
+    int n, i, j, k, ind, dis;
+    ll ans, sum, s2, p, q, r;
+    double x, y, slope;
+    sin(n);
+    bool org = false;
+    ind = 0;
+    for(i=0; i<n; i++){
+        scanf("%lf%lf", &xc[i], &yc[i]);
+        if(xc[i]==0 && yc[i]==0){
+            org = true;
+            continue;
+        }
+        if(yc[i]==0)
+            slope = 0;
+        else if(xc[i]==0)
+            slope = inf;
+        else
+            slope = (double)yc[i]/xc[i];
+        if(m1.find(slope)==m1.end()){
+            m1[slope] = ind;
+            v[ind].pb(i);
+            ind++;
+        }
+        else{
+            k = m1[slope];
+            v[k].pb(i);
+        }
+    }
+    //cout << ind << endl;
+    if(org)
+        n--;
+    /*for(i=0; i<ind; i++){
+        for(j=0; j<v[i].size(); j++)
+            cout << v[i][j] << " ";
+        cout << endl;
+    }*/
+    dis = n;
+    k = 0;
+    for(i=0; i<n; i++){
+        if(v[i].size()>=2){
+            arr[k] = v[i].size();
+            k++;
+            dis = (dis-v[i].size());
+        }
+    }
+    /*cout << "b " <<  k << endl;
+    for(i=0; i<k; i++)
+        cout << arr[i] << " ";
+    cout << endl;*/
+    sum = n-dis;
+    ans = dis;
+    s2 = sum;
+    //cout << "d " << dis << " " << sum << endl; 
+    ans = ans*(ans-1)*(ans-2);
+    ans = (ans/6);
+    for(i=0; i<k; i++){
+        p = dis+sum-arr[i];
+        q = p*(p-1);
+        q = q/2;
+        r = arr[i];
+        sum-=arr[i];
+        ans = (ans + (q*r));
+    }
+    sum = s2;
+    for(i=0; i<k; i++){
+        p = dis+sum-arr[i];
+        q = arr[i];
+        q = q*(q-1);
+        q = q/2;
+        sum-=arr[i];
+        ans = (ans+(p*q));
+    }
+    sum = s2;
+    //cout << "I " << ans << endl;
+    if(org){
+        for(i=0; i<k; i++){
+            p = dis+sum-arr[i];
+            q = arr[i];
+            ans = (ans + (p*q));
+            sum-=arr[i];
+        }
+        p = dis;
+        q = p*(p-1);
+        q = (q/2);
+        ans = (ans+q);
+    }
+    printf("%I64d\n", ans);
+    return 0;
+}

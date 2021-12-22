@@ -1,0 +1,180 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct pp
+{
+	int first;
+	int second;
+};
+
+int n, x, y, d;
+int a[210000];
+int b[210000];
+int c[210000];
+int tm[210000];
+pp kq[210000];
+bool ok;
+
+bool check(int s, int t, int o)
+{
+	int u = 0, v = 0;
+	int se1 = 0, se2 = 0;
+	for(int i = 0; i < n; i++)
+	{
+		if(a[i] == o) u++;
+		else v++;
+		if(v == t)
+		{
+			se2++;
+			u = 0; v = 0;
+		}
+		if(u == t)
+		{
+			se1++;
+			u = 0;
+			v = 0;
+		}
+		if(se2 == s) return false;
+		if(se1 == s && i < n - 1) return false;
+		//if(se1 == s) cout << se1 << " " << se2 << " " << i << "\n";
+	}
+	if(se1 != s) return false;
+	return true;
+}
+
+bool cmp(pp a, pp b)
+{
+	if((a.first < b.first) || ((a.first == b.first) && (a.second < b.second))) return true;
+	else
+		return false;
+}
+
+void qsort(pp a[], int l, int r)
+{
+	int i, j;
+	pp tam, x;
+	i = l;
+	j = r;
+	x = a[(l + r) / 2];
+while(true)
+{
+	while(a[i].first < x.first || (a[i].first == x.first && a[i].second < x.second)) i++;
+	while(a[j].first > x.first || (a[j].first == x.first && a[j].second > x.second)) j--;
+	if(i != j)
+	{
+		tam = a[i];
+		a[i]= a[j];
+		a[j] = tam;
+		i++; 
+		j--;
+	}
+	if(i > j) break;
+}
+if(i < r) qsort(a, i, r);
+if(j > l) qsort(a, l, j);
+}
+
+int find(int f[], int x, int t)
+{
+	int l, r, mid, kq;
+	l = 0; r = n - x; kq = n - x + 1;
+	//mid = (l + r) / 2;
+	//int sf = 0;
+	while(l <= r)
+	{
+		//sf++;
+		//if(sf > 10) cout << l << " " << r <<"\n";
+		//if(sf > 10) return n+1;
+		mid = (l + r) / 2;
+		if(f[x + mid] - f[x - 1] == t) kq = min(kq, mid);
+		if(f[x + mid] - f[x - 1] >= t) r = mid - 1;
+		else l = mid + 1;
+	}
+	return x + kq;
+}
+
+int main()
+{
+	int d = 0;
+	//freopen("in.txt", "r", stdin);
+	cin >> n;
+	x = 0; y = 0;
+	for(int i = 1; i <= n; i++)
+	{
+		cin >> a[i];
+		if(a[i] == 1) x++;
+		else y++;
+	}
+	b[0] = 0; c[0] = 0;
+	for(int i = 1; i <= n; i++)
+	{
+		b[i] = b[i-1];
+		c[i] = c[i-1];
+		if(a[i] == 1) b[i]++;
+		else c[i]++;
+	}
+	int s, t;
+	/*int o = a[n - 1];
+	if(o == 2) 
+	{
+		tm = b;
+		b = c;
+		c = tm;
+	}*/
+	int u, v;
+	int s1, s2;
+	int k;
+	//cout << find(c, 1, 3);
+	//return 0;
+	for(int t = 1; t <= n; t++)
+	{
+		ok = true;
+		s1 = 0;
+		s2 = 0;
+		int i = 1;
+		//int sf = 0;
+		while(i <= n)
+		{
+			//sf++;
+			//if(sf >= 10) return 0;
+			u = find(b, i, t);
+			v = find(c, i, t);
+			if(u > n && v > n) 
+				{ ok = false; break; }
+			k = 0;
+			i = u + 1;
+			if(u < v) s1++;
+			else 
+				{
+					s2++;
+					k = 1;
+					i = v + 1;
+				}
+			//cout << u << " " << v << " " << i << "\n";
+		}
+		//return 0;
+		if(ok)
+		{
+			if(s1 > s2 && k == 0 && a[n] == 1) 
+			{
+				d++;
+				kq[d - 1].first = s1;
+				kq[d - 1].second = t;
+			}
+			if(s2 > s1 && k == 1 && a[n] == 2)
+			{
+				d++;
+				kq[d - 1].first = s2;
+				kq[d - 1].second = t;
+			}
+		}
+	}
+	sort(kq, kq + d, cmp);
+	//qsort(kq, 1, d);
+	cout << d << "\n";
+	for(int i = 0; i < d; i++)
+	{
+		cout << kq[i].first << " " << kq[i].second << "\n";
+	}
+	return 0;
+}

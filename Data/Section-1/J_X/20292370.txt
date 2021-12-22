@@ -1,0 +1,133 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 2e3 + 5;
+
+struct edge
+{
+    int to, w, next;
+} G[maxn * maxn];
+struct node
+{
+    int x1, y1, x2, y2, id;
+} nd[maxn];
+ll bit[maxn][maxn], ans[maxn];
+int n, m, k, q, head[maxn], tot;
+vector<int> vec[maxn];
+char s[10];
+
+void init(int n)
+{
+    memset(head, -1, sizeof(head));
+    memset(bit, 0, sizeof(bit));
+    for(int i = 1; i <= n; ++i) vec[i].clear();
+    tot = 0;
+}
+
+void addedge(int u, int v, int w)
+{
+    G[tot].to = v;
+    G[tot].w = w;
+    G[tot].next = head[u];
+    head[u] = tot++;
+}
+
+void update(int x, int y, int v)
+{
+    while(x <= n)
+    {
+        for(int i = y; i <= m; i += i & -i)
+        {
+            bit[x][i] += v;
+        }
+        x += x & -x;
+    }
+}
+
+ll query(int x, int y)
+{
+    ll ret = 0;
+    while(x)
+    {
+        for(int i = y; i; i -= i & -i)
+        {
+            ret += bit[x][i];
+        }
+        x -= x & -x;
+    }
+    return ret;
+}
+
+int myhash(int x, int y)
+{
+    return x * (m + 1) + y;
+}
+
+int main()
+{
+    scanf("%d%d%d", &n, &m, &k);
+    init(n);
+    for(int i = 1; i <= k; ++i)
+    {
+        int l;
+        scanf("%d", &l);
+        for(int j = 0; j < l; ++j)
+        {
+            int x, y, w;
+            scanf("%d%d%d", &x, &y, &w);
+            addedge(i, myhash(x, y), w);
+        }
+    }
+    scanf("%d", &q);
+    int cnt = 0;
+    for(int i = 0; i < q; ++i)
+    {
+        scanf("%s", s);
+        if(*s == 'S')
+        {
+            int o;
+            scanf("%d", &o);
+            vec[o].push_back(i);
+        }
+        else
+        {
+            scanf("%d%d%d%d", &nd[cnt].x1, &nd[cnt].y1, &nd[cnt].x2, &nd[cnt].y2);
+            nd[cnt].id = i;
+            ans[cnt++] = 0;
+        }
+    }
+    for(int i = 1; i <= k; ++i)
+    {
+        int on = 1;
+        for(int j = head[i]; ~j; j = G[j].next)
+        {
+            edge e = G[j];
+            int x = e.to / (m + 1), y = e.to % (m + 1);
+            update(x, y, e.w);
+        }
+        for(int j = 0, l = 0; j < cnt; ++j)
+        {
+            while(l < vec[i].size() && vec[i][l] < nd[j].id)
+            {
+                on ^= 1;
+                ++l;
+            }
+            if(on) ans[j] += query(nd[j].x2, nd[j].y2) - query(nd[j].x1 - 1, nd[j].y2) - query(nd[j].x2, nd[j].y1 - 1) + query(nd[j].x1 - 1, nd[j].y1 - 1);
+        }
+        for(int j = head[i]; ~j; j = G[j].next)
+        {
+            edge e = G[j];
+            int x = e.to / (m + 1), y = e.to % (m + 1);
+            update(x, y, -e.w);
+        }
+    }
+    for(int i = 0; i < cnt; ++i) printf("%I64d\n", ans[i]);
+    return 0;
+}

@@ -1,0 +1,167 @@
+#include<cstdio>
+#include<cstring>
+#include<cstdlib>
+#include<cctype>
+
+#include<cmath>
+#include<iostream>
+#include<iomanip>
+#include<fstream>
+
+#include<string>
+#include<utility>
+#include<vector>
+#include<list>
+#include<queue>
+#include<map>
+#include<algorithm>
+#include<set>
+#include<sstream>
+#include<stack>
+
+#define ii long long int
+#define pi 2*acos(0.0)
+#define eps 1e-9
+#define mem(x,y) memset(x,y,sizeof(x))
+#define all(x) x.begin(), x.end()
+#define pb push_back
+#define sz(a) (int)a.size()
+#define inf 2147483640
+
+#define mx 510
+#define valid(x,y) x>=0&&x<row&&y>=0&&y<col&&s[x][y]=='.'
+
+using namespace std;
+
+const int debug= 0;
+int row,col,need,dis[mx*mx],low[mx*mx],T,par[mx*mx],root;
+bool vis[mx*mx],arti[mx*mx];
+int dx[]={1,-1,0,0};
+int dy[]={0,0,1,-1};
+char s[mx][mx];
+vector <int> v[mx*mx];
+set <int> st;
+set <int> :: iterator it;
+
+int node(int i,int j);
+void dfs(int i);
+void revnode(int i,int &x,int &y);
+
+int main()
+{
+	//freopen("in.txt","r",stdin);
+	//freopen("out.txt","w",stdout);
+	
+	while (cin>>row>>col>>need)
+	{
+		int i,j,k,x,y,tot=row*col,sz;
+		
+		for (i=1;i<=tot;++i) v[i].clear(),par[i]=i,vis[i]=arti[i]=0;
+		T=0;
+		st.clear();
+		
+		for (i=0;i<row;++i) scanf("%s",s[i]);
+		for (i=0;i<row;++i) for (j=0;j<col;++j)
+		{
+			if (s[i][j]=='#') continue;
+			for (k=0;k<4;++k)
+			{
+				x=i+dx[k],y=j+dy[k];
+				if (valid(x,y))
+				v[node(i,j)].pb(node(x,y));
+			}
+		}
+		for (i=1;i<=tot;++i) if (!vis[i]) {root=i,dfs(i);}
+		/*
+		for (i=1;i<=tot;++i) if (arti[i]) cout<<i<<" ";
+		puts("");
+		puts("-----");
+		*/
+		for (i=0;i<row;++i)
+		{
+			if (!need) break;
+			for (j=0;j<col;++j)
+			{
+				if (s[i][j]=='#' || arti[node(i,j)]) continue;
+				s[i][j]='X';
+				need--;
+				if (!need) break;
+			}
+			if (!need) break;
+		}
+		
+		while (need)
+		{
+			int found=0;
+			for (it=st.begin();it!=st.end();++it)
+			{
+				i=*it;
+				sz=sz(v[i]);
+				int cnt=0;
+				for (j=0;j<sz;++j)
+				{
+					revnode(v[i][j],x,y);
+					if (s[x][y]=='.') cnt++;
+					if (cnt>1) break;
+				}
+				
+				if (cnt<2)
+				{
+					revnode(i,x,y);
+					s[x][y]='X';
+					need--;
+					found=i;
+					break;
+				}
+			}
+			if (found) st.erase(found);
+		}
+		
+		for (i=0;i<row;++i) puts(s[i]);
+		//puts("================");
+	}
+	
+	return 0;
+}
+
+void revnode(int i,int &x,int &y)
+{
+	i--;
+	x=i/row;
+	y=i%row;
+}
+
+int node(int i,int j)
+{
+	i++,j++;
+	return (i-1)*col+j;
+}
+
+void dfs(int i)
+{
+	vis[i]=1,dis[i]=++T,low[i]=dis[i];
+	int j,k,sz=sz(v[i]),cnt=0;
+	
+	for (k=0;k<sz;++k)
+	{
+		j=v[i][k];
+		if (vis[j]&&par[i]!=j) low[i]=min(low[i],dis[j]);
+		else if (!vis[j])
+		{
+			par[j]=i;
+			dfs(j);
+			cnt++;
+			if (low[j]>=dis[i] && i!=root)
+			{
+				arti[i]=1;
+				st.insert(i);
+			}
+			low[i]= min(low[i],low[j]);
+		}
+	}
+	if (i==root && cnt>1)
+	{
+		arti[i]=1;
+		st.insert(i);
+	}
+}

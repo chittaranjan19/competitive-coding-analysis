@@ -1,0 +1,85 @@
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <time.h>
+#include <algorithm>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <iostream>
+using namespace std;
+
+int a[1000005][4];
+int c[10], d[10];
+int b[20];
+int cur;
+
+void solve(int L, int n1, int n2, int n3, int n4)
+{
+    int R = n1 + n2 + n3 + n4 - L - 1;
+
+    if(R < L)
+    {
+        memset(d, 0, sizeof(d));
+        for(int i = 0; i < n1 + n2 + n3 + n4; i++)
+            d[b[i]] = 1;
+        for(int i = 0; i < 10; i++)
+            if(d[i] < c[i])
+                return;
+        int f[4] = {};
+        for(int i = 0; i < n1; i++)
+            f[0] = f[0] * 10 + b[i];
+        for(int i = n1; i < n1 + n2; i++)
+            f[1] = f[1] * 10 + b[i];
+        for(int i = n1 + n2; i < n1 + n2 + n3; i++)
+            f[2] = f[2] * 10 + b[i];
+        for(int i = n1 + n2 + n3; i < n1 + n2 + n3 + n4; i++)
+            f[3] = f[3] * 10 + b[i];
+
+        for(int i = 0; i < 4; i++)
+            if(f[i] > 255)
+                return;
+
+        for(int i = 0;i < 4; i++)
+            a[cur][i] = f[i];
+        cur++;
+        return;
+    }
+
+    for(int i = 0; i < 10; i++)
+        if(c[i] == 1)
+        {
+            if((L == 0 && n1 == 3 || L == n1 && n2 == 3 || L == n1 + n2 && n3 == 3 || L == n1 + n2 + n3 && n4 == 3 ||
+                R == 0 && n1 == 3 || R == n1 && n2 == 3 || R == n1 + n2 && n3 == 3 || R == n1 + n2 + n3 && n4 == 3) && i > 2)
+                continue;
+            if((L == 0 && i == 0 && n1 > 1 || L == n1 && i == 0 && n2 > 1 || L == n1 + n2 && i == 0 && n3 > 1 || L == n1 + n2 + n3 && i == 0 && n4 > 1 ||
+                R == 0 && i == 0 && n1 > 1 || R == n1 && i == 0 && n2 > 1 || R == n1 + n2 && i == 0 && n3 > 1 || R == n1 + n2 + n3 && i == 0 && n4 > 1 ))
+                continue;
+            b[L] = i;
+            b[R] = i;
+            solve(L + 1, n1, n2, n3, n4);
+        }
+}
+
+int main()
+{
+    int n;
+    scanf("%d", &n);
+    while(n--)
+    {
+        int x;
+        cin >> x;
+        c[x] = 1;
+    }
+    for(int i = 1; i <= 3; i++)
+        for(int j = 1; j <= 3; j++)
+            for(int k = 1; k <= 3; k++)
+                for(int m = 1; m <= 3; m++)
+                    solve(0, i, j, k, m);
+    printf("%d\n", cur);
+    for(int i = 0; i < cur; i++)
+        printf("%d.%d.%d.%d\n", a[i][0], a[i][1], a[i][2], a[i][3]);
+    return 0;
+}

@@ -1,0 +1,80 @@
+const
+  tfi = '';//'559b.inp';
+  tfo = '';//'559b.out';
+  base = 1000000007;
+
+var
+  n : longint;
+  a,b : ansistring;
+  p,aa,bb : array [0..200010] of longint;
+  ca,cb : array [0..200010,'a'..'z'] of longint;
+
+procedure enter;
+  begin
+    assign(input,tfi);
+    reset(input);
+    readln(a);
+    readln(b);
+    n := length(a);
+    close(input);
+  end;
+
+procedure init;
+  var i : longint;
+  begin
+    p[0] := 1;
+    for i := 1 to n do
+      begin
+        p[i] := int64(p[i-1])*26 mod base;
+        aa[i] := (int64(aa[i-1])*26 + ord(a[i]) - ord('a')) mod base;
+        bb[i] := (int64(bb[i-1])*26 + ord(b[i]) - ord('a')) mod base;
+        ca[i] := ca[i-1]; inc(ca[i,a[i]]);
+        cb[i] := cb[i-1]; inc(cb[i,b[i]]);
+      end;
+  end;
+
+function geta(i,j : longint) : longint;
+  begin
+    exit((aa[j] - int64(aa[i-1])*p[j-i+1] mod base + base) mod base);
+  end;
+
+function getb(i,j : longint) : longint;
+  begin
+    exit((bb[j] - int64(bb[i-1])*p[j-i+1] mod base + base) mod base);
+  end;
+
+function test(i,j,u,v : longint) : boolean;
+  var ch : char;
+  begin
+    for ch := 'a' to 'z' do
+      if ca[j,ch] - ca[i-1,ch] <> cb[v,ch] - cb[u-1,ch] then exit(false);
+    exit(true);
+  end;
+
+function check(i,j,u,v : longint) : boolean;
+  var mid1,mid2 : longint;
+  begin
+    if geta(i,j) = getb(u,v) then exit(true);
+    if odd(j - i) and test(i,j,u,v) then
+      begin
+        mid1 := (i + j) div 2;
+        mid2 := (u + v) div 2;
+        if check(i,mid1,u,mid2) and check(mid1+1,j,mid2+1,v) then exit(true);
+        if check(i,mid1,mid2+1,v) and check(mid1+1,j,u,mid2) then exit(true);
+      end;
+    exit(false);
+  end;
+
+procedure print;
+  begin
+    assign(output,tfo);
+    rewrite(output);
+    if check(1,n,1,n) then write('YES') else write('NO');
+    close(output);
+  end;
+
+begin
+  enter;
+  init;
+  print;
+end.

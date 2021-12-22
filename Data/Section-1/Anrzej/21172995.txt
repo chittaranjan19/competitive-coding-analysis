@@ -1,0 +1,150 @@
+
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+#define all(x) x.begin(), x.end()
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 3e5 + 10, lg = 31, MAXN = 1111;
+ll mod = 1e9 + 7;
+
+ll gcd(ll a, ll b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll _gcd(ll a, ll b, ll & x, ll & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	ll _x1, _y1;
+	ll d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+ll binpow(ll a, ll n) {
+	ll res = 1;
+	while (n) {
+		if (n & 1)
+			res *= a;
+		a *= a;
+		n >>= 1;
+		a %= mod;
+		res %= mod;
+	}
+	return res;
+}
+
+
+void term_res(string res){
+	cout << res;
+	exit(0);
+}
+
+pair<int, int> e[222 * 222];
+bool used[222 * 222];
+bool dir[222 * 222];
+vector<int> g[222];
+int deg[222];
+
+void solve(){
+	int n, m;
+	set<pair<int, int> > syn_e;
+	map<pair<int, int>, int > e_id;
+	cin >> n >> m;
+	for (int i = 0; i <= n; i++)
+		g[i].clear(), deg[i] = 0;
+	memset(used, 0, sizeof(used));
+	for (int i = 0; i < m; i++){
+		int u, v;
+		cin >> u >> v;
+		e_id[mp(u, v)] = i;
+		e[i] = mp(u, v);
+		g[u].push_back(i);
+		g[v].push_back(i);
+		deg[v]++, deg[u]++;
+	}
+	vector<int> odd;
+	for (int i = 1; i <= n; i++){
+		if (g[i].size() % 2 == 1)
+			odd.push_back(i);
+	}
+	for (int i = 0; i < odd.size(); i += 2){
+		syn_e.insert(mp(odd[i], odd[i + 1]));
+		e_id[mp(odd[i], odd[i + 1])] = m;
+		e[m] = mp(odd[i], odd[i + 1]);
+		g[odd[i]].push_back(m);
+		g[odd[i + 1]].push_back(m);
+		deg[odd[i]]++, deg[odd[i + 1]]++;
+		m += 1;
+	}
+	vector<pair<int, int> > ans;
+	for (int i = 1; i <= n; i++){
+		stack<int> st;
+		vector<int> euler;
+		if (deg[i] != 0)
+			st.push(i);
+		while (!st.empty()){
+			int cur = st.top();
+			if (deg[cur] == 0)
+				euler.push_back(cur), st.pop();
+			else{
+				for (int i = 0; i < g[cur].size(); i++){
+					if (used[g[cur][i]]) continue;
+					int v = e[g[cur][i]].fs, u = e[g[cur][i]].sc;
+					if (v != cur)
+						swap(v, u);
+					pair<int, int> key = mp(v, u);
+					if (!e_id.count(key)) key = mp(u, v);
+					used[e_id[key]] = 1;
+					deg[u] -= 1, deg[v] -= 1;
+					st.push(u);
+					break;
+				}
+			}
+		}
+		if (euler.size() < 3) continue;
+		for (int _i = 0; _i < euler.size() - 1; _i++){
+			int u = euler[_i], v = euler[_i + 1];
+			if (!syn_e.count(mp(u, v)) && !syn_e.count(mp(v, u)))
+				ans.push_back(mp(u, v));
+		}
+	}
+	cout << n - odd.size() << '\n';
+	for (int i = 0; i < ans.size(); i++)
+		cout << ans[i].fs << ' ' << ans[i].sc << '\n';
+}
+
+int main()
+{
+	int t;
+	cin >> t;
+	while (t--){
+		solve();
+	}
+	return 0;
+}

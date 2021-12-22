@@ -1,0 +1,180 @@
+#include <bits/stdc++.h>
+using namespace std;
+struct Node
+{
+int key,priority,size; // clave, prioridad (MaxHeap), tamaño del subarbol
+Node* left, *right;
+// puntero a subarbol izquierdo y derecho
+Node(int k): key(k), left(NULL), right(NULL), priority(rand()), size(0) {}
+};
+int sz(Node* root) // Devuelve el tamaño del subarbol de un nodo
+{
+return (root == NULL)? 0 : root->size;
+}
+Node* upd(Node* root) // Actualiza el tamaño del subarbol de un nodo
+{
+if(root != NULL) root->size = 1 + sz(root->left) + sz(root->right);
+return root;
+}
+// Busqueda de un nodo por su clave, cumple propiedades de BST
+Node* search(Node *root , int key)
+{
+if(root == NULL) return NULL;
+if(key < root->key) return search(root->left, key);
+if(key > root->key) return search(root->right, key);
+return root;
+}
+// Rotacion a la Derecha
+Node* rotRight(Node *root)
+{
+Node* pivot = root->left; // Asigno a pivot el subarbol izquierdo de root
+root->left = pivot->right; // Puntero izq de root apunta a der de pivot
+pivot->right = root;
+// Puntero derecho de pivot apunta a root
+return pivot;
+}
+//Rotacion a la Izquierda
+Node* rotLeft(Node *root)
+{
+Node* pivot = root->right; // Asigno a pivot el subarbol derecho de root
+root->right = pivot->left; // Puntero der de root apunta a izq de pivot
+pivot->left = root;
+// Puntero izquierdo de pivot apunta a root
+return pivot;
+}
+// Insercion: Recibo un arbol y el nodo a insertar
+Node* insert(Node *root , Node *novo)
+{
+if(root == NULL) return upd(novo); // Encontre la posicion para el nodo
+if(root->key < novo->key)
+// Buscamos por la derecha
+{
+root->right = insert(root->right, novo);
+if(root->right->priority > root->priority) root = rotLeft(root); // rotLeft
+upd(root->left);
+}
+else
+// Buscamos por la izquierda
+{
+root->left = insert(root->left, novo);
+if(root->left->priority > root->priority)root = rotRight(root); // rotRight
+upd(root->right);
+}
+return upd(root);
+}
+//Eliminacion: Recibo un arbol y la clave del nodo a eliminar
+Node* erase(Node* root, int key)
+{
+if(root == NULL) return upd(root);
+//Realizo la busqueda por clave
+if(root->key < key) root->right = erase(root->right, key);
+else if(root->key > key) root->left = erase(root->left, key);
+else
+{
+// Si tengo ambos hijos debo comparar prioridades
+if(root->left != NULL)
+{
+if(root->right != NULL){ // Elijo el de mayor prioridad
+if(root->left->priority < root->right->priority){
+root = rotLeft(root); // rotacion izquierda
+upd(root->left);
+root->left = erase(root->left, key);
+}else{
+root = rotRight(root); // rotacion derecha
+upd(root->right);
+root->right = erase(root->right, key);
+}
+}else{
+// Si tengo solo hijo izquierdo
+Node* aux = root->left; delete root; return upd(aux);
+}
+}
+else{
+if(root->right != NULL){ // Si tengo solo hijo derecho
+Node* aux = root->right; delete root; return upd(aux);
+}
+else{ // Si mi nodo actual es hoja lo elimino
+delete root; return NULL;
+}
+}
+}
+return upd(root);
+}
+//Limpiamos el arbol de prueba
+void clear(Node* root)
+{
+if(root != NULL)
+{
+clear(root->left); clear(root->right);
+delete root;
+}
+}
+// Recorrido Preorder del Treap
+void Traverse(Node *root)
+{
+if(root == NULL) return;
+printf("[%d,%d,%d]->", root->key, root->priority, sz(root));
+Traverse(root->left);
+Traverse(root->right);
+}
+Node* find_kth(Node *root, int k)
+{
+if(sz(root) < k) return NULL; // Si no poseo elementos retorno NULL
+int ans = 1 + sz(root->left); // La posición del nodo es 1 + tam hijo izq
+if(ans == k) return root;
+// Si es el nodo actual lo retorno
+// Si esta en el subarbol derecho, busco el (k - ans) menor elemento
+if(ans < k) return find_kth(root->right, k - ans);
+// Si esta en el subarbol izquierdo, sigo buscando
+return find_kth(root->left, k);
+}
+int count(Node *root, int d) // Cuenta los elementos menores a d
+{
+if(root == NULL) return 0;
+if(root->key < d) return 1 + sz(root->left) + count(root->right, d);
+else return count(root->left, d);
+}
+int main(){
+    int n;
+    cin>>n;
+    string str;
+    vector<int> a(n);
+    vector<int> b(n);
+    for(int i=0;i<n;++i)
+        cin>>a[i];
+    for(int i=0;i<n;++i)
+        cin>>b[i];
+    vector<int> ca(n);
+    vector<int> cb(n);
+    Node* ta= NULL;
+    Node* tb= NULL;
+    for(int i=0;i<n;++i) ta=insert(ta, new Node(i));
+    for(int i=0;i<n;++i){
+        ca[n-1-i]=count(ta,a[i]);
+        ta=erase(ta,a[i]);
+    }
+    for(int i=0;i<n;++i) tb=insert(tb, new Node(i));
+    for(int i=0;i<n;++i){
+        cb[n-1-i]=count(tb,b[i]);
+        tb=erase(tb,b[i]);
+    }
+    int carry=0;
+    vector<int> ord(n);
+    for(int i=0;i<n;++i){
+        int num=ca[i]+cb[i]+carry;
+        if(num>i) {
+            carry= 1;
+            num-=i+1;
+        }else carry=0;
+        ord[i]=num;
+        cout<<ord[i]<<endl;
+    }
+    Node* tmp= NULL;
+    Node* ans= NULL;
+    for(int i=0;i<n;++i) tmp=insert(tmp, new Node(i));
+    for(int i=n-1;i>=0;--i){
+        int kth=find_kth(tmp,ord[i]+1)->key;
+        cout<<kth<<" ";
+        tmp=erase(tmp,kth);
+    }
+}

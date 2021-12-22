@@ -1,0 +1,79 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+vector<int> v[300001], sol;
+int b[300001], a[300001];
+map<int, int> m1, m2;
+set<int> mset;
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    int n, m, p, i, j, ans=0;
+    scanf("%d%d%d", &n, &m, &p);
+    for(i=0; i<n; i++){
+        scanf("%d", &a[i]);
+        v[i%p].push_back(a[i]);
+    }
+    for(i=0; i<m; i++){
+        scanf("%d", &b[i]);
+        m1[b[i]]++;
+    }
+    for(i=0; i<p; i++){
+        if(m>v[i].size())
+            continue;
+        m2.clear();
+        mset.clear();
+        for(j=0; j<m; j++){
+            m2[v[i][j]]++;
+            //cout << v[i][j] << " ";
+            mset.insert(v[i][j]);
+        }
+        /*cout << "\n";
+        cout << "set\n";
+        for(auto it=mset.begin(); it!=mset.end(); ++it)
+            cout << *it << " ";
+        cout << "\n";*/
+        for(auto it=m1.begin(); it!=m1.end(); ++it){
+            if(m2.find(it->first)==m2.end()){
+                mset.insert(it->first);
+                continue;
+            }
+            if(it->second==m2[it->first])
+                mset.erase(it->first);
+        }
+        /*cout << "set\n";
+        for(auto it=mset.begin(); it!=mset.end(); ++it)
+            cout << *it << " ";
+        cout << "\n";*/
+        if(mset.empty()){
+            ans++;
+            //cout << i << "\n";
+            sol.push_back(i+1);
+        }
+        for(j=m; j<v[i].size(); j++){
+            m2[v[i][j-m]]--;
+            if(m2[v[i][j-m]]!=m1[v[i][j-m]] && mset.find(v[i][j-m])==mset.end())
+                mset.insert(v[i][j-m]);
+            else if(m2[v[i][j-m]]==m1[v[i][j-m]] && mset.find(v[i][j-m])!=mset.end())
+                mset.erase(v[i][j-m]);
+            m2[v[i][j]]++;
+            if(m2[v[i][j]]!=m1[v[i][j]] && mset.find(v[i][j])==mset.end())
+                mset.insert(v[i][j]);
+            else if(m2[v[i][j]]==m1[v[i][j]] && mset.find(v[i][j])!=mset.end())
+                mset.erase(v[i][j]);
+            if(mset.empty()){
+                ans++;
+                //cout << "b " << i << " " << j << "\n";
+                sol.push_back((j+1-m)*p + i + 1);
+            }
+        }
+    }
+    sort(sol.begin(), sol.end());
+    printf("%d\n", ans);
+    for(i=0; i<sol.size(); i++)
+        printf("%d ", sol[i]);
+    printf("\n");
+    return 0;
+}

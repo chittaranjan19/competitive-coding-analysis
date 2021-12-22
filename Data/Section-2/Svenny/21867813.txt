@@ -1,0 +1,87 @@
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <cstdio>
+#include <memory>
+#include <algorithm>
+#include <iomanip>
+#include <vector>
+#include <list>
+#include <set>
+#include <map>
+#include <string>
+#include <memory.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef long double ld;
+typedef unsigned uint;
+
+const ll posinf = 1000000000000000001;
+const ll neginf = -1000000000000000001;
+
+struct circle
+{
+	ld x, y, r;
+};
+
+circle s[3];
+
+inline ld dist (ld x1, ld y1, ld x2, ld y2)
+{
+	return sqrt ((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
+}
+
+inline ld angle (int n, ld x, ld y)
+{
+	return 2.0 * asin (s[n].r / dist (s[n].x, s[n].y, x, y));
+}
+
+inline ld f (ld x, ld y)
+{
+	ld t[3];
+	t[0] = dist (s[0].x, s[0].y, x, y) / s[0].r;
+	t[1] = dist (s[1].x, s[1].y, x, y) / s[1].r;
+	t[2] = dist (s[2].x, s[2].y, x, y) / s[2].r;
+	return (t[0] - t[1])*(t[0] - t[1]) + (t[1] - t[2])*(t[1] - t[2]) + (t[2] - t[0])*(t[2] - t[0]);
+}
+
+ld x, y;
+
+int main ()
+{
+#ifdef CONTEST_ONME
+	freopen ("input.txt", "r", stdin);
+	freopen ("output.txt", "w", stdout);
+#endif
+
+	cin >> s[0].x >> s[0].y >> s[0].r;
+	cin >> s[1].x >> s[1].y >> s[1].r;
+	cin >> s[2].x >> s[2].y >> s[2].r;
+	x = s[0].x + s[1].x + s[2].x;
+	y = s[0].y + s[1].y + s[2].y;
+	x /= 3.0; y /= 3.0;
+	ld dif = 1.0;
+	bool ft;
+	while (dif > 1e-6)
+	{
+		ft = false;
+		if (f (x, y) > f (x + dif, y))
+			x += dif, ft = true;
+		else if (f (x, y) > f (x - dif, y))
+			x -= dif, ft = true;
+		else if (f (x, y) > f (x, y + dif))
+			y += dif, ft = true;
+		else if (f (x, y) > f (x, y - dif))
+			y -= dif, ft = true;
+		if (!ft) dif *= 0.7;
+	}
+	if (f (x, y) < 1e-5)
+		cout << fixed << setprecision (5) << x << ' ' << y;
+
+#ifdef CONTEST_ONME
+	//system ("pause");
+#endif
+	return 0;
+}

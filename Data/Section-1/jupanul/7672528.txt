@@ -1,0 +1,61 @@
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <vector>
+using namespace std;
+
+long long minim = 1LL << 60;
+
+void backtrack(const vector<long long> &a, int f[2]) {
+    if (static_cast<int>(a.size()) == 1) {
+        minim = min(minim, a[0]);
+    } else {
+        for (int i = 0; i < static_cast<int>(a.size()); ++ i) {
+            for (int j = i + 1; j < static_cast<int>(a.size()); ++ j) {
+                vector<long long> new_a;
+                int new_f[2];
+                if (f[0]) {
+                    new_a.push_back(a[i] + a[j]);
+                    for (int k = 0; k < static_cast<int>(a.size()); ++ k) {
+                        if (k != i && k != j) {
+                            new_a.push_back(a[k]);
+                        }
+                    }
+                    new_f[0] = f[0] - 1;
+                    new_f[1] = f[1];
+                    backtrack(new_a, new_f);
+                }
+                if (f[1]) {
+                    new_a.clear();
+                    new_a.push_back(a[i] * a[j]);
+                    for (int k = 0; k < static_cast<int>(a.size()); ++ k) {
+                        if (k != i && k != j) {
+                            new_a.push_back(a[k]);
+                        }
+                    }
+                    new_f[0] = f[0];
+                    new_f[1] = f[1] - 1;
+                    backtrack(new_a, new_f);
+                }
+            }
+        }
+
+    }
+}
+
+int main() {
+    vector<long long> a(4); int f[2] = {0, 0};
+    cin >> a[0] >> a[1] >> a[2] >> a[3];
+    for (int i = 0; i < 3; ++ i) {
+        char semn;
+        cin >> semn;
+        if (semn == '+') {
+            ++ f[0];
+        } else {
+            ++ f[1];
+        }
+    }
+    backtrack(a, f);
+    cout << minim;
+    return 0;
+}

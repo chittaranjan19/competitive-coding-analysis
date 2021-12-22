@@ -1,0 +1,91 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+#define PB push_back
+#define MP make_pair
+#define X first
+#define Y second
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+
+const int N = 200 * 1000 + 100;
+
+vector <int> g[N];
+int a[N];
+int n, q;
+
+int par[N];
+int h[N];
+int st[N];
+int ft[N];
+int T;
+
+int seg[4 * N];
+
+void dfs(int v, int pv){
+	st[v] = T++;
+	par[v] = pv;
+	for(int u : g[v]){
+		if(u == pv) continue;
+		h[u] = h[v] + 1;
+		dfs(u, v);
+	}
+	ft[v] = T;
+}
+
+void update(int v, int s, int e, int l, int r, int val){
+	if(r <= s || e <= l) return;
+	if(l <= s && e <= r){
+		seg[v] += val;
+		return;
+	}
+	int mid = (s + e) / 2;
+	update(2 * v + 0, s, mid, l, r, val);
+	update(2 * v + 1, mid, e, l, r, val);
+}
+
+int getsum(int v, int s, int e, int l, int r, int sum){
+	if(r <= s || e <= l) return 0;
+	if(l <= s && e <= r) return sum + seg[v];
+	int mid = (s + e) / 2;
+	return getsum(2 * v + 0, s, mid, l, r, sum + seg[v]) + 
+		   getsum(2 * v + 1, mid, e, l, r, sum + seg[v]);
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> q;
+	for(int i = 0; i < n; ++i)
+		cin >> a[i];
+
+	for(int i = 0; i < n - 1; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; v --;
+		g[u].PB(v);
+		g[v].PB(u);
+	}
+	dfs(0, -1);
+	for(int i = 0; i < q; ++i){
+		int t; cin >> t;
+		if(t == 1){
+			int x, val;
+			cin >> x >> val;
+			x --;
+			if(h[x] % 2) val *= -1;
+			update(1, 0, n, st[x], ft[x], val);
+		}
+		else{
+			int x;
+			cin >> x;
+			x --;
+			if(h[x] % 2) cout << a[x] - getsum(1, 0, n, st[x], st[x] + 1, 0);
+			else cout << a[x] + getsum(1, 0, n, st[x], st[x] + 1, 0);
+			cout << "\n";
+		}
+	}
+	return 0;
+}

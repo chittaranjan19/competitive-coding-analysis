@@ -1,0 +1,169 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int arr[100005];
+
+struct node;
+node *newNode();
+
+struct node {
+  int lv, rv, sum;
+  LL res;
+  node *left, *right;
+
+
+  node() : left(NULL), right(NULL), sum(0), res(0) {}
+
+
+  inline void init(int l, int r) {
+    lv = l;
+    rv = r;
+  }
+
+
+  inline void extend() {
+    if (!left) {
+      int m = (lv + rv) / 2;
+      left = newNode();
+      right = newNode();
+      left->init(lv, m);
+      right->init(m + 1, rv);
+    }
+  }
+
+
+  int getSum(int l, int r) {
+    if (r < lv || rv < l) {
+      return 0;
+    }
+    if (l <= lv && rv <= r) {
+      return sum;
+    }
+    extend();
+    return left->getSum(l, r) + right->getSum(l, r);
+  }
+
+  LL getRes(int l, int r)
+  {
+    if (r < lv || rv < l) {
+      return 0;
+    }
+    if (l <= lv && rv <= r) {
+      return res;
+    }
+    extend();
+    return left->getRes(l, r) + right->getRes(l, r);
+  }
+
+  void update(int p, int newVal) {
+    if (lv == rv) {
+      sum += newVal;
+      res = sum * 1LL * lv;
+      return;
+    }
+    extend();
+    (p <= left->rv ? left : right)->update(p, newVal);
+    sum = left->sum + right->sum;
+    res = left->res + right->res;
+  }
+};
+
+
+node *newNode() {
+  static int bufSize = 1e6;
+  static node buf[(int) 1e6];
+  assert(bufSize);
+  return &buf[--bufSize];
+}
+
+int main()
+{
+  //freopen("dynamic.in", "r", stdin);
+  //freopen("dynamic.out", "w", stdout);
+  int n, q, x, y;
+  LL d;
+  scanf("%d %d", &n, &q);
+  node *root = newNode();
+  root->init(0, 1e9 + 2);
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d", &x);
+    root->update(x, 1);
+    arr[i + 1] = x;
+  }
+  for(int i=0;i<q;i++)
+  {
+    scanf("%d", &x);
+    if(x == 1)
+    {
+      scanf("%d %d", &x, &y);
+      root->update(arr[x], -1);
+      root->update(y, 1);
+      arr[x] = 1;
+    }
+    else
+    {
+      scanf("%I64d", &d);
+      int L = 0, R = 1e9 + 2;
+      while(R > L)
+      {
+        int mid = L + (R - L + 1) / 2;
+        int cnt = 0;
+        LL res = 0;
+        if(mid)
+        {
+          cnt = root->getSum(0, mid - 1);
+          res = root->getRes(0, mid - 1);
+        }
+        if(cnt * 1LL * mid - res > d)
+          R = mid - 1;
+        else L = mid;
+      }
+      int cnt = 0;
+      LL res = 0;
+      if(L)
+      {
+        cnt = root->getSum(0, L - 1);
+        res = root->getRes(0, L - 1);
+      }
+      d-=cnt * 1LL * L - res;
+      printf("%.9lf\n", L + d * 1.0 / root->getSum(0, L));
+    }
+  }
+  return 0;
+}

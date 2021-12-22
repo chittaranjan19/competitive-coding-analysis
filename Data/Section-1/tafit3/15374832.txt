@@ -1,0 +1,252 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.TreeMap;
+
+public class ProblemB2 {
+    BufferedReader rd;
+    long cf, cm;
+
+    ProblemB2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        long[] a = longarr();
+        int n = (int)a[0];
+        long A = a[1];
+        cf = a[2];
+        cm = a[3];
+        long m = a[4];
+        a = longarr();
+        long[] orig = Arrays.copyOf(a, a.length);
+        sort(a);
+
+        int p = n-1;
+        while(p >= 0 && a[p] == A) {
+            p--;
+        }
+        long bestMin = a[0];
+        long bestAcount = n-1-p;
+        long bestForce = computeForce(bestMin, bestAcount);
+
+        if(p >= 0) {
+
+            long[] s = new long[n+1];
+            for(int i=0;i<n;i++) {
+                long next = i+1<n?a[i+1]:A;
+                long df = next - a[i];
+                s[i+1] = s[i] + (i+1) * df;
+            }
+
+            int i = p+1;
+            long used = 0;
+            while (i >= 0) {
+                if (i < n) {
+                    long cost = A - a[i];
+                    if (used + cost > m) {
+                        break;
+                    }
+                    used += cost;
+                }
+                long aCount = n - i;
+                long left = m - used;
+                int y = Arrays.binarySearch(s, left);
+                long minA;
+                if(y >= 0) {
+                    if(y < i) {
+                        while (y < n && s[y] <= left) {
+                            y++;
+                        }
+                        minA = a[y - 1];
+                    } else {
+                        int u = i-1;
+                        while(u >= 0 && s[u] == s[i-1]) {
+                            u--;
+                        }
+                        long rest = left -  s[u+1];
+                        long restSpace = (A - a[u+1]) * y;
+                        if(rest < restSpace) {
+                            minA = a[u+1] + (rest / i);
+                        } else {
+                            minA = A;
+                        }
+                    }
+                } else {
+                    y = Math.min(n, -1-y);
+                    if(y < i) {
+                        long rest = left -  s[y-1];
+                        long restSpace = (A - a[y-1]) * y;
+                        if(rest < restSpace) {
+                            minA = a[y-1] + (rest / y);
+                        } else {
+                            minA = A;
+                        }
+                    } else if(i == 0) {
+                        minA = A;
+                    } else {
+                        int u = i-1;
+                        while(u >= 0 && s[u] == s[i-1]) {
+                            u--;
+                        }
+                        long rest = left -  s[u+1];
+                        long restSpace = (A - a[u+1]) * y;
+                        if(rest < restSpace) {
+                            minA = a[u+1] + (rest / i);
+                        } else {
+                            minA = A;
+                        }
+                    }
+                }
+                long force = computeForce(minA, aCount);
+                if(force > bestForce) {
+                    bestForce = force;
+                    bestMin = minA;
+                    bestAcount = aCount;
+                }
+
+                i--;
+            }
+        }
+
+        out(bestForce);
+        StringBuilder buf = new StringBuilder();
+        if(bestMin == A) {
+            Arrays.fill(a, A);
+        } else {
+            a=orig;
+            for (int i = 0; i < n; i++) {
+                if(bestAcount > 0) {
+                    if (a[i] > bestMin) {
+                        a[i] = A;
+                        bestAcount--;
+                    }
+                } else {
+                    break;
+                }
+            }
+            if(bestAcount > 0) {
+                for (int i = 0; i < n; i++) {
+                    if (a[i] < A) {
+                        a[i] = A;
+                        bestAcount--;
+                        if(bestAcount <= 0) {
+                            break;
+                        }
+                    }
+                }
+            }
+            for(int i=0;i<n;i++) {
+                if(a[i] <= bestMin) {
+                    a[i] = bestMin;
+                }
+            }
+        }
+        for(int i=0;i<n;i++) {
+            if(i > 0) {
+                buf.append(' ');
+            }
+            buf.append(a[i]);
+        }
+        out(buf);
+    }
+
+    private long computeForce(long aMin, long maxAcount) {
+        return aMin * cm + maxAcount * cf;
+    }
+
+    private void sort(long[] a) {
+        Map<Long, Integer> b = new TreeMap<>();
+        for(long x: a) {
+            Integer cur = b.get(x);
+            if(cur == null) {
+                b.put(x, 1);
+            } else {
+                b.put(x, cur+1);
+            }
+        }
+        int p = 0;
+        for(Map.Entry<Long, Integer> e: b.entrySet()) {
+            long key = e.getKey();
+            int s = e.getValue();
+            for(int i=0;i<s;i++) {
+                a[p] = key;
+                p++;
+            }
+        }
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB2();
+    }
+}

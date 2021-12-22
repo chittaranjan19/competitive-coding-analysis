@@ -1,0 +1,119 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+int arr[100005];
+int tree[400005][17];
+int tree2[400005][17];
+
+void build(int i,int L,int R)
+{
+    if(L == R)
+    {
+        for(int j=0;j<17;j++)
+            tree[i][j] = tree2[i][j] = ((arr[L] & (1 << j)) != 0);
+        return ;
+    }
+    build(i*2 + 1, L, (L + R) / 2);
+    build(i*2 + 2, (L + R) / 2 + 1, R);
+    for(int j=0;j<17;j++)
+    {
+        tree[i][j] = tree[i*2 + 1][j] + ((tree[i*2 + 1][j] == ((L + R) / 2 - L + 1)) ? tree[i*2 + 2][j] : 0);
+        tree2[i][j] = tree2[i*2 + 2][j] + ((tree2[i*2 + 2][j] == (R - (L + R) / 2)) ? tree2[i*2 + 1][j] : 0);
+    }
+}
+
+void update(int i,int L,int R,int node,int val)
+{
+    if(L == R)
+    {
+        for(int j=0;j<17;j++)
+            tree[i][j] = tree2[i][j] = ((val & (1 << j)) != 0);
+        return ;
+    }
+    if(node <= (L + R) / 2)
+        update(i*2 + 1, L, (L + R) / 2, node, val);
+    else update(i*2 + 2, (L + R) / 2 + 1, R, node, val);
+    for(int j=0;j<17;j++)
+    {
+        tree[i][j] = tree[i*2 + 1][j] + ((tree[i*2 + 1][j] == ((L + R) / 2 - L + 1)) ? tree[i*2 + 2][j] : 0);
+        tree2[i][j] = tree2[i*2 + 2][j] + ((tree2[i*2 + 2][j] == (R - (L + R) / 2)) ? tree2[i*2 + 1][j] : 0);
+    }
+}
+
+int query(int i,int L,int R,int x,int y, int bit)
+{
+    if(L >= x && R <= y)
+        return tree[i][bit];
+    if(L > y || R < x)
+        return 0;
+    if(x > (L + R) / 2) return query(i*2 + 2, (L + R) / 2 + 1, R, x, y, bit);
+    int temp = query(i*2 + 1, L, (L + R) / 2, x, y, bit);
+    return temp + ((temp == ((L + R) / 2 - max(L, x) + 1)) ? query(i*2 + 2, (L + R) / 2 + 1, R, x, y, bit) : 0);
+}
+
+int query2(int i,int L,int R,int x,int y, int bit)
+{
+    if(L >= x && R <= y)
+        return tree2[i][bit];
+    if(L > y || R < x)
+        return 0;
+    if(y <= (L + R) / 2) return query2(i*2 + 1, L, (L + R) / 2, x, y, bit);
+    int temp = query2(i*2 + 2, (L + R) / 2 + 1, R, x, y, bit) ;
+    return temp + ((temp == (min(R, y) - (L + R) / 2)) ? query2(i*2 + 1, L, (L + R) / 2, x, y, bit) : 0);
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int n, q, x, y;
+    cin >> n >> q;
+    for(int i=0;i<n;i++)
+        cin >> arr[i];
+    build(0, 0, n - 1);
+    LL res = 0;
+    for(int i=0;i<n;i++)
+        for(int j=0;j<17;j++)
+            res+=query(0, 0, n - 1, i, n - 1, j) * 1LL * (1 << j);
+    while(q--)
+    {
+        cin >> x >> y;
+        for(int j=0;j<17;j++)
+            res-=query(0, 0, n - 1, x - 1, n - 1, j) * 1LL * query2(0, 0, n - 1, 0, x - 1, j) * (1 << j);
+        update(0, 0, n - 1, x - 1, y);
+        for(int j=0;j<17;j++)
+            res+=query(0, 0, n - 1, x - 1, n - 1, j) * 1LL * query2(0, 0, n - 1, 0, x - 1, j) * (1 << j);
+        cout << res << '\n';
+    }
+    return 0;
+}

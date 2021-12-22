@@ -1,0 +1,65 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 200000000000007
+#define LLINF 100000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll arr[MAXN],s[MAXN];
+map<ll,int>pm;
+set<ll>sg;
+ll n,k,c=0;
+void upd(int x){
+	for(;x;x-=-x&x) s[x]++;
+}
+int tap(int x){
+	int fup=0;
+	for(;x<MAXN;x+=-x&x) fup+=s[x];
+	return fup;
+}
+int calc(ll h){
+	memset(s,0,sizeof(s));
+	ll ans=0,num=0;
+	upd(pm[0]);num++;
+	for(int i=1;i<=n;i++){
+		ll pos=*(--sg.upper_bound(arr[i]-h));
+		ans+=num-tap(pm[pos]+1);
+		upd(pm[arr[i]]);num++;
+	}
+	return (ans>=k);
+}
+int main(){
+	scanf("%lld%lld",&n,&k);
+	for(int i=1;i<=n;i++)
+		scanf("%lld",arr+i),arr[i]+=arr[i-1],pm[arr[i]]=1,sg.insert(arr[i]);
+	pm[0]=1;pm[-INF]=1;
+	sg.insert(0),sg.insert(-INF),sg.insert(INF);
+	tr(it,pm)
+		it->ss=++c;
+	ll st=-LLINF,en=LLINF;
+	while(st+1<en){
+		ll mid=(st+en)/2;
+		if(calc(mid))
+			st=mid;
+		else
+			en=mid;	
+	}
+	for(ll i=en;i>=st;i--)
+		if(calc(i)){
+			printf("%lld\n",i);
+			return 0;
+		}
+	return 0;
+}

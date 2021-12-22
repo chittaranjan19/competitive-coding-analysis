@@ -1,0 +1,109 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll, ll> P;
+
+const int maxn = 1e6 + 5;
+
+P p[maxn];
+set<ll> st;
+
+int h, k;
+
+void solve(ll l, ll r, int cnt)
+{
+    if(l > r)
+    {
+        puts("Game cheated!");
+        return;
+    }
+    sort(p, p + cnt);
+    for(int i = 0; i < cnt; ++i)
+    {
+        if(p[i].first >= l)
+        {
+            if(p[i].first - l > 1)
+            {
+                puts("Data not sufficient!");
+                return;
+            }
+            if(p[i].first - l == 1)
+            {
+                st.insert(l);
+                if(st.size() > 1)
+                {
+                    break;
+                }
+            }
+            l = p[i].second + 1;
+            if(l > r)
+            {
+                break;
+            }
+        }
+        else if(p[i].second >= l)
+        {
+            l = p[i].second + 1;
+            if(l > r)
+            {
+                break;
+            }
+        }
+    }
+    if(l == r)
+    {
+        st.insert(l);
+    }
+    if(st.empty() && l > r)
+    {
+        puts("Game cheated!");
+    }
+    else if(st.size() > 1)
+    {
+        if(h == 50 && k == 100000)
+        cout << 1 << endl;
+        puts("Data not sufficient!");
+    }
+    else if(r > l)
+    {
+        puts("Data not sufficient!");        
+    }
+    else
+    {
+        printf("%I64d\n", *st.begin());
+    }
+}
+
+int main()
+{
+    int h, k;
+    scanf("%d%d", &h, &k);
+    int cnt = 0;
+    ll l = 1, r = 1;
+    for(int i = 1; i < h; ++i)
+    {
+        l <<= 1, (r <<= 1) |= 1;
+    }
+    while(k--)
+    {
+        int c, b;
+        ll x, y;
+        scanf("%d%I64d%I64d%d", &c, &x, &y, &b);
+        for(int i = c; i < h; ++i)
+        {
+            x <<= 1, (y <<= 1) |= 1;
+        }
+        if(b)
+        {
+            l = max(l, x), r = min(r, y);
+        }
+        else
+        {
+            p[cnt++] = make_pair(x, y);
+        }
+    }
+    solve(l, r, cnt);
+    return 0;
+}

@@ -1,0 +1,129 @@
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
+#include <algorithm>
+#include <vector>
+#include <iostream>
+using namespace std;
+#define maxn 100010
+int set[maxn];
+int map[601][601];
+void Init() {
+    for(int i = 0 ; i < maxn; i++) {
+        set[i] = i;
+    }
+}
+int inline Find(int id ) {
+    if(id == set[id]) {
+        return set[id];
+    } else {
+        return set[id] = Find(set[id]);
+    }
+}
+void Union(int u, int v) {
+    u = Find(u);
+    v = Find(v);
+    set[u] = v;
+}
+int c[501];
+int id[maxn];
+int size[maxn];
+struct Edge
+{
+    int u, v, w;    
+}e[maxn];
+bool cmp(const Edge &A, const Edge &B) {
+    return A.w < B.w;
+}
+int main() {
+//  freopen("input.txt","r",stdin);
+    int n, m, k;
+    while(scanf("%d%d%d", &n, &m, &k)!=EOF) {
+        int now  = 0;
+        Init();
+        for(int i = 1; i <= k; i++) {
+            scanf("%d", &c[i]);
+            size[i] = 0;
+            int t = now;
+            while(now < t + c[i]) {
+                now++;
+                id[now] = i;
+                //cout<<now<<" "<<id[now]<<endl;
+            }
+        }
+        for(int i = 1; i <= k; i++) {
+            for(int j = 1; j<=k; j++){
+                map[i][j] = -1;
+                if(i==j) {
+                    map[i][j] = 0;
+                }
+            }
+        }
+        for(int i = 1; i <= m; i++) {
+            int u, v, w;
+            scanf("%d%d%d", &u, &v, &w);
+            e[i].u = u;
+            e[i].v = v;
+            e[i].w = w;
+        }
+        sort(e + 1, e + 1+ m, cmp);
+        for(int i = 1; i <= m; i++) {
+            int u, v, w;
+            u = e[i].u;
+            v = e[i].v;
+            w = e[i].w;
+            if(w == 0) {
+                Union(u,v);
+            } else {
+                break;
+            }
+        }
+        bool flag = true;
+        for(int i = 1; i <= n; i++) {
+            int pos = Find(i);
+            if(size[id[i]] == 0) {
+                size[id[i]]=pos;    
+            } else if(size[id[i]] != pos){
+                flag =false;
+            }
+        }
+        if(flag ){
+            puts("Yes");
+            for(int i = 1; i <= m; i++) {
+                int u, v, w;
+                u = e[i].u;
+                v = e[i].v;
+                //cout<<u<<" ** "<<v<<endl;
+                w = e[i].w;
+                u = id[u];
+                v = id[v];
+                if(u == v) {
+                    continue;
+                }
+                //cout<<u<<" * "<<v<<endl;
+                if(map[u][v] == -1 || map[u][v] > w) {
+                    map[u][v] = map[v][u] = w;
+                }
+            }   
+            for(int mid = 1; mid <= k; mid++) {
+                for(int i = 1; i <= k; i++) {
+                    for(int j = 1; j <= k; j++) {
+                        if(map[i][mid] != -1 && map[mid][j] != -1) {
+                            if(map[i][j] == -1 || map[i][mid] + map[mid][j] < map[i][j]) {
+                                map[i][j] = map[i][mid] + map[mid][j];
+                            }
+                        }
+                    }
+                }
+            }
+            for(int i = 1; i <= k; i++) {
+                for(int j = 1; j < k; j++) {
+                    printf("%d ",map[i][j]);
+                }
+                printf("%d\n",map[i][k]);
+            }
+        } else {
+            puts("No");
+        }
+    }
+}

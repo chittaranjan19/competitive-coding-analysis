@@ -1,0 +1,165 @@
+const
+  tfi = '';//'595c.inp';
+
+var
+  n,nheap,l,r : longint;
+  a,d,heap,pos,prev,next : array [0..200010] of longint;
+
+procedure enter;
+  var i : longint;
+  begin
+    assign(input,tfi);
+    reset(input);
+    read(n);
+    for i := 1 to n do read(a[i]);
+    for i := 0 to n+1 do
+      begin
+        prev[i] := i-1;
+        next[i] := i+1;
+      end;
+    close(input);
+  end;
+
+procedure swap(var x,y : longint);
+  var z : longint;
+  begin
+    z := x;
+    x := y;
+    y := z;
+  end;
+
+procedure sort(l,h : longint);
+  var i,j,x : longint;
+  begin
+    if l > h then exit;
+    i := l;
+    j := h;
+    x := a[random(h - l + 1) + l];
+    repeat
+      while a[i] < x do inc(i);
+      while a[j] > x do dec(j);
+      if i <= j then
+        begin
+          swap(a[i],a[j]);
+          inc(i);
+          dec(j);
+        end;
+    until i > j;
+    sort(l,j); sort(i,h);
+  end;
+
+procedure upheap(i : longint);
+  var j : longint;
+  begin
+    j := i div 2;
+    if (j = 0) or (d[heap[i]] >= d[heap[j]]) then exit;
+    swap(heap[i],heap[j]);
+    swap(pos[heap[i]],pos[heap[j]]);
+    upheap(j);
+  end;
+
+procedure downheap(i : longint);
+  var j : longint;
+  begin
+    j := 2*i;
+    if j > nheap then exit;
+    if (j < nheap) and (d[heap[j]] > d[heap[j+1]]) then inc(j);
+    if d[heap[i]] > d[heap[j]] then
+      begin
+        swap(heap[i],heap[j]);
+        swap(pos[heap[i]],pos[heap[j]]);
+        downheap(j);
+      end;
+  end;
+
+procedure del(i : longint);
+  begin
+    if i = 0 then exit;
+    pos[heap[i]] := 0;
+    heap[i] := heap[nheap];
+    pos[heap[i]] := i;
+    dec(nheap);
+    downheap(i);
+  end;
+
+procedure push(i : longint);
+  begin
+    inc(nheap);
+    heap[nheap] := i;
+    pos[i] := nheap;
+    upheap(nheap);
+  end;
+
+function pop : longint;
+  begin
+    pop := heap[1];
+    heap[1] := heap[nheap];
+    pos[heap[1]] := 1;
+    dec(nheap);
+    downheap(1);
+  end;
+
+procedure delete(i : longint);
+  var ll,rr : longint;
+  begin
+    ll := prev[i];
+    rr := next[i];
+    next[ll] := rr;
+    prev[rr] := ll;
+    del(pos[i]);
+    d[i] := 0;
+    if i = l then l := rr
+    else
+    if i = r then
+      begin
+        del(pos[ll]);
+        d[ll] := 0;
+        r := ll;
+      end
+    else
+      begin
+        d[ll] := a[rr] - a[ll];
+        downheap(pos[ll]);
+      end;
+  end;
+
+procedure vova;
+  begin
+    dec(n);
+    if d[l] < d[prev[r]] then delete(r) else delete(l);
+  end;
+
+procedure lesha;
+  var i,t1,t2 : longint;
+  begin
+    dec(n);
+    i := heap[1];
+    if i = l then t1 := maxlongint else t1 := a[i] - a[prev[i]];
+    if next[i] = r then t2 := maxlongint else t2 := a[next[next[i]]] - a[next[i]];
+    if t1 < t2 then delete(i) else delete(next[i]);
+  end;
+
+procedure process;
+  var i,t : longint;
+  begin
+    sort(1,n);
+    l := 1;
+    r := n;
+    for i := 1 to n-1 do
+      begin
+        d[i] := a[i+1] - a[i];
+        push(i);
+      end;
+    t := 1;
+    while n > 2 do
+      begin
+        if t = 1 then vova else lesha;
+        t := 1 - t;
+      end;
+    write(a[r] - a[l]);
+  end;
+
+begin
+  enter;
+  process;
+end.

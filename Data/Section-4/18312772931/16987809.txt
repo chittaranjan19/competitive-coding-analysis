@@ -1,0 +1,136 @@
+#include<iostream>
+#include<functional>
+#include<algorithm>
+#include<cstring>
+#include<string>
+#include<vector>
+#include<cstdio>
+#include<cmath>
+#include<map>
+using namespace std;
+#define CRL(a) memset(a,0,sizeof(a))
+#define QWQ ios::sync_with_stdio(0)
+typedef unsigned __int64 LL;
+typedef  __int64 ll;
+const int T = 100000+50;
+const int mod = 1000000007;
+
+#define lson (rt<<1)
+#define rson (rt<<1|1)
+
+bool flag;
+struct node
+{
+	int L,R,v,mid;
+}tree[T<<2];
+
+bool fun(int rt,int ma,int mi)
+{
+	while(ma){
+		if((mi&1)&&(!(ma&1)))return false;
+		mi>>=1,ma>>=1;
+	}
+	return true;
+}
+
+void Push_Down(int rt)
+{
+	if(tree[rt].v){
+		int ma=tree[lson].v,
+			mi=tree[rt].v;
+		if(ma==0) tree[lson].v = mi;
+		else if(fun(rt,ma,mi)&&mi<=ma)tree[lson].v |= mi;
+		else flag = true;
+		ma=tree[rson].v;
+		if(ma==0) tree[rson].v = mi;
+		else if(fun(rt,ma,mi)&&mi<=ma)tree[rson].v |= mi;
+		else flag = true;
+		tree[rt].v = 0;
+	}
+}
+
+void Build(int rt,int L,int R)
+{
+	tree[rt].L = L,tree[rt].R = R;
+	tree[rt].mid = (L+R)/2;
+	tree[rt].v = 0;
+	if(L==R)return;
+	Build(lson,L,tree[rt].mid);
+	Build(rson,tree[rt].mid+1,R);
+}
+
+void Insert(int rt,int L,int R,int val)
+{
+	if(L<=tree[rt].L&&R>=tree[rt].R){
+		if(tree[rt].v==0) tree[rt].v = val;
+		else if(fun(rt,tree[rt].v,val)&&val>=tree[rt].v){
+			if(tree[rt].L!=tree[rt].R)Push_Down(rt);
+			else tree[rt].v |= val;
+		}
+		else flag = true;
+		return;
+	}
+	Push_Down(rt);
+	if(R<=tree[rt].mid){
+		Insert(lson,L,R,val);
+	}
+	else if(L>tree[rt].mid){
+		Insert(rson,L,R,val);
+	}
+	else {
+		Insert(lson,L,tree[rt].mid,val);
+		Insert(rson,tree[rt].mid+1,R,val);
+	}
+}
+
+void query(int rt,int L,int R,bool f)
+{
+	if(L==R&&f){
+		printf("%d ",tree[rt].v);
+		return;
+	}
+	if(L==R){
+		return;
+	}
+	Push_Down(rt);
+	if(R<=tree[rt].mid){
+		query(lson,L,R,f);
+	}
+	else if(L>tree[rt].mid){
+		query(rson,L,R,f);
+	}
+	else {
+		query(lson,L,tree[rt].mid,f);
+		query(rson,tree[rt].mid+1,R,f);
+	}
+}
+
+int main()
+{
+#ifdef zsc
+    freopen("input.txt","r",stdin);
+#endif
+
+	int i,j,k,n,m,L,R,V;
+
+	while(~scanf("%d%d",&n,&m))
+	{
+		flag = false;
+		Build(1,1,n);
+		for(i=0;i<m;++i){
+			scanf("%d%d%d",&L,&R,&V);
+			if(flag)continue;
+			Insert(1,L,R,V);
+		}
+		query(1,1,n,false);
+		if(flag){
+			printf("NO\n");
+		}
+		else {
+			printf("YES\n");
+			query(1,1,n,true);
+			printf("\n");
+		}
+	}
+    return 0;
+}

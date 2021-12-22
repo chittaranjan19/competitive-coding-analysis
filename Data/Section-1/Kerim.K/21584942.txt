@@ -1,0 +1,86 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+ll tail,que[33],dp[(1<<24)+5];
+ll one[29],two[26][26],three[26][26][26];
+char s[5];
+void solve(){
+	sort(s+1,s+4);
+	int sz=(s[3]!=s[2])+(s[2]!=s[1])+1;
+	if(sz==3){
+		one[s[1]-'a']++;
+		one[s[2]-'a']++;
+		one[s[3]-'a']++;
+		two[s[1]-'a'][s[2]-'a']++;
+		two[s[1]-'a'][s[3]-'a']++;
+		two[s[2]-'a'][s[3]-'a']++;
+		three[s[1]-'a'][s[2]-'a'][s[3]-'a']++;		
+	}
+	if(sz==2){
+		if(s[1]==s[2])
+			s[2]=s[3];
+		one[s[1]-'a']++;
+		one[s[2]-'a']++;
+		two[s[1]-'a'][s[2]-'a']++;		
+	}
+	if(sz==1)
+		one[s[1]-'a']++;
+}
+void rec(ll x,ll y,ll bit){
+	if(x>tail){
+		if(!bit)
+			return;
+		if(bit&1)
+			x+=dp[y];
+		else
+			x-=dp[y];
+		return;	
+	}
+	rec(x+1,y,bit);
+	rec(x+1,(y|(1<<que[x])),bit+1);
+}
+int main(){
+	//~ freopen("file.in","r",stdin);
+	ll a;
+	scanf("%lld",&a);
+	for(ll i=1;i<=a;i++){
+		scanf("%s",s+1);
+		solve();
+	}
+	ll ans=0;
+	for(ll i=1;i<(1<<24);i++){
+		tail=-1;
+		ll mask=i,cnt=0;
+		while(mask>=1){
+			if(mask%2)
+				que[++tail]=cnt;
+			mask>>=1;	cnt++;
+		}	
+		ll res=0;		
+		res=dp[i^(1<<que[0])]+one[que[0]];
+		for(ll j=1;j<=tail;j++){
+			res-=two[que[0]][que[j]];
+			for(ll k=j+1;k<=tail;k++)
+				res+=three[que[0]][que[j]][que[k]];
+		}
+		ans=ans^(res*res);	
+		dp[i]=res;
+	}
+	printf("%lld\n",ans);
+	return 0;
+}

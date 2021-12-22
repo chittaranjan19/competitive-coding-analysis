@@ -1,0 +1,90 @@
+#include<bits/stdc++.h>
+using namespace std;
+int const Max_N = 1e3+5;
+bitset<Max_N>B[Max_N]; 
+vector<int>E[Max_N]; 
+int e[Max_N] = {0}; 
+int n,m,q;
+int a[Max_N] = {0};
+int b[Max_N] = {0};
+int oper[(int)1e5+50] = {0};
+int ans[(int)1e5 + 50] = {0};
+void dfs(int u,int x)
+{
+	if(u==0)
+	{
+		for (int i = 0; i < E[0].size();++i)
+		{
+			int v = E[0][i];
+			ans[E[0][i]] = 0;
+			dfs(E[0][i],0); 
+		}
+		return ;
+	}
+	if(oper[u] == 1)
+	{
+		bool f = false;
+		if(!B[a[u]][b[u]])
+		{
+			f = true;
+			B[a[u]][b[u]] = 1;
+			++x; 
+		}
+		ans[u] = x;
+		dfs(u+1,x);
+		if(f) B[a[u]][b[u]] = 0;
+	}
+	else if(oper[u] == 2)
+	{
+		bool f = false;
+		if(B[a[u]][b[u]])
+		{
+			f = true;
+			B[a[u]][b[u]] = 0;
+			--x;
+		}
+		ans[u] = x;
+		dfs(u+1,x); 
+	 } 
+	 else if(oper[u] == 3)
+	 {
+	 	int cnt = B[a[u]].count();
+	 	bitset<Max_N>aaa =  B[a[u]];
+		x += m - 2*cnt;
+		for(int i = 1; i < m+1; ++i)
+		{
+			if(B[a[u]][i]) B[a[u]][i] = 0;
+			else B[a[u]][i] = 1; 
+		}
+		ans[u] = x;
+		dfs(u+1,x);
+		B[a[u]] = aaa;
+	 }
+	 else
+	 {
+	 	ans[u] = x; 
+	 }
+	 return ;
+} 
+int main()
+{
+	scanf("%d%d%d",&n,&m,&q);
+	for (int i = 1; i < q+1; ++i)
+	{
+		scanf("%d",oper+i);
+		if(oper[i] == 1 || oper[i] == 2) scanf("%d%d",a+i,b+i);
+		else if(oper[i] == 3) scanf("%d",a+i);
+		
+		if(oper[i] == 4)
+		{
+			scanf("%d",a+i);
+			E[a[i]].push_back(i);
+		} 
+		else E[i-1].push_back(i); 
+	}
+	dfs(0,0);
+	for (int i = 1; i < q+1; ++i)
+	 printf("%d\n",ans[i]);
+	return 0;
+}
+

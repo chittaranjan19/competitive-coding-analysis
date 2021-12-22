@@ -1,0 +1,151 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <vector>
+#include <utility>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1e5 + 10, SQRT = 320;
+
+struct qu {
+	int l, r, t;
+	int id;
+	void read (int i) {
+		cin >> l >> r >> t;
+		id = i;
+		l--;
+		r--;
+	}
+	bool operator < (const qu &q) const {
+		return t < q.t;
+	}
+} queries[MAXN];
+
+struct line {
+	ll m, b;
+	int id;
+	void read (int i) {
+		cin >> b >> m;
+		id = i;
+	}
+	ll val (ll x) {
+		return m * x + b;
+	}
+};
+
+bool cmpslope (line m, line n) {
+	//sort it by slope increasing!
+	if (m.m != n.m) {
+		//smaller slope, it's the largest in smaller values
+		return m.m < n.m;
+	}
+	return m.b > n.b;
+}
+
+line lines[MAXN];
+vector<line> cmps[SQRT];
+int maxind[SQRT];	//the sequence is unimodal: goes up, then goes down.
+int ans[MAXN];
+
+int N, Q;
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces91E.in", "r", stdin);
+#endif
+	cin >> N >> Q;
+	for (int i = 0; i < N; i++) {
+		lines[i].read(i);
+		cmps[i / SQRT].push_back(lines[i]);
+	}
+	//sort it amongst the groups now!
+	for (int i = 0; i < SQRT; i++) {
+		vector<line> &ref = cmps[i];
+		if (ref.empty()) {
+			break;
+		}
+		sort(ref.begin(), ref.end(), cmpslope);
+		//remove line if it has same slope but diff b value
+		vector<line>::iterator it = ref.begin(), ret = it;
+		for (; it != ref.end(); it++) {
+			if (it == ref.begin() || (it - 1)->m != it->m) {
+				//remove it if the previouss line has same slope
+				*(ret++) = *it;
+			}
+		}
+		ref.resize(ret - ref.begin());
+		// rep(it, ref) {
+			// cerr << it->b << ' ' << it->m << endl;
+		// }
+	}
+	//read the queries
+	for (int i = 0; i < Q; i++) {
+		queries[i].read(i);
+	}
+	sort(queries, queries + Q);
+	//now let's process them!
+	for (int i = 0; i < Q; i++) {
+		//answer the query!
+		//ok now let's consider the time this query happens
+		ll t = queries[i].t;
+		int a = queries[i].l, b = queries[i].r;
+		ll val = -1; int ind = -1;
+		for (; a <= b && (a % SQRT); a++) {
+			//let's get ready to rock
+			ll v = lines[a].val(t);
+			if (val < v) {
+				val = v;
+				ind = a;
+			}
+		}
+		// if (a - 1 != b) {
+		// 	if (a % SQRT) {
+		// 		cerr << "query lost at t = " << t << endl;
+		// 		cerr << "a = " << a << endl;
+		// 		cerr << "b = " << b << endl;
+		// 		assert(0);
+		// 	}
+		// }
+		for (int comp = a / SQRT; b - a >= SQRT; a += SQRT, comp++) {
+			//advance the current pointer
+			int &ref = maxind[comp], nxt;
+			for (; (nxt = ref + 1) < cmps[comp].size(); ref = nxt) {
+				if (cmps[comp][ref].val(t) > cmps[comp][nxt].val(t)) {
+					break;
+				}
+			}
+			ll v = cmps[comp][ref].val(t);
+			if (val < v) {
+				val = v;
+				ind = cmps[comp][ref].id;
+			}
+		}
+		for (; a <= b; a++) {
+			ll v = lines[a].val(t);
+			if (val < v) {
+				val = v;
+				ind = a;
+			}
+		}
+		ans[queries[i].id] = ind;
+		if (queries[i].id == 1 && ind == 33201) {
+			cout << queries[i].l << ' ' << queries[i].r << endl;
+			assert(0);
+		}
+	}
+	//finally: print ans!
+	for (int i = 0; i < Q; i++) {
+		cout << ans[i] + 1 << '\n';
+	}
+}
+//please remember our lost matador. poor kid he was, killed in a bike accident :(

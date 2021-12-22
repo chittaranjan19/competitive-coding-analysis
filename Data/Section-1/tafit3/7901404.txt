@@ -1,0 +1,286 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD5 {
+    Map<String, Integer> byName = new HashMap<>();
+    List<String> byId = new ArrayList<>();
+    Map<Integer, List<Integer>> g1;
+    int[] rcon;
+    int[] lcon;
+    int nodeCount;
+    int[] px;
+    int[] rank;
+
+    private ProblemD5() throws IOException {
+        BufferedReader rd = new BufferedReader(new InputStreamReader(System.in));
+        rd.readLine();
+        String h = rd.readLine();
+        String[] essay = h.toLowerCase().split(" ");
+        h = rd.readLine();
+        int n = Integer.parseInt(h);
+        g1 = new HashMap<>();
+        for(int i=0;i<n;i++) {
+            h = rd.readLine();
+            String[] pair = h.toLowerCase().split(" ");
+            Integer a = idOf(pair[0]);
+            Integer b = idOf(pair[1]);
+            if(!a.equals(b)) {
+                List<Integer> succ = g1.get(a);
+                if(succ == null) {
+                    succ = new ArrayList<>();
+                    g1.put(a, succ);
+                }
+                if(!succ.contains(b)) {
+                    succ.add(b);
+                }
+            }
+        }
+        nodeCount = byId.size();
+        rcon = new int[nodeCount];
+        lcon = new int[nodeCount];
+        px = new int[nodeCount];
+        Arrays.fill(px, -1);
+        rank = new int[nodeCount];
+        for(int i=0;i<nodeCount;i++) {
+            rcon[i] = countR(byId.get(i));
+            lcon[i] = byId.get(i).length();
+        }
+
+        dfs();
+
+        for(int i=0;i<nodeCount;i++) {
+            if(px[i] != -1) {
+                reduce(find(i), i);
+            }
+        }
+
+        Map<Integer, List<Integer>> g2 = new HashMap<>();
+        for(int i=0;i<nodeCount;i++) {
+            if(px[i] != -1) {
+                int id = find(i);
+                List<Integer> succ = g2.get(id);
+                if(succ == null) {
+                    succ = new ArrayList<>();
+                    g2.put(id, succ);
+                }
+                List<Integer> succ2 = g1.get(i);
+                if(succ2 != null) {
+                    for(Integer dest: succ2) {
+                        if(px[dest] == -1) {
+                            succ.add(dest);
+                        } else {
+                            int fd = find(dest);
+                            if(id != fd) {
+                                succ.add(fd);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        g1.putAll(g2);
+
+        Set<Integer> toCheck = new HashSet<>();
+        for(int i=0;i<nodeCount;i++) {
+            toCheck.add(tr(i));
+        }
+        for(Map.Entry<Integer, List<Integer>> e: g1.entrySet()) {
+            int from = tr(e.getKey());
+            List<Integer> succ = g2.get(from);
+            if(succ == null) {
+                succ = e.getValue();
+            }
+            for(Integer y: succ) {
+                toCheck.remove(tr(y));
+            }
+        }
+
+        dfs(toCheck);
+
+        int resR = 0;
+        int resLen = 0;
+        for(String word: essay) {
+            Integer id = byName.get(word);
+            if(id == null) {
+                resR += countR(word);
+                resLen += word.length();
+            } else {
+                id = tr(id);
+                resR += rcon[id];
+                resLen += lcon[id];
+            }
+        }
+        out(resR + " " + resLen);
+    }
+
+    private void dfs(Set<Integer> toCheck) {
+        int[] color = new int[nodeCount];
+        List<int[]> q = new LinkedList<>();
+        for(Integer start: toCheck) {
+            q.add(new int[] { start, 0 });
+            while(!q.isEmpty()) {
+                int[] e = q.remove(q.size()-1);
+                e[0] = tr(e[0]);
+                color[e[0]] = 1;
+                List<Integer> succ = g1.get(e[0]);
+                Integer next = null;
+                if(succ != null) {
+                    while(e[1] < succ.size()) {
+                        Integer cur = succ.get(e[1]);
+                        cur = tr(cur);
+                        if(color[cur] == 0) {
+                            next = cur;
+                            break;
+                        }
+                        e[1]++;
+                    }
+                }
+                if(next != null) {
+                    q.add(new int[] { e[0], e[1]+1 });
+                    q.add(new int[] { next, 0 });
+                } else {
+                    color[e[0]] = 2;
+                    if(succ != null) {
+                        for(Integer v: succ) {
+                            reduce(e[0], tr(v));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private int tr(int x) {
+        if(px[x] != -1) {
+            return find(x);
+        }
+        return x;
+    }
+
+    private void reduce(int a, int b) {
+        if(rcon[b] < rcon[a] || (rcon[b] == rcon[a] && lcon[b] < lcon[a])) {
+            rcon[a] = rcon[b];
+            lcon[a] = lcon[b];
+        }
+    }
+
+    private void dfs() {
+        int[] color = new int[nodeCount];
+        int[] prev = new int[nodeCount];
+        List<int[]> q = new LinkedList<>();
+        for(int i=0;i<nodeCount;i++) {
+            if(color[i] == 0) {
+                q.add(new int[] { i, 0 });
+                prev[i] = -1;
+                while(!q.isEmpty()) {
+                    int[] e = q.remove(q.size()-1);
+                    color[e[0]] = 1;
+                    List<Integer> succ = g1.get(e[0]);
+                    Integer next = null;
+                    if(succ != null) {
+                        while(e[1] < succ.size()) {
+                            Integer cur = succ.get(e[1]);
+                            if(color[cur] == 0) {
+                                next = cur;
+                                break;
+                            } else if(color[cur] == 1) {
+                                saveCycle(prev, cur, e[0]);
+                            }
+                            e[1]++;
+                        }
+                    }
+                    if(next != null) {
+                        q.add(new int[] { e[0], e[1]+1 });
+                        q.add(new int[] { next, 0 });
+                        prev[next] = e[0];
+                    } else {
+                        color[e[0]] = 2;
+                    }
+                }
+            }
+        }
+    }
+
+    private void ms(int x) {
+        px[x] = x;
+        rank[x] = 0;
+    }
+
+    private int find(int x) {
+        if(px[x] == x) {
+            return x;
+        }
+        if(px[px[x]] == px[x]) {
+            return px[x];
+        }
+        List<Integer> q = new ArrayList<>();
+        int cur = x;
+        while(cur != px[cur]) {
+            q.add(cur);
+            cur = px[cur];
+        }
+        for(Integer z: q) {
+            px[z] = cur;
+        }
+        return cur;
+    }
+
+    private void link(int x, int y) {
+        if(rank[x] > rank[y]) {
+            px[y] = x;
+        } else {
+            px[x] = y;
+            if(rank[x] == rank[y]) {
+                rank[y]++;
+            }
+        }
+    }
+
+    private int get(int x) {
+        if(px[x] == -1) {
+            ms(x);
+            return x;
+        }
+        return find(x);
+    }
+
+    private void saveCycle(int[] prev, int first, int last) {
+        int firsts = get(first);
+        link(firsts, get(last));
+        int x = last;
+        while(prev[x] != first) {
+            link(firsts, get(prev[x]));
+            x = prev[x];
+        }
+    }
+
+    private int countR(String s) {
+        int x = 0;
+        for(int i=0;i<s.length();i++) {
+            if(s.charAt(i) == 'r') {
+                x++;
+            }
+        }
+        return x;
+    }
+
+    private Integer idOf(String name) {
+        Integer x = byName.get(name);
+        if(x == null) {
+            x = byId.size();
+            byName.put(name, x);
+            byId.add(name);
+        }
+        return x;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD5();
+    }
+}

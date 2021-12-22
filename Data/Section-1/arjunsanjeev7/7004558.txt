@@ -1,0 +1,90 @@
+// Fox And Box Accumulation
+
+#include<iostream>
+#include<cstdlib>
+using namespace std;
+
+class box
+{
+public:
+	int number;
+	int count;
+	box()
+	{
+		count=0;
+	}
+};
+
+int compare(const void *a, const void *b)
+{
+	return *(int *)a-*(int *)b;
+}
+
+int main()
+{
+	int n,i,num,l=0,flag,j,ans=0,rem,zero=0;
+	cin>>n;
+	box arr[n];
+	for(i=0;i<n;i++)
+	{
+		cin>>num;
+		flag=0;
+		for(j=0;j<l;j++)
+		{
+			if(arr[j].number==num)
+			{
+				flag=1;
+				arr[j].count++;
+			}
+		}
+		if(flag==0)
+		{
+			arr[l].number=num;
+			arr[l].count++;
+			l++;
+		}
+	}
+	qsort(&arr[0],l,sizeof(arr[0]),compare);
+	if(arr[0].number==0) zero=arr[0].count;
+	flag=1;
+	for(i=l-1;i>=0;i--)
+	{
+		if(flag==1)
+		{
+			ans+=arr[i].count/(arr[i].number+1);
+			arr[i].count%=(arr[i].number+1);
+			if(arr[i].count==0)
+			{
+				flag=1;
+			}
+			else
+			{
+				rem=arr[i].number+1-arr[i].count;
+				if(i==0 && l==1) ans++;
+				flag=0;
+			}
+		}
+		else
+		{	
+			if(rem>arr[i].number+1)
+				rem=arr[i].number+1;				
+			if(arr[i].count>=rem)
+			{
+				arr[i].count-=rem;
+				ans++;
+				if(arr[i].count>0) i++;
+				flag=1;
+			}
+			else
+			{
+				rem-=arr[i].count;
+				arr[i].count=0;
+				if(i==0) ans++;
+				flag=0;
+			}
+		}
+	}
+	if(zero>(ans-zero)) ans=zero;
+	cout<<ans<<endl;
+	return 0;
+}

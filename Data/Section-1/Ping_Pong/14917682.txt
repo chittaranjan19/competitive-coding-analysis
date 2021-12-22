@@ -1,0 +1,58 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdio>
+#include <stdlib.h>
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
+const int MAX_N = 100;
+vector<int> graph[MAX_N][MAX_N];
+set<int> color[MAX_N];
+bool used[MAX_N];
+int n, m;
+
+void dfs(int x, int color)
+{
+    used[x] = true;
+    for (int i = 0; i < n; i++)
+        if (!used[i])
+            for (int j = 0; j < graph[x][i].size(); j++)
+                if (graph[x][i][j] == color)
+                {
+                    dfs(i, color);
+                    break;
+                }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    int s, f, c, q;
+    cin >> n >> m;
+    for (int i = 0; i < m; i++)
+    {
+        cin >> s >> f >> c;
+        graph[s - 1][f - 1].push_back(c);
+        graph[f - 1][s - 1].push_back(c);
+        color[s - 1].insert(c);
+        color[f - 1].insert(c);
+    }
+    cin >> q;
+    for (int i = 0; i < q; i++)
+    {
+        cin >> s >> f;
+        int ans = 0;
+        for (set<int>::iterator it = color[s - 1].begin(); it != color[s - 1].end(); it++)
+        {
+            for (int k = 0; k < n; k++)
+                used[k] = false;
+            dfs(s - 1, *it);
+            if (used[f - 1])
+                ans++;
+        }
+        cout << ans << endl;
+    }
+    return 0;
+}

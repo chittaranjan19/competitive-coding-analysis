@@ -1,0 +1,93 @@
+#include <cstdio>
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <set>
+#include <list>
+#include <utility>
+#define INF 0x7FFFFFFF
+#define MAXN 100010
+
+#define msg(a) cout<<#a<<" : "<<a<<endl;
+#define ms(a) cout<<#a<<" : "<<a<<", ";
+typedef long long int LL;
+
+using namespace std;
+
+list<pair<LL, LL> > L;
+
+list<pair<LL, LL> >::iterator LB( pair<LL, LL> p ){
+	list<pair<LL, LL> >::iterator it;
+	it = L.begin();
+	while( it!= L.end() && it->first < p.first ) it++;
+	return it;
+}
+
+void mostrarL(){
+	list<pair<LL, LL> >::iterator it = L.begin();
+	while( it!=L.end() ){
+		cout<<it->first<<" "<<it->second<<endl;
+		it++;
+	}
+}
+
+int main(){
+	int n, si, di;
+	list<pair<LL, LL> >::iterator it, jt, kt;
+	LL x1, y1, x2, y2, a, b, dist, Y2;
+	L.push_front( make_pair(0, 0) );
+	cin>>n;
+	for(int i=0; i<n; i++){
+		cin>>si>>di;
+		a = si;
+		b = si+di-1;
+		dist = di;
+		it = LB( make_pair(a, b) );
+		if( it==L.end() ){	
+			L.push_back( make_pair(a, b) );
+			cout<<a<<" "<<b<<endl;
+		}
+		else{
+			x2 = it->first; y2 = it->second; it--;
+			x1 = it->first; y1 = it->second;
+			/*ms(x1); msg(y1);
+			ms(x2); msg(y2);
+			cout<<"para insertar ";ms(a); msg(b);
+			cout<<"L :\n"; mostrarL();*/
+			if( a>y1 && b<x2 ){
+				// cout<<"estamos here\n";
+				it++;
+				L.insert( it, make_pair(a, b) );
+				// cout<<"Nuevo:\n";mostrarL();
+				cout<<a<<" "<<b<<endl;
+			} else{
+				jt = kt = L.begin(); jt++;
+				x2 = jt->first; y2 = jt->second;
+				x1 = kt->first; y1 = kt->second;
+				while( jt!=L.end() ){
+					if( x2-y1-1 >= dist ){
+						L.insert(jt, make_pair( y1+1, y1+dist ));
+						cout<<y1+1<<" "<<y1+dist<<endl;
+						// cout<<"Nuevo:\n";mostrarL();
+						break;
+					}
+					jt++; kt = jt; kt--;
+					if( kt!=L.end() && jt!=L.end() ){
+						x2 = jt->first; y2 = jt->second;
+						x1 = kt->first; y1 = kt->second;
+					}
+				}
+				if( jt==L.end() ){
+					jt--; Y2 = jt->second;
+					L.push_back( make_pair( Y2+1, Y2+dist ) );
+					cout<<Y2+1<<" "<<Y2+dist<<endl;
+					// cout<<"Nuevo:\n";mostrarL();
+				}
+			}
+		}
+	}
+
+	//Mostrando L
+	// mostrarL();
+	return 0;
+}

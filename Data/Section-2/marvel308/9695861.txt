@@ -1,0 +1,119 @@
+#include<stdio.h>
+#include<string.h>
+#include<vector>
+#include<queue>
+using namespace std;
+bool mark[26][26]={false};
+bool visited[26][26]={false};
+void dfs(int par,int cur)
+{
+    if(mark[par][cur])
+        return ;
+    mark[par][cur]=true;
+    int i;
+    for(i=0;i<26;i++)
+    {
+        if(visited[cur][i])
+        {
+            dfs(par,i);
+        }
+    }
+}
+int main()
+{
+    int n,i,j,k;
+    char s[105][105];
+
+    scanf("%d",&n);
+    for(i=0;i<n;i++)
+    {
+        scanf("%s",s[i]);
+    }
+    for(i=0;i<n;i++)
+    {
+        for(j=i+1;j<n;j++)
+        {
+            int m1=strlen(s[i]),m2=strlen(s[j]);
+            k=0;
+            while(k<m1 && k<m2 && s[i][k]==s[j][k])
+            {
+                //visited[s[i][k]-'a'][s[j][k]-'a']=1;
+                k++;
+            }
+            if(k<m1 && k<m2)
+            {
+                visited[s[i][k]-'a'][s[j][k]-'a']=1;
+            }
+            if(k==m1 && k==m2)
+            {
+                printf("Impossible\n");
+                return 0;
+            }
+            //printf("i=%d j=%d k=%d\n",i,j,k);
+        }
+    }
+    for(i=0;i<26;i++)
+    {
+        for(j=0;j<26;j++)
+        {
+            if(visited[i][j] && i!=j)
+            {
+                dfs(i,j);
+            }
+        }
+    }
+    int indeg[26];
+    for(i=0;i<26;i++)
+    {
+        for(j=0;j<26;j++)
+        {
+            if(mark[i][j] && mark[j][i])
+            {
+                printf("Impossible\n");
+                return 0;
+            }
+            if(mark[i][j])
+            {
+                indeg[j]++;
+            }
+        }
+    }
+    vector<char> ans;
+    queue<int> q;
+    bool sent[26]={false};
+    for(i=0;i<26;i++)
+    {
+        if(indeg[i]==0 && sent[i]==false)
+        {
+            q.push(i);
+            sent[i]=true;
+            while(!q.empty())
+            {
+                int u=q.front();
+                q.pop();
+                ans.push_back('a'+u);
+                for(j=0;j<26;j++)
+                {
+                    if(mark[u][j])
+                    {
+                        indeg[j]--;
+                        if(indeg[j]==0 && sent[j]==false)
+                        {
+                            q.push(j);
+                            sent[j]=true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if(ans.size()!=26)
+    {
+        printf("Impossible\n");
+        return 0;
+    }
+    for(i=0;i<26;i++)
+        printf("%c",ans[i]);
+    printf("\n");
+    return 0;
+}

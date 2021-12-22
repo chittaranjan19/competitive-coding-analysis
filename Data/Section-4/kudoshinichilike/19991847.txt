@@ -1,0 +1,123 @@
+#include <bits/stdc++.h>
+#define maxn 100005
+#define inf 1e15
+using namespace std;
+typedef pair<int,int> II;
+typedef pair<long long,int> LI;
+    int n,m,k,a[maxn],deg[maxn],cl[maxn];
+    vector<II> g[maxn];
+    long long ds=inf,kc[maxn];
+    set<LI> q;
+long long dj(int xp)
+{
+    q.clear();
+    for(int i=1; i<=n; i++)
+        cl[i]=0;
+    cl[xp]=1;
+    kc[xp]=0;
+    q.insert(LI(0,xp));
+    while(!q.empty())
+    {
+        LI t=*q.begin();
+        q.erase(t);
+        int u=t.second;
+        if(a[u])
+            return kc[u];
+
+        for(int i=0; i<deg[u]; i++)
+        {
+            int v=g[u][i].first, l=g[u][i].second;
+            if(cl[v]==0)
+            {
+                cl[v]=1;
+                kc[v]=kc[u]+l;
+                q.insert(LI(kc[v],v));
+            }else
+            if(kc[v]>kc[u]+l)
+            {
+                q.erase(LI(kc[v],v));
+                kc[v]=kc[u]+l;
+                q.insert(LI(kc[v],v));
+            }
+        }
+    }
+    return inf;
+}
+void lam1()
+{
+    for(int i=1; i<=n; i++)
+    if(a[i]==0)
+        ds=min(ds,dj(i));
+    if(ds==inf) cout<<-1;
+    else
+        cout<<ds;
+}
+long long dj1(int xp)
+{
+    q.clear();
+    for(int i=1; i<=n; i++)
+        cl[i]=0;
+    cl[xp]=1;
+    kc[xp]=0;
+    q.insert(LI(0,xp));
+    while(!q.empty())
+    {
+        LI t=*q.begin();
+        q.erase(t);
+        int u=t.second;
+        if(a[u]==0)
+            return kc[u];
+
+        for(int i=0; i<deg[u]; i++)
+        {
+            int v=g[u][i].first, l=g[u][i].second;
+            if(cl[v]==0)
+            {
+                cl[v]=1;
+                kc[v]=kc[u]+l;
+                q.insert(LI(kc[v],v));
+            }else
+            if(kc[v]>kc[u]+l)
+            {
+                q.erase(LI(kc[v],v));
+                kc[v]=kc[u]+l;
+                q.insert(LI(kc[v],v));
+            }
+        }
+    }
+    return inf;
+}
+void lam2()
+{
+    for(int i=1; i<=n; i++)
+    if(a[i])
+        ds=min(ds,dj1(i));
+    if(ds==inf) cout<<-1;
+    else
+        cout<<ds;
+}
+int main()
+{
+    //freopen("b.inp","r",stdin);
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+    cin>>n>>m>>k;
+    for(int i=1; i<=m; i++)
+    {
+        int u,v,l;
+        cin>>u>>v>>l;
+        deg[u]++; g[u].push_back(II(v,l));
+        deg[v]++; g[v].push_back(II(u,l));
+    }
+    for(int i=1; i<=k; i++)
+    {
+        int u;
+        cin>>u;
+        a[u]=1;
+    }
+    if(k==0||k==n) {cout<<-1; return 0;}
+
+    if(k<n-k) lam2();
+    else lam1();
+}

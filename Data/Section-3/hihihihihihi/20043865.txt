@@ -1,0 +1,70 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+using namespace std;
+int mi[100005][20],ans,a[100005],mm[100005][20];
+int n;
+
+void rmq()
+{
+   int i,j;
+   for(j=1;(1<<j)<=n;j++)
+      for(i=1;i+(1<<j)-1<=n;i++)
+      {
+         if(a[mi[i][j-1]]<a[mi[i+(1<<(j-1))][j-1]]) mi[i][j]=mi[i][j-1];
+         else mi[i][j]=mi[i+(1<<(j-1))][j-1];
+         if(a[mm[i][j-1]]>a[mm[i+(1<<(j-1))][j-1]]) mm[i][j]=mm[i][j-1];
+         else mm[i][j]=mm[i+(1<<(j-1))][j-1];
+      }
+}
+
+int Q(int l,int r,int ok)
+{
+   int k=(int)(log(1.0*(r-l+1))/log(2.0));
+   if(ok==0)
+   {
+      if(a[mi[l][k]]<a[mi[r+1-(1<<k)][k]]) return mi[l][k];
+      else return mi[r+1-(1<<k)][k];
+   }
+   else
+   {
+      if(a[mm[l][k]]>a[mm[r+1-(1<<k)][k]]) return mm[l][k];
+      else return mm[r+1-(1<<k)][k];
+   }
+}
+
+int main()
+{
+   int i,j,tag1,tag2;
+   scanf("%d",&n);
+   for(i=1;i<=n;i++) {scanf("%d",&a[i]);mi[i][0]=i;mm[i][0]=i;}
+   rmq();
+   ans=0;
+   for(i=1;i<=n;i++)
+   {
+      if(i==n){ans++;break;}
+      int tmp=Q(i+1,n,0);
+      tag1=tag2=0;
+      if(a[tmp]<a[i])
+      {
+         for(j=n;j>=tmp;j--)
+         {
+            if(a[j]<a[i])
+            {
+               tag1=j;
+               break;
+            }
+            if(a[j]==a[i] && !tag2)
+            {
+               tag2=j;
+            }
+         }
+         if(a[Q(i+1,j,1)]>a[i] && tag2)i=tag2;
+         else i=tag1;
+      }
+      ans++;
+   }
+   printf("%d\n",ans);
+   return 0;
+}

@@ -1,0 +1,87 @@
+#include <cstdio>
+#include <vector>
+#include <queue>
+#include <algorithm>
+#include <set>
+using namespace std;
+int n,i,w,x,y,z,p1,p2,t,a[100100],v[100100],cnt[100100],ct[100100],tin[100100],tout[100100],r[100100];
+long long res;
+bool u[100100],wq[100100];
+vector<int> g[100100],f[100100];
+priority_queue<int, vector<int>, greater<int> > q[100100];
+set<pair<int,int> > st;
+bool dfs(int i, int p, int z) {
+  tin[i]=++t;
+  v[i]=1;
+  bool was=false;
+  for (int j=0; j<g[i].size(); j++) {
+    int k=g[i][j];
+    if (k==p) continue;
+    was|=dfs(k,i,f[i][j]);
+    v[i]+=v[k];
+  }
+  res+=2LL*z*min(v[i],n-v[i]);
+  if (!was && v[i]>=n-v[i]) {
+    was=true; w=i;
+  }
+  tout[i]=++t;
+  return was;
+}
+void ofs(int i, int p, int z) {
+  a[i]=z;
+  q[z].push(i);
+  cnt[z]++;
+  ct[z]++;
+  for (int j=0; j<g[i].size(); j++) {
+    int k=g[i][j];
+    if (k==p) continue;
+    ofs(k,i,(z==0)?k:z);
+  }
+}
+int main() {
+  scanf("%d",&n);
+  for (i=1; i<n; i++) {
+    scanf("%d%d%d",&x,&y,&z);
+    g[x].push_back(y); f[x].push_back(z);
+    g[y].push_back(x); f[y].push_back(z);
+  }
+  dfs(1,0,0);
+  printf("%I64d\n",res);
+  if (v[i]==n-v[i]) {
+    for (i=1; i<=n; i++) if (tin[i]>=tin[w] && tout[i]<=tout[w]) q[1].push(i); else q[2].push(i);
+    for (i=1; i<=n; i++) if (tin[i]>=tin[w] && tout[i]<=tout[w]) {
+      r[i]=q[2].top(); q[2].pop();
+    } else {
+      r[i]=q[1].top(); q[1].pop();
+    }
+  } else {
+    ofs(w,0,0);
+    for (i=1; i<=n; i++) if (!wq[a[i]]) {
+      st.insert(make_pair(-cnt[a[i]],a[i]));
+      wq[a[i]]=true;
+    }
+    for (i=x=y=1; i<=n; i++) {
+      while (x<=n && u[x]) x++;
+      while (y<=n && (u[y] || a[x]==a[y])) y++;
+      p1=st.begin()->second; st.erase(st.begin());
+      if (!st.empty()) {
+        p2=st.begin()->second; st.erase(st.begin());
+      } else p2=p1;
+      ct[a[i]]--;
+      if (a[i]!=p1 && n-i-ct[p1]<cnt[p1]) {
+        while (u[q[p1].top()]) q[p1].pop();
+        z=q[p1].top();
+      } else if (a[i]!=p2 && n-i-ct[p2]<cnt[p2]) {
+        while (u[q[p2].top()]) q[p2].pop();
+        z=q[p2].top();
+      } else if (a[x]==0 || a[x]!=a[i]) z=x; else z=y;
+      r[i]=z; u[z]=true;
+      if (z!=p1) st.insert(make_pair(-cnt[p1],p1));
+      if (z!=p2) st.insert(make_pair(-cnt[p2],p2));
+      if (z!=p1 && z!=p2) st.erase(st.find(make_pair(-cnt[a[z]],a[z])));
+      st.insert(make_pair(-(--cnt[a[z]]),a[z]));
+    }
+  }
+  for (i=1; i<=n; i++) printf("%d%c",r[i],i==n?'\n':' ');
+  return 0;
+}

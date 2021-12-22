@@ -1,0 +1,99 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define base 100007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, con[mn], ans = 0;
+struct trie
+{
+    pair< vector<int> , vector<int> > point;
+    trie* child[26];
+
+    trie()
+    {
+        point = mp(vector<int>(), vector<int>());
+        FOR(i, 0, 25)
+            child[i] = NULL;
+    }
+} t;
+string s;
+
+void setup()
+{
+    cin >> n;
+    FOR(i, 1, n)
+    {
+        cin >> s;
+        trie* p = &t;
+        FOR(j, 0, int(s.size()) - 1)
+        {
+            int z = s[j] - 'a';
+            if (p -> child[z] == NULL)
+                p -> child[z] = new trie;
+            p = p -> child[z];
+        }
+        p -> point.F.pb(i);
+    }
+    FOR(i, 1, n)
+    {
+        cin >> s;
+        trie* p = &t;
+        FOR(j, 0, int(s.size()) - 1)
+        {
+            int z = s[j] - 'a';
+            if (p -> child[z] == NULL)
+                p -> child[z] = new trie;
+            p = p -> child[z];
+        }
+        p -> point.S.pb(i);
+    }
+}
+
+pair< vector<int> , vector<int> > dfs(trie* p, int h)
+{
+    pair< vector<int> , vector<int> > re = p -> point;
+    FOR(i, 0, 25)
+    {
+        if (p -> child[i] == NULL)
+            continue;
+        pair< vector<int> , vector<int> > get = dfs(p -> child[i], h + 1);
+        FOR(j, 0, int(get.F.size()) - 1)
+            re.F.pb(get.F[j]);
+        FOR(j, 0, int(get.S.size()) - 1)
+            re.S.pb(get.S[j]);
+    }
+    int msz = min(re.F.size(), re.S.size());
+    FOR(i, 1, msz)
+    {
+        con[re.F[re.F.size() - i]] = re.S[re.S.size() - 1];
+        ans += h;
+    }
+    re.F.resize(re.F.size() - msz);
+    re.S.resize(re.S.size() - msz);
+    return re;
+}
+
+void xuly()
+{
+    dfs(&t, 0);
+    cout << ans << '\n';
+    FOR(i, 1, n)
+        cout << i << ' ' << con[i] << '\n';
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

@@ -1,0 +1,82 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+int mar[502][502];
+int p[502],relations[502];
+
+int getp(int x)
+{
+    int temp=p[x];
+    if (temp!=x)
+    {
+        p[x]=getp(temp);
+        relations[x] = (relations[x] + relations[temp]) % 2;
+    }
+    return p[x];
+}
+
+void unit(int i,int j)
+{
+    int t1=getp(i),t2=getp(j);
+    if (t1==t2)
+        return;
+    p[t1]=t2;
+    relations[t1]=(relations[i]-relations[j]+1)%2;
+}
+
+
+int main()
+{
+    int n,m;
+    while (cin>>n>>m)
+    {
+        bool flag=1;
+        memset(mar,0,sizeof mar);
+        memset(p,0,sizeof p);
+        memset(relations,0,sizeof relations);
+        for (int i=0;i<m;i++)
+        {
+            int a,b;
+            cin>>a>>b;
+            mar[a][b]=mar[b][a]=1;
+        }
+        for (int i=1;i<=n;i++)
+            p[i]=i;
+        for (int i=1;i<=n;i++)
+        {
+            for (int j=i+1;j<=n;j++)
+            {
+                if (!mar[i][j])
+                {
+                    if(getp(i) == getp(j))
+                    {
+                        if (relations[i]!=(relations[j]+1)%2)
+                            flag = 0;
+                    }
+                    else
+                    {
+                        unit(i,j);
+                    }
+                }
+            }
+        }
+        int u=0;
+        for (int i=1;i<=n;i++)
+        {
+            if (relations[i])
+                u++;
+        }
+        if (flag)
+        {
+            cout<<"Yes"<<endl;
+            for (int i=0;i<u;i++)
+                cout<<"ac";
+            for (int i=0;i<n-2*u;i++)
+                cout<<"b";
+            cout<<endl;
+        }
+        else
+            cout<<"No"<<endl;
+    }
+    return 0;
+}

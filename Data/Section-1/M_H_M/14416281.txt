@@ -1,0 +1,79 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <cstring>
+#include <iomanip>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+typedef unsigned long long ull;
+
+const int N = 40;
+
+int n;
+string s;
+
+struct node{
+	ull x1;
+	ull x2;
+	ull tot;
+	string t;
+	node(){
+		x1 = x2 = tot = 0;
+		t = "";
+	}
+};
+
+node dp[N][N];
+
+ull pw[19];
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	cin >> s;
+	pw[0] = 1;
+	for(int i = 1; i < 19; ++i)
+		pw[i] = pw[i - 1] * 10;
+	for(int i = 2 * n; i --;){
+		for(int j = 0; j <= 2 * n - i; ++j){
+			node t1, t2;
+			if(j <= 2 * n - i - 1){
+				t1 = dp[j][i + 1];
+				t1.t = 'H' + dp[j][i + 1].t;
+				t1.x2 += pw[2 * n - i - 1 - j] * (s[i] - '0');
+				t1.tot += pw[2 * n - i - 1 - j] * (s[i] - '0');
+				dp[j][i] = t1;
+			}
+			if(j){
+				t2 = dp[j - 1][i + 1];
+				t2.t = 'M' + dp[j - 1][i + 1].t;
+				t2.x1 += pw[j - 1] * (s[i] - '0');
+				t2.tot += pw[j - 1] * (s[i] - '0');
+				if(t2.tot >= t1.tot)
+					dp[j][i] = t2;	
+			}
+//			cerr << j << " " << 2 * n - i - j << " " << dp[j][i].t << " " << dp[j][i].tot << "\n";
+		}
+	}
+	cout << dp[n][0].t << "\n";
+	return 0;
+}

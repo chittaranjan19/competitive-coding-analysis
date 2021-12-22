@@ -1,0 +1,88 @@
+#include<stdio.h>
+typedef long long int ll;
+#define max(a,b) (a>b?a:b)
+struct node
+{
+    ll left,right,ans;
+} tree1[500005],tree2[500005];
+void init(int l,int r,int idx,struct node tree[])
+{
+    if(l>r)
+        return ;
+    tree[idx].left=-1;
+    tree[idx].right=-1;
+    tree[idx].ans=(r-l+1);
+    if(r>l)
+    {
+        int mid=(l+r)/2;
+        init(l,mid,2*idx,tree);
+        init(mid+1,r,2*idx+1,tree);
+    }
+}
+void update(int l,int r,int idx,int a,struct node tree[],int type)
+{
+    if(l>r || l>a || r<a)
+        return;
+    if(l==a && r==a)
+    {
+        if(type==1)
+            tree[idx].right=a;
+        else
+            tree[idx].left=a-1;
+    }
+    else
+    {
+        int mid=(l+r)/2;
+        update(l,mid,2*idx,a,tree,type);
+        update(mid+1,r,2*idx+1,a,tree,type);
+        ll lower=0,higher=0;
+        if(tree[2*idx].right==-1)
+            lower=l-1;
+        else
+            lower=tree[2*idx].right;
+        if(tree[2*idx+1].left==-1)
+            higher=r;
+        else
+            higher=tree[2*idx+1].left;
+        tree[idx].ans=max(tree[2*idx].ans,tree[2*idx+1].ans);
+        tree[idx].ans=max(tree[idx].ans,higher-lower);
+        if(tree[2*idx+1].right==-1)
+            tree[idx].right=tree[2*idx].right;
+        else
+            tree[idx].right=tree[2*idx+1].right;
+        if(tree[2*idx].left==-1)
+            tree[idx].left=tree[2*idx+1].left;
+        else
+            tree[idx].left=tree[2*idx].left;
+    }
+    //printf("l=%d r=%d ans=%I64d left=%I64d right=%I64d\n",l,r,tree[idx].ans,tree[idx].left,tree[idx].right);
+}
+int main()
+{
+    ll w,h,n,i;
+    scanf("%I64d%I64d%I64d",&w,&h,&n);
+    init(1,w,1,tree1);
+    init(1,h,1,tree2);
+    printf("%I64d %I64d\n",tree1[1].ans,tree2[1].ans);
+    for(i=0;i<n;i++)
+    {
+        char c;
+        int vl;
+        getchar();
+        scanf("%c",&c);
+        getchar();
+        scanf("%d",&vl);
+        if(c=='V')
+        {
+            update(1,w,1,vl,tree1,1);
+            update(1,w,1,vl+1,tree1,2);
+        }
+        else
+        {
+            update(1,h,1,vl,tree2,1);
+            update(1,h,1,vl+1,tree2,2);
+        }
+        printf("%I64d\n",tree1[1].ans*tree2[1].ans);
+    }
+    return 0;
+}

@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+set<pii> pts;
+set<int> seen;
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int n, m, i, x, y, mx, prv;	
+	scanf("%d%d", &n, &m);
+	mx = n;
+	for(i=1; i<=m; i++){
+		scanf("%d%d", &x, &y);
+		seen.insert(y);
+		pts.insert(mp(y, x));
+		if(y==1)
+			mx = min(mx, x-1);
+	}
+	prv = 0;
+	for(auto it:seen){
+		if(mx==0){
+			printf("-1\n");
+			return 0;
+		}
+		x = it;
+		if((x-prv)>1)
+			mx = n;
+		prv = x;
+		if(x==1)
+			continue;
+		auto jt = pts.lower_bound(mp(x, mx));
+		if(jt==pts.end()){
+			mx = n;
+			continue;
+		}
+		if((*jt).f != x){
+			mx = n;
+			continue;
+		}
+		//cout << x << " " << mx << " " << (*jt).f << " " << (*jt).s << "\n"; 
+		if((*jt).s == mx){
+			mx--;
+			auto temp = jt;
+			--temp;
+			while(1){
+				if((*temp).f != x)
+					break;
+				if((*jt).s - (*temp).s == 1){
+					jt = temp;
+					mx = (*jt).s - 1;
+				}
+				else
+					break;
+				if(temp==pts.begin())
+					break;
+				temp--;
+			}
+		}
+		else
+			mx = (*jt).s - 1;
+	}
+	//cout << mx << "\n";
+	if(mx==0){
+		printf("-1\n");
+		return 0;
+	}
+	if(seen.find(n)==seen.end())
+		mx = n;
+	if(mx==n)
+		printf("%d\n", 2*(n-1));
+	else
+		printf("-1\n");
+	return 0;
+}

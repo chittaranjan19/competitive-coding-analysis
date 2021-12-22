@@ -1,0 +1,135 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <fstream>
+#include <numeric>
+#include <stdexcept>
+#include <cassert>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+vector<pair<pair<int, int> , pair<int, int> > > edges;
+
+struct disjointset
+{
+    vector<int> rank, parent, sz;
+    int subtrees;
+
+    disjointset(int n)
+    {
+        subtrees = n;
+        for(int i=0;i<n;i++)
+            rank.pb(1),parent.pb(i), sz.pb(1);
+    }
+
+    int find_set(int x)
+    {
+        if(x == parent[x])
+            return x;
+        return parent[x] = find_set(parent[x]);
+    }
+
+    void link(int x,int y)
+    {
+        if(rank[x] > rank[y])
+            swap(x, y);
+        parent[x] = y;
+        sz[y] += sz[x];
+        if(rank[x] == rank[y])
+            rank[y]++;
+    }
+
+    bool union_sets(int x,int y)
+    {
+        x = find_set(x),y = find_set(y);
+        if(x != y)
+        {
+            link(x,y);
+            subtrees--;
+        }
+        return x != y;
+    }
+
+    bool same_set(int x,int y)
+    {
+        return find_set(x) == find_set(y);
+    }
+};
+
+LL res[100005];
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  //freopen("suffix.in", "r", stdin);
+  //freopen("suffix.out", "w", stdout);
+  int n;
+  cin >> n;
+  int x, y, z;
+  for(int i=0;i<n-1;i++)
+  {
+    cin >> x >> y >> z;
+    edges.pb(mp(mp(z, i), mp(x, y)));
+  }
+  sort(edges.begin(), edges.end());
+  disjointset temp(n + 1);
+  for(int i=0;i<n - 1;i++)
+  {
+    z = edges[i].f.f;
+    x = edges[i].s.f;
+    y = edges[i].s.s;
+    int ind = edges[i].f.s;
+    int k = 0;
+    //while(i + k < n - 1 && z == edges[i + k].f)
+    //  k++;
+    res[ind] = (temp.sz[temp.find_set(x)] * 2LL * temp.sz[temp.find_set(y)]);
+    temp.union_sets(x, y);
+  }
+  LL maxi = -1;
+  vector<int> v;
+  for(int i=0;i<n - 1;i++)
+  {
+    if(maxi < res[i])
+    {
+      maxi = res[i];
+      v.clear();
+      v.pb(i);
+    }
+    else if(maxi == res[i])
+      v.pb(i);
+  }
+  cout << maxi << " " << v.size() << "\n";
+  for(int i=0;i<v.size();i++)
+    cout << v[i] + 1 << " ";
+  return 0;
+}

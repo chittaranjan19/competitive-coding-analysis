@@ -1,0 +1,156 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 1005
+#define mn2 30004
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+#define ex 0.000001
+
+using namespace std;
+int n, m, s, t, num[mn], low[mn], r, best;
+int mark[mn], co = 1, w[mn2], ans = maxC << 1;
+stack<int> path;
+vector< pair<int, int> > g[mn];
+bool markE[mn2], found = false;
+pair<int, int> way;
+
+void dfs(int u)
+{
+    mark[u] = 1;
+    if (u == t)
+    {
+        found = true;
+        return;
+    }
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].F;
+        if (mark[v])
+            continue;
+        path.push(g[u][i].S);
+        dfs(v);
+        if (found)
+            return;
+        path.pop();
+    }
+}
+
+void findBri(int u)
+{
+    mark[u] = co;
+    low[u] = num[u] = ++ r;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int e = g[u][i].S;
+        if (markE[e])
+            continue;
+        int v = g[u][i].F;
+        if (mark[v] == co)
+            low[u] = min(low[u], num[v]);
+        else
+        {
+            markE[e] = true;
+            findBri(v);
+            low[u] = min(low[u], low[v]);
+            markE[e] = false;
+        }
+    }
+}
+
+void findBest(int u, int eg)
+{
+    if (low[u] == low[t])
+    {
+        best = eg;
+        return;
+    }
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].F;
+        int e = g[u][i].S;
+        if (markE[e])
+            continue;
+        markE[e] = true;
+        int nex = eg;
+        if (low[v] > num[u] && w[e] < w[eg])
+            nex = e;
+        findBest(v, nex);
+        markE[e] = false;
+        if (best)
+            return;
+    }
+}
+
+void setup()
+{
+    cin >> n >> m >> s >> t;
+    int u, v;
+    FOR(i, 1, m)
+    {
+        cin >> u >> v >> w[i];
+        g[u].pb(mp(v, i));
+        g[v].pb(mp(u, i));
+    }
+    w[0] = maxC;
+}
+
+void better(int a, int b)
+{
+    int sum = w[a] + (b? w[b] : 0);
+    if (sum < ans)
+    {
+        ans = sum;
+        way = mp(a, b);
+    }
+}
+
+void xuly()
+{
+    dfs(s);
+    if (!found)
+    {
+        cout << "0\n0";
+        return;
+    }
+    while(!path.empty())
+    {
+        int e = path.top();
+        path.pop();
+        markE[e] = true;
+        r = best = 0;
+        co ++;
+        findBri(s);
+        if (mark[t] != co)
+            better(e, 0);
+        else if (low[s] != low[t])
+        {
+            findBest(low[s], 0);
+            better(e, best);
+        }
+        markE[e] = false;
+    }
+    if (way.F == 0)
+        cout << -1;
+    else
+    {
+        cout << ans;
+        if (way.S == 0)
+            cout << "\n1\n" << way.F;
+        else
+            cout << "\n2\n" << way.F << ' ' << way.S;
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

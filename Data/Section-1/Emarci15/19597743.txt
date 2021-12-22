@@ -1,0 +1,159 @@
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+struct Treap {
+    int b,id,pri;
+    int lazy;
+    int tsc,tlazy;
+    Treap *left, *right;
+
+    Treap(int b, int id): b(b),id(id) {
+        pri = rand();
+        left = right = NULL;
+    }
+};
+
+void upd(Treap *t) {
+    if(t->left != NULL) t->left->lazy += t->lazy;
+    if(t->right != NULL) t->right->lazy += t->lazy;
+    t->b += t->lazy;
+    t->lazy = 0;
+    if(t->left != NULL) t->left->tlazy += t->tlazy;
+    if(t->right != NULL) t->right->tlazy += t->tlazy;
+    t->tsc += t->tlazy;
+    t->tlazy = 0;
+}
+
+void split(Treap *t, Treap *&t1, Treap *&t2, int x) {
+    if(t==NULL) {
+        t1 = t2 = NULL;
+        return;
+    }
+    upd(t);
+
+    if(t->b < x) {
+        t1 = t;
+        t = t->right;
+        t1->right = NULL;
+        split(t,t1->right,t2,x);
+    } else {
+        t2 = t;
+        t = t->left;
+        t2->left = NULL;
+        split(t,t1,t2->left,x);
+    }
+}
+
+void merge(Treap *t1, Treap *t2, Treap *&t) {
+    if(t1 == NULL) {
+        t = t2;
+        return;
+    }
+    if(t2 == NULL) {
+        t = t1;
+        return;
+    }
+    upd(t1);
+    upd(t2);
+
+    if(t1->pri > t2->pri) {
+        t = t1;
+        t1 = t1->right;
+        t->right = NULL;
+        merge(t1,t2,t->right);
+    } else {
+        t = t2;
+        t2 = t2->left;
+        t->left = NULL;
+        merge(t1,t2,t->left);
+    }
+}
+
+void insert(Treap *&t, Treap *p) {
+    upd(p);
+    Treap *t1(NULL),*t2(NULL);
+    split(t,t1,t2,p->b);
+    merge(t1,p,t1);
+    merge(t1,t2,t);
+}
+
+void insert(Treap *&t, int b, int id) {
+    Treap *p = new Treap(b,id);
+    insert(t,p);
+}
+
+void bejar(Treap *t, void f(Treap*)) {
+    if(t==NULL) return;
+
+    bejar(t->left,f);
+    Treap *tr = t->right;
+    t->left = t->right = NULL;
+    f(t);
+    bejar(tr,f);
+}
+
+Treap **__T;
+void insT(Treap *t) {
+    insert(*__T,t);
+}
+
+void update(Treap *&t, int c) {
+    Treap *t1(NULL),*t2(NULL);
+    split(t,t,t2,c);
+    if(t2==NULL) return;
+    t2->lazy -= c;
+    t2->tlazy++;
+    split(t2,t1,t2,c);
+
+    __T = &t;
+    bejar(t1,insT);
+
+    merge(t,t2,t);
+}
+
+int tsc[200001];
+void updtsc(Treap *t) {
+    tsc[t->id] = t->tsc;
+}
+
+int n;
+pair<int,int> ts[200000];
+int k;
+
+Treap *root;
+
+int main()
+{
+    ios::sync_with_stdio(0);
+    cin.tie(NULL);
+
+    cin >> n;
+    for(int i=0; i<n; i++) {
+        cin >> ts[i].second >> ts[i].first;
+        ts[i].second *= -1;
+    }
+
+    sort(ts,ts+n);
+    for(int i=0; i<n; i++) ts[i].second *= -1;
+
+    cin >> k;
+    for(int i=0; i<k; i++) {
+        int b; cin >> b;
+        insert(root,b,i+1);
+    }
+
+    for(int i=n-1; i>=0; i--) {
+        update(root,ts[i].second);
+    }
+
+    bejar(root,updtsc);
+
+    for(int i=1; i<=k; i++) {
+        cout << tsc[i] << " ";
+    }
+
+    return 0;
+}

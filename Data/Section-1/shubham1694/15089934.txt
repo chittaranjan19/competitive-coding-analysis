@@ -1,0 +1,95 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define ll long long
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 250;
+
+int gcd(int a, int b)
+{
+    if(b==0)
+        return a;
+    return gcd(b, a%b);
+}
+
+int primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53};
+int arr[101], dp[101][1<<18], dir[101][1<<18], b[101], n;
+
+int solve(int cur, int mask)
+{
+    //cout << cur << " " << mask << "\n";
+    if(cur==n)
+        return 0;
+    if(dp[cur][mask]!=-1)
+        return dp[cur][mask];
+    int i, j, f, ret, nmask, x;
+    ret = abs(arr[cur]-1) + solve(cur+1, mask);
+    dir[cur][mask] = 1;
+    for(i=2; i<=58; i++){
+        f = 1;
+        nmask = mask;
+        for(j=0; j<16; j++){
+            if(!(i%primes[j])){
+                if(mask&(1<<j)){
+                    f = 0;
+                    break;
+                }
+                nmask|=(1<<j);
+            }
+        }
+        if(f){
+            x = abs(arr[cur]-i) + solve(cur+1, nmask);
+            if(x < ret){
+                ret = x;
+                dir[cur][mask] = i;
+            }
+        }
+    }
+    return dp[cur][mask] = ret;
+}
+
+void prn(int cur, int mask)
+{
+    if(cur==n)
+        return;
+    int i, x;
+    b[cur] = x = dir[cur][mask];
+    for(i=0; i<16; i++){
+        if(!(x%primes[i])){
+            mask|=(1<<i);
+        }
+    }
+    prn(cur+1, mask);
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    memset(dp, -1, sizeof(dp));
+    int i, j;
+    sd(n);
+    //srand(time(NULL));
+    for(i=0; i<n; i++)
+        //arr[i] = 1 + rand()%30;
+        sd(arr[i]);
+    int ans = solve(0, 0);
+    //printf("%d\n", ans);
+    prn(0, 0);
+    for(i=0; i<n; i++)
+        printf("%d ", b[i]);
+    printf("\n");
+    return 0;
+}

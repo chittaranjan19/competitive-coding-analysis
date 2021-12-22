@@ -1,0 +1,87 @@
+import java.util.*;
+
+/**
+ * Created by leen on 6/2/16.
+ */
+public class Main {
+
+    public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
+        int numRows = scan.nextInt();
+        int numCols = scan.nextInt();
+        int numTypes = scan.nextInt();
+
+        int[][] maxtrix = new int[numRows][numCols];
+        List<Point>[] pointsByType = new List[numTypes];
+
+        for(int i = 0; i < numRows; i ++) {
+            for(int j = 0; j < numCols; j++) {
+                int type = scan.nextInt();
+                List<Point> points = pointsByType[type - 1];
+                if(points == null) {
+                    points = new LinkedList<Point>();
+                    pointsByType[type - 1] = points;
+                }
+                points.add(new Point(i, j));
+                maxtrix[i][j] = type;
+            }
+        }
+
+        for(int k = numTypes - 1; k > 0; k--) {
+            List<Point> points = pointsByType[k - 1];
+            for(Point p : points) {
+                List<Point> pointsOfNextType = pointsByType[k];
+
+                int minDistance = Integer.MAX_VALUE;
+                for(Point np : pointsOfNextType) {
+                    int distance = np.distance(p) + np.minDistanceFromDest;
+                    if(distance < minDistance)
+                        minDistance = distance;
+                }
+
+                p.minDistanceFromDest = minDistance;
+            }
+        }
+
+        List<Point> pointsOfTypeOne = pointsByType[0];
+        Point origin = new Point(0, 0);
+        int totalMinDistance = Integer.MAX_VALUE;
+        for(Point p1 : pointsOfTypeOne) {
+            int distance = origin.distance(p1) + p1.minDistanceFromDest;
+            if(distance < totalMinDistance)
+                totalMinDistance = distance;
+        }
+
+        System.out.println(totalMinDistance);
+    }
+
+    static class Point {
+        final int x;
+        final int y;
+        int minDistanceFromDest;
+
+        Point(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public int hashCode() {
+            return x ^ y;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if(obj instanceof Point) {
+                Point that = (Point) obj;
+                return x == that.x && y == that.y;
+            }
+            else
+                return false;
+        }
+
+        int distance(Point that) {
+            return Math.abs(x - that.x) + Math.abs(y - that.y);
+        }
+    }
+}

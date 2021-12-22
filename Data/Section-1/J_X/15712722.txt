@@ -1,0 +1,86 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+typedef long long ll;
+
+const int mod = 1e9 + 7;
+const int MAXN = 100 + 5;
+
+int add(int a, int b)
+{
+    a += b;
+    if(a >= mod) a -= mod;
+    return a;
+}
+
+int num[15];
+struct mat
+{
+    int n, m;
+    ll  a[MAXN][MAXN];
+
+    mat(int n, int m) {this->n = n, this->m = m, memset(a, 0, sizeof(a));}
+
+    mat operator * (const mat &b) const
+    {
+        mat c = mat(n, b.m);
+        for(int i = 0; i < n; ++i)
+        {
+            for(int j = 0; j < b.m; ++j)
+            {
+                for(int k = 0; k < m; ++k)
+                {
+                    c.a[i][j] = (c.a[i][j] + a[i][k] * b.a[k][j]) % mod;
+                }
+            }
+        }
+        return c;
+    }
+
+    mat fast_pow(int x)
+    {
+        mat ret = mat(n, n);
+        for(int i = 0; i < n; ++i) ret.a[i][i] = 1;
+        while(x)
+        {
+            if(x & 1) ret = ret * *this;
+            *this = *this * *this;
+            x >>= 1;
+        }
+        return ret;
+    }
+};
+
+int main()
+{
+    int n, b, k, x;
+    while(~scanf("%d%d%d%d", &n, &b, &k, &x))
+    {
+        memset(num, 0, sizeof(num));
+        for(int i = 0; i < n; ++i)
+        {
+            int x;
+            scanf("%d", &x);
+            ++num[x];
+        }
+        mat m(x, x), a(x, 1);
+        for(int i = 0; i < x; ++i)
+        {
+            for(int j = 0; j < 10; ++j)
+            {
+                int l = (i * 10 + j) % x;
+                m.a[l][i] = (m.a[l][i] + num[j]) % mod;
+            }
+        }
+        for(int i = 0; i < 10; ++i)
+        {
+            a.a[i % x][0] = (a.a[i % x][0] + num[i]) % mod;
+        }
+        mat ans = m.fast_pow(b - 1) * a;
+        printf("%I64d\n", ans.a[k][0]);
+    }
+    return 0;
+}

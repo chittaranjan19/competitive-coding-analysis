@@ -1,0 +1,80 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+pair<int, int> val[1000005];
+int num[1000005], rev[1000005], opt[1000005];
+
+int main()
+{
+  int n, k;
+  scanf("%d %d", &n, &k);
+  for(int i=0;i<n;i++)
+    scanf("%d", &num[i]);
+  for(int i=0;i<n;i++)
+    scanf("%d", &rev[i]);
+  val[n - 1] = mp(num[n - 1], rev[n - 1]);
+  opt[n - 1] = min(val[n - 1].f * 100, val[n - 1].s);
+  for(int i=n-2;i>=0;i--)
+  {
+    int x = min(100 * num[i], rev[i]);
+    int y = min(100 * max(num[i], val[i + 1].f), min(rev[i], val[i + 1].s));
+    if(x >= y)
+    {
+      opt[i] = x;
+      val[i] = mp(num[i], rev[i]);
+    }
+    else
+    {
+      opt[i] = y;
+      val[i] = mp(max(num[i], val[i + 1].f), min(rev[i], val[i + 1].s));
+    }
+  }
+  //for(int i=0;i<n;i++)
+  //  cout << opt[i] << " ";
+  double res = 0.0;
+  sort(opt, opt + n);
+  long double prob = k * 1.0 / n;
+  for(int i=0;i<n;i++)
+  {
+    if(i + k > n) break;
+    // update prob
+    if(i)
+    {
+      prob /= (n - i);
+      prob *= (n - i - k + 1);
+    }
+    //if(i && opt[i] == opt[i - 1]) continue;
+    /*int cnt = 1;
+    for(int j=i+1;j<n;j++)
+    {
+      if(opt[j] == opt[i])
+        cnt++;
+      else break;
+    }*/
+    res += prob * opt[i];
+  }
+  printf("%.15lf", res);
+  return 0;
+}
+/*
+  (n - i - 1) c (k - 1) / nck
+  (n - i - 1)! * (n - k)! * k! / (n - i - k)! * (k - 1)! * n!
+  (n - i - 1)! * (n - k)! * k / (n - i - k)! * n!
+*/

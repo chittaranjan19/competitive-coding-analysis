@@ -1,0 +1,140 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+set<pair<int, int> > tree[800005];
+set<pair<int, int> > arr[200005];
+
+void build(int i,int L,int R)
+{
+  if(L == R)
+  {
+    tree[i] = arr[L];
+    return ;
+  }
+  build(i*2 + 1, L, (L + R) / 2);
+  build(i*2 + 2, (L + R) / 2 + 1, R);
+  tree[i] = tree[i*2 + 1];
+  for(auto p : tree[i*2 + 2])
+    tree[i].insert(p);
+}
+
+set<pair<int, int> > query(int i,int L,int R,int x,int y)
+{
+  set<pair<int, int> > ans, tmp;
+  if(R <= x)
+  {
+    auto it = tree[i].begin();
+    while(it != tree[i].end() && (*it).f <= y)
+    {
+      auto it2 = it;
+      it2++;
+      ans.insert(*it);
+      tree[i].erase(it);
+      it = it2;
+    }
+    return ans;
+  }
+  if(L > x)
+    return ans;
+  auto it = tree[i].upper_bound(mp(y, INF));
+  if(it == tree[i].begin()) return ans;
+  ans = query(i*2 + 1, L, (L + R) / 2, x, y);
+  for(auto p : ans)
+    tree[i].erase(p);
+  tmp = query(i*2 + 2, (L + R) / 2 + 1, R, x, y);
+  for(auto p : tmp)
+  {
+    ans.insert(p);
+    tree[i].erase(p);
+  }
+  return ans;
+}
+
+pair<int, int> a[100005], b[100005];
+map<int, int> m;
+int parent[100005];
+
+int main()
+{
+  int n, x, y;
+  vector<int> v;
+  v.pb(0);
+  cin >> n;
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d %d", &x, &y);
+    a[i] = mp(x, y);
+    v.pb(x);
+    scanf("%d %d", &x, &y);
+    b[i] = mp(x, y);
+  }
+  sort(v.begin(), v.end());
+  int id = 0;
+  for(int i=0;i<n+1;i++)
+  {
+    if(i && v[i] == v[i - 1]) continue;
+    m[v[i]] = id++;
+  }
+  queue<int> q;
+  for(int i=0;i<n;i++)
+  {
+    a[i].f = m[a[i].f];
+    if(a[i].f || a[i].s) arr[a[i].f].insert(mp(a[i].s, i));
+    else q.push(i);
+    auto it = m.upper_bound(b[i].f);
+    if(it == m.begin())
+      b[i].f = -1;
+    else
+    {
+      it--;
+      b[i].f = it->s;
+    }
+  }
+  build(0, 0, id - 1);
+  setdp(parent);
+  while(!q.empty())
+  {
+    x = q.front();
+    q.pop();
+    set<pair<int, int> > tmp = query(0, 0, id - 1, b[x].f, b[x].s);
+    for(auto p : tmp)
+    {
+      q.push(p.s);
+      parent[p.s] = x;
+    }
+  }
+  if(parent[n - 1] == -1)
+  {
+    if(!a[n-1].f && !a[n-1].s)
+      cout << "1\n" << n;
+    else cout << -1;
+    return 0;
+  }
+  v.clear();
+  x = n - 1;
+  while(x != -1)
+  {
+    v.pb(x+1);
+    x = parent[x];
+  }
+  cout << v.size() << "\n";
+  for(int i=v.size()-1;i>=0;i--)
+    printf("%d ", v[i]);
+  return 0;
+}

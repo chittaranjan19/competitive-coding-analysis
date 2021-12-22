@@ -1,0 +1,110 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mp make_pair
+#define F first
+#define S second
+#define mn 100001
+#define maxC 2000000000
+#define pb push_back
+#define bit(x, i) ((x >> (i - 1)) & 1)
+
+using namespace std;
+int n, a[mn], won, lost, p[3][mn], m[3][mn];
+vector< pair<int, int> > ans;
+
+void setup ()
+{
+    cin >> n;
+    p[1][0] = p[2][0] = 0;
+    FOR(i, 1, n)
+    {
+        cin >> a[i];
+        int x = a[i];
+        p[1][i] = p[1][i - 1];
+        p[2][i] = p[2][i - 1];
+        p[x][i] ++;
+        m[x][p[x][i]] = i;
+    }
+    won = a[n];
+    lost = 3 - won;
+}
+
+int findS(int id, int baseOn)
+{
+    int winSet = 0, loseSet = 0, s, t, id1, id2;
+    if (baseOn == 1)
+    {
+        t = p[won][id];
+        s = 1;
+        winSet ++;
+    }
+    else
+    {
+        t = p[lost][id];
+        s = 0;
+        loseSet ++;
+    }
+    int x = p[won][id];
+    int y = p[lost][id];
+    while (id < n)
+    {
+        id1 = m[won][x + t];
+        id2 = m[lost][y + t];
+        if (id1 == 0 && id2 == 0)
+            return -1;
+        if (id1 && (id2 > id1 || id2 == 0))
+        {
+            s ++;
+            winSet ++;
+            id = id1;
+            x = p[won][id1];
+            y = p[lost][id1];
+        }
+        else
+            if (id2 && (id1 > id2 || id1 == 0))
+            {
+                loseSet ++;
+                id = id2;
+                x = p[won][id2];
+                y = p[lost][id2];
+            }
+            else
+                return - 1;
+    }
+    if (winSet > loseSet)
+        return s;
+    return -1;
+}
+
+void xuly ()
+{
+    FOR(i, 1, n)
+    if (p[won][i] > p[lost][i] && a[i] == won)
+    {
+        int s = findS(i, 1);
+        if (s > 0)
+            ans.pb(mp(s, p[won][i]));
+    }
+    FOR(i, 1, n)
+    if (p[won][i] < p[lost][i] && a[i] == lost)
+    {
+        int s = findS(i, 2);
+        if (s > 0)
+            ans.pb(mp(s, p[lost][i]));
+    }
+    sort(ans.begin(), ans.end());
+    cout << ans.size() << "\n";
+    FOR(i, 0, int(ans.size()) - 1)
+        cout << ans[i].F << " " << ans[i].S << "\n";
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

@@ -1,0 +1,66 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 18;
+
+void setmax (ll &a, ll b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+int N, M, K;
+ll A[MAXN], C[MAXN][MAXN];
+ll dp[1 << MAXN][MAXN];	//dp[dishes][last dish]
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M >> K;
+	for (int i = 0; i < N; i++) {
+		cin >> A[i];
+	}
+	for (int i = 0, x, y; i < K; i++) {
+		cin >> x >> y;
+		cin >> C[x - 1][y - 1];
+	}
+	fillchar(dp, -63);
+	//M dishes exactly
+	ll ans = *max_element(A, A + N);
+	vector<int> bits;
+	for (int i = 1; i < (1 << N); i++) {
+		bits.clear();
+		for (int j = 0; j < N; j++) {
+			if (i & (1 << j)) {
+				bits.push_back(j);
+			}
+		}
+		int ppcnt = bits.size();
+		if (ppcnt == 1) {
+			dp[i][bits[0]] = A[bits[0]];
+		} else {
+			for (int j : bits) {
+				//COMPUTE dp[i][j] in terms of dp[i ^ (1 << j)][k]
+				for (int k : bits) {
+					if (j != k) {
+						setmax(dp[i][j], dp[i ^ (1 << j)][k] + A[j] + C[k][j]);
+					}
+				}
+				if (ppcnt == M) {
+					setmax(ans, dp[i][j]);
+				}
+			}
+		}
+	}
+	cout << ans << endl;
+}

@@ -1,0 +1,141 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <string>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 3e5 + 5;
+
+char s[maxn];
+string st1[maxn], st2[maxn];
+int rt1[maxn], rt2[maxn], ch[maxn << 1][26], go[maxn << 1][26], val[maxn << 1], fail[maxn << 1], tot1, tot2, pool[maxn << 1];
+int que[maxn << 1], pos1[maxn], pos2[maxn];
+
+void newnode(int &r, int *rt, int k)
+{
+    r = tot2 ? pool[--tot2] : ++tot1;
+    val[r] = 0;
+    fill(ch[r], ch[r] + 26, rt[k]);
+}
+
+void ins(int *rt, int k, const string &st)
+{
+    int u = rt[k];
+    for(int i = 0; i < st.size(); ++i)
+    {
+        int c = st[i] - 'a';
+        if(ch[u][c] == rt[k]) newnode(ch[u][c], rt, k);
+        u = ch[u][c];
+    }
+    ++val[u];
+}
+
+void del(int r)
+{
+    int front = 0, rear = 0;
+    que[rear++] = r;
+    while(front < rear)
+    {
+        int u = que[front++];
+        pool[tot2++] = u;
+        for(int i = 0; i < 26; ++i)
+        {
+            if(ch[u][i] != r) que[rear++] = ch[u][i];
+        }
+    }
+}
+
+void build(int r)
+{
+    int front = 0, rear = 0;
+    memcpy(go[r], ch[r], sizeof(ch[r]));
+    for(int i = 0; i < 26; ++i)
+    {
+        int v = ch[r][i];
+        if(v != r)
+        {
+            que[rear++] = v;
+            fail[v] = r;
+        }
+    }
+    while(front < rear)
+    {
+        int u = que[front++];
+        memcpy(go[u], ch[u], sizeof(ch[u]));
+        for(int i = 0; i < 26; ++i)
+        {
+            int v = go[u][i], f = fail[u];
+            if(v != r)
+            {
+                que[rear++] = v;
+                fail[v] = go[f][i];
+                val[v] += val[fail[v]];
+            }
+            else go[u][i] = go[f][i];
+        }
+    }
+}
+
+ll gao(int r)
+{
+    ll ret = 0;
+    for(int i = 0; s[i]; ++i)
+    {
+        int c = s[i] - 'a';
+        r = go[r][c];
+        ret += val[r];
+    }
+    return ret;
+}
+
+void update(int *rt, int *pos, string *st, int &t, int cnt)
+{
+    while(t && cnt - pos[t] == pos[t] - pos[t - 1])
+    {
+        del(rt[t]);
+        --t;
+    }
+    pos[++t] = cnt;
+    newnode(rt[t], rt, t);
+    for(int i = pos[t - 1] + 1; i <= cnt; ++i) ins(rt, t, st[i]);
+    build(rt[t]);
+}
+
+ll query(int *rt, int t)
+{
+    ll ret = 0;
+    for(int i = 1; i <= t; ++i) ret += gao(rt[i]);
+    return ret;
+}
+
+int main()
+{
+    tot1 = tot2 = 0;
+    int n, cnt1 = 0, cnt2 = 0, t1 = 0, t2 = 0;
+    scanf("%d", &n);
+    while(n--)
+    {
+        int op;
+        scanf("%d%s", &op, s);
+        if(op == 1)
+        {
+            st1[++cnt1] = s;
+            update(rt1, pos1, st1, t1, cnt1);
+        }
+        else if(op == 2)
+        {
+            st2[++cnt2] = s;
+            update(rt2, pos2, st2, t2, cnt2);
+        }
+        else
+        {
+            printf("%I64d\n", query(rt1, t1) - query(rt2, t2));
+            fflush(stdout);
+        }
+    }
+    return 0;
+}

@@ -1,0 +1,96 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+const int maxn = 5000 + 5;
+const int INF = 1 << 28;
+
+struct edge
+{
+    int to, next;
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} E[maxn << 1];
+int dp[maxn][3][maxn];
+int degree[maxn], head[maxn], tot;
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    E[tot] = edge(v, head[u]);
+    head[u] = tot++;
+    E[tot] = edge(u, head[v]);
+    head[v] = tot++;
+}
+
+int dfs(int u, int fa)
+{
+    if(degree[u] == 1)
+    {
+        dp[u][0][1] = dp[u][1][1] = 0;
+        dp[u][0][0] = dp[u][1][0] = INF;
+        return 1;
+    }
+    int cnt = 0;
+    for(int i = 0; i < 2; ++i)
+    {
+        fill(dp[u][i], dp[u][i] + maxn, INF);
+        dp[u][i][0] = 0;
+    }
+    for(int i = head[u]; ~i; i = E[i].next)
+    {
+        edge e = E[i];
+        if(e.to == fa) continue;
+        int temp = dfs(e.to, u);
+        cnt += temp;
+        for(int j = cnt; j >= 0; --j)
+        {
+            for(int k = 0; k <= temp && k <= j; ++k)
+            {
+                for(int l = 0; l < 2; ++l)
+                {
+                    dp[u][l][j] = min(dp[u][l][j - k] + dp[e.to][l][k], dp[u][l][j - k] + dp[e.to][!l][temp - k] + 1);
+                }
+            }
+        }
+    }
+    return cnt;
+}
+
+int main()
+{
+    int n;
+    scanf("%d", &n);
+    init();
+    for(int i = 1; i < n; ++i)
+    {
+        int u, v;
+        scanf("%d%d", &u, &v);
+        addedge(u, v);
+        ++degree[u], ++degree[v];
+    }
+    if(n == 2)
+    {
+        puts("1");
+    }
+    else
+    {
+        int root;
+        for(int i = 1; i <= n; ++i)
+        {
+            if(degree[i] != 1)
+            {
+                root = i;
+            }
+        }
+        int cnt = dfs(root, 0) >> 1;
+        printf("%d\n", min(dp[root][0][cnt], dp[root][1][cnt]));
+    }
+    return 0;
+}

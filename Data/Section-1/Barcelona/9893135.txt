@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+#define ff first
+#define ss second
+#define pb push_back
+#define mp make_pair
+using namespace std;
+const int maxn=2005;
+const int dx[]={0,0,1,-1};
+const int dy[]={1,-1,0,0};
+const char fx[]={'<','>','^','v'};
+const char fy[]={'>','<','v','^'};
+char field[maxn][maxn];
+int adj[maxn][maxn];
+int n,m,cccccccccccc;
+set<pair<int,pair<int,int> > > st;
+inline void func(int &x,int &y)
+{
+    for(int k=0,nx,ny;k<4;k++)
+    {
+        nx=x+dx[k];
+        ny=y+dy[k];
+        if(nx&&ny&&nx<=n&&ny<=m&&field[nx][ny]=='.')
+            adj[x][y]++;
+    }
+}
+inline void fun(int &x,int &y)
+{
+    for(int k=0,nx,ny;k<4;k++)
+    {
+        nx=x+dx[k];
+        ny=y+dy[k];
+        if(nx&&ny&&nx<=n&&ny<=m&&field[nx][ny]=='.')
+        {
+            st.erase(mp(adj[nx][ny],mp(nx,ny)));
+            adj[nx][ny]--;
+            st.insert(mp(adj[nx][ny],mp(nx,ny)));
+        }
+    }
+}
+void gao()
+{
+    while(!st.empty())
+    {
+        pair<int,pair<int,int> > t=*st.begin();
+        st.erase(t);
+        //printf("%d %d %d\n",t.ss.ff,t.ss.ss,t.ff);
+        if(t.first!=1)
+        {
+            puts("Not unique");
+            return;
+        }
+        for(int k=0,nx,ny;k<4;k++)
+        {
+            nx=t.ss.ff+dx[k];
+            ny=t.ss.ss+dy[k];
+            if(nx&&ny&&nx<=n&&ny<=m&&field[nx][ny]=='.')
+            {
+                st.erase(mp(adj[nx][ny],mp(nx,ny)));
+                field[t.ss.ff][t.ss.ss]=fx[k];
+                field[nx][ny]=fy[k];
+                fun(nx,ny);
+            }
+        }
+    }
+    for(int i=1;i<=n;i++)
+        printf("%s\n",field[i]+1);
+}
+int main()
+{
+    scanf("%d%d",&n,&m);
+    for(int i=1;i<=n;i++)
+    {
+        scanf("%s",field[i]+1);
+        for(int j=1;j<=m;j++)
+            if(field[i][j]=='.')
+                ++cccccccccccc;
+    }
+    if(cccccccccccc&1)
+    {
+        puts("Not unique");
+        return 0;
+    }
+    for(int i=1;i<=n;i++)
+        for(int j=1;j<=m;j++)
+            if(field[i][j]=='.')
+            {
+                func(i,j);
+                st.insert(mp(adj[i][j],mp(i,j)));
+            }
+    gao();
+    return 0;
+}

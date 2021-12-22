@@ -1,0 +1,79 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct BITTree
+{
+    int tree[1200000];
+
+    void clearr()
+    {
+        memset(tree, 0, sizeof(tree));
+        return;
+    }
+
+    void update(int x)
+    {
+        while (x <= 1100000)
+        {
+            tree[x]++;
+            x += x & (-x);
+        }
+    }
+    int get(int x)
+    {
+        int sum = 0;
+        while (x > 0)
+        {
+            sum += tree[x];
+            x -= x& (-x);
+        }
+        return sum;
+    }
+} BITTREE;
+
+int n;
+
+struct banh
+{
+    int w, l;
+} cake[4200];
+
+bool com(banh x, banh y)
+{
+    return x.w > y.w;
+}
+
+int main()
+{
+    //freopen("b.in","r",stdin);
+    //freopen("b.ou","w",stdout);
+    cin >> n;
+    for(int i = 1; i <= n; i++)
+    {
+        cin >> cake[i].w >> cake[i].l;
+        if(cake[i].w > cake[i].l) swap(cake[i].w, cake[i].l);
+    }
+    sort(cake+1, cake+n+1, com);
+    BITTREE.clearr();
+    long long ans = 0;
+    int luua, luub;
+    for(int i = 1; i <= n; i++)
+    {
+        BITTREE.update(cake[i].l);
+        for(int j = 1; j <= n; j++)
+        {
+            int sl = BITTREE.get(cake[j].l-1);
+            int st = i - sl;
+            long long thu = 1ll*st*cake[i].w*cake[j].l;
+            if(ans < thu)
+            {
+                ans = thu;
+                luua = cake[j].l;
+                luub = cake[i].w;
+            }
+        }
+    }
+    cout << ans <<endl<<luua<<" "<<luub;
+    return 0;
+}

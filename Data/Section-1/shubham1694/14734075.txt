@@ -1,0 +1,124 @@
+#include <iostream>
+#include <string>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <functional>
+#include <algorithm>
+#include <climits>
+#include <list>
+#include <map>
+#include <set>
+#include <unordered_map>
+#include <unordered_set>
+#include <stack>
+#include <queue>
+#include <vector>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define ll long long
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+struct edge{
+    int s, d, val, en;
+    bool operator<(const edge&e) const{
+        return val<e.val;
+    }
+};
+
+int a[maxn], b[maxn];
+ll c[maxn];
+vector<pair<int, int> > v1, v2;
+pair<int, int> ans[maxn];
+vector<edge> vec;
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int t, i, j, n, m, k;
+    t = 1;
+    //sd(t);
+    while(t--){
+        sd(n);
+        for(i=1; i<=n; i++){
+            c[i] = -1;
+        }
+        sd(m);
+        for(i=0; i<m; i++){
+            scanf("%d%d", &a[i], &b[i]);
+            if(b[i])
+                v1.pb(mp(a[i], i));
+            else
+                v2.pb(mp(a[i], i));
+        }
+        sort(v1.begin(), v1.end());
+        for(i=1; i<=n-1; i++){
+            vec.pb((edge){i, i+1, v1[i-1].f, v1[i-1].s});
+            //vec.pb((edge){i+1, i, v1[i-1]});
+            c[i] = max(c[i], (ll)v1[i-1].f);
+            c[i+1] = max(c[i+1], (ll)v1[i-1].f);
+            //cout << i << " v " << c[i] << " " << c[i+1] << " " << v1[i-1].f << "\n";
+        }
+        //sort(vec.begin(), vec.end());
+        //for(i=0; i<vec.size(); i++)
+        //  cout << vec[i].s << " " << vec[i].d << " " << vec[i].val << " " << vec[i].en << "\n";
+        //cout << "\n\n";
+        sort(v2.begin(), v2.end());
+        //for(i=0; i<v2.size(); i++)
+        //  cout << v2[i].f << " " << v2[i].s << "\n";
+        j = n;
+        k = n-2;
+        int f = 1;
+        for(i=0; i<v2.size(); i++){
+            if(c[j]>v2[i].f){
+                while(j>=1){
+                    if(c[j]<=v2[i].f){
+                        k = j-2;
+                        break;
+                    }
+                    j--;
+                }
+            }
+            if(j<1 || k<1){
+                f = 0;
+                break;
+            }
+            //cout << j << " " << k << " " << v2[i].f << " " << v2[i].s << "\n";
+            vec.pb((edge){j, k, v2[i].f, v2[i].s});
+            k--;
+            if(k<1){
+                j--;
+                k = j-2;
+            }
+        }
+        //cout << "\n\n";
+        //for(i=0; i<vec.size(); i++)
+        //  cout << vec[i].s << " " << vec[i].d << " " << vec[i].val << " " << vec[i].en << "\n";
+        if(!f)
+            printf("-1\n");
+        else{
+            for(i=0; i<vec.size(); i++){
+                //cout << vec[i].s << " " << vec[i].d << " " << vec[i].val << " " << vec[i].en << "\n";
+                ans[vec[i].en].f = vec[i].s;
+                ans[vec[i].en].s = vec[i].d;
+            }
+            for(i=0; i<m; i++)
+                printf("%d %d\n", ans[i].f, ans[i].s);
+        }
+    }
+    return 0;
+}

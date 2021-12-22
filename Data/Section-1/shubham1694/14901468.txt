@@ -1,0 +1,107 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define ll long long
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 300010;
+
+pii a[maxn], b[maxn];
+vector<pii> itd, itp;
+map<int, int> sol;
+int n, m;
+
+int check(int cur, int req, int s)
+{
+    int i, j, k, l, x, y;
+    sol.clear();
+    j = k = 0;
+    i = l = 1;
+    while(1){
+        x = y = inf;
+        while(i <= n){
+            if(a[i].s <= cur)
+                break;
+            i++;
+        }
+        while(l <= n){
+            if(b[l].s <= cur)
+                break;
+            l++;
+        }
+        if(i<=n && j<itd.size())
+            x = a[i].f*itd[j].f;
+        if(l<=n && k<itp.size())
+            y = b[l].f*itp[k].f;
+        //cout << a[i].f << " " << a[i].s << " " << b[i].f << " " << b[i].s << " " << itd[j].f << " " << itd[j].s << " " << itp[k].f;
+        //cout << " " << itp[k].s << " " << x << " " << y << " " << req << " " << s << "\n";
+        if(x<=y){
+            s-=x;
+            sol[itd[j].s] = a[i].s;
+            j++;
+            i++;
+        }
+        else{
+            s-=y;
+            sol[itp[k].s] = b[l].s;
+            k++;
+            l++;
+        }
+        req--;
+        if(s<0)
+            return 0;
+        if(req==0)
+            return 1;
+    }
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int t, k, s, lo, mid, hi, ans=-1, x, i, j;
+    scanf("%d%d%d%d", &n, &m, &k, &s);
+    for(i=1; i<=n; i++)
+        sd(x), a[i] = mp(x, i);
+    for(i=1; i<=n; i++)
+        sd(x), b[i] = mp(x, i);
+    sort(a+1, a+n+1);
+    sort(b+1, b+n+1);
+    for(i=0; i<m; i++){
+        sd(t);
+        sd(x);
+        if(t==1)
+            itd.pb(mp(x, i+1));
+        else
+            itp.pb(mp(x, i+1));
+    }
+    sort(all(itd));
+    sort(all(itp));
+    lo = 1, hi = n;
+    //check(3, k, s);
+    while(lo<hi){
+        mid = (lo+hi)>>1;
+        if(check(mid, k, s))
+            hi = ans = mid;
+        else
+            lo = mid+1;
+    }
+    printf("%d\n", ans);
+    if(ans!=-1){
+        check(ans, k, s);
+        for(auto it=sol.begin(); it!=sol.end(); ++it)
+            cout << it->first << " " << it->second << "\n";
+    }
+    return 0;
+}

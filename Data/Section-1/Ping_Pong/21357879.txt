@@ -1,0 +1,61 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+
+using namespace std;
+
+const ll N = 300000;
+const ll inf = (ll)1e18;
+
+vector<vector<pair<ll, ll> > > g;
+
+ll dist[5000][5000];
+
+int main()
+{
+    //freopen("owls.in", "r", stdin);
+    //freopen("owls.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    ll n, m, t;
+    cin >> n >> m >> t;
+    g.resize(n);
+    for (ll i = 0; i < m; i++)
+    {
+        ll x, y, l;
+        cin >> x >> y >> l;
+        g[x - 1].push_back({y - 1, l});
+    }
+    for (ll i = 0; i < n; i++)
+        for (ll j = 0; j < n; j++)
+            dist[i][j] = inf;
+    dist[0][n - 1] = 0;
+    for (ll i = 1; i < n; i++)
+        for (ll u = 0; u < n; u++)
+        {
+            for (auto v : g[u])
+                if (dist[i - 1][v.first] != -1)
+                    dist[i][u] = min(dist[i][u], dist[i - 1][v.first] + v.second);
+        }
+    ll pos, curr = 0;
+    for (ll i = n - 1; i >= 0; i--)
+        if (dist[i][0] <= t)
+        {
+            pos = i;
+            break;
+        }
+    cout << pos + 1 << endl;
+    for (ll i = pos; i >= 0; i--)
+    {
+        cout << curr + 1 << " ";
+        if (i == 0)
+            break;
+        for (auto v : g[curr])
+            if (dist[i - 1][v.first] + v.second == dist[i][curr])
+            {
+                curr = v.first;
+                break;
+            }
+    }
+    return 0;
+}

@@ -1,0 +1,87 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, ll> pii;
+const int MAXN = 1 << 18;
+
+int N, M;
+ll A[MAXN], tree[2 * MAXN], lazy[2 * MAXN];	//max tree
+vector<pii> V[MAXN];
+
+void add (int cur, ll v) {
+	tree[cur] += v;
+	lazy[cur] += v;
+}
+
+void down (int cur) {
+	if (lazy[cur]) {
+		for (int i = 0; i < 2; i++) {
+			add(2 * cur + i, lazy[cur]);
+		}
+		lazy[cur] = 0;
+	}
+}
+
+void update (int a, int b, ll v, int cur = 1, int l = 0, int r = MAXN) {
+	if (r <= a || b <= l) {
+		return;
+	}
+	if (a <= l && r <= b) {
+		add(cur, v);
+		return;
+	}
+	down(cur);
+	int mid = (l + r) / 2;
+	update(a, b, v, 2 * cur, l, mid);
+	update(a, b, v, 2 * cur + 1, mid, r);
+	tree[cur] = max(tree[2 * cur], tree[2 * cur + 1]);
+}
+
+ll query (int a, int b, int cur = 1, int l = 0, int r = MAXN) {
+	if (b <= l || r <= a) {
+		return -1e17;
+	}
+	if (a <= l && r <= b) {
+		return tree[cur];
+	}
+	down(cur);
+	int mid = (l + r) / 2;
+	return max(query(a, b, 2 * cur, l, mid), query(a, b, 2 * cur + 1, mid, r));
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 1; i <= N; i++) {
+		cin >> A[i];
+	}
+	int lt, rt;
+	ll pt;
+	for (int i = 0; i < M; i++) {
+		cin >> lt >> rt >> pt;
+		V[rt].push_back(pii(lt, pt));
+	}
+	//dp[i]: i is the last skipped
+	for (int i = 1; i <= N; i++) {
+		update(i, i + 1, query(0, i));	//i = last skipped
+		update(0, i, -A[i]);
+		for (pii p : V[i]) {
+			//last thing you skip is less than L[]. so [0, L[])
+			update(0, p.first, p.second);
+		}
+	}
+	cout << query(0, N + 1) << endl;
+}

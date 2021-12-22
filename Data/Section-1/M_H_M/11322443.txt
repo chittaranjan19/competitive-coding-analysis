@@ -1,0 +1,103 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) (( (int)x.size() ) )
+
+using namespace std;
+typedef long long ll;
+const int N = 200 + 10;
+
+int n,t1,t2 , t;
+vector < vector <int> > g;
+int D , O;
+bool a[N];
+bool mark[N] , f;
+int d[N];
+queue <int> q;
+ll ans = 0;
+bool mark2[N];
+
+
+void dfs(int x , int y){
+	mark[x] = 1;
+	for(int i = 0; i < SZ(g[x]); ++i){
+		int z = g[x][i];
+		if(mark[z])
+			continue;
+		if(z == y){
+			a[y] = 1;
+			a[x] = 1;
+			f = 1;
+			t++;
+			return;
+		}
+		dfs(z , y);
+		if(f){
+			a[x] = 1;
+			t++;
+			return;
+		}
+	}
+}
+
+void bfs(int x){
+	memset(d , -1 , sizeof(d));
+	d[x] = 0;
+	if(d[x] > D){
+		D = d[x];
+		O = x;
+	}
+	q.push(x);
+	while(!q.empty()){
+		int y = q.front();
+		mark2[y] = 1;
+		for(int i = 0; i < SZ(g[y]); ++i){
+			int z = g[y][i];
+			if(a[z])
+				continue;
+			if(d[z] == -1){
+				d[z] = d[y] + 1;
+				if(d[z] > D){
+					D = d[z];
+					O = z;
+				}
+				q.push(z);
+			}
+				
+		}
+		q.pop();
+	}
+}
+
+int main(){
+	cin >> n;
+	g.resize(n);
+	for(int i = 0; i < n - 1; ++i){
+		cin >> t1 >> t2;
+		t1 --; t2 --;
+		g[t1].push_back(t2);
+		g[t2].push_back(t1);	
+	}	
+	for(int i = 0; i < n; ++i){
+		for(int j = i + 1 ; j < n; ++j){
+			memset(a , 0 , sizeof(a));
+			memset(mark , 0 , sizeof(mark));
+			f = 0;
+			t = 0;
+			dfs(i , j);
+			for(int k = 0; k < n; ++k){
+				if(a[k])
+					continue;
+				if(!mark2[i]){
+					D = -1;			
+					bfs(k);
+					bfs(O);
+					if((ll)t * D > ans){
+						ans =  (ll)t * D;
+					}
+				}
+			}
+		}
+	}
+	cout << ans << "\n";
+    return 0;
+}

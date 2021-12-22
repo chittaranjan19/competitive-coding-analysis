@@ -1,0 +1,140 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define PI acos(-1.0)
+#define LL long long
+#define EPS 1e-9
+#define PL printf("\n")
+#define PS printf(" ")
+#define PInt(n) printf("%d",n)
+#define SI(n) scanf("%d",&n)
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+
+vector<int> a,b;
+
+struct card
+{
+    int cup;
+    int cdown;
+};
+
+int main()
+{
+    //freopen("input.txt","r",stdin);
+    //freopen("output.txt","w",stdout);
+    int x,y,n;
+    SI(n);
+    for(int i=0;i<n;i++)
+    {
+        SI(x);
+        SI(y);
+        a.pb(x);
+        if(y!=x)
+            b.pb(y);
+    }
+    sort(a.begin(),a.end());
+    sort(b.begin(),b.end());
+    int pointer1=0,pointer2=0,counter1=1,counter2=1,k=0;
+    bool lasta=false,lastb=false;
+    int m = b.size();
+    card cards[2*n+5];
+    while(pointer1 < n || pointer2 < m)
+    {
+        counter1=1,counter2=1;
+        if(pointer2 < m && (pointer1 == n || b[pointer2] < a[pointer1]))
+        {
+            if(pointer2 != m-1)
+                pointer2++;
+            else lastb=true;
+            while(pointer2 < m && b[pointer2] == b[pointer2-1])
+            {
+                pointer2++;
+                counter2++;
+                if(pointer2 == m)
+                    break;
+            }
+            if(lastb)
+                pointer2++;
+            cards[k].cdown=counter2;
+            cards[k].cup=0;
+        }
+        else if(pointer1 < n && (pointer2 == m || b[pointer2] > a[pointer1]))
+        {
+            if(pointer1 != n-1)
+                pointer1++;
+            else lasta = true;
+            while(pointer1 < n && a[pointer1] == a[pointer1-1])
+            {
+                pointer1++;
+                counter1++;
+            }
+            if(lasta)
+                pointer1++;
+            cards[k].cup=counter1;
+            cards[k].cdown=0;
+        }
+        else if(b[pointer2] == a[pointer1])
+        {
+            if(pointer1 != n-1)
+                pointer1++;
+            else lasta=true;
+            while(pointer1 < n && a[pointer1] == a[pointer1-1])
+            {
+                pointer1++;
+                counter1++;
+            }
+            if(pointer2 != m-1)
+                pointer2++;
+            else lastb=true;
+            while(pointer2 < m && b[pointer2] == b[pointer2-1])
+            {
+                pointer2++;
+                counter2++;
+            }
+            if(lasta)
+                pointer1++;
+            if(lastb)
+                pointer2++;
+            cards[k].cdown=counter2;
+            cards[k].cup=counter1;
+        }
+        k++;
+    }
+    int mini=1000000009,half=(n+1)/2;
+    for(int i=0;i<k;i++)
+    {
+        if(cards[i].cup >= half)
+        {
+            mini=0;
+            break;
+        }
+        else if(cards[i].cup == 0 && cards[i].cdown >= half)
+            mini=min(mini,half);
+        else if(cards[i].cup+cards[i].cdown >= half)
+            mini=min(mini,half-cards[i].cup);
+    }
+    if(mini == 1000000009)
+        mini=-1;
+    PInt(mini);
+    return 0;
+}

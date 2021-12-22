@@ -1,0 +1,105 @@
+#include <cstdio>
+long long a[2200000], b[2200000];
+long long sa[21], sb[21];
+
+int arr[1<<21];
+int org[1<<21];
+int tmp[1<<21];
+
+int N, M, len;
+
+
+
+void build1(int dep, int idx, int l, int r) {
+    int mid = (l + r) / 2;
+    if (l + 1 != r) {
+        build1(dep - 1, idx * 2, l, mid);
+        build1(dep - 1, idx * 2 + 1, mid, r);
+        a[idx] = a[idx * 2] + a[idx * 2 + 1];
+        int lp = l, rp = mid, ptr = l;
+        while (lp < mid && rp < r) {
+            if (arr[lp] < arr[rp]) {
+                tmp[ptr++] = arr[lp++];
+                a[idx] += (r - rp); 
+            } else {
+                tmp[ptr++] = arr[rp++]; 
+            }
+        }
+        while (lp < mid) {
+            tmp[ptr++] = arr[lp++];
+        }
+        while (rp < r) {
+            tmp[ptr++] = arr[rp++]; 
+        }
+        for (int i = l; i < r; ++i)
+            arr[i] = tmp[i];
+    }
+    sa[dep] += a[idx];
+    
+    return;
+}
+
+void build2(int dep, int idx, int l, int r) {
+    int mid = (l + r) / 2;
+    if (l + 1 != r) {
+        build2(dep - 1, idx * 2, l, mid);
+        build2(dep - 1, idx * 2 + 1, mid, r);
+        b[idx] = b[idx * 2] + b[idx * 2 + 1];
+        int lp = l, rp = mid, ptr = l;
+        while (lp < mid && rp < r) {
+            if (arr[rp] < arr[lp]) {
+                tmp[ptr++] = arr[rp++]; 
+                b[idx] += (mid - lp); 
+            } else {
+                tmp[ptr++] = arr[lp++];
+            }
+        }
+        while (lp < mid) {
+            tmp[ptr++] = arr[lp++];
+        }
+        while (rp < r) {
+            tmp[ptr++] = arr[rp++]; 
+        }
+        for (int i = l; i < r; ++i)
+            arr[i] = tmp[i];
+    }
+    sb[dep] += b[idx];
+    
+    return;
+}
+
+void swap(long long &x, long long &y) {
+    long long t = x;
+    x = y;
+    y = t;
+}
+
+int main() {
+    scanf("%d", &N);
+    len = (1 << N);
+    for (int i = 0; i < len; ++i) {
+        scanf("%d", &arr[i]);
+        org[i] = arr[i];
+    }
+    build1(N, 1, 0, len);
+    for (int i = 0; i < len; ++i)
+        arr[i] = org[i];
+    build2(N, 1, 0, len);
+    scanf("%d", &M);
+    while (M--) {
+        int t;
+        scanf("%d", &t);
+        long long diff = sb[t] - sa[t];
+        
+        for (int i = 1; i <= t; ++i) {
+            swap(sa[i], sb[i]);
+        }
+        //puts("jizz");
+        for (int i = t + 1; i <= N; ++i) {
+            //printf("%d\n", i);
+            sa[i] += diff;
+            sb[i] -= diff;
+        }
+        printf("%I64d\n", sb[N]);
+    }
+}

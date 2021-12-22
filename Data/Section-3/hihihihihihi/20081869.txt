@@ -1,0 +1,52 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+using namespace std;
+const int inf=1e9;
+int n,h,pos[2005],L[2005],R[2005];
+int dl[2005][2],dr[2005][2];
+double f[2005][2005][2][2];
+double p;
+
+double dp(int bl,int l,int r,int br)
+{
+   if(l>r) return 0;
+   if(f[l][r][bl][br]!=-1)return f[l][r][bl][br];
+   double pll=dl[l][bl]+dp(0,l+1,r,br);
+   double prr=dr[r][br]+dp(bl,l,r-1,1);
+   double plr=R[l]>=r?pos[r]-pos[l]+dr[r][br]:pos[R[l]]-pos[l]+h+dp(1,R[l]+1,r,br);
+   double prl=L[r]<=l?pos[r]-pos[l]+dl[l][bl]:pos[r]-pos[L[r]]+h+dp(bl,l,L[r]-1,0);
+   return f[l][r][bl][br]=0.5*p*(pll+prl)+0.5*(1-p)*(plr+prr);
+}
+
+int main()
+{
+   int i,j;
+   scanf("%d%d%lf",&n,&h,&p);
+   for(i=1;i<=n;i++) scanf("%d",&pos[i]);
+   sort(pos+1,pos+n+1);
+   pos[0]=-inf;pos[n+1]=inf;
+   for(i=1;i<=n;i++)
+   {
+      if(pos[i]-pos[i-1]<h) L[i]=L[i-1];
+      else L[i]=i;
+   }
+   for(i=n;i>=1;i--)
+   {
+      if(pos[i+1]-pos[i]<h) R[i]=R[i+1];
+      else R[i]=i;
+   }
+   for(i=1;i<=n;i++)
+      for(j=1;j<=n;j++)
+         f[i][j][0][0]=f[i][j][0][1]=f[i][j][1][0]=f[i][j][1][1]=-1;
+   for(i=1;i<=n;i++)
+   {
+      dl[i][0]=min(pos[i]-pos[i-1],h);
+      dl[i][1]=min(pos[i]-pos[i-1],2*h)-h;
+      dr[i][1]=min(pos[i+1]-pos[i],h);
+      dr[i][0]=min(pos[i+1]-pos[i],2*h)-h;
+   }
+   printf("%.9f\n",dp(0,1,n,1));
+   return 0;
+}

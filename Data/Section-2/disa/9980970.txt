@@ -1,0 +1,83 @@
+
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <vector>
+#include <set>
+#include <algorithm>
+#include <iomanip>
+#include <map>
+#include <cmath>
+#include <queue>
+using namespace std;
+
+typedef long long ll;
+ 
+
+#if _DEBUG
+#include <fstream>
+ifstream cin ("input.txt");
+ofstream cout("output.txt");
+#else
+#include <iostream>
+#endif
+
+const ll MOD = 1e9 + 7, x = 37;
+
+set <ll> ss;
+
+ll power[300002];
+
+int main() {
+	int n, m;
+	cin >> n >> m;
+	power[0] = 1;
+	for(int i = 1; i < 300002; i++)
+		power[i] = (power[i - 1] * x) % MOD;
+	for(int i = 0; i < n; i++) {
+		string s;
+		cin >> s;
+		ll h = 0;
+		for(int j = 0; j < s.size(); j++) {
+			h = h * x + (s[j] - 'a' + 1);
+			h %= MOD;
+		}
+		ss.insert(h % MOD);
+		for(int j = 0; j < s.size(); j++) {
+			ll h_now1 = h, h_now2 = h;
+			if(s[j] == 'a') {
+				h_now1 += power[s.size() - j - 1];
+				h_now2 += (power[s.size() - j - 1] * 2) % MOD;
+			}
+			if(s[j] == 'b') {
+				h_now1 += MOD;
+				h_now1 -= power[s.size() - j - 1];
+				h_now2 += power[s.size() - j - 1];
+			}
+			if(s[j] == 'c') {
+				h_now1 += MOD;
+				h_now2 += 2 * MOD;
+				h_now1 -= power[s.size() - j - 1];
+				h_now2 -= (power[s.size() - j - 1] * 2) % MOD;
+			}
+			ss.insert(h_now1 % MOD);
+			ss.insert(h_now2 % MOD);
+		}
+	}
+	for(int i = 0; i < m; i++) {
+		string s;
+		cin >> s;
+		ll h = 0;
+		for(int j = 0; j < s.size(); j++) {
+			h = h * x + (s[j] - 'a' + 1);
+			h %= MOD;
+		}
+		if(ss.find(h) == ss.end()) {
+			cout << "NO\n";
+		} else {
+			cout << "YES\n";
+		}
+	}
+
+    return 0;
+}

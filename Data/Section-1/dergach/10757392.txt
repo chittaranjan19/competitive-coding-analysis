@@ -1,0 +1,66 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+using namespace std;
+
+typedef long long ll;
+#define mod 1000000007
+#define pi acos(-1.0)
+
+int p[200005];
+int deg[200005];
+int n;
+ll a[200005];
+vector <int> v[200005];
+ll dp[200005];
+
+ll solve(int i)
+{
+    if(dp[i] != -1)
+        return dp[i];
+    ll res = a[i];
+    ll minv = 1e15;
+    ll sum = 0;
+    for(int j = 0; j < v[i].size(); j++)
+    {
+        ll tmp = solve(v[i][j]);
+        if(tmp < minv)
+            minv = tmp;
+        res += tmp;
+        sum += tmp;
+    }
+    if(v[i].size() % 2 != 0)
+    {
+        res -= minv;
+        res = max(res, sum);
+    }
+    return dp[i] = res;
+}
+
+int main()
+{
+    memset(dp, -1, sizeof(dp));
+    scanf("%d", &n);
+    for(int i = 1; i <= n; i++)
+    {
+        scanf("%d %d", &p[i], &a[i]);
+        if(p[i] != -1)
+        {
+            deg[p[i]]++;
+            v[p[i]].push_back(i);
+        }
+    }
+    cout << solve(1) << endl;
+    return 0;
+}

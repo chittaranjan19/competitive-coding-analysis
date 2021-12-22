@@ -1,0 +1,46 @@
+#include <stdio.h>
+#include <math.h>
+const int MX=300030,BS=540,BC=MX/BS+2;
+const double pi=acos(-1.0);
+int n,m,cur,last,t,i,j,X,fi[BC];
+double ac,an,x[MX],y[MX],z[MX],c[MX],a[BC],b[BC],d[BC];
+double sqr(double x) { return x*x; }
+void upd(const int cur) {
+  double A=a[cur]+c[fi[cur]],O=A;
+  for (int i=fi[cur]+1; i<=fi[cur+1]; i++) {
+    x[i]=x[i-1]+z[i-1]*cos(A);
+    y[i]=y[i-1]+z[i-1]*sin(A);
+    A+=c[i];
+  }
+  double dx=x[fi[cur+1]]-x[fi[cur]];
+  double dy=y[fi[cur+1]]-y[fi[cur]];
+  d[cur]=sqrt(sqr(dx)+sqr(dy));
+  b[cur]=A-O;
+  a[cur+1]=A;
+}
+int main() {
+  scanf("%d%d",&n,&m);
+  for (i=0; i<=n; i++) {
+    x[i]=X++; z[i]=1; d[cur]++;
+    if (i+1==n || (i+1)%BS==0) fi[++cur]=i+1;
+  }
+  last=cur;
+  while (m--) {
+    scanf("%d%d%d",&t,&i,&X);
+    for (cur=(i-1)/BS; i-1<fi[cur]; cur--);
+    if (t==2) {
+      an=-X*pi/180;
+      c[i-1]+=an;
+    } else z[i-1]+=X;
+    upd(cur);
+    ac=a[cur+1];
+    for (j=cur+2; j<last; j++) {
+      ac+=b[j-1];
+      x[fi[j]]=x[fi[j-1]]+d[j-1]*cos(ac);
+      y[fi[j]]=y[fi[j-1]]+d[j-1]*sin(ac);
+      if (t==2) a[j]+=an;
+    }
+    printf("%.14lf %.14lf\n",x[n],y[n]);
+  }
+  return 0;
+}

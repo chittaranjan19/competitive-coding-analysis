@@ -1,0 +1,67 @@
+#include <iostream>
+#include <cstdio>
+#include <cmath>
+
+using namespace std;
+
+const int maxn = 1e4 + 5;
+const double eps = 1e-8;
+
+int x[maxn], y[maxn];
+
+int dcmp(double x)
+{
+    if(fabs(x) < eps) return 0;
+    return x > 0 ? 1 : -1;
+}
+
+int change(int p, int n, int i)
+{
+    return (p + i + n) % n;
+}
+
+int main()
+{
+    int n, w, v, u, p1 = 0, p2 = 0, p3 = 0;
+    scanf("%d%d%d%d", &n, &w, &v, &u);
+    for(int i = 0; i < n; ++i)
+    {
+        scanf("%d%d", x + i, y + i);
+        if(x[i] < x[p1] || (x[i] == x[p1] && y[i] < y[p1])) p1 = i;
+        if(x[i] > x[p2] || (x[i] == x[p2] && y[i] < y[p2])) p2 = i;
+        if(x[i] >= 0 && (y[i] < y[p3] || (y[i] == y[p3] && x[i] > x[p3]))) p3 = i;
+    }
+    double ans = 0;
+    bool flag = false;
+    if(x[p1] >= 0)
+    {
+        double t = (double)x[p1] / v, dy = u * t;
+        if(dcmp(dy - y[p1]) >= 0)
+        {
+            int pp = change(p1, n, -1);
+            t = (double)x[pp] / v, dy = u * t;
+            if(dcmp(dy - y[pp]) >= 0)
+            {
+                ans = (double)w / u;
+                flag = true;
+            }
+        }
+    }
+    if(!flag)
+    {
+        if(x[p2] > 0)
+        {
+            double t = 0, dy = 0;
+            for(int i = p3; i != change(p2, n, 1); i = change(i, n, 1))
+            {
+                t = (double)x[i] / v - ans, dy = u * t + dy;
+                dy = min(dy, (double)y[i]);
+                ans += t;
+            }
+            ans += (w - dy) / u;
+        }
+        else ans = (double)w / u;
+    }
+    printf("%.10f\n", ans);
+    return 0;
+}

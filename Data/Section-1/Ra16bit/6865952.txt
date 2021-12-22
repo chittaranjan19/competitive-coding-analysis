@@ -1,0 +1,76 @@
+#include <cstdio>
+#include <vector>
+#include <algorithm>
+using namespace std;
+int n,m,i,j,k,cur,st,num,tail,a[333][333],b[333],rev[333],nx[333],pv[333];
+double last,d,e[333],r[333];
+vector<pair<double,pair<int,int> > > x;
+void count(double d) {
+  if (d-last<1e-8) return;
+  d-=last;
+  double p=0;
+  for (int ii=st; ; ii=nx[ii]) {
+    int i=b[ii];
+    //if (j==1) printf("[%.5lf %.5lf] %d\n",last,last+d,i);
+    //if (j==1) printf("%d %d =  %d\n",i,j,a[i][j]);
+    double cur=(2*(a[i][j]+last*e[i])+e[i]*d)*d;
+    //if (j==1) printf("%.5lf %.5lf | %.5lf %.5lf   %.5lf\n",a[i][j]+last*e[i],e[i]*d,cur,p,d);
+    if (cur>p) { r[i]+=cur-p; p=cur; }// else puts("!!!!");
+    if (ii==tail) break;
+  }
+  last+=d;
+}
+int main() {
+  scanf("%d%d",&n,&m);
+  for (i=0; i<n; i++) for (j=0; j<=m; j++) scanf("%d",&a[i][j]);
+  for (j=0; j<m; j++) {
+  //printf("\n\nj = %d\n",j);
+    x.clear();
+    for (i=0; i<n; i++) e[i]=a[i][j+1]-a[i][j];
+    for (i=0; i<n; i++) for (k=0; k<n; k++) if (a[i][j]<a[k][j] && a[i][j+1]>a[k][j+1])
+      x.push_back(make_pair((a[i][j]-a[k][j])/(e[k]-e[i]),make_pair(i,k)));
+    for (i=0; i<n; i++) rev[i]=-1;
+    b[0]=rev[0]=tail=0; pv[0]=-1;
+    for (i=1; i<n; i++) if (a[i][j]>a[b[tail]][j] || (a[i][j]==a[b[tail]][j] && a[i][j+1]>a[b[tail]][j+1])) {
+      nx[tail]=tail+1;
+      b[++tail]=i;
+      pv[tail]=tail-1;
+      rev[i]=tail;
+      //printf("%d,",i);
+    }
+    st=0; num=tail;
+    sort(x.begin(),x.end());
+    last=0;
+    //for (k=0; k<x.size(); k++) printf("%.5lf %d %d\n",x[k].first,x[k].second.first,x[k].second.second);
+    //puts("----");
+    for (k=0; k<x.size(); k++) {
+      i=x[k].second.first;
+      int jj=x[k].second.second;
+      if (i>jj) {
+        if (rev[jj]==-1 || rev[i]!=-1) continue;
+        cur=rev[jj];
+        if (tail!=cur && b[nx[cur]]<i) continue;
+        //printf("insert %d [%d %d] after %d\n",i,a[i][j],a[i][j+1],jj);
+        count(x[k].first);
+        b[++num]=i;
+        rev[i]=num;
+        pv[num]=cur;
+        if (tail==cur) tail=num; else {
+          nx[num]=nx[cur];
+          pv[nx[num]]=num;
+        }
+        nx[cur]=num;
+      } else if (rev[jj]!=-1) {
+      //printf("remove %d\n",jj);
+        count(x[k].first);
+        cur=rev[jj];
+        if (cur==st) st=nx[cur]; else nx[pv[cur]]=nx[cur];
+        if (tail==cur) tail=pv[cur]; else pv[nx[cur]]=pv[cur];
+        rev[jj]=-1;
+      }
+    }
+    count(1);
+  }
+  for (i=0; i<n; i++) printf("%.10lf\n",r[i]*0.5);
+  return 0;
+}

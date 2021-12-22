@@ -1,0 +1,140 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdio>
+#include <stdlib.h>
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
+
+int main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    long long n, m, k, s, p, q;
+    cin >> n >> m >> k >> s;
+    long long a[n], b[n];
+    for (long long i = 0; i < n; i++)
+        cin >> a[i];
+    for (long long i = 0; i < n; i++)
+        cin >> b[i];
+    pair<int, int> mon_1[n], mon_2[n];
+    for (long long i = 0; i < n; i++)
+        if (i == 0)
+            mon_1[i] = make_pair(a[i], i);
+        else
+            if (a[i] < mon_1[i - 1].first)
+                mon_1[i] = make_pair(a[i], i);
+            else
+                mon_1[i] = mon_1[i - 1];
+    for (long long i = 0; i < n; i++)
+        if (i == 0)
+            mon_2[i] = make_pair(b[i], i);
+        else
+            if (b[i] < mon_2[i - 1].first)
+                mon_2[i] = make_pair(b[i], i);
+            else
+                mon_2[i] = mon_2[i - 1];
+    vector<pair<int, int> > type1, type2;
+    for (long long i = 0; i < m; i++)
+    {
+        cin >> p >> q;
+        if (p == 1)
+            type1.push_back(make_pair(q, i));
+        else
+            type2.push_back(make_pair(q, i));
+    }
+    sort(type1.begin(), type1.end());
+    sort(type2.begin(), type2.end());
+    long long pref1[type1.size()], pref2[type2.size()];
+    for (long long i = 0; i < type1.size(); i++)
+        if (i == 0)
+            pref1[i] = type1[i].first;
+        else
+            pref1[i] = type1[i].first + pref1[i - 1];
+    for (long long i = 0; i < type2.size(); i++)
+        if (i == 0)
+            pref2[i] = type2[i].first;
+        else
+            pref2[i] = type2[i].first + pref2[i - 1];
+
+    /*for (long long i = 0; i < n; i++)
+        cout << mon_1[i].first << " ";
+    cout << endl;
+    for (long long i = 0; i < n; i++)
+        cout << mon_2[i].first << " ";
+    cout << endl;
+    for (long long i = 0; i < type1.size(); i++)
+        cout << pref1[i] << " ";
+    cout << endl;
+    for (long long i = 0; i < type2.size(); i++)
+        cout << pref2[i] << " ";
+    cout << endl;
+    for (long long i = 0; i < type1.size(); i++)
+        cout << type1[i].first << "-" << type1[i].second << "  ";
+    cout << endl;
+    for (long long i = 0; i < type2.size(); i++)
+        cout << type2[i].first << "-" << type2[i].second << "  ";
+    cout << endl;*/
+
+    long long l = 0, r = n, mid, cnt;
+    while (r - l > 1)
+    {
+        mid = (l + r) / 2;
+        cnt = 2000000000000;
+        if (type1.size() >= k)
+            cnt = min(cnt, pref1[k - 1] * mon_1[mid].first);
+        if (type2.size() >= k)
+            cnt = min(cnt, pref2[k - 1] * mon_2[mid].first);
+        for (long long i = 1; i < k; i++)
+            if (type1.size() >= i && type2.size() >= k - i)
+                cnt = min(cnt, pref1[i - 1] * mon_1[mid].first + pref2[k - i - 1] * mon_2[mid].first);
+        if (cnt <= s)
+            r = mid;
+        else
+            l = mid;
+    }
+    long long ans1, ans2, cnt1 = 2000000000000;
+    if (type1.size() >= k)
+    {
+        cnt = pref1[k - 1] * mon_1[r].first;
+        if (cnt <= s)
+        {
+            cnt1 = min(cnt1, cnt);
+            ans1 = k;
+            ans2 = 0;
+        }
+    }
+    if (type2.size() >= k)
+    {
+        cnt = pref2[k - 1] * mon_2[r].first;
+        if (cnt <= s)
+        {
+            cnt1 = min(cnt1, cnt);
+            ans1 = 0;
+            ans2 = k;
+        }
+    }
+    for (long long i = 1; i < k; i++)
+        if (type1.size() >= i && type2.size() >= k - i)
+        {
+            cnt = pref1[i - 1] * mon_1[r].first + pref2[k - i - 1] * mon_2[r].first;
+            if (cnt <= s)
+            {
+                cnt1 = min(cnt1, cnt);
+                ans1 = i;
+                ans2 = k - i;
+            }
+        }
+    if (cnt1 <= s)
+    {
+        cout << r + 1 << endl;
+        for (long long i = 0; i < ans1; i++)
+            cout << type1[i].second + 1 << " " << mon_1[r].second + 1 << endl;
+        for (long long i = 0; i < ans2; i++)
+            cout << type2[i].second + 1 << " " << mon_2[r].second + 1 << endl;
+    }
+    else
+        cout << -1;
+    return 0;
+}

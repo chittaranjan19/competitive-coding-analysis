@@ -1,0 +1,87 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <math.h>
+#include <algorithm>
+#include <string>
+using namespace std;
+typedef long long ll;
+
+struct Node{
+	int next[26];
+	bool isend;
+	string word;
+}node[1000005];
+int cnt=1;
+
+int newnode(){
+	return ++cnt;
+}
+
+char oriWord[1005];
+char rev[1005];
+
+void insert(int p,char* str){
+	if(*(str)==0){
+		node[p].isend=true;
+		node[p].word=oriWord;
+		return;
+	}
+	if(!node[p].next[*str-'a']){
+		node[p].next[*str-'a']=newnode();
+	}
+	insert(node[p].next[*str-'a'],str+1);
+}
+
+char sen[10005];
+int pre[10005];
+string ans[10005];
+
+int coming;
+void search(int p,int idx){
+	if(p==0)return;
+	if(node[p].isend){
+		pre[idx-1]=coming;
+		ans[idx-1]=node[p].word;
+	}
+	search(node[p].next[sen[idx]-'a'],idx+1);
+}
+
+int n,m;
+
+int main(){
+	scanf("%d%s",&n,sen+1);
+	for(scanf("%d",&m);m--;){
+		scanf("%s",oriWord);
+		int len=strlen(oriWord);
+		for(int i=len-1;i>=0;i--){
+			rev[len-1-i]=tolower(oriWord[i]);
+		}
+		rev[len]=0;
+		insert(1,rev);
+	}
+	memset(pre,-1,sizeof(pre));
+	coming=0;
+	search(1,1);
+	
+	for(int i=2;i<=n;i++){
+		if(pre[i-1]>=0){
+			coming=i-1;
+			search(1,i);
+		}
+	}
+	/*printf("%d\n",n);
+	for(int i=0;i<=n;i++){
+		printf("%d ",pre[i]);
+	}*/
+	vector<string> s;
+	for(int p=n;p>0;p=pre[p]){
+		s.push_back(ans[p]);
+	}
+	for(int i=s.size()-1;i>=0;i--){
+		printf("%s ",s[i].c_str());
+	}
+    return 0;
+}

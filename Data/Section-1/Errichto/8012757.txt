@@ -1,0 +1,102 @@
+#include<iostream>
+#include<vector>
+#include<algorithm>
+#include<set>
+#include<map>
+#include<cstring>
+#include<cmath>
+using namespace std;
+#define ll long long
+#define ld long double
+#define pii pair<int,int>
+#define vi vector<int>
+#define pb push_back
+#define mp make_pair
+#define st first
+#define nd second
+#define RE(i,n) for(int i=0,_n=(n);i<_n;++i)
+#define RI(i,n) for(int i=1,_n=(n);i<=_n;++i)
+#define mini(a,b) a=min(a,(b))
+#define maxi(a,b) a=max(a,(b))
+#define all(w) w.begin,w.end()
+const int inf=1e9+5,nax= 10123;
+
+int a[nax], b[nax];
+vector<pii > res, B_res;
+bool vis[nax];
+
+void Xoruj(int i, int j) {
+	res.pb(mp(i, j));
+	a[i] ^= a[j];
+}
+
+void B_Xoruj(int i, int j) {
+	B_res.pb(mp(i, j));
+	b[i] ^= b[j];
+}
+
+void Swapuj(int i, int j) {
+	Xoruj(i, j);
+	Xoruj(j, i);
+	Xoruj(i, j);
+}
+
+int main()
+{
+	ios_base::sync_with_stdio(0);
+
+	int n;
+	cin >> n;
+	RI(i, n) cin >> a[i];
+	RI(i, n) cin >> b[i];
+	RE(k, 30) {
+		RI(i, n) if((!vis[i]) && (  (1 << k) & a[i] )) {
+			vis[i] = true;
+			RI(j, n) if(j != i && (  (1 << k) & a[j] )) 
+				Xoruj(j, i);
+			i = n;
+		}
+	}
+
+	RI(i, n) vis[i] = false;
+
+	RE(k, 30) {
+		RI(i, n) if((!vis[i]) && (  (1 << k) & b[i] )) {
+			vis[i] = true;
+			RI(j, n) if(j != i && (  (1 << k) & b[j] )) 
+				B_Xoruj(j, i);
+			i = n;
+		}
+	}
+
+	while(true) {
+		RI(i, n) {
+			if(a[i] > 0 && b[i] != a[i]) {
+				RI(j, n) {
+					if(b[j] == a[i]) {
+						Swapuj(i, j);
+						j = n + 5;
+						i = n + 5;
+					}
+					if(j == n) {
+						Xoruj(i, i);
+						i = n + 5;
+					}
+				}
+			}
+			if(i == n) {
+				RI(j, n) if(b[j] > 0 && b[j] != a[j]) {
+					cout << -1;
+					return 0;
+				}
+				RE(p, B_res.size()) res.pb(B_res[ B_res.size() - 1 - p]);
+				cout << res.size() << "\n";
+				RE(p, res.size()) cout << res[p].first << " " << res[p].second << "\n";
+				return 0;
+			}
+
+		}
+	}
+	
+	return 0;
+}

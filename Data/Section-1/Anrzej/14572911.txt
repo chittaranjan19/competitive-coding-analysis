@@ -1,0 +1,77 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+
+using namespace std;
+
+#define ll long long
+#define sc second
+#define fs first
+#define mp make_pair
+#define pb push_back
+
+
+vector<int> g[111111];
+int vl[111111];
+map<int, int> m[111111];
+int n, ans[111111], mx[111111], gt[111111];
+
+void merge(int a, int b)
+{
+	int aa = gt[a], bb = gt[b];
+	if (m[aa].size() < m[bb].size())
+		gt[a] = gt[b], ans[a] = ans[b], swap(aa, bb), mx[a] = mx[b];
+	for (map<int, int>::iterator i = m[bb].begin(); i != m[bb].end(); i++)
+	{
+		int clr = i->fs, cnt = i->sc;
+		m[aa][clr] += cnt;
+		cnt = m[aa][clr];
+		if (cnt == mx[aa])
+			ans[a] += clr;
+		if (cnt > mx[aa])
+			mx[aa] = cnt, ans[a] = clr;
+	}
+}
+
+void dfs(int v, int p)
+{
+	for (int i = 0; i < g[v].size(); i++)
+	{
+		int to = g[v][i];
+		if (to == p) continue;
+		dfs(to, v);
+		merge(v, to);
+	}
+}
+
+int main()
+{
+	cin >> n;
+	for (int i = 0; i < n; i++){
+		cin >> vl[i+1];
+		gt[i + 1] = i + 1;
+		mx[i+1] = 1;
+		ans[i+1] = vl[i+1];
+		m[i + 1][vl[i+1]] = 1;
+	}
+	for (int i = 1; i < n; i++){
+		int u, v;
+		cin >> u >> v;
+		g[v].push_back(u);
+		g[u].push_back(v);
+	}
+	dfs(1, 0);
+	for (int i = 1; i <= n; i++)
+		cout << ans[i] << ' ';
+	return 0;
+}

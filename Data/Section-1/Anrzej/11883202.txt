@@ -1,0 +1,91 @@
+#include <string>
+#include <algorithm>
+#include <math.h>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <set>
+#include <cstring>
+#include <map>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+using namespace std;
+
+
+int main()
+{
+    ll n;
+    pair<ll, ll> s[10010];
+    cin >> n;
+    for (int i = 0; i < n; i++)
+        cin >> s[i].first;
+    map<int, int> cnt;
+    for (int i = 0; i < n; i++)
+    {
+        cin >> s[i].second;
+    }
+    sort(s, s + n);
+    vector<ll> ps;
+    for (int i = 0; i < n; i++)
+    {
+        ll ts = 0;
+        int k = i;
+        while (s[i].first == s[k].first)
+            ts += s[i++].second;
+        ps.push_back(ts);
+        i--;
+    }
+    ps.push_back(0);
+    for (int i = ps.size() - 2; i > -1; i--)
+        ps[i] += ps[i + 1];
+    ll ans = 1e18;
+    int k = 0;
+    for (int i = 0; i < n; i++)
+    {
+        ll tk = i;
+        while (s[i].first == s[tk].first)
+        {
+            if (cnt.count(-s[i].second) != 0 )
+                cnt[-s[i].second]+=1;
+            else cnt[-s[i].second] = 1;
+            i++;
+        }
+        i--;
+        k++;
+        int len = i - tk + 1;
+        int del = len - 1;
+        ll tms = ps[k];
+        if (len <= tk)
+        {
+            tms += ps[0] - ps[k - 1];
+            map<int, int>::iterator it;
+            for (it = cnt.begin(); it != cnt.end(); it++)
+            {
+                if (del == 0)
+                    break;
+                else
+                {
+                    if (it->second <= del)
+                    {
+                        tms += it->second*it->first;
+                        del -= it->second;
+                    }
+                    else
+                    {
+                        tms += it->first*del;
+                        del = 0;
+                    }
+                }
+            }
+        }
+        ans = min(ans, tms);
+    }
+    cout << ans;
+
+    return 0;
+}

@@ -1,0 +1,56 @@
+#include <stdio.h>
+#include <vector>
+#include <utility>
+#include <queue>
+#include <functional>
+using namespace std;
+
+vector<pair<int, unsigned long long>> edges[100002];
+int storages[100002];
+bool cities[100002];
+
+void func1(int city, long &length) {
+	priority_queue < pair<int, long > , vector<pair<int, long> >, greater< pair<int, long> > > q;
+	q.push(make_pair(city, 0));
+	while (!q.empty()) {
+		pair<int, long> current = q.top();
+		if (current.second >= length) {
+			return;
+		} else if (!cities[current.first]) {
+			length = current.second;
+			return;
+		}
+		q.pop();
+		for (unsigned int i = 0; i < edges[current.first].size(); i++) {
+			q.push(make_pair(edges[current.first][i].first, edges[current.first][i].second + current.second));
+		}
+	}
+}
+
+int main() {
+	int n, m, k;
+	int from, to, length;
+	scanf_s("%d %d %d", &n, &m, &k);
+	for (int i = 0; i < m; i++) {
+		scanf_s("%d %d %d", &from, &to, &length);
+		edges[from].push_back(make_pair(to, length));
+		edges[to].push_back(make_pair(from, length));
+	}
+	if (k > 0) {
+		for (int i = 0; i < k; i++) {
+			scanf_s("%d", &from);
+			storages[i] = from;
+			cities[from] = true;
+		}
+	}
+	else {
+		printf("-1");
+		return 0;
+	}
+	long min_length = 1000000000;
+	for (int i = 0; i < k; i++) {
+		func1(storages[i], min_length);
+	}
+	printf("%d", min_length);
+	return 0;
+}

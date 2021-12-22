@@ -1,0 +1,179 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define PI acos(-1.0)
+#define LL long long
+#define EPS 1e-9
+#define PL printf("\n")
+#define PS printf(" ")
+#define PInt(n) printf("%d",n)
+#define SI(n) scanf("%d",&n)
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+
+int counter1[11]={0},counter2[11]={0},temp1[11]={0},temp2[11]={0};
+
+vector<int> a,b;
+
+int main()
+{
+    //freopen("input.txt","r",stdin);
+    //freopen("output.txt","w",stdout);
+    string temp;
+    int bigcounter=0;
+    cin >> temp;
+    for(int i=0;i<temp.size();i++)
+    {
+        counter1[temp[i]-'0']++;
+        counter2[temp[i]-'0']++;
+        temp1[temp[i]-'0']++;
+        temp2[temp[i]-'0']++;
+        bigcounter++;
+    }
+    int maxi=INF_MIN,maxind=-1;
+    for(int i=1;i<=5;i++)
+    {
+        int counter=0;
+        if(!temp1[i] || !temp2[10-i])
+            continue;
+        temp1[i]--,temp2[10-i]--;
+        counter++;
+        for(int j=0;j<5;j++)
+        {
+            int mini=min(temp1[j],temp2[9-j]);
+            temp1[j]-=mini,temp2[9-j]-=mini;
+            counter+=mini;
+        }
+        for(int j=0;j<5;j++)
+        {
+            int mini=min(temp1[9-j],temp2[j]);
+            temp1[9-j]-=mini,temp2[j]-=mini;
+            counter+=mini;
+        }
+        int minii=0;
+        for(int j=1;j<=5;j++)
+        {
+            int mini=min(temp1[j],temp2[10-j]);
+            temp1[j]-=mini,temp2[10-j]-=mini;
+            minii+=mini;
+        }
+        for(int j=1;j<=5;j++)
+        {
+            int mini=min(temp1[10-j],temp2[j]);
+            temp1[10-j]-=mini,temp2[j]-=mini;
+            minii+=mini;
+        }
+        int mini=min(temp1[0],temp2[0]);
+        temp1[0]-=mini,temp2[0]-=mini;
+        counter+=mini;
+        int rest=bigcounter-counter-minii;
+        counter+=min(rest,mini);
+        if(counter>maxi)
+        {
+            maxi=counter;
+            maxind=i;
+        }
+        for(int i=0;i<10;i++)
+        {
+            temp1[i]=counter1[i];
+            temp2[i]=counter2[i];
+        }
+    }
+    if(maxind == -1)
+    {
+        for(int i=0;i<10;i++)
+            for(int j=0;j<counter1[i];j++)
+                a.pb(i),b.pb(i);
+        reverse(a.begin(),a.end());
+        reverse(b.begin(),b.end());
+        for(int i=0;i<a.size();i++)
+            PInt(a[i]);
+        PL;
+        for(int i=0;i<a.size();i++)
+            PInt(b[i]);
+        return 0;
+    }
+    a.pb(maxind),b.pb(10-maxind);
+    counter1[maxind]--,counter2[10-maxind]--;
+    for(int j=0;j<10;j++)
+    {
+        int mini=min(counter1[j],counter2[9-j]);
+        counter1[j]-=mini,counter2[9-j]-=mini;
+        for(int i=0;i<mini;i++)
+            a.pb(j),b.pb(9-j);
+    }
+    vector<int> resta,restb;
+    if(counter1[0] > counter2[0])
+    {
+        for(int j=0;j<counter1[0]-counter2[0];j++)
+            resta.pb(0);
+        counter1[0]=counter2[0];
+    }
+    else if(counter1[0] < counter2[0])
+    {
+        for(int j=0;j<counter2[0]-counter1[0];j++)
+            restb.pb(0);
+        counter2[0]=counter1[0];
+    }
+    for(int i=1;i<10;i++)
+    {
+        if(counter1[i] > counter2[10-i])
+        {
+            for(int j=0;j<counter1[i]-counter2[10-i];j++)
+                resta.pb(i);
+            counter1[i]=counter2[10-i];
+        }
+        if(counter1[10-i] < counter2[i])
+        {
+            for(int j=0;j<counter2[i]-counter1[10-i];j++)
+                restb.pb(i);
+            counter2[i]=counter1[10-i];
+        }
+    }
+    int n=resta.size();
+    vector<int> tensa,tensb;
+    for(int i=1;i<10;i++)
+        for(int j=0;j<counter1[i];j++)
+        {
+            tensa.pb(i);
+            tensb.pb(10-i);
+        }
+    int m=tensa.size();
+    for(int i=0;i<n;i++)
+    {
+        a.pb(resta[i]),b.pb(restb[i]);
+        if(i<m)
+            a.pb(tensa[i]),b.pb(tensb[i]);
+    }
+    for(int i=n;i<m;i++)
+        a.pb(tensa[i]),b.pb(tensb[i]);
+    reverse(a.begin(),a.end());
+    reverse(b.begin(),b.end());
+    for(int i=0;i<counter1[0];i++)
+        a.pb(0),b.pb(0);
+    for(int i=0;i<a.size();i++)
+        PInt(a[i]);
+    PL;
+    for(int i=0;i<a.size();i++)
+        PInt(b[i]);
+    return 0;
+}

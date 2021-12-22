@@ -1,0 +1,89 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 105;
+
+void kill() {
+	cout << "Impossible";
+	exit(0);
+}
+
+int N;
+bool bef[26][26];
+int indeg[26];
+string str[MAXN];
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 0; i < N; i++) {
+		string &t = str[i];
+		cin >> t;
+		for (int j = 0; j < i; j++) {
+			//str[j] < str[i]. s < t
+			string &s = str[j];
+			int sl = s.length(), tl = t.length();
+			bool df = false;
+			for (int i = 0; i < min(sl, tl); i++) {
+				if (s[i] != t[i]) {
+					//s[i] < t[i] in the ordering
+					df = true;
+					bef[s[i] - 'a'][t[i] - 'a'] = true;
+					break;
+				}
+			}
+			if (!df) {
+				//len(s) < len(t)
+				if (sl >= tl) {
+					kill();
+				}
+			}
+		}
+	}
+	//try to toposort the edges
+	stack<int> s;
+	for (int i = 0; i < 26; i++) {
+		for (int j = 0; j < 26; j++) {
+			indeg[i] += bef[j][i];
+		}
+		if (!indeg[i]) {
+			s.push(i);
+			// cerr << "psh " << char(i + 'a') << endl;
+		}
+	}
+	string ans;
+	while (!s.empty()) {
+		int v = s.top();
+		s.pop();
+		ans += char(v + 'a');
+		for (int i = 0; i < 26; i++) {
+			if (bef[v][i]) {
+				if (!--indeg[i]) {
+					// cerr << "psh " << char(i + 'a') << endl;
+					s.push(i);
+				}
+			}
+		}
+	}
+	for (int i = 0; i < 26; i++) {
+		if (indeg[i]) {
+			// cerr << "ssh " << char(i + 'a') << endl;
+			kill();
+		}
+	}
+	cout << ans << endl;
+}

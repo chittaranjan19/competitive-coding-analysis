@@ -1,0 +1,57 @@
+uses    math;
+
+const   maxn    =trunc(1e5)*2+5;
+        base    =trunc(1e6);
+        inf     =trunc(1e9)+7;
+
+type    arr1    =array[0..maxn] of int64;
+
+var     a, b    :ansistring;
+        sa, sb  :arr1;
+        db      :arr1;
+        pw      :arr1;
+        i       :longint;
+
+function mul(a,b:int64):int64;
+begin
+        mul:=((a mod inf)*(b mod inf)) mod inf;
+end;
+
+function Get(k,l,r:longint):int64;
+begin
+        if l>r then exit(0);
+
+        if k=1 then exit( (sa[r]-mul(sa[l-1],pw[r-l+1]) + inf*inf) mod inf);
+        if k=2 then exit( (sb[r]-mul(sb[l-1],pw[r-l+1]) + inf*inf) mod inf);
+        if k=3 then exit( (db[l]-mul(db[r+1],pw[r-l+1]) + inf*inf) mod inf);
+end;
+
+function cmp(l,r:longint):boolean;
+begin
+        if (Get(1,l,r)=Get(2,l,r))
+        or (Get(1,l,r)=Get(3,l,r)) then exit(true);
+        exit(false);
+end;
+
+begin
+        readln(a);
+        readln(b);
+        pw[0]:=1;
+        for i:=1 to maxn do pw[i]:=mul(pw[i-1],base);
+        sa[0]:=0;
+        for i:=1 to length(a) do sa[i]:=( mul(sa[i-1],base)+ord(a[i]) ) mod inf;
+
+        sb[0]:=0;
+        for i:=1 to length(b) do sb[i]:=( mul(sb[i-1],base)+ord(b[i]) ) mod inf;
+
+        db[0]:=0;
+        for i:=length(b) downto 1 do db[i]:=( mul(db[i+1],base)+ord(b[i]) ) mod inf;
+
+        for i:=1 to length(a) do
+                if cmp(1,i) and cmp(i+1,length(a)) then
+                begin
+                        writeln('YES');
+                        halt;
+                end;
+        writeln('NO');
+end.

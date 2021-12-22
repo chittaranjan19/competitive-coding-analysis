@@ -1,0 +1,105 @@
+#include <cstdio>
+#include <algorithm>
+
+using namespace std;
+
+int n,k;
+int uni[200000];
+int d[200000];
+bool eler[200000];
+int elso[200000];
+int kov[400000];
+int hova[400000];
+
+int db[200000];
+
+long long dfs(int p) {
+    long long ret(uni[p]*d[p]);
+    eler[p] = 1;
+
+    for(int Q=elso[p]; Q>=0; Q = kov[Q]) {
+        if(eler[hova[Q]]) continue;
+
+        d[hova[Q]] = d[p]+1;
+        ret += dfs(hova[Q]);
+        uni[p] += uni[hova[Q]];
+    }
+
+    return ret;
+}
+
+inline bool cmp(int &a, int &b) {
+    return (uni[a]-db[a]) > (uni[b]-db[b]);
+}
+
+long long ans;
+int ssz[200000],sszv;
+
+void dfs2(int p) {
+    if(!(uni[p]-db[p])) return;
+    eler[p] = 1;
+    sszv = 0;
+    for(int Q=elso[p]; Q>=0; Q = kov[Q]) {
+        if(eler[hova[Q]]) continue;
+
+        ssz[sszv++] = hova[Q];
+    }
+
+    sort(ssz,ssz+sszv,cmp);
+
+    int D = db[p];
+    int i=0;
+
+    while(D>0) {
+        while((i<sszv-1) && (!cmp(ssz[i],ssz[i+1]))) i++;
+
+        if(D>=(i+1)) db[ssz[0]]++;
+        D -= (i+1);
+    }
+
+    int q = ssz[0];
+
+    if((uni[q]-db[q]) <= ((uni[p]-db[p])/2)) {
+        ans -= (uni[p]-db[p])*d[p];
+    } else {
+        ans -= ((uni[p]-db[p]) - (uni[q]-db[q])) * 2 * d[p];
+        db[q] += ((uni[p]-db[p]) - (uni[q]-db[q]));
+        dfs2(q);
+    }
+}
+
+void scan(int &x) {
+    x = 0; char c=getchar(); while(c<'0') c = getchar();
+    do { x=(x<<3) + (x<<1) + c - '0'; c = getchar(); } while(c>='0');
+}
+
+int main()
+{
+    scan(n); scan(k);
+    for(int i=0; i<2*k; i++) {
+        int x; scan(x); x--;
+        uni[x] = 1;
+    }
+
+    for(int i=0; i<n; i++) elso[i] = -1;
+
+    for(int i=0; i<n-1; i++) {
+        int x,y; scan(x); scan(y); x--; y--;
+        kov[2*i] = elso[x];
+        hova[2*i] = y;
+        elso[x] = 2*i;
+
+        kov[2*i+1] = elso[y];
+        hova[2*i+1] = x;
+        elso[y] = 2*i+1;
+    }
+
+    ans = dfs(0);
+
+    fill(eler,eler+n,0);
+    dfs2(0);
+
+    printf("%I64d\n",ans);
+
+    return 0;
+}

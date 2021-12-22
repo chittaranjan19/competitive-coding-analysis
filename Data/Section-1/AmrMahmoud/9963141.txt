@@ -1,0 +1,122 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+const int MAXN = 100005;
+
+LL d[MAXN], l[2*MAXN], r[2*MAXN];
+int h[MAXN];
+pair<int, int> tree[8*MAXN];
+
+void build(int i,int L,int R)
+{
+  if(L == R)
+  {
+    tree[i] = mp(L, L);
+    return ;
+  }
+  build(i*2 + 1, L, (L + R) / 2);
+  build(i*2 + 2, (L + R) / 2 + 1, R);
+  if(R - L == 1)
+    tree[i] = mp(tree[i*2 + 1].first,tree[i*2 + 2].first);
+  else
+  {
+    LL temp = l[tree[i*2 + 1].first] + r[tree[i*2 + 1].second];
+    tree[i] = mp(tree[i*2 + 1].first,tree[i*2 + 1].second);
+    if(temp < l[tree[i*2 + 2].first] + r[tree[i*2 + 2].second])
+      temp = l[tree[i*2 + 2].first] + r[tree[i*2 + 2].second],tree[i] = mp(tree[i*2 + 2].first,tree[i*2 + 2].second);
+    if(temp < l[tree[i*2 + 1].first] + r[tree[i*2 + 2].second])
+      tree[i] = mp(tree[i*2 + 1].first,tree[i*2 + 2].second);
+  }
+}
+
+pair<int, int> query(int i,int L,int R,int x,int y)
+{
+  if(L >= x && R <= y)
+    return tree[i];
+  if(L > y || R < x)
+    return mp(-1, -1);
+  pair<int, int> xx = query(i*2 + 1, L, (L + R) / 2, x, y);
+  pair<int, int> yy = query(i*2 + 2, (L + R) / 2 + 1, R, x, y);
+  if(xx.first == -1) return yy;
+  if(yy.first == -1) return xx;
+  pair<int, int> res;
+  LL temp = l[xx.first] + r[yy.second];
+  res = mp(xx.first,yy.second);
+  if(yy.first != yy.second && temp < l[yy.first] + r[yy.second])
+    temp = l[yy.first] + r[yy.second],res = mp(yy.first,yy.second);
+  if(xx.first != xx.second && temp < l[xx.first] + r[xx.second])
+    res = mp(xx.first,xx.second);
+  return res;
+}
+
+int main()
+{
+  ios_base::sync_with_stdio(0);
+  //freopen("chipmunks.in", "r", stdin);
+  //freopen("chipmunks.out", "w", stdout);
+  int n, q;
+  cin >> n >> q;
+  for(int i=0;i<n;i++)
+    cin >> d[i];
+  for(int i=0;i<n;i++)
+    cin >> h[i];
+  for(int i=1;i<=n;i++)
+  {
+    l[i] = l[i - 1] - d[i - 1];
+    r[i] = r[i - 1] + d[i - 1];
+  }
+  for(int i=1;i<n;i++)
+  {
+    l[i + n] = l[i + n - 1] - d[i - 1];
+    r[i + n] = r[i + n - 1] + d[i - 1];
+  }
+  for(int i=0;i<2*n;i++)
+  {
+    l[i]+=2 * h[i%n];
+    r[i]+=2 * h[i%n];
+  }
+  build(0, 0, 2*n - 1);
+  int x, y;
+  while(q--)
+  {
+    cin >> x >> y;
+    x--, y--;
+    swap(x, y);
+    if(y <= x) y+=n;
+    x++, y--;
+    pair<int, int> res = query(0, 0, 2*n - 1, x, y);
+    cout << l[res.first] + r[res.second] << '\n';
+  }
+  return 0;
+}

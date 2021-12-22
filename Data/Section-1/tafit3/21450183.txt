@@ -1,0 +1,190 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class ProblemD2 {
+    BufferedReader rd;
+
+    ProblemD2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        long[] c = longarr();
+        int n = pint();
+        int[][] p = new int[n][2];
+        for(int i=0;i<n;i++) {
+            String s = rd.readLine();
+            if(s != null && !s.isEmpty()) {
+                String[] h = s.split(",");
+                int cnt = 0;
+                int min = Integer.MAX_VALUE;
+                for(String x: h) {
+                    if(x != null && !x.isEmpty()) {
+                        x = x.trim();
+                        min = Math.min(min, parse(x));
+                        cnt++;
+                    }
+                }
+                p[i][0] = min;
+                p[i][1] = cnt;
+            }
+        }
+
+        int[] res = solve(c, p);
+
+        out(res != null?"YES":"NO");
+        if(res != null) {
+            StringBuilder buf = new StringBuilder();
+            for (int i = 0; i < n; i++) {
+                if (i > 0) {
+                    buf.append('\n');
+                }
+                buf.append(format(res[i]));
+            }
+            out(buf);
+        }
+    }
+
+    private int[] solve(long[] c, int[][] p) {
+        int n = p.length;
+        int[] res = new int[n];
+
+        boolean pos = true;
+        for(int i=0;i<n;i++) {
+            int[] x = p[i];
+            if(x[1] == 1) {
+                int shirtSize = x[0];
+                if(c[shirtSize] > 0) {
+                    c[shirtSize]--;
+                    res[i] = shirtSize;
+                } else {
+                    pos = false;
+                    break;
+                }
+            }
+        }
+        if(pos) {
+            for(int s=0;s<=4;s++) {
+                for (int i = 0; i < n; i++) {
+                    int[] x = p[i];
+                    if (x[1] == 2 && x[0] == s) {
+                        if (c[s] > 0) {
+                            c[s]--;
+                            res[i] = s;
+                        } else if (c[s + 1] > 0) {
+                            c[s + 1]--;
+                            res[i] = s + 1;
+                        } else {
+                            pos = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return pos?res:null;
+    }
+
+    private int parse(String h) {
+        switch(h) {
+            case "S": return 0;
+            case "M": return 1;
+            case "L": return 2;
+            case "XL": return 3;
+            case "XXL": return 4;
+            default: return 5;
+        }
+    }
+
+    private String format(int x) {
+        switch(x) {
+            case 0: return "S";
+            case 1: return "M";
+            case 2: return "L";
+            case 3: return "XL";
+            case 4: return "XXL";
+            default: return "XXXL";
+        }
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD2();
+    }
+}

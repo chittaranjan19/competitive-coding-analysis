@@ -1,0 +1,114 @@
+#include <map>
+#include <vector>
+#include <stdio.h>
+#include <algorithm>
+
+#define ff first
+#define ss second
+#define sz(c) (int)c.size()
+#define rall(c) (c).rbegin(), (c).rend()
+
+const int MAXN = 100005;
+
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> pii;
+
+ll ans;
+pii A[MAXN];
+map <int,int> M;
+int n,m,a,b,x,y,l,r;
+vector<pii> v[MAXN];
+pair<ll,int> mx[MAXN][3];
+
+int main()
+{
+	scanf("%d",&n);
+	
+	for(int i=0; i<n; i++)
+	{
+		scanf("%d%d",&A[i].ff,&A[i].ss);
+		M[A[i].ff] = 1;
+	}
+	
+	for(auto &i : M)
+		i.ss = ++m;
+	
+	for(int i=0; i<n; i++)
+		v[M[A[i].ff]].emplace_back(A[i].ss,i+1);
+	
+	for(int i=0; i<MAXN; i++)
+		for(int j=0; j<2; j++)
+			mx[i][j] = {0,-1};
+	
+	for(int i=1; i<=m; i++)
+		sort(rall(v[i]));
+	
+	for(int i=1; i<=m; i++)
+	{
+		ll sm=0;
+		for(int h=0; h<sz(v[i]); h++)
+		{
+			sm += v[i][h].ff;
+			for(int j=0; j<2; j++)
+			{
+				if(mx[h+1][j].ff < sm)
+				{
+					swap(mx[h+1][j], mx[h+1][j+1]);
+					mx[h+1][j] = {sm,i};
+					break;
+				}
+			}
+		}
+	}
+	
+	for(int i=1; i<=m; i++)
+	{
+		ll sm=0;
+		for(int h=0; h<sz(v[i]); h++)
+		{
+			sm+=v[i][h].ff;
+			for(int j=0; j<2; j++)
+			{
+				if(mx[h][j].ss!=-1 && mx[h][j].ss!=i)
+				{
+					if(ans<sm+mx[h][j].ff)
+					{
+						ans=sm+mx[h][j].ff;
+						a=i,b=mx[h][j].ss,x=h+1,y=h;
+					}
+					break;
+				}
+			}
+			for(int j=0; j<2; j++)
+			{
+				if(mx[h+1][j].ss!=-1 && mx[h+1][j].ss!=i)
+				{
+					if(ans<sm+mx[h+1][j].ff)
+					{
+						ans=sm+mx[h+1][j].ff;
+						a=i,b=mx[h+1][j].ss,x=h+1,y=h+1;
+					}
+					break;
+				}
+			}
+		}
+	}
+	
+	if(x<y)
+	{
+		swap(x,y);
+		swap(a,b);
+	}
+	
+	printf("%lld\n",ans);
+	printf("%d\n",x+y);
+	
+	for(int i=0; i<x+y; i++)
+	{
+		if(i%2==0)
+			printf("%d " ,v[a][l].ss), l++;
+		else
+			printf("%d " ,v[b][r].ss), r++;
+	}
+}

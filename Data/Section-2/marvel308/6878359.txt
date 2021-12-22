@@ -1,0 +1,85 @@
+#include<stdio.h>
+#include<vector>
+#include<algorithm>
+#include<queue>
+using namespace std;
+#define pp pair<int,int>
+#define ppp pair<pp,int>
+#define pb(i) push(i)
+class priortise
+{
+public:
+    bool operator()(const pp &x,const pp &y)
+    {
+        return x.first>y.first;
+    }
+};
+int main()
+{
+    priority_queue<pp,vector<pp>,priortise> G1,G2;
+    queue<ppp> q;
+    int n,x,i,j,count1=0,count2=0;
+    scanf("%d%d",&n,&x);
+    for(i=0;i<n;i++)
+    {
+        int x,y,z;
+        scanf("%d%d%d",&x,&y,&z);
+        if(x==0)
+        {
+            count1++;
+            G1.pb(pp(y,z));
+        }
+        else
+        {
+            count2++;
+            G2.pb(pp(y,z));
+        }
+    }
+    int flag=-1,ans=0;
+    if(count1>count2)
+    {
+        if(G1.top().first<=x)
+        {
+            q.push(ppp(G1.top(),0));
+            G1.pop();
+        }
+        else if(G2.top().first<=x)
+        {
+            q.push(ppp(G2.top(),1));
+            G2.pop();
+        }
+    }
+    else
+    {
+        if(G2.top().first<=x)
+        {
+            q.push(ppp(G2.top(),1));
+            G2.pop();
+        }
+        else if(G1.top().first<=x)
+        {
+            q.push(ppp(G1.top(),0));
+            G1.pop();
+        }
+    }
+    while(!q.empty())
+    {
+        ppp temp=q.front();
+        q.pop();
+        ans++;
+        //printf("---->%d %d %d\n->%d %d\n",temp.first.first,temp.first.second,temp.second,G1.size(),G2.size());
+        x+=temp.first.second;
+        if(temp.second==0&&!G2.empty()&&G2.top().first<=x)
+        {
+            q.push(ppp(G2.top(),1));
+            G2.pop();
+        }
+        else if(temp.second==1&&!G1.empty()&&G1.top().first<=x)
+        {
+            q.push(ppp(G1.top(),0));
+            G1.pop();
+        }
+    }
+    printf("%d\n",ans);
+    return 0;
+}

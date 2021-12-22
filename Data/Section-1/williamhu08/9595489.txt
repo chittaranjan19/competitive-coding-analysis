@@ -1,0 +1,77 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 610;
+
+int N;
+int L[MAXN], R[MAXN];
+bool dp[MAXN][MAXN], mem[MAXN][MAXN];
+
+bool getdp (int x, int y) {
+	//xth ( is matched with yth )
+	if (x > y) {
+		return true;
+	}
+	bool &ref = dp[x][y];
+	if (mem[x][y]) {
+		return ref;
+	}
+	mem[x][y] = true;
+	int lt = L[x], rt = R[x];
+	for (int i = 0; i <= y - x; i++) {
+		int p = 2 * i + 1;	//new position
+		if (lt <= p && p <= rt) {
+			if (getdp(x + 1, x + i) && getdp(x + i + 1, y)) {
+				return ref = true;
+			}
+		}
+	}
+	return false;
+}
+
+void print (int x, int y) {
+	if (x > y) {
+		return;
+	}
+	assert(dp[x][y]);
+	int lt = L[x], rt = R[x];
+	for (int i = 0; i <= y - x; i++) {
+		int p = 2 * i + 1;
+		if (lt <= p && p <= rt) {
+			if (getdp(x + 1, x + i) && getdp(x + i + 1, y)) {
+				cout << '(';
+				print(x + 1, x + i);
+				cout << ')';
+				print(x + i + 1, y);
+				return;
+			}
+		}
+	}
+	assert(0);
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 0; i < N; i++) {
+		cin >> L[i] >> R[i];
+	}
+	if (getdp(0, N - 1)) {
+		print(0, N - 1);
+	} else {
+		cout << "IMPOSSIBLE";
+	}
+}

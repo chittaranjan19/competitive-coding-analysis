@@ -1,0 +1,94 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int t1[800005], t2[800005], a, b;
+
+void update1(int i,int L,int R,int node,int val)
+{
+  if(L == R)
+  {
+    t1[i] += val;
+    t1[i] = min(t1[i], b);
+    return ;
+  }
+  if(node <= (L + R) / 2)
+    update1(i*2 + 1, L, (L + R) / 2, node, val);
+  else update1(i*2 + 2, (L + R) / 2 + 1, R, node, val);
+  t1[i] = t1[i*2 + 1] + t1[i*2 + 2];
+}
+
+int query1(int i,int L,int R,int x,int y)
+{
+  if(L >= x && R <= y)
+    return t1[i];
+  if(L > y || R < x)
+    return 0;
+  return query1(i*2 + 1, L, (L + R) / 2, x, y) + query1(i*2 + 2, (L + R) / 2 + 1, R, x, y);
+}
+
+void update2(int i,int L,int R,int node,int val)
+{
+  if(L == R)
+  {
+    t2[i] += val;
+    t2[i] = min(t2[i], a);
+    return ;
+  }
+  if(node <= (L + R) / 2)
+    update2(i*2 + 1, L, (L + R) / 2, node, val);
+  else update2(i*2 + 2, (L + R) / 2 + 1, R, node, val);
+  t2[i] = t2[i*2 + 1] + t2[i*2 + 2];
+}
+
+int query2(int i,int L,int R,int x,int y)
+{
+  if(L >= x && R <= y)
+    return t2[i];
+  if(L > y || R < x)
+    return 0;
+  return query2(i*2 + 1, L, (L + R) / 2, x, y) + query2(i*2 + 2, (L + R) / 2 + 1, R, x, y);
+}
+
+int main()
+{
+  int n, k, q, x, y;
+  scanf("%d %d %d %d %d", &n, &k, &a, &b, &q);
+  while(q--)
+  {
+    scanf("%d", &x);
+    if(x == 1)
+    {
+      scanf("%d %d", &x, &y);
+      x--;
+      update1(0, 0, n - 1, x, y);
+      update2(0, 0, n - 1, x, y);
+    }
+    else
+    {
+      scanf("%d", &x);
+      x--;
+      int res = 0;
+      if(x) res += query1(0, 0, n - 1, 0, x - 1);
+      if(x + k != n) res += query2(0, 0, n - 1, x + k, n - 1);
+      printf("%d\n", res);
+    }
+  }
+  return 0;
+}

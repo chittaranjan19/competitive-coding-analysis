@@ -1,0 +1,95 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define PI acos(-1.0)
+#define LL long long
+
+using namespace std;
+
+vector< vector < pair<int,int> > > graph(30);
+int mini[30][30],price=0;
+
+int dijkstra(int x,int y)
+{
+    bool visited[30]={false};
+    int dist[30]={0};
+    priority_queue<pair<int,int> > dj;
+    dj.push(make_pair(0,x));
+    while(!dj.empty())
+    {
+        int temp = dj.top().second;
+        dj.pop();
+        visited[temp] = true;
+        if(temp == y)
+            return -1 * dist[temp];
+        for(int i=0;i<graph[temp].size();i++)
+            if(!visited[graph[temp][i].second] &&(graph[temp][i].first + dist[temp] > dist[graph[temp][i].second] || dist[graph[temp][i].second] == 0))
+                dist[graph[temp][i].second] = graph[temp][i].first + dist[temp],dj.push(make_pair(dist[graph[temp][i].second],graph[temp][i].second));
+    }
+    return -1;
+}
+
+int main()
+{
+    string a,b;
+    cin >> a >> b;
+    int n,x,y,z;
+    scanf("%d",&n);
+    getchar();
+    for(int i=0;i<n;i++)
+    {
+        char x,y;
+        scanf("%c %c",&x,&y);
+        scanf("%d",&z);
+        getchar();
+        graph[x-'a'].push_back(make_pair(-z,y-'a'));
+    }
+    if(a.size() != b.size())
+    {
+        printf("-1");
+        return 0;
+    }
+    for(int i=0;i<a.size();i++)
+        if(a[i] != b[i])
+        {
+            if(mini[a[i]-'a'][b[i]-'a'] != 0)
+                x = mini[a[i]-'a'][b[i]-'a'];
+            else x = dijkstra(a[i]-'a',b[i]-'a');
+            if(mini[b[i]-'a'][a[i]-'a'] != 0)
+                y = mini[b[i]-'a'][a[i]-'a'];
+            else y = dijkstra(b[i]-'a',a[i]-'a');
+            if(x == -1 && y == -1)
+            {
+                printf("-1");
+                return 0;
+            }
+            if((x < y || y == -1) && x != -1)
+            {
+                price+=x;
+                a[i] = b[i];
+            }
+            else price+=y;
+            mini[a[i]-'a'][b[i]-'a'] = x;
+            mini[b[i]-'a'][a[i]-'a'] = y;
+        }
+    cout << price << endl << a;
+    return 0;
+}

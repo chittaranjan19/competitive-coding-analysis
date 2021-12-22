@@ -1,0 +1,178 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+
+struct state {
+	int grid[3][3];
+	int next;
+	state() {
+		memset(grid, 0, sizeof(grid));
+		next = 1;
+	}
+	state flip() const {
+		state s = state();
+		s.next = next;
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				if (grid[i][j]) {
+					s.grid[i][j] = 3 - grid[i][j];
+				} else {
+					s.grid[i][j] = 0;
+				}
+			}
+		}
+		return s;
+	}
+	pii hash() const {
+		//first one is just a hashcode
+		int h = 0, p = 1;
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				h += p * grid[i][j];
+				p *= 3;
+			}
+		}
+		//second one is whether someone won or whose turn is it to go
+		return pii(h, win() ? next - 3 : next);
+	}
+	bool win() const {
+		for (int i = 0; i < 3; i++) {
+			if (grid[i][0]) {
+				bool good = true;
+				for (int j = 1; j < 3; j++) {
+					if (grid[i][j] != grid[i][0]) {
+						good = false;
+						break;
+					}
+				}
+				if (good) {
+					return true;
+				}
+			}
+		}
+		for (int j = 0; j < 3; j++) {
+			if (grid[0][j]) {
+				bool good = true;
+				for (int i = 1; i < 3; i++) {
+					if (grid[i][j] != grid[0][j]) {
+						good = false;
+						break;
+					}
+				}
+				if (good) {
+					return true;
+				}
+			}
+		}
+		if (grid[0][0] && grid[0][0] == grid[1][1] && grid[1][1] == grid[2][2]) {
+			return true;
+		}
+		return grid[0][2] && grid[0][2] == grid[1][1] && grid[1][1] == grid[2][0];
+	}
+	state* fill (int x, int y) const {
+		if (grid[x][y] || win()) {
+			return NULL;
+		}
+		state *s = new state();
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				s->grid[i][j] = grid[i][j];
+			}
+		}
+		s->grid[x][y] = next;
+		s->next = 3 - next;
+		return s;
+	}
+};
+
+int possible[19683];
+bool vis[19683];
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces3C.in", "r", stdin);
+#endif
+	queue<state> q;
+	q.push(state());
+	while (!q.empty()) {
+		state f = q.front();
+		q.pop();
+		pii p = f.flip().hash();
+		possible[p.first] = p.second;
+		p = f.hash();
+		possible[p.first] = p.second;
+		if (vis[p.first]) {
+			continue;
+		}
+		vis[p.first] = true;
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				state *s = f.fill(i, j);
+				if (s) {
+					q.push(*s);
+				}
+			}
+		}
+	}
+	int p = 0, r = 1;
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			char c = getchar();
+			if (c == 'X') {
+				c = 2;
+			} else if (c == '0') {
+				c = 1;
+			} else {
+				c = 0;
+			}
+			p += r * c;
+			r *= 3;
+		}
+		getchar();
+	}
+	p = possible[p];
+	if (p) {
+		if (p < 0) {
+			//someone won
+			printf("the %s player won\n", p == -1 ? "first" : "second");
+		} else {
+			//next person to go
+			puts(p == 1 ? "first" : "second");
+		}
+	} else {
+		puts("illegal");
+	}
+}

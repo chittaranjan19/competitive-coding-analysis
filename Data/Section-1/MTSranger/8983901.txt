@@ -1,0 +1,211 @@
+#include <iostream>
+#include <cstring>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int n, sqn;
+int dp[101][50000];
+int dp2[101][50000];
+int earliest_end[101][50000];
+int earliest_start[101][50000];
+
+int next[50000];
+int next2[50000][26];
+int prev[26];
+
+// poor man's range tree
+int min_q[256];
+int min_id[256];
+int min_q2[16];
+int min_id2[16];
+
+inline void init() {
+	memset(min_q, -1, sizeof min_q);
+	memset(min_id, -1, sizeof min_id);
+	memset(min_q2, -1, sizeof min_q2);
+	memset(min_id2, -1, sizeof min_id2);
+}
+inline void lol(int i, int ii) {
+	int iii = i / sqn;
+	if (min_q[iii] == -1 || ii < min_q[iii]) {
+		min_q[iii] = ii;
+		min_id[iii] = i;
+	}
+	iii = iii / 16;
+	if (min_q2[iii] == -1 || ii < min_q2[iii]) {
+		min_q2[iii] = ii;
+		min_id2[iii] = i;
+	}
+}
+inline void blah(int k) {
+	for (int i = 0; i < n; i++) {
+		int ii = i/sqn;
+		int start = -1, end = -1;
+		// wow such range query
+		if (i % sqn != 0) {
+			int sss = min((ii+1)*sqn, n);
+			for (int j = i; j < sss; j++) {
+				if (dp2[k][j] != -1 && (end == -1 || dp2[k][j] < end)) {
+					end = dp2[k][j];
+					start = j;
+				}
+			}
+			ii++;
+		}
+		int iii = ii / 16;
+		if (ii % 16 != 0) {
+			int sss = (iii+1) * 16;
+			for (int j = ii; j < sss; j++) {
+				if (min_q[j] != -1 && (end == -1 || min_q[j] < end)) {
+					end = min_q[j];
+					start = min_id[j];
+				}
+			}
+			iii++;
+		}
+		int sss = n/sqn/16+1;
+		for (int j = iii; j < sss; j++) {
+			if (min_q2[j] != -1 && (end == -1 || min_q2[j] < end)) {
+				end = min_q2[j];
+				start = min_id2[j];
+			}
+		}
+		earliest_start[k][i] = start;
+		earliest_end[k][i] = end;
+	}
+}
+
+int main() {
+	string s; cin >> s;
+	n = s.length();
+
+	// poor man's square root
+	sqn = 2;
+	while ((sqn+1)*(sqn+1) <= n) sqn++;
+
+	// what is the next occurrence of same character?
+	memset(prev, -1, sizeof prev);
+	memset(next, -1, sizeof next);
+	memset(next2, -1, sizeof next2);
+	for (int i = 0; i < n; i++) {
+		int c = (int)(s[i] - 'a');
+		for (int j = max(prev[c], 0); j < i; j++) {
+			next2[j][c] = i;
+		}
+		if (prev[c] != -1) {
+			next[prev[c]] = i;
+		}
+		prev[c] = i;
+	}
+
+	/*
+	cerr << s << endl;
+	for (int i = 0; i < n; i++) cerr << next[i] << ' '; cerr << endl;
+	for (int c = 0; c < 26; c++) {
+		for (int i = 0; i < n; i++) cerr << next2[i][c] << ' '; cerr << endl;
+	}
+	*/
+
+	// let's dp!
+	memset(dp, -1, sizeof dp);
+	memset(dp2, -1, sizeof dp2);
+	memset(earliest_end, -1, sizeof earliest_end);
+	memset(earliest_start, -1, sizeof earliest_start);
+
+	// do k = 1
+	for (int i = 0; i < n; i++) {
+		earliest_end[1][i] = i;
+		earliest_start[1][i] = i;
+	}
+	// do k = 2
+	for (int i = 0; i+1 < n; i++) {
+		if (next[i] != -1) {
+			earliest_end[2][i] = next[i];
+			earliest_start[2][i] = i;
+		}
+	}
+	init();
+	for (int i = 0; i < n; i++) {
+		int ii = next[i];
+		if (ii == -1) continue;
+		dp2[2][i] = ii;
+		lol(i, ii);
+	}
+	blah(2);
+	// dp k >= 3
+	for (int k = 3; k <= 100; k++) {
+		init();
+		for (int i = 0; i < n; i++) {
+			int start = earliest_start[k-2][i+1];
+			if (start == -1) continue;
+			int end = earliest_end[k-2][i+1];
+			int c = (int)(s[i] - 'a');
+			int ii = next2[end][c];
+			if (ii != -1) {
+				dp[k][i] = start;
+				dp2[k][i] = ii;
+				lol(i, ii);
+			}
+		}
+		blah(k);
+	}
+	/*
+	for (int k = 1; k <= n; k++) {
+		for (int i = 0; i < n; i++) cerr << dp[k][i] << ' '; cerr << endl;
+	}
+	cerr << endl;
+	for (int k = 1; k <= n; k++) {
+		for (int i = 0; i < n; i++) 
+			cerr << earliest_start[k][i] << ',' << earliest_end[k][i] << ' '; 
+		cerr << endl;
+	}
+	cerr << endl;
+	*/
+
+	// print out the longest palindrome <= 100 length
+	bool done = false;
+	for (int k = min(100, n); k >= 3 && !done; k--) {
+		for (int i = 0; i < n && !done; i++) {
+			if (dp[k][i] != -1) {
+				done = true;
+				vector<char> stuff;
+				int ii = i;
+				int j = k;
+				for (j = k; j > 1; j -= 2) {
+					cout << s[ii];
+					stuff.push_back(s[ii]);
+					ii = dp[j][ii];
+				}
+				if (j == 1) {
+					cout << s[ii];
+				}
+				while (!stuff.empty()) {
+					cout << stuff.back();
+					stuff.pop_back();
+				}
+				cout << endl;
+			}
+		}
+	}
+	if (!done) {
+		// k == 2
+		int best = -1;
+		int bestlen = -1;
+		for (int i = 0; i < n; i++) {
+			if (next[i] != -1) {
+				if (bestlen == -1 || next[i] - i < bestlen) {
+					bestlen = next[i] - i;
+					best = i;
+				}
+			}
+		}
+		if (best != -1) {
+			cout << s[best] << s[best] << endl;
+		} else {
+			// k == 1
+			cout << s[0] << endl;
+		}
+	}
+}

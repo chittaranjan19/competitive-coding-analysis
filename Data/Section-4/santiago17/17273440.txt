@@ -1,0 +1,112 @@
+//
+// Created by Santiago on 10/04/2016.
+//
+
+#include <bits/stdc++.h>
+
+
+using namespace std;
+
+typedef vector<int> vi;
+typedef vector<vi> vvi;
+typedef pair<int, int> pii;
+
+
+const int mod = (int)(1e+9)+7;
+int cindex = 0;
+int component = 0;
+stack<int> s;
+
+class Compare {
+public:
+    bool operator() (int a, int b) {
+        return a > b;
+    }
+};
+
+void scc(vvi &graph, int node, vi &idx, vi &low, vector<bool> &assigned, vi &components) {
+    idx[node] = cindex;
+    low[node] = cindex;
+    cindex++;
+    s.push(node);
+    assigned[node] = true;
+    for (int i = 0; i < graph[node].size(); ++i) {
+        int t = graph[node][i];
+        if(assigned[t] && components[t] == -1) {
+            low[node] = min(low[node], low[t]);
+        }
+        else if(components[t] == -1){
+            scc(graph, t, idx, low, assigned, components);
+            low[node] = min(low[node], low[t]);
+        }
+    }
+
+    if(low[node] == idx[node]) {
+        int k = -1;
+        do {
+            k = s.top();
+            s.pop();
+            components[k] = component;
+        }while(k != node);
+        component++;
+    }
+}
+
+vector<long long> tarjan(vvi &graph, vector<int> &weight) {
+    long long pos = 1;
+    long long sum = 0;
+    vector<long long> ans(2);
+    vector<int> components(graph.size(), -1);
+    vector<int> low(graph.size());
+    vector<int> idx(graph.size());
+    vector<bool> assigned(graph.size(), false);
+    for (int i = 0; i < graph.size(); ++i) {
+        if(!assigned[i]) {
+            scc(graph, i, idx, low, assigned, components);
+        }
+    }
+    /*for (int i = 0; i < components.size(); ++i) {
+        printf("i = %d comp %d\n", i, components[i]);
+    }*/
+    vector<priority_queue<int, vi, Compare> > pqs(component);
+    for (int i = 0; i < components.size(); ++i) {
+        pqs[components[i]].push(weight[i]);
+    }
+    for (int i = 0; i < pqs.size(); ++i) {
+        int cont = 0;
+        int minw = pqs[i].top();
+        while (!pqs[i].empty()) {
+            if(pqs[i].top() > minw) {
+                break;
+            }
+            pqs[i].pop();
+            ++cont;
+
+        }
+        pos = (pos*cont)%mod;
+        sum += minw;
+    }
+    ans[0] = sum;
+    ans[1] = pos;
+    return ans;
+}
+
+int main() {
+    //freopen("checkposts.in", "r", stdin);
+    int N, M;
+    cin>>N;
+    vector<int> weight(N);
+    vvi graph(N);
+    for (int i = 0; i < N; ++i) {
+        cin>>weight[i];
+    }
+    cin>>M;
+    for (int i = 0; i < M; ++i) {
+        int a , b;
+        cin>>a>>b;
+        graph[a-1].push_back(b-1);
+    }
+    vector<long long> ans = tarjan(graph, weight);
+    cout<<ans[0]<<" "<<ans[1];
+    return 0;
+}

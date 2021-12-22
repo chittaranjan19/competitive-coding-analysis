@@ -1,0 +1,263 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+const int MAXN = 200005;
+const int LN = 19;
+
+vector<int> g[MAXN], indexx[MAXN], graph[MAXN];
+int baseArray[MAXN], ptr;
+int chainNo, chainInd[MAXN], chainHead[MAXN], posInBase[MAXN];
+int h[MAXN], P[MAXN][LN], otherEnd[MAXN], subsize[MAXN];
+pair<bool, bool> tree[4*MAXN];
+int visited[MAXN];
+
+void update(int cur, int s, int e, int S, int E, pair<bool, bool> val) {
+  if(s >= E || e <= S) return;
+  if(s >= S && e <= E) {
+    tree[cur].f |= val.f;
+    tree[cur].s |= val.s;
+    if(s != e - 1)
+    {
+      tree[cur<<1].f |= tree[cur].f;
+      tree[cur<<1].s |= tree[cur].s;
+      tree[(cur<<1)|1].f |= tree[cur].f;
+      tree[(cur<<1)|1].s |= tree[cur].s;
+      tree[cur] = mp(0, 0);
+    }
+    return;
+  }
+  int c1 = (cur<<1), c2 = c1 | 1, m = (s+e)>>1;
+  update(c1, s, m, S, E, val);
+  update(c2, m, e, S, E, val);
+}
+
+pair<bool, bool> tree_query(int cur, int s, int e, int S, int E) {
+  if(s != e - 1)
+  {
+    tree[cur<<1].f |= tree[cur].f;
+    tree[cur<<1].s |= tree[cur].s;
+    tree[(cur<<1)|1].f |= tree[cur].f;
+    tree[(cur<<1)|1].s |= tree[cur].s;
+    tree[cur] = mp(0, 0);
+  }
+  if(s >= E || e <= S)
+    return mp(0, 0);
+  if(s >= S && e <= E)
+    return tree[cur];
+  int c1 = (cur<<1), c2 = c1 | 1, m = (s+e)>>1;
+  pair<bool, bool> a = tree_query(c1, s, m, S, E), b = tree_query(c2, m, e, S, E);
+  a.f |= b.f;
+  a.s |= b.s;
+  return a;
+}
+
+pair<bool, bool> query_up(int u, int v) {
+  if(u == v) return mp(0, 0);
+  int uchain, vchain = chainInd[v];
+  pair<bool, bool> ans = mp(0, 0);
+  while(1)
+  {
+    uchain = chainInd[u];
+    if(uchain == vchain)
+    {
+      if(u == v) break;
+      pair<bool, bool> tmp = tree_query(1, 0, ptr, posInBase[v]+1, posInBase[u]+1);
+      ans.f |= tmp.f;
+      ans.s |= tmp.s;
+      break;
+    }
+    pair<bool, bool> tmp = tree_query(1, 0, ptr, posInBase[chainHead[uchain]], posInBase[u]+1);
+    ans.f |= tmp.f;
+    ans.s |= tmp.s;
+    u = chainHead[uchain];
+    u = P[u][0];
+  }
+  return ans;
+}
+
+void update_up(int u, int v, pair<int, int> val) {
+  if(u == v) return ;
+  int uchain, vchain = chainInd[v];
+  while(1)
+  {
+    uchain = chainInd[u];
+    if(uchain == vchain)
+    {
+      if(u == v) break;
+      update(1, 0, ptr, posInBase[v]+1, posInBase[u]+1, val);
+      break;
+    }
+    update(1, 0, ptr, posInBase[chainHead[uchain]], posInBase[u]+1, val);
+    u = chainHead[uchain];
+    u = P[u][0];
+  }
+}
+
+int LCA_query(int p, int q)
+{
+  int log;
+  if(h[p] < h[q])
+    swap(p, q);
+  for(log = 1; (1 << log) <= h[p]; log++);
+  log--;
+  for(int i = log; i >= 0; i--)
+    if(h[p] - (1 << i) >= h[q])
+      p = P[p][i];
+  if(p == q)
+    return p;
+  for(int i = log; i >= 0; i--)
+    if(P[p][i] != -1 && P[p][i] != P[q][i])
+      p = P[p][i], q = P[q][i];
+  return P[p][0];
+}
+
+pair<bool, bool> query(int u, int v) {
+  int lca = LCA_query(u, v);
+  pair<bool, bool> a = query_up(u, lca);
+  pair<bool, bool> b = query_up(v, lca);
+  a.f |= b.f;
+  a.s |= b.s;
+  return a;
+}
+
+void change(int u, int v)
+{
+  int lca = LCA_query(u, v);
+  update_up(u, lca, mp(1, 0));
+  update_up(v, lca, mp(0, 1));
+}
+
+void HLD(int curNode, int prev = -1)
+{
+  if(chainHead[chainNo] == -1)
+    chainHead[chainNo] = curNode;
+  chainInd[curNode] = chainNo;
+  posInBase[curNode] = ptr++;
+  int sc = -1;
+  for(int i=0;i<g[curNode].size();i++)
+    if(g[curNode][i] != prev)
+    {
+      if(sc == -1 || subsize[sc] < subsize[g[curNode][i]])
+        sc = g[curNode][i];
+    }
+  if(sc != -1) HLD(sc, curNode);
+  for(int i=0; i<g[curNode].size(); i++)
+    if(g[curNode][i] != prev) {
+      if(sc != g[curNode][i])
+      {
+        chainNo++;
+        HLD(g[curNode][i], curNode);
+      }
+    }
+}
+
+int id[MAXN], idx;
+
+void dfs(int node, int depth = 1, int parent = -1)
+{
+  h[node] = depth;
+  P[node][0] = parent;
+  subsize[node] = 1;
+  id[node] = idx;
+  for(int i=0;i<g[node].size();i++)
+  {
+    if(g[node][i] == parent) continue;
+    otherEnd[indexx[node][i]] = g[node][i];
+    dfs(g[node][i], depth + 1, node);
+    subsize[node] += subsize[g[node][i]];
+  }
+}
+
+map<pair<int, int>, int> cnt;
+set<pair<int, int> > s;
+int ind;
+
+int find_bridges(int node,int depth = 1,int parent = -1)
+{
+  visited[node] = depth;
+  int maxi = depth;
+  for(int i=0;i<graph[node].size();i++)
+  {
+    if(!visited[graph[node][i]])
+    {
+      int temp = find_bridges(graph[node][i], depth + 1, node);
+      maxi = min(maxi, temp);
+      if(temp > depth && cnt[mp(node, graph[node][i])] == 1)
+        s.insert(mp(node, graph[node][i]));
+      g[node].pb(graph[node][i]);
+      g[graph[node][i]].pb(node);
+      indexx[node].pb(ind);
+      indexx[graph[node][i]].pb(ind++);
+    }
+    else if(parent != graph[node][i]) maxi = min(maxi, visited[graph[node][i]]);
+  }
+  return maxi;
+}
+
+int main()
+{
+  int n, m, q, x, y;
+  cin >> n >> m >> q;
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d %d", &x, &y);
+    graph[x].pb(y);
+    graph[y].pb(x);
+    cnt[mp(x, y)]++;
+    cnt[mp(y, x)]++;
+  }
+  setdp(P);
+  setdp(chainHead);
+  for(int i=1;i<=n;i++)
+    if(!visited[i])
+
+  for(int i=1;i<=n;i++)
+    if(!visited[i])
+    {
+      idx++;
+      find_bridges(i);
+      dfs(i);
+      HLD(i);
+    }
+  for(int j = 1; (1 << j) <= n; j++)
+    for(int i = 1; i <= n; i++)
+      if(P[i][j - 1] != -1)
+        P[i][j] = P[P[i][j - 1]][j - 1];
+  while(q--)
+  {
+    scanf("%d %d", &x, &y);
+    if(id[x] != id[y])
+    {
+      cout << "NO";
+      return 0;
+    }
+    change(x, y);
+  }
+  for(auto p : s)
+  {
+    pair<bool, bool> ans = query(p.f, p.s);
+    if(ans.f && ans.s)
+    {
+      cout << "NO";
+      return 0;
+    }
+  }
+  cout << "YES";
+  return 0;
+}

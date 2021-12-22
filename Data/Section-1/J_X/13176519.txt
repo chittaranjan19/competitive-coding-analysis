@@ -1,0 +1,73 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cstring>
+
+using namespace std;
+
+const int maxn = 2e5 + 5;
+
+struct edge
+{
+    int to, next;
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} E[maxn << 1];
+int head[maxn], tot, a[maxn];
+int n, m;
+vector<int> v[maxn];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v)
+{
+    E[tot] = edge(v, head[u]);
+    head[u] = tot++;
+    E[tot] = edge(u, head[v]);
+    head[v] = tot++;
+}
+
+void dfs(int u, int fa)
+{
+    bool leaf = true;
+    for(int i = head[u]; ~i; i = E[i].next)
+    {
+        edge e = E[i];
+        if(e.to == fa) continue;
+        dfs(e.to, u);
+        leaf = false;
+        for(int j = 0; j < v[e.to].size(); ++j)
+        {
+            if(v[e.to][j] + a[u] <= m)
+            {
+                v[u].push_back(a[u] ? v[e.to][j] + 1 : 0);
+            }
+        }
+    }
+    if(leaf)
+    {
+        v[u].push_back(a[u]);
+    }
+}
+
+int main()
+{
+    scanf("%d%d", &n, &m);
+    init();
+    for(int i = 1; i <= n; ++i)
+    {
+        scanf("%d", a + i);
+    }
+    for(int i = 1; i < n; ++i)
+    {
+        int u, v;
+        scanf("%d%d", &u, &v);
+        addedge(u, v);
+    }
+    dfs(1, 0);
+    printf("%d\n", v[1].size());
+    return 0;
+}

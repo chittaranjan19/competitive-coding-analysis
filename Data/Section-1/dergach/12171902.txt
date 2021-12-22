@@ -1,0 +1,71 @@
+#include <cstdio>
+#include <cstring>
+#include <cassert>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
+#include <algorithm>
+#include <vector>
+#include <string>
+#include <map>
+#include <iostream>
+#include <queue>
+#include <time.h>
+#include <set>
+using namespace std;
+
+typedef long long ll;
+
+#define eps 1e-7
+#define P 257
+
+ll ha[200005], hb[200005], powp[200005];
+char a[200005], b[200005];
+int n;
+
+bool check(int la, int ra, int lb, int rb)
+{
+    ll h1 = ha[ra];
+    if(la) h1 -= ha[la-1];
+    h1 *= powp[200001-ra];
+
+    ll h2 = hb[rb];
+    if(lb) h2 -= hb[lb-1];
+    h2 *= powp[200001-rb];
+
+    if(h1 == h2)
+        return true;
+
+    if((ra - la + 1) % 2 == 0)
+    {
+        int len = ra - la + 1;
+        return (check(la, la + len / 2 - 1, lb, lb + len / 2 - 1) && check(la + len / 2, ra, lb + len / 2, rb)) ||
+               (check(la, la + len / 2 - 1, lb + len / 2, rb) && check(la + len / 2, ra, lb, lb + len / 2 - 1));
+    }
+
+    return false;
+}
+
+int main()
+{
+    powp[0] = 1;
+    for(int i = 1; i < 200005; i++)
+        powp[i] = powp[i-1] * P;
+
+    scanf("%s %s", a, b);
+    n = strlen(a);
+    for(int i = 0; i < n; i++)
+    {
+        ha[i] = powp[i] * a[i];
+        if(i) ha[i] += ha[i-1];
+
+        hb[i] = powp[i] * b[i];
+        if(i) hb[i] += hb[i-1];
+    }
+
+    if(check(0, n - 1, 0, n - 1))
+        puts("YES");
+    else
+        puts("NO");
+    return 0;
+}

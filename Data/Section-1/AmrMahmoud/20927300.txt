@@ -1,0 +1,177 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-5
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+const int MAXN = 2;
+
+struct matrix
+{
+  int arr[MAXN][MAXN];
+  int n, m;
+
+  matrix() {}
+
+  matrix(int x, int y)
+  {
+    n = x, m = y;
+  };
+
+  matrix(int x, int y, int v)
+  {
+    n = x, m = y;
+    for(int i=0;i<n;i++)
+      for(int j=0;j<m;j++)
+        arr[i][j] = v;
+  };
+
+  matrix operator + (const matrix &mat) const
+  {
+    matrix res(n, m, 0);
+    for(int i=0;i<n;i++)
+      for(int j=0;j<m;j++)
+      {
+        res.arr[i][j] = mat.arr[i][j] + arr[i][j];
+        if(res.arr[i][j] >= mod) res.arr[i][j] -= mod;
+      }
+    return res;
+  }
+
+  matrix operator * (const matrix &mat) const
+  {
+    matrix res(n, mat.m, 0);
+    for(int i=0;i<n;i++)
+      for(int j=0;j<mat.m;j++)
+        for(int k=0;k<m;k++)
+          res.arr[i][j] = (arr[i][k] * 1LL * mat.arr[k][j] + res.arr[i][j]) % mod;
+    return res;
+  }
+};
+
+matrix mat_pow(const matrix &base, int power)
+{
+  if(power == 1) return base;
+  matrix temp = mat_pow(base, power/2);
+  temp = temp * temp;
+  if(power & 1) temp = base * temp;
+  return temp;
+}
+
+matrix arr[100005], tree[400005], lazy[400005], I, Z;
+bool lazyf[400005];
+
+void build(int i,int L,int R)
+{
+  if(L == R)
+  {
+    tree[i] = arr[L];
+    lazy[i] = I;
+    return ;
+  }
+  build(i*2 + 1, L, (L + R) / 2);
+  build(i*2 + 2, (L + R) / 2 + 1, R);
+  tree[i] = tree[i*2 + 1] + tree[i*2 + 2];
+  lazy[i] = I;
+}
+
+void update(int i,int L,int R,int x,int y,matrix val)
+{
+  if(lazyf[i])
+  {
+    tree[i] = tree[i] * lazy[i];
+    if(L != R)
+    {
+      lazy[i*2+1] = lazy[i*2+1] * lazy[i];
+      lazy[i*2+2] = lazy[i*2+2] * lazy[i];
+      lazyf[i*2+1] = lazyf[i*2+2] = true;
+    }
+    lazyf[i] = 0;
+    lazy[i] = I;
+  }
+  if(L >= x && R <= y)
+  {
+    lazy[i] = lazy[i] * val;
+    tree[i] = tree[i] * lazy[i];
+    if(L != R)
+    {
+      lazy[i*2+1] = lazy[i*2+1] * lazy[i];
+      lazy[i*2+2] = lazy[i*2+2] * lazy[i];
+      lazyf[i*2+1] = lazyf[i*2+2] = true;
+    }
+    lazyf[i] = 0;
+    lazy[i] = I;
+    return;
+  }
+  if(L > y || R < x)
+    return;
+  update(i*2 + 1, L, (L + R) / 2, x, y, val);
+  update(i*2 + 2, (L + R) / 2 + 1, R, x, y, val);
+  tree[i] = tree[i*2 + 1] + tree[i*2 + 2];
+}
+
+matrix query(int i,int L,int R,int x,int y)
+{
+  if(lazyf[i])
+  {
+    tree[i] = tree[i] * lazy[i];
+    if(L != R)
+    {
+      lazy[i*2+1] = lazy[i*2+1] * lazy[i];
+      lazy[i*2+2] = lazy[i*2+2] * lazy[i];
+      lazyf[i*2+1] = lazyf[i*2+2] = true;
+    }
+    lazyf[i] = 0;
+    lazy[i] = I;
+  }
+  if(L >= x && R <= y)
+    return tree[i];
+  if(L > y || R < x)
+    return Z;
+  return query(i*2 + 1, L, (L + R) / 2, x, y) + query(i*2 + 2, (L + R) / 2 + 1, R, x, y);
+}
+
+int main()
+{
+  int n, q, x, y, z;
+  cin >> n >> q;
+  matrix fib(2, 2, 1);
+  fib.arr[1][1] = 0;
+  I = matrix(2, 2, 0);
+  Z = matrix(2, 2, 0);
+  I.arr[0][0] = I.arr[1][1] = 1;
+  for(int i=0;i<n;i++)
+  {
+    scanf("%d", &x);
+    arr[i] = mat_pow(fib, x);
+  }
+  build(0, 0, n - 1);
+  while(q--)
+  {
+    scanf("%d", &x);
+    if(x == 1)
+    {
+      scanf("%d %d %d", &x, &y, &z);
+      update(0, 0, n - 1, x - 1, y - 1, mat_pow(fib, z));
+    }
+    else
+    {
+      scanf("%d %d", &x, &y);
+      printf("%d\n", query(0, 0, n - 1, x - 1, y - 1).arr[1][0]);
+    }
+  }
+  return 0;
+}

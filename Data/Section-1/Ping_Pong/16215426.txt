@@ -1,0 +1,139 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e8;
+const int P = 239;
+const int MAX_N = 200000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+int parent_set[MAX_N], rank_set[MAX_N];
+int n;
+
+void make_set(int x)
+{
+    parent_set[x] = x;
+    rank_set[x] = 1;
+}
+
+int find_set(int x)
+{
+    if (parent_set[x] == x)
+        return x;
+    parent_set[x] = find_set(parent_set[x]);
+    return parent_set[x];
+}
+
+void union_set(int x, int y)
+{
+    x = find_set(x);
+    y = find_set(y);
+    if (x == y)
+        return;
+    if (rank_set[x] > rank_set[y])
+        parent_set[y] = x;
+    else if (rank_set[y] > rank_set[x])
+        parent_set[x] = y;
+    else
+    {
+        parent_set[y] = x;
+        rank_set[x]++;
+    }
+}
+
+int parent_set1[MAX_N], rank_set1[MAX_N], side_set1[MAX_N];
+
+void make_set1(int x)
+{
+    parent_set1[x] = x;
+    rank_set1[x] = 1;
+    side_set1[x] = x;
+}
+
+int find_set1(int x)
+{
+    if (parent_set1[x] == x)
+        return x;
+    parent_set1[x] = find_set1(parent_set1[x]);
+    return parent_set1[x];
+}
+
+void union_set1(int x, int y)
+{
+    x = find_set1(x);
+    y = find_set1(y);
+    if (x == y)
+        return;
+    if (rank_set1[x] > rank_set1[y])
+    {
+        parent_set1[y] = x;
+        side_set1[x] = max(side_set1[x], side_set1[y]);
+    }
+    else if (rank_set1[y] > rank_set1[x])
+    {
+        parent_set1[x] = y;
+        side_set1[y] = max(side_set1[x], side_set1[y]);
+    }
+    else
+    {
+        parent_set1[y] = x;
+        rank_set1[x]++;
+        side_set1[x] = max(side_set1[x], side_set1[y]);
+    }
+}
+
+int main()
+{
+    //ifstream ifs("input.in");
+    //ofstream ofs("output.out");
+    //ios_base::sync_with_stdio(0);
+    //cin.tie(0);
+    int q, j;
+    scanf("%d %d", &n, &q);
+    for (int i = 0; i < n; i++)
+        make_set(i);
+    for (int i = 0; i < n; i++)
+        make_set1(i);
+    for (int i = 0; i < q; i++)
+    {
+        int type, l, r;
+        scanf("%d %d %d", &type, &l, &r);
+        l--; r--;
+        switch (type)
+        {
+        case 1:
+            union_set(l, r);
+            break;
+        case 2:
+            j = l;
+            while (j < r)
+                if (side_set1[find_set1(j)] == j)
+                {
+                    union_set(j, j + 1);
+                    union_set1(j, j + 1);
+                    j++;
+                }
+                else
+                    j = side_set1[find_set1(j)];
+            break;
+        case 3:
+            printf((find_set(l) == find_set(r)) ? "YES\n" : "NO\n");
+            break;
+        }
+    }
+    return 0;
+}

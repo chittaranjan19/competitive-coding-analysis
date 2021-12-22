@@ -1,0 +1,145 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1e6 + 10, MOD = 1e9 + 7;
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+void addeq (int &x, int y) {
+	x = add(x, y);
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+int mult (int x, int y, int z) {
+	return mult(x, mult(y, z));
+}
+
+void multeq (int &x, int y) {
+	x = mult(x, y);
+}
+
+int N, H, W;
+char S[MAXN];
+int xmin, xmax, ymin, ymax;
+int PX, PY;
+int X, Y;	//top left corner of board...
+vector<int> _xind[2 * MAXN], _yind[2 * MAXN], *xind = _xind + MAXN, *yind = _yind + MAXN;
+int dx[MAXN], dy[MAXN];
+
+int find (vector<int> &v, int x) {
+	return *lower_bound(all(v), x);
+}
+
+int ch, cw;
+
+void advance (int x, int y, bool change) {
+	//X += x, Y += y
+	X += x;
+	Y += y;
+	if (X < 0) {
+		X = 0;
+		ch--;
+	} else if (Y < 0) {
+		Y = 0;
+		cw--;
+	} else if (X + ch - 1 >= H) {
+		X = H - (ch - 1);
+		ch--;
+	} else if (Y + cw - 1 >= W) {
+		Y = W - (cw - 1);
+		cw--;
+	} else {
+		assert(!change);
+	}
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d %d %s", &N, &H, &W, S + 1);
+	xind[0].push_back(0);
+	yind[0].push_back(0);
+	for (int i = 1; i <= N; i++) {
+		if (S[i] == 'U') {
+			PX--;
+		} else if (S[i] == 'D') {
+			PX++;
+		} else if (S[i] == 'L') {
+			PY--;
+		} else {
+			PY++;
+		}
+		xmax = max(xmax, PX);
+		ymax = max(ymax, PY);
+		xmin = min(xmin, PX);
+		ymin = min(ymin, PY);
+		xind[PX].push_back(i);
+		yind[PY].push_back(i);
+		dx[i] = PX;
+		dy[i] = PY;
+	}
+	for (vector<int> &v : _xind) {
+		v.push_back(MAXN);
+	}
+	for (vector<int> &v : _yind) {
+		v.push_back(MAXN);
+	}
+	
+	//we're gonna do the same thing. yup.
+	if (xmax - xmin < H && ymax - ymin < W && PX == 0 && PY == 0) {
+		puts("-1");
+		return 0;
+	}
+
+	int ans = 0;
+	int ind = 0;
+	ch = H;
+	cw = W;
+	while (ch && cw) {
+		// printf("ch = %d, cw = %d\n", ch, cw);
+		//try moving whole grid so eventually it will go!
+		//X to X + H - 1, Y to Y + W - 1
+		// int up = fx[-(X + 1)], down = fx[H - X];
+		// int lt = fy[-(Y + 1)], rt = fy[W - X];
+		int up = find(xind[dx[ind] - (X + 1)], ind);
+		int down = find(xind[dx[ind] + H - (X + ch - 1)], ind);
+		int lt = find(yind[dy[ind] - (Y + 1)], ind);
+		int rt = find(yind[dy[ind] + W - (Y + cw - 1)], ind);
+		// printf("X = %d, Y = %d\n", X, Y);
+		// printf("up = %d, down = %d, lt = %d, rt = %d\n", up, down, lt, rt);
+		int mn = min(min(up, down), min(lt, rt));
+		if (mn < MAXN) {
+			addeq(ans, mult(mn - ind - 1, ch, cw));
+			// printf("%d - %d = %d iters\n", mn, ind, mn - ind);
+			advance(dx[mn] - dx[ind], dy[mn] - dy[ind], true);
+			addeq(ans, mult(1, ch, cw));
+			ind = mn % N;
+		} else {
+			//no more steps left
+			addeq(ans, mult(N - ind, ch, cw));
+			// printf("spa %d - %d = %d iters\n", N, ind, N - ind);
+			advance(dx[N] - dx[ind], dy[N] - dy[ind], false);
+			ind = 0;
+		}
+	}
+	//apparently hitting wall counts
+	printf("%d\n", add(ans, mult(H, W)));
+}

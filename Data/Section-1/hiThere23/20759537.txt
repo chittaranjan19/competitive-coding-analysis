@@ -1,0 +1,163 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, m, sz[mn], spe[mn];
+bool mark[mn];
+vector< pair<int, int> > g[mn];
+map<long long, int> num, same;
+long long power[mn], ans = 0, inver[mn];
+
+void dfsCentroid(int u)
+{
+    sz[u] = 1;
+    spe[u] = 0;
+    mark[u] = true;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].F;
+        if (mark[v])
+            continue;
+        dfsCentroid(v);
+        if (sz[v] > sz[spe[u]])
+            spe[u] = v;
+        sz[u] += sz[v];
+    }
+    mark[u] = false;
+}
+
+void dfsUp(int u, int h, long long val)
+{
+    long long good = ((- val * inver[h]) % m + m) % m;
+    ans += num[good] - same[good] + (val == 0);
+    //cout << u << ' ' << h << ' ' << val << ' ' << num[good] - same[good] + (val == 0) << '\n';
+    mark[u] = true;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].F;
+        if (mark[v])
+            continue;
+        int w = g[u][i].S;
+        dfsUp(v, h + 1, (val * 10 + w) % m);
+    }
+    mark[u] = false;
+}
+
+void dfsDown(int u, int h, long long val)
+{
+    if (h)
+    {
+        num[val] ++;
+        if (val == 0)
+            ans ++;
+    }
+    mark[u] = true;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].F;
+        if (mark[v])
+            continue;
+        int w = g[u][i].S;
+        dfsDown(v, h + 1, (val + power[h] * w) % m);
+    }
+    mark[u] = false;
+}
+
+void prepare(int u, int h, long long val)
+{
+    same[val] ++;
+    mark[u] = true;
+    FOR(i, 0, int(g[u].size()) - 1)
+    {
+        int v = g[u][i].F;
+        if (mark[v])
+            continue;
+        int w = g[u][i].S;
+        prepare(v, h + 1, (val + power[h] * w) % m);
+    }
+    mark[u] = false;
+}
+
+long long powe(long long a, long long b)
+{
+    long long re = 1;
+    while(b)
+    {
+        if (b & 1)
+            re = (re * a) % m;
+        b >>= 1;
+        a = (a * a) % m;
+    }
+    return re;
+}
+
+void setup()
+{
+    cin >> n >> m;
+    int u, v, w;
+    FOR(i, 1, n - 1)
+    {
+        cin >> u >> v >> w;
+        u ++, v ++;
+        g[u].pb(mp(v, w));
+        g[v].pb(mp(u, w));
+    }
+}
+
+void solve(int x)
+{
+    num.clear();
+    dfsCentroid(x);
+    int siz = sz[x];
+    while(sz[spe[x]] > (siz >> 1))
+        x = spe[x];
+
+    dfsDown(x, 0, 0);
+    mark[x] = true;
+    FOR(i, 0, int(g[x].size()) - 1)
+    {
+        int v = g[x][i].F;
+        if (mark[v])
+            continue;
+        same.clear();
+        prepare(v, 1, g[x][i].S % m);
+        dfsUp(v, 1, g[x][i].S % m);
+    }
+    //cout << x - 1 << ' ' << ans << '\n';
+    FOR(i, 0, int(g[x].size()) - 1)
+    {
+        int v = g[x][i].F;
+        if (!mark[v])
+            solve(v);
+    }
+}
+
+void xuly()
+{
+    power[0] = 1;
+    FOR(i, 1, n)
+        power[i] = (power[i - 1] * 10) % m;
+    long long hat = (m - 1) - n % (m - 1);
+    inver[n] = powe(10, hat);
+    FORD(i, n - 1, 0)
+        inver[i] = (inver[i + 1] * 10) % m;
+    solve(1);
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

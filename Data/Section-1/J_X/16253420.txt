@@ -1,0 +1,131 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+
+using namespace std;
+
+typedef pair<int, int> pii;
+
+const int maxn = 1e4 + 10;
+const int INF = 1 << 30;
+
+struct edge
+{
+    int to, cap, next;
+
+    edge(int to = 0, int cap = 0, int next = 0) : to(to), cap(cap), next(next) {}
+} G[maxn * 10];
+int head[maxn], tot, cur[maxn], d[maxn], que[maxn];
+pii p[maxn];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = 0;
+}
+
+void addedge(int u, int v, int cap)
+{
+    G[tot] = edge(v, cap, head[u]);
+    head[u] = tot++;
+    G[tot] = edge(u, 0, head[v]);
+    head[v] = tot++;
+}
+
+bool build(int n, int q, int s, int t)
+{
+    init();
+    for(int i = 1; i <= 5; ++i) addedge(s, i, n / 5);
+    sort(p, p + q + 1);
+    for(int i = 1; i <= q; ++i)
+    {
+        if(p[i - 1].second > p[i].second) return false;
+        if(p[i].first == p[i - 1].first)
+        {
+            if(p[i].second == p[i - 1].second) continue;
+            else return false;
+        }
+        int l = p[i - 1].first, r = p[i].first, cnt = p[i].second - p[i - 1].second, num = r / 5 - l / 5, tmp = l + num * 5 + 1;
+        if(cnt > r - l) return false;
+        addedge(i + 5, t, cnt);
+        for(int j = tmp; j < tmp + 5; ++j)
+        {
+            int cap = num, k = j % 5;
+            if(j <= r) ++cap;
+            if(!k) k = 5;
+            addedge(k, i + 5, cap);
+        }
+    }
+    return true;
+}
+
+bool bfs(int s, int t)
+{
+    int front = 0, rear = 0;
+    memset(d, -1, sizeof(d));
+    d[s] = 0;
+    que[rear++] = s;
+    while(front < rear)
+    {
+        int u = que[front++];
+        for(int i = head[u]; ~i; i = G[i].next)
+        {
+            edge &e = G[i];
+            if(d[e.to] == -1 && e.cap > 0)
+            {
+                d[e.to] = d[u] + 1;
+                que[rear++] = e.to;
+            }
+        }
+    }
+    return ~d[t];
+}
+
+int dfs(int u, int t, int f)
+{
+    if(u == t) return f;
+    int ret = 0;
+    for(int &i = cur[u]; ~i; i = G[i].next)
+    {
+        edge &e = G[i];
+        if(e.cap > 0 && d[e.to] == d[u] + 1)
+        {
+            int flow = dfs(e.to, t, min(f, e.cap));
+            if(flow > 0)
+            {
+                e.cap -= flow;
+                G[i ^ 1].cap += flow;
+                ret += flow;
+                f -= flow;
+                if(!f) break;
+            }
+        }
+    }
+    return ret;
+}
+
+int Dinic(int s, int t)
+{
+    int ret = 0;
+    while(bfs(s, t))
+    {
+        memcpy(cur, head, sizeof(head));
+        ret += dfs(s, t, INF);
+    }
+    return ret;
+}
+
+int main()
+{
+    int n, b, q;
+    while(~scanf("%d%d%d", &n, &b, &q))
+    {
+        for(int i = 1; i <= q; ++i) scanf("%d%d", &p[i].first, &p[i].second);
+        p[0] = pii(0, 0);
+        p[q + 1] = pii(b, n);
+        if(build(n, q + 1, 0, maxn - 2) && Dinic(0, maxn - 2) == n) puts("fair");
+        else puts("unfair");
+    }
+    return 0;
+}

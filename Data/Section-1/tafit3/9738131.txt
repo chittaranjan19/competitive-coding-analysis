@@ -1,0 +1,119 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemB {
+    BufferedReader rd;
+    private int n,m;
+    private char[][] c;
+    private int[][] v;
+    private int k;
+    private int[][][] prev;
+
+
+    private ProblemB() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        n = intarr()[0];
+        c = new char[n][];
+        for(int i=0;i<n;i++) {
+            c[i] = rd.readLine().toCharArray();
+        }
+        m = c[0].length;
+        v = new int[n][m];
+        prev = new int[n][m][2];
+        for(int[] a: v) {
+            Arrays.fill(a, -1);
+        }
+
+        for(int i=0;i<n;i++) {
+            for(int j=0;j<m;j++) {
+                if(v[i][j] == -1) {
+                    if(dfs(i,j)) {
+                        out("Yes");
+                        return;
+                    }
+                }
+            }
+        }
+        out("No");
+    }
+
+    private boolean dfs(int i, int j) {
+        k++;
+        final int[][] dirs = new int[][] { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
+        final int col = c[i][j];
+        Queue<int[]> q = new LinkedList<>();
+        q.add(new int[] { i, j, 0 });
+        while(!q.isEmpty()) {
+            int[] p = q.poll();
+            i = p[0];
+            j = p[1];
+            v[i][j] = k;
+            for(int[] dir: dirs) {
+                int ni = i + dir[0];
+                int nj = j + dir[1];
+                if (ni >= 0 && ni < n && nj >= 0 && nj < m && c[ni][nj] == col) {
+                    if(v[ni][nj] == -1) {
+                        prev[ni][nj][0] = i;
+                        prev[ni][nj][1] = j;
+                        q.add(new int[] { ni, nj, k+1 });
+                    } else if(v[ni][nj] == k) {
+                        if(prev[i][j][0] != ni || prev[i][j][1] != nj) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private String[] split(String s) {
+        int n = s.length();
+        int sp = 0;
+        for(int i=0;i<n;i++) {
+            if(s.charAt(i)==' ') {
+                sp++;
+            }
+        }
+        String[] res = new String[sp+1];
+        int last = 0;
+        int x = 0;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(c == ' ') {
+                res[x++] = s.substring(last,i);
+                last = i+1;
+            }
+        }
+        res[x] = s.substring(last,n);
+        return res;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB();
+    }
+}

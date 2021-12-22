@@ -1,0 +1,58 @@
+#include<cstring>
+
+#include<algorithm>
+#include<fstream>
+#include<iostream>
+using namespace std;
+const int MAX_N = 1000005;
+char str[MAX_N];
+struct Aint {
+    int good, open, closed;
+} sol, aint[MAX_N * 10];
+void update(Aint &sol, Aint &left, Aint &right) {
+    sol.good = left.good + right.good + min(left.open, right.closed);
+    sol.open = left.open - min(left.open, right.closed) + right.open;
+    sol.closed = left.closed + right.closed - min(left.open, right.closed);
+}
+void build(int node,int left, int right) {
+    if(left == right) {
+        aint[node].good = 0;
+        aint[node].open = (str[left] == '(');
+        aint[node].closed = (str[right] == ')');
+        return;
+    }
+    int middle = (left + right) / 2;
+    build(2 * node, left, middle);
+    build(2 * node + 1, middle + 1, right);
+    update(aint[node], aint[2 * node], aint[2 * node + 1]);
+}
+void query(int node, int left, int right, int x, int y) {
+    if(x <= left && right <= y)  {
+        update(sol, sol, aint[node]);
+        return;
+    } else {
+        int middle = (left + right) / 2;
+        if(x <= middle) {
+            query(2 * node, left, middle, x, y);
+        }
+        if(y >= middle + 1) {
+            query(2 * node + 1, middle + 1, right, x, y);
+        }
+    }
+}
+int main() {
+    //ifstream cin("f.in");
+    int n, m;
+    cin >> (str + 1);
+    n = strlen(str + 1);
+    build(1, 1, n);
+    cin >> m;
+    for(int i = 1; i <= m; ++ i) {
+        int x, y;
+        cin >> x >> y;
+        sol.good = sol.open = sol.closed = 0;
+        query(1, 1, n, x, y);
+        cout << 2 * sol.good << endl;
+    }
+    return 0;
+}

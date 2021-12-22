@@ -1,0 +1,64 @@
+#include <bits/stdc++.h>
+using namespace std;
+int max(int a,int b){return a>b?a:b;}
+
+const int n=100001;
+int val[n];
+int pos[n];
+int ops=0;
+vector<pair<int,int> > regops;
+void swap(int p1,int p2){
+    regops.push_back(make_pair(p1,p2));
+    int x=val[p1],y=val[p2];
+    val[p1]=y;
+    val[p2]=x;
+    pos[x]=p2;
+    pos[y]=p1;
+    ++ops;
+}
+int main() {
+    ios::sync_with_stdio(false);
+    bool prim[n];
+    for(int i=0;i<n;++i)
+        prim[i]=1;
+    prim[0]=prim[1]=0;
+    for(int i=2;i*i<n;++i){
+        if(prim[i]) for(int j=2*i;j<n;j+=i)
+            prim[j]=0;
+    }
+    int lteprim[n];
+    int cur=0;
+    for(int i=2;i<n;++i){
+        if(prim[i]){cur=i;lteprim[i]=i;}
+        else lteprim[i]=cur;
+    }
+    int num;
+    cin>>num;
+    for(int i=1;i<=num;++i){
+        int x;
+        cin>>x;
+        val[i]=x;
+        pos[x]=i;
+    }
+    int psum[100];
+    for(int i=4;i<100;++i)
+        for(int j=2;j<i;++j)
+            if(prim[j]&&prim[i-j]) {psum[i]=j;break;}
+    for(int i=num;i>0;--i){
+        int p=pos[i];
+        if(p==i) continue;
+        swap(p,p+lteprim[i-p+1]-1);
+        p=pos[i];
+        if(p==i) continue;
+        if((i-p)%2==1) {swap(p,p+1);}
+        p=pos[i];
+        if(p==i) continue;
+        int j=psum[i-p+2];
+        swap(p,p+j-1);
+        swap(p+j-1,i);
+    }
+    cout<<ops<<endl;
+    for(int i=0;i<regops.size();++i)
+        cout<<regops[i].first<<" "<<regops[i].second<<endl;
+    return 0;
+}

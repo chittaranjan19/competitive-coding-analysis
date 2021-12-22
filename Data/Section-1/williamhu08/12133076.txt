@@ -1,0 +1,48 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+
+int N, A[1 << 12];
+int M[1 << 12];
+int ans;
+
+void dfs (int i, int d) {
+	if (i > (1 << N)) {
+		assert(d == 0);
+		return;
+	}
+	//guess what we add?
+	//which side do you add it?
+	int mx[2] = {A[2 * i] + M[2 * i], A[2 * i + 1] + M[2 * i + 1]};
+	int m = max(mx[0], mx[1]);
+	ans += m - mx[0];
+	ans += m - mx[1];
+	dfs(2 * i, d - (m - mx[0]) - A[2 * i]);
+	dfs(2 * i + 1, d - (m - mx[1]) - A[2 * i + 1]);
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 2; i < (1 << (N + 1)); i++) {
+		cin >> A[i];
+	}
+	for (int i = (1 << N) - 1; i >= 1; i--) {
+		//stop being a faggot
+		M[i] = max(M[2 * i] + A[2 * i], M[2 * i + 1] + A[2 * i + 1]);
+		// printf("M[%d] = %d\n", i, M[i]);
+	}
+	dfs(1, M[1]);
+	cout << ans << endl;
+}

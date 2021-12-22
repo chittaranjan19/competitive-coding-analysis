@@ -1,0 +1,98 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+#include <set>
+
+using namespace std;
+
+typedef pair<int, int> pii;
+
+const int maxn = 1e6 + 5;
+
+vector<pii> vec[maxn];
+set<int> st[maxn];
+bool vis[maxn];
+int a[maxn], num[maxn];
+
+void sieve()
+{
+    vis[1] = true;
+    vec[1].push_back(pii(1, 1));
+    for(int i = 2; i < maxn; ++i)
+    {
+        vec[i].push_back(pii(1, 1));
+        vec[i].push_back(pii(i, 1));
+        num[i] = 1;
+        for(int j = i << 1; j < maxn; j += i)
+        {
+            vis[j] = true;
+            num[j] = num[j / i] + 1;
+            vec[j].push_back(pii(i, num[j]));
+        }
+        for(int j = i << 1; j < maxn; j += i)
+        {
+            num[j] = 0;
+        }
+        num[i] = 0;
+    }
+}
+
+int main()
+{
+    sieve();
+    int n, m;
+    while(~scanf("%d%d", &n, &m))
+    {
+        for(int i = 1; i <= m; ++i) st[i].clear();
+        memset(num, 0, sizeof(num));
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", &a[i]);
+            if(a[i] <= m)
+            {
+//                cout << a[i] << endl;
+                for(int j = 0; j < vec[a[i]].size(); ++j)
+                {
+                    pii p = vec[a[i]][j];
+                    if(!vis[p.first]) st[p.first].insert(p.second);
+//                    cout << p.first << ' ' << p.second << endl;
+                }
+                ++num[a[i]];
+            }
+        }
+        int l = 1, len = 0;
+        for(int i = 1; i <= m; ++i)
+        {
+            bool flag = true;
+            for(int j = 0; j < vec[i].size(); ++j)
+            {
+                pii p = vec[i][j];
+                if(!vis[p.first] && !st[p.first].count(p.second))
+                {
+                    flag = false;
+                    break;
+                }
+            }
+            if(flag)
+            {
+                int cnt = 0;
+                for(int j = 0; j < vec[i].size(); ++j)
+                {
+                    pii p = vec[i][j];
+                    cnt += num[p.first];
+                }
+                if(cnt > len)
+                {
+                    l = i;
+                    len = cnt;
+                }
+            }
+        }
+        printf("%d %d\n", l, len);
+        for(int i = 1; i <= n; ++i) if(l % a[i] == 0) printf("%d ", i);
+        puts("");
+    }
+    return 0;
+}

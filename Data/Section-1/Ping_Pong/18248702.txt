@@ -1,0 +1,131 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <ctime>
+#include <clocale>
+
+#pragma comment(lib,"psapi")
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll inf = (ll)2 * 1e18;
+const ll MOD = (ll)1e9 + 7;
+const ll P = 239;
+const ll MAX_N = 500;
+const ld pi = 3.1415926535897932384626;
+const ld eps = 1e-6;
+
+ll n, m;
+ll g[300][300];
+
+queue<pair<ll, ll> > q;
+
+void bfs()
+{
+    while (!q.empty())
+    {
+        pair<ll, ll> p = q.front();
+        q.pop();
+        ll x = p.first, y = p.second;
+        if (x > 0 && g[x - 1][y] > g[x][y] + 1)
+        {
+            g[x - 1][y] = g[x][y] + 1;
+            q.push({x - 1, y});
+        }
+        if (y > 0 && g[x][y - 1] > g[x][y] + 1)
+        {
+            g[x][y - 1] = g[x][y] + 1;
+            q.push({x, y - 1});
+        }
+        if (x < n - 1 && g[x + 1][y] > g[x][y] + 1)
+        {
+            g[x + 1][y] = g[x][y] + 1;
+            q.push({x + 1, y});
+        }
+        if (y < m - 1 && g[x][y + 1] > g[x][y] + 1)
+        {
+            g[x][y + 1] = g[x][y] + 1;
+            q.push({x, y + 1});
+        }
+    }
+}
+
+int main()
+{
+    //freopen("input.txt", "r", stdin);
+    //freopen("output.txt", "w", stdout);
+    //setlocale(LC_CTYPE, "rus");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    ll p;
+    cin >> n >> m >> p;
+    ll a[n][m];
+    ll type[p];
+    for (ll i = 0; i < p; i++)
+        type[i] = 0;
+    vector<vector<pair<ll, ll> > > pos(p);
+    for (ll i = 0; i < n; i++)
+        for (ll j = 0; j < m; j++)
+        {
+            cin >> a[i][j];
+            type[a[i][j] - 1]++;
+            pos[a[i][j] - 1].push_back({i, j});
+        }
+    for (ll i = 0; i < n; i++)
+        for (ll j = 0; j < m; j++)
+            if (a[i][j] == 1)
+                g[i][j] = i + j;
+            else
+                g[i][j] = inf;
+    for (ll i = 1; i < p; i++)
+    {
+        ll cnt1 = n * m * 4;
+        ll cnt2 = type[i - 1] * type[i];
+        if (cnt2 <= cnt1)
+        {
+            for (ll j = 0; j < pos[i].size(); j++)
+                g[pos[i][j].first][pos[i][j].second] = inf;
+            for (ll j = 0; j < pos[i].size(); j++)
+                for (ll k = 0; k < pos[i - 1].size(); k++)
+                    g[pos[i][j].first][pos[i][j].second] = min(g[pos[i][j].first][pos[i][j].second], g[pos[i - 1][k].first][pos[i - 1][k].second] + abs(pos[i][j].first - pos[i - 1][k].first) + abs(pos[i][j].second - pos[i - 1][k].second));
+        }
+        else
+        {
+            for (ll j = 0; j < n; j++)
+                for (ll k = 0; k < m; k++)
+                    if (a[j][k] != i)
+                        g[i][j] = inf;
+                    else
+                        q.push({j, k});
+            bfs();
+            for (ll j = 0; j < n; j++)
+                for (ll k = 0; k < m; k++)
+                    if (a[j][k] != i + 1)
+                        g[i][j] = inf;
+        }
+    }
+    for (ll i = 0; i < n; i++)
+        for (ll j = 0; j < m; j++)
+            if (a[i][j] == p)
+                cout << g[i][j];
+    return 0;
+}
+/*
+3 4 3
+2 1 1 1
+1 1 1 1
+2 1 1 3
+*/

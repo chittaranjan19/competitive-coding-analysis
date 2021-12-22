@@ -1,0 +1,156 @@
+
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+#define all(x) x.begin(), x.end()
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 3e5 + 10, lg = 31, MAXN = 1111;
+ll mod = 1e9 + 7;
+
+ll gcd(ll a, ll b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll _gcd(ll a, ll b, ll & x, ll & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	ll _x1, _y1;
+	ll d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+ll binpow(ll a, ll n) {
+	ll res = 1;
+	while (n) {
+		if (n & 1)
+			res *= a;
+		a *= a;
+		n >>= 1;
+		a %= mod;
+		res %= mod;
+	}
+	return res;
+}
+
+
+void term_res(string res){
+	cout << res;
+	exit(0);
+}
+
+vector<char> ch[N];
+int cnt[N][27];
+
+int comp(int i, int j){
+	int cnti = 0, cntj = 0;
+	for (int l = 0; l < 27; l++){
+		cnti += cnt[i][l];
+		cntj += cnt[j][l];
+	}
+	if (cnti < cntj)
+		return 1;
+	else return -1;
+	for (int l = 0; l < 27; l++){
+		if (cnt[i][l] > cnt[j][l])
+			return 1;
+		if (cnt[j][l] > cnt[i][l])
+			return -1;
+	}
+	return 0;
+}
+
+int n, t[4 * N];
+
+int mn(int v, int tl, int tr, int l, int r) {
+	if (l > r)
+		return 0;
+	if (l == tl && r == tr)
+		return t[v];
+	int tm = (tl + tr) / 2;
+	int i = mn(v * 2, tl, tm, l, min(r, tm)), j = mn(v * 2 + 1, tm + 1, tr, max(l, tm + 1), r);
+	if (comp(i, j) == 1)
+		return i;
+	else return j;
+}
+
+void update(int v, int tl, int tr, int pos, int new_val) {
+	if (tl == tr)
+		t[v] = new_val;
+	else {
+		int tm = (tl + tr) / 2;
+		if (pos <= tm)
+			update(v * 2, tl, tm, pos, new_val);
+		else
+			update(v * 2 + 1, tm + 1, tr, pos, new_val);
+		int i = t[v * 2], j = t[v * 2 + 1];
+		if (comp(i, j) == 1)
+			t[v] = i;
+		else t[v] = j;
+	}
+}
+
+void build(int v, int tl, int tr) {
+	if (tl == tr)
+		t[v] = tl;
+	else {
+		int tm = (tl + tr) / 2;
+		build( v * 2, tl, tm);
+		build(v * 2 + 1, tm + 1, tr);
+		int i = t[v * 2], j = t[v * 2 + 1];
+		if (comp(i, j) == 1)
+			t[v] = i;
+		else t[v] = j;
+	}
+}
+
+int main()
+{
+	int k;
+	string s;
+	cin >> k >> s;
+	n = s.length();
+	for (int i = 1; i < n; i++)
+	{
+		for (int j = 0; j < 27; j++)
+		{
+			cnt[i][j] = 1e9;
+		}
+	}
+	build(1, 0, n);
+	for (int i = 1; i <= s.length(); i++){
+		int p = mn(1, 0, n, max(0, i - k+1), i - 1);
+		for (int j = 0; j < 27; j++)
+			cnt[i][j] = cnt[p][j];
+		cnt[i][s[i - 1] - 'a'] += 1;
+		update(1, 0, n, i, i);
+	}
+	int pans = mn(1, 0, n, n - k, n);
+	return 0;
+}

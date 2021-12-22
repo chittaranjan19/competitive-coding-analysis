@@ -1,0 +1,139 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+typedef long long ll;
+
+const int MAXN = 5000 + 5;
+const int mod = 1e9 + 7;
+
+const int b = 100000007;
+ll dp[MAXN][MAXN];
+int h[MAXN][MAXN], ha[MAXN * 1000];
+char s[MAXN];
+
+struct trie
+{
+    int ch[MAXN * 1000][10], tot, cnt;
+    bool val[MAXN * 1000];
+
+    void init()
+    {
+        tot = cnt = 0;
+        memset(ch[0], 0, sizeof(ch[0]));
+    }
+
+    int insert(int st, int en)
+    {
+        int u = 0;
+        for(int i = st; i <= en; ++i)
+        {
+            int c = s[i] - '0';
+            if(!ch[u][c])
+            {
+                ch[u][c] = ++tot;
+                memset(ch[tot], 0, sizeof(ch[tot]));
+                val[tot] = 0;
+            }
+            u = ch[u][c];
+        }
+        val[u] = true;
+        return u;
+    }
+
+    void build(int u)
+    {
+        if(val[u])
+        {
+            ha[u] = cnt++;
+        }
+        for(int i = 0; i < 10; ++i)
+        {
+            if(ch[u][i])
+            {
+                build(ch[u][i]);
+            }
+        }
+    }
+} tree;
+
+
+//void myhash(int len)
+//{
+//    h[0] = s[0] % mod;
+//    for(int i = 1; i < len; ++i)
+//    {
+//        h[i] = (h[i - 1] * b + s[i]) % mod;
+//    }
+//}
+
+//ll gethash(int st, int en)
+//{
+//    if(!st) return h[en];
+//    return (h[en] - h[st - 1] * p[en - st + 1] % mod + mod) % mod;
+//}
+
+//bool C(int s1, int s2, int len)
+//{
+//    ll tmp1 = gethash(s1, s1 + len - 1), tmp2 = gethash(s2, s2 + len - 1);
+//    return tmp1 == tmp2;
+//}
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        scanf("%s", s);
+        for(int i = 1; i <= n; ++i)
+        {
+            dp[0][i] = 1;
+        }
+        for(int i = 0; i < n; ++i)
+        {
+            for(int j = i; j < n; ++j)
+            {
+                h[i][j] = tree.insert(i, j);
+            }
+        }
+        tree.build(0);
+        for(int i = 1; i < n; ++i)
+        {
+            memset(dp[i], 0, sizeof(dp[i]));
+            int tmp = i >> 1;
+            for(int j = 0; j <= tmp; ++j)
+            {
+                if(s[j] == '0') continue;
+                if(j)
+                {
+                    dp[i][i - j + 1] = (dp[i][i - j + 1] + dp[j - 1][j]) % mod;
+                }
+                else
+                {
+                    dp[i][i - j + 1] = (dp[i][i - j + 1] + 1) % mod;
+                }
+            }
+            for(int j = tmp + 1; j <= i; ++j)
+            {
+                if(s[j] == '0') continue;
+                int len = i - j + 1;
+                if(ha[h[j][i]] > ha[h[j - len][j - 1]])
+                {
+                    dp[i][len] = (dp[i][len] + dp[j - 1][len]) % mod;
+                }
+                else
+                {
+                    dp[i][len] = (dp[i][len] + dp[j - 1][len - 1]) % mod;
+                }
+            }
+            for(int j = 1; j <= i + 1; ++j)
+            {
+                dp[i][j] = (dp[i][j] + dp[i][j - 1]) % mod;
+            }
+        }
+        printf("%I64d\n", dp[n - 1][n]);
+    }
+    return 0;
+}

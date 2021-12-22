@@ -1,0 +1,129 @@
+#include <cstdio>
+#include <cstring>
+#include <map>
+
+struct Task
+{
+	int limit; // Time limit
+	int tests; // Number of tests
+};
+
+struct Solution
+{
+	int task; // Number of task
+	int test; // Number of test
+};
+
+// Information about invokers
+int invokers_count;
+int invokers_free;
+
+// Information about tasks
+Task *tasks;
+int tasks_count;
+
+// Information about solutions
+// Structure: < solution_id, solution_info >
+// Very convenient for removing random elements
+std::map< int, Solution > solutions;
+int solutions_count;
+
+int main(int argc, char *argv[])
+{
+	scanf("%d", &invokers_count);
+	scanf("%d", &tasks_count);
+
+	tasks = new Task[tasks_count];
+
+	for (int i = 0; i < tasks_count; i++)
+	{
+		Task &task = tasks[i];
+
+		scanf("%d", &task.limit);
+		scanf("%d", &task.tests);
+	}
+
+	invokers_free = invokers_count;
+
+	while (!feof(stdin))
+	{
+		// Read new solutions
+		for (;;)
+		{
+			int task;
+
+			scanf("%d", &task);
+
+			// On end
+			if (task == -1)
+				break;
+
+			Solution solution;
+
+			solution.task = task;
+			solution.test = 0;
+
+			solutions[solutions_count] = solution;
+			++solutions_count;
+		}
+
+		// Read new verdicts
+		for (;;)
+		{
+			int id, test;
+			char status[3];
+
+			scanf("%d%d", &id, &test);
+
+			// On end
+			if (id == -1 && test == -1)
+				break;
+
+			scanf("%*c%s", status);
+
+			if (strcmp(status, "OK") == 0)
+			{
+				Solution &solution = solutions[id];
+				Task &task = tasks[solution.task];
+
+				//++solution.test;
+
+				if (solution.test == task.tests && solutions.count(id))
+					solutions.erase(id);
+			}
+			else
+			{
+				solutions.erase(id);
+			}
+
+			++invokers_free;
+		}
+
+		// Solutions schedule
+		std::map< int, Solution >::iterator it;
+
+		for (it = solutions.begin(); it != solutions.end(); ++it)
+		{
+			// If there as no free invokers
+			if (invokers_free == 0)
+				break;
+
+			int id = it->first;
+			int test = it->second.test;
+			int task = it->second.task;
+			if (test >= tasks[task].tests) continue;
+
+			it->second.test += 1;
+
+			printf("%d %d\n", id, test);
+			fflush(stdout);
+
+			--invokers_free;
+		}
+
+		printf("%d %d\n", -1, -1);
+		fflush(stdout);
+	}
+
+	return 0;
+}

@@ -1,0 +1,72 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef long long ll;
+typedef pair<ll, ll> pll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 200010;
+
+deque<pll> dq;
+ll n, d, m;
+pll gas[maxn];
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j;
+	ll dist, fuel;
+	pll temp;
+	ll cost = 0;
+	scanf("%lld%lld%lld", &d, &n, &m);
+	for(i=1; i<=m; i++)
+		scanf("%lld%lld", &gas[i].f, &gas[i].s);
+	sort(gas+1, gas+m+1);
+	gas[0] = mp(0, 0);
+	gas[m+1] = mp(d, 0);
+	dq.push_back(mp(n, 0));
+	for(i=1; i<=m+1; i++){
+		dist = gas[i].f - gas[i-1].f;
+		fuel = n-dist;
+		while(1){
+			if(dq.empty()){
+				printf("-1\n");
+				return 0;
+			}
+			temp = dq.front();
+			dq.pop_front();
+			if(temp.f > dist){
+				cost+=(dist*temp.s);
+				dq.push_front(mp(temp.f-dist, temp.s));
+				break;
+			}
+			else{
+				cost+=(temp.s*temp.f);
+				dist-=temp.f;
+			}
+		}
+		while(!dq.empty()){
+			temp = dq.back();
+			if(temp.s > gas[i].s){
+				dq.pop_back();
+				fuel-=temp.f;
+			}
+			else
+				break;
+		}
+		dq.push_back(mp(min(n, n-fuel), gas[i].s));
+	}
+	printf("%lld\n", cost);
+	return 0;
+}

@@ -1,0 +1,105 @@
+#include<bits/stdc++.h>
+using namespace std;
+#define MAX 200005
+#define BLOCK 500
+#define getchar_unlocked getchar
+#define putchar_unlocked putchar
+#define ll long long int
+int arr[MAX], mark[MAX];
+ll ans[MAX];
+struct node
+{
+		int s,e,i;
+} que[MAX];
+bool mo(node a, node b)
+{
+		if(a.s/BLOCK != b.s/BLOCK)
+				return a.s/BLOCK < b.s/BLOCK;
+		return a.e < b.e;
+}
+inline int scan()
+{
+		int z=0;
+		char c;
+		do{ c=getchar_unlocked(); } while(c<'0');
+		for(;c>='0';c=getchar_unlocked()) z = (z<<3) + (z<<1) + (c&15);
+		return z;
+}
+inline void put(long long int n) {
+		unsigned short stack[64];
+		int top = 0;
+		do {
+				stack[top++] = n % 10 + '0';
+				n /= 10; 
+		} while(n != 0); 
+		while(top > 0) {
+				putchar_unlocked(stack[--top]);
+		}
+		putchar_unlocked('\n');
+}
+
+int main()
+{
+		ios_base::sync_with_stdio(false);
+		cout.tie(0);
+		int n,q,i;
+		//scanf("%d %d",&n,&q);
+		n=scan();
+		q=scan();
+		for(i=0;i<n;++i)
+				arr[i] = scan();//scanf("%d",arr+i);
+		for(i=0;i<q;++i)
+		{
+				//scanf("%d %d",&que[i].s,&que[i].e);
+				que[i].s = scan(); que[i].e = scan();
+				que[i].i=i;
+		}
+		sort(que,que+q,mo);
+		int cl,cr;
+		int left,right;
+		int a_idx;
+		cl=0;
+		cr=-1;
+		long long int dis = 0;
+		memset(mark,0,sizeof mark);
+		for(i=0;i<q;++i)
+		{
+				left = que[i].s-1;
+				right = que[i].e-1;
+				a_idx = que[i].i;
+				while(cl<left)
+				{
+						//dis-=arr[cl]*arr[cl]*1LL;
+						dis-=arr[cl]*(mark[arr[cl]])*(mark[arr[cl]])*1LL;
+						mark[arr[cl]]--;
+						dis+=arr[cl]*(mark[arr[cl]])*(mark[arr[cl]])*1LL;
+						cl++;
+				}
+				while(cl>left)
+				{
+						cl--;
+						mark[arr[cl]]++;
+						dis-=arr[cl]*(mark[arr[cl]]-1)*(mark[arr[cl]]-1)*1LL;
+						dis+=arr[cl]*(mark[arr[cl]])*(mark[arr[cl]])*1LL;
+				}
+				while(cr<right)
+				{
+						cr++;
+						//dis+=arr[cr]*arr[cr]*1LL;
+						mark[arr[cr]]++;
+						dis-=arr[cr]*(mark[arr[cr]]-1)*(mark[arr[cr]]-1)*1LL;
+						dis+=arr[cr]*(mark[arr[cr]])*(mark[arr[cr]])*1LL;
+				}
+				while(cr>right)
+				{
+						//dis-=arr[cr]*arr[cr]*1LL;
+						dis-=arr[cr]*(mark[arr[cr]])*(mark[arr[cr]])*1LL;
+						mark[arr[cr]]--;
+						dis+=arr[cr]*(mark[arr[cr]])*(mark[arr[cr]])*1LL;
+						cr--;
+				}
+				ans[a_idx] = dis;
+		}
+		for(i=0;i<q;++i)
+				cout<<ans[i]<<endl;//printf("%I64d\n",ans[i]);//put(ans[i]);
+}

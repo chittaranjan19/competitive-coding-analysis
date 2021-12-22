@@ -1,0 +1,136 @@
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <algorithm>
+#include <iomanip>
+#include <vector>
+#include <list>
+#include <set>
+#include <map>
+#include <string>
+
+using namespace std;
+
+typedef long long ll;
+typedef long double ld;
+typedef unsigned uint;
+
+struct fixedprice
+{
+	ll rubles, cops;
+};
+
+ll i;
+fixedprice pr;
+string s;
+string subs;
+
+inline bool ispricing (char c)
+{
+	if (c >= '0' && c <= '9')
+		return true;
+	if (c == '.')
+		return true;
+	return false;
+}
+
+inline int todigit (char c)
+{
+	return c - '0';
+}
+
+inline char tocharc (int i)
+{
+	return i + '0';
+}
+
+inline fixedprice parse (string &s)
+{
+	fixedprice pr;
+	pr.rubles = 0;
+	int l = s.length () - 1;
+	if (s[l - 2] == '.')
+	{
+		pr.cops = todigit (s[l]) + todigit (s[l - 1]) * 10;
+		l -= 3;
+	}
+	else
+		pr.cops = 0;
+	ll base = 1;
+	while (l >= 0)
+	{
+		if (s[l] != '.')
+		{
+			pr.rubles += todigit (s[l]) * base;
+			base *= 10;
+		}
+		l--;
+	}
+	return pr;
+}
+
+void fmtandpr (fixedprice &pr)
+{
+	string s;
+	ll l = 0;
+	if (pr.cops)
+	{
+		s.push_back (tocharc (pr.cops % 10));
+		s.push_back (tocharc (pr.cops / 10));
+		s.push_back ('.');
+		l = 3;
+	}
+	if (pr.rubles == 0)
+	{
+		s[3] = '0';
+	}
+	else
+	{
+		int dignum = 1;
+		while (pr.rubles)
+		{
+			s.push_back (tocharc (pr.rubles % 10));
+			if (dignum == 3 && pr.rubles > 9)
+			{
+				dignum = 1;
+				s.push_back ('.');
+			}
+			else
+			{
+				dignum++;
+			}
+			pr.rubles /= 10;
+		}
+	}
+	for (auto it = s.rbegin (); it != s.rend (); it++)
+	{
+		cout << *it;
+	}
+	cout << endl;
+}
+
+int main ()
+{
+	pr.cops = 0;
+	pr.rubles = 0;
+	cin >> s;
+	for (i = 0; i < s.length (); i++)
+	{
+		if (!ispricing (s[i])) continue;
+		for (; ispricing (s[i]); i++)
+		{
+			subs += s[i];
+		}
+		fixedprice pr2 = parse (subs);
+		subs.clear ();
+		pr.rubles += pr2.rubles;
+		pr.cops += pr2.cops;
+		if (pr.cops >= 100)
+		{
+			pr.rubles += pr.cops / 100;
+			pr.cops %= 100;
+		}
+	}
+	fmtandpr (pr);
+	return 0;
+}

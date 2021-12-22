@@ -1,0 +1,97 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+#include <iomanip>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 100010;
+
+int gcd (int a, int b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+int N, M;
+vector<pii> adj[MAXN];
+set<int> st[MAXN];
+bool vis[MAXN];
+
+void dfs (int x, int num) {
+	vis[x] = true;
+	rep(it, adj[x]) {
+		int u = it->first, v = num + it->second;
+		st[u].insert(v);
+		// cout << u << ' ' << v << endl;
+		if (!vis[u]) {
+			dfs(u, v);
+		}
+	}
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios_base::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 0; i < M; i++) {
+		int a, b;
+		cin >> a >> b;
+		if (a == b) {
+			cout << "1\n";
+			return 0;
+		}
+		adj[a].push_back(pii(b, 1));
+		adj[b].push_back(pii(a, -1));
+	}
+	for (int i = 1; i <= N; i++) {
+		if (!vis[i]) {
+			dfs(i, 1e7);
+		}
+	}
+	int ans = 0;
+	for (int i = 1; i <= N; i++) {
+		if (st[i].size() <= 1) {
+			continue;
+		}
+		for (auto it = st[i].begin(), jt = next(it); jt != st[i].end(); it = jt, jt++) {
+			ans = gcd(ans, *jt - *it);
+		}
+	}
+	if (ans == 0) {
+		ans = N;
+	}
+	cout << ans << endl;
+}

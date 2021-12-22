@@ -1,0 +1,127 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD2 {
+    private static final int INF = 2000000000;
+    BufferedReader rd;
+    Map<Integer, Set<Integer>> ed = new HashMap<>();
+    int[][] d;
+    int n;
+
+    private ProblemD2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        n = pint();
+        d = new int[n][];
+        for(int i=0;i<n;i++) {
+            d[i] = intarr();
+        }
+
+        boolean res = true;
+        for(int i=0;res&&i<n;i++) {
+            if(d[i][i] != 0) {
+                res = false;
+                break;
+            }
+            for(int j=i+1;res && j<n;j++) {
+                if(d[i][j] == 0 || d[i][j] != d[j][i]) {
+                    res = false;
+                    break;
+                }
+            }
+        }
+
+        if(res && n > 2) {
+            for(int i=0;i<n;i++) {
+                int m = i==0?1:0;
+                for(int j=0;j<n;j++) {
+                    if(i!=j && d[i][j] < d[i][m]) {
+                        m = j;
+                    }
+                }
+                addEdgeBoth(i,m);
+            }
+            int[][] d2 = new int[n][];
+            for(int i=0;i<n;i++) {
+                d2[i] = compute(i);
+            }
+
+            for(int i=0;res && i<n;i++) {
+                for(int j=0;j<n;j++) {
+                    if(d2[i][j] != d[i][j]) {
+                        res = false;
+                        break;
+                    }
+                }
+            }
+        }
+        out(res?"YES":"NO");
+    }
+
+    private int[] compute(int i) {
+        int[] t = new int[n];
+        Queue<Integer> q = new LinkedList<>();
+        for(int j=0;j<n;j++) {
+            t[j] = i==j?0:INF;
+        }
+        q.add(i);
+        while(!q.isEmpty()) {
+            Integer v = q.poll();
+            Set<Integer> ad = ed.get(v);
+            if(ad != null) {
+                for(Integer u: ad) {
+                    if(t[u] > t[v] + d[u][v]) {
+                        t[u] = t[v] + d[u][v];
+                        q.add(u);
+                    }
+                }
+            }
+        }
+        return t;
+    }
+
+    private void addEdgeBoth(int a, int b) {
+        addEdge(a,b);
+        addEdge(b,a);
+    }
+
+    private void addEdge(int a, int b) {
+        Set<Integer> q = ed.get(a);
+        if(q == null) {
+            q = new HashSet<>();
+            ed.put(a, q);
+        }
+        q.add(b);
+    }
+
+    private int pint() throws IOException {
+        return pint(rd.readLine());
+    }
+
+    private int pint(String s) {
+        return Integer.parseInt(s);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = s.split(" ");
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD2();
+    }
+}

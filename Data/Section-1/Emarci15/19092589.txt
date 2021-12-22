@@ -1,0 +1,61 @@
+#include <cstdio>
+#include <cmath>
+
+using namespace std;
+
+int n,m;
+int a[1000000];
+long long ps[3000001];
+int npps[3000001];
+long long pps[3000001];
+long long sqR[3000002];
+
+long long sol; int p,j;
+
+void scan(int &x) {
+    x=0; char c=getchar();
+    while(c<'0') c=getchar();
+    do {
+        x = (x<<3) + (x<<1) + c - '0';
+        c = getchar();
+    } while (c>='0');
+}
+
+int main()
+{
+    scan(n);
+    for(int i=0; i<n; i++) {
+        scan(a[i]);
+        pps[a[i]]++;
+    }
+
+    int lpps(0);
+    for(int i=1; i<=3000000; i++) {
+        ps[i] = ps[i-1]+pps[i];
+        if(pps[i]) {
+            npps[lpps] = i;
+            lpps = i;
+            sqR[i] = i*i;
+        }
+    }
+    npps[lpps] = 3000001;
+    sqR[3000001] = 3000001;
+
+    scan(m);
+    for(int i=0; i<m; i++) {
+        scan(p);
+
+        sol = 0ll;
+        for(j=npps[0]; sqR[j]<p; j=npps[j]) {
+            sol += (pps[j] * (ps[3000000] - ps[((p+j-1) / j)-1])) << 1ll;
+        }
+
+        j = (int)sqrt(p);
+        if(j*j>=p) j--;
+        sol += (ps[3000000]-ps[j])*((ps[3000000]-ps[j])-1);
+
+        printf("%I64d\n",sol);
+    }
+
+    return 0;
+}

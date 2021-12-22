@@ -1,0 +1,93 @@
+ # include <iostream>
+ # include <cstdlib>
+ # include <cstdio>
+ # include <map>
+
+ # define debug(x) cout<<#x<<" "<<x<<"\n";
+ # define output(x) freopen(x,"w",stdout)
+ # define error(x) freopen(x,"w",stderr)
+ # define input(x) freopen(x,"r",stdin)
+ # define endl printf("\n");
+ # define pb push_back
+ # define mp make_pair
+
+ using namespace std;
+ 
+ long long int h[2000][9], hash[] = {0, 29, 31, 37, 41}, pw[2000][9], cnt[9];
+ int n, used[300], d[2000], x, ans, k;
+ char s[2000], ch;
+ map < pair < int, long long int >, char > st;
+ 
+ char get_hash (int l, int r)
+ {
+     for (int i = 1; i <= 4; ++i)
+      cnt[i] = h[r][i] - h[l - 1][i];
+     
+     for (int i = 1; i <= 4; ++i)
+      cnt[i] *= pw[n][i] / pw[r][i];
+     
+     for (int i = 1; i <= 4; ++i)
+      if (st[mp (i, cnt[i])] == true)
+      {
+          for (int j = 1; j <= 4; ++j)
+           st[mp (j, cnt[j])] = true;
+          
+          return false;
+      }
+     
+      for (int i = 1; i <= 4; ++i)
+       st[mp (i, cnt[i])] = true;
+      
+      return true;          
+ }
+
+
+ int main ()
+ {
+     //error ("error.txt");
+     /*input ("input.txt");
+     output ("output.txt");*/
+
+     gets (s);
+     n = int (strlen (s));
+     
+     for (int i = 0; i < 26; ++i)
+     {
+         cin >> ch;
+         if (ch == '0')
+          used['a' + i] = 1;
+     }
+     
+     cin >> k;
+     
+     for (int i = 1; i <= 4; ++i)
+      pw[0][i] = 1;
+     
+     for (int i = 1; i <= n; ++i)
+      for (int j = 1; j <= 4; ++j)
+       pw[i][j] = pw[i - 1][j] * hash[j];
+      
+     for (int i = 1; i <= n; ++i)
+      for (int j = 1; j <= 4; ++j)
+       h[i][j] = h[i - 1][j] + (s[i - 1] - 'a' + 1) * pw[i][j];
+     
+     for (int i = 1; i <= n; ++i)
+      d[i] = d[i - 1] + used[s[i - 1]];
+     
+     for (int l = 1; l <= n; ++l)
+      for (int r = l; r <= n; ++r)
+      {
+          x = d[r] - d[l - 1];
+          if (x > k)
+           continue;
+          if (get_hash (l, r))
+           ++ans;
+      }
+      
+     cout << ans << "\n";
+     
+     //system ("pause");
+     
+     return 0;
+ }
+ 

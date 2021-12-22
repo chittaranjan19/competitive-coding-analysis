@@ -1,0 +1,71 @@
+//Cok tavsanin pesinde kosan hicbrini yakalayamaz!
+#include<bits/stdc++.h>
+#define MAXN 5009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int pre[MAXN][MAXN],dp[MAXN][MAXN],par[MAXN];
+int main(){
+	int n;
+	string s;
+	cin>>n>>s;
+	s="$"+s;
+	for(int i=1;i<=n;i++)
+		pre[i][n+1]=n+1,pre[n+1][i]=n+1;	
+	for(int i=n;i>0;i--)
+		for(int j=n;j>i;j--){
+			if(s[i]!=s[j])
+				pre[i][j]=i;
+			else
+				pre[i][j]=pre[i+1][j+1];	
+		}
+	dp[0][0]=1;
+	for(int j=0;j<=n;j++){
+		par[j]=dp[j][0];
+		if(j>0)
+			par[j]+=par[j-1];
+	}
+	for(int i=1;i<=n;i++){
+		if(s[i]=='0')
+			continue;
+		for(int j=i;j<=n;j++){
+			int m=j-i+1;
+			int h=i-m;
+			int men=max(0,h+1);
+			if(!men)
+				dp[i][j]+=par[i-1];
+			else	
+				dp[i][j]+=par[i-1]-par[men-1];
+			if(h<0 or s[h]=='0')	
+				continue;	
+			int len=pre[h][i]-h;	
+			if(pre[h][i]<i and s[pre[h][i]]<s[i+len])	
+				dp[i][j]+=dp[h][i-1];
+		}
+		for(int j=0;j<=i+1;j++){
+			par[j]=dp[j][i];
+			if(j>0)
+				par[j]+=par[j-1];
+		}
+	}
+	int ans=0;
+	for(int i=1;i<=n;i++)
+		ans+=dp[i][n];
+	printf("%d\n",ans);	
+	return 0;
+}
+

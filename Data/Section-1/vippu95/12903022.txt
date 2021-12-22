@@ -1,0 +1,92 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define pb push_back
+
+vector<int> avai;
+const lli mod = 1000000003;
+const int limit = 5000005;
+char str[limit];
+int len;
+lli apo[limit];
+lli ahash[limit];
+lli magic1 = 173LL,magic2 = 97LL;
+
+/*Hashing*/
+void inithash(){
+    int n = len;
+    apo[0]=1LL;
+    ahash[0]=0LL;
+    for(int i=1;i<=n;i++){
+        apo[i] = (apo[i-1]*magic1);
+        ahash[i] = (ahash[i-1]*magic1 + str[i-1]);
+    }
+    return;
+}
+
+//To get hash of idx between i and j (1 based)
+inline lli getHash(int i,int j){
+    lli h1 = (ahash[j] - (ahash[i-1]*apo[j-i+1]));
+    return h1;
+}
+/*Hashing Done*/
+
+bool ok(int ans,lli tmp){
+    int n = len;
+    lli t;
+    for(int i=2;i<=n;i++){
+        int e = i+ans-1;
+        if(e >= n) return false;
+        t = getHash(i,e);
+        if(t==tmp) return true;
+    }
+    return false;
+}
+
+
+
+int solve(){
+    lli tmp;
+    int l = 0 , h = avai.size() - 1;
+    int ans,mid;
+    while(l<h){
+        mid = l + (h-l+1)/2;
+        ans = avai[mid];
+        tmp = getHash(1,ans);
+        if(ok(ans,tmp))
+            l = mid;
+        else
+            h = mid-1;
+    }
+    ans = avai[l];
+    tmp = getHash(1,ans);
+    if(ok(ans,tmp)) return ans;
+    return -1;
+}
+
+int main(){
+    scanf("%s",str);
+    int n = strlen(str);
+    len = n;
+    inithash();
+    lli tmp;
+    lli btmp;
+    for(int i=1;i<=n;i++){
+        tmp = getHash(1,i);
+        btmp = getHash(n-i+1,n);
+        if(tmp == btmp)
+            avai.pb(i);
+    }
+    //sort(avai.begin(),avai.end());
+    int ans = solve();
+    if(ans==-1)
+        printf("Just a legend\n");
+    else{
+        for(int i=0;i<ans;i++)
+            printf("%c",str[i]);
+        printf("\n");
+    }
+    return 0;
+}

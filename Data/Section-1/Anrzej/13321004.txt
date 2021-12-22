@@ -1,0 +1,98 @@
+#include <iostream>
+#include <stdio.h>
+#include <string>
+#include <vector>
+#include <set>
+#include <algorithm>
+
+using namespace std;
+#define ll long long
+#define pb push_back
+#define mp make_pair
+#define sc second
+#define fs first
+
+int n, k, t = 0, l = 0, tin[200000], tout[200000], up[200000][30];
+vector<pair<int, int> > g[200000];
+int cnt[200000], ans[200000];
+
+void dfs1(int v, int p = 1)
+{
+    tin[v] = t++;
+    up[v][0] = p;
+    for (int i = 1; i <= l; i++)
+        up[v][i] = up[up[v][i - 1]][i - 1];
+    for (int i = 0; i < g[v].size(); i++)
+    {
+        int to = g[v][i].fs;
+        if (to == p) continue;
+        dfs1(to, v);
+    }
+    tout[v] = t++;
+}
+
+bool isA(int u, int v)
+{
+    return tin[u] <= tin[v] && tout[u] >= tout[v];
+}
+
+int lca(int u, int v)
+{
+    if (isA(u, v)) return u;
+    if (isA(v, u)) return v;
+    for (int i = l; i >= 0; i--)
+    {
+        if (!isA(up[u][i], v))
+            u = up[u][i];
+    }
+    return up[u][0];
+}
+
+int dfs(int v, int p = 0)
+{
+    if (g[v].size() == 1 && p != 0)
+        return cnt[v];
+    int next = 0;
+    for (int i = 0; i < g[v].size(); i++)
+    {
+        int to = g[v][i].fs, rd = g[v][i].sc;
+        if (to == p) continue;
+        int get = dfs(to, v);
+        next += get;
+        ans[rd] = get;
+    }
+    next += cnt[v];
+    return next;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(false);
+    //freopen("lca.in", "r", stdin);
+    //freopen("lca.out", "w", stdout);
+    cin >> n;
+    for (int i = 1; i < n; i++)
+    {
+        int u, v;
+        cin >> u >> v;
+        g[u].pb(mp(v, i));
+        g[v].pb(mp(u, i));
+    }
+    while (n > (1 << l))
+        l++;
+    dfs1(1);
+    cin >> k;
+    while (k--)
+    {
+        int u, v, a;
+        cin >> u >> v;
+        a = lca(u, v);
+        cnt[a] -= 2;
+        cnt[v] += 1;
+        cnt[u] += 1;
+    }
+    dfs(1);
+    for (int i = 1; i < n; i++)
+        cout << ans[i] << ' ';
+    return 0;
+}

@@ -1,0 +1,105 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) (((  (int)x.size() )))
+
+using namespace std;
+
+typedef long long ll;
+const int N = 100 * 1000 + 10;
+
+int n,m,d,t1,t2,sum;
+bool mark[N];
+vector <vector <int> > T;
+int has[N],dp[N],up[N];
+bool f1,f2;
+int mx1, mx2;
+
+void dfs_down(int v , int par){
+    has[v] = mark[v];
+    for(int i = 0; i < SZ(T[v]); ++i){
+        int u = T[v][i];
+        if(u == par)
+            continue;
+        dfs_down(u , v);
+        has[v] += has[u];
+        if(has[u])
+            dp[v] = dp[u] + 1;
+    }
+}
+
+void dfs_up(int v , int par){
+    mx1 = -100;
+    mx2 = -100;
+    f1 = 0;
+    f2 = 0;
+    for(int i = 0; i < SZ(T[v]); ++i){
+        int u = T[v][i];
+        if(u == par)
+            continue;
+        if(dp[u] > mx1){
+            mx2 = mx1;
+            mx1 = dp[u];
+        }
+        else
+            mx2 = max (mx2 , dp[u]);
+    }
+    if(m - has[v] > 0){
+        if(up[v] > mx1){
+            f1 = true;
+            mx2 = mx1;
+            mx1 = up[v];
+        }
+        else if(up[v] > mx2){
+            f2 = true;
+            mx2 = up[v];
+        }
+    }
+    for(int i = 0; i < SZ(T[v]); ++i){
+        int u = T[v][i];
+        if(u == par)
+            continue;
+        if(dp[u] != mx1)
+            if(f1)
+                up[u] = mx1 + 1;
+            else
+                up[u] = mx1 + 2;
+        else
+            if(f2)
+                up[u] = mx2 + 1;
+            else
+                up[u] = mx2 + 2;
+        if (mark[v])
+            up[u] = max(up[u], 1);
+    }
+    for(int i = 0; i < SZ(T[v]); ++i){
+        int u = T[v][i];
+        if(u == par)
+            continue;
+        dfs_up(u , v);
+    }
+}
+
+
+int main(){
+    cin >> n >> m >> d;
+    T.resize(n);
+    for(int i = 0; i < m; ++i){
+        cin >> t1;
+        t1--;
+        mark[t1] = true;
+    }
+    for(int i = 0; i < n-1; ++i){
+        cin >> t1 >> t2;
+        t1--;t2--;
+        T[t1].push_back(t2);
+        T[t2].push_back(t1);
+    }
+    dfs_down(0 , 0);
+    dfs_up(0 , 0);
+    for(int i = 0; i < n; ++i){
+        if(up[i] <= d && dp[i] <= d)
+            sum++;
+    }
+    cout << sum << endl;
+    return 0;
+}

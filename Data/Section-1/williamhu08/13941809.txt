@@ -1,0 +1,91 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define mp make_pair
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1010, INF = 0x01010101;
+const int inc[4][2] = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
+
+int N, M;
+char A[MAXN][MAXN];
+int dist[3][MAXN][MAXN];
+
+bool bounded (int x, int y) {
+	return 1 <= x && x <= N && 1 <= y && y <= M;
+}
+
+void bfs (int num) {
+	deque<pii> dq;
+	for (int i = 1; i <= N; i++) {
+		for (int j = 1; j <= N; j++) {
+			if (A[i][j] == num + '1') {
+				dq.push_back(pii(i, j));
+				dist[num][i][j] = 0;
+			}
+		}
+	}
+
+	while (!dq.empty()) {
+		pii p = dq.front();
+		dq.pop_front();
+		for (auto ptr : inc) {
+			int x = p.fi + ptr[0], y = p.se + ptr[1];
+			if (bounded(x, y) && A[x][y] != '#') {
+				int ndist = dist[num][p.fi][p.se] + (A[x][y] == '.');
+				if (dist[num][x][y] > ndist) {
+					dist[num][x][y] = ndist;
+					if (A[x][y] == '.') {
+						dq.push_back(pii(x, y));
+					} else {
+						dq.push_front(pii(x, y));
+					}
+				}
+			}
+		}
+	}
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d", &N, &M);
+	for (int i = 1; i <= N; i++) {
+		scanf("%s", A[i] + 1);
+	}
+
+	fillchar(dist, 1);
+	for (int i = 0; i < 3; i++) {
+		bfs(i);
+	}
+
+	//iter on center...
+	int ans = INF;
+	for (int i = 1; i <= N; i++) {
+		for (int j = 1; j <= N; j++) {
+			//careful about dists
+			char c = A[i][j];
+			if (c != '#') {
+				int d = dist[0][i][j] + dist[1][i][j] + dist[2][i][j];
+				if (c == '.') {
+					d++;
+				}
+				ans = min(ans, d);
+			}
+		}
+	}
+	if (ans == INF) {
+		ans = -1;
+	}
+	printf("%d\n", ans);
+}

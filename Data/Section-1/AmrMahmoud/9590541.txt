@@ -1,0 +1,110 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+vector<pair<int,int> > segs;
+
+int DP[605][1205][2];
+int ch[605][1205][2], n;
+
+int solve(int ind, int e, bool b)
+{
+    if(e == 0 && !b) return ind;
+    if(ind == n) return ind;
+    if(DP[ind][e][b] != -1) return DP[ind][e][b];
+    for(int i=segs[ind].first;i<=segs[ind].second && (i <= e || e == 0);i++)
+    {
+        if(i % 2 == 0) continue;
+        if(e == 0)
+        {
+            int temp = solve(ind + 1, max(i - 2, 0), 0);
+            if(solve(temp, 0, 1) == n)
+            {
+                ch[ind][e][b] = i;
+                return DP[ind][e][b] = n;
+            }
+        }
+        else
+        {
+            if(solve(ind + 1, e - i, 0) != -2)
+            {
+                ch[ind][e][b] = i;
+                return DP[ind][e][b] = solve(ind + 1, e - i, 0);
+            }
+        }
+    }
+    return DP[ind][e][b] = -2;
+}
+
+string res = "";
+
+int get(int ind,int e,bool b, int i)
+{
+    if(e == 0 && !b) return ind;
+    if(ind == n) return ind;
+    if(res[i] != '#') return get(ind,e,b,i+1);
+    res[i+ch[ind][e][b]] = ')';
+    res[i] = '(';
+    if(e == 0)
+    {
+        int temp = get(ind + 1, max(ch[ind][e][b] - 2, 0), 0, i);
+        return get(temp, 0, 1, i);
+    }
+    else
+    {
+        return get(ind + 1, e - ch[ind][e][b], 0, i);
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int  x , y;
+    cin >> n;
+    for(int i=0;i<n;i++)
+    {
+        cin >> x >> y;
+        segs.push_back(mp(x, y));
+    }
+    setdp(DP);
+    if(solve(0, 0, 1) == -2)
+        cout << "IMPOSSIBLE";
+    else
+    {
+        for(int i=0;i<2*n;i++)
+            res += '#';
+        get(0, 0, 1, 0);
+        cout << res;
+    }
+    return 0;
+}

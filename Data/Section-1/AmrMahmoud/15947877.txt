@@ -1,0 +1,77 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int DP[4005][4005];
+int last[4005][26];
+
+int main()
+{
+  string s1, s2;
+  int ti, td, tr, te;
+  cin >> ti >> td >> tr >> te;
+  cin >> s1 >> s2;
+  int n = s1.size(), m = s2.size();
+  tr = min(tr, ti + td);
+  te = min(te, ti + td);
+  for(int i=1;i<=n;i++)
+    DP[i][0] = td * i;
+  for(int i=1;i<=m;i++)
+    DP[0][i] = ti * i;
+  for(int i=0;i<26;i++)
+    last[0][i] = INF;
+  for(int i=1;i<m;i++)
+  {
+    for(int j=0;j<26;j++)
+      last[i][j] = last[i - 1][j];
+    last[i][s2[i - 1] - 'a'] = i - 1;
+  }
+  for(int i=1;i<=n;i++)
+  {
+    for(int j=1;j<=m;j++)
+    {
+      DP[i][j] = INF_MAX;
+      if(s1[i - 1] == s2[j - 1])
+        DP[i][j] = DP[i - 1][j - 1];
+      else if(i > 1 && j > 1)
+      {
+        DP[i][j] = DP[i - 2][j - 2] + te;
+        if(s1[i - 1] != s2[j - 2] && s1[i - 2] != s2[j - 1])
+          DP[i][j] += 2 * tr;
+        else if(s1[i - 1] != s2[j - 2] || s1[i - 2] != s2[j - 1])
+          DP[i][j] += tr;
+      }
+      DP[i][j] = min(DP[i][j], DP[i - 1][j] + td);
+      DP[i][j] = min(DP[i][j], DP[i][j - 1] + ti);
+      DP[i][j] = min(DP[i][j], DP[i - 1][j - 1] + tr);
+      if(i < j && i > 1 && s1[i - 2] == s2[j - 1])
+      {
+        int ind = last[j - 1][s1[i - 1] - 'a'];
+        if(ind != INF)
+        {
+          int tmp = DP[i - 2][ind] + te;
+          tmp += (j - ind - 2) * ti;
+          DP[i][j] = min(DP[i][j], tmp);
+        }
+      }
+    }
+  }
+  cout << DP[n][m];
+  return 0;
+}

@@ -1,0 +1,110 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100009
+#define maxC 2000000000
+#define pb push_back
+#define mp make_pair
+#define F first
+#define S second
+
+using namespace std;
+vector<int> p[9], q[9];
+int t1[9], t2[9], t3[9];
+double d[9][9];
+
+void setup()
+{
+    int x;
+    FOR(i, 1, 8)
+    {
+        FOR(j, 1, 3)
+        {
+            cin >> x;
+            p[i].pb(x);
+            q[i].pb(0);
+        }
+        sort(p[i].begin(), p[i].end());
+    }
+}
+
+double dis(int i, int j)
+{
+    double re = 0;
+    FOR(k, 0, 2)
+        re += (q[i][k] - q[j][k]) * (q[i][k] - q[j][k]);
+    return sqrt(re);
+}
+
+bool ok()
+{
+    FOR(i, 1, 8)
+        t1[i] = t2[i] = t3[i] = 0;
+    double mi = maxC;
+    FOR(i, 1, 7)
+    FOR(j, i + 1, 8)
+    {
+        d[i][j] = dis(i, j);
+        mi = min(mi, d[i][j]);
+    }
+    FOR(i, 1, 7)
+    FOR(j, i + 1, 8)
+    {
+        t1[i] += (d[i][j] == mi);
+        t1[j] += (d[i][j] == mi);
+        t2[i] += (d[i][j] == mi * sqrt(2));
+        t2[j] += (d[i][j] == mi * sqrt(2));
+        t3[i] += (d[i][j] == mi * sqrt(3));
+        t3[j] += (d[i][j] == mi * sqrt(3));
+    }
+    FOR(i, 1, 8)
+    {
+        if (t1[i] != 3 || t2[i] != 3 || t3[i] != 1)
+            return false;
+    }
+    return true;
+}
+
+void deal(int u)
+{
+    if (u == 9)
+    {
+        if (ok())
+        {
+            cout << "YES\n";
+            FOR(i, 1, 8)
+            {
+                FOR(j, 0, 2)
+                    cout << q[i][j] << ' ';
+                cout << '\n';
+            }
+            exit(0);
+        }
+        return;
+    }
+    FOR(i, 0, 2)
+        q[u][i] = p[u][i];
+    do
+    {
+        deal(u + 1);
+    }
+    while(next_permutation(q[u].begin(), q[u].end()));
+}
+
+void xuly ()
+{
+    FOR(i, 0, 2)
+        q[1][i] = p[1][i];
+    deal(2);
+    cout << "NO";
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

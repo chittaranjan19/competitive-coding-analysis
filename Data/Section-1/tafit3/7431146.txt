@@ -1,0 +1,106 @@
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+public class ProblemA2 {
+    private ProblemA2() throws IOException {
+        BufferedInputStream is = new BufferedInputStream(System.in, 100000);
+        int[] ca = read(is);
+        int[] cb = read(is);
+        int len = Math.max(ca.length,cb.length)+2;
+        int[] a = preprocess(ca, len);
+        int[] b = preprocess(cb, len);
+        boolean res = false;
+        for(int i=len-1;i>=0;i--) {
+            if(a[i] > b[i]) {
+                out(">");
+                res = true;
+                break;
+            } else if(a[i] < b[i]) {
+                out("<");
+                res = true;
+                break;
+            }
+        }
+        if(!res) {
+            out("=");
+        }
+    }
+
+    private int[] read(InputStream is) throws IOException {
+        int[] c1 = new int[100000];
+        int cpos = 0;
+        int d;
+        boolean firstOne = false;
+        boolean started = false;
+        while(true) {
+            d = is.read();
+            if(!started) {
+                if(d=='1' || d=='0') {
+                    started = true;
+                }
+            }
+            if(d=='1' || d=='0') {
+                if(d=='1' || firstOne) {
+                    if(d == '1') {
+                        firstOne = true;
+                    }
+                    c1[cpos] = d=='1'?1:0;
+                    cpos++;
+                }
+            } else if(started) {
+                break;
+            }
+        }
+        int[] c;
+        if(firstOne) {
+            c = new int[cpos];
+            System.arraycopy(c1,0,c,0,cpos);
+        } else {
+            c = new int[] { 0 };
+        }
+        return c;
+    }
+
+    private int[] preprocess(int[] c, int len) {
+        int n = c.length;
+        int[] v = new int[len];
+        for(int i=0;i<n;i++) {
+            v[i] = c[n-1-i];
+        }
+        boolean found = true;
+        int p = 0;
+        while(found) {
+            found = false;
+            if(p == 0) {
+                for(int i=n;i>=1;i--) {
+                    if(v[i]>=1 && v[i-1]>=1) {
+                        found = true;
+                        v[i]--;
+                        v[i-1]--;
+                        v[i+1]++;
+                    }
+                }
+            } else {
+                for(int i=1;i<=n;i++) {
+                    if(v[i]>=1 && v[i-1]>=1) {
+                        found = true;
+                        v[i]--;
+                        v[i-1]--;
+                        v[i+1]++;
+                    }
+                }
+            }
+            p=1-p;
+        }
+        return v;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemA2();
+    }
+}

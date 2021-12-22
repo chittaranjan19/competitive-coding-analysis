@@ -1,0 +1,100 @@
+#include <string>
+#include <vector>
+#include <map>
+#include <list>
+#include <iterator>
+#include <cassert>
+#include <set>
+#include <queue>
+#include <iostream>
+#include <sstream>
+#include <stack>
+#include <deque>
+#include <cmath>
+#include <memory.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cctype>
+#include <algorithm>
+#include <utility>
+#include <time.h>
+#include <complex>
+#include <fstream>
+#include <tuple>
+#include <iomanip>
+
+using namespace std;
+
+#define forn(i, n) for (int i = 0; i < int(n); ++i)
+#define for1(i, n) for (int i = 1; i < int(n); ++i)
+#define ford(i, n) for (int i = int(n) - 1; i >= 0; --i)
+#define fore(i, l, r) for (int i = int(l); i <= int(r); ++i)
+#define all(a) a.begin(), a.end()
+#define sz(a) (int(a.size()))
+#define mp make_pair
+#define pb push_back
+#define ft first
+#define sc second
+#define g(a, b) get<a> (b)
+
+typedef long long ll;
+typedef long double ld;
+typedef pair<int, int> pt;
+
+const int MAX_N = 2e5 + 10;
+const int mod = 1e9 + 7;
+
+int parent[MAX_N] = {0, };
+
+int find_pred(int x){
+    if (parent[x] == 0)
+        return x;
+    else return parent[x] = find_pred(parent[x]);
+}
+
+int main(){
+    #if 0
+        freopen("cinemaholics.in", "r", stdin);
+        freopen("cinemaholics.out", "w", stdout);
+    #endif
+    //cout << setprecision(20);A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z
+    int n, m, k, color[MAX_N], use[MAX_N] = {0, };
+    map<int, map<int, int> > kik;
+    scanf("%d%d%d", &n, &m, &k);
+    int time_ = 1;
+    for (int i = 1; i <= n; i++)
+        scanf("%d", &color[i]);
+    for (int i = 0; i < m; i++){
+        int l, r;
+        scanf("%d%d", &l, &r);
+        if (use[l] == 0 && use[r] == 0){
+            use[l] = time_;
+            use[r] = time_;
+            time_++;
+        }
+        else if (use[l] == 0 || use[r] == 0){
+            if (!use[l]) use[l] = use[r];
+            if (!use[r]) use[r] = use[l];
+        }
+        else if (use[l] != use[r]){
+            int t = find_pred(use[l]);
+            parent[r] = t;
+        }
+    }
+    for (int i = 1; i <= n; i++){
+        use[i] = find_pred(use[i]);
+    }
+    for (int i = 1; i <= n; i++){
+        kik[use[i]][color[i]]++;
+        //cout << use[i] << " " ;
+    }
+    int ans = 0;
+    for (int i = 1; i < 300000; i++){
+        int max_ = 0;
+        int sum = 0;
+        for (auto it : kik[i]) {max_ = max(max_, it.sc); sum+= it.sc;}
+        ans += (sum - max_);
+    }
+    cout << ans;
+    return 0;
+}

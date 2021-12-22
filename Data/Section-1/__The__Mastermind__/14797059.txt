@@ -1,0 +1,114 @@
+const
+  tfi = '';//'3d.inp';
+  nn = 50000;
+
+var
+  res : int64;
+  n,nheap : longint;
+  v,p,a,b : array [1..nn] of longint;
+  s : ansistring;
+
+procedure enter;
+  var i,j,m : longint;
+  begin
+    assign(input,tfi);
+    reset(input);
+    readln(s);
+    n := length(s);
+    m := 0;
+    while not seekeof do
+      begin
+        inc(m);
+        read(a[m],b[m]);
+        res := res + b[m];
+      end;
+    close(input);
+  end;
+
+procedure swap(var x,y : longint);
+  var z : longint;
+  begin
+    z := x;
+    x := y;
+    y := z;
+  end;
+
+procedure upheap(i : longint);
+  var j : longint;
+  begin
+    j := i div 2;
+    if (j = 0) or (v[i] >= v[j]) then exit;
+    swap(v[i],v[j]);
+    swap(p[i],p[j]);
+    upheap(j);
+  end;
+
+procedure downheap(i : longint);
+  var j : longint;
+  begin
+    j := 2*i;
+    if (j > nheap) then exit;
+    if (j < nheap) and (v[j] > v[j+1]) then inc(j);
+    if (v[i] > v[j]) then
+      begin
+        swap(v[i],v[j]);
+        swap(p[i],p[j]);
+        downheap(j);
+      end;
+  end;
+
+procedure push(vv,pp : longint);
+  begin
+    inc(nheap);
+    v[nheap] := vv;
+    p[nheap] := pp;
+    upheap(nheap);
+  end;
+
+procedure pop(var vv,pp : longint);
+  begin
+    vv := v[1];
+    pp := p[1];
+    v[1] := v[nheap];
+    p[1] := p[nheap];
+    dec(nheap);
+    downheap(1);
+  end;
+
+procedure nosol;
+  begin
+    write(-1);
+    halt;
+  end;
+
+procedure process;
+  var i,j,vv,pp,deg : longint;
+  begin
+    j := 1;
+    deg := 0;
+    for i := 1 to n do
+      begin
+        if s[i] = '(' then inc(deg)
+        else dec(deg);
+        if s[i] = '?' then
+          begin
+            push(a[j] - b[j],i);
+            inc(j);
+          end;
+        if deg < 0 then
+          begin
+            if nheap = 0 then nosol;
+            pop(vv,pp);
+            res := res + vv;
+            s[pp] := '(';
+            inc(deg,2);
+          end;
+      end;
+    if deg <> 0 then nosol;
+    for i := 1 to n do if s[i] = '(' then write('(') else write(')');
+  end;
+
+begin
+  enter;
+  process;
+end.

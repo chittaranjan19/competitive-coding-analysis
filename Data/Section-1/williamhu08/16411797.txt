@@ -1,0 +1,87 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+#define dri(x) scanf("%d", &x)
+#define drii(x, y) scanf("%d %d", &x, &y)
+#define driii(x, y, z) scanf("%d %d %d", &x, &y, &z)
+#define driiii(x, y, z, w) scanf("%d %d %d %d", &x, &y, &z, &w)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+
+const int MAXN = 2e5 + 10;
+
+struct station {
+	int pos, cost;
+	void read() {
+		scanf("%d %d", &pos, &cost);
+	}
+	bool operator < (const station &s) const {
+		return pos < s.pos;
+	}
+};
+
+int N, G, D;
+station S[MAXN];
+int nsmall[MAXN];
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d %d", &D, &G, &N);
+
+	for (int i = 0; i < N; i++) {
+		S[i].read();
+	}
+	sort(S, S + N);
+
+	// find next cheaper station for each station
+	stack<int> stk;
+	int cgas = G;
+	for (int i = N - 1; i >= 0; i--) {
+		while (!stk.empty() && S[stk.top()].cost >= S[i].cost) {
+			stk.pop();
+		}
+		nsmall[i] = (stk.empty() ? -1 : stk.top());
+		stk.push(i);
+	}
+
+	cgas -= S[0].pos;
+	ll ans = 0;
+
+	for (int i = 0; i < N; i++) {
+		if (cgas < 0) {
+			puts("-1");
+			return 0;
+		}
+
+		int gneed;
+		if (nsmall[i] == -1) {
+			gneed = D;
+		} else {
+			gneed = S[nsmall[i]].pos;
+		}
+		gneed -= S[i].pos;
+		gneed = min(gneed, G);	//no more gas...
+
+		if (gneed > cgas) {
+			ans += ll(gneed - cgas) * S[i].cost;
+			cgas = gneed;
+		}
+
+		int dnxt = (i == N - 1 ? D : S[i + 1].pos) - S[i].pos;
+		cgas -= dnxt;
+	}
+
+	printf("%lld\n", cgas < 0 ? -1 : ans);
+}

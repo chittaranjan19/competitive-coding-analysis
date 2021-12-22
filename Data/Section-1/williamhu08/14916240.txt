@@ -1,0 +1,308 @@
+//johnny ho being existential
+//by jack takahashi
+//https://www.youtube.com/watch?v=5rNIfYDB1oE
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1e5 + 10;
+
+struct edge {
+	int a, b, w, i;
+	void read (int d) {
+		scanf("%d %d %d", &a, &b, &w);
+		i = d;
+	}
+	bool operator < (const edge &e) const {
+		return w > e.w;
+	}
+};
+
+void read (edge *arr, int sz) {
+	for (int i = 1; i <= sz; i++) {
+		arr[i].read(i);
+	}
+	sort(arr + 1, arr + sz + 1);
+}
+
+edge edges[MAXN], query[MAXN];
+int N, M, F[MAXN];
+
+struct data {
+	int stat;
+	int lsiz, rsiz;
+	int sum;
+	int size;
+	data() {
+		stat = lsiz = rsiz = sum = size = 0;	//CF does not init to 0
+	}
+};
+
+data getstat (int sz, int x) {
+	data res;
+	res.size = sz;
+	res.stat = x;
+	res.sum = 0;
+	//oops swapped them
+	if (x == 0) {
+		res.lsiz = res.rsiz = 0;
+	} else if (x == 2) {
+		res.lsiz = res.rsiz = sz;
+	} else {
+		assert(!"Invalid stat");
+	}
+	return res;
+}
+
+data ZERO, ONE, EMP;
+
+int eval (data n) {
+	//get the sum of data n
+	if (n.stat == 0) {
+		return 0;
+	} else if (n.stat == 2) {
+		return F[n.size];
+	} else {
+		return n.sum + F[n.lsiz] + F[n.rsiz];
+	}
+}
+
+data operator + (data &n1, data &n2) {
+	//ok this is the bug...
+#warning addition is not commutative.
+	//careful about nil data
+	if (n1.size == 0) {
+		return n2;
+	}
+	if (n2.size == 0) {
+		return n1;
+	}
+	data res;
+	if (n1.stat == n2.stat && (n1.stat == 0 || n1.stat == 2)) {
+		res.stat = n1.stat;
+	} else {
+		res.stat = 1;
+	}
+	res.lsiz = n1.lsiz;
+	if (n1.lsiz == n1.size) {
+		res.lsiz += n2.lsiz;
+	}
+	res.rsiz = n2.rsiz;
+	if (n2.rsiz == n2.size) {
+		res.rsiz += n1.rsiz;
+	}
+	res.size = n1.size + n2.size;
+	//calc sum...tricky
+	if (n1.stat == 0) {
+		res.sum = (n2.stat == 1 ? F[n2.lsiz] + n2.sum : 0);
+	} else if (n1.stat == 1) {
+		//left is somefull
+		res.sum = n1.sum;
+		if (n2.stat == 0) {
+			res.sum += F[n1.rsiz];
+		} else if (n2.stat == 1) {
+			res.sum += F[n1.rsiz + n2.lsiz] + n2.sum;
+		}
+	} else {
+		//full
+		res.sum = (n2.stat == 1 ? n2.sum : 0);
+	}
+	return res;
+}
+
+struct node {
+	node *ch[2], *p;
+	bool r;
+	int id;
+	data sdat, dat;	//subtree sum of data and its own data...
+};
+
+node *null = new node;
+node nodes[2 * MAXN], *cnode = nodes;
+node *V[MAXN], *E[MAXN];
+
+void print() {
+	puts("-----debug----");
+	for (int i = 1; i <= N; i++) {
+		printf("node %d: p = %d, ch[0] = %d, ch[1] = %d. r = %d, id = %d\n", V[i] -> id, V[i] -> p -> id, V[i] -> ch[0] -> id, V[i] -> ch[1] -> id, V[i] -> r, V[i] -> id);
+	}
+	puts("---");
+	for (int i = 1; i < N; i++) {
+		if (E[i] == NULL) {
+			break;
+		}
+		printf("node %d: p = %d, ch[0] = %d, ch[1] = %d. r = %d, id = %d\n", E[i] -> id, E[i] -> p -> id, E[i] -> ch[0] -> id, E[i] -> ch[1] -> id, E[i] -> r, E[i] -> id);
+	}
+	puts("------over debug-------");
+}
+
+node *getnode (int id, data &d) {
+	node *res = cnode++;
+	res -> id = id;
+	res -> ch[0] = res -> ch[1] = res -> p = null;
+	res -> sdat = res -> dat = d;
+	return res;
+}
+
+int getdir (node *n) {
+	if (n -> p == null) {
+		return -1;
+	}
+	for (int i = 0; i < 2; i++) {
+		if (n == n -> p -> ch[i]) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+bool isroot (node *n) {
+	return getdir(n) == -1;
+}
+
+void setc (node *n, node *c, int d) {
+	n -> ch[d] = c;
+	if (c != null) {
+		c -> p = n;
+	}
+}
+
+void rev (node *n) {
+	swap(n -> ch[0], n -> ch[1]);
+	swap(n -> dat.lsiz, n -> dat.rsiz);
+	swap(n -> sdat.lsiz, n -> sdat.rsiz);
+	n -> r ^= 1;
+}
+
+void push (node *n) {
+	if (n -> r) {
+		for (node *c : n -> ch) {
+			if (c != null) {
+				rev(c);
+			}
+		}
+		n -> r = 0;
+	}
+}
+
+void pull (node *n) {
+	//called when either child is changed, or data is modified.
+	//just to optimize :(
+	n -> sdat = n -> ch[0] -> sdat + n -> dat;
+	n -> sdat = n -> sdat + n -> ch[1] -> sdat;
+}
+
+void rot (node *n) {
+	node *p = n -> p, *g = p -> p;
+	bool d = getdir(n);
+	if (!isroot(p)) {
+		g -> ch[getdir(p)] = n;
+	}
+	setc(p, n -> ch[!d], d);
+	n -> p = g;	//this line forgot include...
+#warning is this correct (in rot function)?
+	setc(n, p, !d);
+	pull(p);
+	pull(n);
+}
+
+void splay (node *n) {
+	while (!isroot(n)) {
+		node *p = n -> p;
+		if (!isroot(p)) {
+			push(p -> p);
+		}
+		push(p);
+		push(n);
+		if (!isroot(p)) {
+			rot(getdir(n) == getdir(p) ? n : p);
+		}
+		rot(n);
+	}
+	push(n);
+}
+
+void expose (node *u) {
+	for (node *cur = u, *v = null; cur != null; v = cur, cur = cur -> p) {
+		splay(cur);
+		assert(v == null || v -> p == cur);
+		// setc(cur, v, 1);
+		cur -> ch[1] = v;
+		pull(cur);
+	}
+	splay(u);
+}
+
+void evert (node *u) {
+	expose(u);
+	rev(u);
+}
+
+void link (node *u, node *v) {
+	evert(u);
+	evert(v);
+	u -> p = v;
+}
+
+void modify (node *n) {
+	expose(n);
+	push(n);
+	//is now splayed.
+	n -> dat = ONE;
+	pull(n);
+}
+
+data go (node *n, node *m) {
+	evert(n);
+	expose(m);
+	return m -> sdat;
+}
+
+int ans[MAXN];
+
+int main() {
+	//please don't tle! please! please!
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	//init
+	null -> ch[0] = null -> ch[1] = null -> p = null;
+	EMP = getstat(1, 0);
+	ONE = getstat(1, 2);
+	scanf("%d %d", &N, &M);
+	for (int i = 1; i < N; i++) {
+		scanf("%d", &F[i]);
+	}
+	for (int i = 1; i <= N; i++) {
+		V[i] = getnode(i, ZERO);
+	}
+	read(edges, N - 1);
+	read(query, M);
+	for (int i = 1; i < N; i++) {
+		E[i] = getnode(N + i, EMP);
+		//link with the two...
+		link(V[edges[i].a], E[i]);
+		link(V[edges[i].b], E[i]);
+	}
+	for (int i = 1, j = 1; i <= M; i++) {
+		//change...
+		for (; j < N && edges[j].w >= query[i].w; j++) {
+			modify(E[j]);
+		}
+		ans[query[i].i] = eval(go(V[query[i].a], V[query[i].b]));
+	}
+	for (int i = 1; i <= M; i++) {
+		printf("%d\n", ans[i]);
+	}
+}

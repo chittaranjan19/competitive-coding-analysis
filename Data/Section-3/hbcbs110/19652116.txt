@@ -1,0 +1,92 @@
+#include<bits/stdc++.h>
+using namespace std;
+const int maxn = 3e3+7;
+int n,m;
+int d[maxn][maxn];
+int inq[maxn];
+vector<int>E[maxn];
+vector<pair<int,int> >fi[maxn];
+vector<pair<int,int> >se[maxn];
+void spfa(int x)
+{
+    memset(inq,0,sizeof(inq));
+    for(int i=1;i<=n;i++)
+        d[x][i]=1e9;
+    d[x][x]=0;
+    queue<int> Q;
+    Q.push(x);
+    inq[x]=1;
+    while(!Q.empty())
+    {
+        int now = Q.front();
+        Q.pop();
+        inq[now]=0;
+        for(int i=0;i<E[now].size();i++)
+        {
+            int next = E[now][i];
+            if(d[x][next]>d[x][now]+1)
+            {
+                d[x][next]=d[x][now]+1;
+                if(!inq[next])
+                {
+                    inq[next]=1;
+                    Q.push(next);
+                }
+            }
+        }
+    }
+}
+int main()
+{
+    scanf("%d%d",&n,&m);
+    for(int i=1;i<=m;i++)
+    {
+        int x,y;
+        scanf("%d%d",&x,&y);
+        E[x].push_back(y);
+    }
+    for(int i=1;i<=n;i++)spfa(i);
+    for(int i=1;i<=n;i++)
+    {
+        for(int j=1;j<=n;j++)
+        {
+            if(i==j)continue;
+            if(d[i][j]!=1e9)fi[i].push_back(make_pair(d[i][j],j));
+            if(d[j][i]!=1e9)se[i].push_back(make_pair(d[j][i],j));
+        }
+        sort(fi[i].begin(),fi[i].end());
+        reverse(fi[i].begin(),fi[i].end());
+        sort(se[i].begin(),se[i].end());
+        reverse(se[i].begin(),se[i].end());
+    }
+    long long ans=0,ans1=0,ans2=0,ans3=0,ans4=0;
+    for(int i=1;i<=n;i++)
+    {
+        for(int j=1;j<=n;j++)
+        {
+            if(i==j)continue;
+            if(d[j][i]==1e9)continue;
+            for(int k=0;k<3&&k<fi[i].size();k++)
+            {
+                if(i==fi[i][k].second)continue;
+                if(j==fi[i][k].second)continue;
+                for(int t=0;t<3&&t<se[j].size();t++)
+                {
+                    if(fi[i][k].second==se[j][t].second)continue;
+                    if(i==se[j][t].second)continue;
+                    if(j==se[j][t].second)continue;
+                    long long tmp = d[j][i]+fi[i][k].first+se[j][t].first;
+                    if(tmp>ans)
+                    {
+                        ans = tmp;
+                        ans1 = se[j][t].second;
+                        ans2 = j;
+                        ans3 = i;
+                        ans4 = fi[i][k].second;
+                    }
+                }
+            }
+        }
+    }
+    cout<<ans1<<" "<<ans2<<" "<<ans3<<" "<<ans4<<endl;
+}

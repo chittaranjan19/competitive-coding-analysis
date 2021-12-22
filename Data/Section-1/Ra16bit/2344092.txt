@@ -1,0 +1,32 @@
+#include <cstdio>
+#include <map>
+#include <iostream>
+using namespace std;
+const int MX=77;
+int t,n,i;
+long long x,y,f[MX+1];
+map <pair<long long, long long>, long long> M,E;
+long long solve(long long x, long long y, int z) {
+  if (x==y) return 0;
+  pair<long long, long long> cur=make_pair(x,y);
+  if (E.count(cur)) return E[cur];
+  if (M.count(cur)) return M[cur];
+  while (y<=f[z]) z--;
+  if (x>f[z]) return M[cur]=solve(x-f[z],y-f[z],z-1);
+  return M[cur]=min(solve(x,f[z],z-1)+solve(1LL,y-f[z],z-2),solve(1LL,x,z-1)+solve(1LL,y-f[z],z-2))+1LL;
+}
+int main() {
+  scanf("%d%d",&t,&n);
+  f[0]=1; f[1]=2;
+  for (i=2; i<=MX; i++) f[i]=f[i-1]+f[i-2];
+  for (i=1; i<=MX; i++) solve(1,f[i],i);
+  E=M;
+  M.clear();
+  while (t--) {
+    scanf("%I64d%I64d",&x,&y);
+	if (x>y) swap(x,y);
+	if (t%100==0) M.clear();
+	printf("%I64d\n",solve(x,y,MX));
+  }
+  return 0;
+}

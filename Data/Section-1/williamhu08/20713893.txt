@@ -1,0 +1,166 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1e5 + 10;
+
+#define fi first
+#define se second
+
+struct node {
+	int mdu, mdd;
+	int len;
+	map<int, int> cnt;	//store the -d*10^|d|, going down
+	map<int, int> cntn;
+	vector<pii> numu, numd;
+
+	int size() {
+		return numu.size();
+	}
+};
+
+int N, M;
+ll ans;
+vector<pii> adj[MAXN];
+int _p10[2 * MAXN], *p10 = _p10 + MAXN;
+node pool[MAXN], *cnode[MAXN];
+
+int add (int x, int y) {
+	return (x + y) % M;
+}
+
+int subtr (int x, int y) {
+	x -= y;
+	if (x < 0) {
+		x += M;
+	}
+	return x;
+}
+
+int neg (int x) {
+	return subtr(0, x);
+}
+
+int mult (int x, int y) {
+	return 1ll * x * y % M;
+}
+
+/*
+struct node {
+	int mdu, mdd;
+	int len;
+	map<int, int> cnt;	//store the -d*10^|d|, going down
+	map<int, int> cntn;
+	vector<pii> numu, numd;
+
+	int size() {
+		return numu.size();
+	}
+};
+
+
+*/
+
+void dfs (int x, int pr) {
+	cnode[x] = pool + x;
+	cnode[x] -> cnt[0] = 1;
+	cnode[x] -> cntn[0] = 1;
+	cnode[x] -> numu.push_back(pii(0, 0));
+	cnode[x] -> numd.push_back(pii(0, 0));
+
+	for (pii pt : adj[x]) {
+		//figure out merging process
+		int t = pt.fi, dig = pt.se;
+		if (t == pr) {
+			continue;
+		}
+
+		dfs(t, x);
+
+		node *nch = cnode[t];
+		nch -> mdu = add(mult(10, nch -> mdu), dig);
+		nch -> mdd = add(mult(p10[nch -> len], dig), nch -> mdd);
+		nch -> len++;
+
+		node *n1 = cnode[x], *n2 = nch;
+		if (n1 -> size() < n2 -> size()) {
+			swap(n1, n2);
+		}
+
+		for (pii p : n2 -> numd) {
+			int val = p.fi;
+			val = add(val, n2 -> mdd);
+			val = mult(val, p10[-n2 -> len]);
+			//printf("x = %d, t = %d. value is %d\n", x, t, val);
+
+			int val1 = subtr(neg(val), n1 -> mdu);
+			val1 = mult(val1, p10[-n1 -> len]);
+			auto it = n1 -> cntn.find(val1);
+			if (it != n1 -> cntn.end()) {
+				ans += it -> se;
+				//printf("numd at x = %d, t = %d. adding %d\n", x, t, it -> se);
+			}
+		}
+
+		for (pii p : n2 -> numu) {
+			int val = add(mult(p.fi, p10[n2 -> len]), n2 -> mdu);
+			int want = mult(neg(val), p10[n1 -> len]);
+			want = subtr(want, n1 -> mdd);
+			auto it = n1 -> cnt.find(want);
+			if (it != n1 -> cnt.end()) {
+				ans += it -> se;
+			}
+		}
+
+		for (pii p : n2 -> numd) {
+			int val = p.fi;
+			val = add(val, n2 -> mdd);
+			val = mult(val, p10[-n2 -> len]);
+			int len = p.se;
+			int nval = subtr(mult(p10[n1 -> len], val), n1 -> mdd);
+			n1 -> cnt[nval]++;
+			n1 -> numd.push_back(pii(nval, len + n2 -> len - n1 -> len));
+		}
+
+		for (pii p : n2 -> numu) {
+			int val = add(mult(p.fi, p10[n2 -> len]), n2 -> mdu);
+			int len = p.se;
+
+			int nval = mult(subtr(val, n1 -> mdu), p10[-n1 -> len]);
+			n1 -> cntn[nval]++;
+			n1 -> numu.push_back(pii(nval, len + n2 -> len - n1 -> len));
+		}
+
+		cnode[x] = n1;	//insert the rest into n2.
+	}
+}
+
+int main() {
+	scanf("%d %d", &N, &M);
+	//calc p10
+	p10[0] = 1;
+	for (int i = 1; i < 10; i++) {
+		if (ll(i) * M % 10 == 9) {
+			p10[-1] = (ll(i) * M + 1) / 10;
+			break;
+		}
+	}
+
+	for (int i = -2; i >= -N; i--) {
+		p10[i] = mult(p10[i + 1], p10[-1]);
+	}
+	for (int i = 1; i <= N; i++) {
+		p10[i] = mult(p10[i - 1], 10);
+	}
+
+	for (int i = 1; i < N; i++) {
+		int a, b, w;
+		scanf("%d %d %d", &a, &b, &w);
+		adj[a].push_back(pii(b, w));
+		adj[b].push_back(pii(a, w));
+	}
+	dfs(0, -1);
+
+	printf("%lld\n", ans);
+}

@@ -1,0 +1,75 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 1e5 + 5;
+
+struct edge
+{
+    int x, y, id;
+} G1[maxn], G2[maxn];
+
+bool cmp1(const edge &a, const edge &b)
+{
+    return a.x != b.x ? a.x < b.x : a.y > b.y;
+}
+
+bool cmp2(const edge &a, const edge &b)
+{
+    return a.id < b.id;
+}
+
+bool solve(int n, int m)
+{
+    sort(G1, G1 + m, cmp1);
+    int now = 2, pre = 1, j = 2;
+    for(int i = 0; i < m; ++i)
+    {
+        G2[i].id = G1[i].id;
+        if(G1[i].y == 1)
+        {
+            G2[i].x = j - 1, G2[i].y = j;
+            ++j;
+        }
+        else
+        {
+            if(pre == now - 1)
+            {
+                pre = 1;
+                if(++now >= j) return false;
+            }
+            G2[i].x = pre, G2[i].y = now;
+            ++pre;
+        }
+    }
+    return true;
+}
+
+int main()
+{
+    int n, m;
+    while(~scanf("%d%d", &n, &m))
+    {
+        for(int i = 0; i < m; ++i)
+        {
+            scanf("%d%d", &G1[i].x, &G1[i].y);
+            G1[i].id = i;
+        }
+        if(!solve(n, m))
+        {
+            puts("-1");
+        }
+        else
+        {
+            sort(G2, G2 + m, cmp2);
+            for(int i = 0; i < m; ++i)
+            {
+                printf("%d %d\n", G2[i].x, G2[i].y);
+            }
+        }
+    }
+    return 0;
+}

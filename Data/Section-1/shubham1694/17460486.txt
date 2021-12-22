@@ -1,0 +1,87 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1010;
+
+deque<pair<pii, int> > dq;
+int n, m, dist[maxn][maxn][3], vis[maxn][maxn][3];
+int dx[] = {-1, 1, 0, 0};
+int dy[] = {0, 0, -1, 1};
+char str[maxn][maxn];
+
+int isvalid(int x, int y)
+{
+	return (x>=1 && x<=n && y>=1 && y<=m);
+}
+
+int solve()
+{
+	int i, j, nx, ny, val;
+	pii temp;
+	while(!dq.empty()){
+		temp = dq.front().f;
+		val = dq.front().s;
+		dq.pop_front();
+		for(i=0; i<4; i++){
+			nx = temp.f + dx[i];
+			ny = temp.s + dy[i];
+			if(!isvalid(nx, ny) || str[nx][ny]=='#')
+				continue;
+			if(dist[nx][ny][val]==-1){
+				if(str[nx][ny]=='.'){
+					dist[nx][ny][val] = 1 + dist[temp.f][temp.s][val];
+					dq.push_back(mp(mp(nx, ny), val));
+				}
+				else{
+					dist[nx][ny][val] = dist[temp.f][temp.s][val];
+					dq.push_front(mp(mp(nx, ny), val));
+				}
+			}
+		}
+	}
+	int ret = inf;
+	for(i=1; i<=n; i++){
+		for(j=1; j<=m; j++){
+			if(dist[i][j][0]!=-1 && dist[i][j][1]!=-1 && dist[i][j][2]!=-1 && str[i][j]=='.')
+				ret = min(ret, dist[i][j][0]+dist[i][j][1]+dist[i][j][2]-2);
+		}
+	}
+	return ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j;
+	memset(dist, -1, sizeof(dist));
+	scanf("%d%d", &n, &m);
+	for(i=1; i<=n; i++){
+		scanf("%s", str[i]+1);
+		for(j=1; j<=m; j++){
+			if(str[i][j]!='#' && str[i][j]!='.'){
+				dq.push_back(mp(mp(i, j), str[i][j]-'1'));
+				dist[i][j][str[i][j]-'1'] = 0;
+			}
+		}
+	}
+	int ans = solve();
+	if(ans==inf)
+		ans = -1;
+	printf("%d\n", ans);
+	return 0;
+}

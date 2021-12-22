@@ -1,0 +1,89 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+vector<vector<pair<int,int> > > graph(100005);
+map<pair<int,int>, int> index;
+int n;
+LL c[100005];
+int x[100005];
+int y[100005];
+LL z[100005];
+
+int dfs(int node, int parent)
+{
+    int res = 1;
+    for(int i=0;i<graph[node].size();i++)
+    {
+        if(graph[node][i].first == parent) continue;
+        int temp = dfs(graph[node][i].first, node);
+        res+=temp;
+        c[index[mp(node, graph[node][i].first)]] = temp * (n - temp);
+    }
+    return res;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int q;
+    cin >> n;
+    for(int i=0;i<n - 1;i++)
+    {
+        cin >> x[i] >> y[i] >> z[i];
+        graph[x[i]].pb(mp(y[i], z[i]));
+        graph[y[i]].pb(mp(x[i], z[i]));
+        index[mp(x[i], y[i])] = index[mp(y[i], x[i])] = i;
+    }
+    dfs(1, 1);
+    LL sum = 0;
+    for(int i=0;i<n-1;i++)
+        sum+=c[i] * z[i];
+   // cout << sum * (n - 2);
+   // sum*=n - 2;
+    cin >> q;
+    int xx, yy;
+    //cout.
+    while(q--)
+    {
+        cin >> xx >> yy;
+        xx--;
+        sum-=c[xx] * z[xx];
+        sum+=c[xx] * yy;
+        z[xx] = yy;
+        double res = sum * 6;
+        res/=n * (n - 1);
+        printf("%.10f\n", res);
+    }
+    return 0;
+}

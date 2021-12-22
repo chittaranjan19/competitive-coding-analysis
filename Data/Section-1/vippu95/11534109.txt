@@ -1,0 +1,81 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+const int limit = 2005;
+
+lli magic1 = 37LL;
+lli magic2 = 97LL;
+lli ahash[limit];
+lli bhash[limit];
+lli apo[limit];
+lli bpo[limit];
+const lli mod = 1e9+3;
+
+void inithash(string s){
+    int n = s.size();
+    apo[0]=bpo[0]=1LL;
+    ahash[0]=bhash[0]=0LL;
+
+    for(int i=1;i<=n;i++){
+        apo[i] = (apo[i-1]*magic1)%mod;
+        bpo[i] = (bpo[i-1]*magic2)%mod;
+        ahash[i] = (ahash[i-1]*magic1 + s[i-1])%mod;
+        bhash[i] = (bhash[i-1]*magic2 + s[i-1])%mod;
+    }
+    return;
+}
+
+inline pair<lli,lli> calcHash(string s){
+    int n = s.size();
+    lli h1=0LL,h2=0LL;
+
+    for(int i=0;i<n;i++){
+        h1 = (h1*magic1 + s[i])%mod;
+        h2 = (h2*magic2 + s[i])%mod;
+    }
+    return (make_pair(h1,h2));
+}
+
+inline pair<lli,lli> getHash(int i,int j){
+    lli h1 = ((ahash[j] - (ahash[i-1]*apo[j-i+1]))%mod+mod)%mod;
+    lli h2 = ((bhash[j] - (bhash[i-1]*bpo[j-i+1]))%mod+mod)%mod;
+    return (make_pair(h1,h2));
+}
+
+set< pair<lli,lli> > ans;
+char _s[limit],_st[limit],_en[limit];
+pair<lli,lli> temp,temp2;
+
+int main(){
+    scanf("%s",_s);
+    scanf("%s",_st);
+    scanf("%s",_en);
+    string s,st,en;
+    s=string(_s);
+    st=string(_st);
+    en=string(_en);
+    inithash(s);
+    pair<lli,lli> hst = calcHash(st);
+    pair<lli,lli> hen = calcHash(en);
+
+    int n = s.size();
+    int ns = st.size();
+    int ne = en.size();
+
+    int mx = max(ns,ne);
+
+    for(int i=1;i<=n;i++){
+        for(int j=i+mx-1;j<=n;j++){
+            int sz = j-i+1;
+            if(sz<ns || sz<ne) continue;
+            temp = getHash(i,i+ns-1);
+            temp2 = getHash(j-ne+1,j);
+
+            if(temp.first==hst.first && temp.second==hst.second && temp2.first==hen.first && temp2.second==hen.second)
+                ans.insert(getHash(i,j));
+        }
+    }
+    printf("%d\n",ans.size());
+}

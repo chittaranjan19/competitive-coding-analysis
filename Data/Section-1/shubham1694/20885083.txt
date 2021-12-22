@@ -1,0 +1,196 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+const int M = 2;
+
+struct node{
+	ll F[M][M];
+};
+
+int n, arr[maxn], lazy[maxn*5];
+ll T[M][M], I[M][M], X[M][M], Y[M][M], C[M][M], Q[M][M];
+node st[maxn*5], L[maxn*5];
+
+void m_mul(ll A[2][2], ll B[2][2])
+{
+	for(int i=0; i<M; i++){
+		for(int j=0; j<M; j++){
+			C[i][j] = 0;
+			for(int k=0; k<M; k++)
+				C[i][j] = (C[i][j] + (A[i][k]*B[k][j])%mod)%mod;
+		}	
+	}
+}
+
+void assign(ll (&A)[2][2], ll (&B)[2][2])
+{
+	for(int i=0; i<M; i++){
+		for(int j=0; j<M; j++)
+			A[i][j] = B[i][j];
+	}
+}
+
+void m_pow(int k)
+{
+	if(k==0){
+		assign(X, T);
+		return;
+	}
+	assign(Y, T);
+	assign(X, I);
+	while(k){
+		if(k&1){
+			m_mul(X, Y);
+			assign(X, C);
+		}
+		m_mul(Y, Y);
+		assign(Y, C);
+		k >>= 1;
+	}
+}
+
+void init(int s, int e, int k)
+{
+	if(s==e){
+		m_pow(arr[s]);
+		assign(st[k].F, X);
+		return;
+	}
+	int mid = (s+e)>>1;
+	int lc = k*2 + 1;
+	int rc = lc + 1;
+	init(s, mid, lc);
+	init(mid+1, e, rc);
+	for(int i=0; i<M; i++){
+		for(int j=0; j<M; j++)
+			st[k].F[i][j] = (st[lc].F[i][j] + st[rc].F[i][j])%mod;
+	}
+}
+
+void propagate_down(int s, int e, int k)
+{
+	if(lazy[k]){
+		m_mul(st[k].F, L[k].F);
+		assign(st[k].F, C);
+		lazy[k] = 0;
+		if(s != e){
+			int lc = k*2 + 1;
+			int rc = lc + 1;
+			if(lazy[lc]){
+				m_mul(L[lc].F, L[k].F);
+				assign(L[lc].F, C);
+			}
+			else{
+				lazy[lc] = 1;
+				assign(L[lc].F, L[k].F);
+			}
+			if(lazy[rc]){
+				m_mul(L[rc].F, L[k].F);
+				assign(L[rc].F, C);
+			}
+			else{
+				lazy[rc] = 1;
+				assign(L[rc].F, L[k].F);
+			}
+		}
+	}
+}
+
+void update(int s, int e, int qs, int qe, int k)
+{
+	propagate_down(s, e, k);
+	if(s>e || s>qe || qs>e)
+		return;
+	int mid = (s+e)>>1;
+	int lc = k*2 + 1;
+	int rc = lc + 1;
+	if(s>=qs && qe>=e){
+		m_mul(st[k].F, Q);
+		assign(st[k].F, C);
+		if(s != e){
+			if(lazy[lc]){
+				m_mul(L[lc].F, Q);
+				assign(L[lc].F, C);
+			}
+			else{
+				assign(L[lc].F, Q);
+				lazy[lc] = 1;
+			}
+			if(lazy[rc]){
+				m_mul(L[rc].F, Q);
+				assign(L[rc].F, C);
+			}
+			else{
+				assign(L[rc].F, Q);
+				lazy[rc] = 1;
+			}
+		}
+		return;
+	}
+	update(s, mid, qs, qe, lc);
+	update(mid+1, e, qs, qe, rc);
+	for(int i=0; i<M; i++){
+		for(int j=0; j<M; j++)
+			st[k].F[i][j] = (st[lc].F[i][j] + st[rc].F[i][j])%mod;
+	}
+}
+
+ll query(int s, int e, int qs, int qe, int k)
+{
+	propagate_down(s, e, k);
+	if(s>e || s>qe || qs>e)
+		return 0;
+	int mid = (s+e)>>1;
+	int lc = k*2 + 1;
+	int rc = lc + 1;
+	if(s>=qs && qe>=e)
+		return st[k].F[0][1];
+	return (query(s, mid, qs, qe, lc) + query(mid+1, e, qs, qe, rc))%mod;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	T[0][0] = T[1][0] = T[0][1] = 1;
+	T[1][1] = 0;
+	I[0][0] = I[1][1] = 1;
+	I[1][0] = I[0][1] = 0;
+	assign(X, T);
+	int q, t, l, r, x;
+	scanf("%d%d", &n, &q);
+	for(int i=0; i<n; i++)
+		scanf("%d", &arr[i]);
+	init(0, n-1, 0);
+	while(q--){
+		scanf("%d%d%d", &t, &l, &r);
+		--l, --r;
+		if(t == 1){
+			scanf("%d", &x);
+			m_pow(x);
+			assign(Q, X);
+			update(0, n-1, l, r, 0);
+		}
+		else{
+			ll ans = query(0, n-1, l, r, 0);
+			printf("%lld\n", ans);
+		}
+	}
+	return 0;
+}

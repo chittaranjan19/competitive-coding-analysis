@@ -1,0 +1,84 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+#define ex 0.000001
+
+using namespace std;
+int n, cur = 1, pre = 0, sz[mn << 1];
+long long dp[2][2], c[mn];
+vector<long long> hashVal[mn << 1];
+string s[mn << 1];
+
+void setup()
+{
+    cin >> n;
+    FOR(i, 1, n)
+        cin >> c[i];
+    FOR(i, 1, n)
+    {
+        hashVal[i].pb(0);
+        hashVal[n + i].pb(0);
+        cin >> s[i];
+        s[n + i] = s[i];
+        reverse(s[n + i].begin(), s[n + i].end());
+        sz[i] = sz[n + i] = s[i].size();
+        FOR(j, 0, sz[i] - 1)
+        {
+            hashVal[i].pb((hashVal[i][j] * 29 + s[i][j] - 'a' + 1) % maxC);
+            hashVal[n + i].pb((hashVal[n + i][j] * 29 + s[n + i][j] - 'a' + 1) % maxC);
+        }
+    }
+}
+
+bool okay(int a, int b)
+{
+    int l = 0, r = min(sz[a], sz[b]) + 1;
+    while(r - l > 1)
+    {
+        int g = ((l + r) >> 1);
+        if (hashVal[a][g] == hashVal[b][g])
+            l = g;
+        else
+            r = g;
+    }
+    int x = (r > sz[a]? 0 : s[a][r - 1]);
+    int y = (r > sz[b]? 0 : s[b][r - 1]);
+    return x <= y;
+}
+
+void xuly()
+{
+    dp[cur][0] = 0;
+    dp[cur][1] = c[1];
+    FOR(i, 2, n)
+    {
+        swap(cur, pre);
+        dp[cur][0] = dp[cur][1] = 1ll * maxC * maxC;
+        if (okay(i - 1, i))
+            dp[cur][0] = min(dp[cur][0], dp[pre][0]);
+        if (okay(i - 1, n + i))
+            dp[cur][1] = min(dp[cur][1], dp[pre][0] + c[i]);
+        if (okay(n + i - 1, i))
+            dp[cur][0] = min(dp[cur][0], dp[pre][1]);
+        if (okay(n + i - 1, n + i))
+            dp[cur][1] = min(dp[cur][1], dp[pre][1] + c[i]);
+    }
+    long long ans = min(dp[cur][0], dp[cur][1]);
+    cout << (ans == 1ll * maxC * maxC? -1ll : ans);
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

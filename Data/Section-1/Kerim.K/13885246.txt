@@ -1,0 +1,86 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define ff first
+#define cs(x,y) cout<<"Case "<<y<<": "<<x<<endl;
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool checkMin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool checkMax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+char arr[1009][1009];
+int pr[3][3],dis[3][1009][1009];
+int dx[]={+1,-1,0,0},dy[]={0,0,-1,+1},n,m;
+int dasymy(int x,int y){
+    if(x<0 or y<0 or x>=n or y>=m or arr[x][y]=='#')
+        return 1;
+    return 0;   
+}
+void calc(int k){
+    queue<PII>q;
+    for(int i=0;i<n;i++)
+        for(int j=0;j<m;j++){
+            if(char(49+k)==arr[i][j]){
+                dis[k][i][j]=0;
+                q.push({i,j});
+            }
+            else
+                dis[k][i][j]=INF;
+        }
+    while(!q.empty()){
+        int nx=q.front().ff,ny=q.front().ss;
+        q.pop();
+        for(int i=0;i<4;i++){
+            int tox=nx+dx[i],toy=ny+dy[i];
+            if(!dasymy(tox,toy) && dis[k][tox][toy]>dis[k][nx][ny]+1){
+                dis[k][tox][toy]=dis[k][nx][ny]+1;
+                q.push(mp(tox,toy));
+            }
+        }
+    }
+    for(int i=0;i<n;i++)
+        for(int j=0;j<m;j++)
+            if(arr[i][j]=='1'||arr[i][j]=='2'||arr[i][j]=='3'){
+                if(dis[k][i][j]==INF)
+                    continue;
+                pr[k][arr[i][j]-'1']=min(pr[k][arr[i][j]-'1'],dis[k][i][j]-1);
+            }       
+}
+int YouCanDoIt(){
+    int a4=INF;
+    for(int i=0;i<n;i++){
+        for(int j=0;j<m;j++){
+            if(dis[0][i][j]==INF||dis[1][i][j]==INF||dis[2][i][j]==INF)
+                continue;
+            a4=min(a4,dis[0][i][j]+dis[1][i][j]+dis[2][i][j]-2);        
+        }
+    }
+    if(a4>=INF)
+        a4=-1;
+    return a4;  
+}
+int main(){
+    cin>>n>>m;
+    for(int i=0;i<n;i++)
+        for(int j=0;j<m;j++)
+            cin>>arr[i][j];
+    for(int i=0;i<3;i++){
+        for(int j=0;j<3;j++)
+            pr[i][j]=INF;
+        pr[i][i]=0;     
+    }       
+    for(int i=0;i<3;i++)
+        calc(i);
+                            cout<<YouCanDoIt()<<endl;
+                        return 0;
+                }
+            

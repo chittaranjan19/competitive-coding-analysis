@@ -1,0 +1,135 @@
+#include <iostream>
+#include <cmath>
+using namespace std;
+
+int xa, ya, xb, yb, xc, yc, b = 1;
+
+bool wybor (int ind) {
+	int suma = 0;
+	if (ind % 3 == 1) suma += xa;
+	if (ind % 3 == 2) suma += ya;
+	ind /= 3;
+	if (ind % 3 == 1) suma += xb;
+	if (ind % 3 == 2) suma += yb;
+	ind /= 3;
+	if (ind % 3 == 1) suma += xc;
+	if (ind % 3 == 2) suma += yc;
+
+	return suma == b;
+}
+
+int main () {
+	cin >> xa >> ya >> xb >> yb >> xc >> yc;
+	int sp = xa * ya + xb * yb + xc * yc;
+	int s = 1;
+	while (s < sp) {
+		b++;
+		s = b * b;
+	}
+
+	int T [] = {26, 25, 23, 22, 17, 16, 14, 13, 8, 7, 5, 4, 20, 19, 11, 10, 24, 21, 15, 12, 1, 2, 3, 6, 9, 18};
+
+	if (s != sp || xa > b || ya > b || xb > b || yb > b ||xc > b || yc > b) cout << "-1\n";
+	else {
+		for (int RR = 0; RR < 26; ++RR) {
+			int i = T [RR];
+			if (wybor (i)) {
+				int k = i;
+				int X [3];
+				for (int p = 0; p < 3; ++p) {
+					X [p] = k % 3;
+					k /= 3;
+				}
+				char ANS [b] [b];
+				for (int s = 0; s < b; ++s)
+				for (int t = 0; t < b; ++t)
+				ANS [s] [t] = '#';
+				bool used [3] = {false, false, false};
+
+				int p = 0;
+				if (X [0] == 1) {
+					for (int s = 0; s < xa; ++s)
+					for (int t = 0; t < ya; ++t)
+					ANS [s] [t] = 'A';
+					p = xa;
+					used [0] = true;
+				}
+				if (X [0] == 2) {
+					for (int s = 0; s < ya; ++s)
+					for (int t = 0; t < xa; ++t)
+					ANS [s] [t] = 'A';
+					p = ya;
+					used [0] = true;
+				}
+				if (X [1] == 1) {
+					for (int s = p; s < p + xb; ++s)
+					for (int t = 0; t < yb; ++t)
+					ANS [s] [t] = 'B';
+					p += xb;
+					used [1] = true;
+				}
+				if (X [1] == 2) {
+					for (int s = p; s < p + yb; ++s)
+					for (int t = 0; t < xb; ++t)
+					ANS [s] [t] = 'B';
+					p += yb;
+					used [1] = true;
+				}
+				if (X [2] == 1) {
+					for (int s = p; s < p + xc; ++s)
+					for (int t = 0; t < yc; ++t)
+					ANS [s] [t] = 'C';
+					p += xc;
+					used [2] = true;
+				}
+				if (X [2] == 2) {
+					for (int s = p; s < p + yc; ++s)
+					for (int t = 0; t < xc; ++t)
+					ANS [s] [t] = 'C';
+					p += yc;
+					used [2] = true;
+				}
+
+				int kxmin = 1000000, kymin = 1000000, kxmax = -1, kymax = -1, pomx, pomy;
+				for (int c = 0; c < 3; ++c)
+				if (!used [c]) {
+					if (c == 0) {
+						pomx = xa;
+						pomy = ya;
+					}
+					if (c == 1) {
+						pomx = xb;
+						pomy = yb;
+					}
+					if (c == 2) {
+						pomx = xc;
+						pomy = yc;
+					}
+					for (int s = 0; s < b; ++s)
+						for (int t = 0; t < b; ++t)
+						if (ANS [s] [t] == '#') {
+							ANS [s] [t] = 'A' + c;
+							if (s < kxmin) kxmin = s;
+							if (s > kxmax) kxmax = s;
+							if (t < kymin) kymin = t;
+							if (t > kymax) kymax = t;
+						}
+						if ((kymax - kymin + 1 - pomx) * (kxmax - kxmin + 1 - pomx) * (kymax - kymin + 1 - pomy) * (kxmax - kxmin + 1 - pomy) != 0) {
+						cout << "-1" << endl;
+						return 0;
+					}
+				}
+
+
+				cout << b << endl;
+				for (int s = 0; s < b; ++s) {
+					for (int t = 0; t < b; ++t)
+					cout << ANS [s] [t];
+					cout << endl;
+				}
+				return 0;
+
+			}
+		}
+	}
+}

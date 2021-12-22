@@ -1,0 +1,81 @@
+#include<bits/stdc++.h> 
+#include<iostream>
+#include<cstdio>
+#include<cstring>
+#include<algorithm>
+#include<string>
+#include<queue>
+#include<vector>
+#include<map>
+#include<stack>
+#include<cmath>
+#define lowbit(x) ((x)&(-x))
+#define Max(a,b) (a>b?a:b)
+#define Min(a,b) (a>b?b:a)
+#define INF 0x7f7f7f7f7f
+#define rep(i,a,b) for(int i=a;i<(b);++i)
+using namespace std;
+typedef __int64 ll;
+int const Max_N = 1e2+5;
+ll arr[Max_N] = {0};
+ll dp[Max_N][Max_N][Max_N] = {0};
+ll cost[Max_N][Max_N] = {0};
+int main()
+{
+	std::ios::sync_with_stdio(false);
+	cout << INF << endl;
+	int N,m,k;
+	cin >> N >> m >> k; 
+	rep(i,1,N+1) cin >> arr[i];
+	rep(i,1,N+1) rep(j,1,m+1) cin >> cost[i][j];
+	
+	memset(dp,INF,sizeof(dp));
+	
+	if(arr[1]) dp[1][1][arr[1]] = 0;
+	else
+	{
+		rep(i,1,m+1) dp[1][1][i] = cost[1][i];
+	}
+	
+	for (int i = 2; i < N+1 ; ++i)
+	{
+		for (int j = 1; j < k+1; ++j)
+		{
+			if(arr[i])
+			{
+				dp[i][j][arr[i]] = Min(dp[i-1][j][arr[i]],dp[i][j][arr[i]]);
+				for (int t = 1; t < m+1; t++)
+				{
+					if(arr[i]==t) continue;
+					dp[i][j][arr[i]] = Min(dp[i][j][arr[i]],dp[i-1][j-1][t]);
+				}
+			}
+			else
+			{
+				for(int t1 = 1; t1 < m+1; ++t1)
+				{
+					dp[i][j][t1] = Min(dp[i][j][t1],dp[i-1][j][t1] + cost[i][t1]);
+					for (int t2 = 1; t2 < m+1; ++t2)
+					{
+						if(t1==t2) continue;
+						dp[i][j][t1] = Min(dp[i][j][t1],dp[i-1][j-1][t2]+cost[i][t1]);
+					}
+				}
+			}
+		}
+	}
+	ll ans = INF;
+	if(arr[N]) 
+	{
+		ans = dp[N][k][arr[N]];
+	}
+	else
+	{
+		for (int i = 1; i < m+1; i++) ans = Min(ans,dp[N][k][i]);
+	}
+	
+	if(ans>=INF) cout << -1 << endl;
+	else cout << ans << endl;
+	return 0;
+}
+

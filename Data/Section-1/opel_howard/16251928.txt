@@ -1,0 +1,195 @@
+#define DEBUG
+
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <climits>
+#include <ctime>
+#include <cassert>
+using namespace std;
+// template
+
+// abbreviations
+#define vi vector <int>
+#define vl vector <long long>
+#define vb vector <bool>
+#define vs vector <string>
+#define ii pair <int, int>
+#define a first
+#define b second
+#define vii vector <ii>
+#define mii map <int, int>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define lsone(value) (value)&(-value)
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define loop(i, n) for(int i = 0; i < n; ++i)
+#define loop1(i, n) for(int i = 1; i <= n; ++i)
+#define reverse_iterate(a, b) for(__typeof(b.rend()) a = b.rbegin(); a != b.rend(); ++a)
+#define iterate(a, b) for(__typeof(b.begin()) a = b.begin(); a != b.end(); ++a)
+#define all(i) i.begin(), i.end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const double PI = acos(-1);
+
+#ifdef DEBUG
+	#define debug(...) printf(__VA_ARGS__)
+	#define GetTime() fprintf(stderr,"Running time: %.3lf second\n",((double)clock())/CLOCKS_PER_SEC)
+#else
+	#define debug(...) 
+	#define GetTime() 
+#endif
+
+// end of template
+
+#define MOD (1000000007)
+
+int m, d;
+
+void add(int &a, int b) {
+	a = (a+b)%MOD;
+}
+
+void add(ll &a, ll b) {
+	a = (a+b)%MOD;
+}
+
+bool check(string bound) {
+	int val = 0;
+	for (int it = 0; it < bound.length(); ++it) {
+		int b_digit = bound[it]-'0';
+		if (((it%2 == 1) and (b_digit != d)) or ((it%2 == 0) and (b_digit == d)))
+			return false;
+		val = ((val*10)+b_digit)%m;
+	}
+	return (val == 0);
+}
+
+ll get(string bound) {
+	ll ans = 0;
+
+	vector<vi> pow_dp(bound.length()+1, vector<int>(10, 0));
+	vector<vi> even(bound.length()+1, vector<int>(m, 0)), odd(bound.length()+1, vector<int>(m, 0));
+
+	// initialization
+	even[0][0] = odd[0][0] = 1;
+
+	for (int idx = bound.length()-1; idx >= 0; --idx) { // 1 digit to n
+		int digit_idx = (bound.length()-idx);
+		vi &curr_even = even[digit_idx], &prev_even = even[digit_idx-1];
+		vi &curr_odd = odd[digit_idx], &prev_odd = odd[digit_idx-1];
+		vi &sub_pow_dp = pow_dp[digit_idx];
+
+		for (int next_digit = 1; next_digit <= 9; ++next_digit) { // initialize the next digit first
+			int &add_val = sub_pow_dp[next_digit];
+			if (digit_idx == 1) { // for the first digit
+				add_val = next_digit;
+			} else {
+				add_val = (pow_dp[digit_idx-1][next_digit]*10)%m;
+			}
+		}
+
+		for (int next_digit = 9; next_digit >= 0; --next_digit) {
+			int &add_val = sub_pow_dp[next_digit];
+			if (next_digit == 0) {
+				if (digit_idx != bound.length()) {
+					add(ans, curr_even[0]);
+				}
+			}
+			for (int prev_val = 0; prev_val < m; ++prev_val) {
+				int new_val = (add_val+prev_val)%m;
+				if (next_digit == d) { // solve the even
+					add(curr_odd[new_val], prev_even[prev_val]);
+				} else {
+					add(curr_even[new_val], prev_odd[prev_val]);
+				}
+			}
+		}
+	}
+
+	int curr_val = 0;
+	bool do_break = false;
+	for (int idx = 0; idx < bound.length(); ++idx) {
+		char c = bound[idx];
+		int b_digit = c-'0'; // boundary digit
+
+		int digit_idx = idx+1;
+		vi &sub_pow_dp = pow_dp[bound.length()-idx];
+		vi &prev_even = even[bound.length()-idx-1];
+		vi &prev_odd = odd[bound.length()-idx-1];
+		if (digit_idx%2 == 1) {
+			for (int next_digit = 1; next_digit < b_digit; ++next_digit) {
+				if (next_digit == d)
+					continue;
+				for (int prev_val = 0; prev_val < m; ++prev_val) {
+					int new_val = (curr_val+sub_pow_dp[next_digit]+prev_val)%m;
+					if (new_val == 0) {
+						add(ans, prev_odd[prev_val]);
+					}
+				}
+			}
+			if (b_digit == d) {
+				do_break = true;
+				break;
+			}
+		} else {
+			if (b_digit < d) {
+				do_break = true;
+				break;
+			}
+			if (b_digit > d) {
+				for (int prev_val = 0; prev_val < m; ++prev_val) {
+					int new_val = (curr_val+sub_pow_dp[d]+prev_val)%m;
+					if (new_val == 0) {
+						add(ans, prev_even[prev_val]);
+					}
+				}
+				do_break = true;
+				break;
+			}
+		}
+		curr_val = (curr_val+sub_pow_dp[b_digit])%m;
+	}
+	if ((not do_break) and (curr_val == 0)) { // this boundary value is d-magic
+		ans++;
+	}
+
+	return (ans+1)%MOD; // add 1 because of 0
+}
+int main() {
+    // freopen("628D.in", "r", stdin);
+    
+    scanf("%d %d%*c", &m, &d);
+    string a, b;
+    getline(cin, a);
+    getline(cin, b);
+    long long ans = get(b)-get(a)+(check(a) ? 1 : 0);
+    if (ans < 0) {
+    	ans += MOD;
+    }
+    cout << ans << endl;
+
+    return 0;
+}

@@ -1,0 +1,122 @@
+#include<bits/stdc++.h>
+using namespace std;
+#define FOR(i,a,b) for(int i = (a); i <= (b); ++i)
+#define FORD(i,a,b) for(int i = (a); i >= (b); --i)
+#define RI(i,n) FOR(i,1,(n))
+#define REP(i,n) FOR(i,0,(n)-1)
+#define mini(a,b) a=min(a,b)
+#define maxi(a,b) a=max(a,b)
+#define mp make_pair
+#define pb push_back
+#define st first
+#define nd second
+#define sz(w) (int) w.size()
+typedef vector<int> vi;
+typedef long long ll;
+typedef long double ld;
+typedef pair<int,int> pii;
+const int inf = 1e9 + 5;
+const int nax = 1e6 + 5;
+const int mod = 1e9 + 7;
+
+int k, two[nax];
+int in[nax], out[nax];
+set<pii> s[nax];
+ll res;
+
+void add(int a, int i) {
+	if(!s[i].empty()) {
+		auto it = s[i].end();
+		--it;
+		pii p = *it;
+		if(p.nd + 1 == a) {
+			s[i].erase(it);
+			s[i].insert(mp(p.st, p.nd + 1));
+			if(a == k) out[i]--;
+			it = s[i].end();
+			return;
+		}
+	}
+	if(a != 1) in[i]++;
+	if(a != k) out[i]++;
+	s[i].insert(mp(a,a));
+}
+
+void add(pii p, int i) {
+	auto it = s[i].lower_bound(p);
+	if(it != s[i].end() && (*it).st == p.nd + 1) {
+		p.nd = (*it).nd;
+		s[i].erase(it);
+		in[i]--;
+		if(p.nd != k) out[i]--;
+	}
+	it = s[i].lower_bound(p);
+	if(it != s[i].begin()) {
+		--it;
+		if((*it).nd + 1 == p.st) {
+			p.st = (*it).st;
+			s[i].erase(it);
+			out[i]--;
+			if(p.st != 1) in[i]--;
+		}
+	}
+	s[i].insert(p);
+	if(p.st != 1) in[i]++;
+	if(p.nd != k) out[i]++;
+}
+
+vector<pii> w[nax];
+
+int merge(int a, int b) {
+	//printf("%d (%d) + %d (%d)\n", a, sz(s[a]), b, sz(s[b]));
+	if(sz(s[a]) > sz(s[b])) swap(a, b);
+	// a to b
+	for(pii p : s[a]) add(p, b);
+	return b;
+}
+
+int dfs(int a, int par) {
+	int toPar = -1;
+	int me = a;
+	for(pii e : w[a]) {
+		if(e.st == par) {
+			toPar = e.nd;
+			continue;
+		}
+		me = merge(me, dfs(e.st, a));
+	}
+	if(toPar == 0) {
+		int x = two[in[me]] - 1 + mod;
+		res = (res + x) % mod;
+	}
+	if(toPar == 1)
+		res = (res + two[out[me]]-1 + mod) % mod;
+	//printf("%d - %d %d  rodz=%d\n", a, in[me], out[me], toPar);
+	return me;
+}
+
+int main() {
+	two[0] = 1;
+	RI(i, nax-1) two[i] = two[i-1] * 2 % mod;
+	int n;
+	scanf("%d", &n);
+	REP(_, n - 1) {
+		int a, b, c;
+		a = _ + 1;
+		b = _ + 2;
+		c = 0;
+		scanf("%d%d%d", &a, &b, &c);
+		w[a].pb(mp(b, c == 1 ? 2 : 1));
+		w[b].pb(mp(a, c == 1 ? 2 : 0));
+	}
+	scanf("%d", &k);
+	RI(i, k) {
+		int a;
+		a = 1;
+		scanf("%d", &a);
+		add(i, a);
+	}
+	dfs(1, -1);
+	printf("%lld\n", res);
+	return 0;
+}

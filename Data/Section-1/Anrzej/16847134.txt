@@ -1,0 +1,79 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <cstdio>
+#include <algorithm>
+#include <vector>
+#include <set>
+#include <queue>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = (int)2e5 + 111;
+
+int n;
+vector<int> g[N];
+vector< pair<int, int> > deg;
+vector<int> gr[N];
+
+vector<int> ans[N];
+
+set<int> bad[N];
+bool used[N];
+int mv, cans = 0;
+
+int main()
+{
+	scanf("%d", &n);
+	for (int i = 0; i < n - 1; i++)
+	{
+		int u, v;
+		scanf("%d%d", &u, &v);
+		g[u].push_back(v);
+		g[v].push_back(u);
+		gr[u].push_back(i);
+		gr[v].push_back(i);
+	}
+	for (int i = 0; i < n; i++){
+		deg.push_back(mp(g[i].size(), i));
+		if (g[i].size() > cans)
+			mv = i, cans = g[i].size();
+	}
+	queue<int> q;
+	q.push(mv);
+	while (!q.empty())
+	{
+		int cur = q.front();
+		q.pop();
+		int day = 1;
+		for (int i = 0; i < gr[cur].size(); i++)
+		{
+			int rid = gr[cur][i];
+			if (used[rid]) continue;
+			while (bad[cur].count(day)) day++;
+			bad[cur].insert(day);
+			bad[g[cur][i]].insert(day);
+			used[rid] = 1;
+			q.push(g[cur][i]);
+			ans[day].push_back(rid);
+			day++;
+		}
+	}
+	printf("%d\n", cans);
+	for (int i = 1; i <= cans; i++)
+	{
+		printf("%d ", ans[i].size());
+		for (int j = 0; j < ans[i].size(); j++)
+			printf("%d ", ans[i][j] + 1);
+		putchar('\n');
+	}
+	return 0;
+}

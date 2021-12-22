@@ -1,0 +1,136 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+const int block = 500;
+const int logn = 20;
+
+struct query{
+	int l, r, lb, ind;
+	bool operator<(const query&q) const{
+		if(lb!=q.lb)
+			return lb<q.lb;
+		return r<q.r;
+	}
+};
+
+struct node{
+	int cnt;
+	node* child[2];
+	node(){
+		this->cnt = 0;
+		this->child[0] = this->child[1] = NULL;
+	}
+};
+
+int n, m, k, arr[maxn];
+ll ans[maxn];
+vector<query> q;
+
+int findPairs(node* root, int x)
+{
+	int i;
+	node* cur = root;
+	for(i=logn; i>=0; i--){
+		int kbit = ((k&(1<<i))>>i);
+		int xbit = ((x&(1<<i))>>i);
+		int rbit = xbit^kbit;
+		if(cur->child[rbit])
+			cur = cur->child[rbit];
+		else
+			return 0;
+	}
+	return cur->cnt;
+}
+
+void insert(node* root, int x)
+{
+	int i;
+	node* cur = root;
+	for(i=logn; i>=0; i--){
+		++cur->cnt;
+		int xbit = ((x&(1<<i))>>i);
+		if(!cur->child[xbit])
+			cur->child[xbit] = new node();
+		cur = cur->child[xbit];
+	}
+	++cur->cnt;
+}
+
+void remove(node* root, int x)
+{
+	int i;
+	node* cur = root;
+	for(i=logn; i>=0; i--){
+		--cur->cnt;
+		int xbit = ((x&(1<<i))>>i);
+		cur = cur->child[xbit];
+	}
+	--cur->cnt;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, a, b;
+	scanf("%d%d%d", &n, &m, &k);
+	for(i=1; i<=n; i++){
+		scanf("%d", &arr[i]);
+		arr[i] ^= arr[i-1];
+	}
+	q.resize(m);
+	for(i=0; i<m; i++){
+		scanf("%d%d", &q[i].l, &q[i].r);
+		--q[i].l;
+		q[i].lb = q[i].l/block;
+		q[i].ind = i;
+	}
+	sort(all(q));
+	int curl = 0, curr = 0;
+	node* root = new node();
+	ll cur_ans = 0;
+	for(query it : q){
+		a = it.l;
+		b = it.r;
+		while(curr<=b){
+			cur_ans += findPairs(root, arr[curr]);
+			insert(root, arr[curr]);
+			++curr;
+		}
+		while(curl-1>=a){
+			cur_ans += findPairs(root, arr[curl-1]);
+			insert(root, arr[curl-1]);
+			--curl;
+		}
+		while(curl<a){
+			cur_ans -= findPairs(root, arr[curl]);
+			remove(root, arr[curl]);
+			++curl;
+		}
+		while(curr-1>b){
+			cur_ans -= findPairs(root, arr[curr-1]);
+			remove(root, arr[curr-1]);
+			--curr;
+		}
+		ans[it.ind] = cur_ans;
+	}
+	for(i=0; i<m; i++)
+		printf("%lld\n", ans[i]);
+	return 0;
+}

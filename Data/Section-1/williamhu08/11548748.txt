@@ -1,0 +1,96 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+
+int str[26];
+string s, t, u;
+int A[26], B[26], C[26];
+
+void read (int *arr, string &str) {
+	cin >> str;
+	for (char c : str) {
+		arr[c - 'a']++;
+	}
+}
+
+int div (int *y, int *x) {
+	int ans = 1e7;
+	for (int i = 0; i < 26; i++) {
+		if (x[i]) {
+			ans = min(ans, y[i] / x[i]);
+		}
+	}
+	return ans;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	read(A, s);
+	copy_n(A, 26, str);
+	read(B, t);
+	read(C, u);
+	//based on the # of times B appears
+	int mnb = 0, mnc = 0;
+	for (int i = 0; ; i++) {
+		//count whether it is even possible to fit i B's into the picture
+		bool poss = true;
+		for (int j = 0; j < 26; j++) {
+			if (str[j] < i * B[j]) {
+				poss = false;
+				break;
+			}
+		}
+		if (!poss) {
+			break;
+		}
+		for (int j = 0; j < 26; j++) {
+			A[j] = str[j] - i * B[j];
+		}
+		int nc = div(A, C);
+		// for (int j = 0; j < 26; j++) {
+		// 	cerr << "A[" << j << "] = " << A[j] << endl;
+		// }
+		// cerr << "---------\n";
+		if (i + nc > mnb + mnc) {
+			mnb = i;
+			mnc = nc;
+		}
+	}
+	// cerr << mnb << ' ' << mnc << endl;
+	//alrite
+	vector<int> ans;
+	for (int i = 0; i < mnb; i++) {
+		//push B in
+		for (char c : t) {
+			ans.push_back(c - 'a');
+		}
+	}
+	for (int i = 0; i < mnc; i++) {
+		for (char c : u) {
+			ans.push_back(c - 'a');
+		}
+	}
+	for (int i = 0; i < 26; i++) {
+		str[i] -= mnb * B[i];
+		str[i] -= mnc * C[i];
+	}
+	for (int i = 0; i < 26; i++) {
+		for (int j = 0; j < str[i]; j++) {
+			ans.push_back(i);
+		}
+	}
+	for (int i : ans) {
+		cout << char(i + 'a');
+	}
+}

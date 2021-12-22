@@ -1,0 +1,60 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 2;
+const int mod = 1e9 + 7;
+
+struct mat
+{
+    int r, c;
+    int a[maxn][maxn];
+
+    mat(int r = 0, int c = 0) : r(r), c(c)
+    {
+        memset(a, 0, sizeof(a));
+    }
+} m;
+
+mat mul(const mat &a, const mat &b)
+{
+    mat c(a.r, b.c);
+    for(int i = 0; i < a.r; ++i)
+    {
+        for(int j = 0; j < b.c; ++j)
+        {
+            for(int k = 0; k < a.c; ++k) c.a[i][j] = (c.a[i][j] + (ll)a.a[i][k] * b.a[k][j]) % mod;
+        }
+    }
+    return c;
+}
+
+mat pow_mod(mat a, ll n)
+{
+    mat ret(a.r, a.c);
+    for(int i = 0; i < ret.r; ++i) ret.a[i][i] = 1;
+    while(n)
+    {
+        if(n & 1) ret = mul(ret, a);
+        a = mul(a, a);
+        n >>= 1;
+    }
+    return ret;
+}
+
+int main()
+{
+    int a, b, x;
+    ll n;
+    cin >> a >> b >> n >> x;
+    m = mat(2, 2);
+    m.a[0][0] = a, m.a[0][1] = m.a[1][1] = 1;
+    m = pow_mod(m, n);
+    cout << ((ll)m.a[0][0] * x + (ll)m.a[0][1] * b) % mod << endl;
+    return 0;
+}

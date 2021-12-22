@@ -1,0 +1,97 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#define INF 2147483647
+int max(int x, int y){return x>y?x:y;}
+using namespace std;
+class SegTree
+{
+private:
+	vector<int> T; // Segment Tree (La raíz es el nodo 0)
+	vector<int> A; // Vector de numeros
+	int N; // Cantidad de elementos en el arreglo
+	void build(int node, int L, int R); // node abarca el segmento [L, R]
+	int query(int node, int L, int R, int x, int y);
+	void update(int node, int L, int R, int x, int val);
+public:
+	SegTree();
+	void create(const vector<int> &pA); // Carga un arreglo de numeros
+	int query(int x, int y); // Range max/min/sum en el rango [x,y]
+	void update(int x, int val); // Setea la pos x [0, N-1] del arreglo
+};
+SegTree::SegTree(){}
+void SegTree::build(int node, int L, int R){ // node abarca el segmento [L, R]
+	if(L == R) T[node] = A[L]; // El segmento solo abarca 1 elemento
+	else{
+		int mid = (L + R)>>1; // Partir el segmento en dos
+		build(2 * node + 1, L, mid); // Construir el segmento izquierdo
+		build(2 * node + 2, mid + 1, R); // Construir el segmento derecho
+		T[node] = max(T[2 * node + 1], // Hijo izquierdo
+		T[2 * node + 2]); // Hijo derecho
+		// Opciones: max, min, suma, xor
+	}
+}
+void SegTree::create(const vector<int> &pA){ // pA: Arreglo de números
+	A = pA; N = (int)A.size();
+	T.assign(N * 4, 0); // El arbol necesita ~ 4*N nodos
+	build(0, 0, N - 1); // La raiz abarca el rango [0, N-1]
+}
+int SegTree::query(int node, int L, int R, int x, int y){
+	if(L > y || R < x) return -INF; // [L,R] está fuera del rango [x,y]
+	// max: -INF, min: INF, suma: 0
+	if(x <= L && R <= y) return T[node]; // [L,R] es abarcado por [x,y]
+	int mid = (L + R)>>1; // Partir el segmento en dos
+	return max(query(2 * node + 1, L, mid, x, y), // Segmento izquierdo
+	query(2 * node + 2, mid + 1, R, x, y)); // Segmento derecho
+	// Opciones: max, min, suma, xor
+}
+int SegTree::query(int x, int y) { return query(0, 0, N - 1, x, y); }
+// El nodo 0 abarca el rango [0, N-1]
+void SegTree::update(int node, int L, int R, int x, int val){
+	if(x < L || R < x) return; // x esta fuera del rango [L,R]
+	if(L == R) { A[L] = val; T[node] = val; } // Actualizamos la hoja
+	else{
+		int mid = (L + R)>>1; // Partir el segmento en dos
+		update(2 * node + 1, L, mid, x, val); // Actualizar segmento izq
+		update(2 * node + 2, mid + 1, R, x, val); // Actualizar segmento der
+		T[node] = max(T[node * 2 + 1], // Hijo izquierdo
+		T[node * 2 + 2]); // Hijo derecho
+		// Opciones: max, min, suma, xor
+	}
+}
+void SegTree::update(int x, int val) { update(0, 0, N - 1, x, val); }
+int main(){
+	std::ios::sync_with_stdio(false);
+	int n;
+	cin>>n;
+	vector<int> dominosx(n+1);
+	vector<int> maxreach(n+1);
+	vector<int> costoend(n+1);
+	for(int i=1;i<=n;++i){
+		int x,l;
+		cin>>x>>l;
+		dominosx[i]=x;
+		maxreach[i]=x+l;
+	}
+	SegTree *seg = new SegTree();
+	seg->create(maxreach);
+	for(int i=n;i>=1;--i){
+		int indnoalcanza=upper_bound(dominosx.begin(),dominosx.end(),maxreach[i])-dominosx.begin();
+		int temp=seg->query(i,indnoalcanza-1);
+		seg->update(i,temp);
+		maxreach[i]=temp;
+		indnoalcanza=upper_bound(dominosx.begin(),dominosx.end(),maxreach[i])-dominosx.begin();
+		if(indnoalcanza==n+1) costoend[i]=0;
+		else costoend[i]=dominosx[indnoalcanza]-maxreach[i]+costoend[indnoalcanza];
+	}
+	int q;
+	cin>>q;
+	for(int i=0;i<q;++i){
+		int x, y;
+		cin>>x>>y;
+		int maxreachtmp=seg->query(x,y);
+		int indmaxreachtmp=upper_bound(dominosx.begin(),dominosx.end(),maxreachtmp)-dominosx.begin();
+		if(indmaxreachtmp==n+1) cout<<costoend[x]<<endl;
+		else cout<<costoend[x]-(dominosx[indmaxreachtmp]-maxreachtmp+costoend[indmaxreachtmp])<<endl;
+	}
+}

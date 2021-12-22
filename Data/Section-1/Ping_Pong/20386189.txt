@@ -1,0 +1,74 @@
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const ll N = 100000;
+const ll inf = (ll)1e18;
+const ll MOD = (ll)1e9 + 7;
+const ld eps = 1e-6;
+const ll ABC = 26;
+const ll P = 239;
+
+int main()
+{
+    //freopen("refrain.in", "r", stdin);
+    //freopen("refrain.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    ll n, A, c1, c2, m;
+    cin >> n >> A >> c1 >> c2 >> m;
+    vector<pair<ll, ll> > a(n);
+    for (ll i = 0; i < n; i++)
+    {
+        cin >> a[i].first;
+        a[i].second = i;
+    }
+    sort(a.begin(), a.end());
+    vector<ll> b(n);
+    for (ll i = 0; i < n; i++)
+        b[i] = a[i].first;
+    vector<ll> pref(n + 1);
+    pref[0] = 0;
+    for (ll i = 0; i < n; i++)
+        pref[i + 1] = pref[i] + b[i];
+    ll ans[4] = {-1, 0, 0, 0};
+    for (ll i = 0; i <= n; i++)
+    {
+        ll cost = i * A - (pref[n] - pref[n - i]);
+        if (cost > m)
+            break;
+        ll l = 0, r = A + 1, mid;
+        while (r - l > 1)
+        {
+            mid = (l + r) / 2;
+            ll x = lower_bound(b.begin(), b.end() - i, mid) - b.begin();
+            ll cost1 = x * mid - pref[x];
+            if (cost + cost1 <= m)
+                l = mid;
+            else
+                r = mid;
+        }
+        ll cnt = i * c1 + l * c2;
+        if (cnt > ans[0])
+        {
+            ans[0] = cnt;
+            ans[1] = i;
+            ans[2] = l;
+            ans[3] = lower_bound(b.begin(), b.end() - i, mid) - b.begin();
+        }
+    }
+    for (ll i = 0; i < ans[1]; i++)
+        b[n - i - 1] = A;
+    for (ll i = 0; i < ans[3]; i++)
+        b[i] = ans[2];
+    vector<ll> res(n);
+    for (ll i = 0; i < n; i++)
+        res[a[i].second] = b[i];
+    cout << ans[0] << endl;
+    for (ll i : res)
+        cout << i << " ";
+    return 0;
+}

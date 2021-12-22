@@ -1,0 +1,115 @@
+program breaking_good;
+
+const
+  tfi = '';//'507e.inp';
+  tfo = '';//'507e.out';
+
+var
+  n,m,ft,lt : longint;
+  queue,d,f,head,trace : array [1..100000] of longint;
+  aim,adj,c,next : array [-100000..100000] of longint;
+  mark : array [1..100000] of boolean;
+  fi,fo : text;
+
+procedure add(i,x,y,z : longint);
+  begin
+    aim[i] := x;
+    adj[i] := y;
+    c[i] := z;
+    next[i] := head[x];
+    head[x] := i;
+  end;
+
+procedure input;
+  var i,x,y,z : longint;
+  begin
+    assign(fi,tfi);
+    reset(fi);
+    read(fi,n,m);
+    for i := 1 to m do
+      begin
+        read(fi,x,y,z);
+        add( i,x,y,z);
+        add(-i,y,x,z);
+        inc(f[1],z);
+      end;
+    close(fi);
+  end;
+
+procedure push(x : longint);
+  begin
+    inc(lt);
+    queue[lt] := x;
+  end;
+
+procedure pop(var x : longint);
+  begin
+    x := queue[ft];
+    inc(ft);
+  end;
+
+procedure process;
+  var u,v,j : longint;
+  begin
+    ft := 1;
+    lt := 0;
+    for u := 2 to n do
+      begin
+        f[u] := maxlongint;
+        d[u] := maxlongint;
+      end;
+    push(1);
+    while ft <= lt do
+      begin
+        pop(u);
+        j := head[u];
+        while j <> 0 do
+          begin
+            v := adj[j];
+            if d[v] > d[u] + 1 then
+              begin
+                d[v] := d[u] + 1;
+                f[v] := f[u] + 1 - c[j]*2;
+                trace[v] := j;
+                push(v);
+              end
+            else
+            if (d[v] = d[u] + 1) and (f[v] > f[u] + 1 - c[j]*2) then
+              begin
+                f[v] := f[u] + 1 - c[j]*2;
+                trace[v] := j;
+                push(v);
+              end;
+            j := next[j];
+          end;
+      end;
+  end;
+
+procedure gettrace(u : longint);
+  begin
+    if trace[u] = 0 then exit;
+    mark[abs(trace[u])] := true;
+    gettrace(aim[trace[u]]);
+  end;
+
+procedure output;
+  var j : longint;
+  begin
+    assign(fo,tfo);
+    rewrite(fo);
+    writeln(fo,f[n]);
+    gettrace(n);
+    for j := 1 to m do
+      begin
+        if (c[j] = 1) and not mark[j] then writeln(fo,aim[j],' ',adj[j],' 0')
+        else
+        if (c[j] = 0) and mark[j] then writeln(fo,aim[j],' ',adj[j],' 1');
+      end;
+    close(fo);
+  end;
+
+begin
+  input;
+  process;
+  output;
+end.

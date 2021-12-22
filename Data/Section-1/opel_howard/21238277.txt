@@ -1,0 +1,220 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <climits>
+#ifdef DEBUG
+    #include <ctime>
+#endif
+using namespace std;
+
+// template
+
+// abbreviations
+
+typedef unsigned long long ull;
+typedef long long ll;
+typedef vector<int> vi;
+typedef vector<vi> vvi;
+typedef vector<ll> vl;
+typedef vector<vl> vvl;
+typedef vector<string> vs;
+typedef pair<int, int> ii;
+typedef vector<ii> vii;
+typedef map<int, int> mii;
+#define a first
+#define b second
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define it iterator
+#define sz(var) ((int) var.size())
+#define rep(it, n) for(int it = 0; it < n; ++it)
+#define dep(it, n) for(int it = n - 1; it >= 0; --it)
+#define rep1(it, n) for(int it = 1; it <= n; ++it)
+#define dep1(it, n) for(int it = n; it > 0; --it)
+#define loop(it, from, to) for(int it = (from); it <= (to); ++it)
+#define iter(it, cont) for(__typeof((cont).begin()) it = (cont).begin(); it != (cont).end(); ++it)
+#define riter(it, cont) for(__typeof((cont).rbegin()) it = (cont).rbegin(); it != (cont).rend(); ++it)
+#define all(cont) (cont).begin(), (cont).end()
+#define rng(cont, n) cont, cont + n
+#define memclr(var) memset(var, 0, sizeof(var))
+
+const int INF = INT_MAX;
+const int NINF = INT_MIN;
+const ll INF_LL = LLONG_MAX;
+const ll NINF_LL = LLONG_MIN;
+const double PI = acos(-1.0);
+const int MOD = 1e9 + 7;
+
+inline ll pos_m(ll a, ll c = MOD) { while (a < 0) { a += c; } return a; }
+inline ll add_m(ll a, ll b, ll c = MOD) { return (a + b) % c; }
+inline ll mul_m(ll a, ll b, ll c = MOD) { return (a * b) % c; }
+inline ll sub_m(ll a, ll b, ll c = MOD) { return pos_m((a - b) % c, c); }
+
+#ifdef DEBUG
+    #define debug(fmt, args...) printf("Line %d, in %s\t: " fmt, __LINE__, __FUNCTION__, ##args)
+    #define rep_rt() printf("[Run time: %.3fs]\n", ((double) clock()) / CLOCKS_PER_SEC)
+#else
+    #define debug(...)
+#endif
+
+// end of template
+
+#define MAXN (int) (2e5)
+#define MAXM (int) (4e5)
+#define MAXL 18
+
+struct Edge {
+    int a, b; // 2 nodes that are connected
+    // additional data structure
+    bool is_spe;
+
+} edges[MAXM + 1];
+
+struct Node {
+    // additional data structure
+    int deg;
+} nodes[MAXN + 1];
+
+class DisjointSet {
+private:
+    vector<int> id;
+
+    int find(int i) {
+        if (i != id[i]) {
+            return id[i] = find(id[i]);
+        }
+        return i;
+    }
+public:
+    explicit DisjointSet(int n) {
+        id.resize(n + 1);
+        for (int it = 0; it < n + 1; ++it) {
+            id[it] = it;
+        }
+    }
+
+    void join(int i, int j) {
+        int par_i = find(i), par_j = find(j);
+        if (par_i != par_j) {
+            if (par_i < par_j) {
+                id[par_j] = par_i;
+            } else {
+                id[par_i] = par_j;
+            }
+        }
+    }
+
+    bool is_same(int i, int j) {
+        return find(i) == find(j);
+    }
+
+    int count() {
+        set<int> s;
+        for (int idx = 1; idx < (int) id.size(); ++idx) {
+            s.insert(find(idx));
+        }
+        return s.size();
+    }
+};
+
+int main() {
+#ifdef DEBUG
+    freopen("723F.in", "r", stdin);
+#endif
+    
+    int n, m;
+    scanf("%d %d", &n, &m);
+    rep1(idx, m) {
+        Edge &edge = edges[idx];
+        edge.is_spe = false;
+        scanf("%d %d", &edge.a, &edge.b);
+    }
+
+    int s, t, ds, dt;
+    scanf("%d %d %d %d", &s, &t, &ds, &dt);
+
+    set<int> not_nidxs;
+    not_nidxs.insert(s);
+    not_nidxs.insert(t);
+
+    DisjointSet dsu(n);
+    rep1(midx, m) {
+        Edge &edge = edges[midx];
+        if (not_nidxs.count(edge.a) or (not_nidxs.count(edge.b))) // this nodes are to be marked
+            continue;
+
+        if (!dsu.is_same(edge.a, edge.b)) {
+            dsu.join(edge.a, edge.b);
+            edge.is_spe = true;
+            nodes[edge.a].deg++;
+            nodes[edge.b].deg++;
+        }
+    }
+    bool has_dm = false;
+    rep1(midx, m) {
+        Edge &edge = edges[midx];
+        if (not_nidxs.count(edge.a) and not_nidxs.count(edge.b)) {
+            has_dm = true;
+            continue;
+        }
+        if (!(not_nidxs.count(edge.a) ^ not_nidxs.count(edge.b)))
+            continue;
+
+        if (!dsu.is_same(edge.a, edge.b)) {
+            if (((edge.a == s) or (edge.b == s)) and (nodes[s].deg == ds))
+                continue;
+            if (((edge.a == t) or (edge.b == t)) and (nodes[s].deg == dt))
+                continue;
+            dsu.join(edge.a, edge.b);
+            edge.is_spe = true;
+            nodes[edge.a].deg++;
+            nodes[edge.b].deg++;
+        }
+    }
+    
+    bool use_dm = false;
+    if ((dsu.count() > 1) and (has_dm)) {
+        nodes[s].deg++;
+        nodes[t].deg++;
+        use_dm = true;
+    }
+
+    if ((nodes[s].deg > ds) or (nodes[t].deg > dt) or (dsu.count() > 1)) {
+        puts("No");
+        return 0;
+    }
+
+    puts("Yes");
+    rep1(midx, m) {
+        Edge edge = edges[midx];
+        if (edge.is_spe)
+            printf("%d %d\n", edge.a, edge.b);
+    }
+    if (use_dm) {
+        printf("%d %d\n", s, t);
+    }
+
+#ifdef DEBUG
+    rep_rt();
+#endif
+    return 0;
+}

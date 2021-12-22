@@ -1,0 +1,103 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <cstring>
+#include <iomanip>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 100 * 1000 + 100;
+const ll M = 95542721;
+
+int n;
+ll a[50][N];
+ll sum[4 * N][50];
+int lzy[4 * N];
+
+void build(int v, int s, int e){
+	if(e - s == 1){
+		for(int i = 0; i < 48; ++i)
+			sum[v][i] = a[i][s];
+		return;
+	}
+	int mid = (s + e) / 2;
+	build(2 * v + 0, s, mid);
+	build(2 * v + 1, mid, e);
+	for(int i = 0; i < 48; ++i)
+		sum[v][i] = (sum[2 * v + 0][i] + sum[2 * v + 1][i]) % M;
+}
+
+void shift(int v){
+	int L = 2 * v + 0;
+	int R = 2 * v + 1;
+	lzy[L] = (lzy[L] + lzy[v]) % 48;
+	lzy[R] = (lzy[R] + lzy[v]) % 48;
+	rotate(sum[L] + 0, sum[L] + lzy[v], sum[L] + 48);
+	rotate(sum[R] + 0, sum[R] + lzy[v], sum[R] + 48);
+	lzy[v] = 0;
+}
+
+void update(int v, int s, int e, int l, int r){
+	if(r <= s || e <= l) return;
+	if(l <= s && e <= r){
+		lzy[v] = (lzy[v] + 1) % 48;
+		rotate(sum[v] + 0, sum[v] + 1, sum[v] + 48);
+		return;
+	}
+	int mid = (s + e) / 2;
+	shift(v);
+	update(2 * v + 0, s, mid, l, r);
+	update(2 * v + 1, mid, e, l, r);
+	for(int i = 0; i < 48; ++i)
+		sum[v][i] = (sum[2 * v + 0][i] + sum[2 * v + 1][i]) % M;
+}
+
+ll get(int v, int s, int e, int l, int r){
+	if(r <= s || e <= l) return 0;
+	if(l <= s && e <= r) return sum[v][0];
+	shift(v);
+	int mid = (s + e) / 2;
+	return (get(2 * v + 0, s, mid, l, r) + get(2 * v + 1, mid, e, l, r)) % M;
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n;
+	for(int i = 0; i < n; ++i){
+		cin >> a[0][i];
+		for(int j = 1; j < 48; ++j)
+			a[j][i] = a[j - 1][i] * a[j - 1][i] % M * a[j - 1][i] % M;
+	}
+	build(1, 0, n);
+	int q;
+	cin >> q;
+	for(int i = 0; i < q; ++i){
+		int t, l, r;
+		cin >> t >> l >> r;
+		l --;
+		if(t == 2)
+			update(1, 0, n, l, r);
+		else
+			cout << get(1, 0, n, l, r) << "\n";
+	}
+	return 0;
+}

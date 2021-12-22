@@ -1,0 +1,183 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#define ls rt << 1
+#define rs rt << 1 | 1
+#define lson ls, l, mid
+#define rson rs, mid + 1, r
+
+using namespace std;
+
+const int maxn = 100000 + 5;
+const int maxm = 1000 + 5;
+
+int prime[maxm], a[maxn], n, m, cnt, tmp[maxm];
+int dfn[maxn][2], rd[maxn], head[maxn], tot, clk;
+struct edge
+{
+    int to, next;
+
+    edge(int to = 0, int next = 0) : to(to), next(next) {}
+} G[maxn << 1];
+bool vis[maxm];
+struct segtree
+{
+    int node[maxn << 2][maxm], lazy[maxn << 2];
+
+    void modify(int rt, int c)
+    {
+        lazy[rt] += c;
+        if(lazy[rt] >= m) lazy[rt] -= m;
+        for(int i = 0; i < m; ++i)
+        {
+            int k = i + c;
+            if(k >= m) k -= m;
+            tmp[k] = node[rt][i];
+        }
+        for(int i = 0; i < m; ++i)
+        {
+            node[rt][i] = tmp[i];
+            tmp[i] = 0;
+        }
+    }
+
+    void pushup(int rt)
+    {
+        for(int i = 0; i < m; ++i) node[rt][i] = node[ls][i] + node[rs][i];
+    }
+
+    void pushdown(int rt)
+    {
+        if(lazy[rt])
+        {
+            modify(ls, lazy[rt]);
+            modify(rs, lazy[rt]);
+            lazy[rt] = 0;
+        }
+    }
+
+    void build(int rt, int l, int r)
+    {
+        lazy[rt] = 0;
+        if(l == r)
+        {
+            memset(node[rt], 0, sizeof(node[rt]));
+            node[rt][rd[l]] = 1;
+            return;
+        }
+        int mid = (l + r) >> 1;
+        build(lson);
+        build(rson);
+        pushup(rt);
+    }
+
+    void update(int rt, int l, int r, int x, int y, int c)
+    {
+        if(x <= l && r <= y)
+        {
+            modify(rt, c);
+            return;
+        }
+        pushdown(rt);
+        int mid = (l + r) >> 1;
+        if(x <= mid) update(lson, x, y, c);
+        if(mid < y) update(rson, x, y, c);
+        pushup(rt);
+    }
+
+    int query(int rt, int l, int r, int x, int y)
+    {
+        int ret = 0;
+        if(x <= l && r <= y)
+        {
+            for(int i = 0; i < cnt && prime[i] < m; ++i) if(node[rt][prime[i]]) ++ret;
+            return ret;
+        }
+        pushdown(rt);
+        int mid = (l + r) >> 1;
+        if(x <= mid) ret += query(lson, x, y);
+        if(mid < y) ret += query(rson, x, y);
+        return ret;
+    }
+} tree;
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = clk = 0;
+}
+
+void addedge(int u, int v)
+{
+    G[tot] = edge(v, head[u]);
+    head[u] = tot++;
+    G[tot] = edge(u, head[v]);
+    head[v] = tot++;
+}
+
+void sieve()
+{
+    cnt = 0;
+    for(int i = 2; i < maxm; ++i)
+    {
+        if(!vis[i])
+        {
+            prime[cnt++] = i;
+        }
+        for(int j = 0; j < cnt && i * prime[j] < maxm; ++j)
+        {
+            vis[i * prime[j]] = true;
+            if(i % prime[j] == 0) break;
+        }
+    }
+}
+
+void dfs(int u, int fa)
+{
+    dfn[u][0] = ++clk;
+    rd[clk] = a[u];
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        if(v == fa) continue;
+        dfs(v, u);
+    }
+    dfn[u][1] = clk;
+}
+
+int main()
+{
+    sieve();
+    while(~scanf("%d%d", &n, &m))
+    {
+        init();
+        for(int i = 1; i <= n; ++i)
+        {
+            scanf("%d", &a[i]);
+            a[i] %= m;
+        }
+        for(int i = 1; i < n; ++i)
+        {
+            int u, v;
+            scanf("%d%d", &u, &v);
+            addedge(u, v);
+        }
+        dfs(1, 0);
+        tree.build(1, 1, n);
+        int q;
+        scanf("%d", &q);
+        while(q--)
+        {
+            int op, x, y;
+            scanf("%d%d", &op, &x);
+            if(op == 1)
+            {
+                scanf("%d", &y);
+                y %= m;
+                tree.update(1, 1, n, dfn[x][0], dfn[x][1], y);
+            }
+            else printf("%d\n", tree.query(1, 1, n, dfn[x][0], dfn[x][1]));
+        }
+    }
+    return 0;
+}

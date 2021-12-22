@@ -1,0 +1,113 @@
+#include<stdio.h>
+#include<vector>
+#include<algorithm>
+using namespace std;
+#define pp pair<int,int>
+int dp[305][305][10]={0},idx=0;
+int ans[305]={0},temp[305]={0},last;
+bool check=false;
+bool dfs(int sum,int pos,int num)
+{
+    if(sum<0)
+        return false;
+    if(pos==0)
+    {
+        //printf("sum=%d check=%d num=%d\n",sum,check,num);
+        if(sum==0 && check)
+        {
+            temp[pos+1]=num;
+            check=true;
+            return true;
+        }
+        if(sum==0 && num>ans[pos+1])
+        {
+            temp[pos+1]=num;
+            check=true;
+            return true;
+        }
+        return false;
+    }
+    int k,lol=0;
+    if(!check)
+    {
+        lol=ans[pos];
+    }
+    //printf("sum=%d pos=%d num=%d lol=%d check=%d\n",sum,pos,num,lol,check);
+    for(k=lol;k<10;k++)
+    {
+        if(dp[pos][sum][k])
+        {
+            if(dfs(sum-k,pos-1,k))
+            {
+                check=true;
+                temp[pos+1]=num;
+                return true;
+            }
+        }
+        check=true;
+    }
+    return false;
+}
+int main()
+{
+    int i,j,k,l;
+    for(i=0;i<10;i++)
+    {
+        dp[1][i][i]=1;
+    }
+    for(i=2;i<=300;i++)
+    {
+        for(j=0;j<=300;j++)
+        {
+            for(k=0;k<10;k++)
+            {
+                if(dp[i-1][j][k])
+                {
+                    for(l=0;l<10 && j+l<=300;l++)
+                    {
+                        dp[i][j+l][l]=1;
+                    }
+                }
+            }
+        }
+    }
+    ans[0]=0;
+    int n,deb;
+    last=1;
+    scanf("%d",&n);
+    for(i=0;i<n;i++)
+    {
+        int x,flag=0;
+        scanf("%d",&x);
+        check=false;
+        for(j=last;j<=300;j++)
+        {
+            //printf("j=%d ans=%d\n",j,ans[j]);
+            for(k=1;k<10;k++)
+            {
+                if(k<ans[last] && !check)
+                    continue;
+                if(k>ans[j])
+                    check=true;
+                if(dp[j][x][k] && dfs(x-k,j-1,k))
+                {
+                    //printf("k=%d\n",k);
+                    flag=1;
+                    break;
+                }
+            }
+            if(flag)
+                break;
+            check=true;
+            //scanf("%d",&deb);
+        }
+        for(k=j;k>=1;k--)
+        {
+            ans[k]=temp[k];
+            printf("%d",temp[k]);
+        }
+        printf("\n");
+        last=j;
+    }
+    return 0;
+}

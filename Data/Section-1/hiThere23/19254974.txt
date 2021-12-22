@@ -1,0 +1,87 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 1005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, k, cur = 1, pre = 0, pro[mn][mn];
+bool dp[1 << 7][2];
+long long xT[8], yT[8], xM[mn], yM[mn];
+
+bool coline(int x, int y, int z)
+{
+    long long ccw1 = (xM[z] - xM[y]) * (yM[y] - yT[x]);
+    long long ccw2 = (xM[y] - xT[x]) * (yM[z] - yM[y]);
+    return ccw1 == ccw2;
+}
+
+bool between1(int x, int y, int z)
+{
+    long long disA = (xT[x] - xM[y]) * (xT[x] - xM[y]) + (yT[x] - yM[y]) * (yT[x] - yM[y]);
+    long long disB = (xT[x] - xM[z]) * (xT[x] - xM[z]) + (yT[x] - yM[z]) * (yT[x] - yM[z]);
+    return disA < disB;
+}
+
+bool between2(int x, int y, int z)
+{
+    long long disA = (xT[x] - xM[z]) * (xT[x] - xM[z]) + (yT[x] - yM[z]) * (yT[x] - yM[z]);
+    long long disB = (xM[y] - xM[z]) * (xM[y] - xM[z]) + (yM[y] - yM[z]) * (yM[y] - yM[z]);
+    return disA > disB;
+}
+
+void setup()
+{
+    cin >> k >> n;
+    FOR(i, 1, k)
+        cin >> xT[i] >> yT[i];
+    FOR(i, 1, n)
+        cin >> xM[i] >> yM[i];
+}
+
+void xuly()
+{
+    FOR(i, 1, n)
+    FOR(j, 1, n)
+    if (i != j)
+    {
+        FOR(q, 1, k)
+        if (coline(q, j, i) && between1(q, j, i) && between2(q, j, i))
+            pro[i][j] |= 1 << (q - 1);
+    }
+    int top = (1 << k) - 1, ans = 0;
+    FOR(i, 1, n)
+    {
+        FOR(q, 1, top)
+            dp[q][cur] = false;
+        dp[0][cur] = true;
+        FOR(j, 1, n)
+        if (pro[i][j])
+        {
+            swap(cur, pre);
+            FOR(q, 0, top)
+                dp[q][cur] = dp[q][pre];
+            for(int z = 1; z < top; z <<= 1)
+            if (pro[i][j] & z)
+            FOR(q, 0, top - 1)
+            if (!(q & z))
+                dp[q | z][cur] |= dp[q][pre];
+        }
+        ans += (!dp[top][cur]);
+    }
+    cout << ans;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

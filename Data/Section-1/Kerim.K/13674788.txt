@@ -1,0 +1,172 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define ff first
+#define lgN 17
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool checkMin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool checkMax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+vector<int>adj[MAXN],ng[MAXN],E,E1,E2;
+int lvl[MAXN],p[MAXN][lgN+9];
+vector<int>r[1009][lgN];
+void dfs(int nd,int pr){
+	lvl[nd]=lvl[pr]+1;
+	p[nd][0]=pr;
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to!=pr)
+			dfs(to,nd);
+	}
+}
+void add(int a1,int a2,int k){
+	if(a2>0){
+		for(int i=0;i<r[a1][a2-1].size();i++)
+			r[a1][a2].pb(r[a1][a2-1][i]);
+	}
+	for(int i=0;i<ng[k].size();i++)
+		r[a1][a2].pb(ng[k][i]);
+	sort(all(r[a1][a2]));
+	if(r[a1][a2].size()>10)	
+		r[a1][a2].resize(10);
+}
+void ancestor(int type,int h1,int h){
+	if(type==1){
+		for(int i=lgN;i>=0;i--)
+			if(lvl[h1]-(1<<i)>=lvl[h]){
+				for(int j=0;j<r[h1][i].size();j++)
+					E1.pb(r[h1][i][j]);
+				h1=p[h1][i];
+			}
+	}
+	else{
+		for(int i=lgN;i>=0;i--)
+			if(lvl[h1]-(1<<i)>=lvl[h]){
+				for(int j=0;j<r[h1][i].size();j++)
+					E2.pb(r[h1][i][j]);
+				h1=p[h1][i];
+			}
+	}
+}
+void build_LCA(){
+	for(int j=1;j<=lgN;j++)
+		for(int i=1;i<MAXN;i++)
+			if(p[i][j-1] > 0)
+				p[i][j]=p[p[i][j-1]][j-1];
+}
+void merge_LCA(){
+	for(int j=0;j<=lgN;j++)
+		for(int i=1;i<MAXN;i++)
+			if(p[i][j] > 0)
+		    	add(i,j,p[i][j]);
+}
+int get_LCA(int x,int y){
+	if(lvl[x]<lvl[y])
+		swap(x,y);
+	for(int i=lgN;i>=0;i--){
+		if(lvl[x]-(1<<i)>=lvl[y])
+			x=p[x][i];
+	}
+	if(x==y)
+		return x;
+	for(int i=lgN;i>=0;i--)
+		if(p[x][i]>0&&p[x][i]!=p[y][i])
+			x=p[x][i],y=p[y][i];
+	return p[x][0];		
+}
+int main(){
+	memset(p,-1,sizeof(p));
+	int n,m,q;
+	cin>>n>>m>>q;	
+	for(int i=0;i<n-1;i++){
+		int u,v;
+		cin>>u>>v;
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	for(int i=1;i<=m;i++){
+		int c;
+		cin>>c;
+		if(ng[c].size()<10)
+		ng[c].pb(i);
+	}
+	dfs(1,0);
+	build_LCA();
+	merge_LCA();
+	while(q--){
+		E.resize(0);
+		E1.resize(0);
+		E2.resize(0);
+		int u,v,t,a;
+		cin>>u>>v>>a;
+		t=get_LCA(u,v);
+		if(t==u||t==v){
+			if(t==u&&t==v){
+				int sz=ng[t].size();
+				cout<<min(a,sz)<<" ";
+				for(int i=0;i<min(a,sz);i++)
+					cout<<adj[t][i]<<" ";
+			}
+			else if(t==u){
+				ancestor(2,v,t);
+				for(int i=0;i<ng[v].size();i++)
+					E2.pb(ng[v][i]);	
+				sort(all(E2));	
+				int sz=E2.size();
+				cout<<min(a,sz)<<" ";
+				for(int i=0;i<min(a,sz);i++)
+					cout<<E2[i]<<" ";
+			}
+			else{
+				ancestor(1,u,t);
+				for(int i=0;i<ng[u].size();i++)
+					E1.pb(ng[u][i]);
+				sort(all(E1));	
+				int sz=E1.size();
+				cout<<min(a,sz)<<" ";
+				for(int i=0;i<min(a,sz);i++)
+					cout<<E1[i]<<" ";
+			}
+			cout<<endl;	
+			continue;
+		}
+		ancestor(1,u,t);
+		ancestor(2,v,t);
+		for(int i=0;i<E1.size();i++)
+			E.pb(E1[i]);
+		for(int i=0;i<E2.size();i++)
+			E.pb(E2[i]);	
+		for(int i=0;i<ng[v].size();i++)
+			E.pb(ng[v][i]);
+		for(int i=0;i<ng[u].size();i++)
+			E.pb(ng[u][i]);
+		sort(all(E));
+		E.erase(unique(all(E)),E.end()); 
+		int sz=E.size();
+		cout<<min(a,sz)<<" ";
+		for(int i=0;i<min(a,sz);i++)
+			cout<<E[i]<<" ";
+		cout<<endl;	
+	}
+	cout<<"34"<<endl;
+	return 0;
+}
+/*
+5 4 1
+1 3
+1 2
+1 4
+4 5
+2 1 4 3
+4 5 6
+*/

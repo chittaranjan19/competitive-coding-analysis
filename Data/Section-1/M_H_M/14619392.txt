@@ -1,0 +1,99 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 300 * 1000 + 100;
+const int B = 1000003;
+const int M = 100030001;
+
+ll c[N];
+char s[N];
+vector <int> g[N];
+int n;
+ll dif[N];
+pair <ll, set<ll> > bag[N];
+int id[N];
+int T;
+int h[N];
+ll pw[N];
+
+void dfs(int v, int p){
+	if(SZ(g[v]) == 1 && p != -1){
+		dif[v] = 1;
+		id[v] = T ++;
+		bag[id[v]].Y.insert(pw[h[v]] * s[v] % M);
+		return;
+	}
+	int mx = -1, Id;
+	for(int u : g[v]){
+		if(u == p) continue;
+		h[u] = h[v] + 1;
+		dfs(u, v);
+		if(dif[u] > mx){
+			mx = dif[u];
+			Id = u;
+		}
+	} 
+	id[v] = id[Id];
+	for(int u : g[v]){
+		if(u == p) continue;
+		if(u == Id) continue;
+		while(SZ(bag[id[u]].Y)){
+			bag[id[v]].Y.insert(bag[id[u]].X - bag[id[v]].X + *(bag[id[u]].Y.begin()));
+			bag[id[u]].Y.erase(bag[id[u]].Y.begin());
+		}
+	}
+	bag[id[v]].Y.insert(-bag[id[v]].X);
+	bag[id[v]].X += (pw[h[v]] * s[v] % M);
+	dif[v] = SZ(bag[id[v]].Y);
+}
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	pw[0] = 1;
+	for(int i = 1; i < N; ++i)
+		pw[i] = pw[i - 1] * B % M;
+	cin >> n;
+	for(int i = 0; i < n; ++i) cin >> c[i];
+	for(int i = 0; i < n; ++i) cin >> s[i];
+	for(int i = 0; i < n - 1; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; v --;
+		g[u].PB(v);
+		g[v].PB(u);
+	}
+	dfs(0, -1);
+	ll mx = -1;
+	for(int i = 0; i < n; ++i)
+		mx = max(mx, dif[i] + c[i]);
+	int cnt = 0;
+	for(int i = 0; i < n; ++i)
+		if(dif[i] + c[i] == mx)
+			cnt ++;
+	cout << mx << "\n" << cnt << "\n";
+	return 0;
+}

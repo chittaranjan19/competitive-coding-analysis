@@ -1,0 +1,179 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 5010, MOD = 1e9 + 7;
+
+template<class T>
+void setmin (T &a, T b) {
+	if (b < a) {
+		a = b;
+	}
+}
+
+int add (int x, int y) {
+	return (x + y) % MOD;
+}
+
+int twice (int x) {
+	return add(x, x);
+}
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+void addeq (int &x, int y) {
+	x = add(x, y);
+}
+
+int N;
+char S[MAXN];
+bool A[MAXN];
+int suffa[MAXN];
+short lcp[MAXN][MAXN];
+
+//DP
+int auxdp[MAXN][MAXN];	//auxiliary
+int dpw[MAXN][MAXN];	//# of ways
+bitset<MAXN> dpp[MAXN];	//possible
+short dps[MAXN][MAXN];	//min # of steps
+
+bool ok (int x, int y) {
+	if (2 * y - 1 - x > N) {
+		return 0;
+	}
+	int pref = lcp[x][y];
+	if (pref >= y - x) {
+		return 1;
+	}
+	return A[x + pref] < A[y + pref];
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	gets(S + 1);
+	N = strlen(S + 1);
+	for (int i = 1; i <= N; i++) {
+		A[i] = (S[i] == '1');
+	}
+
+	for (int i = N; i >= 1; i--) {
+		for (int j = N; j >= 1; j--) {
+			if (A[i] == A[j]) {
+				lcp[i][j] = lcp[i + 1][j + 1] + 1;
+			}
+		}
+	}
+
+	//# of ideal
+	for (int j = 1; j <= N; j++) {
+		dpw[1][j] = 1;
+		for (int i = 2; i <= j; i++) {
+			if (!A[i]) {
+				continue;
+			}
+			int pi = 2 * i - 1 - j;
+			if (pi <= 0) {
+				dpw[i][j] = auxdp[i - 1][1];
+				continue;
+			}
+			dpw[i][j] = auxdp[i - 1][pi + 1];
+			if (ok(pi, i)) {
+				addeq(dpw[i][j], dpw[pi][i - 1]);
+			}
+		}
+		for (int i = j; i >= 1; i--) {
+			auxdp[j][i] = add(auxdp[j][i + 1], dpw[i][j]);
+		}
+	}
+
+	int ans = 0;
+	for (int i = 1; i <= N; i++) {
+		addeq(ans, dpw[i][N]);
+	}
+	printf("%d\n", ans);
+
+	//min # of prints
+	for (int j = 1; j <= N; j++) {
+		dps[1][j] = 1;
+		for (int i = 2; i <= j; i++) {
+			if (!A[i]) {
+				dps[i][j] = MAXN;
+				continue;
+			}
+			int pi = 2 * i - 1 - j;
+			if (pi <= 0) {
+				dps[i][j] = 2;
+				continue;
+			}
+			dps[i][j] = auxdp[i - 1][pi + 1] + 1;
+			if (ok(pi, i)) {
+				setmin(dps[i][j], short(dps[pi][i - 1] + 1));
+			}
+		}
+		auxdp[j][j + 1] = MAXN;
+		for (int i = j; i >= 1; i--) {
+			auxdp[j][i] = min(auxdp[j][i + 1], int(dps[i][j]));
+		}
+	}
+
+	//possible
+	for (int j = 1; j <= N; j++) {
+		dpp[1][j] = 1;
+		for (int i = 2; i <= j; i++) {
+			if (!A[i]) {
+				continue;
+			}
+			int pi = 2 * i - 1 - j;
+			if (pi <= 0) {
+				dpp[i][j] = 1;
+				continue;
+			}
+			dpp[i][j] = auxdp[i - 1][pi + 1];
+			if (ok(pi, i)) {
+				dpp[i][j] = dpp[i][j] || dpp[pi][i - 1];
+			}
+		}
+		auxdp[j][j + 1] = 0;
+		for (int i = j; i >= 1; i--) {
+			auxdp[j][i] = auxdp[j][i + 1] || dpp[i][j];
+		}
+	}
+
+	suffa[N] = A[N];
+	for (int i = N - 1, pwr = 2; i >= 1; i--) {
+		suffa[i] = add(suffa[i + 1], mult(A[i], pwr));
+		addeq(pwr, pwr);
+	}
+
+	ans = 1 << 30;
+	for (int i = 1; i <= N; i++) {
+		if (i == 20 && ans != (1 << 30)) {
+			break;
+		}
+		if (dpp[N - i + 1][N]) {
+			int val = add(suffa[N - i + 1], dps[N - i + 1][N]);
+			if (i >= 20) {
+				ans = val;
+				break;
+			} else {
+				ans = min(ans, val);
+			}
+		}
+	}
+	printf("%d\n", ans);
+}

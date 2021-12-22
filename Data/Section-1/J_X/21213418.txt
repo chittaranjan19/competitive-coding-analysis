@@ -1,0 +1,101 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = (1 << 20) + 5;
+
+ll a[maxn], b[maxn], mod;
+int d[maxn];
+
+ll mul_mod(ll a, ll b)
+{
+    return (a * b - (ll)(a / (long double)mod * b + 1e-3) * mod + mod) % mod;
+}
+
+ll pow_mod(ll a, ll n)
+{
+    ll ret = 1;
+    while(n)
+    {
+        if(n & 1) ret = mul_mod(ret, a);
+        a = mul_mod(a, a);
+        n >>= 1;
+    }
+    return ret;
+}
+
+void fwt(ll *a, int l, int r)
+{
+    if(r - l == 1) return;
+    int mid = (l + r) >> 1, len = mid - l;
+    fwt(a, l, mid);
+    fwt(a, mid, r);
+    for(int i = l; i < mid; ++i)
+    {
+        ll u = a[i], v = a[i + len];
+        a[i] = (u + v) % mod;
+        a[i + len] = (u - v + mod) % mod;
+    }
+}
+
+void ifwt(ll *a, int l, int r)
+{
+    if(r - l == 1) return;
+    int mid = (l + r) >> 1, len = mid - l;
+    for(int i = l; i < mid; ++i)
+    {
+        ll u = a[i], v = a[i + len];
+        a[i] = (u + v) % mod;
+        a[i + len] = (u - v + mod) % mod;
+    }
+    ifwt(a, l, mid);
+    ifwt(a, mid, r);
+}
+
+int cal(int x)
+{
+    int ret = 0;
+    while(x)
+    {
+        ++ret;
+        x -= x & -x;
+    }
+    return ret;
+}
+
+int main()
+{
+    int m;
+    ll t;
+    scanf("%d%I64d%I64d", &m, &t, &mod);
+    int len = 1 << m;
+    mod <<= m;
+    for(int i = 0; i < len; ++i)
+    {
+        scanf("%I64d", a + i);
+        a[i] %= mod;
+    }
+    for(int i = 0; i <= m; ++i)
+    {
+        scanf("%d", d + i);
+        d[i] %= mod;
+    }
+    for(int i = 0; i < len; ++i) b[i] = d[cal(i)];
+    fwt(a, 0, len);
+    fwt(b, 0, len);
+    for(int i = 0; i < len; ++i) a[i] = mul_mod(a[i], pow_mod(b[i], t));
+    ifwt(a, 0, len);
+    mod >>= m;
+    for(int i = 0; i < len; ++i)
+    {
+        printf("%I64d\n", a[i] >> m);
+    }
+    return 0;
+}

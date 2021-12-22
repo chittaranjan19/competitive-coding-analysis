@@ -1,0 +1,202 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
+#include <string>
+#include <stack>
+#include <queue>
+#include <deque>
+#include <vector>
+#include <map>
+#include <set>
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <climits>
+#ifdef DEBUG
+	#include <ctime>
+#endif
+using namespace std;
+
+// template
+
+// abbreviations
+#define vi vector<int>
+#define vl vector<long long>
+#define vb vector<bool>
+#define vs vector<string>
+#define ii pair<int, int>
+#define a first
+#define b second
+#define vii vector<ii>
+#define mii map<ii>
+#define que queue
+#define pque priority_queue
+#define stk stack
+#define pub push_back
+#define pob pop_back
+#define puf push_front
+#define pof pop_front
+#define pu push
+#define po pop
+#define mp make_pair
+#define rep(it, n) for(int it = 0; it < n; ++it)
+#define rep1(it, n) for(int it = 1; it <= n; ++it)
+#define loop(it, from, to) for(int it = (from); it <= (to); ++it)
+#define reverse_iterate(it, cont) for(__typeof((cont).rend()) it = (cont).rbegin(); it != (cont).rend(); ++it)
+#define iterate(it, cont) for(__typeof((cont).begin()) it = (cont).begin(); it != (cont).end(); ++it)
+#define all(cont) (cont).begin(), (cont).end()
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const int INF = INT_MAX;
+const int NINF = INT_MIN;
+const ll INF_LL = LLONG_MAX;
+const ll NINF_LL = LLONG_MIN;
+const double PI = acos(-1);
+
+#ifdef DEBUG
+	#define debug(fmt, args...) printf("Line %d, in %s\t: " fmt, __LINE__, __FUNCTION__, ##args)
+	#define rep_rt() printf("[Run time: %.3fs]\n",((double)clock())/CLOCKS_PER_SEC)
+#else
+	#define debug(...)
+#endif
+
+// end of template
+
+#define LEFT (k << 1)
+#define RIGHT (LEFT+1)
+#define MID ((range.a+range.b) >> 1)
+
+class Segment {
+private:
+	struct Node {
+		ii range;
+
+		ll max_val;
+		Node() {
+			max_val = 0;
+		}
+	};
+
+	void init(ii range, int k = 1) {
+		Node &node = tree[k];
+		node.range = range;
+		
+		if (range.a != range.b) {
+			init(mp(range.a, MID), LEFT);
+			init(mp(MID+1, range.b), RIGHT);
+		}
+	}
+	vector<Node> tree;
+public:
+	explicit Segment(int n) {
+		int n_node = 1;
+		while (n_node < n) {
+			n_node <<= 1;
+		}
+		n_node <<= 1;
+		tree.resize(n_node);
+
+		init(mp(1, n));
+	}
+
+	ll get(ii f_range, int k = 1) {
+		Node &node = tree[k];
+		ii &range = node.range;
+		if (range == f_range) {
+			return node.max_val;
+		}
+		
+		if (f_range.b <= MID) {
+			return get(f_range, LEFT);
+		} else if (MID < f_range.a) {
+			return get(f_range, RIGHT);
+		}
+
+		ll ret_l = get(mp(f_range.a, MID), LEFT), ret_r = get(mp(MID+1, f_range.b), RIGHT);
+		ll ret = max(ret_l, ret_r);
+		return ret;
+	}
+	void set(int point, ll val, int k = 1) {
+		Node &node = tree[k];
+		ii &range = node.range;
+		if (range.a == range.b) {
+			node.max_val = val;
+			return;
+		}
+		if (point <= MID) {
+			set(point, val, LEFT);
+		} else if (point > MID) {
+			set(point, val, RIGHT);
+		}
+		node.max_val = max(tree[LEFT].max_val, tree[RIGHT].max_val);
+	}
+};
+
+#undef LEFT
+#undef RIGHT
+#undef MID
+
+int main() {
+#ifdef DEBUG
+	freopen("372C.in", "r", stdin);
+#endif
+    
+    int n, m;
+    ll d;
+    scanf("%d %d %I64d", &n, &m, &d);
+    
+    vl dp(n+1);
+    dp[0] = 0LL;
+    int curr_t = 0;
+
+    vl next_dp_cache(n+1);
+    while (m--) {
+    	int a, b, t;
+    	scanf("%d %d %d", &a, &b, &t);
+
+    	ll dist = d*(t-curr_t);
+    	deque<ll> dq;
+    	int dq_l = 1, dq_r = 0;
+    	rep1(idx, n) {
+    		int l_b = max(idx-dist, 1LL);
+    		int r_b = min(idx+dist, (ll) n);
+
+    		ll max_prev_happiness; // get the maximum happiness
+    		// max_prev_happiness = dp.get(mp(l_b, r_b));
+    		while (dq_r < r_b) {
+    			ll new_val = dp[++dq_r];
+    			while ((!dq.empty()) and (dq.back() < new_val)) {
+    				dq.pob();
+    			}
+    			dq.pub(new_val);
+    		}
+    		while (dq_l < l_b) {
+    			ll old_val = dp[dq_l++];
+    			if (dq.front() == old_val) {
+    				dq.pof();
+    			}
+    		}
+    		max_prev_happiness = dq.front();
+    		next_dp_cache[idx] = max_prev_happiness+(b-abs(a-idx));
+    	}
+    	rep1(idx, n) {
+    		// dp.set(idx, next_dp_cache[idx]);
+    		dp[idx] = next_dp_cache[idx];
+    	}
+    	curr_t = t;
+    }
+    // printf("%I64d\n", dp.get(mp(1, n)));
+    ll ans = NINF_LL;
+    rep1(idx, n) {
+    	ans = max(ans, dp[idx]);
+    }
+    printf("%I64d\n", ans);
+
+#ifdef DEBUG
+    rep_rt();
+#endif
+    return 0;
+}

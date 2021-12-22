@@ -1,0 +1,92 @@
+//#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <deque>
+#include <queue>
+#include <ctime>
+#include <iomanip>
+#include <cstring>
+
+#define SZ(x) ((int)x.size())
+#define X first
+#define Y second 
+#define PB push_back 
+#define MP make_pair 
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<pii, int> piii;
+
+const int N = 1e5 + 5;
+
+int n, m, d;
+vector <int> g[N];
+bool mark[N];
+int dp_down[N];
+int dp_up[N];
+int ans = 0;
+
+void dfs_down(int v, int p){
+	if(mark[v]) dp_down[v] = 0;
+	for(int u : g[v]){
+		if(u == p) continue;
+		dfs_down(u, v);
+		if(~dp_down[u]) dp_down[v] = max(dp_down[v], dp_down[u] + 1);
+	}
+}
+
+void dfs_up(int v, int p){
+	vector <pii> mx;
+	if(mark[v]) dp_up[v] = max(dp_up[v], 0);
+	for(int u : g[v]){
+		if(u == p) continue;
+		if(~dp_down[u]) mx.PB({dp_down[u], u});
+	}
+	sort(mx.begin(), mx.end());
+	reverse(mx.begin(), mx.end());
+	for(int u : g[v]){
+		if(u == p) continue;
+		if(~dp_up[v]) dp_up[u] = dp_up[v] + 1;
+		int k = 0;
+		while(k < SZ(mx) && mx[k].Y == u) k ++;
+		if(k < SZ(mx)) dp_up[u] = max(dp_up[u], mx[k].X + 2);
+	}
+	for(int u : g[v]){
+		if(u == p) continue;
+		dfs_up(u, v);
+	}
+//	cerr << v + 1 << " " << dp_down[v] << " " << dp_up[v] << "\n";
+	if(max(dp_up[v], dp_down[v]) <= d) ans ++;
+}
+	
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	memset(dp_down, -1, sizeof dp_down);
+	memset(dp_up, -1, sizeof dp_up);
+	cin >> n >> m >> d;
+	for(int i = 0; i < m; ++i){
+		int x;
+		cin >> x;
+		x --;
+		mark[x] = true;
+	}
+	for(int i = 0; i < n - 1; ++i){
+		int u, v;
+		cin >> u >> v;
+		u --; v --;
+		g[u].PB(v);
+		g[v].PB(u);
+	}
+	dfs_down(0, -1);
+	dfs_up(0, -1);
+	cout << ans << "\n";
+	return 0;
+}

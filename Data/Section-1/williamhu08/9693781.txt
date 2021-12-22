@@ -1,0 +1,100 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 305;
+
+void setmin (int &a, int b) {
+	if (a > b) {
+		a = b;
+	}
+}
+
+int gcd (int x, int y) {
+	return y ? gcd(y, x % y) : x;
+}
+
+int N;
+vector<int> prime[MAXN];	//at most 9 primes
+int C[MAXN];
+int dp[2][1 << 9];
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	int allg = 0;
+	for (int i = 0; i < N; i++) {
+		int x;
+		cin >> x;
+		allg = gcd(allg, x);
+		vector<int> &v = prime[i];
+		for (int j = 2; j * j <= x; j++) {
+			if (x % j == 0) {
+				// cerr << x << " div by " << j << endl;
+				v.push_back(j);
+				// cerr << j << endl;
+				while (x % j == 0) {
+					 x /= j;
+				}
+			}
+		}
+		if (x != 1) {
+			v.push_back(x);
+			// cerr << "extra " << x << endl;
+		}
+		// cerr << "oooof\n";
+	}
+	if (allg != 1) {
+		cout << -1;
+		return 0;
+	}
+	for (int i = 0; i < N; i++) {
+		cin >> C[i];
+	}
+	int ans = 1e9;
+	//try each one
+	for (int i = 0; i < N; i++) {
+		//try this one. bitmask dp
+		bool cur = true;
+		int m = prime[i].size();
+		// cerr << "msuz " << m << endl;
+		fillchar(dp, 63);
+		dp[cur][0] = 0;
+		for (int j = 0; j < N; j++) {
+			if (i == j) {
+				continue;
+			}
+			bool prv = cur;
+			cur ^= true;
+			int mask = 0;	//this is the mask that represents what is NOT there
+			for (int k = 0; k < m; k++) {
+				//check if prime[i][k] is not in prime[j]
+				if (find(all(prime[j]), prime[i][k]) == prime[j].end()) {
+					mask ^= (1 << k);
+				}
+			}
+			// cerr << "i = " << i << ", j = " << j << ", mask = " << mask << endl;
+			copy_n(dp[prv], 1 << m, dp[cur]);
+			for (int k = 0; k < (1 << m); k++) {
+				//this is the previous state. update it to the new state
+				setmin(dp[cur][k | mask], dp[prv][k] + C[j]);
+				// cerr << "setmin dp[" << (k | mask) << "] with " << dp[prv][k] + C[j] << endl;
+			}
+		}
+		setmin(ans, C[i] + dp[cur][(1 << m) - 1]);
+	}
+	cout << ans << endl;
+}

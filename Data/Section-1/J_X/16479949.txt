@@ -1,0 +1,61 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <bitset>
+
+using namespace std;
+
+const int maxn = 2500 + 5;
+
+bitset<maxn> bs[maxn];
+struct node
+{
+    int x, y, v;
+
+    bool operator < (const node &a) const
+    {
+        return v < a.v;
+    }
+} a[maxn * maxn];
+int val[maxn][maxn];
+
+bool solve(int cnt, int n)
+{
+    memset(val, -1, sizeof(val));
+    for(int i = 0; i < n; ++i) bs[i].reset();
+    sort(a, a + cnt);
+    int j = 0;
+    for(int i = 0; i < cnt; ++i)
+    {
+        while(j < cnt && a[j] < a[i])
+        {
+            bs[a[j].x][a[j].y] = 1;
+            ++j;
+        }
+        int x = a[i].x, y = a[i].y;
+        if((~val[x][y] && val[x][y] != a[i].v) || (x == y && a[i].v != 0) || (bs[x] & bs[y]).any()) return false;
+        val[x][y] = a[i].v;
+    }
+    return true;
+}
+
+int main()
+{
+    int n;
+    while(~scanf("%d", &n))
+    {
+        int cnt = 0;
+        for(int i = 0; i < n; ++i)
+        {
+            for(int j = 0; j < n; ++j)
+            {
+                scanf("%d", &a[cnt].v);
+                a[cnt].x = i, a[cnt].y = j;
+                ++cnt;
+            }
+        }
+        puts(solve(cnt, n) ? "MAGIC" : "NOT MAGIC");
+    }
+    return 0;
+}

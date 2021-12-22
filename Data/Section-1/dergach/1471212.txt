@@ -1,0 +1,721 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <set>
+#include <map>
+#include <queue>
+#include <stack>
+#include <algorithm>
+using namespace std;
+
+#define eps 1e-8
+
+struct Rectangle
+{
+    int x1, y1, x2, y2;
+    int w, h;
+    int povernut;
+    int deltaX, deltaY;
+};
+
+int used[105], i, j, k, z, N, w, h, ii;
+int best_res, res, best_used[105];
+int deltaX, deltaY, bestX, bestY, best_i;
+Rectangle a[105], b[105], c[105];
+int hor[105];
+bool nado;
+
+int gcd(int a, int b)
+{
+    if(b == 0) return a;
+    return gcd(b, a % b);
+}
+
+inline int calc()
+{
+    int res = 0;
+    for(int i = 0; i < N; i++)
+        for(int j = i + 1; j < N; j++)
+            if(used[i] == 1 && used[j] == 1 && i != j)
+            {
+                if(a[i].povernut != a[j].povernut)
+                {
+                    if((a[i].y2 == a[j].y1 || a[i].y1 == a[j].y2) && 
+                        (a[i].x1 >= a[j].x1 && a[i].x1 <= a[j].x2 || a[i].x2 >= a[j].x1 && a[i].x2 <= a[j].x2
+                    || a[j].x1 >= a[i].x1 && a[j].x1 <= a[i].x2 || a[j].x2 >= a[i].x1 && a[j].x2 <= a[i].x2))
+                        res += min(a[i].x2, a[j].x2) - max(a[i].x1, a[j].x1);
+                    if((a[i].x1 == a[j].x2 || a[i].x2 == a[j].x1) &&
+                        (a[i].y1 >= a[j].y1 && a[i].y1 <= a[j].y2 || a[i].y2 >= a[j].y1 && a[i].y2 <= a[j].y2
+                    || a[j].y1 >= a[i].y1 && a[j].y1 <= a[i].y2 || a[j].y2 >= a[i].y1 && a[j].y2 <= a[i].y2))
+                        res += min(a[i].y2, a[j].y2) - max(a[i].y1, a[j].y1);
+                }
+                else
+                {
+                    if((a[i].y2 == a[j].y1 || a[i].y1 == a[j].y2) && 
+                        (a[i].x1 >= a[j].x1 && a[i].x1 <= a[j].x2 || a[i].x2 >= a[j].x1 && a[i].x2 <= a[j].x2
+                    || a[j].x1 >= a[i].x1 && a[j].x1 <= a[i].x2 || a[j].x2 >= a[i].x1 && a[j].x2 <= a[i].x2))
+                        res -= min(a[i].x2, a[j].x2) - max(a[i].x1, a[j].x1);
+                    if((a[i].x1 == a[j].x2 || a[i].x2 == a[j].x1) &&
+                        (a[i].y1 >= a[j].y1 && a[i].y1 <= a[j].y2 || a[i].y2 >= a[j].y1 && a[i].y2 <= a[j].y2
+                    || a[j].y1 >= a[i].y1 && a[j].y1 <= a[i].y2 || a[j].y2 >= a[i].y1 && a[j].y2 <= a[i].y2))
+                        res -= min(a[i].y2, a[j].y2) - max(a[i].y1, a[j].y1);
+                }
+            }
+    return res;
+}
+
+inline void build_right(int i)
+{
+    int minv = 123456789, best_i = -1, tmp;
+    int deltaX, deltaY, best_tmp, bestX, bestY, j, k;
+    if(a[i].povernut)
+    {
+        for(j = 0; j < N; j++)
+        //for(k = 0; k < v.size(); k++)
+        {
+            //j = v[k];
+            if(used[j] == 0 && a[i].x2 + a[j].w <= w && a[i].y2 - a[i].y1 >= a[j].h)
+            {
+                deltaX = a[j].deltaX;
+                deltaY = a[j].deltaY;
+                tmp = (a[i].y2 - a[i].y1 - a[j].h) / deltaY;
+                while(20 * a[j].h < a[j].h + tmp * deltaY || a[i].x2 + a[j].w + tmp * deltaX > w)
+                    tmp--;
+                if(a[i].y2 - a[i].y1 - a[j].h - tmp * deltaY < minv)
+                {
+                    minv = a[i].y2 - a[i].y1 - a[j].h - tmp * deltaY;
+                    best_tmp = tmp;
+                    bestX = deltaX;
+                    bestY = deltaY;
+                    best_i = j;
+                }
+            }
+        }
+        if(best_i == -1)
+            return;
+        used[best_i] = 1;
+        a[best_i].x1 = a[i].x2;
+        a[best_i].x2 = a[i].x2 + a[best_i].w + best_tmp * bestX;
+        a[best_i].y2 = a[i].y2;
+        a[best_i].y1 = a[i].y2 - a[best_i].h - best_tmp * bestY;
+    }
+    else
+    {
+        for(j = 0; j < N; j++)
+        //for(k = 0; k < v.size(); k++)
+        {
+            //j = v[k];
+            if(used[j] == 0 && a[i].x2 + a[j].h <= w && a[i].y2 - a[i].y1 >= a[j].w)
+            {
+                deltaX = a[j].deltaX;
+                deltaY = a[j].deltaY;
+                tmp = (a[i].y2 - a[i].y1 - a[j].w) / deltaX;
+                while(20 * a[j].w < a[j].w + tmp * deltaX || a[i].x2 + a[j].h + tmp * deltaY > w)
+                    tmp--;
+                if(a[i].y2 - a[i].y1 - a[j].w - tmp * deltaX < minv)
+                {
+                    minv = a[i].y2 - a[i].y1 - a[j].w - tmp * deltaX;
+                    best_tmp = tmp;
+                    bestX = deltaX;
+                    bestY = deltaY;
+                    best_i = j;
+                }
+            }
+        }
+        if(best_i == -1)
+            return;
+        used[best_i] = 1;
+        swap(a[best_i].h, a[best_i].w);
+        swap(bestX, bestY);
+        a[best_i].povernut = 1;
+        a[best_i].x1 = a[i].x2;
+        a[best_i].x2 = a[i].x2 + a[best_i].w + best_tmp * bestX;
+        a[best_i].y2 = a[i].y2;
+        a[best_i].y1 = a[i].y2 - a[best_i].h - best_tmp * bestY;
+    }
+    //for(k = 0; k < v.size(); k++)
+    //  if(v[k] == best_i)
+    //      break;
+    //for(; k + 1 < v.size(); k++)
+    //  swap(v[k], v[k+1]);
+    //v.pop_back();
+    if(nado)
+        build_right(best_i);
+}
+
+inline void build_left(int i)
+{
+    int minv = 123456789, best_i = -1, tmp;
+    int deltaX, deltaY, best_tmp, bestX, bestY, j, k;
+    if(a[i].povernut)
+    {
+        for(j = 0; j < N; j++)
+        //for(k = 0; k < v.size(); k++)
+        {
+            //j = v[k];
+            if(used[j] == 0 && a[i].x1 - a[j].w >= 0 && a[i].y2 - a[i].y1 >= a[j].h)
+            {
+                deltaX = a[j].deltaX;
+                deltaY = a[j].deltaY;
+                tmp = (a[i].y2 - a[i].y1 - a[j].h) / deltaY;
+                while(20 * a[j].h < a[j].h + tmp * deltaY || a[i].x1 - a[j].w - tmp * deltaX < 0)
+                    tmp--;
+                if(a[i].y2 - a[i].y1 - a[j].h - tmp * deltaY < minv)
+                {
+                    minv = a[i].y2 - a[i].y1 - a[j].h - tmp * deltaY;
+                    best_tmp = tmp;
+                    bestX = deltaX;
+                    bestY = deltaY;
+                    best_i = j;
+                }
+            }
+        }
+        if(best_i == -1)
+            return;
+        used[best_i] = 1;
+        a[best_i].x2 = a[i].x1;
+        a[best_i].x1 = a[i].x1 - a[best_i].w - best_tmp * bestX;
+        a[best_i].y2 = a[i].y2;
+        a[best_i].y1 = a[i].y2 - a[best_i].h - best_tmp * bestY;
+    }
+    else
+    {
+        for(j = 0; j < N; j++)
+        //for(k = 0; k < v.size(); k++)
+        {
+            //j = v[k];
+            if(used[j] == 0 && a[i].x1 - a[j].h >= 0 && a[i].y2 - a[i].y1 >= a[j].w)
+            {
+                deltaX = a[j].deltaX;
+                deltaY = a[j].deltaY;
+                tmp = (a[i].y2 - a[i].y1 - a[j].w) / deltaX;
+                while(20 * a[j].w < a[j].w + tmp * deltaX || a[i].x1 - a[j].h - tmp * deltaY < 0)
+                    tmp--;
+                if(a[i].y2 - a[i].y1 - a[j].w - tmp * deltaX < minv)
+                {
+                    minv = a[i].y2 - a[i].y1 - a[j].w - tmp * deltaX;
+                    best_tmp = tmp;
+                    bestX = deltaX;
+                    bestY = deltaY;
+                    best_i = j;
+                }
+            }
+        }
+        if(best_i == -1)
+            return;
+        used[best_i] = 1;
+        swap(a[best_i].h, a[best_i].w);
+        swap(bestX, bestY);
+        a[best_i].povernut = 1;
+        a[best_i].x2 = a[i].x1;
+        a[best_i].x1 = a[i].x1 - a[best_i].w - best_tmp * bestX;
+        a[best_i].y2 = a[i].y2;
+        a[best_i].y1 = a[i].y2 - a[best_i].h - best_tmp * bestY;
+    }
+
+    //for(k = 0; k < v.size(); k++)
+    //  if(v[k] == best_i)
+    //      break;
+    //for(; k + 1 < v.size(); k++)
+    //  swap(v[k], v[k+1]);
+    //v.pop_back();
+    if(nado)
+        build_left(best_i);
+}
+
+inline void build_up(int i)
+{
+    int minv = 123456789, best_i = -1, tmp;
+    int deltaX, deltaY, best_tmp, bestX, bestY, j, k;
+    if(a[i].povernut)
+    {
+        for(j = 0; j < N; j++)
+        //for(k = 0; k < v.size(); k++)
+        {
+            //j = v[k];
+            if(used[j] == 0 && a[i].y2 + a[j].h <= h && a[i].x2 - a[i].x1 >= a[j].w)
+            {
+                deltaX = a[j].deltaX;
+                deltaY = a[j].deltaY;
+                tmp = (a[i].x2 - a[i].x1 - a[j].w) / deltaX;
+                while(20 * a[j].w < a[j].w + deltaX * tmp || a[j].h + deltaY * tmp + a[i].y2 > h)
+                    tmp--;
+                if(a[i].x2 - a[i].x1 - a[j].w - deltaX * tmp < minv)
+                {
+                    minv = a[i].x2 - a[i].x1 - a[j].w - deltaX * tmp;
+                    best_tmp = tmp;
+                    bestX = deltaX;
+                    bestY = deltaY;
+                    best_i = j;
+                }
+            }
+        }
+        if(best_i == -1)
+            return;
+        used[best_i] = 1;
+        a[best_i].x2 = a[i].x2;
+        a[best_i].x1 = a[i].x2 - a[best_i].w - best_tmp * bestX;
+        a[best_i].y1 = a[i].y2;
+        a[best_i].y2 = a[i].y2 + a[best_i].h + best_tmp * bestY;
+    }
+    else
+    {
+        for(j = 0; j < N; j++)
+        //for(k = 0; k < v.size(); k++)
+        {
+            //j = v[k];
+            if(used[j] == 0 && a[i].y2 + a[j].w <= h && a[i].x2 - a[i].x1 >= a[j].h)
+            {
+                deltaX = a[j].deltaX;
+                deltaY = a[j].deltaY;
+                tmp = (a[i].x2 - a[i].x1 - a[j].h) / deltaY;
+                while(20 * a[j].h < a[j].h + deltaY * tmp || a[j].w + deltaX * tmp + a[i].y2 > h)
+                    tmp--;
+                if(a[i].x2 - a[i].x1 - a[j].h - deltaY * tmp < minv)
+                {
+                    minv = a[i].x2 - a[i].x1 - a[j].h - deltaY * tmp;
+                    best_tmp = tmp;
+                    bestX = deltaX;
+                    bestY = deltaY;
+                    best_i = j;
+                }
+            }
+        }
+        if(best_i == -1)
+            return;
+        used[best_i] = 1;
+        swap(a[best_i].h, a[best_i].w);
+        swap(bestX, bestY);
+        a[best_i].povernut = 1;
+        a[best_i].x2 = a[i].x2;
+        a[best_i].x1 = a[i].x2 - a[best_i].w - best_tmp * bestX;
+        a[best_i].y1 = a[i].y2;
+        a[best_i].y2 = a[i].y2 + a[best_i].h + best_tmp * bestY;
+    }
+
+    //for(k = 0; k < v.size(); k++)
+    //  if(v[k] == best_i)
+    //      break;
+    //for(; k + 1 < v.size(); k++)
+    //  swap(v[k], v[k+1]);
+    //v.pop_back();
+    if(nado)
+    {
+        build_right(best_i);
+        build_left(best_i);
+        build_up(best_i);
+    }
+}
+
+inline void build_down(int i)
+{
+    int minv = 123456789, best_i = -1, tmp;
+    int deltaX, deltaY, best_tmp, bestX, bestY, j, k;
+    if(a[i].povernut)
+    {
+        for(j = 0; j < N; j++)
+        //for(k = 0; k < v.size(); k++)
+        {
+            //j = v[k];
+            if(used[j] == 0 && a[i].y1 - a[j].h >= 0 && a[i].x2 - a[i].x1 >= a[j].w)
+            {
+                deltaX = a[j].deltaX;
+                deltaY = a[j].deltaY;
+                tmp = (a[i].x2 - a[i].x1 - a[j].w) / deltaX;
+                while(20 * a[j].w < a[j].w + deltaX * tmp || a[i].y1 - a[j].h - deltaY * tmp < 0)
+                    tmp--;
+                if(a[i].x2 - a[i].x1 - a[j].w - deltaX * tmp < minv)
+                {
+                    minv = a[i].x2 - a[i].x1 - a[j].w - deltaX * tmp;
+                    best_tmp = tmp;
+                    bestX = deltaX;
+                    bestY = deltaY;
+                    best_i = j;
+                }
+            }
+        }
+        if(best_i == -1)
+            return;
+        used[best_i] = 1;
+        a[best_i].x2 = a[i].x2;
+        a[best_i].x1 = a[i].x2 - a[best_i].w - best_tmp * bestX;
+        a[best_i].y2 = a[i].y1;
+        a[best_i].y1 = a[i].y1 - a[best_i].h - best_tmp * bestY;
+    }
+    else
+    {
+        for(j = 0; j < N; j++)
+        //for(k = 0; k < v.size(); k++)
+        {
+            //j = v[k];
+            if(used[j] == 0 && a[i].y1 - a[j].w >= 0 && a[i].x2 - a[i].x1 >= a[j].h)
+            {
+                deltaX = a[j].deltaX;
+                deltaY = a[j].deltaY;
+                tmp = (a[i].x2 - a[i].x1 - a[j].h) / deltaY;
+                while(20 * a[j].h < a[j].h + deltaY * tmp || a[i].y1 - a[j].w - deltaX * tmp < 0)
+                    tmp--;
+                if(a[i].x2 - a[i].x1 - a[j].h - deltaY * tmp < minv)
+                {
+                    minv = a[i].x2 - a[i].x1 - a[j].h - deltaY * tmp;
+                    best_tmp = tmp;
+                    bestX = deltaX;
+                    bestY = deltaY;
+                    best_i = j;
+                }
+            }
+        }
+        if(best_i == -1)
+            return;
+        used[best_i] = 1;
+        swap(a[best_i].h, a[best_i].w);
+        swap(bestX, bestY);
+        a[best_i].povernut = 1;
+        a[best_i].x2 = a[i].x2;
+        a[best_i].x1 = a[i].x2 - a[best_i].w - best_tmp * bestX;
+        a[best_i].y2 = a[i].y1;
+        a[best_i].y1 = a[i].y1 - a[best_i].h - best_tmp * bestY;
+    }
+
+    //for(k = 0; k < v.size(); k++)
+    //  if(v[k] == best_i)
+    //      break;
+    //for(; k + 1 < v.size(); k++)
+    //  swap(v[k], v[k+1]);
+    //v.pop_back();
+
+    if(nado)
+    {
+        build_right(best_i);
+        build_left(best_i);
+        build_down(best_i);
+    }
+}
+
+
+
+int main()
+{
+    //srand(time(NULL));
+
+    nado = true;
+    scanf("%d %d %d", &w, &h, &N);
+    w *= 10; h *= 10;
+
+    bool swp = false;
+//    if(w < h) 
+//    {
+//        swap(w, h);
+//        swp = true;
+//    }
+
+    for(i = 0; i < N; i++)
+    {
+        scanf("%d %d", &a[i].w, &a[i].h);
+//        if(swp)
+//            swap(a[i].w, a[i].h);
+    }
+
+    for(i = 0; i < N; i++)
+    {
+        a[i].deltaX = a[i].w / gcd(a[i].w, a[i].h);
+        a[i].deltaY = a[i].h / gcd(a[i].w, a[i].h);
+        b[i] = a[i];
+    }
+
+
+//выборка "хороших" прямоугольников
+    for(i = 0; i < N; i++)
+        hor[i] = i;
+    for(i = 0; i < N; i++)
+        for(j = i + 1; j < N; j++)
+        {
+            if(0.8 < (double)(a[i].w) / a[i].h && (double)(a[i].w) / a[i].h < 1.2 
+                || 0.8 < (double)(a[i].h) / a[i].w && (double)(a[i].h) / a[i].w < 1.2)
+            {
+                if(0.8 < (double)(a[j].w) / a[j].h && (double)(a[j].w) / a[j].h < 1.2 
+                    || 0.8 < (double)(a[j].h) / a[j].w && (double)(a[j].h) / a[j].w < 1.2 && a[j].w > a[i].w)
+                    swap(hor[i], hor[j]);
+            }
+            else
+            {
+                if(0.8 < (double)(a[j].w) / a[j].h && (double)(a[j].w) / a[j].h < 1.2 
+                    || 0.8 < (double)(a[j].h) / a[j].w && (double)(a[j].h) / a[j].w < 1.2)
+                    swap(hor[i], hor[j]);
+            }
+        }
+
+    for(ii = 0; ii < N; ii++)
+    {
+        i = hor[ii];
+        int flag, tmp, prev_tmp;
+        for(flag = 0; flag < 2; flag++)
+        {
+            prev_tmp = -1;
+            for(k = 2; k <= 20; k++)
+            {
+                tmp = 20;
+                while(a[i].w * tmp > w / k || a[i].h * tmp > h / k)
+                    tmp--;
+                if(tmp <= 0 || tmp == prev_tmp)
+                    continue;
+                prev_tmp = tmp;
+                for(z = 0; z < 100; z++)
+                {
+                    for(j = 0; j < N; j++)
+                    {
+                        a[j] = b[j];
+                        used[j] = 0;
+                    }
+                    if(flag)
+                    {
+                        a[i].povernut = 1;
+                        swap(a[i].h, a[i].w);
+                    }
+                    
+                    //a[i].x1 = w / k;
+                    //a[i].y1 = h / k;
+                    //a[i].x2 = w / k + a[i].w * tmp;
+                    //a[i].y2 = h / k + a[i].h * tmp;
+
+                    //a[i].x1 = w / 2 - a[i].w * tmp / 2;
+                    //a[i].x2 = a[i].x1 + a[i].w * tmp;
+                    //a[i].y1 = h / 2 - a[i].h * tmp / 2;
+                    //a[i].y2 = a[i].y1 + a[i].h * tmp;
+                    //used[i] = 1;
+
+                    //a[i].x1 = rand() % (w - a[i].w * tmp);
+                    //a[i].y1 = rand() % (h - a[i].h * tmp);
+                    //a[i].x2 = a[i].x1 + a[i].w * tmp;
+                    //a[i].y2 = a[i].y1 + a[i].h * tmp;
+
+                    used[i] = 1;
+                    a[i].x1 = z / 10 * w / 10;
+                    a[i].y1 = z % 10 * h / 10;
+                    a[i].x2 = a[i].x1 + a[i].w * tmp;
+                    a[i].y2 = a[i].y1 + a[i].h * tmp;
+
+                    if(a[i].x2 <= w && a[i].y2 <= h)
+                    {
+                        build_up(i);
+                        build_right(i);
+                        build_left(i);
+                        build_down(i);
+                    }
+
+                    res = calc();
+                    if(res > best_res)
+                    {
+                        best_res = res;
+                        for(j = 0; j < N; j++)
+                        {
+                            c[j] = a[j];
+                            best_used[j] = used[j];
+                        }
+                    }
+                    if(clock() > 4500)
+                    {
+                        //cout << i << " " << flag << " " << k << " " << z << endl << endl;
+                        goto METKA;
+                    }
+                }
+            }
+        }
+    }
+
+
+METKA:
+//а теперь подвигаем их
+
+    for(i = 0; i < N; i++)
+    {
+        a[i] = c[i];
+/*      
+        if(swp)
+        {
+            a[i].x1 = c[i].y1;
+            a[i].y1 = c[i].x1;
+            a[i].x2 = c[i].y2;
+            a[i].y2 = c[i].x2;
+        }
+*/  
+        used[i] = best_used[i];
+    }
+
+    int minD, minU, Di, Ui;
+    for(i = 0; i < N; i++)
+    {
+        if(used[i])
+        {
+            minD = minU = 123456789;
+            Di = Ui = -1;
+            for(j = 0; j < N; j++)
+            {
+                if(used[j] == 1 && i != j && 
+                    (a[i].x1 >= a[j].x1 && a[i].x1 <= a[j].x2 || a[i].x2 >= a[j].x1 && a[i].x2 <= a[j].x2
+                    || a[j].x1 >= a[i].x1 && a[j].x1 <= a[i].x2 || a[j].x2 >= a[i].x1 && a[j].x2 <= a[i].x2))
+                {
+                    if(a[j].y2 <= a[i].y1 && a[i].y1 - a[j].y2 < minD)
+                    {
+                        minD = a[i].y1 - a[j].y2;
+                        Di = j;
+                    }
+                    if(a[j].y1 >= a[i].y2 && a[j].y1 - a[i].y2 < minU)
+                    {
+                        minU = a[j].y1 - a[i].y2;
+                        Ui = j;
+                    }
+                }
+            }
+            Rectangle tmp1 = a[i], tmp2 = a[i];
+            if(Di != -1 && minD != 0)
+            {
+                a[i].y2 -= 1;
+                a[i].y1 -= 1;
+                res = calc();
+                if(res < best_res)
+                    a[i] = tmp1;
+                else
+                {
+                    best_res = res;
+                    tmp1 = a[i];
+                }
+                a[i] = tmp2;
+                a[i].y2 -= a[i].y1 - a[Di].y2;
+                a[i].y1 = a[Di].y2;
+                res = calc();
+                if(res < best_res)
+                    a[i] = tmp1;
+                else
+                    best_res = res;
+            }
+            if(Di == -1 && a[i].y1 > 0)
+            {
+                tmp1 = a[i];
+                a[i].y1 -= 1;
+                a[i].y2 -= 1;
+                res = calc();
+                if(res < best_res)
+                    a[i] = tmp1;
+                else
+                    best_res = res;
+            }
+            tmp1 = a[i]; tmp2 = a[i];
+            if(Ui != -1 && minU != 0)
+            {
+                a[i].y2 += 1;
+                a[i].y1 += 1;
+                res = calc();
+                if(res < best_res)
+                    a[i] = tmp1;
+                else
+                {
+                    best_res = res;
+                    tmp1 = a[i];
+                }
+                a[i] = tmp2;
+                a[i].y1 += a[Ui].y1 - a[i].y2;
+                a[i].y2 = a[Ui].y1;
+                res = calc();
+                if(res < best_res)
+                    a[i] = tmp1;
+                else
+                    best_res = res;
+            }
+            if(Ui == -1 && a[i].y2 < w)
+            {
+                tmp1 = a[i];
+                a[i].y1 += 1;
+                a[i].y2 += 1;
+                res = calc();
+                if(res < best_res)
+                    a[i] = tmp1;
+                else
+                    best_res = res;
+            }
+        }
+    }
+
+    nado = false;
+    int miny = 123456789, minx = 123456789;
+    for(i = 0; i < N; i++)
+    {
+        if(used[i] == 1 && a[i].x1 < minx)
+            minx = a[i].x1;
+        if(used[i] == 1 && a[i].y1 < miny)
+            miny = a[i].y1;
+    }
+    for(i = 0; i < N; i++)
+    {
+        a[i].x1 -= minx; a[i].x2 -= minx;
+        a[i].y1 -= miny; a[i].y2 -= miny;
+    }
+    for(i = 0; i < N; i++)
+    {
+        if(used[i] == 1)
+        {
+            for(j = 0; j < N; j++)
+                if(i != j && used[j] == 1 && (a[i].y2 <= a[j].y1) && 
+                        (a[i].x1 >= a[j].x1 && a[i].x1 <= a[j].x2 || a[i].x2 >= a[j].x1 && a[i].x2 <= a[j].x2
+                    || a[j].x1 >= a[i].x1 && a[j].x1 <= a[i].x2 || a[j].x2 >= a[i].x1 && a[j].x2 <= a[i].x2))
+                    break;
+            if(j == N)
+                build_up(i);
+            for(j = 0; j < N; j++)
+                if(i != j && used[j] == 1 && (a[i].x2 <= a[j].x1) && 
+                        (a[i].y1 >= a[j].y1 && a[i].y1 <= a[j].y2 || a[i].y2 >= a[j].y1 && a[i].y2 <= a[j].y2
+                    || a[j].y1 >= a[i].y1 && a[j].y1 <= a[i].y2 || a[j].y2 >= a[i].y1 && a[j].y2 <= a[i].y2))
+                    break;
+            if(j == N)
+                build_right(i);
+        }
+    }
+
+    best_res = calc();
+    for(i = 0; i < N; i++)
+    {
+        if(used[i] == 1)
+        {
+            used[i] = 0;
+            res = calc();
+            if(res < best_res)
+                used[i] = 1;
+            else
+                best_res = res;
+        }
+    }
+
+    for(i = 0; i < N; i++)
+    {
+        c[i] = a[i];
+        best_used[i] = used[i];
+    }
+
+    for(i = 0; i < N; i++)
+    {
+        if(best_used[i])
+        {
+            //if(!swp)
+                printf("%d.%d %d.%d %d.%d %d.%d\n", c[i].x1 / 10, c[i].x1 % 10, c[i].y1 / 10, c[i].y1 % 10, 
+                                                    c[i].x2 / 10, c[i].x2 % 10, c[i].y2 / 10, c[i].y2 % 10);
+           //else
+           //     printf("%d.%d %d.%d %d.%d %d.%d\n", c[i].y1 / 10, c[i].y1 % 10, c[i].x1 / 10, c[i].x1 % 10, 
+           //                                         c[i].y2 / 10, c[i].y2 % 10, c[i].x2 / 10, c[i].x2 % 10);
+        }
+        else
+            printf("-1 -1 -1 -1\n");
+    }   
+
+    //cout << endl << best_res << endl;
+
+    //cout << endl;
+    //cout << clock() - qwe;
+    return 0;
+}

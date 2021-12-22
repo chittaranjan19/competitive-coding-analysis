@@ -1,0 +1,70 @@
+#include <bits/stdc++.h>
+
+#define SZ(x) ((int)x.size())
+#define PB push_back
+#define MP make_pair
+#define X first
+#define Y second
+
+using namespace std;
+typedef long long ll;
+typedef pair<int, int> pii;
+
+const int N = 1000 * 1000 + 100;
+const int M = 1000 * 1000 * 1000 + 7;
+
+vector <vector<ll> > mn;
+vector <vector<ll> > mx;
+
+ll l;
+ll n, k;
+ll a[N];
+vector <ll> c;
+ll cnt[N];
+
+int main(){
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cin >> n >> l >> k;
+	for(int i = 0; i < n; ++i) {
+		cin >> a[i];
+		c.PB(a[i]);
+	}
+	sort(c.begin(), c.end());
+	c.resize(unique(c.begin(), c.end()) - c.begin());
+	
+	mn.resize(n + 2);
+	for(int i = 0; i <= n + 1; ++i) mn[i].resize(k + 1);
+	mx.resize(n + 2);
+	for(int i = 0; i <= n + 1; ++i) mx[i].resize(k + 1);
+	
+	for(int i = 0; i < n; ++i){
+		a[i] = lower_bound(c.begin(), c.end(), a[i]) - c.begin() + 1;
+		cnt[a[i]] ++;
+		mn[a[i]][0] = 1;
+		mx[a[i]][0] = 1;
+	}
+	for(int i = 1; i <= k; ++i){
+		for(int j = n + 1; j --;){
+			mn[j][i] = mn[j + 1][i] + cnt[j] % M * mn[j][i - 1] % M;
+			mn[j][i] %= M;
+		}
+		for(int j = 1; j <= n; ++j){
+			mx[j][i] = mx[j - 1][i] + cnt[j] % M * mx[j][i - 1] % M;	
+			mx[j][i] %= M;
+		}
+	}
+	ll ans = 0;
+	for(int i = 1; i <= min(k, l / n); ++i){
+		ans =  ans + mn[0][i] % M * (l / n - i + 1) % M;
+		ans %= M;
+	}
+	for(int i = 0; i < (l % n); ++i){
+		for(int j = 0; j <= min(k - 1, l / n); ++j){
+			ans = ans + mx[ a[i] ][j] % M;
+			ans %= M;
+		}
+	}
+	cout << ans << "\n";
+	return 0;
+}

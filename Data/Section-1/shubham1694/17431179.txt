@@ -1,0 +1,121 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 200010;
+
+vector<int> adj[maxn];
+int n, m, req[maxn], sub[maxn], f1[maxn], f2[maxn], dp[maxn][2];
+set<pii> mset[maxn];
+
+void dfs1(int cur, int p)
+{
+	sub[cur] = req[cur];
+	for(auto it:adj[cur]){
+		if(it!=p){
+			dfs1(it, cur);
+			if(sub[it]){
+				sub[cur]+=sub[it];
+				dp[cur][0] += (dp[it][0] + 2);
+				f1[cur] = max(f1[cur], f1[it]+1);
+				mset[cur].insert(mp(f1[it]+1, it));
+			}
+		}
+	}
+	if(req[cur])
+		mset[cur].insert(mp(0, cur));
+	set<pii> :: iterator iter1, iter2;
+	while(mset[cur].size()){
+		iter2 = iter1 = mset[cur].begin();
+		mset[cur].erase(iter2);
+		iter1++;
+	}
+}
+
+void dfs2(int cur, int p)
+{
+	if(sub[cur]==m){
+		dp[cur][1] = dp[cur][0];
+		//f2[cur] = 0;
+	}
+	else{
+		if(sub[cur])
+			dp[cur][1] = dp[p][1];
+		else
+			dp[cur][1] = dp[p][1] + 2;
+	}
+	int f = 0;
+	set<pii> :: iterator iter1, iter2;
+	if(mset[cur].size()>=1){
+		iter1 = mset[cur].end();
+		iter1--;
+		mset[cur].erase(iter1);
+		f++;
+	}
+	if(mset[cur].size()>=1){
+		iter2 = mset[cur].end();
+		iter2--;
+		mset[cur].erase(iter2);
+		f++;
+	}
+	for(auto it:adj[cur]){
+		if(it!=p){
+			if(f2[cur]!=-1)
+				f2[it] = f2[cur]+1;
+			if(f==1){
+				if((*iter1).s!=it)
+					f2[it] = max(f2[it], (*iter1).f+1);
+			}
+			if(f==2){
+				if((*iter1).s==it)
+					f2[it] = max(f2[it], (*iter2).f+1);
+				else
+					f2[it] = max(f2[it], (*iter1).f+1);
+			}
+			dfs2(it, cur);
+		}
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int u, v, i, j, ans, ind, temp;
+	memset(f2, -1, sizeof(f2));
+	scanf("%d%d", &n, &m);
+	for(i=1; i<n; i++){
+		scanf("%d%d", &u, &v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	for(i=1; i<=m; i++){
+		scanf("%d", &j);
+		req[j] = 1;
+	}
+	dfs1(1, 0);
+	dfs2(1, 0);
+	ans = inf;
+	for(i=1; i<=n; i++){
+		//cout << dp[i][0] << " " << dp[i][1] << " " << f1[i] << " " << f2[i] << " " << sub[i] << " " << req[i] << "\n";
+		if(ans > (dp[i][1]-max(f1[i], f2[i]))){
+			ans = dp[i][1] - max(f1[i], f2[i]);
+			ind = i;
+		}
+	}
+	printf("%d\n%d\n", ind, ans);
+	return 0;
+}

@@ -1,0 +1,67 @@
+
+#include<bits/stdc++.h>
+
+using namespace std;
+typedef long long ll;
+
+vector<ll> s;
+
+struct NodeIntel {
+    int mid = -1;
+    int low, high;
+    long sum;
+    NodeIntel *left;
+    NodeIntel *right;
+};
+
+long recurse(NodeIntel *n, int m) {
+    if (n->low == m && m == n->high) {
+        n->sum = 0;
+        return 0;
+    }
+    if (n->mid == -1) {
+        n->mid = m;
+        n->left = new NodeIntel();
+        n->left->low = n->low;
+        n->left->high = m - 1;
+        n->left->sum = s[m - 1] - s[n->low - 1];
+        n->right = new NodeIntel();
+        n->right->low = m + 1;
+        n->right->high = n->high;
+        n->right->sum = s[n->high] - s[m];
+    } else {
+        if (m < n->mid)
+            recurse(n->left, m);
+        else
+            recurse(n->right, m);
+    }
+    n->sum = max(n->right->sum, n->left->sum);
+    return n->sum;
+}
+
+int main() {
+    int n;
+    cin >> n;
+
+    s.push_back(0);
+    int prev = 0;
+    for (int i = 1; i < n + 1; i++) {
+        int temp;
+        cin >> temp;
+        temp += prev;
+        s.push_back(temp);
+        prev = temp;
+    }
+
+    NodeIntel root = NodeIntel();
+    root.low = 1;
+    root.high = n;
+    root.sum = s[n];
+
+    for (int i = 0; i < n; i++) {
+        int b;
+        cin >> b;
+        long ans = recurse(&root, b);
+        cout << ans << endl;
+    }
+}

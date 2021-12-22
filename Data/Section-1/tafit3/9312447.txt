@@ -1,0 +1,163 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemB {
+    BufferedReader rd;
+    int[] px;
+    int[] rank;
+
+    private ProblemB() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        rd.readLine();
+        int[] a = intarr();
+        int n = a.length;
+        char[][] m = new char[n][];
+        for(int i=0;i<n;i++) {
+            m[i] = rd.readLine().toCharArray();
+        }
+        px = new int[n];
+        Arrays.fill(px, -1);
+        rank = new int[n];
+        for(int i=0;i<n;i++) {
+            for(int j=i+1;j<n;j++) {
+                char c = m[i][j];
+                if(c == '1') {
+                    union(get(i), get(j));
+                }
+            }
+        }
+        Map<Integer, List<Integer>> s = new HashMap<>();
+        for(int i=0;i<n;i++) {
+            int key = get(i);
+            List<Integer> q = s.get(key);
+            if(q == null) {
+                q = new ArrayList<>();
+                s.put(key, q);
+            }
+            q.add(i);
+        }
+        Set<Integer> processed = new HashSet<>();
+        for(int i=0;i<n;i++) {
+            int key = get(i);
+            if(!processed.contains(key)) {
+                processed.add(key);
+                List<Integer> idx = s.get(key);
+                int ss = idx.size();
+                int[] b = new int[ss];
+                for(int j=0;j<ss;j++) {
+                    b[j] = a[idx.get(j)];
+                }
+                Arrays.sort(b);
+                for(int j=0;j<ss;j++) {
+                    a[idx.get(j)] = b[j];
+                }
+            }
+        }
+        StringBuilder buf = new StringBuilder();
+        for(int i=0;i<n;i++) {
+            if(i > 0) {
+                buf.append(' ');
+            }
+            buf.append(Integer.toString(a[i]));
+        }
+        out(buf);
+    }
+
+    private void ms(int x) {
+        px[x] = x;
+        rank[x] = 0;
+    }
+
+    private int find(int x) {
+        if(px[x] == x) {
+            return x;
+        }
+        if(px[px[x]] == px[x]) {
+            return px[x];
+        }
+        List<Integer> q = new ArrayList<>();
+        int y = x;
+        while(y != px[y]) {
+            q.add(y);
+            y = px[y];
+        }
+        for(Integer z: q) {
+            px[z] = y;
+        }
+        return y;
+    }
+
+    private void link(int x, int y) {
+        if(rank[x] > rank[y]) {
+            px[y] = x;
+        } else {
+            px[x] = y;
+            if(rank[x] == rank[y]) {
+                rank[y]++;
+            }
+        }
+    }
+
+    private void union(int x, int y) {
+        link(find(x), find(y));
+    }
+
+    private int get(int x) {
+        if(px[x] == -1) {
+            ms(x);
+            return x;
+        }
+        return find(x);
+    }
+
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    private String[] split(String s) {
+        int n = s.length();
+        int sp = 0;
+        for(int i=0;i<n;i++) {
+            if(s.charAt(i)==' ') {
+                sp++;
+            }
+        }
+        String[] res = new String[sp+1];
+        int last = 0;
+        int x = 0;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(c == ' ') {
+                res[x++] = s.substring(last,i);
+                last = i+1;
+            }
+        }
+        res[x] = s.substring(last,n);
+        return res;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemB();
+    }
+}

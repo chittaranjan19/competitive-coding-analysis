@@ -1,0 +1,152 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807
+#define INF 2000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+class trie{
+
+    trie* child[26];
+    bool isLeaf ;
+
+    public :trie()
+    {
+        memset( child , 0 , sizeof(child) );
+        isLeaf = false ;
+    };
+
+    void ins(const char *str )
+    {
+        if( *str=='\0' ){
+                isLeaf = 1;
+        }
+        else{
+            int position = *str - 'a' ;
+            if( child[position] == 0 ){
+                child[position] = new trie();
+            }
+            isLeaf = 0;
+            child[position]->ins( str+1 );
+        }
+    }
+
+    bool dfs(char str,int depth)
+    {
+        int counter = 0;
+        bool done = false;
+        for(int i=0;i<26;i++)
+        {
+            if( child[i] == 0 )
+            {
+                counter++;
+                continue;
+            }
+            if(!child[i]->dfs( i+'a' ,depth+1))
+            {
+                if(depth % 2 == 0)
+                    return false;
+            }
+            else done = true;
+        }
+        if(counter == 26)
+            return (depth % 2) == 0;
+        if(depth % 2 == 1 && !done)
+            return false;
+        return true;
+    }
+    bool dfs2(char str,int depth)
+    {
+        int counter = 0;
+        bool done = false;
+        for(int i=0;i<26;i++)
+        {
+            if(child[i] == 0)
+            {
+                counter++;
+                continue;
+            }
+            if(!(child[i]->dfs2( i+'a' ,depth+1)))
+            {
+                if(depth % 2 == 0)
+                    return false;
+            }
+            else done = true;
+        }
+        if(counter == 26)
+            return (depth % 2) == 1;
+        if(depth % 2 == 1 && !done)
+            return false;
+        return true;
+    }
+};
+
+string test[100005];
+
+int main()
+{
+    int n,k;
+    scanf("%d %d",&n,&k);
+    trie temp;
+    for(int i=0;i<n;i++)
+        cin >> test[i];
+    sort(test,test+n);
+    for(int i=0;i<n;i++)
+        temp.ins(test[i].c_str());
+    bool t=false,tt=false;
+    for(int i=0;i<26;i++)
+    {
+        if(temp.dfs('a'+i,1))
+        {
+            t = true;
+            break;
+        }
+    }
+    for(int i=0;i<26;i++)
+    {
+        if(temp.dfs2('a'+i,1))
+        {
+            tt = true;
+            break;
+        }
+    }
+    if(t)
+    {
+        if(k % 2 == 0)
+        {
+            if(tt)
+                printf("First");
+            else printf("Second");
+        }
+        else printf("First");
+    }
+    else printf("Second");
+    return 0;
+}

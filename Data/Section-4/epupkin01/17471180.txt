@@ -1,0 +1,98 @@
+#include <iostream>
+#include <string>       // string s; cin >> s;
+#include <cstring>      // memset(b, 0, sizeof(arr)); strcpy(a1, a2); strcat(a1, a2);
+#include <cmath>
+#include <cstdio>       // getchar(), gets()
+#include <cstdlib>      // rand(), max(), min()
+#include <ctime>        // rand(): srand(int(time(0)));
+#include <algorithm>    // std::sort(a + 0, a + n); a - массв, n - кол-во эл-тов
+#include <iomanip>      // setw()
+#include <vector>
+#include <array>
+#include <fstream>      // file IO (input-output)
+#include <cctype>       // isupper()
+#include <memory>       // shared_ptr<>, uniqu_ptr<>
+#include <iterator>     // ostream_iterator<int, char> our_iter(cout, " ");
+#include <set>
+#include <map>
+#define SRT srand(int(time(0)))
+typedef long long ll;
+typedef long double ld;
+typedef unsigned long long ull;
+using namespace std;
+int BinarSrch(int left, int right, int sum);
+inline ll arsum(int big, int small)
+{
+    if (big >= small)
+        return ll(big - small + 1) * (big + small) / 2;
+    else
+        return 0;
+}
+int main()
+{
+    const int S = 1e5 + 1, M = 1e9;
+    int n, m, a[S], ans[S][2], ai = 0;
+    cin >> n >> m;
+    for (int i = 0; i < n; ++i)
+        scanf("%d", a + i);
+    sort(a, a + n);
+    int sum = m, kolvo = 0;
+    int r;
+    if (a[0] > 1)
+    {
+        r = BinarSrch(1, a[0] - 1, sum);
+        ans[0][0] = 1;
+        ans[ai++][1] = r;
+        kolvo = r;
+        sum -= arsum(r, 1);
+    }
+    for (int i = 0; i < n-1; ++i)
+    {
+        if (a[i+1] - a[i] < 2)
+            continue;
+        r = BinarSrch(a[i] + 1, a[i+1] - 1, sum);
+        if (r == -1)
+            break;
+        sum -= arsum(r, a[i] + 1);
+        kolvo += r - a[i];
+        ans[ai][0] = a[i] + 1;
+        ans[ai++][1] = r;
+    }
+    r = BinarSrch(a[n-1] + 1, M, sum);
+    if (r != -1)
+    {
+        sum -= arsum(r, a[n-1] + 1);
+        kolvo += r - a[n-1];
+        ans[ai][0] = a[n-1] + 1;
+        ans[ai++][1] = r;
+    }
+    /*
+    cout << "sum = " << sum << ", kolvo = " << kolvo << '\n';
+    for (int i = 0; i < ai; ++i)
+        cout << ans[i][0] << ' ' << ans[i][1] << ", " << arsum(ans[i][1], ans[i][0]) << '\n';
+    */
+    cout << kolvo << '\n';
+    for (int i = 0; i < ai; ++i)
+        for (int j = ans[i][0]; j <= ans[i][1]; ++j)
+            printf("%d ", j);
+    cout << '\n';
+    return 0;
+}
+int BinarSrch(int left, int right, int sum)
+{
+    if (sum < left)
+        return -1;
+    if (sum >= arsum(right, left))
+        return right;
+    int l = left, r = right, mid = (right + left) / 2;
+    while (mid > l)
+    {
+        //arsum(mid) >= sum : l = mid
+        if (sum < arsum(mid, left))
+            r = mid;
+        else
+            l = mid;
+        mid = (r + l) / 2;
+    }
+    return mid;
+}

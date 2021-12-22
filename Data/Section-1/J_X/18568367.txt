@@ -1,0 +1,65 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 1e5 + 5;
+
+struct edge
+{
+    int to, w, next;
+
+    edge(int to = 0, int w = 0, int next = 0) : to(to), w(w), next(next) {}
+} G[maxn];
+int head[maxn], tot, val[maxn], sz[maxn], ans;
+ll mnd[maxn];
+
+void init()
+{
+    memset(head, -1, sizeof(head));
+    tot = ans = 0;
+}
+
+void addedge(int u, int v, int w)
+{
+    G[tot] = edge(v, w, head[u]);
+    head[u] = tot++;
+}
+
+void dfs(int u, int fa, ll d, bool f)
+{
+    sz[u] = 1;
+    mnd[u] = min(d, mnd[fa]);
+    bool g = (d - val[u] > mnd[fa]) && !f;
+    for(int i = head[u]; ~i; i = G[i].next)
+    {
+        int v = G[i].to;
+        dfs(v, u, d + G[i].w, g || f);
+        sz[u] += sz[v];
+    }
+    if(g) ans += sz[u];
+}
+
+int main()
+{
+    int n;
+    init();
+    scanf("%d", &n);
+    for(int i = 1; i <= n; ++i)
+    {
+        scanf("%d", val + i);
+    }
+    for(int i = 2; i <= n; ++i)
+    {
+        int p, w;
+        scanf("%d%d", &p, &w);
+        addedge(p, i, w);
+    }
+    dfs(1, 0, 0, false);
+    printf("%d\n", ans);
+    return 0;
+}

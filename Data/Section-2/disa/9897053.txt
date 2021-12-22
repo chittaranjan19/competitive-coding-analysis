@@ -1,0 +1,101 @@
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <iomanip>
+#include <map>
+using namespace std;
+
+typedef long long ll;
+
+
+#if _DEBUG
+#include <fstream>
+ifstream cin("input.txt");
+ofstream cout("output.txt");
+#else
+#include <iostream>
+#endif
+
+
+char a[2002][2002];
+
+bool used[2002][2002];
+
+void dfs(int x, int y) {
+	used[x][y] = true;
+	if (a[x + 1][y] == '.' && !used[x + 1][y]) {
+		dfs(x + 1, y);
+	}
+	if (a[x - 1][y] == '.' && !used[x - 1][y]) {
+		dfs(x - 1, y);
+	}
+	if (a[x][y + 1] == '.' && !used[x][y + 1]) {
+		dfs(x, y + 1);
+	}
+	if (a[x][y - 1] == '.' && !used[x][y - 1]) {
+		dfs(x, y - 1);
+	}
+	if (a[x][y] != '.') return;
+	bool ok1 = false, ok2 = false;
+	bool ok3 = false, ok4 = false;
+	if (a[x - 1][y] == '.')
+		ok1 = true;
+	if (a[x][y + 1] == '.')
+		ok2 = true;
+	if (a[x + 1][y] == '.')
+		ok3 = true;
+	if (a[x][y - 1] == '.')
+		ok4 = true;
+	if (ok1 + ok2 + ok3 + ok4 != 1) {
+		cout << "Not unique";
+		exit(0);
+	}
+	if (ok1) {
+		a[x][y] = 'v';
+		a[x - 1][y] = '^';
+	}
+	if (ok2) {
+		a[x][y] = '<';
+		a[x][y + 1] = '>';
+	}
+	if (ok3) {
+		a[x][y] = '^';
+		a[x + 1][y] = 'v';
+	}
+	if (ok4) {
+		a[x][y] = '>';
+		a[x][y - 1] = '<';
+	}
+}
+
+int main() {
+	int n, m;
+	cin >> n >> m;
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= m; j++) {
+			cin >> a[i][j];
+		}
+	}
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= m; j++) {
+			if (!used[i][j]) {
+				dfs(i, j);
+			}
+		}
+	}
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= m; j++) {
+			if (a[i][j] == '.') {
+				cout << "Not unique";
+				return 0;
+			}
+		}
+	}
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= m; j++) {
+			cout << a[i][j];
+		}
+		cout << '\n';
+	}
+	return 0;
+}

@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 1001;
+const int off = 10000;
+
+int n, dp[maxn][off*2 + 5], trace[maxn][off*2 + 5];
+pii pt[maxn];
+
+int solve(int cur, int prv)
+{
+	if(cur==n){
+		if(pt[cur].f > prv)
+			return inf;
+		trace[cur][prv] = 1;
+		return 1;
+	}
+	if(dp[cur][prv]!=-1)
+		return dp[cur][prv];
+	if(pt[cur].f > prv)
+		return inf;
+	int ret1 = 1 + solve(cur+1, off*2 + 3);
+	int nprv = min(prv, pt[cur].s);
+	int ret2 = solve(cur+1, nprv);
+	//cout << cur << " " << prv << " " << ret1 << " " << ret2 << "\n";
+	if(ret1 < ret2)
+		trace[cur][prv] = 1;
+	return dp[cur][prv] = min(ret1, ret2);
+}
+
+void print(int cur, int prv)
+{
+	//cout << cur << " " << prv << " " << trace[cur][prv] << "\n";
+	if(cur==n){
+		if(trace[cur][prv])
+			printf("%d ", pt[cur].f-off);
+		return;
+	}
+	if(trace[cur][prv]){
+		printf("%d ", pt[cur].f-off);
+		print(cur+1, off*2 + 3);
+	}
+	else{
+		int nprv = min(prv, pt[cur].s);
+		print(cur+1, nprv);
+	}
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j;	
+	memset(dp, -1, sizeof(dp));
+	sd(n);
+	for(i=1; i<=n; i++){
+		scanf("%d%d", &pt[i].f, &pt[i].s);
+		pt[i].f+=off;
+		pt[i].s+=off;
+		if(pt[i].f > pt[i].s)
+			swap(pt[i].f, pt[i].s);
+	}
+	sort(pt+1, pt+n+1);
+	int ans = solve(1, off*2 + 3);
+	printf("%d\n", ans);
+	print(1, off*2 + 3);
+	return 0;
+}

@@ -1,0 +1,123 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 100005
+#define maxC 2000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+#define mid ((0ll + l + r) >> 1)
+
+using namespace std;
+struct interval
+{
+    int l, r, best, id;
+    interval* lc;
+    interval* rc;
+
+    interval(int l = 0, int r = 0): l(l), r(r)
+    {
+        id = best = maxC;
+        lc = rc = NULL;
+    }
+
+    void push()
+    {
+        if (lc == NULL)
+        {
+            lc = new interval(l, mid);
+            rc = new interval(mid + 1, r);
+        }
+        if (id == maxC)
+            return;
+        lc -> best = min(lc -> best, id - lc -> l);
+        rc -> best = min(rc -> best, id - rc -> l);
+        lc -> id = min(lc -> id, id);
+        rc -> id = min(rc -> id, id);
+        id = maxC;
+    }
+
+    void update(int x, int y, int v)
+    {
+        if (l > y || r < x || best == 0)
+            return;
+        //cout << l << ' ' << r << ' ' << x << ' ' << y << ' ' << v << '\n';
+        if (x <= l && r <= y)
+        {
+            if (v)
+            {
+                best = min(best, v - l);
+                id = v;
+            }
+            else
+                best = 0;
+            return;
+        }
+        push();
+        lc -> update(x, y, v);
+        rc -> update(x, y, v);
+        best = max(lc -> best, rc -> best);
+    }
+
+    int get(int x)
+    {
+        if (l == r || best == 0)
+            return best;
+        push();
+        if (x <= mid)
+            return lc -> get(x);
+        return rc -> get(x);
+    }
+
+    int find(int d)
+    {
+        if (l == r)
+            return l;
+        push();
+        if (lc -> best >= d)
+            return lc -> find(d);
+        return rc -> find(d);
+    }
+} t;
+int n;
+
+void setup()
+{
+    cin >> n;
+    t = interval(1, maxC);
+    int s, d;
+    FOR(i, 1, n)
+    {
+        cin >> s >> d;
+        int x = t.get(s);
+        if (x >= d)
+        {
+            cout << s << ' ' << s + d - 1 << '\n';
+            t.update(s, s + d - 1, 0);
+            t.update(1, s - 1, s);
+        }
+        else
+        {
+            x = t.find(d);
+            cout << x << ' ' << x + d - 1 << '\n';
+            t.update(x, x + d - 1, 0);
+            t.update(1, x - 1, x);
+        }
+    }
+}
+
+void xuly()
+{
+
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

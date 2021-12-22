@@ -1,0 +1,115 @@
+#define _SCL_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#pragma comment(linker, "/STACK:500000000") 
+#include <functional>
+#include <algorithm>
+#include <iostream> 
+#include <string.h> 
+#include <stdlib.h>
+#include <complex>
+#include <sstream> 
+#include <numeric>
+#include <ctype.h> 
+#include <stdio.h> 
+#include <bitset>
+#include <vector> 
+#include <string> 
+#include <math.h> 
+#include <time.h> 
+#include <queue> 
+#include <stack> 
+#include <list>
+#include <map> 
+#include <set> 
+#define Int long long 
+#define INF 0x3F3F3F3F 
+#define eps 1e-9
+using namespace std;
+typedef pair<int, int> pii;
+
+template <typename Type> class FenwickTreeSum
+{
+	vector<Type> t;
+public:
+	Type Sum(int right) {
+		Type result = 0;
+		for (; right >= 0; right = (right & (right + 1)) - 1)
+			result += t[right];
+		return result;
+	}
+	void Add(int idx, Type delta) {
+		for (; idx < t.size(); idx |= idx + 1)
+			t[idx] += delta;
+	}
+	Type Sum(int left, int right) {
+		return Sum(right) - Sum(left - 1);
+	}
+	void Initialize(int size) {
+		t.assign(size, (Type)0);
+	}
+	FenwickTreeSum(int size) {
+		Initialize(size);
+	}
+	FenwickTreeSum() {
+	}
+};
+
+struct Empl
+{
+	Int d, r;
+	int id;
+
+	bool operator <(const Empl &e) const
+	{
+		return d < e.d;
+	}
+};
+
+int main()
+{
+	int n, m, i, j;
+	scanf("%d %d", &n, &m);
+	vector<pair<Int, int> > dur(m);
+	for (i = 0; i < m; i++)
+	{
+		scanf("%I64d", &dur[i].first);
+		dur[i].second = i;
+	}
+	vector<Empl> A(n);
+	for (i = 0; i < n; i++)
+	{
+		scanf("%I64d %I64d", &A[i].d, &A[i].r);
+		A[i].id = i;
+	}
+	vector<Int> sum(m);
+	sum[0] = dur[0].first;
+	for (i = 1; i < m; i++)
+		sum[i] = sum[i - 1] + dur[i].first;
+	sort(A.begin(), A.end());
+	FenwickTreeSum<Int> bad_sum(m), bad_cnt(m);
+	auto sorted = dur;
+	sort(sorted.begin(), sorted.end());
+	int bad_it = 0;
+	vector<int> out(n);
+	for (i = 0; i < n; i++)
+	{
+		for (; bad_it < m && sorted[bad_it].first < A[i].d; bad_it++)
+		{
+			bad_cnt.Add(sorted[bad_it].second, 1);
+			bad_sum.Add(sorted[bad_it].second, sorted[bad_it].first);
+		}
+		int L = 0, R = m - 1, res = -1;
+		while (L <= R)
+		{
+			int c = (L + R) / 2;
+			Int s = sum[c] - bad_sum.Sum(c) - (c + 1 - bad_cnt.Sum(c)) * A[i].d;
+			if (s >= A[i].r)
+				R = c - 1, res = c;
+			else
+				L = c + 1;
+		}
+		out[A[i].id] = res + 1;
+	}
+	for (i = 0; i < n; i++)
+		printf("%d%c", out[i], " \n"[i == n - 1]);
+}

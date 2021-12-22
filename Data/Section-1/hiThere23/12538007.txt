@@ -1,0 +1,119 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 500010
+#define maxC 1000000000
+#define pb push_back
+
+using namespace std;
+int n, m, noIn[mn], noOut[mn], maxH = 0, h[mn], dem = 1;
+vector<int> g[mn], noH[mn], st[mn];
+string s;
+
+void setup ()
+{
+    int x;
+    cin >> n >> m;
+    FOR (i, 2, n)
+    {
+        cin >> x;
+        g[x].pb(i);
+    }
+    cin >> s;
+    char d = 'z' + 1;
+    s = d + s + d;
+}
+
+void dfs(int u, int he)
+{
+    noIn[u] = dem ++;
+    maxH = max(maxH, he);
+    if (noH[he].size() == 0)
+        noH[he].pb(0);
+    noH[he].pb(u);
+    h[u] = he;
+    FOR (i, 0, int(g[u].size()) - 1)
+        dfs(g[u][i], he + 1);
+    noOut[u] = dem ++;
+}
+
+void chuanbi()
+{
+    FOR (i, 1, maxH)
+    {
+        noH[i].pb(n + 1);
+        st[i].resize(noH[i].size(), 0);
+        FOR (j, 0, int(noH[i].size()) - 1)
+        {
+            int u = noH[i][j];
+            int v = s[u] - 'a';
+            if (v != 26)
+                st[i][j] |= 1 << v;
+        }
+        FOR (j, 1, int(noH[i].size()) - 1)
+            st[i][j] ^= st[i][j - 1];
+    }
+}
+
+void querry()
+{
+    int u, he;
+    cin >> u >> he;
+    if (he > maxH || he <= h[u])
+    {
+        cout << "Yes\n";
+        return;
+    }
+    int r = noH[he][noH[he].size() - 2];
+    int l = noH[he][1];
+    if (noIn[r] < noIn[u] || noOut[l] > noOut[u])
+    {
+        cout << "Yes\n";
+        return;
+    }
+    l = 0;
+    r = noH[he].size() - 1;
+    while (r - l > 1)
+    {
+        int g = (l + r) / 2;
+        int x = noH[he][g];
+        if (noIn[x] < noIn[u])
+            l = g;
+        else
+            r = g;
+    }
+    int low = 0, high = noH[he].size() - 1;
+    while (high - low > 1)
+    {
+        int g = (high + low) / 2;
+        int x = noH[he][g];
+        if (noOut[x] > noOut[u])
+            high = g;
+        else
+            low = g;
+    }
+    int q = st[he][low] ^ st[he][r - 1];
+    if (__builtin_popcount(q) > 1)
+        cout << "No\n";
+    else
+        cout << "Yes\n";
+}
+
+void xuly ()
+{
+    dfs(1, 1);
+    chuanbi();
+    noIn[0] = noOut[n + 1] = maxC;
+    FOR (i, 1, m)
+    querry();
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

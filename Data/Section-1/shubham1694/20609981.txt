@@ -1,0 +1,97 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+typedef vector<vector<ll> > matrix;
+
+const int mod = 1000000007;
+const ll ninf = -1ll<<50;
+const int maxn = 100010;
+
+ll val[maxn], dp[maxn], pref[maxn], st[maxn*5], a, b;
+int n, col[maxn];
+vector<int> pos[maxn];
+
+void init(int s, int e, int node)
+{
+	if(s==e){
+		st[node] = ninf;
+		return;
+	}
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	init(s, mid, lc);
+	init(mid+1, e, rc);
+	st[node] = ninf;
+}
+
+void update(int s, int e, int q, ll val, int node)
+{
+	if(s>e || s>q || q>e)
+		return;
+	if(s==e){
+		st[node] = max(st[node], val);
+		return;
+	}
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	update(s, mid, q, val, lc);
+	update(mid+1, e, q, val, rc);
+	st[node] = max(st[lc], st[rc]);
+}
+
+ll query(int s, int e, int qs, int qe, int node)
+{
+	if(s>e || s>qe || qs>e)
+		return ninf;
+	if(s>=qs && qe>=e)
+		return st[node];
+	int mid, lc, rc;
+	mid = (s+e)>>1;
+	lc = 2*node + 1;
+	rc = lc + 1;
+	ll ret = max(query(s, mid, qs, qe, lc), query(mid+1, e, qs, qe, rc));
+	return ret;
+}
+
+int main()
+{
+	//freopen("i.txt", "r", stdin);
+	//freopen("o.txt", "w", stdout);
+	int i, j, q;
+	scanf("%d%d", &n, &q);
+	for(i=1; i<=n; i++)
+		scanf("%lld", &val[i]);
+	for(i=1; i<=n; i++){
+		scanf("%d", &col[i]);
+		pos[col[i]].pb(i);
+	}
+	while(q--){
+		scanf("%lld%lld", &a, &b);
+		ll cmax, ans = 0;
+		init(1, n, 0);
+		for(i=1; i<=n; i++){
+			int c = col[i];
+			ll mval = max(query(1, n, 1, c-1, 0), query(1, n, c+1, n, 0));
+			dp[i] = max(b*val[i], max(mval + b*val[i], query(1, n, c, c, 0) + a*val[i]));
+			update(1, n, c, dp[i], 0);
+			ans = max(ans, dp[i]);
+		}
+		printf("%lld\n", ans);
+	}
+	return 0;
+}

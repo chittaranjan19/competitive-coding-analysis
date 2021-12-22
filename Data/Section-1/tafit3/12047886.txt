@@ -1,0 +1,132 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class ProblemC {
+    BufferedReader rd;
+
+    ProblemC() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        rd.readLine();
+        int[] a = intarr();
+        int n = a.length;
+        String[] b = new String[n];
+        int minlen = Integer.MAX_VALUE;
+        for(int i=0;i<n;i++) {
+            b[i] = Integer.toBinaryString(a[i]);
+            minlen = Math.min(minlen, b[i].length());
+        }
+        int p=2;
+        while(p<=minlen) {
+            String u = b[0].substring(0, p);
+            boolean ok = true;
+            for(int i=1;i<n;i++) {
+                if(!b[i].startsWith(u)) {
+                    ok = false;
+                    break;
+                }
+            }
+            if(!ok) {
+                p--;
+                break;
+            }
+            p++;
+        }
+        long minOps = Long.MAX_VALUE;
+        for(int i=p;i<=20;i++) {
+            long ops = 0;
+            for(String s: b) {
+                int k = 0;
+                for(int j=p;j<s.length();j++) {
+                    if(s.charAt(j)=='1') {
+                        k = j;
+                        break;
+                    }
+                }
+                if(k > 0) {
+                    int y = s.length()-k;
+                    ops += Math.abs(k - i) + y;
+                } else {
+                    ops += Math.abs(s.length() - i);
+                }
+            }
+            minOps = Math.min(ops, minOps);
+        }
+        out(minOps);
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC();
+    }
+}

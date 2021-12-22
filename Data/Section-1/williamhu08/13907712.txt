@@ -1,0 +1,95 @@
+//sol w/o PBS
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, int> pli;
+const int MAXN = 2e5 + 10;
+
+void operator += (pli &a, pli b) {
+	a.first += b.first;
+	a.second += b.second;
+}
+
+pli operator + (pli a, pli b) {
+	a += b;
+	return a;
+}
+
+//how does operator - compile on mine :P
+
+struct fenwick {
+    pli bit[MAXN];
+    void update (int x, pli v) {
+        for (x++; x < MAXN; x += (x & -x)) {
+            bit[x] += v;
+        }
+    }
+    
+    pli query (int x) {
+        pli s(0, 0);
+        for (x++; x; x &= x - 1) {
+            s += bit[x];
+        }
+        return s;
+    }
+};
+
+int N, M;
+pii T[MAXN];
+pair<pii, int> W[MAXN];
+fenwick ft;
+int ans[MAXN];
+
+bool moo (int i, int t) {
+	pli p = ft.query(t);
+	return p.first - p.second * ll(W[i].first.first) >= W[i].first.second;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	scanf("%d %d", &N, &M);
+	for (int i = 1; i <= M; i++) {
+		scanf("%d", &T[i].first);
+		T[i].second = i;
+	}
+	for (int i = 1; i <= N; i++) {
+		scanf("%d %d", &W[i].first.first, &W[i].first.second);
+		W[i].second = i;
+	}
+
+	sort(T + 1, T + M + 1);
+	sort(W + 1, W + M + 1);
+
+
+	for (int i = N, j = M; i; i--) {
+		//update times
+		for (; j && T[j].first >= W[i].first.first; j--) {
+			ft.update(T[j].second, pli(T[j].first, 1));
+		}
+
+		//bsearch query
+		if (!moo(i, M)) {
+			continue;
+		}
+		int lo = 0, hi = M;
+		while (hi - lo > 1) {
+			int mid = (lo + hi) / 2;
+			if (moo(i, mid)) {
+				hi = mid;
+			} else {
+				lo = mid;
+			}
+		}
+		ans[W[i].second] = hi;
+	}
+
+	for (int i = 1; i <= N; i++) {
+		printf("%d ", ans[i]);
+	}
+	puts("");
+}

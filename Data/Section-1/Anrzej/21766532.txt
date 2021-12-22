@@ -1,0 +1,111 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <unordered_map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+#define all(x) x.begin(), x.end()
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 4e5 + 10, lg = 31, MAXN = 1111;
+ll mod = 1e9 + 7;
+
+ll gcd(ll a, ll b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+ll _gcd(ll a, ll b, ll & x, ll & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	ll _x1, _y1;
+	ll d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+ll binpow(ll a, ll n) {
+	ll res = 1;
+	while (n) {
+		if (n & 1)
+			res *= a;
+		a *= a;
+		n >>= 1;
+		a %= mod;
+		res %= mod;
+	}
+	return res;
+}
+
+
+void term_res(string res){
+	cout << res;
+	exit(0);
+}
+
+int dp[102][102][10002];
+int a[102], b[102];
+
+int main()
+{
+	int n;
+	cin >> n;
+	int all_v = 0;
+	vector<pair<int, int> > v;
+	for(int i = 0; i < n; i++){
+		cin >> a[i];
+		all_v += a[i];
+		v.push_back(mp(0, a[i]));
+	}
+	for(int i = 0; i < n; i++){
+		cin >> b[i];
+		v[i].fs = b[i];
+	}
+	sort(v.begin(), v.end(), greater<pair<int, int> >());
+	int k = -1, cur_v = 0;
+	while(cur_v < all_v){
+		k++;
+		cur_v += v[k].fs;
+	}
+	k+=1;
+	memset(dp, -1, sizeof(dp));
+	dp[0][0][0] = 0;
+	//dp[0][0][b[0]] = a[0];
+	for(int i = 0; i < n; i++){
+		for(int j = 0; j <= k; j++){
+			for(int cap = 0; cap <= 10000; cap++){
+				if(dp[i][j][cap] == -1) continue;
+				dp[i+1][j+1][cap+b[i]] = max(dp[i+1][j+1][cap+b[i]], dp[i][j][cap]+a[i]);
+				dp[i+1][j][cap] = max(dp[i+1][j][cap], dp[i][j][cap]);
+			}
+		}
+	}
+	int tmax = 0;
+	for(int i = all_v; i <= 10000; i++){
+		tmax = max(tmax, dp[n][k][i]);
+	}
+	cout << k << ' ' << all_v - tmax;
+	return 0;
+}

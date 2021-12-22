@@ -1,0 +1,218 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemD2 {
+    Map<String, Integer> byName = new HashMap<>();
+    List<String> byId = new ArrayList<>();
+    int[] rcon;
+    int[] lcon;
+    int[] reduced;
+    Map<Integer, List<Integer>> g1;
+    int nodeCount;
+
+    private ProblemD2() throws IOException {
+        BufferedReader rd = new BufferedReader(new InputStreamReader(System.in));
+        rd.readLine();
+        String h = rd.readLine();
+        String[] essay = h.toLowerCase().split(" ");
+        h = rd.readLine();
+        int n = Integer.parseInt(h);
+        g1 = new HashMap<>();
+        for(int i=0;i<n;i++) {
+            h = rd.readLine();
+            String[] pair = h.toLowerCase().split(" ");
+            Integer a = idOf(pair[0]);
+            Integer b = idOf(pair[1]);
+            if(!a.equals(b)) {
+                List<Integer> succ = g1.get(a);
+                if(succ == null) {
+                    succ = new ArrayList<>();
+                    g1.put(a, succ);
+                }
+                succ.add(b);
+            }
+        }
+        nodeCount = byId.size();
+        rcon = new int[nodeCount];
+        lcon = new int[nodeCount];
+        for(int i=0;i<nodeCount;i++) {
+            rcon[i] = countR(byId.get(i));
+            lcon[i] = byId.get(i).length();
+        }
+        reduced = new int[nodeCount];
+        for(int i=0;i<nodeCount;i++) {
+            reduced[i] = i;
+        }
+
+        while(!red());
+
+        boolean[] v = new boolean[nodeCount];
+        Set<Integer> todo = new HashSet<>();
+        for(int i=0;i<nodeCount;i++) {
+            todo.add(i);
+        }
+        while(!todo.isEmpty()) {
+            Integer from = todo.iterator().next();
+            List<int[]> back = new ArrayList<>();
+            back.add(new int[] { from, 0 });
+            int minR = 0;
+            int minLen = 0;
+            boolean down = true;
+            while(!back.isEmpty()) {
+                int[] p = back.remove(back.size()-1);
+                v[p[0]] = true;
+                todo.remove(p[0]);
+                List<Integer> succ = g1.get(p[0]);
+                if(succ != null) {
+                    if(!down) {
+                        if(rcon[p[0]] > minR || (rcon[p[0]] == minR && lcon[p[0]] > minLen)) {
+                            rcon[p[0]] = minR;
+                            lcon[p[0]] = minLen;
+                        }
+                    }
+                    while(p[1] < succ.size()) {
+                        Integer next = succ.get(p[1]);
+                        if(!v[next]) {
+                            back.add(new int[] { p[0], p[1] + 1 });
+                            back.add(new int[] { next, 0 });
+                            down = true;
+                            break;
+                        } else {
+                            p[1]++;
+                        }
+                    }
+                    if(p[1] == succ.size()) {
+                        down = false;
+                    }
+                } else {
+                    down = false;
+                }
+                minR = rcon[p[0]];
+                minLen = lcon[p[0]];
+            }
+        }
+
+        int resR = 0;
+        int resLen = 0;
+        for(String word: essay) {
+            Integer id = byName.get(word);
+            if(id == null) {
+                resR += countR(word);
+                resLen += word.length();
+            } else {
+                resR += rcon[id];
+                resLen += lcon[id];
+            }
+        }
+        out(resR + " " + resLen);
+    }
+
+    private boolean red() {
+        int[] v = new int[nodeCount];
+        for(int i=0;i<nodeCount;i++) {
+            if(v[reduced[i]] == 0) {
+                List<int[]> todo = new ArrayList<>();
+                todo.add(new int[] { reduced[i], 0 });
+                while(!todo.isEmpty()) {
+                    int[] x = todo.remove(todo.size()-1);
+                    v[x[0]] = 1;
+                    List<Integer> succ = g1.get(x[0]);
+                    if(succ != null) {
+                        while(succ.size() > x[1]) {
+                            int next = reduced[succ.get(x[1])];
+                            if(v[next] == 0) {
+                                todo.add(new int[]{x[0], x[1] + 1});
+                                todo.add(new int[] { next, 0 });
+                                break;
+                            } else {
+                                if(v[next] == 1) {
+                                    cycleDetected(todo, x[0], next);
+                                    return false;
+                                }
+                                x[1]++;
+                            }
+                        }
+                        if(succ.size() == x[1]) {
+                            v[x[0]] = 2;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    private void cycleDetected(List<int[]> todo, int prev, int next) {
+        int min = next;
+        int y=todo.size()-1;
+        Set<Integer> cycle = new HashSet<>();
+        cycle.add(min);
+        cycle.add(prev);
+        int prev2 = prev;
+        if(rcon[prev2] < rcon[min] || (rcon[prev2] == rcon[min] && lcon[prev2] < lcon[min])) {
+            rcon[min] = rcon[prev2];
+            lcon[min] = lcon[prev2];
+        }
+        while(todo.get(y)[0] != next) {
+            prev2 = todo.get(y)[0];
+            if(rcon[prev2] < rcon[min] || (rcon[prev2] == rcon[min] && lcon[prev2] < lcon[min])) {
+                rcon[min] = rcon[prev2];
+                lcon[min] = lcon[prev2];
+            }
+            cycle.add(todo.get(y)[0]);
+            min = Math.min(todo.get(y)[0], min);
+            y--;
+        }
+        y = todo.size()-1;
+        reduced[prev] = min;
+        while(todo.get(y)[0] != next) {
+            reduced[todo.get(y)[0]] = min;
+            y--;
+        }
+        List<Integer> succ2 = g1.get(min);
+        if(succ2 == null) {
+            succ2 = new ArrayList<>();
+        }
+        Set<Integer> all = new HashSet<>(succ2);
+        for(Integer q: cycle) {
+            List<Integer> other = g1.get(q);
+            if(other != null) {
+                for(Integer v2: other) {
+                    all.add(reduced[v2]);
+                }
+            }
+        }
+        all.removeAll(cycle);
+        g1.put(min, new ArrayList<>(all));
+    }
+
+    private int countR(String s) {
+        int x = 0;
+        for(int i=0;i<s.length();i++) {
+            if(s.charAt(i) == 'r') {
+                x++;
+            }
+        }
+        return x;
+    }
+
+    private Integer idOf(String name) {
+        Integer x = byName.get(name);
+        if(x == null) {
+            x = byId.size();
+            byName.put(name, x);
+            byId.add(name);
+        }
+        return x;
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemD2();
+    }
+}

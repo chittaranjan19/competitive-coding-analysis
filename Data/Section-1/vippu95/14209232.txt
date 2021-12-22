@@ -1,0 +1,67 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+const int lmt = 200005;
+vector<int>posi[26];
+vector<int>val[26];
+int fwd[lmt];
+int bwd[lmt];
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    string s,t;
+    cin>>s>>t;
+    int n = s.size();
+    int m = t.size();
+    for(int i=0;i<m;i++){
+        posi[t[i]-'a'].pb(i);
+        val[t[i]-'a'].pb(m-i-1);
+    }
+    int cur = 0;
+    for(int i=1;i<n;i++){
+        if(cur!=m && s[i-1]==t[cur])
+            cur++;
+        fwd[i] = cur;
+    }
+    cur = 0;
+    for(int i=n-2;i>=0;i--){
+        if(cur!=m && s[i+1]==t[cur])
+            cur++;
+        bwd[i] = cur;
+    }
+//    for(int i=0;i<n;i++)
+//        cout<<fwd[i]<<" "<<bwd[i]<<endl;
+    for(int i=0;i<26;i++){
+        if(posi[i].size()==0) continue;
+        for(int j=1;j<posi[i].size();j++)
+            posi[i][j] = min(posi[i][j],posi[i][j-1]);
+    }
+    bool ok = true;
+    for(int i=0;i<n;i++){
+        int idx = s[i]-'a';
+        if(posi[idx].size()==0){
+            ok = false;
+            break;
+        }
+        int pp = distance(posi[idx].begin(),lower_bound(posi[idx].begin(),posi[idx].end(),fwd[i]));
+        if(val[idx][pp] > bwd[i]){
+            ok = false;
+            break;
+        }
+    }
+    if(ok)
+        printf("Yes\n");
+    else
+        printf("No\n");
+    return 0;
+}
+

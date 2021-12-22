@@ -1,0 +1,123 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef map<int, vector<int> > adjlist;
+const int MAXN = 100010, BLOCK = 450;
+
+int N, M, Q;
+adjlist cx[MAXN], xc[MAXN];
+map<int, int> cv[MAXN], vc[MAXN];
+vector<vector<int> > comps[MAXN];
+bool vis[MAXN];
+vector<int> allvis, heavy;
+int hind[MAXN];
+int memh[BLOCK][BLOCK];
+int par[MAXN];	//uf
+
+int find (int x) {
+	return x == par[x] ? x : par[x] = find(par[x]);
+}
+
+void merge (int x, int y) {
+	x = find(x);
+	y = find(y);
+	if (x != y) {
+		par[x] = y;
+	}
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 1, a, b, c; i <= M; i++) {
+		cin >> a >> b >> c;
+		cx[c][a].push_back(b);
+		cx[c][b].push_back(a);
+		xc[a][c].push_back(b);
+		xc[b][c].push_back(a);
+	}
+	for (int i = 1; i <= N; i++) {
+		if (xc[i].size() < BLOCK) {
+			hind[i] = -1;
+		} else {
+			hind[i] = heavy.size();
+			heavy.push_back(i);
+		}
+	}
+	if (heavy.size() > BLOCK) {
+		cout << "bad\n";
+		return 0;
+	}
+	adjlist hsh;
+	for (int i = 1; i <= M; i++) {
+		adjlist &mp = cx[i];
+		vector<int> nodes;
+		rep(it, mp) {
+			int x = it->first;
+			par[x] = x;
+			nodes.push_back(x);
+		}
+		rep(it, mp) {
+			int v = it->first;
+			for (int w : it->second) {
+				merge(v, w);
+			}
+		}
+		for (int x : nodes) {
+			hsh[find(x)].push_back(x);
+		}
+		int z = 0;
+		comps[i].reserve(hsh.size());
+		rep(it, hsh) {
+			z++;
+			vector<int> &v = it->second;
+			comps[i].push_back(v);
+			for (int x : v) {
+				cv[i][x] = vc[x][i] = z;
+			}
+		}
+		hsh.clear();
+	}
+	for (int i = 0, sz = heavy.size(); i < sz; i++) {
+		int u = heavy[i];
+		for (pii p : vc[u]) {
+			int c = p.first, cmp = p.second;
+			for (int v : comps[c][cmp]) {
+				int j = hind[v];
+				if (j != -1) {
+					memh[i][j]++;
+				}
+			}
+		}
+	}
+	cin >> Q;
+	for (int u, v; Q--; ) {
+		cin >> u >> v;
+		if (hind[v] == -1) {
+			swap(u, v);
+		}
+		if (hind[u] == -1) {
+			int ans = 0;
+			rep(it, xc[u]) {
+				int c = it->first;
+				ans += (cv[c][u] == cv[c][v]);
+			}
+			cout << ans << '\n';
+		} else {
+			cout << memh[hind[u]][hind[v]] << '\n';
+		}
+	}
+}

@@ -1,0 +1,175 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define EPS 1e-5
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+struct Edge {
+  int from, to, index;
+  int cap, flow;
+  Edge(int from, int to, int cap, int flow, int index) :
+    from(from), to(to), cap(cap), flow(flow), index(index) {}
+  int rcap() { return cap - flow; }
+};
+
+struct Dinic {
+  int N;
+  vector<vector<Edge> > G;
+  vector<vector<Edge *> > Lf;
+  vector<int> layer;
+  vector<int> Q;
+
+  Dinic(int N) : N(N), G(N), Q(N) {}
+  Dinic() {}
+
+  void AddEdge(int from, int to, int cap) {
+    if (from == to) return;
+    G[from].push_back(Edge(from, to, cap, 0, G[to].size()));
+    G[to].push_back(Edge(to, from, 0, 0, G[from].size() - 1));
+  }
+
+  int BlockingFlow(int s, int t) {
+    layer.clear(); layer.resize(N, -1);
+    layer[s] = 0;
+    Lf.clear(); Lf.resize(N);
+
+    int head = 0, tail = 0;
+    Q[tail++] = s;
+    while (head < tail) {
+      int x = Q[head++];
+      for (int i = 0; i < G[x].size(); i++) {
+        Edge &e = G[x][i]; if (e.rcap() <= 0) continue;
+        if (layer[e.to] == -1) {
+          layer[e.to] = layer[e.from] + 1;
+          Q[tail++] = e.to;
+        }
+        if (layer[e.to] > layer[e.from]) {
+          Lf[e.from].push_back(&e);
+        }
+      }
+    }
+    if (layer[t] == -1) return 0;
+
+    int totflow = 0;
+    vector<Edge *> P;
+    while (!Lf[s].empty()) {
+      int curr = P.empty() ? s : P.back()->to;
+      if (curr == t) { // Augment
+        int amt = P.front()->rcap();
+        for (int i = 0; i < P.size(); ++i) {
+          amt = min(amt, P[i]->rcap());
+        }
+        totflow += amt;
+        for (int i = P.size() - 1; i >= 0; --i) {
+          P[i]->flow += amt;
+          G[P[i]->to][P[i]->index].flow -= amt;
+          if (P[i]->rcap() <= 0) {
+            Lf[P[i]->from].pop_back();
+            P.resize(i);
+          }
+        }
+      } else if (Lf[curr].empty()) { // Retreat
+        P.pop_back();
+        for (int i = 0; i < N; ++i)
+          for (int j = 0; j < Lf[i].size(); ++j)
+            if (Lf[i][j]->to == curr)
+              Lf[i].erase(Lf[i].begin() + j);
+      } else { // Advance
+        P.push_back(Lf[curr].back());
+      }
+    }
+    return totflow;
+  }
+
+  int GetMaxFlow(int s, int t) {
+    int totflow = 0;
+    while (int flow = BlockingFlow(s, t))
+      totflow += flow;
+    return totflow;
+  }
+};
+
+set<pair<int, int> > g[10005];
+bool inq[10005];
+vector<pair<int, int> > tmp;
+Dinic solve;
+int idx;
+
+int dfs(int node)
+{
+  if(inq[node])
+  {
+    vector<pair<int, int> > t;
+    while(1)
+    {
+      t.pb(tmp.back());
+      tmp.pop_back();
+      if(t.back().f == node) break;
+    }
+    int id = idx++;
+    solve.AddEdge(0, id, t.size() - 1);
+    for(int i=0;i<t.size();i++)
+    {
+      solve.AddEdge(id, idx, 1);
+      solve.AddEdge(idx, t[i].s, 1);
+      idx++;
+    }
+    return node;
+  }
+  inq[node] = true;
+  while(!g[node].empty())
+  {
+    pair<int, int> p = *g[node].begin();
+    g[node].erase(g[node].begin());
+    g[p.f].erase(mp(node, p.s));
+    tmp.pb(mp(node, p.s));
+    int t = dfs(p.f);
+    if(t == -1)
+    {
+      tmp.pop_back();
+      solve.AddEdge(0, idx, 1);
+      solve.AddEdge(idx, p.s, 1);
+      idx++;
+    }
+    else if(t != node)
+    {
+      inq[node] = false;
+      return t;
+    }
+  }
+  inq[node] = false;
+  return -1;
+}
+
+int main()
+{
+  int n, m, x, y, z;
+  cin >> n >> m;
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d %d %d", &x, &y, &z);
+    g[x].insert(mp(y, z));
+    g[y].insert(mp(x, z));
+  }
+  solve = Dinic(3 * m + 4);
+  idx = m + 2;
+  for(int i=2;i<=m+1;i++)
+    solve.AddEdge(i, 1, 1);
+  for(int i=1;i<=n;i++)
+    dfs(i);
+  cout << solve.GetMaxFlow(0, 1);
+  return 0;
+}

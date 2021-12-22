@@ -1,0 +1,121 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define left cep
+#define right ssag
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int n,k,TIM,ID[MAXN],lvl[MAXN];
+vector<int>adj[MAXN];
+int s[MAXN<<2],P[MAXN][19],in[MAXN];
+int left[MAXN<<2],right[MAXN<<2];
+set<int>st;
+void dfs(int nd,int pr){
+	lvl[nd]=(~pr?lvl[pr]+1:1);
+	P[nd][0]=pr;
+	in[nd]=++TIM;
+	ID[TIM]=nd;
+	tr(it,adj[nd])
+		if(*it!=pr)
+			dfs(*it,nd);
+}
+int dis(int x,int y){
+	if(!x or !y)
+		return 0;
+	x=ID[x];y=ID[y];
+	if(lvl[x]<lvl[y])
+		swap(x,y);
+	int res=0;
+	for(int i=17;i>=0;i--)
+		if(lvl[x]-(1<<i)>=lvl[y]){
+			res+=(1<<i);
+			x=P[x][i];
+		}
+	if(x==y)
+		return res;
+	for(int i=17;i>=0;i--)
+		if(~P[x][i] and P[x][i]!=P[y][i]){
+			res+=(1<<(i+1));
+			x=P[x][i];
+			y=P[y][i];
+		}
+	return res+2;	
+}
+void upd(int p,int v,int nd,int x,int y){
+	if(x==y){
+		left[nd]=right[nd]=p*v;
+		return;
+	}
+	int mid=(x+y)>>1;
+	if(p<=mid)
+		upd(p,v,nd<<1,x,mid);
+	else
+		upd(p,v,nd<<1|1,mid+1,y);
+	if(!left[nd<<1])
+		left[nd]=left[nd<<1|1];
+	else
+		left[nd]=left[nd<<1];
+	if(!right[nd<<1|1])
+		right[nd]=right[nd<<1];
+	else
+		right[nd]=right[nd<<1|1];
+	s[nd]=s[nd<<1]+s[nd<<1|1]+dis(right[nd<<1],left[nd<<1|1]);
+}
+void add(int x){
+	x=in[x];
+	st.insert(x);
+	upd(x,+1,1,1,n);
+}
+void remove(int x){
+	x=in[x];
+	st.erase(x);
+	upd(x,0,1,1,n);
+}
+void build(){
+	for(int j=1;j<=17;j++)
+		for(int i=1;i<=n;i++)
+			if(~P[i][j-1])
+				P[i][j]=P[P[i][j-1]][j-1];
+}
+int main(){
+	memset(P,-1,sizeof P);
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	scanf("%d%d",&n,&k);
+	for(int i=1;i<n;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	dfs(1,-1);
+	build();
+	int r=0,cnt=0,mx=0;
+	for(int l=1;l<=n;l++){
+		while(r<n){
+			add(r+1);cnt++;
+			if(cnt>=2 and (s[1]+dis(*st.begin(),*st.rbegin()))/2>=k){
+				remove(r+1);cnt--;
+				break;
+			}
+			r++;umax(mx,r-l+1);
+		}
+		remove(l);cnt--;
+	}
+	printf("%d\n",mx);
+	return 0;
+}

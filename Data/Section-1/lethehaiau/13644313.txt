@@ -1,0 +1,71 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct vec
+{
+	int x, y, k;
+};
+const long long mod = 1000000007;
+int n, k;
+long long m;
+int a[1011111], c[1011111];
+vec b[1011111];
+long long l[1011111];
+long long p[1011111];
+
+bool cmp(vec a, vec b)
+{
+	return (a.x > b.x);
+}
+
+int main()
+{
+	ios_base::sync_with_stdio(false);
+	//freopen("in.txt", "r", stdin);
+	cin >> n >> m >> k;
+	for(int i = 0; i < n; i++)
+	{
+		cin >> a[i];
+		b[i].x = a[i];
+		b[i].y = i;
+	}
+	sort(b, b + n, cmp);
+
+	long long v = 0;
+	for(int i = 0; i < n; i++)
+		b[i].k = 1;
+	l[1] = n;
+	p[1] = m % n;
+	for(int t = 2; t <= k; t++)
+	{
+		int u = 0;
+		v = l[t - 1];
+		for(int i = 0; i < n; i++)
+		{
+			v = (v + mod*mod - b[i].k) % mod;
+			if(a[b[i].y] != u)
+			{
+				b[i].k = (b[i].k + v) % mod;
+				u = a[b[i].y];
+			}
+			else
+			{
+				b[i].k = b[i - 1].k;
+			}
+			if(b[i].y < m % n)
+				p[t] = (p[t] + b[i].k) % mod;
+			l[t] = (l[t] + b[i].k) % mod;
+		}
+	}
+	long long sum = 0;
+	for(int i = 1; i <= k; i++)
+	{
+		long long u = (m/n - i + 1) % mod;
+		if(u < 0) u = 0;
+		sum = (sum + ((l[i]*u) % mod)) % mod;
+		if(n*(i - 1) < m) sum = (sum + p[i]) % mod;
+		//cout << sum;
+	}
+	cout << sum;
+	return 0;
+}

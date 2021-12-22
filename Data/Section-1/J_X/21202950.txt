@@ -1,0 +1,112 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+const int maxn = 2e5 + 5;
+
+int u[maxn << 1], v[maxn << 1], par[maxn], cons[maxn], cont[maxn], a[maxn], ans[maxn];
+
+void init(int n)
+{
+    for(int i = 1; i <= n; ++i)
+    {
+        par[i] = i;
+        cons[i] = cont[i] = -1;
+    }
+}
+
+int findp(int x)
+{
+    return par[x] == x ? x : par[x] = findp(par[x]);
+}
+
+bool unite(int u, int v)
+{
+    u = findp(u), v = findp(v);
+    if(u == v) return false;
+    par[v] = u;
+    if(~cons[v]) cons[u] = cons[v];
+    if(~cont[v]) cont[u] = cont[v];
+    return true;
+}
+
+int solve(int n, int m, int s, int t, int ds, int dt)
+{
+    int tot = 0;
+    for(int i = 0; i < m; ++i)
+    {
+        int f = -1;
+        if(u[i] == s) f = cons[findp(v[i])] = i;
+        else if(u[i] == t) f = cont[findp(v[i])] = i;
+        if(v[i] == s) f = cons[findp(u[i])] = i;
+        else if (v[i] == t) f = cont[findp(u[i])] = i;
+        if(f == -1 && unite(u[i], v[i])) ans[tot++] = i;
+    }
+    int degs = 0, degt = 0, cnt = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        if(i != s && i != t && findp(i) == i)
+        {
+            if(cons[i] == -1 && cont[i] == -1) return -1;
+            if(cons[i] == -1)
+            {
+                ++degt;
+                ans[tot++] = cont[i];
+            }
+            else if(cont[i] == -1)
+            {
+                ++degs;
+                ans[tot++] = cons[i];
+            }
+            else a[cnt++] = i;
+        }
+    }
+    if(!cnt)
+    {
+        if(cont[s] == -1 || degs >= ds || degt >= dt) return -1;
+        ans[tot++] = cont[s];
+        return tot;
+    }
+    for(int i = 0; i < cnt; ++i)
+    {
+        if(degs < ds)
+        {
+            ++degs;
+            ans[tot++] = cons[a[i]];
+            unite(s, a[i]);
+        }
+        else
+        {
+            ++degt;
+            ans[tot++] = cont[a[i]];
+            unite(t, a[i]);
+        }
+    }
+    if(cont[s] == -1 || degs > ds || degt >= dt) return -1;
+    ans[tot++] = cont[s];
+    return tot;
+}
+
+int main()
+{
+    int n, m;
+    scanf("%d%d", &n, &m);
+    init(n);
+    for(int i = 0; i < m; ++i)
+    {
+        scanf("%d%d", u + i, v + i);
+    }
+    int s, t, ds, dt;
+    scanf("%d%d%d%d", &s, &t, &ds, &dt);
+    int tot = solve(n, m, s, t, ds, dt);
+    if(tot == -1) puts("No");
+    else
+    {
+        puts("Yes");
+        for(int i = 0; i < tot; ++i) printf("%d %d\n", u[ans[i]], v[ans[i]]);
+    }
+    return 0;
+}

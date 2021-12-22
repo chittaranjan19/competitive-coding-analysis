@@ -1,0 +1,68 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+//freopen("file.in","r",stdin);
+//freopen("file.out","w",stdout);
+ll F[33];vector<ll>v;
+void go(int c,int len,int cur){
+	if(c>len){
+		v.pb(cur);
+		return;
+	}
+	go(c+1,len,cur*10+4);
+	go(c+1,len,cur*10+7);
+}
+map<int,int>vis;
+int lucky(int x){
+	while(x>=1){
+		if(x%10!=4 and x%10!=7)
+			return 0;
+		x/=10;
+	}
+	return 1;
+}
+int main(){
+	F[0]=1LL;
+	for(int i=1;i<14;i++)
+		F[i]=F[i-1]*i;
+	for(int i=1;i<=9;i++)
+		go(1,i,0);
+	v.pb(4444444444);	
+	int n,k;
+	scanf("%d%d",&n,&k);
+	if(n<=13 and F[n]<k)
+		return printf("-1\n"),0;
+	int st=max(1,n-13),ans=0;k--;
+	for(int i=0;i<int(v.size());i++)
+		if(v[i]<st)
+			ans=i+1;
+	//~ cout<<k<<" "<<st<<endl;	
+	for(int i=st;i<=n;i++){
+		for(int j=st;j<=n;j++)
+			if(!vis[j]){
+				if(k<F[n-i]){
+					ans+=(lucky(i)&lucky(j));
+					vis[j]=1;
+					break;
+				}
+				k-=F[n-i];
+			}
+	}		
+	printf("%d\n",ans);
+	return 0;
+}

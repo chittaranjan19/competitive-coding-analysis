@@ -1,0 +1,80 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 510;
+const ll INF = 1ll << 48;
+
+void setmin (ll &a, ll b) {
+	if (a > b) {
+		a = b;
+	}
+}
+
+int N, M;
+vector<pair<int, ll> > adj[MAXN];
+ll dist[MAXN][MAXN];
+int inedge[MAXN][MAXN];
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 1; i <= N; i++) {
+		for (int j = 1; j <= N; j++) {
+			dist[i][j] = INF;
+		}
+		dist[i][i] = 0;
+	}
+	for (cin >> M; M--; ) {
+		int a, b; ll v;
+		cin >> a >> b >> v;
+		setmin(dist[a][b], v);
+		setmin(dist[b][a], v);
+		adj[a].push_back(make_pair(b, v));
+		adj[b].push_back(make_pair(a, v));
+	}
+	for (int k = 1; k <= N; k++) {
+		for (int i = 1; i <= N; i++) {
+			for (int j = 1; j <= N; j++) {
+				setmin(dist[i][j], dist[i][k] + dist[k][j]);
+			}
+		}
+	}
+	//ok now let's calculate: in_edges
+	for (int i = 1; i <= N; i++) {
+		for (int j = 1; j <= N; j++) {
+			if (dist[i][j] == INF) {
+				continue;
+			}
+			for (auto p : adj[j]) {
+				if (dist[i][p.first] + p.second == dist[i][j]) {
+					inedge[i][j]++;
+				}
+			}
+		}
+	}
+	//ok calculate answers
+	for (int i = 1; i <= N; i++) {
+		for (int j = i + 1; j <= N; j++) {
+ 			int ans = 0;
+ 			for (int k = 1; k <= N; k++) {
+ 				if (dist[i][k] + dist[k][j] == dist[i][j]) {
+ 					ans += inedge[i][k];
+ 				}
+ 			}
+ 			cout << ans << ' ';
+ 		}
+	}
+}

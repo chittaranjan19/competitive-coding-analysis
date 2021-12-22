@@ -1,0 +1,124 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+#include <fstream>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+const int MAXN = 100005;
+LL dist[MAXN];
+int parent[MAXN];
+vector<pair<int, int> > graph[MAXN];
+vector<int> sol;
+
+#define pc(x) putchar(x)
+#define gc() getchar()
+inline void writeInt (int n)
+{
+  int N = n, rev, count = 0;
+  rev = N;
+  if (N == 0) { pc('0'); pc('\n'); return ;}
+  while ((rev % 10) == 0) { count++; rev /= 10;}
+  rev = 0;
+  while (N != 0) { rev = (rev<<3) + (rev<<1) + N % 10; N /= 10;}
+  while (rev != 0) { pc(rev % 10 + '0'); rev /= 10;}
+  while (count--) pc('0');
+  pc(' ');
+}
+
+inline int FAST_IO()
+{
+  char ch;
+  int val=0;
+  ch=gc();
+  while(ch == '\n' || ch == ' ')
+    ch=gc();
+  val=0;
+  while(ch >= '0' && ch <= '9')
+  {
+    val=(val*10)+(ch-'0');
+    ch=gc();
+  }
+  return val;
+}
+
+int main()
+{
+  int n, m, x, y, z;
+  n = FAST_IO();
+  m = FAST_IO();
+  for(int i=2;i<=n;i++)
+    dist[i] = 1LL << 60;
+  for(int i=0;i<m;i++)
+  {
+    x = FAST_IO();
+    y = FAST_IO();
+    z = FAST_IO();
+    graph[x].pb(mp(-z, y));
+    graph[y].pb(mp(-z, x));
+  }
+  priority_queue<pair<LL, int> > q;
+  q.push(mp(0, 1));
+  while(!q.empty())
+  {
+    int node = q.top().s;
+    q.pop();
+    for(int i=0;i<graph[node].size();i++)
+    {
+      int nxt = graph[node][i].s;
+      LL d = -graph[node][i].f + dist[node];
+      if(dist[nxt] > d)
+      {
+        dist[nxt] = d;
+        parent[nxt] = node;
+        q.push(graph[node][i]);
+      }
+    }
+  }
+  if(parent[n] == 0)
+      printf("-1");
+  else
+  {
+    int temp=n;
+    while(temp != 1)
+    {
+      sol.push_back(temp);
+      temp=parent[temp];
+    }
+    sol.push_back(1);
+    for(int i=sol.size()-1;i>=0;i--)
+        writeInt(sol[i]);
+  }
+  return 0;
+}

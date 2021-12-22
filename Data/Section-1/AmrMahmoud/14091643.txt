@@ -1,0 +1,142 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <utility>
+#include <iomanip>
+#include <set>
+#include <numeric>
+#include <cassert>
+#include <ctime>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+vector<pair<int, LL> > g[200005];
+LL cost[200005];
+int P[200005][20], h[200005], up[200005];
+
+int query(int p, int q)
+{
+  int log;
+  if(h[p] < h[q])
+    swap(p, q);
+  for(log = 1; (1 << log) <= h[p]; log++);
+  log--;
+  for(int i = log; i >= 0; i--)
+    if(h[p] - (1 << i) >= h[q])
+      p = P[p][i];
+  if(p == q)
+    return p;
+  for(int i = log; i >= 0; i--)
+    if(P[p][i] != -1 && P[p][i] != P[q][i])
+      p = P[p][i], q = P[q][i];
+  return P[p][0];
+}
+
+void dfs(int node, int depth = 1, int parent = -1)
+{
+  P[node][0] = parent;
+  h[node] = depth;
+  for(int i=0;i<g[node].size();i++)
+  {
+    int x = g[node][i].f;
+    if(x == parent) continue;
+    cost[x] = g[node][i].s;
+    if(cost[x] == 1) up[x] = up[node];
+    else up[x] = node;
+    dfs(x, depth + 1, node);
+  }
+}
+
+pair<int, int> edges[200005];
+
+int main()
+{
+  int n, q, x, y;
+  scanf("%d %d", &n, &q);
+  LL z;
+  for(int i=0;i<n - 1;i++)
+  {
+    scanf("%d %d %I64d", &x, &y, &z);
+    edges[i] = mp(x, y);
+    g[x].pb(mp(y, z));
+    g[y].pb(mp(x, z));
+  }
+  up[1] = -1;
+  setdp(P);
+  dfs(1);
+  for(int j = 1; (1 << j) <= n; j++)
+    for(int i = 1; i <= n; i++)
+      if(P[i][j - 1] != -1)
+        P[i][j] = P[P[i][j - 1]][j - 1];
+  while(q--)
+  {
+    scanf("%d", &x);
+    if(x == 1)
+    {
+      scanf("%d %d %I64d", &x, &y, &z);
+      int lca = h[query(x, y)];
+      while(z && x != -1 && lca < h[x])
+      {
+        z/=cost[x];
+        int &tmp = up[x];
+        while(tmp != -1 && cost[tmp] == 1)
+          tmp = up[tmp];
+        x = tmp;
+      }
+      x = y;
+      while(z && x != -1 && lca < h[x])
+      {
+        z/=cost[x];
+        int &tmp = up[x];
+        while(tmp != -1 && cost[tmp] == 1)
+          tmp = up[tmp];
+        x = tmp;
+      }
+      printf("%I64d\n", z);
+    }
+    else
+    {
+      scanf("%d %I64d", &x, &z);
+      x--;
+      y = edges[x].s;
+      x = edges[x].f;
+      if(P[x][0] == y)
+      {
+        cost[x] = z;
+        if(z == 1) up[x] = up[up[x]];
+      }
+      else
+      {
+        cost[y] = z;
+        if(z == 1) up[y] = up[up[y]];
+      }
+    }
+  }
+  return 0;
+}

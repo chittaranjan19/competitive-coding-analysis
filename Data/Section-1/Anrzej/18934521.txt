@@ -1,0 +1,164 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <unordered_set>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+int gcd(int a, int b) {
+	return b ? gcd(b, a % b) : a;
+}
+
+int _gcd(int a, int b, int & x, int & y) {
+	if (a == 0) {
+		x = 0; y = 1;
+		return b;
+	}
+	int _x1, _y1;
+	int d = _gcd(b%a, a, _x1, _y1);
+	x = _y1 - (b / a) * _x1;
+	y = _x1;
+	return d;
+}
+
+int _cnt = 0;
+
+vector<int> factor(int n){
+	vector<int> f;
+	for (int i = 2; i*i <= n; i++){
+		if (n % i != 0) continue;
+		while (n % i == 0){
+			n /= i;
+			f.push_back(i);
+		}
+	}
+	if (n != 1)
+		f.push_back(n);
+	sort(f.begin(), f.end());
+	return f;
+}
+
+vector<int> _factor(int n){
+	vector<int> f;
+	for (int i = 2; i*i <= n; i++){
+		if (n % i != 0) continue;
+		f.push_back(i);
+		n /= i;
+		while (n % i == 0){
+			n /= i;
+			f[f.size() - 1] *= i;
+		}
+	}
+	if (n != 1)
+		f.push_back(n);
+	sort(f.begin(), f.end());
+	return f;
+}
+
+template<class T> T sqr(T x) { return x*x; }
+ld pi = 3.1415926535897932384626433832795;
+
+const int N = 3e5 + 10, lg = 20;
+ll mod = 1e9 + 7;
+
+int n;
+
+int a[N];
+int b[N];
+int bl[N], br[N], llf[N], lr[N];
+map<pair<int, int>, int > vl_mx, vl_mn;
+map<ll, vector<pair<int, int > > > mx, mn;
+
+int main()
+{
+	cin >> n;
+	for (int i = 0; i < n; i++) cin >> a[i];
+	for (int j = 0; j < n; j++) cin >> b[j];
+
+	stack<pair<ll, ll > > s;
+	s.push(mp(2e18, -1));
+
+	for (int i = 0; i < n; i++){
+		while (!s.empty() && s.top().fs < a[i])
+			s.pop();
+		bl[i] = s.top().sc;
+		s.push(mp(a[i], i));
+	}
+	while (!s.empty())
+		s.pop();
+
+	s.push(mp(2e18, n));
+	for (int i = n-1; i >= 0; i--){
+		while (!s.empty() && s.top().fs < a[i])
+			s.pop();
+		br[i] = s.top().sc;
+		s.push(mp(a[i], i));
+	}
+	while (!s.empty())
+		s.pop();
+
+
+	s.push(mp(-2e18, -1));
+
+	for (int i = 0; i < n; i++){
+		while (!s.empty() && s.top().fs > b[i])
+			s.pop();
+		llf[i] = s.top().sc;
+		s.push(mp(b[i], i));
+	}
+	while (!s.empty())
+		s.pop();
+
+	s.push(mp(-2e18, n));
+	for (int i = n - 1; i >= 0; i--){
+		while (!s.empty() && s.top().fs > b[i])
+			s.pop();
+		lr[i] = s.top().sc;
+		s.push(mp(b[i], i));
+	}
+	while (!s.empty())
+		s.pop();
+
+	for (int i = 0; i < n; i++){
+		if (vl_mx.count(mp(bl[i] + 1, br[i] - 1)) == 0)
+			mx[a[i]].push_back(mp(bl[i] + 1, br[i] - 1)), vl_mx[mp(bl[i] + 1, br[i] - 1)] = i;
+		if (vl_mn.count(mp(llf[i] + 1, lr[i] - 1)) == 0)
+			mn[b[i]].push_back(mp(llf[i] + 1, lr[i] - 1)), vl_mn[mp(llf[i] + 1, lr[i] - 1)] = i;
+	}
+
+	ll ans = 0;
+	for (int i = 0; i < n; i++){
+		if (mx[a[i]].size() == 0) continue;
+		int _n = mx[a[i]].size(), _m = mn[a[i]].size();
+		int j = 0, k = 0;
+		while (j < _n && k < _m){
+			pair<int, int> p1 = mx[a[i]][j], p2 = mn[a[i]][k];
+			int l = vl_mx[p1], r = vl_mx[p2];
+			ans += max(0, (min(p1.sc, p2.sc) - max(p1.fs, p2.fs)) - abs(l-r)+1);
+			if (p1.sc < p2.sc)
+				j++;
+			else k++;
+		}
+		mx[a[i]].clear();
+	}
+	cout << ans;
+	return 0;
+}
+

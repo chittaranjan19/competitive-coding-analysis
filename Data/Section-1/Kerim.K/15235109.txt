@@ -1,0 +1,81 @@
+//Cok tavsanin pesinde kosan hicbrini yakalmaz!
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define lg(x) ceil(log2(x))
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN],tim,d[MAXN],cnt[MAXN],BLOK,in[MAXN],out[MAXN],ans[MAXN],array[MAXN];
+pair<PII,PII> rr[MAXN];
+vector<int>adj[MAXN];
+bool cmp(pair<PII,PII> x,pair<PII,PII> y){
+	if(x.ff.ff/BLOK!=y.ff.ff/BLOK)
+		return x.ff.ff<y.ff.ff;
+	return (x.ff.ss<y.ff.ss);
+}
+void dfs(int nd,int pr){
+	in[nd]=++tim;
+	array[tim]=arr[nd];
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to!=pr)
+			dfs(to,nd);
+	}
+	out[nd]=tim;
+}
+void pl(int k){
+	cnt[k]++;
+	if(cnt[k]>0)
+		d[cnt[k]]++;
+}
+void mn(int k){
+	if(cnt[k]>0)
+		d[cnt[k]]--;
+	cnt[k]--;
+}
+int main(){
+	int n,m;
+	scanf("%d%d",&n,&m);
+	BLOK=sqrt(n);
+	for(int i=1;i<=n;i++)
+		scanf("%d",arr+i);
+	for(int i=0;i<n-1;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	dfs(1,0);
+	for(int i=1;i<=m;i++){
+		int l,r;
+		scanf("%d%d",&l,&r);
+		rr[i]=mp(mp(in[l],out[l]),mp(r,i));
+	}
+	sort(rr+1,rr+(m+1),cmp);
+	int l=1,r=1;
+	for(int i=1;i<=m;i++){
+		int L=rr[i].ff.ff,R=rr[i].ff.ss,K=rr[i].ss.ff,ind=rr[i].ss.ss;
+		while(l<L)mn(array[l]),l++;
+		while(l>L)pl(array[l-1]),l--;
+		while(r<=R)pl(array[r]),r++;
+		while(r>R+1)mn(array[r-1]),r--;
+		ans[ind]=d[K];
+	}
+	for(int i=1;i<=m;i++)
+		printf("%d\n",ans[i]);
+	return 0;
+}

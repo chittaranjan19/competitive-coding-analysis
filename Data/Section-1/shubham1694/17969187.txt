@@ -1,0 +1,76 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define sd(x) scanf("%d", &x)
+#define boost ios_base::sync_with_stdio(false);
+#define mp make_pair
+#define pb push_back
+#define all(a) a.begin(), a.end()
+#define f first
+#define s second
+
+typedef pair<int, int> pii;
+typedef long long ll;
+
+const int mod = 1000000007;
+const int inf = 50000000;
+const int maxn = 100010;
+
+ll dp[maxn];
+int n, nxt[maxn], st[maxn*5];
+
+void init(int s, int e, int node)
+{
+    if(s==e){
+        st[node] = s;
+        return;
+    }
+    int mid, lc, rc;
+    mid = (s+e)>>1;
+    lc = 2*node + 1;
+    rc = lc + 1;
+    init(s, mid, lc);
+    init(mid+1, e, rc);
+    if(nxt[st[lc]] > nxt[st[rc]])
+        st[node] = st[lc];
+    else
+        st[node] = st[rc];
+}
+
+int query(int s, int e, int qs, int qe, int node)
+{
+    if(s>e || s>qe || qs>e)
+        return 0;
+    if(s>=qs && qe>=e)
+        return st[node];
+    int mid, lc, rc, rx, ry;
+    mid = (s+e)>>1;
+    lc = 2*node + 1;
+    rc = lc + 1;
+    rx = query(s, mid, qs, qe, lc);
+    ry = query(mid+1, e, qs, qe, rc);
+    if(nxt[rx] > nxt[ry])
+        return rx;
+    return ry;
+}
+
+int main()
+{
+    //freopen("i.txt", "r", stdin);
+    //freopen("o.txt", "w", stdout);
+    int i;
+    scanf("%d", &n);
+    for(i=1; i<n; i++)
+        scanf("%d", &nxt[i]);
+    nxt[n] = n;
+    init(1, n, 0);
+    ll ans = 0;
+    for(i=n-1; i>0; i--){
+        int ind = query(1, n, i+1, nxt[i], 0);
+        dp[i] = dp[ind] + n - i;
+        ans += dp[i];
+    }
+    printf("%lld\n", ans);
+    return 0;
+}

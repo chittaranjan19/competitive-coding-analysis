@@ -1,0 +1,72 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+
+const int maxn = 1e5 + 5;
+const int maxm = 100 + 5;
+const int mod = 1e9 + 7;
+
+int h[maxn], ans[maxm][maxn], tot;
+ll f[maxn], invf[maxn];
+char s[maxn];
+
+ll pow_mod(ll x, int n)
+{
+    ll res = 1;
+    while(n)
+    {
+        if(n & 1) res = res * x % mod;
+        x = x * x % mod;
+        n >>= 1;
+    }
+    return res;
+}
+
+ll C(int n, int m)
+{
+    if(m < 0 || m > n) return 0;
+    return f[n] * invf[m] % mod * invf[n - m] % mod;
+}
+
+int getans(int x, int y)
+{
+    if(y < x) return 0;
+    if(h[x]) return ans[h[x]][y];
+    h[x] = ++tot;
+    for(int i = x; i < maxn; ++i)
+    {
+        ans[tot][i] = (ans[tot][i - 1] * 26LL + C(i - 1, x - 1) * pow_mod(25, i - x)) % mod;
+    }
+    return ans[tot][y];
+}
+
+int main()
+{
+    tot = 0;
+    f[0] = 1;
+    for(int i = 1; i < maxn; ++i) f[i] = f[i - 1] * i % mod;
+    invf[maxn - 1] = pow_mod(f[maxn - 1], mod - 2);
+    for(int i = maxn - 1; i; --i) invf[i - 1] = invf[i] * i % mod;
+    int q, l;
+    scanf("%d%s", &q, s);
+    l = strlen(s);
+    while(q--)
+    {
+        int op;
+        scanf("%d", &op);
+        if(op == 1)
+        {
+            scanf("%s", s);
+            l = strlen(s);
+        }
+        else
+        {
+            int y;
+            scanf("%d", &y);
+            printf("%d\n", getans(l, y));
+        }
+    }
+    return 0;
+}

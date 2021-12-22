@@ -1,0 +1,65 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef long long ll;
+
+class FT {
+private:
+	int size;
+	ll ft[1000013];
+public:
+	FT(int s=0) {
+		size = s;
+		fill(ft,ft+size+1,0);
+	}
+	void update(int a, int v) { while (a<=size) ft[a]+=v, a+=a&(-a); }
+	ll query(int a) {
+		a-=1;
+		ll res = 0;
+		while (a>0) res-=ft[a], a-=a&(-a);
+		a = size;
+		while (a>0) res+=ft[a], a-=a&(-a);
+		return res;
+	}
+};
+
+int n,m;
+int t[200013];
+int d[200013], r[200013];
+int low[200013], high[200013];
+vector<int> need[200013];
+FT num, tot;
+
+int main() {
+	scanf("%d%d",&n,&m);
+	for (int i=1;i<=m;i++) scanf("%d",&t[i]);
+	for (int i=0;i<n;i++) {
+		scanf("%d%d",&d[i],&r[i]);
+		low[i] = 0;
+		high[i] = m+1;
+	}
+	for (int rep=0;rep<20;rep++) {
+		num = FT(1000000);
+		tot = FT(1000000);
+		for (int i=0;i<=m+1;i++) need[i].clear();
+		for (int i=0;i<n;i++) if (high[i]-low[i]>1) {
+			need[(low[i]+high[i]+1)/2].push_back(i);
+		}
+		for (int i=1;i<=m;i++) {
+			num.update(t[i],1);
+			tot.update(t[i],t[i]);
+			for (int j: need[i]) {
+				ll has = tot.query(d[j])-d[j]*num.query(d[j]);
+				if (has>=r[j]) high[j] = i;
+				else low[j] = i;
+			}
+		}
+	}
+	for (int i=0;i<n;i++) {
+		if (high[i]>m) printf("0 ");
+		else printf("%d ",high[i]);
+	}
+	printf("\n");
+
+	return 0;
+}

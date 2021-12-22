@@ -1,0 +1,89 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define ff first
+#define ss second
+#define lgN 17
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+int a,lvl[MAXN],dp[MAXN],P[MAXN][lgN+1],q;
+vector<int>adj[MAXN];
+void dfs(int nd,int pr){
+	P[nd][0]=pr;
+	dp[nd]=1;
+	lvl[nd]=lvl[pr]+1;
+	for(int i=0;i<adj[nd].size();i++){
+		int to=adj[nd][i];
+		if(to!=pr){
+			dfs(to,nd);
+			dp[nd]+=dp[to];
+		}
+	}
+}
+void form_LCA(){
+	for(int j=1;j<=lgN;j++)
+		for(int i=1;i<MAXN;i++)
+			if(P[i][j-1]!=-1)
+				P[i][j]=P[P[i][j-1]][j-1];
+}
+int get_LCA(int l,int r){
+	if(lvl[l]<lvl[r])
+		swap(l,r);
+	for(int i=lgN;i>=0;i--)
+		if(P[l][i]-(1<<i)>=P[r][i])
+			l=P[l][i];	
+	if(l==r)
+		return l;
+	for(int i=lgN;i>=0;i--){
+		if(P[l][i]!=-1&&P[l][i]!=P[r][i]){
+			l=P[l][i];
+			r=P[r][i];
+		}
+	}
+	return P[l][0];				
+}
+int get_ansector(int h,int v){
+	for(int i=lgN;i>=0;i--){
+		if(v-(1<<i)>=0){
+			v-=(1<<i);
+			h=P[h][i];
+		}
+	}
+	return h;
+}
+int main(){
+	cin>>a;
+	for(int i=0;i<a-1;i++){
+		int u,v;
+		scanf("%d%d",&u,&v);
+		adj[u].pb(v);
+		adj[v].pb(u);
+	}
+	memset(P,-1,sizeof(P));
+	dfs(1,0);form_LCA();
+	cin>>q;
+	while(q--){
+		int x,y,xx;
+		scanf("%d%d",&x,&y);
+		int z=get_LCA(x,y),path=(lvl[x]-lvl[z])+(lvl[y]-lvl[z]);
+		if(path%2==1)
+			printf("0\n");
+		else if(x==y)
+			printf("%d\n",a);
+		else if(lvl[x]==lvl[y])
+			printf("%d\n",a-dp[get_ansector(x,path/2-1)]-dp[get_ansector(y,path/2-1)]);
+		else{
+			if(lvl[x]<lvl[y])
+				swap(x,y);
+			xx=get_ansector(x,path/2-1);
+			printf("%d\n",dp[P[xx][0]]-dp[xx]);
+		}
+	}
+	return 0;
+}

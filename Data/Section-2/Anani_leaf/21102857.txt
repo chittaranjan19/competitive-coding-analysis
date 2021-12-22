@@ -1,0 +1,91 @@
+#include<bits/stdc++.h>
+#define lowbit(x) ((x)&(-x))
+#define Max(a,b) (a>b?a:b)
+#define Min(a,b) (a>b?b:a)
+#define INF 0x3f3f3f3f
+#define rep(i,a,b) for(int i=a;i<(b);++i)
+using namespace std;
+typedef __int64 ll;
+int const Max_N = 1e5+5;
+ll const tt = -1e14;
+ll c[Max_N] = {0};
+int n;
+struct Node
+{
+	ll num;
+	int i;
+	int j;
+	bool operator < (Node const &t)const{return i > t.i;}
+}arr[Max_N] = {0};
+void insert(int i,ll num)
+{
+	while (i < n+1)
+	{
+		c[i] += num;
+		i += lowbit(i);
+	}
+}
+
+ll qry(int i)
+{
+	ll sum = 0;
+	while(i>0)
+	{
+		sum += c[i];
+		i -= lowbit(i);
+	}
+	return sum;
+}
+bool check(int l,int r)
+{
+	if(qry(r) - qry(l-1)>=0) return true;
+	else return false;
+}
+int main()
+{
+	scanf("%d",&n);
+	for(int i = 1; i < n+1; ++i) scanf("%I64d",&arr[i].num);
+	for (int i = 1; i < n+1; ++i)
+	{
+		int num;
+		scanf("%d",&num);
+		arr[num].i = i;
+		arr[i].j=i;
+		insert(i,tt);
+	} 
+	sort(arr+1,arr+n+1);
+	stack<ll>sta;
+	sta.push(0);
+	ll ans = 0;
+	for (int i = 1; i < n; ++i)
+	{
+		int j = arr[i].j;
+		insert(j,arr[i].num-1*tt);
+		
+		int l1 = j,r1 = n;
+		while(r1 > l1)
+		{
+			int mid = (r1+l1+1)>>1;
+			if(check(j,mid)) l1 = mid;
+			else r1 = mid-1;
+		}
+		int l2 = 0,r2 = j;
+		while(r2 > l2)
+		{
+			int mid = (r2+l2)>>1;
+			if(check(mid,j)) r2 = mid;
+			else l2 = mid+1;
+		}
+		ans = Max(ans,qry(r1)-qry(r2-1));
+		sta.push(ans);		
+	}
+	while(!sta.empty())
+	{
+		printf("%I64d\n",sta.top());
+		sta.pop();
+	}
+	return 0;
+}
+	//freopen("in.txt","r",stdin);
+//std::ios::sync_with_stdio(false);
+

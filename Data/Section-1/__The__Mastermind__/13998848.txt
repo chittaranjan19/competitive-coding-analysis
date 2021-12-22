@@ -1,0 +1,98 @@
+{$M 128000000}
+
+uses math;
+
+const
+  tfi = '';//'592d.inp';
+  oo = low(longint);
+  nn = 123456;
+
+var
+  n,m : longint;
+  res,tt,key : longint;
+  mark : array [1..nn] of boolean;
+  head,f1,f2,g1,g2 : array [1..nn] of longint;
+  adj,next : array [-nn..nn] of longint;
+
+procedure addedge(j,u,v : longint);
+  begin
+    adj[j] := v;
+    next[j] := head[u];
+    head[u] := j;
+  end;
+
+procedure visit(u,x : longint);
+  var v,j : longint;
+  begin
+    if not mark[u] then
+      begin
+        f1[u] := oo;
+        g1[u] := maxlongint;
+      end
+    else g1[u] := u;
+    g2[u] := maxlongint;
+    j := head[u];
+    while j <> 0 do
+      begin
+        v := adj[j];
+        if v <> x then
+          begin
+            visit(v,u);
+            if f1[v] <> oo then
+              begin
+                res := res + 2;
+                if (f1[v] + 1 > f1[u]) or ((f1[v] + 1 = f1[u]) and (g1[u] > g1[v])) then
+                  begin
+                    f2[u] := f1[u];
+                    g2[u] := g1[u];
+                    f1[u] := f1[v] + 1;
+                    g1[u] := g1[v];
+                  end
+                else
+                if (f1[v] + 1 > f2[u]) or ((f1[v] + 1 = f2[u]) and (g2[u] > g1[v])) then
+                  begin
+                    f2[u] := f1[v] + 1;
+                    g2[u] := g1[v];
+                  end;
+              end;
+          end;
+        j := next[j];
+      end;
+    if mark[u] then
+      if tt < f1[u] + f2[u] then
+        begin
+          tt := f1[u] + f2[u];
+          key := min(g1[u],g2[u]);
+        end
+      else
+      if tt = f1[u] + f2[u] then
+        key := min(key,min(g1[u],g2[u]));
+  end;
+
+procedure enter;
+  var j,u,v : longint;
+  begin
+    assign(input,tfi);
+    reset(input);
+    read(n,m);
+    for j := 1 to n-1 do
+      begin
+        read(u,v);
+        addedge( j,u,v);
+        addedge(-j,v,u);
+      end;
+    for j := 1 to m do
+      begin
+        read(u);
+        mark[u] := true;
+      end;
+    key := u;
+    visit(u,0);
+    writeln(key);
+    writeln(res - tt);
+    close(input);
+  end;
+
+begin
+  enter;
+end.

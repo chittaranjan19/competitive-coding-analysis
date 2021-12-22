@@ -1,0 +1,65 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 5010;
+
+int N;
+vector<int> adj[MAXN], szadj[MAXN];
+bool ans[MAXN], dp[MAXN];
+
+int dfs (int x, int p) {
+	int sz = 1;
+	for (int t : adj[x]) {
+		if (t != p) {
+			int d = dfs(t, x);
+			szadj[x].push_back(d);
+			sz += d;
+		}
+	}
+	szadj[x].push_back(N - sz);	//outer subtree
+	return sz;
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N;
+	for (int i = 1, x, y; i < N; i++) {
+		cin >> x >> y;
+		adj[x].push_back(y);
+		adj[y].push_back(x);
+	}
+	dfs(1, 0);
+	for (int i = 1; i <= N; i++) {
+		//find all the numbers
+		fillchar(dp, 0);
+		dp[0] = true;
+		for (int s : szadj[i]) {
+			for (int j = N; j >= s; j--) {
+				dp[j] |= dp[j - s];
+			}
+		}
+		for (int j = 1; j < N - 1; j++) {
+			ans[j] |= dp[j];
+		}
+	}
+	cout << count(ans + 1, ans + (N - 1), true) << '\n';
+	for (int i = 1; i < N - 1; i++) {
+		if (ans[i]) {
+			cout << i << ' ' << N - 1 - i << '\n';
+		}
+	}
+}

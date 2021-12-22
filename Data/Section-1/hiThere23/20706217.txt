@@ -1,0 +1,120 @@
+#include <bits/stdc++.h>
+#define FOR(i, j, k) for (int i = j; i <= k; i ++)
+#define FORD(i, j, k) for (int i = j; i >= k; i --)
+#define mn 10005
+#define mn2 1005
+#define maxC 1000000007
+#define pb push_back
+#define F first
+#define S second
+#define mp make_pair
+
+using namespace std;
+int n, m, s, t;
+long long d[mn2][2], l;
+pair< pair<int, int> , int > edge[mn], trace[mn2][2];
+vector< pair<int, int> > g[mn2];
+priority_queue< pair< long long, pair<int, int> > > p;
+
+void setup()
+{
+    cin >> n >> m >> l >> s >> t;
+    FOR(i, 1, m)
+    {
+        cin >> edge[i].F.F >> edge[i].F.S >> edge[i].S;
+        g[edge[i].F.F].pb(mp(edge[i].F.S, i));
+        g[edge[i].F.S].pb(mp(edge[i].F.F, i));
+    }
+}
+
+void printDirect()
+{
+    cout << "YES\n";
+    FOR(i, 1, m)
+    {
+        if (edge[i].S == 0)
+            edge[i].S = maxC;
+        cout << edge[i].F.F << ' ' << edge[i].F.S << ' ' << edge[i].S << '\n';
+    }
+    exit(0);
+}
+
+void tracePrint()
+{
+    int u = t, state = 1;
+    while(u != s)
+    {
+        int v = trace[u][state].F.F;
+        int st = trace[u][state].F.S;
+        int id = trace[u][state].S;
+        if (st == 1)
+            edge[id].S = 1;
+        else
+            edge[id].S = l - d[v][0];
+        u = v;
+        state = st;
+        l -= edge[id].S;
+    }
+    printDirect();
+}
+
+void xuly()
+{
+    FOR(i, 0, n - 1)
+    FOR(j, 0, 1)
+        d[i][j] = 1ll * maxC * maxC;
+    d[s][0] = 0;
+    p.push(mp(0, mp(s, 0)));
+    while(!p.empty())
+    {
+        int u = p.top().S.F;
+        int state = p.top().S.S;
+        long long w = - p.top().F;
+        p.pop();
+        if (w != d[u][state])
+            continue;
+        if (u == t)
+        {
+            if (w > l || (w < l && !state))
+            {
+                cout << "NO";
+                return;
+            }
+            if (w == l && !state)
+                printDirect();
+            tracePrint();
+        }
+        FOR(i, 0, int(g[u].size()) - 1)
+        {
+            int v = g[u][i].F;
+            int id = g[u][i].S;
+            int c = edge[id].S;
+            if (c)
+            {
+                if (d[v][state] <= w + c)
+                    continue;
+                d[v][state] = w + c;
+                trace[v][state] = mp(mp(u, state), id);
+                p.push(mp(- d[v][state], mp(v, state)));
+            }
+            else
+            {
+                if (d[v][state | 1] <= w + 1)
+                    continue;
+                d[v][state | 1] = w + 1;
+                trace[v][state | 1] = mp(mp(u, state), id);
+                p.push(mp(- d[v][state | 1], mp(v, state | 1)));
+            }
+        }
+    }
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    setup ();
+    xuly ();
+    return 0;
+}

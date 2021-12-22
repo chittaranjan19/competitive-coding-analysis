@@ -1,0 +1,125 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+#include <list>
+using namespace std;
+
+typedef long long ll;
+#define mod 1000000007
+#define pi acos(-1.0)
+#define eps 1e-9
+#define SZ 500005
+#define SZ_SQRT 700
+
+int n, m;
+int a[SZ+5];
+int res[SZ+5];
+struct segment
+{
+    int L, R, i;
+    segment(int L = 0, int R = 0, int i = 0) : L(L), R(R), i(i) {}
+    const bool operator<(const segment &b) const
+    {
+        return R > b.R;
+    }
+}b[SZ+5];
+struct item
+{
+    int L, R;
+    item(int L = 0, int R = 0) : L(L), R(R) {}
+    const bool operator<(const item &b) const
+    {
+        return R - L < b.R - b.L;
+    }
+}c[SZ+5];
+map <int, vector <int> > mp;
+vector <segment> v[800];
+list <segment> v2[800];
+
+int main()
+{
+    memset(res, -1, sizeof(res));
+
+    scanf("%d %d", &n, &m);
+    for(int i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+    for(int i = 0; i < m; i++)
+    {
+        int L, R;
+        scanf("%d %d", &L, &R);
+        b[i] = segment(L-1, R-1, i);
+    }
+
+    for(int i = 0; i < n; i++)
+        mp[a[i]].push_back(i);
+    int cnt = 0;
+    for(map <int, vector <int> > :: iterator it = mp.begin(); it != mp.end(); it++)
+    {
+        for(int i = 0; i < (it->second).size() - 1; i++)
+            c[cnt++] = item((it->second)[i], (it->second)[i+1]);
+    }
+    sort(c, c + cnt);
+
+    int basketN = -1;
+    for(int i = 0; i < m; i++) 
+    {
+        v[b[i].L/SZ_SQRT].push_back(b[i]);
+        basketN = max(basketN, b[i].L/SZ_SQRT);
+    }
+    basketN++;
+    for(int i = 0; i < basketN; i++)
+    {
+        sort(v[i].begin(), v[i].end());
+        for(int j = 0; j < v[i].size(); j++)
+            v2[i].push_back(v[i][j]);
+    }
+
+    for(int i = 0; i < cnt; i++)
+    {
+        for(int j = 0; j < basketN; j++)
+        {
+            if((j + 1) * SZ_SQRT < c[i].L)
+            {
+                for(list <segment> :: iterator it = v2[j].begin(); it != v2[j].end(); )
+                {
+                    if(it->R >= c[i].R)
+                    {
+                        res[it->i] = c[i].R - c[i].L;
+                        it = v2[j].erase(it);
+                    }
+                    else
+                        break;
+                }
+            }
+            else
+            {
+                for(list <segment> :: iterator it = v2[j].begin(); it != v2[j].end(); )
+                {
+                    if(it->R >= c[i].R && it->L <= c[i].L)
+                    {
+                        res[it->i] = c[i].R - c[i].L;
+                        it = v2[j].erase(it);
+                    }
+                    else
+                        it++;
+                }
+                break;
+            }
+        }
+    }
+
+    for(int i = 0; i < m; i++)
+        printf("%d\n", res[i]);
+    return 0;
+}

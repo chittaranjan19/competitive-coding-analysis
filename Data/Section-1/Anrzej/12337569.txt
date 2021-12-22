@@ -1,0 +1,169 @@
+#include <iostream>
+#include <vector>
+#include <cstdio>
+#include <string>
+#include <algorithm>
+#include <set>
+#include <queue>
+
+#define ll long long
+#define ull unsigned long long
+#define mp make_pair
+#define x first
+#define y second
+
+using namespace std;
+
+string s[3000];
+queue< pair<int, int> > q;
+set<pair<int, int> > pd;
+int n, m;
+
+void gg()
+{
+    for (int i = 1; i <= n; i++)
+    {
+        for (int j = 1; j <= m; j++)
+        {
+            if (s[i][j] != '.') continue;
+            int k = 0;
+            if (s[i + 1][j] == '.')
+                k++;
+            if (s[i - 1][j] == '.')
+                k++;
+            if (s[i][j + 1] == '.')
+                k++;
+            if (s[i][j - 1] == '.')
+                k++;
+            if (k == 1)
+            {
+                pd.insert(mp(i, j));
+            }
+        }
+    }
+}
+
+bool is(pair<int, int> a)
+{
+    return s[a.x][a.y] == '.';
+}
+
+void try_add(pair<int, int> a)
+{
+    int ii = a.x, jj = a.y;
+    for (int dx = -1; dx < 2; dx++)
+    {
+        for (int dy = -1; dy < 2; dy++)
+        {
+            if (dx == dy) continue;
+            int i = ii + dx, j = jj + dy;
+            if (i < 0 || j < 0 || j > m || i > n) continue;
+            if (s[i][j] != '.') continue;
+            int k = 0;
+            if (s[i + 1][j] == '.')
+                k++;
+            if (s[i - 1][j] == '.')
+                k++;
+            if (s[i][j + 1] == '.')
+                k++;
+            if (s[i][j - 1] == '.')
+                k++;
+            if (k == 1)
+                pd.insert(mp(i, j));
+        }
+    }
+
+}
+
+void paint(pair<int, int> a)
+{
+// = q.front();
+    if (s[a.x + 1][a.y] == '.' && is(a))
+    {
+        s[a.x][a.y] = '^';
+        s[a.x + 1][a.y] = 'v';
+        try_add(mp(a.x+1, a.y));
+    }
+    if (s[a.x - 1][a.y] == '.' && is(a))
+    {
+        s[a.x - 1][a.y] = '^';
+        s[a.x][a.y] = 'v';
+        try_add(mp(a.x-1, a.y));
+    }
+    if (s[a.x][a.y + 1] == '.'&& is(a))
+    {
+        s[a.x][a.y + 1] = '>';
+        s[a.x][a.y] = '<';
+        try_add(mp(a.x, a.y+1));
+    }
+    if (s[a.x][a.y - 1] == '.'&& is(a))
+    {
+        s[a.x][a.y - 1] = '<';
+        s[a.x][a.y] = '>';
+        try_add(mp(a.x, a.y-1));
+    }
+    //q.pop();
+}
+
+void get()
+{
+    for (set<pair<int, int> >::iterator t = pd.begin(); t != pd.end(); t++)
+    {
+        paint(*t);
+        //try_add(*t);
+    }
+}
+
+bool ok()
+{
+    bool go = 1;
+    for (int i = 1; i <= n; i++)
+    {
+        for (int j = 1; j <= m; j++)
+        {
+            if (s[i][j] == '.')
+                go = 0;
+        }
+    }
+    return go;
+}
+
+
+
+
+int main()
+{
+    cin >> n >> m;
+    for (int i = 1; i <= n; i++)
+    {
+        string t;
+        cin >> t;
+        s[i] = "";
+        s[i] += '!';
+        s[i] += t;
+        s[i] += '!';
+    }
+    s[0] = s[n + 1] = "";
+    for (int i = 0; i < m + 3; i++)
+    {
+        s[0] += '!';
+        s[n + 1] += '!';
+    }
+    gg();
+    get();
+    if (ok())
+    {
+        string a;
+        for (int i = 1; i <= n; i++)
+        {
+            a = "";
+            for (int j = 1; j <= m; j++)
+            {
+                a += s[i][j];
+            }
+            puts(a.c_str());
+        }
+    }
+    else cout << "Not unique";
+    return 0;
+}

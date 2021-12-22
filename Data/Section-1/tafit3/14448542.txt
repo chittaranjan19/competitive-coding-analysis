@@ -1,0 +1,162 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemA {
+    BufferedReader rd;
+
+    ProblemA() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        int n = a[0];
+        int m = a[1];
+        boolean[][] e = new boolean[n][n];
+        for(int i=0;i<m;i++) {
+            a = intarr();
+            int x = a[0]-1;
+            int y = a[1]-1;
+            e[x][y] = true;
+            e[y][x] = true;
+        }
+        Queue<Node> d = new ArrayDeque<>();
+        d.add(new Node());
+        int last = n-1;
+        int res = Integer.MAX_VALUE;
+        while(!d.isEmpty()) {
+            Node node = d.poll();
+            boolean[] visTrain = new boolean[n];
+            boolean[] visBus = new boolean[n];
+            Node cur = node;
+            while(cur != null) {
+                visTrain[cur.train] = true;
+                visBus[cur.bus] = true;
+                cur = cur.prev;
+            }
+            boolean[] trNext = new boolean[n];
+            boolean[] busNext = new boolean[n];
+            if(node.train != last) {
+                for(int i=0;i<n;i++) {
+                    if (!visTrain[i] && e[node.train][i]) {
+                        trNext[i] = true;
+                    }
+                }
+            } else {
+                trNext[last] = true;
+            }
+            if(node.bus != last) {
+                for(int i=0;i<n;i++) {
+                    if (!visBus[i] && !e[node.bus][i]) {
+                        busNext[i] = true;
+                    }
+                }
+            } else {
+                busNext[last] = true;
+            }
+            for(int i=0;i<n;i++) {
+                if(trNext[i]) {
+                    for (int j = 0; j < n; j++) {
+                        if ((i != j || i == last) && busNext[j]) {
+                            if (i != last || j != last) {
+                                Node node2 = new Node();
+                                node2.time = node.time + 1;
+                                node2.train = i;
+                                node2.bus = j;
+                                node2.prev = node;
+                                d.add(node2);
+                            } else {
+                                res = Math.min(res, node.time + 1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if(res == Integer.MAX_VALUE) {
+            res = -1;
+        }
+        out(res);
+    }
+
+    class Node {
+        int time;
+        int train;
+        int bus;
+        Node prev;
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemA();
+    }
+}

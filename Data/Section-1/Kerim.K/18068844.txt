@@ -1,0 +1,79 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+int arr[MAXN];
+struct SegmentTrees{
+	int s[1<<6][MAXN<<2];//[TIME][RANGE]
+	void upd(int p,int nd,int x,int y){
+		if(x==y){
+			for(int i=0;i<60;i++){
+				int tim=i;
+				if(tim%arr[x]==0)
+					s[i][nd]=2;
+				else
+					s[i][nd]=1;	
+			}
+			return;
+		}
+		int mid=(x+y)>>1;
+		if(p<=mid)
+			upd(p,nd<<1,x,mid);
+		else
+			upd(p,nd<<1|1,mid+1,y);
+		for(int i=0;i<60;i++)
+			s[i][nd]=s[i][nd<<1]+s[(s[i][nd<<1]+i)%60][nd<<1|1];		
+	}
+	int tap(int tm,int l,int r,int nd,int x,int y){
+		if(l>y or x>r)
+			return 0;
+		if(l<=x and y<=r)	
+			return s[tm%60][nd];
+		int mid=(x+y)>>1;
+		int i1=tap(tm,l,r,nd<<1,x,mid);
+		int i2=tap((tm+i1)%60,l,r,nd<<1|1,mid+1,y);
+		return i1+i2;		
+	}
+}T;
+int main(){
+	int a;
+	scanf("%d",&a);
+	for(int i=1;i<=a;i++){
+		scanf("%d",arr+i);
+		T.upd(i,1,1,a);
+	}
+	int q;
+	scanf("%d",&q);
+	while(q--){
+		char type[5];
+		int x,y;
+		scanf(" %c%d%d",&type[0],&x,&y);
+		if(type[0]=='C'){
+			arr[x]=y;T.upd(x,1,1,a);
+		}
+		else
+			printf("%d\n",T.tap(0,x,y-1,1,1,a));	
+	}
+	return 0;
+}
+/*
+10
+2 5 4 2 3 5 3 4 2 6
+1
+A 3 11
+*/

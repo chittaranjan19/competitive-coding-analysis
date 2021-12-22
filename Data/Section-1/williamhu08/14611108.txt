@@ -1,0 +1,84 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define rwfile(f) freopen(f".in", "r", stdin); freopen(f".out", "w", stdout)
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 1e5 + 10;
+
+int N, K;
+bool A[MAXN][2];	//can current player wn/lose pile?
+bool arr[1000];	//ok
+bool dp[MAXN][2];
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	//HI NICKY
+	cin >> N >> K;
+	K %= 2;
+	// for (int i = 1; i < 555; i++) {
+	// 	if (i % 2) {
+	// 		arr[i] = !arr[i - 1];
+	// 	} else {
+	// 		arr[i] = !(arr[i - 1] && arr[i / 2]);
+	// 	}
+	// 	cout << arr[i];
+	// }
+	// arr[0] = 0;
+	// cout << arr[0];
+	// for (int i = 1; i < 35; i++) {
+	// 	if (i % 2) {
+	// 		arr[i] = !arr[i - 1];
+	// 	} else {
+	// 		arr[i] = !(arr[i - 1] && arr[i / 2]);
+	// 	}
+	// 	cout << arr[i];
+	// }
+	// cout << endl;
+	// return 0;
+	//all the odds will be carried out at the end...
+	// bool ans = 0;
+	for (int i = 0, x; i < N; i++) {
+		cin >> x;
+		if (K) {
+			//can it be his turn again?
+			A[i][0] = !(x & 1);
+			//can it switch turns?
+			A[i][1] = (x & 1) ^ (x >= 4);
+		} else {
+			//can it be his turn again?
+			A[i][0] = !(x & 1);
+			//can it switch turns?
+			A[i][1] = (x & 1) ^ (x >= 2);
+		}
+	}
+	dp[N - 1][0] = A[N - 1][0];
+	dp[N - 1][1] = A[N - 1][1];
+	for (int i = N - 2; i >= 0; i--) {
+		for (int j = 0; j < 2; j++) {
+			for (int k = 0; k < 2; k++) {
+				dp[i][j] |= dp[i + 1][k] && A[i][j ^ k];
+			}
+		}
+	}
+	/*
+	for (int i = N - 1; i >= 0; i--) {
+		for (int j = 0; j < 2; j++) {
+			debug("dp[%d][%d] = %s\n", i, j, dp[i][j] ? "true" : "false");
+		}
+	}
+	*/
+	cout << (dp[0][1] ? "Kevin" : "Nicky") << endl;
+}

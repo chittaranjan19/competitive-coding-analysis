@@ -1,0 +1,122 @@
+#include <iostream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <set>
+#include <cstring>
+#include <map>
+#include <bitset>
+#include <random>
+#include <stack>
+#include <list>
+#include <ctime>
+
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define sc second
+#define fs first
+#define mp make_pair
+
+template<class T> T sqr(T x) { return x*x; }
+
+const int N = 2222;
+
+ld pi = 3.1415926535897932384626433832795;
+
+struct nd
+{
+	nd* nxt[26];
+	int end = -1;
+	nd() {
+		fill(nxt, nxt + 26, nullptr);
+		end = -1;
+	}
+};
+
+nd* root = new nd();
+
+void add(string s, int id)
+{
+	nd *v = root;
+	for (int i = 0; i < s.size(); i++)
+	{
+		int ch = (int)(s[i] - 'a');
+		if (v->nxt[ch] == nullptr)
+			v->nxt[ch] = new nd(), v->nxt[ch]->end = -1;
+		v = v->nxt[ch];
+	}
+	v->end = id;
+}
+
+vector<string> ww, w;
+string txt;
+int n, m;
+int prv[222222];
+vector<int> st[112222], endd[122222];
+vector<int>::iterator it, ti;
+bool gd[222222];
+
+int main()
+{
+	cin >> n;
+	cin >> txt;
+	cin >> m;
+	for (int i = 0; i < m; i++){
+		string t, tmp;
+		cin >> t;
+		ww.push_back(t);
+		tmp = t;
+		for (int j = 0; j < t.size(); j++){
+			if (t[j] >= 'A' && t[j] <= 'Z')
+				tmp[j] = char(t[j] + 32);
+			else tmp[j] = t[j];
+		}
+		reverse(tmp.begin(), tmp.end());
+		add(tmp, i);
+	}
+	for (int i = 0; i < n; i++){
+		nd* cur = root;
+		char next;
+		for (int j = 0; j < 1000; j++)
+		{
+			next = txt[i + j]-'a';
+			if (cur->nxt[next] == nullptr || cur == nullptr || i+j >= n)
+				break;
+			cur = cur->nxt[next];
+			if (cur->end != -1)
+				st[i].push_back(cur->end), endd[i + j].push_back(cur->end);
+		}
+	}
+	for (it = endd[n - 1].begin(); it != endd[n - 1].end(); it++)
+		gd[*it] = 1, prv[*it] = -1;
+	for (int i = n - 2; i >= 0; i--){
+		for (it = endd[i].begin(); it != endd[i].end(); it++){
+			for (ti = st[i + 1].begin(); ti != st[i + 1].end(); ti++){
+				int u = *it, v = *ti;
+				if (gd[v])
+					gd[u] = 1, prv[u] = v;
+			}
+		}
+	}
+	vector<int> ans;
+	int str = -1;
+	for (int i = 0; i < st[0].size(); i++){
+		if (gd[st[0][i]] == 1){
+			str = st[0][i];
+			break;
+		}
+	}
+	ans.push_back(str);
+	while (prv[str] != -1)
+	{
+		str = prv[str];
+		ans.push_back(str);
+	}
+	for (int i = 0; i < ans.size(); i++)
+		cout << ww[ans[i]] << ' ';
+	return 0;
+}

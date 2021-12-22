@@ -1,0 +1,143 @@
+type
+     node=record
+       abi,cost,num2:longint;
+     end;
+     tree=^node2;
+     node2=record
+       data,lnum,rnum:longint;
+       lch,rch:tree;
+     end;
+var
+    n,m,s,i,j,k,cnt,p,l:longint;
+    a,num,f,g,ans:array[0..100010] of longint;
+    b:array[0..100010] of node;
+    root:tree;
+
+procedure qsort(l,r:longint);
+var
+    i,j,mid,temp:longint;
+begin
+  i:=l;j:=r;
+  mid:=a[l+random(r-l+1)];
+  repeat
+    while a[i]>mid do inc(i);
+    while a[j]<mid do dec(j);
+    if i<=j then
+      begin
+        temp:=a[i];a[i]:=a[j];a[j]:=temp;
+        temp:=num[i];num[i]:=num[j];num[j]:=temp;
+        inc(i);dec(j);
+      end;
+  until i>j;
+  if l<j then qsort(l,j);
+  if i<r then qsort(i,r);
+end;
+
+procedure qsort2(l,r:longint);
+var
+    i,j:longint;
+    mid,temp:node;
+begin
+  i:=l;j:=r;
+  mid:=b[l+random(r-l+1)];
+  repeat
+    while b[i].abi>mid.abi do inc(i);
+    while b[j].abi<mid.abi do dec(j);
+    if i<=j then
+      begin
+        temp:=b[i];b[i]:=b[j];b[j]:=temp;
+        inc(i);dec(j);
+      end;
+  until i>j;
+  if l<j then qsort2(l,j);
+  if i<r then qsort2(i,r);
+end;
+
+procedure build(x:tree;l,r:longint);
+var
+    mid:longint;
+begin
+  x^.lnum:=l;x^.rnum:=r;
+  if l=r then
+    begin
+      x^.data:=l;x^.lch:=nil;x^.rch:=nil;exit;
+    end;
+  mid:=(l+r) shr 1;
+  new(x^.lch);build(x^.lch,l,mid);
+  new(x^.rch);build(x^.rch,mid+1,r);
+  if b[x^.lch^.data].cost<b[x^.rch^.data].cost then x^.data:=x^.lch^.data else x^.data:=x^.rch^.data;
+end;
+
+function query(x:tree;k:longint):longint;
+var
+    p,q:longint;
+begin
+  if x^.rnum<=k then exit(x^.data);
+  if k<=x^.lch^.rnum then exit(query(x^.lch,k));
+  p:=query(x^.lch,k);q:=query(x^.rch,k);
+  if b[p].cost<b[q].cost then exit(p) else exit(q);
+end;
+
+procedure change(x:tree;k,d:longint);
+begin
+  if x^.lnum=x^.rnum then
+    begin
+      x^.data:=d;exit;
+    end;
+  if k<=x^.lch^.rnum then change(x^.lch,k,d) else change(x^.rch,k,d);
+  if b[x^.lch^.data].cost<b[x^.rch^.data].cost then x^.data:=x^.lch^.data else x^.data:=x^.rch^.data;
+end;
+
+begin {main}
+  readln(n,m,s);
+  randomize;
+  for i:=1 to m do
+    read(a[i]);
+  for i:=1 to m do
+    num[i]:=i;
+  readln;
+  for i:=1 to n do
+    read(b[i].abi);
+  readln;
+  for i:=1 to n do
+    read(b[i].cost);
+  for i:=1 to n do
+    b[i].num2:=i;
+  qsort(1,m);
+  qsort2(1,n);
+  if b[1].abi<a[1] then begin writeln('NO');halt;end;
+  b[0].cost:=s+1;
+  new(root);build(root,1,n);
+  f[0]:=1;
+  for i:=1 to m do
+    begin
+      f[i]:=f[i-1];
+      while (f[i]<=n) and (b[f[i]].abi>=a[i]) do inc(f[i]);
+      dec(f[i]);
+    end;
+  for i:=1 to m do
+    begin
+      cnt:=0;
+      for j:=1 to (m-1) div i+1 do
+        begin
+          p:=(j-1)*i+1;
+          k:=query(root,f[p]);
+          if k=0 then begin cnt:=s+1;l:=j-1;break;end;
+          cnt:=cnt+b[k].cost;if cnt>s then begin l:=j-1;break;end;
+          g[j]:=k;
+          change(root,k,0);
+        end;
+      if cnt<=s then
+        begin
+          writeln('YES');
+          for j:=1 to m do
+            ans[num[j]]:=b[g[(j-1) div i+1]].num2;
+          for j:=1 to m-1 do write(ans[j],' ');
+          writeln(ans[m]);
+          halt;
+        end;
+      for j:=1 to l do
+        change(root,g[j],g[j]);
+    end;
+  writeln('NO');
+end.

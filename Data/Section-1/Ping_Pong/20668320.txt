@@ -1,0 +1,204 @@
+#include <stdio.h>
+#include <bits/stdc++.h>
+
+#define ll long long
+#define ld long double
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int P = 239;
+const int MAX_N = 100000;
+const int ABC = 26;
+const ld pi = 3.1415926535897932384626;
+const ld eps = 1e-6;
+
+vector<vector<int> > g;
+vector<int> in;
+vector<int> height;
+vector<pair<int, int> > order;
+vector<vector<int> > up;
+vector<vector<vector<int> > > num;
+vector<vector<int> > pos;
+
+void dfs(int u, int par, int h)
+{
+    height[u] = h;
+    if (h > 0)
+        up[u][0] = par;
+    for (int p = 1; (1 << p) <= h; p++)
+    {
+        up[u][p] = up[up[u][p - 1]][p - 1];
+        int v = up[u][p - 1];
+        int p1 = 0, p2 = 0;
+        for (int i = 0; i < min(10, (int)num[u][p - 1].size() + (int)num[v][p - 1].size()); i++)
+            if (p2 == (int)num[v][p - 1].size())
+                num[u][p].push_back(num[u][p - 1][p1++]);
+            else if (p1 == (int)num[u][p - 1].size())
+                num[u][p].push_back(num[v][p - 1][p2++]);
+            else if (num[u][p - 1][p1] <= num[v][p - 1][p2])
+                num[u][p].push_back(num[u][p - 1][p1++]);
+            else
+                num[u][p].push_back(num[v][p - 1][p2++]);
+    }
+    in[u] = order.size();
+    order.push_back({h, u});
+    for (int v : g[u])
+        if (v != par)
+        {
+            dfs(v, u, h + 1);
+            order.push_back({h, u});
+        }
+}
+
+vector<int> log_2;
+vector<vector<pair<int, int> > > st;
+
+void build()
+{
+    int n = order.size();
+    log_2.resize(n + 1);
+    log_2[1] = 0;
+    for (int i = 2; i <= n; i++)
+        if (i >= (1 << (log_2[i - 1] + 1)))
+            log_2[i] = log_2[i - 1] + 1;
+        else
+            log_2[i] = log_2[i - 1];
+    int sz = 0;
+    while ((1 << sz) <= n)
+        sz++;
+    st.resize(sz, vector<pair<int, int> > (n));
+    for (int i = 0; i < n; i++)
+        st[0][i] = order[i];
+    for (int j = 1; j < sz; j++)
+        for (int i = 0; i + (1 << j) <= n; i++)
+            st[j][i] = min(st[j - 1][i], st[j - 1][i + (1 << (j - 1))]);
+}
+
+pair<int, int> get_ans(int l, int r)
+{
+    int len = log_2[r - l];
+    return min(st[len][l], st[len][r - (1 << len)]);
+}
+
+int get_lca(int u, int v)
+{
+    u = in[u];
+    v = in[v];
+    if (u > v)
+        swap(u, v);
+    return get_ans(u, v + 1).second;
+}
+
+void init(int u, int v, int lca)
+{
+    int k = height[u] - height[lca];
+    for (int i = 0; i < 17; i++)
+        if ((k >> i) & 1)
+        {
+            pos[u][i] = 0;
+            u = up[u][i];
+        }
+    pos[lca][0] = 0;
+    k = height[v] - height[lca];
+    for (int i = 0; i < 17; i++)
+        if ((k >> i) & 1)
+        {
+            pos[v][i] = 0;
+            v = up[v][i];
+        }
+}
+
+int f(int u, int v, int lca)
+{
+    int ans = inf, p1, p2;
+    int k = height[u] - height[lca];
+    for (int i = 0; i < 17; i++)
+        if ((k >> i) & 1)
+        {
+            if (pos[u][i] < num[u][i].size() && num[u][i][pos[u][i]] < ans)
+            {
+                ans = num[u][i][pos[u][i]];
+                p1 = u;
+                p2 = i;
+            }
+            u = up[u][i];
+        }
+    if (pos[lca][0] < num[lca][0].size() && num[lca][0][pos[lca][0]] < ans)
+    {
+        ans = num[lca][0][pos[lca][0]];
+        p1 = lca;
+        p2 = 0;
+    }
+    k = height[v] - height[lca];
+    for (int i = 0; i < 17; i++)
+        if ((k >> i) & 1)
+        {
+            if (pos[v][i] < num[v][i].size() && num[v][i][pos[v][i]] < ans)
+            {
+                ans = num[v][i][pos[v][i]];
+                p1 = v;
+                p2 = i;
+            }
+            v = up[v][i];
+        }
+    if (ans != inf)
+    {
+        pos[p1][p2]++;
+        return ans;
+    }
+    else
+        return -1;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, m, q;
+    cin >> n >> m >> q;
+    g.resize(n);
+    in.resize(n);
+    height.resize(n);
+    up.resize(n, vector<int> (17));
+    num.resize(n, vector<vector<int> > (17));
+    pos.resize(n, vector<int> (17));
+    for (int i = 0; i < n - 1; i++)
+    {
+        int a, b;
+        cin >> a >> b;
+        g[a - 1].push_back(b - 1);
+        g[b - 1].push_back(a - 1);
+    }
+    for (int i = 0; i < m; i++)
+    {
+        int c;
+        cin >> c;
+        num[c - 1][0].push_back(i);
+    }
+    dfs(0, -1, 0);
+    build();
+    for (int i = 0; i < q; i++)
+    {
+        int u, v, a;
+        cin >> u >> v >> a;
+        u--; v--;
+        int lca = get_lca(u, v);
+        vector<int> ans;
+        init(u, v, lca);
+        for (int j = 0; j < a; j++)
+        {
+            int p = f(u, v, lca);
+            if (p == -1)
+                break;
+            else
+                ans.push_back(p);
+        }
+        cout << ans.size() << " ";
+        for (int p : ans)
+            cout << p + 1 << " ";
+        cout << endl;
+    }
+    return 0;
+}

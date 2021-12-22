@@ -1,0 +1,119 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.math.BigInteger;
+
+import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.ZERO;
+
+public class ProblemC2 {
+    BufferedReader rd;
+
+    ProblemC2() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        long[] a = longarr();
+        out(solve(a));
+    }
+
+    private String solve(long[] a) {
+        BigInteger t = new BigInteger(Long.toString(a[0]));
+        BigInteger w = new BigInteger(Long.toString(a[1]));
+        BigInteger b = new BigInteger(Long.toString(a[2]));
+        BigInteger cnt;
+        if(a[1] > a[0] && a[2] > a[0]) {
+            cnt = t;
+        } else if(a[1] == a[2]) {
+            cnt = t;
+        } else if(a[1] > a[0] || a[2] > a[0]) {
+            cnt = w.min(b).subtract(ONE);
+        } else {
+            BigInteger nww = w.multiply(b).divide(w.gcd(b));
+            BigInteger min = w.min(b);
+            if(nww.compareTo(t) <= 0) {
+                BigInteger u = t.divide(nww);
+                cnt = u.multiply(min).subtract(ONE);
+            } else {
+                cnt = ZERO;
+                cnt = cnt.subtract(ONE);
+            }
+            cnt = cnt.add(min.min(t.mod(nww).add(ONE)));
+        }
+        BigInteger y = cnt.gcd(t);
+        return cnt.divide(y)+"/"+t.divide(y);
+    }
+
+    private long[] longarr() throws IOException {
+        return longarr(rd.readLine());
+    }
+
+    private long[] longarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        long[] a = new long[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Long.parseLong(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemC2();
+    }
+}

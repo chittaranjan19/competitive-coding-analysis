@@ -1,0 +1,101 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+#define maxn 400050
+using namespace std;
+
+vector<int>hehe[100000];
+
+int first[maxn],fnext[maxn];
+int u[maxn],v[maxn];
+int ans[maxn];
+int tot=0;
+void init(int n)
+{
+    for(int i=1;i<=n;i++)
+        first[i]=-1;
+}
+
+void dfs(int st,int stnum)
+{
+    int now=0;
+    int i;
+    for(i=first[st];i!=-1;i=fnext[i])
+    {
+         if(ans[i])
+            continue;
+         now++;
+         if(now==stnum)
+            now++;
+         ans[i] = now;
+         if(i%2==0)
+            ans[i-1]=now;
+         else
+            ans[i+1]=now;
+
+         if(now>tot)
+            tot++;
+         dfs( v[i],now);
+    }
+}
+
+int main()
+{
+    int n;
+    while(scanf("%d",&n)!=EOF)
+    {
+        init(n);
+        int i,j;
+        int x=1;
+        for(i=1;i<n;i++)
+        {
+            int f1,f2;
+            scanf("%d%d",&f1,&f2);
+            u[x]=f1;
+            v[x]=f2;
+            fnext[x]=first[u[x]];
+            first[u[x]]=x;
+
+            x++;
+            u[x]=f2;
+            v[x]=f1;
+            fnext[x]=first[u[x]];
+            first[u[x]]=x;
+
+            x++;
+        }
+
+        tot=1;
+        memset(ans,0,sizeof(ans));
+        dfs(1,0);
+
+        printf("%d\n",tot);
+
+        int num[maxn];
+        memset(num,0,sizeof(num));
+
+        for(i=1;i<=tot;i++)
+            hehe[i].clear();
+        for(i=1;i<=(2*(n-1));i+=2)
+        {
+           num[ ans[i] ]++;
+           hehe[ans[i] ].push_back((1+i)/2);
+        }
+
+        for(i=1;i<=tot;i++)
+        {
+            printf("%d",num[i]);
+
+            for(int j=0;j<hehe[i].size();j++ )
+                   printf(" %d",hehe[i][j]);
+
+            printf("\n");
+        }
+
+
+
+    }
+    return 0;
+}

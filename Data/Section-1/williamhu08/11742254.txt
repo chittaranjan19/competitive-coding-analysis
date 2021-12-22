@@ -1,0 +1,59 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 1010;
+const int MOD = 1e9 + 7;
+
+int mult (int x, int y) {
+	return ll(x) * y % MOD;
+}
+
+int rec (int x) {
+	int res = 1;
+	for (int i = MOD - 2; i; i >>= 1) {
+		if (i & 1) {
+			res = mult(res, x);
+		}
+		x = mult(x, x);
+	}
+	return res;
+}
+
+int quot (int x, int y) {
+	return mult(x, rec(y));
+}
+
+int N, A[MAXN];
+int fact[MAXN * MAXN];
+
+int C (int n, int k) {
+	return quot(fact[n], mult(fact[k], fact[n - k]));
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	fact[0] = 1;
+	for (int i = 1; i < MAXN * MAXN; i++) {
+		fact[i] = mult(fact[i - 1], i);
+	}
+	cin >> N;
+	int sum = 0, ans = 1;
+	for (int i = 0; i < N; i++) {
+		cin >> A[i];
+		int rem = A[i] - 1;
+		//there are sum + 1 places to put it
+		ans = mult(ans, C(rem + sum, sum));
+		sum += A[i];
+	}
+	cout << ans << endl;
+}

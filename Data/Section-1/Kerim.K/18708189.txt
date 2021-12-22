@@ -1,0 +1,87 @@
+#include<bits/stdc++.h>
+#define MAXN 100009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"--------------"<<endl;
+#define ff first
+#define ss second
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+vector<int>adj[MAXN];
+int out[MAXN],in[MAXN],TIM,sub[MAXN],p[MAXN],ID[MAXN];
+void dfs(int nd,int pr){
+	in[nd]=++TIM;sub[nd]=1;
+	ID[TIM]=nd;
+	tr(it,adj[nd])
+		if(*it!=pr){
+			dfs(*it,nd);
+			sub[nd]+=sub[*it];
+		}
+	out[nd]=TIM;
+}
+set<PII>s[MAXN<<2];
+void merge(int nd){
+	tr(it,s[nd<<1])
+		s[nd].insert(*it);
+	tr(it,s[nd<<1|1])	
+		s[nd].insert(*it);	
+}
+void build(int nd,int x,int y){
+	if(x==y){
+		int cur=ID[x];
+		s[nd].insert(mp(sub[cur],cur));
+		return;
+	}
+	int mid=(x+y)>>1;
+	build(nd<<1,x,mid);
+	build(nd<<1|1,mid+1,y);
+	merge(nd);
+}
+PII tap(int l,int r,int v,int nd,int x,int y){
+	if(l>y or x>r)
+		return mp(INF,INF);
+	if(l<=x and y<=r){
+		typeof((s[nd]).begin()) it=s[nd].lower_bound(mp(v,-1));
+		if(it==s[nd].end())	
+			return mp(INF,INF);
+		return *it;	
+	}
+	int mid=(x+y)>>1;
+	PII i1=tap(l,r,v,nd<<1,x,mid);			
+	PII i2=tap(l,r,v,nd<<1|1,mid+1,y);			
+	return min(i1,i2);
+}
+int main(){
+	int n,q;
+	scanf("%d%d",&n,&q);
+	for(int i=2;i<=n;i++){
+		scanf("%d",p+i);
+		adj[p[i]].pb(i);
+	}
+	dfs(1,-1);
+	build(1,1,TIM);
+	while(q--){
+		int v;
+		scanf("%d",&v);
+		printf("%d\n",tap(in[v],out[v],sub[v]/2,1,1,TIM).ss);
+	}
+	return 0;
+}
+/*
+7 4
+1 1 3 3 5 3
+1
+2
+3
+5
+*/

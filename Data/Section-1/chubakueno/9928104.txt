@@ -1,0 +1,147 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> ii;
+typedef pair<pair<ll,ll>,ll> iii;
+class lazyProp
+{
+private:
+vector<ll> A;
+// Vector de números
+vector<ll> T, lazy; // T: Segment Tree, lazy: Propagation Tree
+int N;
+// Cantidad de elementos en el arreglo
+void build(int node, int L, int R); // node abarca el segmento [L, R]
+void push(int node, int L, int R); // Actualiza node (lazy) y propaga
+void pull(int node); // Actualiza node segun hijos izq y der
+ll query(int node, int L, int R, int x, int y);
+void set(int node, int L, int R, int x, ll val);
+void increment(int node, int L, int R, int x, int y, ll val);
+public:
+lazyProp();
+void create(const vector<ll> &pA); // Construye en base a vector
+ll query(int x, int y);
+// Range min/max/sum en [x, y]
+void set(int x, ll val); // Setea el valor de la posicion x
+void increment(int x, int y, ll val);
+// Aumenta el valor de cada posicion del rango [x, y] en val
+};
+lazyProp::lazyProp() {}
+void lazyProp::build(int node, int L, int R) // node abarca el rango [L,R]
+{
+if(L == R) T[node] = A[L]; // El segmento abarca un solo nodo
+else
+{
+int mid = (L + R) * 0.5;
+// Partir el segmento en dos
+build(2 * node + 1, L, mid);
+// Construir el segmento izquierdo
+build(2 * node + 2, mid + 1, R); // Construir el segmento derecho
+T[node] = T[2 * node + 1] + T[2 * node + 2]; //Opciones: max,min,suma,xor
+}
+}
+void lazyProp::create(const vector<ll> &pA) // pA: Arreglo de números
+{
+A = pA; N = (int)A.size();
+T.assign(N * 4, 0); lazy.assign(N * 4, 0); // Se necesitan ~ 4*N nodos
+build(0, 0, N - 1); // La raiz abarca el rango [0, N-1]
+}
+void lazyProp::push(int node, int L, int R) // node abarca el rango [L,R]
+{
+// T[node] += lazy[node]; // Para range max/min)
+T[node] += lazy[node] * (R - L + 1); // Para range sum
+if(L != R) // Si no es un nodo hoja, propago la información
+{
+lazy[2 * node + 1] += lazy[node]; // Propagar al hijo izquierdo
+lazy[2 * node + 2] += lazy[node]; // Propagar al hijo derecho
+}
+lazy[node] = 0; // Despues de propagado, asignar 0
+}
+void lazyProp::pull(int node) // Actualizar node segun el valor de sus hijos
+{
+T[node] = T[2 * node + 1] + T[2 * node + 2]; // Opciones: max,min,suma,xor
+}
+ll lazyProp::query(int node, int L, int R, int x, int y) // node cubre [L,R]
+{
+push(node, L, R); // Propagar información del nodo
+// Validar si [L,R] está fuera del rango [x,y]
+if(R < x || L > y) return 0; // max: -INF, min: INF, suma: 0
+// Validar si [L,R] está dentro del rango [x,]
+if(x <= L && R <= y) return T[node];
+int mid = (L + R) * 0.5; // Partir el segmento en dos
+ll ret1 = query(2 * node + 1, L, mid, x, y);
+// Ir al segmento izq
+ll ret2 = query(2 * node + 2, mid + 1, R, x, y); // Ir al segmento der
+pull(node);
+// Actualizar node
+return ret1 + ret2; // Opciones: max, min, suma, xor
+}
+ll lazyProp::query(int x, int y) { return query(0, 0, N - 1, x, y); }
+void lazyProp::set(int node, int L, int R, int x, ll val) //node cubre [L,R]
+{
+push(node, L, R); // Propagar información del nodo
+if(x < L || R < x) return; // x está fuera del rango [L,R]
+if(L == R) { T[node] = val; A[L] = val; } // El segmento cubre 1 elemento
+else
+{
+int mid = (L + R) * 0.5;
+// Partir el segmento en dos
+set(2 * node + 1, L, mid, x, val);
+// Ir al segmento izq
+set(2 * node + 2, mid + 1, R, x, val); // Ir al segmento der
+pull(node); // Actualizar node
+}
+}
+void lazyProp::set(int x, ll val) { return set(0, 0, N - 1, x, val); }
+void lazyProp::increment(int node, int L, int R, int x, int y, ll val)
+{
+push(node, L, R); // Propagar información del nodo
+if(R < x || L > y) return; // [L,R] está fuera del rango [x,y]
+if(x <= L && R <= y) // Si [L,R] está dentro del rango [x,y]..
+{
+lazy[node] += val; // Actualizar valor a propagar
+push(node, L, R); // Propagar
+}
+else
+{
+int mid = (L + R) * 0.5; // Partir el segmento en dos
+increment(2 * node + 1, L, mid, x, y, val);
+// Ir al segmento izq
+increment(2 * node + 2, mid + 1, R, x, y, val); // Ir al segmento der
+pull(node); // Actualizar node
+}
+}
+void lazyProp::increment(int x, int y, ll val)
+{
+return increment(0, 0, N - 1, x, y, val);
+}
+int main(){
+    ios_base::sync_with_stdio(false);
+    int n,m,k;
+    cin>>n>>m>>k;
+    vector<ll> ops(100000,0);
+    vector<ll> nums(100000,0);
+    for(int i=0;i<n;++i){
+        cin>>nums[i];
+    }
+    lazyProp *lops = new lazyProp();
+    lops->create(ops);
+    lazyProp *lnums = new lazyProp();
+    lnums->create(nums);
+    vector<iii> regops(100000);
+    for(int i=0;i<m;++i){
+        int l,r,d;
+        cin>>l>>r>>d;       
+        regops[i]=iii(ii(l-1,r-1),d);
+    }
+    for(int i=0;i<k;++i){
+        int x,y;
+        cin>>x>>y;
+        lops->increment(x-1, y-1, 1);
+    }
+    for(int i=0;i<m;++i){
+        lnums->increment(regops[i].first.first, regops[i].first.second, lops->query(i,i)*regops[i].second);
+    }
+    for(int i=0;i<n;++i)
+        cout<<lnums->query(i,i)<<" "; // Range Query en [X, Y]
+}

@@ -1,0 +1,167 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+public class Cetvrta {
+
+	public static void main(String[] args) throws IOException {
+		BufferedReader bi = new BufferedReader(new InputStreamReader(System.in));
+		
+		String line = bi.readLine();
+		
+		String[] tmp = line.split("\\s+");
+		
+		int N = Integer.parseInt(tmp[0]);
+		
+		int M = Integer.parseInt(tmp[1]);
+		
+		int p = Integer.parseInt(tmp[2]);
+		
+		int[][] mat = new int[N][M];
+		for(int i = 0 ; i < N ; i++){
+			line = bi.readLine();
+			tmp = line.split("\\s+");
+			for(int j = 0 ; j < M ; j++){
+				mat[i][j] = Integer.parseInt(tmp[j]);
+			}
+		}
+		
+//		for(int i = 0 ; i < N ; i++){
+//			for(int j = 0 ; j < M ; j++){
+//				System.out.print(mat[i][j] + " ");
+//			}
+//			System.out.println();
+//		}
+		
+//		int rez = 0;
+//		
+//		for(int i = 1 ; i <= p ; i++){
+//			int value = runBfs(mat, i);
+//			//System.out.println("TARGET FOR " + i + " is " + value);
+//			//System.out.println(currI + " " + currJ);
+//			rez+=value;
+//		}
+		int rez = recursion(mat, 1, p, 0, 0);
+		System.out.println(rez);
+		
+	}
+	
+	public static int recursion(int[][] mat, int target, int last, int i, int j){
+		HashMap<String, Integer> targets = runBfs(mat, target, i, j);
+		
+		
+		if(target==last){
+			int min = Integer.MAX_VALUE;
+			for(int it : targets.values()){
+				min = Math.min(it, min);
+			}
+			return min;
+		}
+		int min = Integer.MAX_VALUE;
+		for(String str : targets.keySet()){
+			String[] tmp = str.split(" ");
+			int ii = Integer.parseInt(tmp[0]);
+			int jj = Integer.parseInt(tmp[1]);
+			int value = targets.get(str) + recursion(mat, target+1, last, ii, jj);
+			min = Math.min(value, min);
+		}
+		
+		return min;
+	}
+	
+	public static HashMap<String, Integer> runBfs(int[][] mat, int target, int currI, int currJ){
+		ArrayList<String> queue = new ArrayList<>();
+		String keyy = currI + " " + currJ;
+		queue.add(currI + " " + currJ);
+		HashMap<String, Integer> mapa = new HashMap<>();
+		mapa.put(keyy, 0);
+		
+		HashMap<String, Integer> targets = new HashMap<>();
+		
+		if(mat[currI][currJ] == target){
+			targets.put(keyy, 0);
+			return targets;
+		}
+		
+		//System.out.println();
+		
+		while(!queue.isEmpty()){
+			String curr = queue.remove(0);
+			String[] tmp = curr.split(" ");
+			int i = Integer.parseInt(tmp[0]);
+			int j = Integer.parseInt(tmp[1]);
+			
+		//	System.out.println(curr + " map = " + mapa.get(curr));
+		//	System.out.println("MAT IS " + i + " " + j + " " + mat[i][j]);
+			
+			if( (i+1) < mat.length ){
+				String key = (i+1) + " " + j;
+				if(!mapa.containsKey(key)){
+					if(mat[i+1][j] == target){
+						if(!targets.containsKey(key)) targets.put(key, (mapa.get(curr) + 1));
+						
+						//return ;
+					}
+					else{
+						
+						mapa.put(key, (mapa.get(curr) + 1) );
+						queue.add(key);
+					}
+				}
+				
+			}
+			
+			if( (i-1) >= 0 ){
+				String key = (i-1) + " " + j;
+				if(!mapa.containsKey(key)){
+					if(mat[i-1][j] == target){
+						if(!targets.containsKey(key)) targets.put(key, (mapa.get(curr) + 1));
+						//return (mapa.get(curr) + 1);
+					}
+					else{
+						
+						mapa.put(key, (mapa.get(curr) + 1));
+						queue.add(key);
+					}
+				}
+				
+			}
+			
+			if( (j+1) < mat[0].length ){
+				String key = i + " " + (1 +j);
+				if(!mapa.containsKey(key)){
+					if(mat[i][j+1] == target){
+						if(!targets.containsKey(key)) targets.put(key, (mapa.get(curr) + 1));
+						//return (mapa.get(curr) + 1);
+					}
+					else{
+						
+						mapa.put(key, (mapa.get(curr) + 1));
+						queue.add(key);
+					}
+				}
+				
+			}
+			
+			if( (j-1) >= 0 ){
+				String key = i + " " + (j-1);
+				if(!mapa.containsKey(key)){
+					if(mat[i][j-1] == target){
+						if(!targets.containsKey(key)) targets.put(key, (mapa.get(curr) + 1));
+						//return (mapa.get(curr) + 1);
+					}
+					else{
+						
+						mapa.put(key, (mapa.get(curr) + 1));
+						queue.add(key);
+					}
+				}
+				
+			}
+			
+		}
+		
+		
+		return targets;
+	}
+}

@@ -1,0 +1,57 @@
+using namespace std;
+#include<bits/stdc++.h>
+#define FOR(i, a, b) for (int i = a; i < b; i++)
+#define FORE(i, a, b) for (int i = a; i <= b; i++)
+#define FORD(i, a, b) for (int i = a; i >= b; i--)
+const int MAXN = 2*1e6;
+const int INF  = 1e9 + 7;
+const int base = MAXN;
+
+string s;
+int n;
+int Pw[MAXN], Sa[MAXN], a[MAXN], m = 0;
+
+int mul(int x, int y)
+{
+    return (1LL * x * y) % INF;
+}
+
+int Get(int l, int r)
+{
+    return (Sa[r] - mul(Sa[l - 1], Pw[r - l + 1]) + INF ) % INF;
+}
+
+bool ok(int k)
+{
+    FORE(i, 2, n - k) if (Get(i, i + k - 1) == Get(1, k)) return 1;    return 0;
+}
+
+int main()
+{
+    ios::sync_with_stdio(false);
+    //freopen("126B.inp", "r", stdin);
+    //freopen("126B.out", "w", stdout);
+    cin >> s;  n = s.length();
+    s = "+" + s;
+    Pw[0] = 1;
+    FORE(i, 1, n) Pw[i] = mul(Pw[i - 1], base);
+    FORE(i, 1, n) Sa[i] = (mul(Sa[i - 1], base) + s[i]) % INF;
+    for(int i = 1; i <= n - 1; i++) if (Get(1, i) == Get(n - i + 1, n))
+        a[++m] = i;
+    //cout<<( Get(1, 5) == Get(5, 10))<<endl;
+
+    int dau = 1, g, fin = 0, cuoi = m;
+    //FORE(i, 1, m) cout<<a[i]<<" ";cout<<endl;
+    while (dau <= cuoi) {
+        int g = (dau + cuoi) / 2;
+        if (ok(a[g])) {
+            fin = g;
+            dau = g + 1;
+        } else cuoi = g - 1;
+    }
+    //cout<<fin<<"wtf"<<endl;
+    if (!fin) cout<<"Just a legend";
+    else FORE(i, 1, a[fin]) cout<<s[i];
+    //cout<<ok(3)<<endl;
+    return 0;
+}

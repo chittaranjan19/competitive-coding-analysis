@@ -1,0 +1,78 @@
+#include <bits/stdc++.h>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000000000000LL
+#define EPS 1e-8
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+#define setzero(a) memset(a,0,sizeof(a))
+#define setdp(a) memset(a,-1,sizeof(a))
+#define bits(a) __builtin_popcount(a)
+
+using namespace std;
+
+int t[150005], b[150005], a[150005];
+LL DP[2][150005];
+pair<LL, LL> st1[150005], st2[150005];
+
+int main()
+{
+  int n, m, d;
+  cin >> n >> m >> d;
+  for(int i=0;i<m;i++)
+  {
+    scanf("%d %d %d", &a[i], &b[i], &t[i]);
+    a[i]--;
+  }
+  for(int i=0;i<n;i++)
+    DP[0][i] = b[0] - abs(i - a[0]);
+  for(int i=1;i<m;i++)
+  {
+    for(int j=0;j<n;j++) DP[i & 1][j] = -INF;
+    LL tmp = d * 1LL * (t[i] - t[i - 1]);
+    for(int f=0;f<2;f++)
+    {
+      int x = 0, y = 0;
+      int j = 0;
+      if(f) j = n - 1;
+      while(1)
+      {
+        if(f && j < 0) break;
+        if(!f && j == n) break;
+        if(x + y > tmp)
+        {
+          if(y == 0)
+          {
+            while(x)
+            {
+              x--;
+              st2[y] = mp(st1[x].f, st1[x].f);
+              if(y) st2[y].s = max(st2[y - 1].s, st2[y].s);
+              y++;
+            }
+          }
+          y--;
+        }
+        st1[x] = mp(DP[1 - (i & 1)][j], DP[1 - (i & 1)][j]);
+        if(x) st1[x].s = max(st1[x - 1].s, st1[x].s);
+        x++;
+        LL t = st1[x - 1].s;
+        if(y) t = max(t, st2[y - 1].s);
+        DP[i & 1][j] = max(DP[i & 1][j], t + b[i] - abs(j - a[i]));
+        if(f) j--;
+        else j++;
+      }
+    }
+  }
+  LL ans = -INF;
+  for(int i=0;i<n;i++)
+    ans = max(ans, DP[(m-1)&1][i]);
+  cout << ans;
+  return 0;
+}

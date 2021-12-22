@@ -1,0 +1,106 @@
+#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdio>
+#include <stdlib.h>
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
+const long long inf = (long long)1e9;
+const long long MAX_N = 100000;
+const long long MOD = (long long)1e9 + 7;
+
+int graph[26][26];
+int num[26];
+bool used[26];
+
+int dfs(int x, int cnt)
+{
+    used[x] = true;
+    for (int i = 0; i < 26; i++)
+        if (graph[x][i] && !used[i])
+            cnt = dfs(i, cnt);
+    num[x] = cnt;
+    return cnt + 1;
+}
+
+int main()
+{
+    //freopen("slalom.in", "r", stdin);
+    //freopen("slalom.out", "w", stdout);
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    for (int i = 0; i < 26; i++)
+        for (int j = 0; j < 26; j++)
+            graph[i][j] = 0;
+    for (int i = 0; i < 26; i++)
+        num[i] = -1;
+    for (int i = 0; i < 26; i++)
+        used[i] = false;
+    int n;
+    cin >> n;
+    string s, s1;
+    cin >> s;
+    for (int i = 0; i < n - 1; i++)
+    {
+        cin >> s1;
+        int curr = 0;
+        while (curr < min(s.size(), s1.size()) && s[curr] == s1[curr])
+            curr++;
+        if (curr < min(s.size(), s1.size()))
+            graph[s1[curr] - 'a'][s[curr] - 'a'] = 1;
+        else if (s.size() > s1.size())
+        {
+            cout << "Impossible";
+            return 0;
+        }
+        s = s1;
+    }
+    int curr = 0;
+    for (int i = 0; i < 26; i++)
+    {
+        bool b = true;
+        for (int j = 0; j < 26; j++)
+            if (graph[j][i])
+            {
+                b = false;
+                break;
+            }
+        if (b && !used[i])
+            curr = dfs(i, curr);
+    }
+    /*for (int i = 0; i < 26; i++)
+    {
+        for (int j = 0; j < 26; j++)
+            cout << graph[i][j] << " ";
+        cout << endl;
+    }*/
+
+    /*for (int i = 0; i < 26; i++)
+        cout << num[i] << " ";
+    cout << endl;*/
+
+    for (int i = 0; i < 26; i++)
+        if (num[i] == -1)
+        {
+            cout << "Impossible";
+            return 0;
+        }
+    for (int i = 0; i < 26; i++)
+        for (int j = 0; j < 26; j++)
+            if (graph[i][j] && num[i] < num[j])
+            {
+                cout << "Impossible";
+                return 0;
+            }
+    string ans = "";
+    for (int i = 0; i < 26; i++)
+        for (int j = 0; j < 26; j++)
+            if (num[j] == i)
+            {
+                ans += (char)j + 'a';
+                break;
+            }
+    cout << ans;
+    return 0;
+}

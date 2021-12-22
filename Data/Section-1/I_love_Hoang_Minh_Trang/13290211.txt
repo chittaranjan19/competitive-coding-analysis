@@ -1,0 +1,48 @@
+#include <iostream>
+#include <stdlib.h>
+#include <algorithm>
+using namespace std;
+
+const int MAXN = 1e6 * 10;
+const int INF = 1e7 + 1;
+int n, Q, l, r, a[MAXN], dd[INF], s[INF];
+int Era[INF], nt[INF], c[INF], m = 0;
+
+int main()
+{
+    ios::sync_with_stdio(0); cin.tie(0);
+    cin >> n;
+    for(int i = 1; i <= n; i++) cin >> a[i];
+    cin >> Q;
+
+    for(int i = 2; i <= INF - 1;i++) if (!c[i]){
+        nt[++m] = i;
+        Era[i] = m;
+        long long j = 1LL * i * i;
+        while (j <= INF - 1) {
+            c[j] = 1;
+            Era[j] = m;
+            j += i;
+        }
+    }
+
+    for(int i = 1; i <= n; i++) {
+        int x = a[i];
+        while (x > 1) {
+            int j = Era[x];
+            dd[nt[j]]++;
+            while (x % nt[j] == 0) x /= nt[j];
+        }
+    }
+    for(int i = 1; i <= INF - 1; i++) s[i] = s[i - 1] + dd[i];
+    while (Q--) {
+        cin >> l >> r;
+        int cuoi = upper_bound(nt + 1, nt + m + 1, r) - nt - 1;
+        int dau =  lower_bound(nt + 1, nt + m + 1, l) - nt;
+        if (dau > cuoi) cout<<0<<endl;
+        else
+        cout<<s[nt[cuoi]] - s[nt[dau] - 1]<<endl;
+    }
+    return 0;
+}
+

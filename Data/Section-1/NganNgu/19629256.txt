@@ -1,0 +1,132 @@
+#include <iostream> 
+#include <cstdio>
+#include <vector>
+#include <cmath>
+
+using namespace std;
+
+#define For(i , a , b) for (int i = a , _b = b ; i <= _b ; ++i)
+#define Ford(i , a  ,b) for (int i = a , _b = b : i >= _b ; --i)
+#define Rep(i , n) for (int i = 0 , _n = n ; i < _n ; ++i)
+#define sz(A) ((int)A.size())
+#define LL(x) (x << 1)
+#define RR(x) ((x << 1) | 1)
+
+typedef pair<int , long long> pt;
+
+const int maxn = 1000 + 123;
+long long a[maxn] , k;
+int n;
+
+long long gcd(long long x , long long y) {
+	while (x && y) if (x >= y) x %= y; else y %= x; return x + y;
+}
+
+void ReadData() {
+	cin >> n >> k; For(i , 1 , n) cin >> a[i];
+}
+
+vector<pair<int , long long> > dp[2][2];
+vector<int> d;
+int to[1000000 + 123];
+
+void Init() {
+	For(i , 1 , (int)sqrt(k) + 1) if (k % i == 0) {
+		d.push_back(i);
+		to[i] = (int)d.size() - 1;
+	}
+}
+
+vector<pair<int , pt> > trace[maxn][2];
+const int INF = 1e9 + 123;
+
+bool minimize(pt &a , const pt &b) {
+	if (a > b) return a = b, true; return false;
+}
+
+long long cal(long long a,  long long b) {
+	a = gcd(a , k); b = gcd(b , k);
+	return gcd(a * b , k);
+} 
+
+std::vector<int> id;
+void doTrace(int n , int u , int v) {
+	if (n == 0) return;
+	if (trace[n][u][v].first) id.push_back(n);
+	int p = trace[n][u][v].second.first , q = trace[n][u][v].second.second;
+	doTrace(n - 1, p , q); 
+}
+
+void Process() {
+	Init();
+
+	Rep(i , 2) Rep(j , 2) dp[i][j].resize((int)d.size() + 5);
+	Rep(i , maxn) Rep(j , 2) trace[i][j].resize((int)d.size() + 5);
+
+	int cur = 0 , nex = 0;
+	dp[cur][0][0] = pt(0 , 0);
+	dp[cur][1][0] = pt(INF , 0);
+	For(j , 1 , sz(d) - 1) dp[cur][0][j] = dp[cur][1][j] = pt(INF , 0);
+
+	int sq = (int)sqrt(k) + 1;
+	For(i , 0 , n - 1) {
+		nex = cur ^ 1;
+		For(j , 0 , sz(d) - 1) dp[nex][0][j] = dp[nex][1][j] = pt(INF , 0);
+		dp[nex][0][0] = pt(0 , 0);
+
+		For(j , 0 , sz(d) - 1) {
+			if (minimize(dp[nex][0][j] , dp[cur][0][j])) trace[i + 1][0][j] = make_pair(0 , make_pair(0 , j));
+
+			long long z = d[j]; 
+			long long t = cal(z , a[i + 1]);
+			if (t <= sq) {
+				int pos = to[t]; 
+				pt val = pt(dp[cur][0][j].first + 1 , dp[cur][0][j].second + a[i + 1]);
+				if (minimize(dp[nex][0][pos] , val)) trace[i + 1][0][pos] = make_pair(1 , make_pair(0 , j));
+			} else {
+				int pos = to[k / t]; 
+				pt val = pt(dp[cur][0][j].first + 1 , dp[cur][0][j].second + a[i + 1]); 
+				if (minimize(dp[nex][1][pos] , val)) trace[i + 1][1][pos] = make_pair(1 , make_pair(0 , j));
+			}
+
+			if (minimize(dp[nex][1][j] , dp[cur][1][j])) trace[i + 1][1][j] = make_pair(0 , make_pair(1 , j));
+			z = k / d[j]; 
+			t = cal(z , a[i + 1]);
+
+			if (t <= sq) {
+				int pos = to[t]; 
+				pt val = pt(dp[cur][1][j].first + 1 , dp[cur][1][j].second + a[i + 1]);
+				if (minimize(dp[nex][0][pos] , val)) trace[i + 1][0][pos] = make_pair(1 , make_pair(1 , j));
+			} else {
+				int pos = to[k / t]; 
+				pt val = pt(dp[cur][1][j].first + 1 , dp[cur][1][j].second + a[i + 1]); 
+				if (minimize(dp[nex][1][pos] , val)) trace[i + 1][1][pos] = make_pair(1 , make_pair(1 , j));
+			}
+		}
+		cur = nex;
+	}
+
+	pt res = pt(INF , 0);
+	minimize(res , dp[cur][1][0]);
+
+	if (res.first == INF) {
+		cout << -1 << endl;
+		return;
+	}
+	doTrace(n , 1 , 0);
+	cout << res.first << endl;
+	for (int i = 0 ; i < (int)id.size() ; i++) cout << id[i] << " ";
+	cout << endl;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
+	
+	//freopen("input.inp" , "r" , stdin); 
+	ReadData();
+	Process();
+
+	return 0;
+
+}			

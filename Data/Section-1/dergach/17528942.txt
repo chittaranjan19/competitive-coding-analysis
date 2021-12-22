@@ -1,0 +1,215 @@
+#pragma comment(linker, "/STACK:100000000")
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <set>
+#include <map>
+#include <sstream>
+#include <queue>
+#include <algorithm>
+#include <iostream>
+#include <stack>
+using namespace std;
+
+typedef long long ll;
+#define mod 1000000007
+#define INF mod
+#define pi acos(-1.0)
+#define LINF 1000000000000000000LL
+#define eps 1e-10
+
+struct test
+{
+    test(size_t _id):id(_id)
+    {
+        w = 0.;
+        status = 0;
+    }
+    double w;
+    size_t id;
+    size_t status;
+    const bool operator<(const test& t) const
+    {
+        if(w == t.w)
+            return id < t.id;
+        return w > t.w;
+    }
+};
+
+struct problem
+{
+    int TL;
+    int testCnt;
+    vector<test> tests;
+}problems[10005];
+
+struct solution
+{
+    int problemId;
+    int solutionId;
+//    vector <int> checked; //0 - not checked, 1 - is checking now, 2 - checked
+    set<test> tests;
+    
+    solution(int _problemId, int _solutionId) : problemId(_problemId), solutionId(_solutionId)
+    {
+        if(problemId >= 0)
+        {
+            for(size_t i = 0; i < problems[problemId].testCnt; ++i)
+            {
+                tests.insert(problems[problemId].tests[i]);
+            }
+        }
+    }
+    
+    void finishedTest(const size_t testId, const string& status)
+    {
+        set<test>::iterator it = tests.begin();
+        for(;it != tests.end(); ++it)
+        {
+            if(it->id == testId)
+            {
+                break;
+            }
+        }
+        if(it == tests.end())
+        {
+            return;
+        }
+        tests.erase(it);
+        if(status != "OK")
+        {
+            problems[problemId].tests[it->id].w++;
+        }
+        
+    }
+    
+    bool hasUncheckedTest()
+    {
+        for(set<test>::iterator it = tests.begin(); it != tests.end(); ++it)
+        {
+            if(it->status < 2)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    const bool operator<(const solution& sol) const
+    {
+        return solutionId < sol.solutionId;
+    }
+};
+
+int t, p;
+string s;
+set <solution> solutions;
+int solutionCnt;
+
+
+void updateTestStatus(set<test>& source, vector<set<test>::iterator> remTestsIt, const size_t newStatus)
+{
+    
+    vector<test> newTests;
+    for(size_t i = 0; i < remTestsIt.size(); ++i)
+    {
+        test tt = *remTestsIt[i];
+        tt.status = newStatus;
+        newTests.push_back(tt);
+        source.erase(remTestsIt[i]);
+    }
+    if (newStatus == 1)
+    {
+        for(size_t i = 0; i < newTests.size(); ++i)
+        {
+            source.insert(newTests[i]);
+        }
+    }
+    
+}
+
+int main()
+{
+    //freopen("letter.in", "rt", stdin);
+    freopen("letter.txt", "wt", stdout);
+    scanf("%d", &t);
+    scanf("%d", &p);
+    for(int i = 0; i < p; i++)
+    {
+        scanf("%d %d", &problems[i].TL, &problems[i].testCnt);
+        for(size_t j = 0; j < problems[i].testCnt; ++j)
+        {
+            problems[i].tests.push_back(test(j));
+        }
+    }
+    int problemId;
+    while(cin >> problemId)
+    {
+        if(problemId >= 0)
+        {
+            solutions.insert(solution(problemId, solutionCnt++));
+            while(cin >> problemId) //read list of new solutions
+            {
+                if(problemId == -1)
+                    break;
+                solutions.insert(solution(problemId, solutionCnt++));
+            }
+        }
+        while(1) //read verdicts
+        {
+            int solutionId, testNumber;
+            scanf("%d %d", &solutionId, &testNumber);
+            if(solutionId == -1 && testNumber == -1)
+                break;
+            t++;
+            cin >> s;
+            if(solutions.find(solution(-1, solutionId)) != solutions.end())
+            {
+                solution sol = *(solutions.find(solution(-1, solutionId)));
+                solutions.erase(solution(-1, solutionId));
+                sol.finishedTest(testNumber, s);
+                
+                if(s == "OK" && sol.hasUncheckedTest())
+                {
+                    solutions.insert(sol);
+                }
+            }
+        }
+        //assign checking tasks
+        {
+            vector <solution> curSolutions;
+            for(set<solution>::iterator it = solutions.begin(); t > 0 && it != solutions.end(); it++)
+            {
+                solution sol = *it;
+                if(!sol.tests.empty())
+                {
+                    vector<set<test>::iterator> replaceIterators;
+                    for(set<test>::iterator it = sol.tests.begin();
+                        it != sol.tests.end();
+                        ++it)
+                    {
+                        if(it->status == 0 && t>0)
+                        {
+                            t--;
+                            printf("%d %zu\n", sol.solutionId, it->id);
+                            replaceIterators.push_back(it);
+                        }
+                    }
+                    updateTestStatus(sol.tests, replaceIterators, 1);
+                    curSolutions.push_back(sol);
+                }
+            }
+            for(int i = 0; i < curSolutions.size(); i++)
+                solutions.erase(solution(-1, curSolutions[i].solutionId));
+            for(int i = 0; i < curSolutions.size(); i++)
+                solutions.insert(curSolutions[i]);
+        }
+        puts("-1 -1");
+        //fflush(stdout);
+    }
+    return 0;
+}

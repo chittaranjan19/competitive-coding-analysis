@@ -1,0 +1,64 @@
+#include <cstdio>
+#include <vector>
+using namespace std;
+const int BS=277;
+int n,m,i,x,y,v,bx,by,t,a[100500];
+long long b[100500],r;
+vector<int> g[100500];
+void norm(int bx) {
+  for (int i=0; i<g[bx].size(); i++)
+    for (int j=bx*BS; j<(bx+1)*BS; j++)
+      a[j]%=g[bx][i];
+  g[bx].clear();
+}
+void modify(int x, int y, int bx, int v) {
+  if (g[bx].size()) norm(bx);
+  for (int i=x; i<y; i++) {
+    b[i/BS]-=a[i];
+    a[i]%=v;
+    b[i/BS]+=a[i];
+  }
+}
+long long zcount(int x, int y, int bx) {
+  if (g[bx].size()) norm(bx);
+  long long r=0;
+  for (int i=x; i<y; i++) r+=a[i];
+  return r;
+}
+int main() {
+  scanf("%d%d",&n,&m);
+  for (i=1; i<=n; i++) {
+    scanf("%d",&a[i]);
+    b[i/BS]+=a[i];
+  }
+  while (m--) {
+    scanf("%d%d%d",&t,&x,&y);
+    bx=x/BS;
+    if (t==1) {
+      by=y/BS;
+      if (bx<by) {
+        r=zcount(x,(bx+1)*BS,bx);
+        r+=zcount(by*BS,y+1,by);
+        for (i=bx+1; i<by; i++) r+=b[i];
+      } else r=zcount(x,y+1,bx);
+      printf("%I64d\n",r);
+    } else if (t==2) {
+      scanf("%d",&v);
+      by=y/BS;
+      if (bx<by) {
+        modify(x,(bx+1)*BS,bx,v);
+        modify(by*BS,y+1,by,v);
+        for (i=bx+1; i<by; i++) {
+          b[i]%=v;
+          g[i].push_back(v);
+        }
+      } else modify(x,y+1,bx,v);
+    } else {
+      if (g[bx].size()) norm(bx);
+      b[i/BS]-=a[x];
+      a[x]=y;
+      b[i/BS]+=a[x];
+    }
+  }
+  return 0;
+}

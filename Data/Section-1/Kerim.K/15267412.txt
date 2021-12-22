@@ -1,0 +1,108 @@
+//Cok tavsanin pesinde kosan hicbrini yakalmaz!
+#include<bits/stdc++.h>
+#define MAXN 300009
+#define INF 1000000007
+#define LLINF 1000000000000000007
+#define mp(x,y) make_pair(x,y)
+#define wr cout<<"Continue Debugging!!!"<<endl;
+#define ff first
+#define ss second
+#define lg(x) ceil(log2(x))
+#define all(x) x.begin(),x.end()
+#define pb(x) push_back(x)
+#define ppb() pop_back()
+#define tr(i, c) for(typeof((c).begin()) i = (c).begin(); i!=(c).end(); i++)
+using namespace std;
+typedef long long ll;
+typedef pair<ll,ll> PII;
+template<class T> bool umin(T& a, T b) { if(a > b){ a = b;return 1;}return 0;}
+template<class T> bool umax(T& a, T b) { if(a < b){ a = b;return 1;}return 0;}
+//freopen(".in", "r", stdin);
+//freopen(".out", "w", stdout);
+ll in[MAXN],out[MAXN],tim,s[MAXN<<2],t[MAXN<<2],lvl[MAXN];
+vector<ll>adj[MAXN];
+void dfs(ll nd,ll pr){
+	in[nd]=++tim;
+	lvl[nd]=lvl[pr]+1;
+	for(ll i=0;i<adj[nd].size();i++)
+		dfs(adj[nd][i],nd);
+	out[nd]=tim;	
+}
+void shift(ll nd){
+	s[nd<<1]=(s[nd<<1]+s[nd])%INF;
+	s[nd<<1|1]=(s[nd<<1|1]+s[nd])%INF;
+	s[nd]=0;
+}
+void shif(ll nd){
+	t[nd<<1]=(t[nd<<1]+t[nd])%INF;
+	t[nd<<1|1]=(t[nd<<1|1]+t[nd])%INF;
+	t[nd]=0;
+}
+void upd(ll l,ll r,ll v,ll nd,ll x,ll y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		s[nd]=(v+s[nd])%INF;
+		return;
+	}
+	shift(nd);
+	ll mid=(x+y)>>1;
+	upd(l,r,v,nd*2,x,mid);
+	upd(l,r,v,nd*2+1,mid+1,y);
+}
+void up(ll l,ll r,ll v,ll nd,ll x,ll y){
+	if(l>y or x>r)
+		return;
+	if(l<=x and y<=r){
+		t[nd]=(t[nd]+v)%INF;
+		return;
+	}
+	shif(nd);
+	ll mid=(x+y)>>1;
+	up(l,r,v,nd*2,x,mid);
+	up(l,r,v,nd*2+1,mid+1,y);
+}
+ll tap(ll p,ll nd,ll x,ll y){
+	if(x==y)
+		return s[nd];
+	shift(nd);
+	ll mid=(x+y)>>1;	
+	if(p<=mid)
+		return tap(p,nd*2,x,mid);
+	return tap(p,nd*2+1,mid+1,y);		
+}
+ll ta(ll p,ll nd,ll x,ll y){
+	if(x==y)
+		return t[nd];
+	shif(nd);	
+	ll mid=(x+y)>>1;
+	if(p<=mid)
+		return ta(p,nd*2,x,mid);
+	return ta(p,nd*2+1,mid+1,y);		
+}
+int main(){
+	ll a;
+	scanf("%lld",&a);
+	for(ll i=2;i<=a;i++){
+		ll u;
+		scanf("%lld",&u);
+		adj[u].pb(i);
+	}
+	dfs(1,0);
+	ll q;
+	scanf("%lld",&q);
+	while(q--){
+		ll type,v;
+		scanf("%lld%lld",&type,&v);
+		if(type==1){
+			ll x,k;
+			scanf("%lld%lld",&x,&k);
+			upd(in[v],out[v],(x+(lvl[v]*k))%INF,1,1,tim);
+			up(in[v],out[v],k,1,1,tim);	
+		}
+		else	
+			printf("%lld\n",(tap(in[v],1,1,tim)-(lvl[v]*ta(in[v],1,1,tim))%INF+INF)%INF);
+	}
+	return 0;
+}
+

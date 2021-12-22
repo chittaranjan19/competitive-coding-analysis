@@ -1,0 +1,117 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define mp make_pair
+#define fi first
+#define se second
+
+typedef long long ll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+const int MAXN = 80, MAXS = 6600, MAXK = 100010;
+const int SL = 2 * MAXS;
+const ll MAXL = 1000000000000000000ll;
+
+int L;
+string S;
+ll pwr2[MAXN];
+int N, M, A[MAXK];
+int dp[MAXN][26][MAXS];
+int pcnt[SL][26];
+
+ll go (ll len, int ch) {
+	if (len <= L) {
+		return pcnt[len][ch];
+	}
+	//find the power of 2 such that L * pwr2 <= this one
+	//pwr2[exp] <= len / L
+	int p2 = upper_bound(pwr2, pwr2 + 63, len / L) - pwr2 - 1;
+	//ok let's see what this is going to be like
+	ll ans = ll(pcnt[L][ch]) << p2;
+	//ok let's see what the hell is next
+	//because next part is hell
+	//we do use p2 as the power of 2
+	int shift = A[p2];
+	ll nlen = len - (ll(L) << p2);
+	if (nlen <= shift) {
+		ans += dp[p2][ch][shift] - dp[p2][ch][shift - nlen];
+	} else {
+		ans += dp[p2][ch][shift];
+		ans += go(nlen - shift, ch);
+	}
+	return ans;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> S >> N >> M;
+	for (int i = 0; i < N; i++) {
+		cin >> A[i];
+	}
+	for (int i = 0; i < MAXK; i++) {
+		if (S.size() < MAXS) {
+			string t = S;
+			A[i] %= S.size();
+			if (A[i]) {
+				rotate(t.begin(), t.end() - A[i], t.end());
+			}
+			S += t;
+		} else {
+			//move from i to beginning
+			for (int j = i; j < MAXK; j++) {
+				A[j - i] = A[j];
+			}
+			fill(A + MAXN, A + MAXK, 0);
+			break;
+		}
+	}
+	L = S.size();
+	// cerr << S << endl;
+	//don't forget to subtract 'a'
+
+	//we're going to do the same things: compute the suffix
+	for (int j = 0; j < 26; j++) {
+		for (int k = 1; k < MAXS; k++) {
+			dp[0][j][k] = dp[0][j][k - 1] + (S[S.size() - k] == j + 'a');
+			// if (j == 0) debug("dp[0][%d][%d] = %d\n", j, k, dp[0][j][k]);
+		}
+	}
+
+	for (int i = 1; i < 63; i++) {
+		for (int j = 0; j < 26; j++) {
+			for (int k = 1; k < MAXS - 100 * i; k++) {
+				dp[i][j][k] = dp[i - 1][j][k + A[i - 1]] - dp[i - 1][j][A[i - 1]];
+			}
+		}
+	}
+
+	//prefix count
+	for (int i = 1; i <= L; i++) {
+		for (int j = 0; j < 26; j++) {
+			pcnt[i][j] = pcnt[i - 1][j] + (S[i - 1] == j + 'a');
+		}
+	}
+
+	//now do more. code
+	ll cl = L;
+	pwr2[0] = 1;
+	for (int i = 1; i < 63; i++) {
+		pwr2[i] = 1ll << i;
+	}
+
+	for (int i = 0; i < M; i++) {
+		ll lt, rt;
+		char ch;
+		cin >> lt >> rt >> ch;
+		ch -= 'a';
+		cout << go(rt, ch) - go(lt - 1, ch) << '\n';
+	}
+}

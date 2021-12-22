@@ -1,0 +1,71 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int, int> pii;
+
+const int INF = 1 << 30;
+const int maxn = 1e5 + 2;
+const int maxm = 300 + 2;
+
+pii p[maxn];
+struct query
+{
+    int c, lb, ub, f;
+} Q[maxn << 1];
+int pos[maxn * maxm], last[maxn * maxm];
+ll ans[maxn];
+
+bool cmp(const query &a, const query &b)
+{
+    return a.c < b.c;
+}
+
+int main()
+{
+    int n, m;
+    scanf("%d%d", &n, &m);
+    for(int i = 1; i <= n; ++i) scanf("%d%d", &p[i].first, &p[i].second);
+    sort(p + 1, p + n + 1);
+    int cnt = 0;
+    pos[0] = -INF;
+    for(int i = 1; i <= n; ++i)
+    {
+        int k = max(pos[cnt] + 1, p[i].first - m + 1);
+        for(int j = k; j <= p[i].first; ++j)
+        {
+            pos[++cnt] = j;
+            last[cnt] = -INF;
+        }
+    }
+    int tot = 0;
+    for(int i = 1; i <= n; ++i)
+    {
+        ++tot;
+        Q[tot].c = p[i].second - m + 1;
+        Q[tot].lb = lower_bound(pos + 1, pos + cnt + 1, p[i].first - m + 1) - pos;
+        Q[tot].ub = upper_bound(pos + 1, pos + cnt + 1, p[i].first) - pos;
+        Q[tot].f = 1;
+        ++tot;
+        Q[tot].c = p[i].second + 1;
+        Q[tot].lb = Q[tot - 1].lb, Q[tot].ub = Q[tot - 1].ub;
+        Q[tot].f = -1;
+    }
+    memset(pos, 0, sizeof(pos));
+    sort(Q + 1, Q + tot + 1, cmp);
+    for(int i = 1; i <= tot; ++i)
+    {
+        for(int j = Q[i].lb; j < Q[i].ub; ++j)
+        {
+            if(last[j] != -INF) ans[pos[j]] += Q[i].c - last[j];
+            pos[j] += Q[i].f;
+            last[j] = Q[i].c;
+        }
+    }
+    for(int i = 1; i <= n; ++i) printf("%I64d%c", ans[i], " \n"[i == n]);
+    return 0;
+}

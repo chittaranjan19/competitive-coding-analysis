@@ -1,0 +1,75 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 100010;
+
+int N, M;
+ll A[MAXN], tmp[MAXN];
+
+bool moo (ll t) {
+	//can everyone get done in time t?
+	// cerr << "t = " << t << endl;
+	copy_n(A + 1, N, tmp + 1);
+	//try to send someone M times
+	int cur = N;
+	for (int i = 0; i < M; i++) {
+		for (; cur > 0; cur--) {
+			if (tmp[cur]) {
+				break;
+			}
+		}
+		if (cur == 0) {
+			break;
+		}
+		//otherwise he has to get here
+		ll x = t - cur;
+		while (cur > 0 && x > 0) {
+			ll &r = tmp[cur];
+			if (r < x) {
+				x -= r;
+				r = 0;
+				cur--;
+			} else {
+				//remove x, and that's it
+				r -= x;
+				break;
+			}
+		}
+	}
+	for (int i = 1; i <= N; i++) {
+		if (tmp[i]) {
+			return false;
+		}
+	}
+	return true;
+}
+
+int main() {
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 1; i <= N; i++) {
+		cin >> A[i];
+	}
+	moo(4);
+	ll lo = 0, hi = 2e14;
+	while (hi - lo > 1) {
+		ll mid = (lo + hi) / 2;
+		if (moo(mid)) {
+			hi = mid;
+		} else {
+			lo = mid;
+		}
+	}
+	cout << hi << endl;
+}

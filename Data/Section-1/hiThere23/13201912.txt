@@ -1,0 +1,135 @@
+#include<cstdio>
+#include<cstring>
+#include<iostream>
+#include<vector>
+#include<algorithm>
+#include<cmath>
+#include<map>
+#include<set>
+using namespace std;
+#define LL long long
+#define esp 1e-10
+#define PI 3.1415926535897932626
+#define N1 11
+#define N2 13
+#define n1 1000000007
+#define n2 1073676287
+unsigned long long tree[400004],tree2[400004],d[100001],e[100001],d2[100001],e2[100001];
+int i,n,m,k,x1,x2,x3,x4,lazy[4000004],lazy2[4000004],t1,t2,t3,t4;
+char st[100004];
+void build(int id,int l,int r)
+{
+    int mid=(l+r)/2;
+    if (l==r)
+    {
+        tree[id]=st[l]-'0'+1;
+        tree2[id]=st[l]-'0'+1;
+        return;
+    }
+    build(id*2,l,mid);
+    build(id*2+1,mid+1,r);
+    tree[id]=(tree[id*2]*d[r-mid]+tree[id*2+1])%n1;
+    tree2[id]=(tree2[id*2]*d2[r-mid]+tree2[id*2+1])%n2;
+}
+unsigned long long query(int id,int xl,int xr,int l,int r)
+{
+    int mid=(l+r)/2;
+    if ((xl==l)&&(xr==r)) return tree[id];
+    if (lazy[id]!=-1)
+    {
+        lazy[id*2]=lazy[id];
+        lazy[id*2+1]=lazy[id];
+        tree[2*id]=e[mid-l+1]*(lazy[id]+1)%n1;
+        tree[id*2+1]=e[r-mid]*(lazy[id]+1)%n1;
+        lazy[id]=-1;
+    }
+    if (xr<=mid) return query(id*2,xl,xr,l,mid);
+    else if(xl>mid) return query(id*2+1,xl,xr,mid+1,r);
+    else return ((query(id*2,xl,mid,l,mid)*d[xr-mid]+query(id*2+1,mid+1,xr,mid+1,r))%n1);
+}
+unsigned long long query2(int id,int xl,int xr,int l,int r)
+{
+    int mid=(l+r)/2;
+    if ((xl==l)&&(xr==r)) return tree2[id];
+    if (lazy2[id]!=-1)
+    {
+        lazy2[id*2]=lazy2[id];
+        lazy2[id*2+1]=lazy2[id];
+        tree2[2*id]=e2[mid-l+1]*(lazy2[id]+1)%n2;
+        tree2[id*2+1]=e2[r-mid]*(lazy2[id]+1)%n2;
+        lazy2[id]=-1;
+    }
+    if (xr<=mid) return query2(id*2,xl,xr,l,mid);
+    else if(xl>mid) return query2(id*2+1,xl,xr,mid+1,r);
+    else return ((query2(id*2,xl,mid,l,mid)*d2[xr-mid]+query2(id*2+1,mid+1,xr,mid+1,r))%n2);
+}
+void update(int id,int xl,int xr,int l,int r,int c)
+{
+    int mid=(l+r)/2;
+    if (xl==l&&xr==r)
+    {
+        tree[id]=e[r-l+1]*(c+1);
+        tree2[id]=e2[r-l+1]*(c+1);
+        lazy[id]=c;
+        lazy2[id]=c;
+        return;
+    }
+    if (lazy[id]!=-1)
+    {
+        lazy[id*2]=lazy[id];
+        lazy[id*2+1]=lazy[id];
+        lazy2[id*2]=lazy2[id];
+        lazy2[id*2+1]=lazy2[id];
+        tree[2*id]=e[mid-l+1]*(lazy[id]+1)%n1;
+        tree[id*2+1]=e[r-mid]*(lazy[id]+1)%n1;
+        tree2[2*id]=e2[mid-l+1]*(lazy[id]+1)%n2;
+        tree2[id*2+1]=e2[r-mid]*(lazy[id]+1)%n2;
+        lazy[id]=-1;
+        lazy2[id]=-1;
+    }
+    if (xr<=mid) update(id*2,xl,xr,l,mid,c);
+    else if(xl>mid) update(id*2+1,xl,xr,mid+1,r,c);
+    else{
+            update(id*2,xl,mid,l,mid,c);
+            update(id*2+1,mid+1,xr,mid+1,r,c);
+    }
+    tree[id]=(tree[id*2]*d[r-mid]+tree[id*2+1])%n1;
+    tree2[id]=(tree2[id*2]*d2[r-mid]+tree2[id*2+1])%n2;
+}
+int main()
+{
+    scanf("%d%d%d",&n,&m,&k);
+    scanf("%s",st);
+    d[0]=1;
+    for(i=1;i<=100000;i++)
+        d[i]=d[i-1]*N1%n1;
+    e[1]=1;
+    for(i=2;i<=100000;i++)
+        e[i]=(e[i-1]*N1+1)%n1;
+    d2[0]=1;
+    for(i=1;i<=100000;i++)
+    d2[i]=d2[i-1]*N2%n2;
+    e2[1]=1;
+    for(i=2;i<=100000;i++)
+        e2[i]=(e2[i-1]*N2+1)%n2;
+    build(1,0,n-1);
+    memset(lazy,-1,sizeof(lazy));
+    memset(lazy2,-1,sizeof(lazy2));
+    for(i=1;i<=m+k;i++)
+    {
+        scanf("%d%d%d%d",&x1,&x2,&x3,&x4);
+        x2--;
+        x3--;
+        if (x1==1) update(1,x2,x3,0,n-1,x4);
+        else if (x3-x2+1!=x4)
+        {
+            t1=query(1,x2+x4,x3,0,n-1);
+            t2=query(1,x2,x3-x4,0,n-1);
+            t3=query2(1,x2+x4,x3,0,n-1);
+            t4=query2(1,x2,x3-x4,0,n-1);
+         if (t1==t2&&t3==t4)   printf("YES\n");
+        else printf("NO\n");
+        }
+        else printf("YES\n");
+    }
+}

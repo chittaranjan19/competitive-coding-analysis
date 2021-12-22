@@ -1,0 +1,215 @@
+//why are you stalking me?
+#include <iostream>
+#include <cstdio>
+#include <fstream>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <deque>
+#include <sstream>
+#include <cmath>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+#include <functional>
+#include <ctime>
+#include <climits>
+#include <cstdlib>
+#include <complex>
+//#define NDEBUG 1
+#include <cassert>
+
+using namespace std;
+
+#define rep(it, v) for (__typeof((v).begin()) it = (v).begin(); it != (v).end(); it++)
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 2014;
+
+void setmax (int &a, int b) {
+	if (a < b) {
+		a = b;
+	}
+}
+
+void setmin (int &a, int b) {
+	if (a > b) {
+		a = b;
+	}
+}
+
+int N, M;
+vector<int> adj[MAXN];
+//tarjan
+int low[MAXN], pre[MAXN], cpre;
+bool bridge[MAXN][MAXN];
+//union find
+int par[MAXN];
+//new components
+int comp[MAXN], curcomp;
+vector<int> verts[MAXN];
+vector<int> cadj[MAXN];
+
+int find (int x) {
+	return x == par[x] ? x : par[x] = find(par[x]);
+}
+
+void find_bridge (int x, int p) {
+	low[x] = pre[x] = cpre++;
+	rep(it, adj[x]) {
+		int t = *it;
+		if (pre[t] == -1) {
+			find_bridge(t, x);
+			setmin(low[x], low[t]);
+			if (low[t] == pre[t]) {
+				//add bridge
+				// printf("%d %d bridge\n", x, t);
+				bridge[x][t] = bridge[t][x] = true;
+				// it->second = true;
+			}
+		} else if (t != p) {
+			setmin(low[x], pre[t]);
+		}
+	}
+}
+
+void addcomp (int x) {
+	comp[x] = curcomp;
+	verts[curcomp].push_back(x);
+	rep(it, adj[x]) {
+		//then this is not a bridge
+		int t = *it;
+		if (bridge[x][t]) {
+			continue;
+		}
+		if (comp[t] == -1) {
+			// printf("%d -> %d is safe\n", x, t);
+			addcomp(t);
+		}
+	}
+}
+
+int subsize[MAXN];
+bool dp[MAXN];
+
+int calc_subsize (int x, int p) {
+	int &ref = subsize[x];
+	ref = verts[x].size();
+	rep(it, cadj[x]) {
+		int t = *it;
+		if (t != p) {
+			ref += calc_subsize(t, x);
+		}
+	}
+	return ref;
+}
+
+int calc_reach (int x, int p) {
+	//how many are reachable
+	int s = verts[x].size();
+	int res = s * (subsize[x] - s);
+	rep(it, cadj[x]) {
+		int t = *it;
+		if (t != p) {
+			res += calc_reach(t, x);
+		}
+	}
+	return res;
+}
+
+int calc_best (int x) {
+	//ans: (in + size(root)) * out + in * size(root). "out" is determined from "in"
+	// puts("--------");
+	calc_subsize(x, -1);
+	memset(dp, false, sizeof(dp));
+	dp[0] = true;
+	//ok now calculate the real ones
+	//this is NOT O(N^2) in one step! this has 1-1 correspondence with the parent-child!!!
+	//so this basically is N * (# of parent-child relationship). the outer Σ is N, inner is always N
+	int reach = 0;
+	rep(it, cadj[x]) {
+		int t = *it;
+		int s = calc_subsize(t, x);
+		reach += calc_reach(t, x);
+		for (int i = MAXN - 1; i >= s; i--) {
+			dp[i] |= dp[i - s];
+		}
+	}
+	int best = 0;
+	int vs = verts[x].size(), oth = N - vs;
+	// printf("oth = %d\n", oth);
+	for (int i = 0; i < MAXN; i++) {
+		if (dp[i]) {
+			// printf("%d is possible\n", i);
+			// printf("(%d + %d) * %d + %d * %d\n", i, vs, oth - i, i, vs);
+			setmax(best, (i + vs) * (oth - i) + i * vs);
+		}
+	}
+	// printf("when root = %d, best = %d\n", x, best);
+	return best + reach;	//ah this is where you have to be careful :(
+}
+
+int main() {
+	//why are you stalking me?
+#ifndef ONLINE_JUDGE
+	freopen("codeforces475E.in", "r", stdin);
+#endif
+	scanf("%d %d", &N, &M);
+	for (int i = 0; i < M; i++) {
+		int a, b;
+		scanf("%d %d", &a, &b);
+		adj[a].push_back(b);
+		adj[b].push_back(a);
+	}
+	memset(low, -1, sizeof(low));
+	memset(pre, -1, sizeof(pre));
+	for (int i = 1; i <= N; i++) {
+		if (pre[i] == -1) {
+			find_bridge(i, -1);
+		}
+	}
+	//now let's build the tree
+	memset(comp, -1, sizeof(comp));
+	int within = 0;
+	for (int i = 1; i <= N; i++) {
+		if (comp[i] == -1) {
+			// printf("new comp i = %d\n", i);
+			addcomp(i);
+			int s = verts[curcomp].size();
+			// printf("s = %d\n", s);
+			within += s * s;
+			curcomp++;
+		}
+	}
+	// printf("within = %d\n", within);
+	//do with the bridges now
+	for (int i = 1; i <= N; i++) {
+		int a = comp[i];
+		rep(it, adj[i]) {
+			int t = *it;
+			if (bridge[i][t]) {
+				int b = comp[t];
+				// printf("ha %d %d\n", a, b);
+				cadj[a].push_back(b);
+			}
+		}
+	}
+	// for (int i = 0; i < curcomp; i++) {
+		// printf("verts[%d].size() = %lu\n", i, verts[i].size());
+	// }
+	//calc result
+	int best = 0;
+	for (int i = 0; i < curcomp; i++) {
+		setmax(best, calc_best(i));
+	}
+	printf("%d\n", best + within);
+}

@@ -1,0 +1,86 @@
+//why are you stalking me?
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define fillchar(a, s) memset((a), (s), sizeof(a))
+#define debug(...) fprintf(stderr, __VA_ARGS__)
+#define all(v) (v).begin(), (v).end()
+#define rep(it, v) for (auto it = (v).begin(); it != (v).end(); it++)
+#define dbg(x) cerr << #x << " = " << x << endl
+
+typedef long long ll;
+typedef pair<int, int> pii;
+const int MAXN = 305;
+
+int N, M;
+bool adj[MAXN][MAXN], ans[MAXN];
+int comp[MAXN];
+
+void dfs (int x, int cp) {
+	comp[x] = cp;
+	for (int i = 0; i < 2 * N; i++) {
+		if (adj[x][i] && !comp[i]) {
+			dfs(i, cp);
+		}
+	}
+}
+
+void getans (int x) {
+	ans[x / 2] = x % 2;
+	comp[x] = 1;
+	for (int i = 0; i < 2 * N; i++) {
+		if (adj[x][i] && !comp[i]) {
+			getans(i);
+		}
+	}
+}
+
+int main() {
+	//why are you stalking me?
+	if (fopen("input.txt", "r")) {
+		freopen("input.txt", "r", stdin);
+	}
+	ios::sync_with_stdio(false);
+	cin >> N >> M;
+	for (int i = 0, a, b, c; i < M; i++) {
+		cin >> a >> b >> c;
+		a--;
+		b--;
+		int a0 = 2 * a, a1 = a0 + 1;
+		int b0 = 2 * b, b1 = b0 + 1;
+		if (c) {
+			//not a -> not b
+			//a -> b
+			adj[a0][b0] = adj[b0][a0] = adj[a1][b1] = adj[b1][a1] = true;
+		} else {
+			//not a -> b
+			//b -> not a
+			adj[a1][b0] = adj[b0][a1] = adj[a0][b1] = adj[b1][a0] = true;
+		}
+	}
+	//dfs this graph
+	for (int i = 0, cp = 0; i < 2 * N; i++) {
+		if (!comp[i]) {
+			dfs(i, ++cp);
+		}
+	}
+	for (int i = 0; i < N; i++) {
+		if (comp[2 * i] == comp[2 * i + 1]) {
+			cout << "Impossible\n";
+			return 0;
+		}
+	}
+	fillchar(comp, 0);
+	for (int i = 0; i < N; i++) {
+		if (!comp[i]) {
+			getans(2 * i + rand() % 2);
+		}
+	}
+	cout << count(ans, ans + N, true) << endl;
+	for (int i = 0; i < N; i++) {
+		if (ans[i]) {
+			cout << i + 1 << ' ';
+		}
+	}
+}

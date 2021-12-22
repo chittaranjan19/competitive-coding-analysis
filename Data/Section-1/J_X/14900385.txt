@@ -1,0 +1,208 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int, int> P;
+
+const int MAXN = 2e5 + 5;
+
+int n, m, c[MAXN];
+P b[MAXN], a[MAXN];
+pair<int, ll> ans[MAXN];
+struct segtree
+{
+    int minnode[MAXN << 2], minlazy[MAXN << 2];
+    ll sumnode[MAXN << 2], sumlazy[MAXN << 2];
+
+    void change_min(int rt, int a)
+    {
+        minnode[rt] = min(minnode[rt], a);
+        minlazy[rt] = min(minlazy[rt], a);
+    }
+
+    void change_sum(int rt, int a, int l, int r)
+    {
+        sumnode[rt] = (r - l) * a;
+        sumlazy[rt] = (r - l) * a;
+    }
+
+    void pushup(int rt)
+    {
+        minnode[rt] = min(minnode[rt << 1], minnode[rt << 1 | 1]);
+        sumnode[rt] = sumnode[rt << 1] + sumnode[rt << 1 | 1];
+    }
+
+    void pushdown(int rt, int l, int r)
+    {
+        if(minlazy[rt] < n)
+        {
+            change_min(rt << 1, minlazy[rt]);
+            change_min(rt << 1 | 1, minlazy[rt]);
+            minlazy[rt] = n;
+        }
+        if(~sumlazy[rt])
+        {
+            int m = (l + r) >> 1;
+            change_sum(rt << 1, sumlazy[rt], l, m);
+            change_sum(rt << 1 | 1, sumlazy[rt], m, r);
+            sumlazy[rt] = -1;
+        }
+    }
+
+    void build(int rt, int l, int r)
+    {
+        sumlazy[rt] = -1;
+        sumnode[rt] = 0;
+        minnode[rt] = minlazy[rt] = n;
+        if(r - l == 1) return;
+        int m = (l + r) >> 1;
+        build(rt << 1, l, m);
+        build(rt << 1 | 1, m, r);
+    }
+
+    void update_min(int rt, int l, int r, int x, int y, int a)
+    {
+        if(x >= y) return;
+        if(x <= l && r <= y)
+        {
+            change_min(rt, a);
+            return;
+        }
+        pushdown(rt, l, r);
+        int m = (l + r) >> 1;
+        if(x < m)
+        {
+            update_min(rt << 1, l, m, x, y, a);
+        }
+        if(m < y)
+        {
+            update_min(rt << 1 | 1, m, r, x, y, a);
+        }
+        pushup(rt);
+    }
+
+    void update_sum(int rt, int l, int r, int x, int y, ll a)
+    {
+        if(x >= y) return;
+        if(x <= l && r <= y)
+        {
+            change_sum(rt, a, l, r);
+            return;
+        }
+        pushdown(rt, l, r);
+        int m = (l + r) >> 1;
+        if(x < m)
+        {
+            update_sum(rt << 1, l, m, x, y, a);
+        }
+        if(m < y)
+        {
+            update_sum(rt << 1 | 1, m, r, x, y, a);
+        }
+        pushup(rt);
+    }
+
+    int query_min(int rt, int l, int r, int x, int y)
+    {
+        if(x >= y) return n;
+        if(x <= l && r <= y) return minnode[rt];
+        pushdown(rt, l, r);
+        int m = (l + r) >> 1, ret = n;
+        if(x < m)
+        {
+            ret = min(ret, query_min(rt << 1, l, m, x, y));
+        }
+        if(m < y)
+        {
+            ret = min(ret, query_min(rt << 1 | 1, m, r, x, y));
+        }
+        return ret;
+    }
+
+    ll query_sum(int rt, int l, int r, int x, int y)
+    {
+        if(x >= y) return 0;
+        if(x <= l && r <= y) return sumnode[rt];
+        pushdown(rt, l, r);
+        int m = (l + r) >> 1;
+        ll ret = 0;
+        if(x < m)
+        {
+            ret += query_sum(rt << 1, l, m, x, y);
+        }
+        if(m < y)
+        {
+            ret += query_sum(rt << 1 | 1, m, r, x, y);
+        }
+        return ret;
+    }
+} tree;
+
+int main()
+{
+    while(~scanf("%d%d", &n, &m))
+    {
+        for(int i = 0; i < n; ++i)
+        {
+            scanf("%d%I64d", &a[i].first, &ans[i].second);
+            a[i].second = i;
+            ans[i].first = 0;
+        }
+        for(int i = 0; i < m; ++i)
+        {
+            scanf("%d%d", &b[i].first, &b[i].second);
+            c[i] = b[i].first;
+        }
+        sort(a, a + n);
+        sort(c, c + m);
+        int cnt = unique(c, c + m) - c;
+        tree.build(1, 0, m);
+        for(int i = 0; i < n; ++i)
+        {
+            int l = lower_bound(c, c + cnt, a[i].first) - c, r = upper_bound(c, c + cnt, ans[a[i].second].second + a[i].first) - c;
+            tree.update_min(1, 0, cnt, l, r, i);
+        }
+        for(int i = 0; i < m; ++i)
+        {
+            int x = lower_bound(c, c + cnt, b[i].first) - c, y = b[i].second, pos = tree.query_min(1, 0, cnt, x, x + 1);
+            if(pos < n)
+            {
+                int id = a[pos].second;
+                ++ans[id].first;
+                ans[id].second += y;
+                bool flag = true;
+                while(flag)
+                {
+                    flag = false;
+                    int l = lower_bound(c, c + cnt, a[pos].first) - c, r = upper_bound(c, c + cnt, ans[id].second + a[pos].first) - c;
+                    ll tmp = tree.query_sum(1, 0, cnt, l, r);
+                    if(tmp)
+                    {
+                        flag = true;
+                        ++ans[id].first;
+                        ans[id].second += tmp;
+                        tree.update_sum(1, 0, cnt, l, r, 0);
+                    }
+                    else
+                    {
+                        tree.update_min(1, 0, cnt, l, r, pos);
+                    }
+                }
+            }
+            else
+            {
+                ll tmp = tree.query_sum(1, 0, cnt, x, x + 1);
+                tree.update_sum(1, 0, cnt, x, x + 1, tmp + y);
+            }
+        }
+        for(int i = 0; i < n; ++i)
+        {
+            printf("%d %I64d\n", ans[i].first, ans[i].second);
+        }
+    }
+    return 0;
+}

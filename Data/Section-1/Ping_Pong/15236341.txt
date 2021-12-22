@@ -1,0 +1,87 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <cstdio>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+#include <vector>
+#include <string>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <queue>
+#include <stack>
+
+using namespace std;
+
+const int inf = (int)2 * 1e9;
+const int MOD = (int)1e9 + 7;
+const int MAX_N = 100000;
+const long double pi = 3.1415926;
+const long double eps = 1e-6;
+
+vector<pair<int, int> > graph[MAX_N];
+bool used[MAX_N];
+set<pair<int, int> > curr;
+int dist[MAX_N];
+
+void deikstra()
+{
+    while (!curr.empty())
+    {
+        int x = curr.begin()->second;
+        curr.erase(curr.begin());
+        if (!used[x])
+        {
+            used[x] = true;
+            for (int i = 0; i < graph[x].size(); i++)
+                if (!used[graph[x][i].first] && dist[x] + graph[x][i].second < dist[graph[x][i].first])
+                {
+                    dist[graph[x][i].first] = dist[x] + graph[x][i].second;
+                    curr.insert(make_pair(dist[graph[x][i].first], graph[x][i].first));
+                }
+        }
+    }
+}
+
+int main()
+{
+    //ifstream ifs("input.in");
+    //ofstream ofs("output.out");
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    int n, m, s, q, w, r, l;
+    cin >> n >> m >> s;
+    vector<pair<pair<int, int>, int> > reb;
+    for (int i = 0; i < m; i++)
+    {
+        cin >> q >> w >> r;
+        graph[q - 1].push_back(make_pair(w - 1, r));
+        graph[w - 1].push_back(make_pair(q - 1, r));
+        reb.push_back(make_pair(make_pair(q - 1, w - 1), r));
+    }
+    cin >> l;
+    for (int i = 0; i < n; i++)
+    {
+        dist[i] = inf;
+        used[i] = false;
+    }
+    dist[s - 1] = 0;
+    curr.insert(make_pair(0, s - 1));
+    deikstra();
+    int ans = 0;
+    for (int i = 0; i < n; i++)
+        if (dist[i] == l)
+            ans++;
+    for (int i = 0; i < m; i++)
+    {
+        int d1 = dist[reb[i].first.first], d2 = dist[reb[i].first.second], d = reb[i].second;
+        if (l > d1 && l < d1 + d && l <= d2 + (d - (l - d1)))
+            ans++;
+        if (l > d2 && l < d2 + d && l < d1 + (d - (l - d2)))
+            ans++;
+    }
+    cout << ans;
+    return 0;
+}

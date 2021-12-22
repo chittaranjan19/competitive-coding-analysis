@@ -1,0 +1,135 @@
+#include "bits/stdc++.h"
+#define MAXN 1000009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int n,ans[MAXN],arr[MAXN],BLOK,num[MAXN],sz=-1;
+vector<pair<PII,int> >adj[MAXN];
+int dp[250][250][250],trie[MAXN*10][2],mx[MAXN*10],mn[MAXN*10];
+struct TRIE{
+	int root;
+	TRIE(){root=++sz;}
+	void upd(int x,int y){
+		int nd=root;
+		for(int i=19;i>=0;i--){
+			int col=false;
+			if((x&(1<<i))!=0)
+				col=true;
+			if(!trie[nd][col])
+				trie[nd][col]=++sz;
+			nd=trie[nd][col];
+			umax(mx[nd],y);	
+			umin(mn[nd],y);
+		}
+	}
+	int tap(int x,int y,int type){
+		//eger type 1 bolsa y den kici we den bir san bolmaly 
+		//eger type 2 bolsa y den uly  we den bir san bolmaly
+		int nd=root,res=0;
+		for(int i=19;i>=0;i--){
+			int col=false;
+			if((x&(1<<i))!=0)
+				col=true;
+			res*=2;
+			if(trie[nd][col^1] and ((type==1 and mn[trie[nd][col^1]]<=y) or (type==2 and mx[trie[nd][col^1]]>=y))){
+				nd=trie[nd][col^1];
+				res++;
+			}
+			else
+				nd=trie[nd][col];
+				
+		}
+		return res;
+	}
+};
+int val(int x){
+	if(x%4==1)
+		return 1;
+	if(x%4==2)
+		return x+1;
+	if(x%4==3)
+		return 0;
+	return x;
+}
+int rec(int l,int r,int group){
+	if(l==r)
+		return val(arr[l]-1)^val(arr[r]);
+	int &ret=dp[l-(group-1)*BLOK][r-(group-1)*BLOK][group];
+	if(~ret)
+		return ret;
+	if(arr[l]<=arr[r])
+		ret=val(arr[l]-1)^val(arr[r]);
+	else
+		ret=val(arr[r]-1)^val(arr[l]);
+	umax(ret,rec(l+1,r,group));
+	umax(ret,rec(l,r-1,group));
+	return ret;
+}
+int solve_naive(int x,int y){
+	return rec(x,y,num[x]);
+}
+int main(){
+	memset(dp,-1,sizeof dp);
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif	
+	int n,q;
+	scanf("%d%d",&n,&q);
+	for(int i=1;i<=n;i++)
+		scanf("%d",arr+i);
+	BLOK=sqrt(n);
+	for(int i=1;i<=n;i++)
+		num[i]=num[i-1]+((i-1)%BLOK==0);	
+	for(int i=1;i<=q;i++){
+		int l,r;
+		scanf("%d%d",&l,&r);
+		if(num[l]==num[r]){
+			ans[i]=solve_naive(l,r);
+			continue;
+		}
+		adj[num[l]].pb(mp(mp(r,l),i));	
+	}
+	for(int i=1;i<=n;i++){
+		if(adj[i].size()==0)
+			continue;
+		sort(all(adj[i]));
+		int st=i*BLOK+1,res=0;sz=-1;
+		memset(trie,0,sizeof trie);
+		memset(mn,64,sizeof mn);
+		memset(mx,0,sizeof mx);
+		TRIE A,B;
+		for(int j=0;j<int(adj[i].size());j++){
+			int l=adj[i][j].ff.ss;
+			int r=adj[i][j].ff.ff;
+			int ind=adj[i][j].ss;
+			while(st<=r){
+				A.upd(val(arr[st]-1),arr[st]);
+				B.upd(val(arr[st]),arr[st]);
+				umax(res,A.tap(val(arr[st]),arr[st],1));
+				umax(res,B.tap(val(arr[st]-1),arr[st],2));st++;
+			}
+			umax(ans[ind],res);
+			umax(ans[ind],solve_naive(l,i*BLOK));
+			for(int h=l;h<=i*BLOK;h++){
+				umax(ans[ind],A.tap(val(arr[h]),arr[h],1));
+				umax(ans[ind],B.tap(val(arr[h]-1),arr[h],2));
+			}
+		}
+	}
+	for(int i=1;i<=q;i++)
+		printf("%d\n",ans[i]);
+	return 0;
+}

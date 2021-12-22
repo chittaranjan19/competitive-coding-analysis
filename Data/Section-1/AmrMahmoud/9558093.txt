@@ -1,0 +1,107 @@
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <cctype>
+#include <stack>
+#include <queue>
+#include <list>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <cmath>
+#include <limits>
+#include <bitset>
+#include <utility>
+#include <set>
+#include <numeric>
+
+#define INF_MAX 2147483647
+#define INF_MIN -2147483647
+#define INF_LL 9223372036854775807LL
+#define INF 1000000000
+#define PI acos(-1.0)
+#define EPS 1e-9
+#define LL long long
+#define mod 1000000007
+#define pb push_back
+#define mp make_pair
+#define setzero(a) memset(a,0,sizeof(a))
+#define setDP(a) memset(a,-1,sizeof(a))
+
+using namespace std;
+
+vector<int> graph[6005];
+
+short DP[6001][6001][2];
+int arr[6005];
+
+short solve(int u,int v,int parent, bool l)
+{
+    if(parent == -1)
+    {
+        int n1 = -1, m1 = -1, n2 = -1, m2 = -1;
+        for(int i=0;i<graph[u].size();i++)
+        {
+            int temp = solve(graph[u][i], u, u, 0);
+            if(temp > n1)
+                n2 = n1, m2 = m1, n1 = temp, m1 = graph[u][i];
+            else if(temp > n2)
+                n2 = temp, m2 = graph[u][i];
+        }
+
+        int nn1 = -1, mm1 = -1, nn2 = -1, mm2 = -1;
+        for(int i=0;i<graph[u].size();i++)
+        {
+            int temp = solve(graph[u][i], u, u, 1);
+            if(temp > nn1)
+                nn2 = nn1, mm2 = m1, nn1 = temp, mm1 = graph[u][i];
+            else if(temp > n2)
+                nn2 = temp, mm2 = graph[u][i];
+        }
+        int res = max(n1, max(n2, max(nn1, nn2)));
+        if(m1 != mm1)
+            res = max(res, n1 + nn1);
+        if(m1 != mm2 && mm2 != -1)
+            res = max(res, n1 + nn2);
+        if(mm1 != m2 && m2 != -1)
+            res = max(res, n2 + nn1);
+        return res + 1;
+    }
+    short &temp = DP[u][v][l];
+    if(temp != -1) return temp;
+    temp = ((l && arr[u] > arr[v]) || (!l && arr[u] < arr[v]));
+    for(int i=0;i<graph[u].size();i++)
+    {
+        int x = graph[u][i];
+        if(x == parent) continue;
+        temp = max(temp, (short)(solve(x, v, u, l)));
+        if(l && arr[u] > arr[v])
+            temp = max(temp, (short)(solve(x, u, u, l) + 1));
+        if(!l && arr[u] < arr[v])
+            temp = max(temp, (short)(solve(x, u, u, l) + 1));
+    }
+    return temp;
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    int n, x, y;
+    cin >> n;
+    for(int i=1;i<=n;i++)
+        cin >> arr[i];
+    setDP(DP);
+    for(int i=0;i<n-1;i++)
+    {
+        cin >> x >> y;
+        graph[x].pb(y);
+        graph[y].pb(x);
+    }
+    short res = 1;
+    for(int i=1;i<=n;i++)
+        res = max(res, solve(i, i, -1, 0));
+    cout << res;
+    return 0;
+}

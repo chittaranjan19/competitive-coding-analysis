@@ -1,0 +1,145 @@
+#include "bits/stdc++.h"
+#define MAXN 100009
+#define INF 1000000007
+#define mp(x,y) make_pair(x,y)
+#define all(v) v.begin(),v.end()
+#define pb(x) push_back(x)
+#define wr cout<<"----------------"<<endl;
+#define ppb() pop_back()
+#define tr(ii,c) for(typeof((c).begin()) ii=(c).begin();ii!=(c).end();ii++)
+#define ff first
+#define ss second
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<int,int> PII;
+template<class T>bool umin(T& a,T b){if(a>b){a=b;return 1;}return 0;}
+template<class T>bool umax(T& a,T b){if(a<b){a=b;return 1;}return 0;}
+int n,q,c=0;
+map<int,int>pm;
+vector<PII>adj[MAXN];
+int dp[MAXN][2];
+pair<PII,int>arr[MAXN];
+int rec(int x,int last){
+	int sz=arr[x].ff.ff;
+	int cost=arr[x].ff.ss;	 
+	if(x==n){
+		if(last)
+			return 0;
+		if(adj[pm[sz]].size()>=1 and adj[pm[sz]][0].ff>=cost)
+			return cost;
+		return 0;	
+	}
+	int &ret=dp[x][last];
+	if(~ret)
+		return ret;
+	umax(ret,rec(x+1,0));
+	if(!last){
+		if(int(adj[pm[sz]].size())>=2 and arr[x+1].ff.ff-1==sz){
+			PII a=mp(cost,arr[x+1].ff.ss);
+			PII b=mp(adj[pm[sz]][0].ff,adj[pm[sz]][1].ff);
+			if(a.ff<a.ss)
+				swap(a.ff,a.ss);
+			if(b.ff>=a.ff and b.ss>=a.ss)
+				umax(ret,rec(x+1,1)+a.ff+a.ss);
+		}
+		if(int(adj[pm[sz]].size())>=1){
+			if(adj[pm[sz]][0].ff>=cost)
+				umax(ret,rec(x+1,0)+cost);
+			if(arr[x+1].ff.ff-1==sz and adj[pm[sz]][0].ff>=arr[x+1].ff.ss)	
+				umax(ret,rec(x+1,1)+arr[x+1].ff.ss);
+		}
+		return ret;
+	}
+	if(int(adj[pm[sz]].size())>=1 and arr[x+1].ff.ff-1==sz and adj[pm[sz]][0].ff>=arr[x+1].ff.ss)
+		umax(ret,rec(x+1,1)+arr[x+1].ff.ss);
+	return ret;
+}
+vector<PII>ans; 
+void f(int x,int y){
+	ans.pb(mp(x,y));
+}
+void go(int x,int last){
+	int sz=arr[x].ff.ff;
+	int cost=arr[x].ff.ss;	 
+	int ind=arr[x].ss;
+	if(x==n){
+		if(last)
+			return;
+		if(adj[pm[sz]].size()>=1 and adj[pm[sz]][0].ff>=cost){
+			f(adj[pm[sz]][0].ss,ind);
+			return;
+		}
+		return;
+	}
+	int ret=dp[x][last];
+	if(ret==rec(x+1,0)){
+		go(x+1,0);
+		return;
+	}
+	if(!last){
+		if(int(adj[pm[sz]].size())>=2 and arr[x+1].ff.ff-1==sz){
+			pair<PII,PII> a=mp(mp(cost,ind),mp(arr[x+1].ff.ss,arr[x+1].ss));
+			PII b=mp(adj[pm[sz]][0].ff,adj[pm[sz]][1].ff);
+			if(a.ff.ff<a.ss.ff)
+				swap(a.ff,a.ss);
+			if(b.ff>=a.ff.ff and b.ss>=a.ss.ff and ret==rec(x+1,1)+a.ff.ff+a.ss.ff){
+				f(adj[pm[sz]][0].ss,a.ff.ss);
+				f(adj[pm[sz]][1].ss,a.ss.ss);
+				go(x+1,1);
+				return;
+			}
+		}
+		if(int(adj[pm[sz]].size())>=1){
+			if(adj[pm[sz]][0].ff>=cost and ret==rec(x+1,0)+cost){
+				f(adj[pm[sz]][0].ss,ind);
+				go(x+1,0);
+				return;
+			}
+			if(arr[x+1].ff.ff-1==sz and adj[pm[sz]][0].ff>=arr[x+1].ff.ss and ret==rec(x+1,1)+arr[x+1].ff.ss){
+				f(adj[pm[sz]][0].ss,arr[x+1].ss);
+				go(x+1,1);
+				return;
+			}
+		}
+	}
+	if(int(adj[pm[sz]].size())>=1 and arr[x+1].ff.ff-1==sz and adj[pm[sz]][0].ff>=arr[x+1].ff.ss and ret==rec(x+1,1)+arr[x+1].ff.ss){
+		f(adj[pm[sz]][0].ss,arr[x+1].ss);
+		go(x+1,1);
+		return;
+	}
+} 
+int main(){
+	memset(dp,-1,sizeof dp);
+	#ifndef ONLINE_JUDGE
+    freopen("file.in", "r", stdin);
+	#endif
+	scanf("%d",&n);
+	for(int i=1;i<=n;i++){
+		scanf("%d%d",&arr[i].ff.ss,&arr[i].ff.ff);
+		pm[arr[i].ff.ff]=1;
+		arr[i].ss=i;
+	}
+	sort(arr+1,arr+n+1);
+	tr(it,pm)
+		it->ss=++c;
+	scanf("%d",&q);
+	for(int i=1;i<=q;i++){
+		int d,l;
+		scanf("%d%d",&d,&l);
+		if(!pm[l] and !pm[l-1])
+			continue;
+		adj[pm[l]].pb(mp(d,i));
+	}
+	for(int i=1;i<=c;i++){
+		sort(all(adj[i]));
+		reverse(all(adj[i]));
+	}
+	printf("%d\n",rec(1,0));
+	go(1,0);
+	printf("%d\n",int(ans.size()));
+	for(int i=0;i<int(ans.size());i++)
+		printf("%d %d\n",ans[i].ff,ans[i].ss);
+	return 0;
+}

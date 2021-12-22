@@ -1,0 +1,133 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define lli long long
+#define pb push_back
+#define mp make_pair
+#define gc getchar_unlocked
+#define lld "%I64d"
+#define DEBUG(x) cout<<">value ("<<#x<<") : "<<x<<endl;
+#define mod 1000000007
+
+const int lmt = 500005;
+lli fwd[lmt];
+lli bwd[lmt];
+lli spent[lmt];
+
+int getFwd(int a,int b,lli rem,lli sw){
+//    DEBUG(a);
+//    DEBUG(b);
+//    DEBUG(rem);
+    if(b<a) return 0;
+    int st = 0, en = b - a + 1, md;
+    while(st<en){
+        md = st + (en-st+1)/2;
+        //cout<<st<<" "<<md<<" "<<en<<endl;
+        lli req = fwd[a+md-1] - fwd[a-1] + (md-1)*sw;
+        if(req <= rem)
+            st = md;
+        else
+            en = md-1;
+    }
+    return st;
+}
+
+
+
+int getBwd(int a,int b,lli rem,lli sw){
+//    DEBUG(a);
+//    DEBUG(b);
+//    DEBUG(rem);
+    if(b>a) return 0;
+    int st = 0, en = a - b + 1, md;
+    while(st<en){
+        md = st + (en-st+1)/2;
+        //cout<<st<<" "<<md<<" "<<en<<endl;
+        lli req = bwd[a-md+1] - bwd[a+1] + (md-1)*sw;
+        if(req <= rem)
+            st = md;
+        else
+            en = md-1;
+    }
+    return st;
+}
+
+int main(){
+    int n,a,b;
+    lli t;
+    scanf("%d %d %d %lld",&n,&a,&b,&t);
+    string s;
+    cin>>s;
+    for(int i=0;i<n;i++){
+        if(s[i]=='w')
+            spent[i+1] = b+1;
+        else
+            spent[i+1] = 1;
+    }
+    for(int i=1;i<=n;i++)
+        fwd[i] = fwd[i-1] + spent[i];
+    for(int i=n;i>=1;i--)
+        bwd[i] = bwd[i+1] + spent[i];
+
+    int ans = 0;
+//
+//    for(int i=1;i<=n;i++)
+//        cout<<spent[i]<<" ";
+//    cout<<endl;
+
+    //straight fwd
+    lli cur = 0;
+    int lans = 0;
+    for(int i=1;i<=n;i++){
+        cur += spent[i];
+        if(cur <= t) lans++;
+        else break;
+        cur += a;
+    }
+//    DEBUG(lans);
+    ans = max(ans,lans);
+//    DEBUG(ans);
+
+    //staring bwd
+    cur = 0;
+    lans = 0;
+    cur += spent[1];
+    if(cur<=t) lans++;
+    cur+=a;
+    for(int i=n;i>=2;i--){
+        cur += spent[i];
+        if(cur<=t) lans++;
+        else break;
+        cur+=a;
+    }
+    ans = max(ans,lans);
+//    DEBUG(lans);
+
+
+    //bwd fwd
+    for(int i=n;i>=2;i--){
+        int cnt = n-i+1;
+        cur = spent[1] + bwd[i] + (long long)a*2LL*cnt;
+        if(cur > t) continue;
+        //DEBUG(cur);
+        lli rem = t - cur;
+        lans = cnt + 1;
+        lans += getFwd(2,i-1,rem,a);
+        ans = max(ans,lans);
+    }
+
+    //fwd bwd
+    for(int i=2;i<=n;i++){
+        int cnt = i-1;
+        cur = fwd[i] + (long long)a*2LL*cnt;
+        if(cur > t) continue;
+        //DEBUG(cur);
+        lli rem = t - cur;
+        lans = cnt + 1;
+        lans += getBwd(n,i+1,rem,a);
+        ans = max(ans,lans);
+    }
+
+    cout<<ans<<endl;
+    return 0;
+}

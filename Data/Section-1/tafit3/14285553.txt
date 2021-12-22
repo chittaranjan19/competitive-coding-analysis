@@ -1,0 +1,278 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class ProblemE {
+    BufferedReader rd;
+    Map<Integer, Res> byCoords = new HashMap<>();
+    int[][] off = new int[10][];
+    int[][] c;
+    int n,m;
+    List<Res> loops = new ArrayList<>();
+    List<Res> starting = new ArrayList<>();
+
+    ProblemE() throws IOException {
+        rd = new BufferedReader(new InputStreamReader(System.in));
+        compute();
+    }
+
+    private void compute() throws IOException {
+        int[] a = intarr();
+        n = a[0];
+        m = a[1];
+        int q = a[2];
+        c = new int[n][m];
+        for(int i=0;i<n;i++) {
+            char[] d = rd.readLine().toCharArray();
+            for(int j=0;j<m;j++) {
+                c[i][j] = d[j]-'0';
+            }
+        }
+        for(int i=0;i<10;i++) {
+            off[i] = intarr();
+        }
+
+        for(int i=0;i<n;i++) {
+            for(int j=0;j<m;j++) {
+                compute(i,j);
+            }
+        }
+        for(int i=0;i<n;i++) {
+            for(int j=0;j<m;j++) {
+                Res res = compute(i,j);
+                Res next = res.next;
+                if(next != null && next.first) {
+                    next.first = false;
+                    while (next != null) {
+                        next = next.next;
+                        if(next != null) {
+                            if(next.first) {
+                                next.first = false;
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        for(int i=0;i<n;i++) {
+            for(int j=0;j<m;j++) {
+                Res res = compute(i,j);
+                if(res.first) {
+                    starting.add(res);
+                }
+            }
+        }
+        for(int i=0;i<q;i++) {
+            char[] d = rd.readLine().toCharArray();
+            int s = d.length;
+            int[] dg = new int[s];
+            for(int j=0;j<s;j++) {
+                dg[j] = d[j]-'0';
+            }
+            int pos = s-1;
+            int lastDig = 1<<dg[s-1];
+            boolean ok = false;
+            for(Res loop: loops) {
+                if((loop.k & lastDig) > 0) {
+                    pos--;
+                    while(pos >= 0) {
+                        int dig = 1<<dg[pos];
+                        if((loop.k & dig) > 0) {
+                            pos--;
+                        } else {
+                            break;
+                        }
+                    }
+                    if(pos < 0) {
+                        ok = true;
+                        break;
+                    }
+                    ok = check(loop, dg, pos);
+                    if(ok) {
+                        break;
+                    }
+                }
+            }
+            out(ok?"YES":"NO");
+        }
+    }
+
+    private boolean check(Res loop, int[] df, int s) {
+        for(Res cur: starting) {
+            if(cur.ref == loop) {
+                Res res = cur;
+                int pos = 0;
+                while(pos < s && res.next != null) {
+                    if(res.k == df[pos]) {
+                        pos++;
+                    }
+                    res = res.next;
+                }
+                if(pos == s) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private Res compute(int x, int y) {
+        int key = pr(x,y);
+        Res res = byCoords.get(key);
+        if(res == null) {
+            Set<Integer> visited = new HashSet<>();
+            visited.add(key);
+            int cx = x;
+            int cy = y;
+            Res loop = new Res();
+            loops.add(loop);
+            while(true) {
+                int digit = c[x][y];
+                int nx = x + off[digit][0];
+                int ny = y + off[digit][1];
+                if(nx >= 0 && nx < n && ny >= 0 && ny < m) {
+                    int k2 = pr(nx,ny);
+                    if(visited.add(k2)) {
+                        x = nx;
+                        y = ny;
+                    } else {
+                        closeLoop(nx,ny,k2,loop);
+                        break;
+                    }
+                } else {
+                    loop.k = 1<<digit;
+                    byCoords.put(pr(x,y), loop);
+                    break;
+                }
+            }
+            x = cx;
+            y = cy;
+            Res last = null;
+            while(true) {
+                Res rs = byCoords.get(pr(x,y));
+                if(rs != null) {
+                    break;
+                }
+                int digit = c[x][y];
+                Res rt = new Res();
+                rt.k = digit;
+                rt.ref = loop;
+                if(last != null) {
+                    last.next = rt;
+                }
+                last = rt;
+                x += off[digit][0];
+                y += off[digit][1];
+            }
+            res = byCoords.get(key);
+        }
+        return res;
+    }
+
+    private void closeLoop(int cx, int cy, int k, Res loop) {
+        Set<Integer> vis2 = new HashSet<>();
+        vis2.add(k);
+        byCoords.put(k, loop);
+        int x = cx;
+        int y = cy;
+        while(true) {
+            int dig2 = c[x][y];
+            loop.k |= 1<<dig2;
+            int nx = x + off[dig2][0];
+            int ny = y + off[dig2][1];
+            int k2 = pr(nx,ny);
+            if(vis2.add(k2)) {
+                byCoords.put(k2, loop);
+                x = nx;
+                y = ny;
+            } else {
+                break;
+            }
+        }
+    }
+
+    private class Res {
+        Res next;
+        Res ref;
+        boolean first = true;
+        int k;
+    }
+
+    private int pr(int x, int y) {
+        return (x << 16) + y;
+    }
+
+    private int[] intarr() throws IOException {
+        return intarr(rd.readLine());
+    }
+
+    private int[] intarr(String s) {
+        String[] q = split(s);
+        int n = q.length;
+        int[] a = new int[n];
+        for(int i=0;i<n;i++) {
+            a[i] = Integer.parseInt(q[i]);
+        }
+        return a;
+    }
+
+    public String[] split(String s) {
+        if(s == null) {
+            return new String[0];
+        }
+        int n = s.length();
+        int start = -1;
+        int end = 0;
+        int sp = 0;
+        boolean lastWhitespace = true;
+        for(int i=0;i<n;i++) {
+            char c = s.charAt(i);
+            if(isWhitespace(c)) {
+                lastWhitespace = true;
+            } else {
+                if(lastWhitespace) {
+                    sp++;
+                }
+                if(start == -1) {
+                    start = i;
+                }
+                end = i;
+                lastWhitespace = false;
+            }
+        }
+        if(start == -1) {
+            return new String[0];
+        }
+        String[] res = new String[sp];
+        int last = start;
+        int x = 0;
+        lastWhitespace = true;
+        for(int i=start;i<=end;i++) {
+            char c = s.charAt(i);
+            boolean w = isWhitespace(c);
+            if(w && !lastWhitespace) {
+                res[x++] = s.substring(last,i);
+            } else if(!w && lastWhitespace) {
+                last = i;
+            }
+            lastWhitespace = w;
+        }
+        res[x] = s.substring(last,end+1);
+        return res;
+    }
+
+    private boolean isWhitespace(char c) {
+        return c==' ' || c=='\t';
+    }
+
+    private static void out(Object x) {
+        System.out.println(x);
+    }
+
+    public static void main(String[] args) throws IOException {
+        new ProblemE();
+    }
+}

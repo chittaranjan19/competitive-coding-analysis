@@ -1,0 +1,126 @@
+//Codeforces Beta Round #14 (Div. 2)
+
+#include <cstdio>
+#include <iostream>
+#include <list>
+#include <algorithm>
+
+#define MAXN 100010
+
+using namespace std;
+
+struct nodo {
+	short num, color, d, f, p, dist, ndist;
+	nodo (){  }
+	nodo( short _num, short _color, short _p, short _d, short _f, short _dist, short _ndist )
+	{ num = _num; color = _color; d = _d; f = _f; p = _p; dist = _dist; ndist = _ndist; }
+	//Los dos últimos atributos del nodo son adicionales, para hallar el nodo más distante y la distancia, desde el actual
+};
+
+class Grafo {
+public:
+	short n, m, tiempo, iniD, finD; //n nodos, m aristas
+	Grafo( short n, short m ): n(n), m(m){};
+
+	list <short> Adj[MAXN];//list estático de lists
+	nodo V[MAXN];
+	void insertar(short u, short v){
+		Adj[u].push_back(v);
+		Adj[v].push_back(u);
+	}
+
+	void DFS_Visit( short u ){
+		tiempo += 1;
+		V[u].d = tiempo;
+		//cout<<"Hemos encontrado el nodo "<<u<<" en tiempo = "<<tiempo<<endl;
+		V[u].color = 'G';
+		for( list<short>::iterator it=Adj[u].begin(); it!=Adj[u].end(); it++ ){
+			if( V[*it].color == 'W' ){
+				V[*it].p = u;
+				DFS_Visit(*it);
+			}
+		}
+		V[u].color = 'B';
+		tiempo += 1;
+		V[u].f = tiempo;
+		//Líneas adicionales para hallar el nodo más distante a u y la distancia a ese nodo
+		if( V[u].dist + 1 > V[V[u].p].dist ){
+			V[V[u].p].dist = V[u].dist + 1;
+			V[V[u].p].ndist = V[u].ndist;
+		}
+	}
+	void DFS( short u ){
+		//Inicializar el Grafo
+		for( short i=1; i<=n; i++ ) V[i] = nodo(i, 'W', 0, 0, -1, 0, i);
+
+		//Recorriendo los vértices del Grafo
+		tiempo = 0;
+		for( short i=u; i<=n; i++ )
+			if( V[i].color == 'W' ) DFS_Visit(i);
+		if( u > 1 )
+		for( short i=1; i<u; i++ )
+			if( V[i].color == 'W' ) DFS_Visit(i);
+	}
+	short hallar_diametro( short u ){
+		DFS(u);
+		finD = V[u].ndist;
+		DFS( finD ); iniD = V[finD].ndist;
+		return V[finD].dist;
+	}
+
+	void mostrarAdj(){
+		cout<<"Lista de Adjacencia:"<<endl;
+		list <short>::iterator it;
+		for (short i = 1; i <= n; i++) {
+			cout<<i<<": ";
+			for( it = Adj[i].begin(); it != Adj[i].end() ; it++ ){
+				cout<<*it<<" ";
+			} cout<<endl;
+		}
+	}
+
+	list<short>::iterator puntero(short u, short v){
+		list<short>::iterator it = Adj[u].begin();
+		while( *it != v ){ it++; }
+		return it;
+	}
+
+	void mostrarFila(short u){
+		cout<<"Mostar fila "<<u<<endl;
+		list<short>::iterator it = Adj[u].begin();
+		while( it != Adj[u].end() ){ cout<<*it<<" "; it++; } cout<<endl;
+	}
+
+};
+
+int main(){
+	short n, m, u, v;
+	list <short>::iterator k, j, k1, k2, k3, aux, it1, it2;
+	scanf("%hd", &n);//Vértices
+	m = n-1;
+	Grafo G = Grafo(n, m);
+	for ( short i = 0; i < m; i++ ) {
+		scanf("%hd %hd", &u, &v);
+		G.insertar(u, v);
+	}
+
+	short maxG = 0;
+	for( short u = 1; u <= n; u++ ) {//Recorriendo todos los vértices
+		aux = G.Adj[u].end();
+		for( k=G.Adj[u].begin() ; k!=G.Adj[u].end() ; k++ ){//Recorriendo la lista de adyacencia de ese vértice
+			v = *k;
+			if( u < v ){//Este if es para no repetir el proceso sobre una arista ya analizada
+				G.Adj[u].erase(k); k++;
+				it1 = G.puntero(v, u);
+				G.Adj[v].erase(it1); it1++;
+				short d1 = G.hallar_diametro(u);
+				short d2 = G.hallar_diametro(v);
+				if( d1 * d2 > maxG ) maxG = d1 * d2;
+				k = G.Adj[u].insert(k, v);
+				G.Adj[v].insert(it1, u);
+			}
+		}
+	}
+	printf("%hd\n", maxG );
+	return 0;
+}
